@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import {createServer} from 'vite';
+import {execFileSync} from 'node:child_process';
+import {createRequire} from 'node:module';
+import {dirname,join} from 'node:path';
+import {realpathSync,mkdirSync} from 'node:fs';
+const require=createRequire(import.meta.url),cli=realpathSync(execFileSync('npm',['exec','--yes','--package=playwright@1.56.1','--','which','playwright'],{encoding:'utf8'}).trim()),pw=require(join(dirname(dirname(cli)),'playwright'));
+if(process.env.GITHUB_ACTIONS==='true')execFileSync('node',[cli,'install','chromium'],{stdio:'inherit',timeout:240000});
+process.env.VITE_WORKER_SAME_ORIGIN_PATH='/__qa-worker';
+const now=new Date(),baseDate=Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate(),12),base=baseDate>Date.now()?baseDate-86400000:baseDate,leads=[0,12,24,36,48,60,72,96,120,144,168];
+const payload={schema:'mid.dwd.weather-regimes.v1',available:true,analysisAt:new Date(base).toISOString(),checkedAt:new Date().toISOString(),sourceSha256:'1'.repeat(64),sourceUrl:'https://www.dwd.de/DE/leistungen/wetterlagenklassifikation/online_wlkvorhersage.txt?view=nasPublication&nn=16102',frames:leads.map((leadHours,index)=>({leadHours,validAt:new Date(base+leadHours*3600000).toISOString(),classId:index===3?null:index<6?23:34,code:index===3?null:index<6?'SOZAT':'SWZZT'}))};
+const server=await createServer({cacheDir:join(process.cwd(),'node_modules/.vite-regime-qa'),server:{host:'127.0.0.1',port:0,hmr:false,watch:null},plugins:[{name:'regime-fixture',configureServer(vite){vite.middlewares.use('/__regime-qa',async(req,res)=>{res.setHeader('Content-Type','text/html');res.end(await vite.transformIndexHtml('/__regime-qa','<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;padding:12px;font:14px system-ui}main{max-width:1100px;margin:auto;min-width:0}button,select{font:inherit;min-height:44px}*{box-sizing:border-box}</style></head><body><div id="root"></div><script type="module" src="/scripts/fixtures/weather-regime-browser.tsx"></script></body></html>'))});vite.middlewares.use('/__qa-worker',(req,res)=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify(payload))})}}]});
+await server.listen();const url=`http://127.0.0.1:${server.httpServer.address().port}/__regime-qa`,browser=await pw.chromium.launch({headless:true,args:['--no-sandbox']});
+let cases=0;const out='/tmp/mid-c438-weather-regimes';mkdirSync(out,{recursive:true});
+try{for(const width of [320,390,768,844,1024,1440])for(const theme of ['light','dark']){
+ const context=await browser.newContext({viewport:{width,height:900},colorScheme:theme}),page=await context.newPage();let requests=0;
+ await page.route('**/*',route=>{const requestUrl=new URL(route.request().url());if(requestUrl.pathname==='/__qa-worker')requests++;return requestUrl.origin===new URL(url).origin?route.continue():route.abort()});
+ await page.goto(url);await page.getByRole('button',{name:'Erweiterte Ansicht'}).waitFor();assert.equal(requests,0,'Basic mode makes no regime request');assert.equal(await page.getByRole('region',{name:'Großräumige Wetterlagen'}).count(),0);
+ await page.getByRole('button',{name:'Erweiterte Ansicht'}).click();await page.getByRole('list',{name:'DWD-Wetterlagenvorhersage'}).waitFor();assert.equal(requests,1);assert.ok(await page.getByRole('listitem').count()>=9);assert.match(await page.getByRole('region',{name:'Großräumige Wetterlagen'}).innerText(),/Nicht verfügbar/,'Missing category stays visibly missing');
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'No page overflow at '+width+' '+theme);
+ const timeline=page.locator('.weather-regime-timeline'),geometry=await timeline.evaluate(el=>({client:el.clientWidth,scroll:el.scrollWidth}));if(width<1024)assert.ok(geometry.scroll>geometry.client,'Forecast cells scroll inside their own timeline');
+ const summary=page.getByText('Einordnung',{exact:true}).first(),target=await summary.boundingBox();assert.ok(target.height>=44,'Details retain a 44px target');await summary.focus();await page.keyboard.press('Enter');assert.match(await page.getByRole('listitem').first().innerText(),/950 hPa/);
+ await page.screenshot({path:join(out,`${width}-${theme}.png`),fullPage:true});
+ await page.getByLabel('Testregion').selectOption('FR');assert.equal(await page.getByRole('list',{name:'DWD-Wetterlagenvorhersage'}).count(),0);assert.equal(requests,1,'No DWD transport for a different circulation scope');await page.getByText('ECMWF-Regime · Ausblick bis etwa 6 Wochen',{exact:true}).click();assert.equal(await page.getByRole('link',{name:'Offizielle Regimegrafik mit Vorhersagen öffnen'}).getAttribute('href'),'https://charts.ecmwf.int/products/extended-regime-probabilities?forecast_from=latest');
+ await page.getByLabel('Testregion').selectOption('JP');assert.equal(await page.getByRole('region',{name:'Großräumige Wetterlagen'}).count(),0,'No Euro-Atlantic claims for a Pacific favorite');assert.equal(requests,1);await context.close();cases++;
+}console.log(`${cases} weather-regime browser cases passed: advanced-only network, region, native leads, missing data, touch, keyboard, themes and overflow.`)}finally{await browser.close();await server.close()}

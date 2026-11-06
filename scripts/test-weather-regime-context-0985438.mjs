@@ -1,0 +1,50 @@
+import assert from 'node:assert/strict';
+import {readFileSync,mkdtempSync,rmSync,writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {build} from 'esbuild';
+import {createRequire} from 'node:module';
+import {webcrypto,createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
+import {runInNewContext} from 'node:vm';
+const read=path=>readFileSync(path,'utf8'),ts=createRequire(import.meta.url)('typescript-strada');
+const source=read('worker-src/20-composite-models.js'),ast=ts.createSourceFile('worker.js',source,ts.ScriptTarget.Latest,true);
+const names=new Set(['DWD_WEATHER_REGIME_URL','DWD_WEATHER_REGIME_LEADS','dwdWeatherRegimeMemory','dwdWeatherRegimeCode','parseDwdWeatherRegimes','dwdWeatherRegimeData']);
+const selected=ast.statements.filter(node=>names.has(node.name?.text)||ts.isVariableStatement(node)&&node.declarationList.declarations.some(d=>names.has(d.name?.text))).map(node=>node.getText(ast)).join('\n');
+let now=Date.parse('2026-11-06T06:00:00Z'),calls=0,fail=false,body='';
+class Clock extends Date{static now(){return now}}
+const sandbox={Date:Clock,crypto:webcrypto,TextEncoder,WORKER_VERSION:'test',fetchWithDeadline:async(url,options)=>{calls++;assert.match(url,/^https:\/\/www\.dwd\.de\//);assert.equal(options.cf.cacheTtl,3600);if(fail)throw Error('offline');return new Response(body,{headers:{'content-type':'text/plain;charset=UTF-8'}})}};
+runInNewContext(selected+'\nglobalThis.api={parseDwdWeatherRegimes,dwdWeatherRegimeCode,dwdWeatherRegimeData};',sandbox);
+const api=sandbox.api,leads=[0,12,24,36,48,60,72,96,120,144,168];
+const line=(date='20261105',classes=leads.map(()=>23))=>`${date} ${classes.map(id=>id===null?'-- -----':`${id} ${api.dwdWeatherRegimeCode(id)}`).join(' ')}`;
+const fixture=line();body=fixture;
+const liveSample=api.parseDwdWeatherRegimes(read('docs/implementation/c438/dwd-wlk-20261105.txt'),now);assert.equal(liveSample.frames.at(-1).classId,9);assert.equal(liveSample.frames.at(-1).code,'SWAAF');
+const data=api.parseDwdWeatherRegimes(fixture,now);data.sourceSha256=createHash('sha256').update(fixture).digest('hex');
+assert.equal(data.analysisAt,'2026-11-05T12:00:00.000Z');assert.equal(data.frames.length,11);assert.equal(data.frames.at(-1).validAt,'2026-11-12T12:00:00.000Z');
+const original=JSON.parse(read('docs/implementation/c438/dwd-wlk-original-class-pairs.json'));assert.equal(original.classes.length,40);for(const row of original.classes)assert.equal(api.dwdWeatherRegimeCode(row.classId),row.code,'Original DWD pair '+row.classId);
+assert.equal(api.dwdWeatherRegimeCode(1),'XXAAT');assert.equal(api.dwdWeatherRegimeCode(23),'SOZAT');assert.equal(api.dwdWeatherRegimeCode(40),'NWZZF');
+for(const id of [0,41,NaN,1.5,null,'23'])assert.equal(api.dwdWeatherRegimeCode(id),null);
+assert.equal(api.parseDwdWeatherRegimes(line('20261105',[null,...Array(10).fill(23)]),now).frames[0].classId,null);
+for(const bad of [line('20261101'),line('20261107'),line('20260230'),fixture.replace('23 SOZAT','23 SOZZF'),fixture.replace('23 SOZAT','0 XXAAT'),'<!DOCTYPE html>blocked',fixture+' extra'])assert.throws(()=>api.parseDwdWeatherRegimes(bad,now));
+assert.throws(()=>api.parseDwdWeatherRegimes('x'.repeat(4000001),now));
+const pair=await Promise.all([api.dwdWeatherRegimeData(),api.dwdWeatherRegimeData()]);assert.equal(calls,1,'Coalesce parallel requests for one global regional index');assert.equal(pair[0].sourceSha256,createHash('sha256').update(fixture).digest('hex'));await api.dwdWeatherRegimeData();assert.equal(calls,1,'Reuse successful one-hour cache');
+now+=3600001;fail=true;await assert.rejects(api.dwdWeatherRegimeData(),/offline/);fail=false;await api.dwdWeatherRegimeData();assert.equal(calls,3,'Failed refresh is not cached and must recover');
+now=Date.parse('2026-11-07T11:50:00Z');await api.dwdWeatherRegimeData();now=Date.parse('2026-11-07T12:10:00Z');await assert.rejects(api.dwdWeatherRegimeData(),/freshness/,'Warm cache must not exceed the source-age ceiling');
+const temp=mkdtempSync(join(tmpdir(),'mid-regime-'));
+try{
+ const file=join(temp,'data.mjs');await build({entryPoints:['src/weatherRegimeContext.ts'],outfile:file,bundle:true,platform:'node',format:'esm',logLevel:'silent'});const m=await import(file);
+ for(let id=1;id<=40;id++)assert.ok(m.dwdRegimeDescription(id,api.dwdWeatherRegimeCode(id)),'Independent frontend decoder matches original class '+id);
+ assert.equal(m.dwdRegimeDescription(23,'SOZZF'),null);
+ assert.equal(m.weatherRegimeRegion({latitude:52.5,longitude:13.4,country_code:'DE'}),'dwd');
+ assert.equal(m.weatherRegimeRegion({latitude:48.8,longitude:2.3,country_code:'FR'}),'euro-atlantic');
+ assert.equal(m.weatherRegimeRegion({latitude:35.7,longitude:139.7,country_code:'JP'}),null);
+ assert.equal(m.weatherRegimeRegion({latitude:NaN,longitude:13,country_code:'DE'}),null);
+ assert.equal(m.validateDwdRegimes(data,Date.parse('2026-11-06T06:00:00Z')),data);
+ for(const patch of [{sourceUrl:'https://example.invalid/unverified'},{sourceSha256:'bad'},{analysisAt:'2026-11-01T12:00:00Z'},{frames:data.frames.slice(1)},{frames:data.frames.map((f,i)=>i===2?{...f,validAt:data.frames[1].validAt}:f)},{frames:data.frames.map(f=>({...f,classId:0}))}])assert.throws(()=>m.validateDwdRegimes({...data,...patch},Date.parse('2026-11-06T06:00:00Z')));
+ const panel=read('src/LongRangePanel.tsx');assert.match(panel,/advancedMode&&<Suspense[^>]*><LazyWeatherRegimePanel/,'Only expanded view mounts the new network consumer');assert.match(panel,/lazy\(\(\)=>import\('\.\/WeatherRegimePanel'\)\)/);
+ const client=read('src/WeatherRegimePanel.tsx');assert.match(client,/region!=='dwd'/,'No DWD fetch for unrelated favorites');assert.doesNotMatch(client,/<iframe|charts\.ecmwf\.int\/streaming/,'Do not hotlink ephemeral charts or pretend they are numeric data');assert.match(client,/Regionalindex, keine Ortsprognose/);
+ const css=read('src/mapCanvasResponsive.css');assert.match(css,/maplibregl-canvas:focus:not\(:focus-visible\)/);assert.match(css,/maplibregl-canvas:focus-visible\{outline:2px/,'Keyboard map focus remains visible');
+ console.log('MID .438: all40 WLK classes, exact UTC leads, missing/stale/corrupt data, cache recovery, regional/advanced gating and quiet pointer frame passed.');
+}finally{rmSync(temp,{recursive:true,force:true})}
+
+if(process.env.GITHUB_ACTIONS==='true')execFileSync(process.execPath,['scripts/verify-weather-regime-browser-0985438.mjs'],{stdio:'inherit',timeout:180000});

@@ -136,6 +136,10 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  const iconColors=await page.locator('.composite-switch-icon svg').evaluateAll(nodes=>nodes.map(el=>getComputedStyle(el).color));assert.ok(iconColors.every(c=>!['rgb(255, 255, 255)','rgba(0, 0, 0, 0)'].includes(c)),'Icons retain theme foreground');
  assert.equal(layerGrid.display,'grid','Layer controls override the legacy mobile horizontal scroller');assert.equal(layerGrid.overflow,false,'No horizontally clipped layer switches');
  for(const box of await page.locator('.composite-layer-switches button').evaluateAll(nodes=>nodes.map(el=>({height:el.getBoundingClientRect().height,overflow:el.scrollWidth>el.clientWidth+1})))){assert.ok(box.height>=44);assert.equal(box.overflow,false)}
+ // Pointer input must not leave a bright frame; keyboard focus stays explicit.
+ const mapCanvas=page.locator('canvas.maplibregl-canvas');await page.getByRole('heading',{name:'Wetterkarte',exact:true}).click();await mapCanvas.focus();
+ assert.equal(await mapCanvas.evaluate(el=>getComputedStyle(el).outlineStyle),'none','Pointer focus must not frame the radar image');
+ await page.keyboard.press('Tab');await mapCanvas.focus();assert.equal(await mapCanvas.evaluate(el=>getComputedStyle(el).outlineWidth),'2px','Keyboard map focus remains visible');
  assert.equal(await page.locator('.maplibregl-map').count(),1,'All layer combinations share one map');assert.equal(await page.locator('.map-workspace-tabs').count(),0);assert.equal(await page.locator('.composite-view-tabs').count(),0);
  assert.ok(!requests.some(u=>/precipitation-totals.json|observed-precipitation.json/.test(u)),'Heavy totals are only loaded on demand');
  assert.equal(await page.locator('canvas.model-map-context').count(),0,'No second schematic geography');

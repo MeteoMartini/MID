@@ -53,5 +53,5 @@ export function shortTermSignificantBrief(chartSlots:readonly WeatherBriefSlot[]
   knownAmount(row.point)&&typeof row.point.gust==='number'&&Number.isFinite(row.point.gust)&&row.point.gust>=0&&
   row.end-row.start<=HOUR_MS+1000&&(index===0||Math.abs(row.start-rows[index-1].end)<=1000)
  );
- return complete24h?'Keine markanten Wetterereignisse in den nächsten 24 Stunden.':'Keine markanten Signale in den vorliegenden Kurzfristdaten; 24-Stunden-Abdeckung unvollständig.';
+ return complete24h?'Keine markanten Wetterereignisse in den nächsten 24 Stunden.':'Keine markanten Signale in den verfügbaren Daten.';
 }
