@@ -203,7 +203,7 @@ export function CanvasOverlay({id,opacity=1,zIndex=5,render,events=['moveend','z
  useEffect(()=>{if(canvasRef.current)canvasRef.current.style.opacity=String(Math.max(0,Math.min(1,opacity)))},[opacity]);return null;
 }
 
-export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='linear',onError}:{id:string;url:string;bounds:[[number,number],[number,number]];opacity?:number;zIndex?:number;resampling?:'linear'|'nearest';onError?:(message:string)=>void}){
+export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='linear',onReady,onError}:{id:string;url:string;bounds:[[number,number],[number,number]];opacity?:number;zIndex?:number;resampling?:'linear'|'nearest';onReady?:()=>void;onError?:(message:string)=>void}){
  const map=useMidMap(),south=bounds[0][0],west=bounds[0][1],north=bounds[1][0],east=bounds[1][1],errorRef=useRef(onError),opacityRef=useRef(opacity),sequence=useRef(0),animation=useRef(0),fadeUntil=useRef(0),frames=useRef<{source:string;layer:string;weight:number}[]>([]);errorRef.current=onError;opacityRef.current=opacity;
  const remove=(frame:{source:string;layer:string})=>{if(!map)return;unregisterMapLayerOrder(map,frame.layer);try{if(map.getLayer(frame.layer))map.removeLayer(frame.layer);if(map.getSource(frame.source))map.removeSource(frame.source)}catch{}};
  useEffect(()=>()=>{cancelAnimationFrame(animation.current);fadeUntil.current=0;for(const frame of frames.current)remove(frame);frames.current=[]},[map,id]);
@@ -213,6 +213,8 @@ export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='lin
   let staged:{source:string;layer:string}|null=null;
   let readiness:(()=>void)|null=null,sourceError:((event:maplibregl.ErrorEvent)=>void)|null=null;
   const generation=++sequence.current,image=new Image();
+  // Capture this URL's ready callback; a newer selected term must not relabel an older fade.
+  const onDisplayed=onReady;
   const releaseStaging=()=>{
    if(readiness){map.off('render',readiness);readiness=null}
    if(sourceError){map.off('error',sourceError);sourceError=null}
@@ -236,7 +238,7 @@ export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='lin
     next.weight=t;map.setPaintProperty(layer,'raster-opacity',t*opacityRef.current);
     if(previous&&map.getLayer(previous.layer)){previous.weight=1-t;map.setPaintProperty(previous.layer,'raster-opacity',(1-t)*opacityRef.current)}
     if(t<1)animation.current=requestAnimationFrame(fade);
-    else{if(previous)remove(previous);frames.current=[next];fadeUntil.current=0}
+    else{if(previous)remove(previous);frames.current=[next];fadeUntil.current=0;onDisplayed?.()}
    };
    animation.current=requestAnimationFrame(fade);
   };
