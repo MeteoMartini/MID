@@ -1,0 +1,109 @@
+name: MID RUC P1 genuine original GRIB EPS20 value pilot (read-only)
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'tools/ruc/ruc_p1_original_native_values_probe.py'
+      - 'tools/ruc/test_ruc_p1_original_native_values_probe.py'
+      - 'ci/github/workflows/mid-ruc-p1-original-values-pilot.yml'
+      - '.github/workflows/mid-ruc-p1-original-values-pilot.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: mid-ruc-p1-native-values-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  original-values:
+    name: Original DWD +27h/20EPS and rapid native full values (no publication)
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       (startsWith(github.head_ref, 'chatgpt/v') || startsWith(github.head_ref, 'codex/v')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: SHA-bound source without credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || 'mid-stable' }}
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Require current matching Stable/Main ancestor and exact mirrors
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmp ci/github/workflows/mid-ruc-p1-original-values-pilot.yml .github/workflows/mid-ruc-p1-original-values-pilot.yml
+          actual="$(git rev-parse HEAD)"
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then test "$actual" = "$EXPECTED_HEAD"; fi
+          main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          test "$main" = "$stable"
+          git merge-base --is-ancestor "$stable" HEAD
+          echo "Source SHA $actual; Stable $stable; no secrets or production writes."
+      - name: Python 3.12 / stable RUC dependencies
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Original EPS20 bitmap/zero/lead/member hostile tests
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+          python tools/ruc/test_ruc_p1_original_native_values_probe.py -v
+      - name: Select last already published completed run (selector only)
+        id: model
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,re,urllib.request
+          from datetime import datetime,timezone,timedelta
+          url='https://midwx.app/ruc/latest.json'
+          req=urllib.request.Request(url,headers={'Cache-Control':'no-cache','User-Agent':'MID-P1-original-value-readonly/1'})
+          with urllib.request.urlopen(req,timeout=25) as response:
+              if response.status!=200:raise SystemExit('Pages selector HTTP error')
+              raw=response.read(3000001)
+          if len(raw)>3000000:raise SystemExit('Pages selector over budget')
+          obj=json.loads(raw)
+          run=obj.get('run')
+          if not isinstance(run,str) or not re.fullmatch(r'20\d{2}-\d{2}-\d{2}T\d{2}:00',run):
+              raise SystemExit('untrusted selector run')
+          if obj.get('pointCount')!=542040 or obj.get('eps',{}).get('memberCount')!=20 or len(obj.get('deterministic',{}).get('times',[]))!=28 or len(obj.get('eps',{}).get('times',[]))!=28:
+              raise SystemExit('selector lacks native 27h/20 EPS')
+          age=datetime.now(timezone.utc)-datetime.strptime(run,'%Y-%m-%dT%H:%M').replace(tzinfo=timezone.utc)
+          if not timedelta(0)<=age<=timedelta(hours=24):raise SystemExit('selector stale/future')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as dest:dest.write('run='+run+'\n')
+          print('Source run',run,'is a selector, NOT evidence of original DWD values')
+          PY
+      - name: Decode original +27h native GRIB, EPS20 and 5/15min field values
+        env:
+          SOURCE_RUN: ${{ steps.model.outputs.run }}
+        run: |
+          set -euo pipefail
+          python tools/ruc/ruc_p1_original_native_values_probe.py \
+            --run "$SOURCE_RUN" --hours 27 --rapid-hours 6 \
+            --output "original-dwd-values-${{ github.run_id }}-${{ github.run_attempt }}.json"
+          python - <<'PY'
+          import glob,json
+          obj=json.load(open(glob.glob('original-dwd-values-*.json')[0]))
+          assert obj['everyRequestedOriginalValueAndBitmapVerified'] is True
+          assert obj['everyRequestedEps20MemberAndLeadVerified'] is True
+          assert obj['originalFilesVerified'] >= 1000
+          assert obj['full27hOriginalScopeVerified'] is True
+          assert not obj['full168hObserved']
+          assert not obj['firstDwdPublicationInstantVerified']
+          assert not obj['productionSloAuthorized']
+          assert not obj['publicationAuthorized']
+          PY
+          echo "Read-only genuine native +27h/20EPS plus 5/15min values; NOT 168h history, NOT exact DWD first-publication, NOT client P95 or production permission." >> "$GITHUB_STEP_SUMMARY"
+      - name: Archive bounded per-file SHA/bitmap summary, never original raw weather cells
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-ruc-original-p1-value-audit-${{ github.run_id }}-${{ github.run_attempt }}
+          path: original-dwd-values-*.json
+          retention-days: 7
+          if-no-files-found: ignore
