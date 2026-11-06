@@ -1,3 +1,7 @@
+# MID v0.9.85.440 · Zuverlässige automatische Browserrevision
+
+Die automatische Qualitätsrevision wird auf eine nachweislich mit Playwright kompatible Browserprüfumgebung umgestellt. Alle vorhandenen UI-, Karten-, Wetter- und Sicherheitstests bleiben verpflichtend; an Wetterdaten und Vorhersagen ändert sich nichts.
+
 # MID v0.9.85.439 · Gleichmäßige Kartenübergänge und markante Gefrierpunktachsen
 
 Wolken- und Signifikantwetterkarten behalten beim Wechsel desselben Modells über einen neuen Lauf den letzten geprüften Frame, bis der neue Frame bereitsteht. Die angezeigte Vorlaufzeit folgt dem tatsächlich sichtbaren Wetterfeld. Temperaturdiagramme heben die 0-Grad-Referenz und ihre Achsenbeschriftung deutlicher hervor.
