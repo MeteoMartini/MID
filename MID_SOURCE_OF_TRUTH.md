@@ -1,3 +1,7 @@
+# MID v0.9.85.444 · begrenzter Copilot-Handoff
+
+Basis main=mid-stable .443 fda79a1683ec78cdf602416b2a5486a9f9512a9a. PR679 transportiert ausschließlich den SHA-fixierten AP1b-Kandidaten über Gitobjekte und Issue; lesender automatischer Empfang mit Stable-Checkout, vollständiger Tree-/Blob-/Absenderprüfung, keine Ausführung fremden Codes. Kein neuer Token, keine Rechteausweitung oder Releaseumgehung. Kandidat/Original-Patch und drei DWD-Läufe weiterhin nicht eingegangen bzw. NOT VERIFIED. Technischer Nachweis docs/implementation/MID_COPILOT_HANDOFF_2026_11_07.md. Veröffentlichung ausschließlich nach vollständigem Source-/Bot-/Installer-/Worker-/Pages-/Stable-Pfad.
+
 # MID v0.9.85.443 · Copilot-Anweisungen
 
 Selektive Integration der elf Dokumentationsdateien aus PR673 @99b4882edfb89fe7e23d2f999bc8f71b7e1a178f auf bestätigter .442 da169558948f8fe9d5073a1a60efd5eafbf01eea. Keine zusätzlichen Rechte oder Workflows. Vollständige reguläre Source-/Installer-Gates bleiben zwingend. Copilot-Laufzeitpilot nicht verifiziert.

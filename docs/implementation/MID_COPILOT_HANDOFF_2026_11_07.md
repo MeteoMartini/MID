@@ -28,3 +28,7 @@ This package does **not** provide remote control of an already open Copilot Chat
 ## Verification
 
 Run `node scripts/test-mid-copilot-handoff.mjs`, existing Kilo handoff regression and workflow mirror validation. Negative cases cover forged ID/login, malformed/closed/PR issues, wrong task/base/tree/parents, truncated/duplicate/extra paths, modes, blob bytes/sizes and invalid source. No candidate code or external network is used in these unit tests. The normal full source/installer gates remain required and are not claimed by this package.
+
+## Release integration v0.9.85.444
+
+PR679 is prepared for the normal source-first release on unchanged Stable .443. All version mirrors and user/technical changelogs are synchronized. Reproducible npm ci, the focused sender/receiver/Kilo tests, version/registry/write-contract and Actions-runtime checks passed under Node 22.16.0; the production TypeScript/Vite build passed. Full independent Source/Installer gates, runtime receipt and real DWD evidence are still required. The inline AP1b patch supplied during this work is separate untrusted input and does not become part of this transport release without its own exact blob/tree review.
