@@ -13,7 +13,9 @@ for(const token of [
  'centerX=centers[index]',
  'function EnsembleTemperatureVerticalGrid',
  '<EnsembleTemperatureVerticalGrid data={data}',
- 'allowDecimals={false} allowDataOverflow tickLine'
+ 'allowDecimals={false} allowDataOverflow tickLine',
+ 'axisTicks=minV<=0&&maxV>=0',
+ "strokeWidth={value===0?1.9:1}"
 ])if(!panel.includes(token))failures.push(`Achsvermessung fehlt: ${token}`);
 for(const obsolete of ['cellX=plotLeft+(slotIndex/dayCount)*plotWidth','centerX=plotLeft+((slotIndex+.5)/dayCount)*plotWidth'])if(panel.includes(obsolete))failures.push(`Veraltete theoretische Wetterband-Geometrie vorhanden: ${obsolete}`);
 for(const token of ['MID v0.8.30.6 · achsvermessene Tageszentren und wieder sichtbare senkrechte Temperatur-Hilfslinien','.ensemble-temperature-grid-overlay{','.ensemble-temperature-grid-overlay line{'])if(!css.includes(token))failures.push(`Grid-CSS fehlt: ${token}`);

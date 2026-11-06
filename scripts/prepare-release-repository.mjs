@@ -11,6 +11,10 @@ function defaultGitCleanup(root){
 }
 
 async function fileExists(file){try{await access(file);return true}catch{return false}}
+async function findReleaseNotes(root,version){
+ for(const relative of ['docs/releases','']){const file=path.join(root,relative,`MID_RELEASE_NOTES_${version}.json`);if(await fileExists(file))return file}
+ return null;
+}
 async function applyOneShotReleaseTarget(root){
  const targetFile=path.join(root,'MID_RELEASE_TARGET.json');
  if(!(await fileExists(targetFile)))return {applied:false};
@@ -19,8 +23,8 @@ async function applyOneShotReleaseTarget(root){
  const target=JSON.parse(await readFile(targetFile,'utf8'));
  const fromVersion=String(target.fromVersion||'').trim(),toVersion=String(target.toVersion||'').trim();
  if(!/^\d+\.\d+\.\d+(?:\.\d+)?$/.test(fromVersion)||!/^\d+\.\d+\.\d+(?:\.\d+)?$/.test(toVersion))throw new Error('MID_RELEASE_TARGET.json enthält keine gültigen Versionsangaben.');
- const noteFile=path.join(root,`MID_RELEASE_NOTES_${toVersion}.json`);
- if(!(await fileExists(noteFile)))throw new Error(`Release-Ziel ${toVersion} besitzt keine passende Release-Notiz.`);
+ const noteFile=await findReleaseNotes(root,toVersion);
+ if(!noteFile)throw new Error(`Release-Ziel ${toVersion} besitzt keine passende Release-Notiz.`);
  const pkg=JSON.parse(await readFile(packageFile,'utf8')),current=String(pkg.version||'').trim();
  if(current!==fromVersion&&current!==toVersion)throw new Error(`Release-Ziel erwartet ${fromVersion} oder ${toVersion}, package.json enthält aber ${current||'keine Version'}.`);
  if(current===fromVersion){pkg.version=toVersion;await writeFile(packageFile,`${JSON.stringify(pkg,null,2)}\n`,'utf8');console.log(`Einmaliges Release-Ziel: ${fromVersion} → ${toVersion}.`)}
@@ -40,8 +44,8 @@ async function syncVersionedReleaseNotes(root){
  const pkg=JSON.parse(await readFile(packageFile,'utf8'));
  const version=String(pkg.version||'').trim();
  if(!version)return {synced:false};
- const noteFile=path.join(root,`MID_RELEASE_NOTES_${version}.json`);
- if(!(await fileExists(noteFile)))return {synced:false};
+ const noteFile=await findReleaseNotes(root,version);
+ if(!noteFile)return {synced:false};
  const notes=JSON.parse(await readFile(noteFile,'utf8'));
  if(String(notes.version)!==version)throw new Error(`Release-Notiz ${path.basename(noteFile)} trägt nicht die Paketversion ${version}.`);
  const external=(Array.isArray(notes.external)?notes.external:[]).map(item=>`- ${String(item)}`).join('\n');

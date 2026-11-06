@@ -1,3 +1,10 @@
+## MID v0.9.85.439 · 2026-11-06 · Gleichmäßige Kartenübergänge und markante Gefrierpunktachsen
+
+- Same-Model-Frame-Retention für Wolken/SIGWX während eines Laufwechsels; Renderer-Identität bleibt über Lauf- und Zeitschrittwechsel stabil. Modellwechsel behalten die bisherige strikte Trennung.
+- Angezeigter Vorhersage-Vorlauf folgt während des Ladens dem tatsächlich sichtbaren Frame.
+- Gefrierpunktlinie und Nullgrad-Achsenlabel in Stunden-, 7-Tage-, Horizont- und Ensemble-Temperaturdiagrammen hervorgehoben; gemeinsame 7-Tage-Kurve erhält Widget-Parität.
+- Keine Änderung an Wetterdaten, Modellwahl, Warnungen oder RUC-Pipeline.
+
 # MID v0.9.85.435 · evidenzgebundene Kurzfristaussagen
 
 Basis: vollständig promotierter Stable .434 `994ea3bcf1ab20e7036f50a92b7033b44b538804`. Geprüfter Original-PR #668 @6245531ac82a6fb083d7110ddc725ba8cef93e67. Uneingeschränkte24h-Negativaussage nur bei lücken-/überlappungsfreier absoluter Zeitdeckung, maximal stündlichen finalen Buckets und endlichen nichtnegativen Mengen UND Böen in allen Buckets. Teilabdeckung ausdrücklich markiert, echte Signale bleiben priorisiert. Bestehende Originalregression um unabhängige Grenz-/Negativfälle verstärkt; vollständige Source-/Installer-/Worker-/Pages-/Stable-Gates bleiben zwingend. Keine amtliche Entwarnung und keine Änderung an Warnungen, Datenbezug oder Meteorologiefarben. Weitere7d-/Nowcard-/Nebel-/PoP-Auditpunkte sind nicht durch diesen begrenzten Fix erledigt.

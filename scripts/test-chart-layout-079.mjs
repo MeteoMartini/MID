@@ -11,6 +11,8 @@ const styles=await readFile(path.join(root,'src','styles.css'),'utf8');
 const failures=[];
 
 for(const token of ['formatGmtOffset','function LocalClock(','place-meta','formatZuluHm(now)','niceRange(','nicePositiveRange(','temperatureTicks.map','rainTicks.map','windTicks.map','directionIndices.map','data-skybar-y={skyBarY}','nowBadgeY=4','iconY=narrowChart?46:48','skyBarY=narrowChart?69:71','cloudTop=skyBarY+','selectedMarkerTop=iconY-10','className="selected-hour-line"','y1={selectedMarkerTop}'])if(!app.includes(token))failures.push(`Detail-/Ortsdarstellung fehlt: ${token}`);
+for(const token of ['tMin<=0&&tMax>=0','className={freezingPoint?\'temperature-freezing-point-axis\':\'\'}','strokeWidth={freezingPoint?1.8:1}','fontWeight={freezingPoint?850:400}'])if(!app.includes(token))failures.push(`Gefrierpunkt-Achse im Stundenverlauf fehlt: ${token}`);
+for(const token of ['axisTicks=minV<=0&&maxV>=0','freezing-point-grid','strokeWidth={value===0?1.9:1}'])if(!ensemble.includes(token))failures.push(`Gefrierpunkt-Achse im Ensemble-Diagramm fehlt: ${token}`);
 
 const laneMatch=app.match(/nowBadgeY=(\d+),iconY=narrowChart\?(\d+):(\d+),skyBarY=narrowChart\?(\d+):(\d+),cloudTop=skyBarY\+\(narrowChart\?(\d+):(\d+)\)/);
 if(!laneMatch)failures.push('Die vertikale Lane-Reihenfolge konnte nicht ausgewertet werden.');

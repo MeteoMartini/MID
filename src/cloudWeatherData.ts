@@ -11,6 +11,7 @@ import type {SynopticFrame,SynopticModel} from './nativeSynopticFields';
 export const CLOUD_WEATHER_LABEL='Wolken und signifikantes Wetter';
 export const GDPS_CLOUD_LAYER='GDPS_15km_TotalCloudCover',GDPS_WEATHER_LAYER='GDPS_15km_PrecipType-Instant';
 export type CloudWeatherData={run:string;time:string;model:string;resolutionKm?:number;lats:number[];lons:number[];cloud:(number|null)[];weather:(number|null)[]};
+export function retainSameModelCloudWeatherFrame(previous:CloudWeatherData|null,modelId:string):CloudWeatherData|null{return previous?.model===modelId?previous:null}
 export const SIGNIFICANT_WEATHER_STYLES=[
  {label:'Nebel',color:'#f4e625',codes:[11,12,40,41,42,43,44,45,46,47]},
  {label:'Nebel · Reif',color:'#babc20',codes:[48,49]},
