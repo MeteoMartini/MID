@@ -62,7 +62,11 @@ try{
  assert.match(layers,/selectedIndependentFrame\?\[selectedIndependentFrame\]:useNativePair\?/,'Independent field remains preferred; a missing hour may use an actually paired native field');
  assert.match(layers,/if\(useNativePair&&native\)/,'No fallback to an unpaired or incompatible native term');
  assert.match(layers,/zIndex=\{role==='cloud'\?300:305\}/,'Cloud/weather WMS fills stay beneath reference layers');
- assert.match(layers,/opacity=\{state.ready\?opacity\/100:0\} zIndex=\{300\}/,'Raster fills stay beneath geography');
+ assert.match(layers,/opacity=\{state.data\?\.model===state.modelId\?opacity\/100:0\} zIndex=\{300\}/,'Raster fills stay beneath geography');
+ assert.ok(layers.includes('previous?.model===modelId&&previous.run===run?previous:null'),'Only same-model/run data may bridge the pending timestep');
+ assert.ok(layers.includes('id={`cloud-weather-${state.modelId}-${state.run}-${state.mode}`}'),'Native cloud renderer identity must survive a timestep change');
+ assert.ok(layers.includes('gdpsFrames.flatMap'),'Both GDPS components retain their previous complete plan while loading');
+ assert.doesNotMatch(layers,/id=\{`cloud-weather-\$\{state.context\}-\$\{state.mode\}`\}/,'Time-specific image identity must not erase the crossfade buffer');
  assert.match(ordering,/sort\(\(a,b\)=>a\[1\]-b\[1\]\)/,'MapLibre order must follow numerical layer priorities');
  assert.match(modelMap,/<ModelMapContextOverlay\/>/,'DWD model maps must use their local geography');
  assert.match(nativeMap,/<ModelMapContextOverlay\/>/,'Native model maps must use their local geography');

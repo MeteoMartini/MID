@@ -204,23 +204,24 @@ export function CanvasOverlay({id,opacity=1,zIndex=5,render,events=['moveend','z
 }
 
 export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='linear',onError}:{id:string;url:string;bounds:[[number,number],[number,number]];opacity?:number;zIndex?:number;resampling?:'linear'|'nearest';onError?:(message:string)=>void}){
- const map=useMidMap(),south=bounds[0][0],west=bounds[0][1],north=bounds[1][0],east=bounds[1][1],errorRef=useRef(onError),opacityRef=useRef(opacity),sequence=useRef(0),frames=useRef<{source:string;layer:string;weight:number}[]>([]);errorRef.current=onError;opacityRef.current=opacity;
+ const map=useMidMap(),south=bounds[0][0],west=bounds[0][1],north=bounds[1][0],east=bounds[1][1],errorRef=useRef(onError),opacityRef=useRef(opacity),sequence=useRef(0),animation=useRef(0),fadeUntil=useRef(0),frames=useRef<{source:string;layer:string;weight:number}[]>([]);errorRef.current=onError;opacityRef.current=opacity;
  const remove=(frame:{source:string;layer:string})=>{if(!map)return;unregisterMapLayerOrder(map,frame.layer);try{if(map.getLayer(frame.layer))map.removeLayer(frame.layer);if(map.getSource(frame.source))map.removeSource(frame.source)}catch{}};
- useEffect(()=>()=>{for(const frame of frames.current)remove(frame);frames.current=[]},[map,id]);
+ useEffect(()=>()=>{cancelAnimationFrame(animation.current);fadeUntil.current=0;for(const frame of frames.current)remove(frame);frames.current=[]},[map,id]);
  useEffect(()=>{
-  if(!map||!url)return;let active=true,raf=0;const generation=++sequence.current,image=new Image();
+  if(!map||!url)return;let active=true,timer=0;const generation=++sequence.current,image=new Image();
   const fail=()=>{if(active)errorRef.current?.('Das Kartenbild konnte nicht geladen werden. Der bisherige Stand bleibt sichtbar.')};
-  image.onload=()=>{if(!active)return;const source=`${safeId(id)}-source-${generation}`,layer=`${safeId(id)}-layer-${generation}`;
+  const install=()=>{if(!active)return;const source=`${safeId(id)}-source-${generation}`,layer=`${safeId(id)}-layer-${generation}`;
    try{
-    // Decode first, then upload. Never remove the displayed source to request its successor.
+    // Keep the fully decoded previous image while fetching/decoding its successor.
     map.addSource(source,{type:'image',coordinates:[[west,north],[east,north],[east,south],[west,south]]});(map.getSource(source) as maplibregl.ImageSource).updateImage({image});
     map.addLayer({id:layer,type:'raster',source,paint:{'raster-opacity':frames.current.length?0:opacityRef.current,'raster-fade-duration':0,'raster-resampling':resampling}});registerMapLayerOrder(map,layer,zIndex+.0001);
-    const previous=frames.current.at(-1);for(const old of frames.current)if(old!==previous)remove(old);if(previous){previous.weight=1;map.setPaintProperty(previous.layer,'raster-opacity',opacityRef.current)}
-    const next={source,layer,weight:previous?0:1};frames.current=previous?[previous,next]:[next];const start=performance.now();
-    const fade=(now:number)=>{if(!active)return;const t=previous?Math.max(0,Math.min(1,(now-start)/350)):1;next.weight=t;map.setPaintProperty(layer,'raster-opacity',t*opacityRef.current);if(previous){previous.weight=1-t;map.setPaintProperty(previous.layer,'raster-opacity',(1-t)*opacityRef.current)}if(t<1)raf=requestAnimationFrame(fade);else{if(previous)remove(previous);frames.current=[next]}};raf=requestAnimationFrame(fade);
+    const previous=frames.current.at(-1),next={source,layer,weight:previous?0:1};frames.current=previous?[previous,next]:[next];const start=performance.now(),duration=window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:350;fadeUntil.current=start+duration;
+    // A newer URL cancels only its request, never an already visible transition.
+    const fade=(now:number)=>{if(!map.getLayer(layer))return;const t=previous?Math.max(0,Math.min(1,(now-start)/Math.max(1,duration))):1;next.weight=t;map.setPaintProperty(layer,'raster-opacity',t*opacityRef.current);if(previous){previous.weight=1-t;map.setPaintProperty(previous.layer,'raster-opacity',(1-t)*opacityRef.current)}if(t<1)animation.current=requestAnimationFrame(fade);else{if(previous)remove(previous);frames.current=[next];fadeUntil.current=0}};animation.current=requestAnimationFrame(fade);
    }catch{remove({source,layer});fail()}
-  };image.onerror=fail;image.src=url;
-  return()=>{active=false;cancelAnimationFrame(raf);image.onload=null;image.onerror=null;image.removeAttribute('src')};
+  };
+  image.onload=()=>{if(!active)return;const wait=fadeUntil.current-performance.now();if(wait>0)timer=window.setTimeout(install,wait+20);else install()};image.onerror=fail;image.src=url;
+  return()=>{active=false;window.clearTimeout(timer);image.onload=null;image.onerror=null;if(!frames.current.some(frame=>frame.source===`${safeId(id)}-source-${generation}`))image.removeAttribute('src')};
  },[map,id,url,south,west,north,east,zIndex,resampling]);
  useEffect(()=>{for(const frame of frames.current)if(map?.getLayer(frame.layer))map.setPaintProperty(frame.layer,'raster-opacity',frame.weight*Math.max(0,Math.min(1,opacity)))},[map,opacity]);return null;
 }
