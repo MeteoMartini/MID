@@ -8,6 +8,7 @@ import numpy as np
 import requests
 from eccodes import codes_grib_new_from_file,codes_get,codes_get_array,codes_release,codes_set
 from build_precipitation_totals import ROOT,read_field as read_total,difference
+from dwd_stage_batch_reuse import load_unique_source_jobs
 from pressure_centers import pressure_centers
 
 HOURS=(1,2,3,4,5,6,12,24,48)
@@ -93,7 +94,10 @@ def build(output,totals):
         hour,field,step,url=job;r=requests.get(url,timeout=40);r.raise_for_status()
         data=(*read_total(r.content,run,step),0) if field=='tot_prec' else read_field(r.content,run,step,field)
         return hour,field,step,data,{'url':url,'sha256':hashlib.sha256(r.content).hexdigest()}
-    with ThreadPoolExecutor(max_workers=4) as pool:loaded=list(pool.map(load,jobs))
+    # One identical DWD GRIB URL is decoded once, with the exact original
+    # ordered frame references and source hashes preserved for all consumers.
+    loaded=load_unique_source_jobs(jobs,load,max_workers=4)
+    print(f'DWD_MAP_BATCH_REUSE run={run} references={len(jobs)} uniqueSources={len({job[3] for job in jobs})} duplicated={len(jobs)-len({job[3] for job in jobs})}',flush=True)
     data={};origins=[]
     for hour,field,step,(lat,lon,values,start),origin in loaded:
         if data and (not np.array_equal(lat,lats) or not np.array_equal(lon,lons)):raise ValueError('map grid mismatch')
