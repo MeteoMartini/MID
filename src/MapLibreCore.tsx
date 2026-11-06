@@ -203,7 +203,7 @@ export function CanvasOverlay({id,opacity=1,zIndex=5,render,events=['moveend','z
  useEffect(()=>{if(canvasRef.current)canvasRef.current.style.opacity=String(Math.max(0,Math.min(1,opacity)))},[opacity]);return null;
 }
 
-export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='linear',onReady,onError}:{id:string;url:string;bounds:[[number,number],[number,number]];opacity?:number;zIndex?:number;resampling?:'linear'|'nearest';onReady?:()=>void;onError?:(message:string)=>void}){
+export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='linear',frameKey,onReady,onError}:{id:string;url:string;bounds:[[number,number],[number,number]];opacity?:number;zIndex?:number;resampling?:'linear'|'nearest';frameKey?:string;onReady?:()=>void;onError?:(message:string)=>void}){
  const map=useMidMap(),south=bounds[0][0],west=bounds[0][1],north=bounds[1][0],east=bounds[1][1],errorRef=useRef(onError),opacityRef=useRef(opacity),sequence=useRef(0),animation=useRef(0),fadeUntil=useRef(0),frames=useRef<{source:string;layer:string;weight:number}[]>([]);errorRef.current=onError;opacityRef.current=opacity;
  const remove=(frame:{source:string;layer:string})=>{if(!map)return;unregisterMapLayerOrder(map,frame.layer);try{if(map.getLayer(frame.layer))map.removeLayer(frame.layer);if(map.getSource(frame.source))map.removeSource(frame.source)}catch{}};
  useEffect(()=>()=>{cancelAnimationFrame(animation.current);fadeUntil.current=0;for(const frame of frames.current)remove(frame);frames.current=[]},[map,id]);
@@ -266,6 +266,6 @@ export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='lin
   image.onload=()=>{if(!active)return;const wait=fadeUntil.current-performance.now();if(wait>0)timer=window.setTimeout(install,wait+20);else install()};
   image.onerror=fail;image.src=url;
   return()=>{active=false;window.clearTimeout(timer);image.onload=null;image.onerror=null;releaseStaging();if(!frames.current.some(frame=>frame.source===`${safeId(id)}-source-${generation}`))image.removeAttribute('src')};
- },[map,id,url,south,west,north,east,zIndex,resampling]);
+ },[map,id,url,frameKey,south,west,north,east,zIndex,resampling]);
  useEffect(()=>{for(const frame of frames.current)if(map?.getLayer(frame.layer))map.setPaintProperty(frame.layer,'raster-opacity',frame.weight*Math.max(0,Math.min(1,opacity)))},[map,opacity]);return null;
 }
