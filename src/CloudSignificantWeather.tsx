@@ -10,7 +10,7 @@ import {CLOUD_WEATHER_LABEL,GDPS_CLOUD_LAYER,GDPS_WEATHER_LAYER,SIGNIFICANT_WEAT
 import './CloudSignificantWeather.css';
 
 export function useCloudWeatherMap(enabled:boolean,target:number,modelId:string,revision:number,native:{index:NativeIndex;base:string}|null,synoptic:{index:SynopticIndex;base:string}|null,mode:CloudWeatherRenderMode='pseudo'){
- const [data,setData]=useState<CloudWeatherData|null>(null),[metadata,setMetadata]=useState<WeatherMapMetadata[]>([]),[loading,setLoading]=useState(false),[error,setError]=useState(''),[tiles,setTiles]=useState<Set<string>>(()=>new Set());
+ const [gdpsDisplayed,setGdpsDisplayed]=useState<{run:string;time:string}|null>(null),[data,setData]=useState<CloudWeatherData|null>(null),[metadata,setMetadata]=useState<WeatherMapMetadata[]>([]),[loading,setLoading]=useState(false),[error,setError]=useState(''),[tiles,setTiles]=useState<Set<string>>(()=>new Set());
  const cache=useRef(new Map<string,CloudWeatherData>());
  const separateModel=synoptic?.index.models[modelId],separateFrames=separateModel?.cloudWeatherFrames??[];
  const pairedNativeTimes=modelId==='icon-d2'?pairedNativeCloudWeatherTimes(native?.index??null):[];
@@ -38,11 +38,13 @@ export function useCloudWeatherMap(enabled:boolean,target:number,modelId:string,
  useEffect(()=>{setError('')},[context]);
  const raster=useMemo(()=>enabled&&data?cloudWeatherRaster(data,mode):'',[enabled,data,mode]);
  const ready=enabled&&!error&&(modelId==='gdps'?Boolean(gdpsPlan&&tiles.has(`${context}:cloud`)&&tiles.has(`${context}:weather`)):Boolean(data&&data.model===modelId&&data.time===time&&data.run===run));
+ useEffect(()=>{if(!enabled||modelId!=='gdps'){setGdpsDisplayed(null);return}if(ready&&gdpsPlan)setGdpsDisplayed({run:gdpsPlan.run,time:gdpsPlan.time})},[enabled,modelId,ready,context]);
+ const displayedTime=modelId==='gdps'?(ready?gdpsPlan?.time:gdpsDisplayed&&gdpsDisplayed.run===run?gdpsDisplayed.time:undefined):data?.time;
  useEffect(()=>{if(!enabled||modelId!=='gdps'||!gdpsPlan||ready||error)return;const timer=window.setTimeout(()=>setError('GDPS-Kombination nicht vollständig geladen. Erneut laden oder einen gültigen Termin wählen.'),30000);return()=>window.clearTimeout(timer)},[enabled,modelId,context,Boolean(gdpsPlan),ready,error]);
  const markTile=(role:string)=>{const key=`${context}:${role}`;if(currentContext.current!==context)return;setTiles(current=>{if(current.has(key))return current;const next=new Set(current);next.add(key);while(next.size>12)next.delete(next.values().next().value!);return next})};
  const failTile=()=>{if(currentContext.current===context)setError('Wolken oder Niederschlagsart sind nicht vollständig erreichbar. Der bisherige vollständige Stand bleibt sichtbar.')};
  const sample=(lat:number,lon:number)=>{if(!ready||!data)return null;const p=cloudWeatherAt(data,lat,lon);return p&&(p.cloud!==null||p.weather!==null)?`${p.cloud===null?'Wolken nicht verfügbar':`${Math.round(p.cloud)} % Wolken`} · ${cloudWeatherDescription(p.weather)}`:null};
- return {enabled,modelId,mode,data,raster,time,run,context,ready,loading,error,times:modelId==='gdps'?gdpsCloudWeatherCatalog(metadata)?.times??[]:nativeTimes,gdpsPlan,markTile,failTile,sample};
+ return {enabled,modelId,mode,data,raster,time,run,context,ready,displayedTime,loading,error,times:modelId==='gdps'?gdpsCloudWeatherCatalog(metadata)?.times??[]:nativeTimes,gdpsPlan,markTile,failTile,sample};
 }
 export type CloudWeatherState=ReturnType<typeof useCloudWeatherMap>;
 export function CloudWeatherLayers({state,opacity,modelLabel}:{state:CloudWeatherState;opacity:number;modelLabel:string}){
