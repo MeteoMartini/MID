@@ -25,6 +25,7 @@ function pinApprovedActions(source){
 
 
 export const managedFiles=[
+ ['workflows/mid-copilot-intake.yml','workflows/mid-copilot-intake.yml'],
  ['workflows/mid-d2-ruc-site-union-qa.yml','workflows/mid-d2-ruc-site-union-qa.yml'],
  ['workflows/mid-p0-p4-consolidated-qa.yml','workflows/mid-p0-p4-consolidated-qa.yml'],
  ['workflows/mid-d2-native-eight-field-qa.yml','workflows/mid-d2-native-eight-field-qa.yml'],
