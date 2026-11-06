@@ -5,13 +5,14 @@ import {loadOperaRasterData,operaRasterPoint,type OperaRaster} from './OperaRast
 import {loadWeatherPhaseGrid,type WeatherPhaseGridData,type WeatherPhaseGridFrame} from './WeatherMapsData';
 import type {RadarPhase} from './radarColorTables';
 import {precipitationTypeSymbolSvg,type PrecipitationSymbolPhase} from './precipitationTypeSymbols';
+import {synopPrecipitationSymbolSvg,synopPrecipitationPhase} from './synopPrecipitationSymbols';
 
 export type RadarModelPhaseStatus='idle'|'loading'|'ready'|'error';
 type OverlayPhase=RadarPhase|'hail'|'graupel'|'graupel-hail'|'snow-grains'|'snow-stars'|'ice-crystals'|'ice-pellets';
 type PhaseResult={phase:OverlayPhase;label:string;confidence:'hoch'|'mittel'|'eingeschränkt';modelEvidence:boolean};
 type EchoSummary={covered:boolean;hits:number;maxDbz:number;meanDbz:number;maxRate:number};
 type SymbolPhase=PrecipitationSymbolPhase;
-type PhaseSymbol={id:string;lat:number;lon:number;phase:SymbolPhase;label:string;dbz:number};
+type PhaseSymbol={id:string;lat:number;lon:number;phase:SymbolPhase;label:string;dbz:number;ww?:number};
 
 function finite(value:unknown){if(value==null||typeof value==='boolean'||(typeof value==='string'&&!value.trim()))return NaN;const number=Number(value);return Number.isFinite(number)?number:NaN}
 function wetBulbStull(t:number,rh:number){if(!Number.isFinite(t)||!Number.isFinite(rh))return NaN;const humidity=Math.max(1,Math.min(100,rh));return t*Math.atan(.151977*Math.sqrt(humidity+8.313659))+Math.atan(t+humidity)-Math.atan(humidity-1.676331)+.00391838*Math.pow(humidity,1.5)*Math.atan(.023101*humidity)-4.686035}
@@ -72,7 +73,10 @@ function buildPhaseSymbols(data:WeatherPhaseGridData,raster:OperaRaster):PhaseSy
   if(typed==='freezing'&&(!coldSupport(temperature,wetBulb)||(Number.isFinite(temperature)&&temperature>2.5)||(Number.isFinite(wetBulb)&&wetBulb>.8)))continue;
   if((typed==='snow'||typed==='mixed')&&(Number.isFinite(temperature)&&temperature>4)&&(Number.isFinite(wetBulb)&&wetBulb>1.5))continue;
   if(echo.maxDbz<phaseMinimumDbz(typed))continue;
-  candidates.push({id:`${row}:${col}:${typed}`,lat,lon,phase:typed,label:`${phase.label} · ${Math.round(echo.maxDbz)} dBZ · ${data.modelLabel||'Regionalmodell'}`,dbz:echo.maxDbz});
+  const rawWw=finite(frame.weatherCode[index]),ww=Number.isInteger(rawWw)&&synopPrecipitationPhase(rawWw)===typed?rawWw:undefined;
+  // Only matching explicit model weather codes carry a real WW number.
+  // Thermodynamic/RUC/radar-derived phase estimates retain their inferred label.
+  candidates.push({id:`${row}:${col}:${typed}`,lat,lon,phase:typed,label:`${phase.label} · ${Math.round(echo.maxDbz)} dBZ · ${data.modelLabel||'Regionalmodell'}${ww===undefined?'':` · Modell-Wettercode ww ${ww}`}`,dbz:echo.maxDbz,ww});
  }
  const selected:PhaseSymbol[]=[];
  for(const item of candidates.sort((a,b)=>b.dbz-a.dbz)){
@@ -106,5 +110,5 @@ export default function RadarModelPrecipTypeOverlay({latitude,longitude,targetTi
  useEffect(()=>{const controller=new AbortController();let retryTimer:number|undefined;setData(null);setRaster(null);if(!operaFrame?.fileUrl){onStatus?.('error','OPERA-CIRRUS-Echomaske fehlt; die Niederschlagsart bleibt aus.');return()=>controller.abort()}const targetIso=targetTime||operaFrame.time,targetMs=Date.parse(targetIso),operaMs=Date.parse(operaFrame.time);if(!Number.isFinite(targetMs)||!Number.isFinite(operaMs)||Math.abs(targetMs-operaMs)>12*60000){onStatus?.('error','OPERA-CIRRUS liegt zeitlich zu weit vom gewählten Radarstand entfernt.');return()=>controller.abort()}onStatus?.('loading','OPERA-CIRRUS-Echomaske und Rapid-/Regionalmodell werden für die Symbolklassifikation geprüft.');Promise.all([loadWeatherPhaseGrid(latitude,longitude,targetIso,controller.signal),loadOperaRasterData(operaFrame.fileUrl,controller.signal)]).then(([grid,nextRaster])=>{if(controller.signal.aborted)return;if(grid.error)throw new Error(grid.error);const modelMs=Date.parse(grid.frame?.time||''),maxTimeDelta=grid.stale?45*60000:20*60000;if(!Number.isFinite(modelMs)||Math.abs(modelMs-targetMs)>maxTimeDelta)throw new Error('Kein ausreichend zeitnahes Rapid-/Regionalmodell-Phasenfeld.');if(Number.isFinite(Number(grid.modelAgeHours))&&Number(grid.modelAgeHours)>16)throw new Error('Der ausgewählte Modelllauf ist für eine belastbare Radarphase zu alt.');setData(grid);setRaster(nextRaster)}).catch(error=>{if(controller.signal.aborted)return;const message=error instanceof Error?error.message:String(error);if(phaseRateLimit(message)){onStatus?.('error','Rapid-/Regionalmodell-Phasenfeld vorübergehend durch das Open-Meteo-Minutenlimit blockiert. Radar bleibt aktiv; automatischer neuer Versuch in etwa 60 s.');retryTimer=window.setTimeout(()=>setRetryTick(value=>value+1),65000)}else onStatus?.('error',message)});return()=>{controller.abort();if(retryTimer!==undefined)window.clearTimeout(retryTimer)}},[latitude,longitude,targetTime,operaFrame?.fileUrl,operaFrame?.time,onStatus,retryTick]);
  const symbols=useMemo(()=>data&&raster?buildPhaseSymbols(data,raster):[],[data,raster]);
  useEffect(()=>{if(!data||!raster)return;const staleNote=data.stale?' · Ersatzfeld wegen temporärem API-Limit':'';const source=`OPERA + ${data.modelLabel||'Regionalmodell'}${data.rapidUpdate?' · Rapid Update':''}`;if(symbols.length){onStatus?.('ready',`${source} · ${symbols.length} Symbole im aktuellen Ausschnitt · ${phaseSummary(symbols)}${staleNote}`);return}onStatus?.('ready',`${source} · Layer aktiv · aktuell keine festen/gemischten Niederschlagsarten im sichtbaren Ausschnitt${staleNote}`)},[data,raster,symbols,onStatus]);
- if(!symbols.length)return null;const safeOpacity=Math.max(.2,Math.min(1,opacity));return <>{symbols.map(item=><HtmlMarker key={item.id} latitude={item.lat} longitude={item.lon} anchor="center" className={`radar-phase-symbol radar-phase-${item.phase}`} zIndex={450} html={`<span class="radar-phase-symbol-shape" style="opacity:${safeOpacity.toFixed(2)}" title="${item.label.replace(/"/g,'&quot;')}">${precipitationTypeSymbolSvg(item.phase)}</span>`}/>)}</>;
+ if(!symbols.length)return null;const safeOpacity=Math.max(.2,Math.min(1,opacity));return <>{symbols.map(item=><HtmlMarker key={item.id} latitude={item.lat} longitude={item.lon} anchor="center" className={`radar-phase-symbol radar-phase-${item.phase}`} zIndex={450} html={`<span class="radar-phase-symbol-shape" style="opacity:${safeOpacity.toFixed(2)}" title="${item.label.replace(/"/g,'&quot;')}">${item.ww===undefined?precipitationTypeSymbolSvg(item.phase):synopPrecipitationSymbolSvg(item.ww)??precipitationTypeSymbolSvg(item.phase)}</span>`}/>)}</>;
 }
