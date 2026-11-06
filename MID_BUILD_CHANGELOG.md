@@ -1,3 +1,9 @@
+## MID v0.9.85.440 · 2026-11-06 · Zuverlässige automatische Browserrevision
+
+- Vier browserabhängige Revisionsjobs auf Ubuntu 24.04 gepinnt; Playwright 1.56.1 kann Chromium und WebKit mit unverändertem Prüfumfang installieren.
+- Kanonische und gespiegelte Revision-Workflows SHA-gleich; neue negative Runner-Regression erhöht das Pflichtinventar auf 1082.
+- RUC Preprocessing, Wetterdaten, Worker-/Pages-Release und amtliche Warnungen bleiben unverändert.
+
 ## MID v0.9.85.440 · 2026-11-06 · Browserkompatibilität der MID-Revision
 
 - Vier browserabhängige MID-Revisionsjobs auf GitHub Ubuntu 24.04 gepinnt (Playwright 1.56.1); drei browserunabhängige Runner unverändert.

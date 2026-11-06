@@ -1,3 +1,7 @@
+# MID v0.9.85.440
+
+- Die automatische MID-Qualitätsprüfung verwendet wieder eine unterstützte Browserumgebung. Die App und ihre Wetterdaten bleiben funktional unverändert.
+
 # MID v0.9.85.439
 
 - Wolken- und Signifikantwetterkarten behalten beim Wechsel desselben Modells über einen neuen Lauf den letzten geprüften Frame, bis der neue Frame bereitsteht.
