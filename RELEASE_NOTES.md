@@ -1,3 +1,9 @@
+# MID v0.9.85.438 · Ruhige Karten und Wetterlagen im erweiterten Trend
+
+Der Kartenrand ist dezenter; Touch und Maus hinterlassen keinen blauen Fokusrahmen. Tastaturbedienung bleibt erkennbar. Die Kurzfristzeile verzichtet auf den langen 24-Stunden-Abdeckungshinweis.
+
+Die erweiterte Witterungstrend-Ansicht ergänzt für Mitteleuropa eine grafische DWD-Wetterlagenvorhersage bis sieben Tage. Außerhalb dieses Kontexts wird nur der passende euro-atlantische ECMWF-Originalzugang angeboten; für andere Regionen erscheint kein unpassender Block. Großräumige Klassifikation und lokale MID-Prognose bleiben getrennt. Die Basisansicht lädt keine zusätzlichen Regimedaten.
+
 # MID v0.9.85.437 · Ruhige Kartenwechsel und klare Radarphasen
 
 Beim Wechsel des Kartentermins bleibt das bisherige Bild sichtbar, bis der Nachfolger geladen ist. Modell- und Wolkenbilder wechseln mit einer kurzen Überblendung; schnelle Mehrfachwechsel und Ladefehler erhalten den letzten gültigen Stand. Die angezeigte Gültigkeitszeit bleibt dem tatsächlich sichtbaren Feld zugeordnet.

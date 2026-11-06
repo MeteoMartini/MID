@@ -603,3 +603,45 @@ const PUSH_DEFAULT_ORIGIN=PUSH_DEFAULT_ORIGINS[0];
 const PUSH_ENCODER=new TextEncoder();
 const PUSH_SCHEDULER_HEARTBEAT_KEY='meta:push-scheduler:v1';
 const PUSH_SCHEDULER_HEALTH_MS=41*60*1000;
+
+// DWD objective weather classification: regional circulation context only.
+// Original 12 UTC analysis and native forecast leads; never a local MID forecast.
+const DWD_WEATHER_REGIME_URL='https://www.dwd.de/DE/leistungen/wetterlagenklassifikation/online_wlkvorhersage.txt?view=nasPublication&nn=16102';
+const DWD_WEATHER_REGIME_LEADS=[0,12,24,36,48,60,72,96,120,144,168];
+const dwdWeatherRegimeMemory={at:0,value:null,inflight:null};
+function dwdWeatherRegimeCode(classId){
+ if(!Number.isInteger(classId)||classId<1||classId>40)return null;
+ const pressure=Math.floor((classId-1)/10);
+ return ['XX','NO','SO','SW','NW'][(classId-1)%5]+(pressure>=2?'Z':'A')+(pressure%2?'Z':'A')+(Math.floor((classId-1)/5)%2?'F':'T');
+}
+function parseDwdWeatherRegimes(text,now=Date.now()){
+ if(typeof text!=='string'||text.length>4000000)throw Error('DWD WLK size limit');
+ const rows=text.split(/\r?\n/).filter(line=>/^\s*\d{8}\s/.test(line));
+ if(!rows.length)throw Error('DWD WLK has no dated rows');
+ const cells=rows.at(-1).trim().split(/\s+/),date=cells[0];
+ if(cells.length!==23)throw Error('DWD WLK lead count');
+ const stamp=`${date.slice(0,4)}-${date.slice(4,6)}-${date.slice(6,8)}T12:00:00.000Z`,base=Date.parse(stamp);
+ if(!Number.isFinite(base)||new Date(base).toISOString()!==stamp||base>now+600000||now-base>48*3600000)throw Error('DWD WLK analysis freshness');
+ const frames=DWD_WEATHER_REGIME_LEADS.map((leadHours,index)=>{
+  const raw=cells[1+index*2],code=cells[2+index*2],missing=raw==='--'&&code==='-----',classId=missing?null:/^\d{1,2}$/.test(raw)?Number(raw):NaN;
+  if(!missing&&dwdWeatherRegimeCode(classId)!==code)throw Error('DWD WLK class/code mismatch');
+  return{leadHours,validAt:new Date(base+leadHours*3600000).toISOString(),classId,code:missing?null:code};
+ });
+ if(!frames.some(frame=>frame.classId!==null&&Date.parse(frame.validAt)>=now))throw Error('DWD WLK has no usable forecast');
+ return{schema:'mid.dwd.weather-regimes.v1',available:true,analysisAt:stamp,checkedAt:new Date(now).toISOString(),scope:'Deutschland und benachbarte Gebiete · großräumiger Index',sourceUrl:DWD_WEATHER_REGIME_URL,frames};
+}
+async function dwdWeatherRegimeData(){
+ const now=Date.now();
+ if(dwdWeatherRegimeMemory.value&&now-dwdWeatherRegimeMemory.at<3600000&&now-Date.parse(dwdWeatherRegimeMemory.value.analysisAt)<=48*3600000)return dwdWeatherRegimeMemory.value;
+ if(dwdWeatherRegimeMemory.inflight)return dwdWeatherRegimeMemory.inflight;
+ const pending=(async()=>{
+  const response=await fetchWithDeadline(DWD_WEATHER_REGIME_URL,{headers:{Accept:'text/plain','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheEverything:true,cacheTtl:3600}},14000);
+  if(!response.ok)throw Error(`DWD WLK HTTP ${response.status}`);
+  if(Number(response.headers.get('content-length'))>4000000){await response.body?.cancel();throw Error('DWD WLK size limit')}
+  const text=await response.text(),value=parseDwdWeatherRegimes(text);
+  value.sourceSha256=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text))),byte=>byte.toString(16).padStart(2,'0')).join('');
+  dwdWeatherRegimeMemory.at=Date.now();dwdWeatherRegimeMemory.value=value;return value;
+ })();
+ dwdWeatherRegimeMemory.inflight=pending;
+ try{return await pending}finally{if(dwdWeatherRegimeMemory.inflight===pending)dwdWeatherRegimeMemory.inflight=null}
+}

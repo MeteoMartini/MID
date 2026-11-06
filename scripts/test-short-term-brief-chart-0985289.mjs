@@ -22,7 +22,7 @@ try{
  assert.match(brief([p(0,.3,28),p(1,0)],t(-.5),f),/Markante/);
  assert.match(brief([p(0,.3)],t(.2),f),/zunächst/);
  // No two known dry hours may ever assert clearance for a full 24 hours.
- const incomplete='Keine markanten Signale in den vorliegenden Kurzfristdaten; 24-Stunden-Abdeckung unvollständig.';
+ const incomplete='Keine markanten Signale in den verfügbaren Daten.';
  assert.equal(brief([p(0,0),p(1,0)],t(-.5),f),incomplete);
  const fullDay=Array.from({length:24},(_,i)=>p(i,0,0));
  assert.equal(brief(fullDay,t(0),f),'Keine markanten Wetterereignisse in den nächsten 24 Stunden.');

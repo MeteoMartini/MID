@@ -36,6 +36,7 @@ Primary references checked 2026-10-12:
 | CAPE/CIN, radiation | whole J/kg or W/m² | MID rule |
 | UV index | whole, nonnegative | established MID UVI convention |
 | Waves, period, marine level, current speed | at most 0.1 of displayed unit; official gauge source retains its reporting unit | MID rule, outside land SYNOP |
+| DWD objective weather classification | original category 1–40 and five-letter code; native UTC analysis/forecast validity | separate regional circulation index, not a local MID forecast, warning or calibrated probability; missing class remains unavailable |
 | Climate/seasonal anomalies | at most 0.1 K or mm/day; whole % | MID rule; signed anomalies are not precipitation accumulations |
 
 Trailing zeroes are optional; no negative zero. Charts may retain smaller numeric tick spacing for low positive quantities so the axis remains meaningful; this is not a displayed sample precision. Scientific verification scores, coordinates, spatial resolution, weights, timestamps and SVG coordinates are outside this parameter matrix and may need their own meaningful precision.

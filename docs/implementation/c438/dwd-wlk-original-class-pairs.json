@@ -1,0 +1,209 @@
+{
+  "source": "https://www.dwd.de/DE/leistungen/wetterlagenklassifikation/online_wlkvorhersage.txt?view=nasPublication&nn=16102",
+  "retrievedAt": "2026-11-06T06:18:55.448559+00:00",
+  "originalBytes": 2281783,
+  "originalSha256": "c51e0de61a0d3c090993eafe965f1170ad7c29199f58441deee0c67c7b72603f",
+  "note": "40 independently observed original class/code pairs; no generated classifications. FirstRowDate refers to the source row, which also contains forecast columns.",
+  "classes": [
+    {
+      "classId": 1,
+      "code": "XXAAT",
+      "firstRowDate": "19790830"
+    },
+    {
+      "classId": 2,
+      "code": "NOAAT",
+      "firstRowDate": "19791023"
+    },
+    {
+      "classId": 3,
+      "code": "SOAAT",
+      "firstRowDate": "19791025"
+    },
+    {
+      "classId": 4,
+      "code": "SWAAT",
+      "firstRowDate": "19790817"
+    },
+    {
+      "classId": 5,
+      "code": "NWAAT",
+      "firstRowDate": "19790705"
+    },
+    {
+      "classId": 6,
+      "code": "XXAAF",
+      "firstRowDate": "19790906"
+    },
+    {
+      "classId": 7,
+      "code": "NOAAF",
+      "firstRowDate": "19800605"
+    },
+    {
+      "classId": 8,
+      "code": "SOAAF",
+      "firstRowDate": "19811001"
+    },
+    {
+      "classId": 9,
+      "code": "SWAAF",
+      "firstRowDate": "19790731"
+    },
+    {
+      "classId": 10,
+      "code": "NWAAF",
+      "firstRowDate": "19790718"
+    },
+    {
+      "classId": 11,
+      "code": "XXAZT",
+      "firstRowDate": "19790702"
+    },
+    {
+      "classId": 12,
+      "code": "NOAZT",
+      "firstRowDate": "19790704"
+    },
+    {
+      "classId": 13,
+      "code": "SOAZT",
+      "firstRowDate": "19791221"
+    },
+    {
+      "classId": 14,
+      "code": "SWAZT",
+      "firstRowDate": "19790720"
+    },
+    {
+      "classId": 15,
+      "code": "NWAZT",
+      "firstRowDate": "19790701"
+    },
+    {
+      "classId": 16,
+      "code": "XXAZF",
+      "firstRowDate": "19790712"
+    },
+    {
+      "classId": 17,
+      "code": "NOAZF",
+      "firstRowDate": "19830807"
+    },
+    {
+      "classId": 18,
+      "code": "SOAZF",
+      "firstRowDate": "19810928"
+    },
+    {
+      "classId": 19,
+      "code": "SWAZF",
+      "firstRowDate": "19790801"
+    },
+    {
+      "classId": 20,
+      "code": "NWAZF",
+      "firstRowDate": "19790820"
+    },
+    {
+      "classId": 21,
+      "code": "XXZAT",
+      "firstRowDate": "19800225"
+    },
+    {
+      "classId": 22,
+      "code": "NOZAT",
+      "firstRowDate": "19800501"
+    },
+    {
+      "classId": 23,
+      "code": "SOZAT",
+      "firstRowDate": "19791026"
+    },
+    {
+      "classId": 24,
+      "code": "SWZAT",
+      "firstRowDate": "19791003"
+    },
+    {
+      "classId": 25,
+      "code": "NWZAT",
+      "firstRowDate": "19791101"
+    },
+    {
+      "classId": 26,
+      "code": "XXZAF",
+      "firstRowDate": "19790907"
+    },
+    {
+      "classId": 27,
+      "code": "NOZAF",
+      "firstRowDate": "19830825"
+    },
+    {
+      "classId": 28,
+      "code": "SOZAF",
+      "firstRowDate": "19791012"
+    },
+    {
+      "classId": 29,
+      "code": "SWZAF",
+      "firstRowDate": "19790729"
+    },
+    {
+      "classId": 30,
+      "code": "NWZAF",
+      "firstRowDate": "19790909"
+    },
+    {
+      "classId": 31,
+      "code": "XXZZT",
+      "firstRowDate": "19790826"
+    },
+    {
+      "classId": 32,
+      "code": "NOZZT",
+      "firstRowDate": "19800424"
+    },
+    {
+      "classId": 33,
+      "code": "SOZZT",
+      "firstRowDate": "19790818"
+    },
+    {
+      "classId": 34,
+      "code": "SWZZT",
+      "firstRowDate": "19790719"
+    },
+    {
+      "classId": 35,
+      "code": "NWZZT",
+      "firstRowDate": "19790810"
+    },
+    {
+      "classId": 36,
+      "code": "XXZZF",
+      "firstRowDate": "19790819"
+    },
+    {
+      "classId": 37,
+      "code": "NOZZF",
+      "firstRowDate": "19840916"
+    },
+    {
+      "classId": 38,
+      "code": "SOZZF",
+      "firstRowDate": "19791015"
+    },
+    {
+      "classId": 39,
+      "code": "SWZZF",
+      "firstRowDate": "19790713"
+    },
+    {
+      "classId": 40,
+      "code": "NWZZF",
+      "firstRowDate": "19790709"
+    }
+  ]
+}

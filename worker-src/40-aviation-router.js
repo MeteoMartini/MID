@@ -114,6 +114,7 @@ export default{async fetch(request,env){
  if(mode==='rs-file')return dwdRsFileResponse(request);
  if(mode==='radolan-history-file')return radolanHistoryFileResponse(request);
  if(mode==='kostra-file')return kostraFileResponse(request);
+ if(mode==='dwd-weather-regimes'){if(request.method!=='GET')return json({error:'GET erforderlich.'},405,{'allow':'GET','cache-control':'no-store'});try{return json({...await dwdWeatherRegimeData(),version:WORKER_VERSION},200,{'cache-control':'public, max-age=3600'})}catch{return json({available:false,error:'DWD-Wetterlagen derzeit nicht verfügbar.',version:WORKER_VERSION},503,{'cache-control':'no-store'})}}
  if(mode==='cfsv2-seasonal-point')return cfsv2SeasonalPoint(request);
  if(mode==='c3s-seasonal-point')return c3sSeasonalPoint(request,env);
  if(mode==='dwd-gcfs-episodes-point')return dwdGcfsEpisodesPoint(request,env);

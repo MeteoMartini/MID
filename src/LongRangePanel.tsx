@@ -6,7 +6,7 @@ import './horizonInstruments.css';
 import './midC16OutlookCharts.css';
 import {niceChartScale} from './chartScale';
 import {relativeSeasonalModels} from './seasonalAnomalies';
-import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
+import {lazy,Suspense,useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {CloudRain,Info,RefreshCw,ThermometerSun} from 'lucide-react';
 import {formatDecimalFixed} from './format';
 import {loadSeasonalForecast,type SeasonalForecastBundle,type SeasonalMonth,type SeasonalPointModel} from './seasonalForecast';
@@ -15,6 +15,8 @@ import LongRangeModelComparison from './LongRangeModelComparison';
 import {SeasonalMemberPanel} from './SeasonalMemberPanel';
 import {useSignalChartWidth} from './HorizonSignalChart';
 import type {Location,WindUnit} from './weather';
+
+const LazyWeatherRegimePanel=lazy(()=>import('./WeatherRegimePanel'));
 
 type Props={location:Location;locationName:string;advancedMode:boolean;windUnit:WindUnit;initialHorizon?:'46d'|'season'};
 type Metric='temperature'|'precipitation';
@@ -81,6 +83,7 @@ export default function LongRangePanel({location,locationName,advancedMode,windU
   {!seasonSelected?<section ref={weatherTrendRef} className="long-range-subsection weather-trend-subsection">
    <header className="long-range-subsection-head"><div><span>WITTERUNGSTREND</span><h4>Wochenvorhersage</h4></div><small>ECMWF EC46 + NOAA GEFS</small></header>
    <SubseasonalTrendPanel location={location} windUnit={windUnit}/>
+   {advancedMode&&<Suspense fallback={null}><LazyWeatherRegimePanel location={location}/></Suspense>}
   </section>:null}
   {seasonSelected?<section ref={seasonalRef} className="long-range-subsection seasonal-forecast-subsection">
    <header className="long-range-subsection-head"><div><span>SAISONVORHERSAGEN</span><h4>Monats- & 3-Monats-Trends</h4></div><small>inkl. DWD Deutschland-Perspektive</small></header>
