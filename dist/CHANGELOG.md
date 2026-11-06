@@ -1,3 +1,7 @@
+# MID v0.9.85.443
+
+- Repository-Anweisungen, lesender Audit-Agent und prüfbare Übergaben für ausdrücklich beauftragte GitHub-Copilot-Arbeiten ergänzt. Wetterdaten, Oberfläche und Diagnoseauswahl unverändert.
+
 # MID v0.9.85.442
 
 - Markantere 0-°C-Linie im Kurzfristprofil, Temperaturfaden, Meteogramm und Klimadiagramm; bestehende Ensemble-/14-Tage-Hervorhebung bleibt erhalten.
