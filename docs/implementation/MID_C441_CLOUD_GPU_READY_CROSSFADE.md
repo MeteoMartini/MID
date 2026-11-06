@@ -34,3 +34,7 @@
 5. **Vollständiger SHA-gebundener Prüfpfad:** bestehende dynamische Map-Regressionsharness, 1082 vollständige Baseline-Prüfungen, reale MapLibre Chromium/WebKit/Browsermatrix, Light/Dark und kleine/große Touch-Bildschirme, regulärer Releasepfad und Stable-Promotion.
 
 **Status dieses Dokuments:** Implementationsnachweis, **kein** behaupteter grüner Browser-/Release-Nachweis vor tatsächlichen GitHub-Gates. Physische iOS-/VoiceOver-Abnahme bleibt separat.
+
+## Source-Gate-Reparatur
+
+Der erste vollständige Source-Lauf `42238404167` auf `dd0bbbc517e4c15c17f75bd6b7eb7e3c87d1f625` scheiterte reproduzierbar an TypeScript TS18047 in `CloudSignificantWeather.tsx`: optionaler Vergleich konnte bei zwei undefinierten Läufen wahr sein und bewies keinen vorhandenen GDPS-Anzeigestand. Explizite Existenzprüfung vor Zugriff erhält den bisherigen gültigen Lauf; ohne angezeigten Frame bleibt er undefiniert. Kein Non-null-Cast, keine geänderten Gates oder Tests. Vollständige Source-Prüfung auf dem korrigierten Head erneut erforderlich.
