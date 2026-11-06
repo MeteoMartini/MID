@@ -1,0 +1,37 @@
+name: MID Copilot transport receipt
+on:
+  issues:
+    types: [opened, reopened]
+  schedule:
+    - cron: '37 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: read
+concurrency:
+  group: mid-copilot-transport-receipt
+  cancel-in-progress: false
+jobs:
+  receipt:
+    if: github.event_name != 'issues' || startsWith(github.event.issue.title, '[MID-COPILOT-HANDOFF] ')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: mid-stable
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22.16.0'
+      - name: Validate transport without executing candidate code
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          node scripts/mid-copilot-intake.mjs > copilot-receipt.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: copilot-transport-receipt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: copilot-receipt.json
+          retention-days: 14

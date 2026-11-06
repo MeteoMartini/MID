@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "task": "ap1b-p1-probe",
+  "base": "fda79a1683ec78cdf602416b2a5486a9f9512a9a",
+  "expectedTree": "239e809be2ba1e535e26d7ad1ab27df1e8ab0241",
+  "paths": ["tools/ruc/ruc_p1_original_native_values_probe.py", "tools/ruc/test_ruc_p1_original_native_values_probe.py"],
+  "submitters": [{"login": "MeteoMartini", "id": 75040651}]
+}

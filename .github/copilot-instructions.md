@@ -15,6 +15,7 @@ MID is a German-language, scientifically grounded, accessible and responsive wea
 
 ## Work boundary and handoff
 
+- For the explicitly assigned AP1b recovery, the trusted `tools/handoff/ap1b.json` and `scripts/mid-copilot-handoff.mjs` authorize one ref-free Git-object/Issue handoff after a successful dry-run. Do not modify the helper/manifest. Exact tree/path/identity checks must pass; no refs, PRs, workflow edits or release actions. Temporary files, downloads, tests and patch checks needed for the assigned task are authorized local helper steps. Runtime permission controls still apply. See `docs/implementation/MID_COPILOT_HANDOFF_2026_11_07.md`.
 - For a read-only audit: **do not modify files, refs, PRs or release state**. Report reproducible issues, exact file/line locations, impact and fixes.
 - For an explicitly authorized implementation: work only in the assigned scope on an isolated, verified working copy. Never write to `main`, `mid-stable`, `chatgpt/*`, `codex/*` or `replit/*` through Copilot; never impersonate an authorized release or integration actor.
 - Copilot-created `copilot/*` refs are **untrusted candidates**, not MID integration branches. Do not assume GitHub Copilot's default PR/push behavior is permitted. If an external Draft candidate or a safe transport is not explicitly authorized and verifiably possible, keep work local and deliver a reproducible diff/patch and QA report; do not publish it. Never open a non-Draft production PR or mark a Copilot Draft ready for review autonomously.
