@@ -70,7 +70,7 @@ try{
  assert.doesNotMatch(layers,/state\.data\.run===state\.run/,'A fully validated prior run remains rendered during a same-model transition');
  const unified=readFileSync('src/UnifiedWeatherMap.tsx','utf8');assert.match(unified,/const forecastRun=isCloudWeather\?cloudWeather\.displayedRun/,'Displayed lead time must remain bound to the actually rendered image, not the pending data');
  assert.ok(layers.includes('onReady={()=>state.markDisplayed(state.data!)}'),'Only a fully rendered crossfade may advance the visible model time');
- assert.ok(layers.includes('frameKey={state.context}'),'Even visually identical model frames must receive an exact run/time render acknowledgement');
+ assert.ok(layers.includes('frameKey={`${state.data.model}:${state.data.run}:${state.data.time}:${state.mode}:${state.revision}`}'),'Actual image identity, not the pending selection, must control frame promotion');
  assert.ok(layers.includes('data===displayedNative'),'Data-ready is not the same as fully rendered image-ready');
  assert.ok(layers.includes('gdpsFrames.flatMap'),'Both GDPS components retain their previous complete plan while loading');
  assert.doesNotMatch(layers,/id=\{`cloud-weather-\$\{state.context\}-\$\{state.mode\}`\}/,'Time-specific image identity must not erase the crossfade buffer');
