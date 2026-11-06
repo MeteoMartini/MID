@@ -37,6 +37,8 @@ need('Kurvenansicht übernimmt normalisierte Widgetstunden verlustfrei',cockpit,
 need('Präsentationswidget markiert den ersten Tag nicht künstlich als aktiv',cockpit,"className={!presentationReady&&selectedDate===day.date?'active':''}");
 need('Präsentationswidget entfernt eine eventuell verbleibende Aktiv-Hinterlegung auch per CSS',foundation,'.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-days>button.active{background:transparent;box-shadow:none}');
 need('Kurvenfarbe folgt dem gemeinsamen 24h-Farbvertrag',cockpit,'stopColor="var(--param-temperature)"');
+need('Gefrierpunkt wird auf der gemeinsamen Temperaturkurve hervorgehoben',cockpit,"freezingPoint?{stroke:'var(--text)',strokeWidth:1.9,strokeDasharray:'none',opacity:.76}:undefined");
+need('Gefrierpunktbeschriftung erhält mehr Kontrast',cockpit,"freezingPoint?{fill:'var(--text)',fontWeight:900}:undefined");
 need('ECMWF-Badgefarben bleiben an die Option gebunden',cockpit,'ecmwfTemperatureColors?{color:exportMinTone.color,background:exportMinTone.background,borderColor:exportMinTone.border}:undefined');
 need('Niederschlagsmenge hat robusten Komponentenfallback bei vorhandenen Daten',cockpit,'Math.max(parts.total,hour.precipitation,components)');
 need('Fehlende Gesamtmenge bleibt NoData statt vermeintlich trocken',cockpit,'if(!isAvailablePrecipitation(hour.precipitation))return{hour,amount:Number.NaN}');

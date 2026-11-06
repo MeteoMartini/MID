@@ -38,6 +38,7 @@ try{
  assert.deepEqual(pairedTimes,[time],'Native cloud/WW availability is the exact intersection, not a single upstream list');
  assert.deepEqual(m.pairedNativeCloudWeatherTimes({products:{cloud:{frames:[{time}]},sigwx:{frames:[]}}}),[]);
  const pair=m.nativeCloudWeatherPair(cloud,weather);assert.deepEqual(pair.cloud,[0,100,null,50]);assert.deepEqual(pair.weather,[0,61,null,86]);assert.deepEqual(m.cloudWeatherAt(pair,47,6),{cloud:0,weather:0});assert.deepEqual(m.cloudWeatherAt(pair,48,6),{cloud:null,weather:null});assert.equal(m.cloudWeatherAt(pair,46,6),null);
+ const nextRun={...pair,run:new Date(Date.parse(run)+6*3600000).toISOString()};assert.equal(m.retainSameModelCloudWeatherFrame(pair,'icon-d2'),pair);assert.equal(m.retainSameModelCloudWeatherFrame(nextRun,'icon-d2'),nextRun,'A prior same-model frame remains eligible during a run change');assert.equal(m.retainSameModelCloudWeatherFrame(pair,'icon-eu'),null,'Frames from a different model must never bridge');
  for(const patch of [{run:'2026-01-01T00:00:00Z'},{time:run},{lats:[46,48]},{lons:[6,8]},{kind:'pressure'}])assert.throws(()=>m.nativeCloudWeatherPair(cloud,{...weather,...patch}));
  assert.equal(m.significantWeatherStyle(null),undefined);assert.equal(m.significantWeatherStyle(61.5),undefined);assert.equal(m.significantWeatherStyle(61).color,'#39ed24');assert.match(m.significantWeatherStyle(36).label,/Schneetreiben/);for(const code of [57,59,67,69,81,84,86])assert.match(m.significantWeatherStyle(code).label,/mäßig.*stark/);
  assert.doesNotMatch(m.significantWeatherStyle(91).label,/Gewitter ·/);assert.match(m.cloudWeatherDescription(null),/nicht verfügbar/);const codes=m.SIGNIFICANT_WEATHER_STYLES.flatMap(s=>s.codes);assert.equal(codes.length,new Set(codes).size);
@@ -62,9 +63,12 @@ try{
  assert.match(layers,/selectedIndependentFrame\?\[selectedIndependentFrame\]:useNativePair\?/,'Independent field remains preferred; a missing hour may use an actually paired native field');
  assert.match(layers,/if\(useNativePair&&native\)/,'No fallback to an unpaired or incompatible native term');
  assert.match(layers,/zIndex=\{role==='cloud'\?300:305\}/,'Cloud/weather WMS fills stay beneath reference layers');
- assert.match(layers,/opacity=\{state.data\?\.model===state.modelId\?opacity\/100:0\} zIndex=\{300\}/,'Raster fills stay beneath geography');
- assert.ok(layers.includes('previous?.model===modelId&&previous.run===run?previous:null'),'Only same-model/run data may bridge the pending timestep');
- assert.ok(layers.includes('id={`cloud-weather-${state.modelId}-${state.run}-${state.mode}`}'),'Native cloud renderer identity must survive a timestep change');
+ assert.ok(layers.includes('state.data&&state.data.model===state.modelId&&state.raster?<ImageQuadLayer'),'Only the validated frame for the selected model is rendered');
+ assert.ok(layers.includes('opacity={opacity/100} zIndex={300}'),'Raster fills stay beneath geography');
+ assert.ok(layers.includes('retainSameModelCloudWeatherFrame(previous,modelId)'),'The previous same-model frame remains visible while a new model run loads');
+ assert.ok(layers.includes('id={`cloud-weather-${state.modelId}-${state.mode}`}'),'Cloud renderer identity must survive timestep and run changes');
+ assert.doesNotMatch(layers,/state\.data\.run===state\.run/,'A fully validated prior run remains rendered during a same-model transition');
+ const unified=readFileSync('src/UnifiedWeatherMap.tsx','utf8');assert.match(unified,/const forecastRun=isCloudWeather\?cloudWeather\.data\?\.run\?\?cloudWeather\.run/,'Displayed lead time stays tied to the visible frame while a newer run loads');
  assert.ok(layers.includes('gdpsFrames.flatMap'),'Both GDPS components retain their previous complete plan while loading');
  assert.doesNotMatch(layers,/id=\{`cloud-weather-\$\{state.context\}-\$\{state.mode\}`\}/,'Time-specific image identity must not erase the crossfade buffer');
  assert.match(ordering,/sort\(\(a,b\)=>a\[1\]-b\[1\]\)/,'MapLibre order must follow numerical layer priorities');

@@ -1,3 +1,8 @@
+# MID v0.9.85.439
+
+- Wolken- und Signifikantwetterkarten behalten beim Wechsel desselben Modells über einen neuen Lauf den letzten geprüften Frame, bis der neue Frame bereitsteht.
+- Die 0-Grad-Referenz und ihre Achsenbeschriftung sind in Temperaturdiagrammen deutlicher hervorgehoben.
+
 # MID v0.9.85.438 · Ruhige Karten und Wetterlagen im erweiterten Trend
 
 Der Kartenrand ist dezenter; Touch und Maus hinterlassen keinen blauen Fokusrahmen. Tastaturbedienung bleibt erkennbar. Die Kurzfristzeile verzichtet auf den langen 24-Stunden-Abdeckungshinweis.

@@ -14,6 +14,7 @@ for(const s of context.build([{...row,ensembleAvailable:false}]))for(const key o
 const missing=context.build([{...row,bestMin:NaN,minQ25:NaN,minQ75:NaN}])[1].points[0];assert.equal(missing.mean,null);assert.equal(missing.q25,null);assert.equal(missing.q75,null);
 for(const key of ['maxQ25','maxQ75','minQ25','minQ75'])assert.ok(cockpit.includes(`${key}:item.${key}`),'Canonical weighted daily quartiles must reach the phase chart');
 assert.ok(chart.includes('[point.mean,point.low,point.q25,point.q75,point.high]'),'Scale includes both interval levels');
+assert.ok(chart.includes("freezingPointVisible=unit==='°C'&&lo<=0&&hi>=0")&&chart.includes("strokeWidth:1.9,strokeDasharray:'none'"),'Temperature horizon charts emphasize a visible 0 °C reference without changing other units');
 const exactQuartile='P25–P75 ${valueLabel(point.q25)} bis ${valueLabel(point.q75)} ${unit}';
 assert.ok(chart.split(exactQuartile).length>=3&&chart.includes('<title>')&&chart.includes('role="status"'),
  'Both accessible SVG title and selected status show genuine inner quartiles using unit-aware valueLabel, not rounded surrogate data');

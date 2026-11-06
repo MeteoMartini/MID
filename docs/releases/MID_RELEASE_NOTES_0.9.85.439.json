@@ -1,0 +1,15 @@
+{
+  "version": "0.9.85.439",
+  "date": "2026-11-06",
+  "title": "Gleichmäßige Kartenübergänge und markante Gefrierpunktachsen",
+  "external": [
+    "Wolken- und Signifikantwetterkarten behalten beim Wechsel desselben Modells über einen neuen Lauf den letzten geprüften Frame, bis der neue Frame bereitsteht.",
+    "Die 0-Grad-Referenz und ihre Achsenbeschriftung sind in Temperaturdiagrammen deutlicher hervorgehoben."
+  ],
+  "internal": [
+    "Same-Model-Frame-Retention für Wolken/SIGWX während eines Laufwechsels; Renderer-Identität bleibt über Lauf- und Zeitschrittwechsel stabil. Modellwechsel behalten die bisherige strikte Trennung.",
+    "Angezeigter Vorhersage-Vorlauf folgt während des Ladens dem tatsächlich sichtbaren Frame.",
+    "Gefrierpunktlinie und Nullgrad-Achsenlabel in Stunden-, 7-Tage-, Horizont- und Ensemble-Temperaturdiagrammen hervorgehoben; gemeinsame 7-Tage-Kurve erhält Widget-Parität.",
+    "Keine Änderung an Wetterdaten, Modellwahl, Warnungen oder RUC-Pipeline."
+  ]
+}
