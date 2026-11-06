@@ -7,6 +7,10 @@ import {mapBrowserRunPlan,mapBrowserCases,mapBrowserMemoryProbe} from './map-bro
 const root=new URL('../',import.meta.url),read=p=>readFile(new URL(p,root),'utf8');
 const canonical=await read('ci/github/workflows/mid-code-revision.yml');
 assert.equal(canonical,await read('.github/workflows/mid-code-revision.yml'),'Source and active revision workflows must remain exactly identical');
+const revisionRunnerImages=[...canonical.matchAll(/^    runs-on: (\S+)$/gm)].map(match=>match[1]);
+assert.deepEqual(revisionRunnerImages,Array(7).fill('ubuntu-24.04'),'Runner-Image muss für alle sieben Revisionsjobs Ubuntu 24.04 bleiben: Playwright 1.56.1 verweigert Chromium/WebKit auf Ubuntu 26.04; nur vollständige Browser-/CI-Qualifikation darf dieses Pin verändern');
+assert.doesNotMatch(canonical,/^    runs-on: ubuntu-latest$/m,'Unqualifizierte ubuntu-latest-Drift darf den Revisionsbrowser nicht erneut ausfallen lassen');
+
 assert.doesNotMatch(canonical,/^  install:\s*$/m,'Obsoleter Revision-Installerjob darf nicht zurückkehren');
 assert.doesNotMatch(canonical,/^          - install\s*$/m,'Veralteter task=install-Dispatch muss dauerhaft entfallen');
 assert.doesNotMatch(canonical,/git push origin HEAD:(?:main|mid-stable)/,'Revision darf geschützte Release-Branches nie direkt beschreiben');

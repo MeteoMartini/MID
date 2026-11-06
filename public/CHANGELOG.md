@@ -1,3 +1,7 @@
+# MID v0.9.85.440
+
+- Die automatische Prüfung von Wetterkarten, Bedienoberflächen und Performance erhält eine stabile Browserumgebung. Dadurch können vollständige Qualitätskontrollen nach Aktualisierungen wieder zuverlässig ausgeführt werden. An den Wetterdaten und Prognosen ändert sich nichts.
+
 # MID v0.9.85.439
 
 - Wolken- und Signifikantwetterkarten behalten beim Wechsel desselben Modells über einen neuen Lauf den letzten geprüften Frame, bis der neue Frame bereitsteht.

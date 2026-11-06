@@ -1,3 +1,11 @@
+## MID v0.9.85.440 · 2026-11-06 · P0 Revisions-CI Browser-Runner
+
+- Revisionsworkflow in beiden SHA-identischen kanonischen/aktiven GitHub-Actions-Dateien mit 7 expliziten `ubuntu-24.04`-Runnern statt driftendem `ubuntu-latest` stabilisiert. Playwright 1.56.1, Chromium, WebKit, vollständige zehn Regressionsshards, alle Permissions/Trigger unverändert.
+- Bestehende Pflichtregression `scripts/test-revision-parallel-matrix-0985385.mjs` prüft ab sofort sämtliche sieben Runner-Bindungen und das Verbot stillschweigender ubuntu-latest-Rückkehr.
+- Incident: Stable .439 SHA `b4a28cb18fdd486bb49e93a9b3b552783f655212`, Revisionsrun #42216840169 mit 10/10 vor Testbeginn gescheiterten Shards; Ubuntu 26.04 verweigert Playwright-1.56.1-Chromium. Der Installer v.439 war davon unabhängig erfolgreich.
+- Originalnachweis `docs/implementation/MID_C440_REVISION_RUNNER_COMPAT.md`. Keine meteorologische Logik, RUC-Pipeline, Browser-Testverzichte, CI-Secrets, Branch-/Ruleset-Rechte oder Deploymentpfade geändert.
+- Vollständiges Source-PR-Gate/Installer/Worker/Pages/Stable-Promotion und ein neuer erfolgreicher MID-Revisionslauf auf finaler Stable-.440-SHA sind zwingend und **vor Abschluss noch nicht als grün behauptet**.
+
 ## MID v0.9.85.439 · 2026-11-06 · Gleichmäßige Kartenübergänge und markante Gefrierpunktachsen
 
 - Same-Model-Frame-Retention für Wolken/SIGWX während eines Laufwechsels; Renderer-Identität bleibt über Lauf- und Zeitschrittwechsel stabil. Modellwechsel behalten die bisherige strikte Trennung.

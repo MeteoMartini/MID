@@ -1,0 +1,14 @@
+{
+  "version": "0.9.85.440",
+  "date": "2026-11-06",
+  "title": "Zuverlässigere automatische Qualitätsprüfung",
+  "external": [
+    "Die automatische Prüfung von Wetterkarten, Bedienoberflächen und Performance erhält eine stabile Browserumgebung. Dadurch können vollständige Qualitätskontrollen nach Aktualisierungen wieder zuverlässig ausgeführt werden. An den Wetterdaten und Prognosen ändert sich nichts."
+  ],
+  "internal": [
+    "MID Revision 7 Jobs ubuntu-24.04 statt ubuntu-latest; Playwright 1.56.1 Chromium/WebKit-kompatibler Runner.",
+    "Zehn Core-/Heavy-Revisionsshards, CI/Nightly/Performance-Checks, SHA-Fencing, CodeQL und Browserpflicht unverändert; bestehende Pflichtregression gegen Runner-Drift erweitert.",
+    "Vollständiger Nachweis in docs/implementation/MID_C440_REVISION_RUNNER_COMPAT.md; anwendungsweite meteorologische und RUC-Verträge unverändert.",
+    "Kein bestandener Source-/Installer-/Post-Stable-Revisionslauf vor dessen realem Abschluss behauptet."
+  ]
+}
