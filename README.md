@@ -104,6 +104,12 @@ Direkte Änderungen an `main` oder `mid-stable` sind nicht zulässig. Siehe [AGE
 └── package.json            Node.js-Konfiguration
 ```
 
+## Zusammenarbeit mit GitHub Copilot
+
+GitHub Copilot verwendet die [repositoryweiten MID-Anweisungen](.github/copilot-instructions.md), [fach- und pfadspezifischen Regeln](.github/instructions/), [wiederverwendbare Prüf- und Übergabe-Prompts](.github/prompts/) sowie den [lesenden Audit-Agenten](.github/agents/mid-auditor.agent.md). Die [Copilot-Koordinationsregeln](docs/implementation/MID_COPILOT_COLLABORATION_2026_11_06.md) beschreiben die SHA-Prüfung, den Umgang mit parallelen Arbeiten und die Integration ohne eigene Copilot-Releaseberechtigung.
+
+Copilot-Ergebnisse aus `copilot/*` werden **nicht** direkt veröffentlicht. Unabhängige Integration, vollständige Gates und Stable-Promotion bleiben wie in `AGENTS.md` beschrieben verpflichtend.
+
 ## Versionsschema
 
 - Funktionsrelease (`0.7.x` oder äquivalent `0.7.x.0`) für neue eigenständige Funktionen.

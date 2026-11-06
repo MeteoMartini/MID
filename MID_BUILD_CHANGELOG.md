@@ -1,3 +1,7 @@
+## MID v0.9.85.443 · 2026-11-06 · Sichere Copilot-Zusammenarbeit
+
+- Original PR673 selektiv und ohne neue Rechte integriert; vollständige normale Releasegates zwingend.
+
 ## MID v0.9.85.442 · 2026-11-06 · Temperaturreferenz und Diagnoseauswahl
 
 - Keine meteorologischen Daten oder PostHog-Sendegrenzen verändert.

@@ -1,0 +1,11 @@
+{
+  "version": "0.9.85.443",
+  "date": "2026-11-06",
+  "title": "Sichere Copilot-Zusammenarbeit",
+  "external": [
+    "Repository-Regeln und lesender Audit-Agent für ausdrücklich beauftragte Copilot-Arbeiten ergänzt."
+  ],
+  "internal": [
+    "Original PR673 selektiv und ohne neue Rechte integriert; vollständige normale Releasegates zwingend."
+  ]
+}

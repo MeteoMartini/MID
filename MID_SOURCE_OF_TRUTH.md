@@ -1,3 +1,7 @@
+# MID v0.9.85.443 · Copilot-Anweisungen
+
+Selektive Integration der elf Dokumentationsdateien aus PR673 @99b4882edfb89fe7e23d2f999bc8f71b7e1a178f auf bestätigter .442 da169558948f8fe9d5073a1a60efd5eafbf01eea. Keine zusätzlichen Rechte oder Workflows. Vollständige reguläre Source-/Installer-Gates bleiben zwingend. Copilot-Laufzeitpilot nicht verifiziert.
+
 # MID v0.9.85.442 · Temperaturreferenz und Diagnoseauswahl
 
 Basis .441 a35a19a89fb6f4418b001263895f8b1d699f482b. Zusätzliche absolute 0-°C-Referenzen in Kurzfristprofil, gemeinsamem Temperaturfaden, Meteogramm und Klima; keine Änderung an Anomalieachsen oder Daten. PostHog-Einwilligung unabhängig von Sendebereitschaft speicherbar; Versand bleibt unverändert fail-closed. Vollständige Source-/Installer-/Worker-/Pages-/Stable-Gates erforderlich.
