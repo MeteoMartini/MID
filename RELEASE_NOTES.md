@@ -1,3 +1,9 @@
+# MID v0.9.85.441 · Wolken- und Modellwetterkarten ohne weiße Ladebilder
+
+Wolken- und Signifikantwetterkarten zeigen beim Wechsel zwischen Modellzeitschritten das zuletzt vollständig dargestellte Bild, bis der neue Stand wirklich gerendert ist.
+
+Erst wenn die nächste Karte sichtbar bereitsteht, erfolgt eine sanfte Überblendung. Bei Ladefehlern bleibt das letzte gültige Modellbild erhalten; die Wetterdaten und Warnungen bleiben unverändert.
+
 # MID v0.9.85.440 · Zuverlässige automatische Browserrevision
 
 Die automatische Qualitätsrevision wird auf eine nachweislich mit Playwright kompatible Browserprüfumgebung umgestellt. Alle vorhandenen UI-, Karten-, Wetter- und Sicherheitstests bleiben verpflichtend; an Wetterdaten und Vorhersagen ändert sich nichts.
