@@ -1,0 +1,68 @@
+{
+  "observedAt": "2026-11-03T20:55:40.880562+00:00",
+  "base": {
+    "main": "16c975aab66ed858f0add9628f78b5b87b7e2a34",
+    "midStable": "16c975aab66ed858f0add9628f78b5b87b7e2a34",
+    "packageVersion": "0.9.85.417",
+    "baselineReleaseVersion": "0.9.85.417"
+  },
+  "files": {
+    "AGENTS.md": "f25beed8ecc90662bcb290e9626559970502914c5d3082dcc8a5c8167b35e0f8",
+    "MID_BASELINE.json": "f6da47599443c49e2036d3ce1d2874f45bbd34b34c747e5e9fa144d0debc1de2",
+    "MID_SOURCE_OF_TRUTH.md": "9b1e6eb331b15f04073bc29a765a1df3377fa466133a56eecacaa8d78307b248",
+    "MID_DWD_RUC_PIPELINE_CONTRACT.md": "ee953c0611c92e729cf366d0b4f49721fdb6918d141d673d5d5cc98ee4778504",
+    "MID_CHATGPT_GITHUB_CONTRACT.md": "e7ff386fad8e8aa4e356a1a98abd2b7356477939609b9b115ec90e298149490f",
+    "MID_STATE_INTEGRITY_CONTRACT.md": "0877c9a9b42d16b7ff8f167a9d2fb1d385d1ef8e8d3e9b85a0f26d3c4b55d3a5",
+    "MID_RUNTIME_LIFECYCLE_OFFLINE_CONTRACT.md": "95e424cd3a847ae60e9fdda5b41a568ac909d36de7eb31c7ea2c7dfbd59f2213"
+  },
+  "parallelCandidates": [
+    {
+      "pr": 642,
+      "head": "9ea9552e6243b6133a40b207d70b8dc69beb8ae1",
+      "baseVersion": "0.9.85.416",
+      "draft": true
+    },
+    {
+      "pr": 640,
+      "head": "e470b747182ee74aa810697ed3b9823abb85284d",
+      "baseVersion": "0.9.85.415",
+      "draft": true
+    }
+  ],
+  "runs": [
+    {
+      "id": 41701615535,
+      "head": "26a8621ebe4911e3e19f9d78240490737049c0b8",
+      "conclusion": "success",
+      "kind": "installer with successful finalization; resulting stable 16c975aab66ed858f0add9628f78b5b87b7e2a34"
+    },
+    {
+      "id": 41703938171,
+      "head": "16c975aab66ed858f0add9628f78b5b87b7e2a34",
+      "conclusion": "success",
+      "jobs": [
+        "calculate",
+        "prepare",
+        "MID + RUC kostenfrei auf GitHub Pages ver\u00f6ffentlichen",
+        "diagnostics"
+      ],
+      "kind": "regular RUC; not proof of Fast production admission"
+    },
+    {
+      "id": 41673755584,
+      "head": "9ea9552e6243b6133a40b207d70b8dc69beb8ae1",
+      "conclusion": "success",
+      "kind": "Original full and Fast binary end-to-end OFFLINE site; no release rights"
+    },
+    {
+      "id": 41711711447,
+      "head": "16c975aab66ed858f0add9628f78b5b87b7e2a34",
+      "status": "queued",
+      "kind": "observed pending regular RUC; not started by this task"
+    }
+  ],
+  "decision": "BLOCK_IMPLEMENTATION_CONCURRENT_RUC_CHANGES",
+  "applicationFilesChanged": false,
+  "workflowsDispatched": false,
+  "localTestsRun": []
+}
