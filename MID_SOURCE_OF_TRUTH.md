@@ -1,3 +1,7 @@
+# MID v0.9.85.442 · Temperaturreferenz und Diagnoseauswahl
+
+Basis .441 a35a19a89fb6f4418b001263895f8b1d699f482b. Zusätzliche absolute 0-°C-Referenzen in Kurzfristprofil, gemeinsamem Temperaturfaden, Meteogramm und Klima; keine Änderung an Anomalieachsen oder Daten. PostHog-Einwilligung unabhängig von Sendebereitschaft speicherbar; Versand bleibt unverändert fail-closed. Vollständige Source-/Installer-/Worker-/Pages-/Stable-Gates erforderlich.
+
 # MID v0.9.85.441 · Wolken- und Modellwetterübergänge
 
 Basis `main=mid-stable` v0.9.85.440 SHA `8292806f7c53ccc6117d72a9592c8033189dfd4f`; Revisionsrun42230802636 erfolgreich. Der wolken-/WW-spezifische ImageQuadRenderer stellt bisher nach HTML-onload sofort ein neues Raster bereit und startet den 350-ms-Fade, obwohl MapLibre-Source und GPU-Render noch nicht fertig sein können. Der neue Stage/Source-Readiness-Guard behält den vorherigen vollständigen Frame bis zum tatsächlich gerenderten Nachfolger, kein deckender Platzhalter beim Erstanzeigen, keine stale Folgeframes, Fehler behalten gültigen Stand, Reduced-Motion-Wechsel bleibt schnell. Dynamische Pflichtregression zum tatsächlichen Quell-/Render-Lebenszyklus erweitert; NoData, Feldprovenienz, Warnungen, Modell-/Run-/Zeitsemantik und RUC unverändert. Technischer Nachweis `docs/implementation/MID_C441_CLOUD_GPU_READY_CROSSFADE.md`; vollständige Source-/Installer-/Worker-/Pages-/Stable-Gates und Browserabnahme verpflichtend, kein Vorab-Grün.

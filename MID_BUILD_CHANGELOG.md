@@ -1,3 +1,7 @@
+## MID v0.9.85.442 · 2026-11-06 · Temperaturreferenz und Diagnoseauswahl
+
+- Keine meteorologischen Daten oder PostHog-Sendegrenzen verändert.
+
 ## MID v0.9.85.441 · 2026-11-06 · Wolken- und Modellwetterkarten ohne weiße Ladebilder
 
 - MapLibre ImageQuadLayer: staging mit 0,1 % Deckkraft; Freigabe der 350-ms-Überblendung erst nach erfolgreichem Bildladen, MapLibre-Renderdurchlauf und isSourceLoaded der neuen Bildquelle.

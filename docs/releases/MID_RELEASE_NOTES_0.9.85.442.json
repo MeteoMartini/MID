@@ -1,0 +1,12 @@
+{
+  "version": "0.9.85.442",
+  "date": "2026-11-06",
+  "title": "Temperaturreferenz und Diagnoseauswahl",
+  "external": [
+    "0-°C-Referenz in weiteren Temperaturdiagrammen hervorgehoben.",
+    "Freiwillige Diagnoseauswahl unabhängig von Versandverfügbarkeit speicherbar."
+  ],
+  "internal": [
+    "Keine meteorologischen Daten oder PostHog-Sendegrenzen verändert."
+  ]
+}
