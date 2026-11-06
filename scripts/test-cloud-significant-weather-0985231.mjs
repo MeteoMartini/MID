@@ -68,7 +68,10 @@ try{
  assert.ok(layers.includes('retainSameModelCloudWeatherFrame(previous,modelId)'),'The previous same-model frame remains visible while a new model run loads');
  assert.ok(layers.includes('id={`cloud-weather-${state.modelId}-${state.mode}`}'),'Cloud renderer identity must survive timestep and run changes');
  assert.doesNotMatch(layers,/state\.data\.run===state\.run/,'A fully validated prior run remains rendered during a same-model transition');
- const unified=readFileSync('src/UnifiedWeatherMap.tsx','utf8');assert.match(unified,/const forecastRun=isCloudWeather\?cloudWeather\.data\?\.run\?\?cloudWeather\.run/,'Displayed lead time stays tied to the visible frame while a newer run loads');
+ const unified=readFileSync('src/UnifiedWeatherMap.tsx','utf8');assert.match(unified,/const forecastRun=isCloudWeather\?cloudWeather\.displayedRun/,'Displayed lead time must remain bound to the actually rendered image, not the pending data');
+ assert.ok(layers.includes('onReady={()=>state.markDisplayed(state.data!)}'),'Only a fully rendered crossfade may advance the visible model time');
+ assert.ok(layers.includes('frameKey={`${state.data.model}:${state.data.run}:${state.data.time}:${state.mode}:${state.revision}`}'),'Actual image identity, not the pending selection, must control frame promotion');
+ assert.ok(layers.includes('data===displayedNative'),'Data-ready is not the same as fully rendered image-ready');
  assert.ok(layers.includes('gdpsFrames.flatMap'),'Both GDPS components retain their previous complete plan while loading');
  assert.doesNotMatch(layers,/id=\{`cloud-weather-\$\{state.context\}-\$\{state.mode\}`\}/,'Time-specific image identity must not erase the crossfade buffer');
  assert.match(ordering,/sort\(\(a,b\)=>a\[1\]-b\[1\]\)/,'MapLibre order must follow numerical layer priorities');

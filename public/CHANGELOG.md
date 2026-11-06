@@ -1,3 +1,8 @@
+# MID v0.9.85.441
+
+- Wolken- und Signifikantwetterkarten zeigen beim Wechsel zwischen Modellzeitschritten das zuletzt vollständig dargestellte Bild, bis der neue Stand wirklich gerendert ist.
+- Erst wenn die nächste Karte sichtbar bereitsteht, erfolgt eine sanfte Überblendung. Bei Ladefehlern bleibt das letzte gültige Modellbild erhalten; die Wetterdaten und Warnungen bleiben unverändert.
+
 # MID v0.9.85.440
 
 - Die automatische MID-Qualitätsprüfung verwendet wieder eine unterstützte Browserumgebung. Die App und ihre Wetterdaten bleiben funktional unverändert.

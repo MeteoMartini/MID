@@ -1,3 +1,11 @@
+## MID v0.9.85.441 · 2026-11-06 · Wolken- und Modellwetterkarten ohne weiße Ladebilder
+
+- MapLibre ImageQuadLayer: staging mit 0,1 % Deckkraft; Freigabe der 350-ms-Überblendung erst nach erfolgreichem Bildladen, MapLibre-Renderdurchlauf und isSourceLoaded der neuen Bildquelle.
+- Letztes geprüftes Kartenbild bleibt auch bei langem Textur-/Source-Ladevorgang erhalten; Fehler und superseded Zeitschritte räumen ausschließlich noch nicht dargestellte Kandidaten ab. Überblendung wartet auf vorausgehende Animation.
+- Bestehende Pflichtregression scripts/test-map-components-0985428.mjs um verzögerte GPU-Bereitschaft, leere Erstansicht, Lade-/MapLibre-Fehler, rasche Auswahl, Reduced Motion und Listener-/Source-Cleanup erweitert.
+- Keine Änderung an DWD-/ECMWF-/ECCC-Feldern, WMO-Wettercodes, SYNOP-Symbolen, Run-/Zeitsemantik, amtlichen Warnungen, RUC-Daten oder normalen MapLibre Layer-Prioritäten.
+- Vollständige Source-/Installer-/Worker-/Pages-/Stable-Gates und reale Browser-/Responsive-Prüfung erforderlich; das Prüfergebnis ist im Quellstand vor erfolgreicher CI nicht behauptet.
+
 ## MID v0.9.85.440 · 2026-11-06 · Zuverlässige automatische Browserrevision
 
 - Vier browserabhängige Revisionsjobs auf Ubuntu 24.04 gepinnt; Playwright 1.56.1 kann Chromium und WebKit mit unverändertem Prüfumfang installieren.

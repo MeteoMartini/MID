@@ -203,25 +203,69 @@ export function CanvasOverlay({id,opacity=1,zIndex=5,render,events=['moveend','z
  useEffect(()=>{if(canvasRef.current)canvasRef.current.style.opacity=String(Math.max(0,Math.min(1,opacity)))},[opacity]);return null;
 }
 
-export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='linear',onError}:{id:string;url:string;bounds:[[number,number],[number,number]];opacity?:number;zIndex?:number;resampling?:'linear'|'nearest';onError?:(message:string)=>void}){
+export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='linear',frameKey,onReady,onError}:{id:string;url:string;bounds:[[number,number],[number,number]];opacity?:number;zIndex?:number;resampling?:'linear'|'nearest';frameKey?:string;onReady?:()=>void;onError?:(message:string)=>void}){
  const map=useMidMap(),south=bounds[0][0],west=bounds[0][1],north=bounds[1][0],east=bounds[1][1],errorRef=useRef(onError),opacityRef=useRef(opacity),sequence=useRef(0),animation=useRef(0),fadeUntil=useRef(0),frames=useRef<{source:string;layer:string;weight:number}[]>([]);errorRef.current=onError;opacityRef.current=opacity;
  const remove=(frame:{source:string;layer:string})=>{if(!map)return;unregisterMapLayerOrder(map,frame.layer);try{if(map.getLayer(frame.layer))map.removeLayer(frame.layer);if(map.getSource(frame.source))map.removeSource(frame.source)}catch{}};
  useEffect(()=>()=>{cancelAnimationFrame(animation.current);fadeUntil.current=0;for(const frame of frames.current)remove(frame);frames.current=[]},[map,id]);
  useEffect(()=>{
-  if(!map||!url)return;let active=true,timer=0;const generation=++sequence.current,image=new Image();
-  const fail=()=>{if(active)errorRef.current?.('Das Kartenbild konnte nicht geladen werden. Der bisherige Stand bleibt sichtbar.')};
-  const install=()=>{if(!active)return;const source=`${safeId(id)}-source-${generation}`,layer=`${safeId(id)}-layer-${generation}`;
-   try{
-    // Keep the fully decoded previous image while fetching/decoding its successor.
-    map.addSource(source,{type:'image',coordinates:[[west,north],[east,north],[east,south],[west,south]]});(map.getSource(source) as maplibregl.ImageSource).updateImage({image});
-    map.addLayer({id:layer,type:'raster',source,paint:{'raster-opacity':frames.current.length?0:opacityRef.current,'raster-fade-duration':0,'raster-resampling':resampling}});registerMapLayerOrder(map,layer,zIndex+.0001);
-    const previous=frames.current.at(-1),next={source,layer,weight:previous?0:1};frames.current=previous?[previous,next]:[next];const start=performance.now(),duration=window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:350;fadeUntil.current=start+duration;
-    // A newer URL cancels only its request, never an already visible transition.
-    const fade=(now:number)=>{if(!map.getLayer(layer))return;const t=previous?Math.max(0,Math.min(1,(now-start)/Math.max(1,duration))):1;next.weight=t;map.setPaintProperty(layer,'raster-opacity',t*opacityRef.current);if(previous){previous.weight=1-t;map.setPaintProperty(previous.layer,'raster-opacity',(1-t)*opacityRef.current)}if(t<1)animation.current=requestAnimationFrame(fade);else{if(previous)remove(previous);frames.current=[next];fadeUntil.current=0}};animation.current=requestAnimationFrame(fade);
-   }catch{remove({source,layer});fail()}
+  if(!map||!url)return;
+  let active=true,timer=0,watchdog=0;
+  let staged:{source:string;layer:string}|null=null;
+  let readiness:(()=>void)|null=null,sourceError:((event:maplibregl.ErrorEvent)=>void)|null=null;
+  const generation=++sequence.current,image=new Image();
+  // Capture this URL's ready callback; a newer selected term must not relabel an older fade.
+  const onDisplayed=onReady;
+  const releaseStaging=()=>{
+   if(readiness){map.off('render',readiness);readiness=null}
+   if(sourceError){map.off('error',sourceError);sourceError=null}
+   window.clearTimeout(watchdog);
+   if(staged){remove(staged);staged=null}
   };
-  image.onload=()=>{if(!active)return;const wait=fadeUntil.current-performance.now();if(wait>0)timer=window.setTimeout(install,wait+20);else install()};image.onerror=fail;image.src=url;
-  return()=>{active=false;window.clearTimeout(timer);image.onload=null;image.onerror=null;if(!frames.current.some(frame=>frame.source===`${safeId(id)}-source-${generation}`))image.removeAttribute('src')};
- },[map,id,url,south,west,north,east,zIndex,resampling]);
+  const fail=()=>{if(!active)return;releaseStaging();errorRef.current?.('Das Kartenbild konnte nicht geladen werden. Der bisherige Stand bleibt sichtbar.')};
+  const promote=()=>{
+   if(!active||!staged)return;
+   const {source,layer}=staged;staged=null;
+   if(readiness){map.off('render',readiness);readiness=null}
+   if(sourceError){map.off('error',sourceError);sourceError=null}
+   window.clearTimeout(watchdog);
+   const previous=frames.current.at(-1),next={source,layer,weight:.001};
+   frames.current=previous?[previous,next]:[next];
+   const start=performance.now(),duration=window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:350;
+   fadeUntil.current=start+duration;
+   const fade=(now:number)=>{
+    if(!map.getLayer(layer))return;
+    const t=duration?Math.max(0,Math.min(1,(now-start)/duration)):1;
+    next.weight=t;map.setPaintProperty(layer,'raster-opacity',t*opacityRef.current);
+    if(previous&&map.getLayer(previous.layer)){previous.weight=1-t;map.setPaintProperty(previous.layer,'raster-opacity',(1-t)*opacityRef.current)}
+    if(t<1)animation.current=requestAnimationFrame(fade);
+    else{if(previous)remove(previous);frames.current=[next];fadeUntil.current=0;onDisplayed?.()}
+   };
+   animation.current=requestAnimationFrame(fade);
+  };
+  const install=()=>{
+   if(!active)return;
+   const source=`${safeId(id)}-source-${generation}`,layer=`${safeId(id)}-layer-${generation}`;
+   try{
+    // The previous raster stays fully opaque while the successor is decoded,
+    // uploaded and actually rendered. A loaded HTML image is not a ready GPU tile.
+    map.addSource(source,{type:'image',coordinates:[[west,north],[east,north],[east,south],[west,south]]});
+    (map.getSource(source) as maplibregl.ImageSource).updateImage({image});
+    map.addLayer({id:layer,type:'raster',source,paint:{'raster-opacity':.001,'raster-fade-duration':0,'raster-resampling':resampling}});
+    registerMapLayerOrder(map,layer,zIndex+.0001);
+    staged={source,layer};
+    // MapLibre fires render after its painter pass. Only then may an already
+    // source-loaded image replace the old frame; the 0.1% staging paint
+    // makes the first texture upload eligible without showing an empty layer.
+    readiness=()=>{if(active&&staged&&map.getLayer(layer)&&map.isSourceLoaded(source))promote()};
+    sourceError=(event)=>{if((event as unknown as {sourceId?:string}).sourceId===source)fail()};
+    map.on('render',readiness);map.on('error',sourceError);
+    watchdog=window.setTimeout(fail,15000);
+    map.triggerRepaint();
+   }catch{releaseStaging();remove({source,layer});fail()}
+  };
+  image.onload=()=>{if(!active)return;const wait=fadeUntil.current-performance.now();if(wait>0)timer=window.setTimeout(install,wait+20);else install()};
+  image.onerror=fail;image.src=url;
+  return()=>{active=false;window.clearTimeout(timer);image.onload=null;image.onerror=null;releaseStaging();if(!frames.current.some(frame=>frame.source===`${safeId(id)}-source-${generation}`))image.removeAttribute('src')};
+ },[map,id,url,frameKey,south,west,north,east,zIndex,resampling]);
  useEffect(()=>{for(const frame of frames.current)if(map?.getLayer(frame.layer))map.setPaintProperty(frame.layer,'raster-opacity',frame.weight*Math.max(0,Math.min(1,opacity)))},[map,opacity]);return null;
 }
