@@ -20,7 +20,7 @@
 - [ ] Datenquelle im Quellen-Dialog dokumentiert (falls neue Datenquelle)
 
 ## Tests
-- [ ] Source-PR-Gate grün (881 Regressionstests)
+- [ ] Source-PR-Gate grün (vollständiges aktuelles Pflichtinventar gemäß MID_BASELINE.json)
 - [ ] Produktionsbuild erfolgreich
 - [ ] Responsive Design geprüft (iPhone, iPad, Desktop)
 - [ ] Light/Dark-Modus geprüft
