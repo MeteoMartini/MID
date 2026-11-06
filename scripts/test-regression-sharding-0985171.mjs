@@ -34,6 +34,12 @@ const [canonical,active]=await Promise.all([
  readFile(path.join(root,'.github/workflows/chatgpt-pr-gate.yml'),'utf8')
 ]);
 assert.equal(canonical,active,'Kanonischer und aktiver Source-Gate-Workflow müssen bytegleich sein.');
+// Keep the existing Playwright/browser binaries on their qualified Linux host.
+for(const relative of ['ci/github/workflows/chatgpt-pr-gate.yml','ci/github/workflows/install-mid.yml']){
+ const workflow=await readFile(path.join(root,relative),'utf8'),runners=[...workflow.matchAll(/^\s*runs-on:\s*(.+)$/gm)].map(match=>match[1]);
+ assert.ok(runners.length>0);assert.ok(runners.every(runner=>runner==='ubuntu-24.04'),relative+': browser/release host must not drift with ubuntu-latest');
+}
+
 for(const token of [
  'source_core:','heavy_regressions:','validate_source:',
  'name: Agent-Quellstand vollständig prüfen',

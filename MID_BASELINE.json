@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.436",
+  "releaseVersion": "0.9.85.437",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -2985,7 +2985,6 @@
     "scripts/version-regression-helper.mjs",
     "src/AppPortalPopover.tsx",
     "src/ClimatePanel.tsx",
-    "src/CloudWwMarkers.tsx",
     "src/DwdPrecipitationMap.tsx",
     "src/DwdPrecipitationTypeRadar.tsx",
     "src/ExtremeOutlookAreaOverlay.tsx",
@@ -2999,6 +2998,8 @@
     "src/MapLibreCore.tsx",
     "src/MountainWeather.tsx",
     "src/RadarPanel.tsx",
+    "src/RadarPhaseSymbols.css",
+    "src/RadarPhaseLegend.tsx",
     "src/SelectedPlaceBar.tsx",
     "src/SevenDayDesignModes.tsx",
     "src/SevenDayForecastSummary.tsx",
@@ -3051,7 +3052,6 @@
     "src/midDesignWeFourteen.css",
     "src/midDesignWeSeven.css",
     "src/midPresentation.css",
-    "src/midSynopMarkers.css",
     "src/nativeSynopticFields.ts",
     "src/precipitationIntervals.ts",
     "src/precipitationPhaseColor.ts",
@@ -3068,6 +3068,7 @@
     "src/styles-src/presentation-order.json",
     "src/sunshineDuration.ts",
     "src/synopModelPlot.ts",
+    "src/synopWeatherGlyphPaths.ts",
     "src/thunderPlaceCache.ts",
     "src/travelCenter.ts",
     "src/travelForecastFusion.ts",
@@ -3931,7 +3932,7 @@
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
-  "version": "0.9.85.436",
+  "version": "0.9.85.437",
   "updatedAt": "2026-11-03",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",

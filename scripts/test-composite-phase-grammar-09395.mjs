@@ -1,6 +1,7 @@
 import {readFile} from 'node:fs/promises';
 
 const radar=await readFile(new URL('../src/RadarPanel.tsx',import.meta.url),'utf8');
+const legend=await readFile(new URL('../src/RadarPhaseLegend.tsx',import.meta.url),'utf8');
 const overlay=await readFile(new URL('../src/RadarModelPrecipTypeOverlay.tsx',import.meta.url),'utf8');
 const weatherMaps=await readFile(new URL('../src/WeatherMapsData.ts',import.meta.url),'utf8');
 const worker=await readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8');
@@ -12,7 +13,7 @@ function assert(condition,message){if(!condition)throw new Error(message)}
 // Composite precipitation type must have exactly one active implementation: observed OPERA echo + dynamically selected Rapid/Regional model phase.
 assert(!/Hymec|hymec/.test(radar),'RadarPanel darf HymecNG nicht mehr als Niederschlagsart-Option, Import oder Fallback enthalten.');
 assert(/precipitationTypeMode:'none'\|'radar-model'/.test(radar),'Niederschlagsart muss ausschließlich none/radar-model kennen.');
-assert(/LazyRadarModelPrecipTypeOverlay/.test(radar)&&/Niederschlagsart-Symbole · Radar \+ Rapid-\/Regionalmodell/.test(radar),'Radar-/Rapidmodell-Symboloverlay und eindeutige Kennzeichnung fehlen.');
+assert(/LazyRadarModelPrecipTypeOverlay/.test(radar)&&/Niederschlagsart-Symbole · Radar \+ Rapid-\/Regionalmodell/.test(legend)&&radar.includes("lazy(()=>import('./RadarPhaseLegend'))"),'Radar-/Rapidmodell-Symboloverlay und eindeutige Kennzeichnung fehlen.');
 assert(!/Hagelsignal im Modell/.test(radar),'Ein unbestätigtes Modell-Hagelsignal darf nicht als Niederschlagsart-Legendenklasse erscheinen.');
 
 assert(/loadOperaRasterData/.test(overlay)&&/loadWeatherPhaseGrid/.test(overlay),'Phasenlayer muss Beobachtungsradar und dynamisches Regionalmodell gemeinsam verwenden.');

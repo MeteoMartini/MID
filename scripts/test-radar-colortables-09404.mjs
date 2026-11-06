@@ -25,9 +25,9 @@ assert.match(opera,/radarDbzColor\(dbz,colorTable\)/,'OPERA fallback standard co
 
 assert.match(phase,/HtmlMarker/,'precipitation type must now be rendered as symbols, not a colour table');
 assert.doesNotMatch(phase,/colorTable\?:RadarColorTableId|GeoJsonLayers|fill-color/,'precipitation-type overlay must be independent of radar palettes and polygon fills');
-for(const phaseName of ["phase==='mixed'","phase==='snow'","phase==='snow-grains'","phase==='graupel'","phase==='hail'"])assert.match(symbols,new RegExp(phaseName.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')),`meteorological SVG phase missing: ${phaseName}`);
-assert.match(symbols,/else if\(phase==='freezing'\)content=`\$\{drop\(9\.5,12\.5,1\.05\)\}\$\{star\(22,11\.5,3\.6\)\}/,'freezing precipitation rain+ice symbol missing');
-assert.doesNotMatch(symbols,/M5\.5 14\.2c0-4 3\.2-7\.2/,'obsolete freezing-precipitation swirl symbol must stay removed');
+assert.match(symbols,/phaseCode:Record<PrecipitationSymbolPhase,number>/,'Every supported phase requires an original WMO contour');
+assert.match(symbols,/freezing:66/,'Freezing precipitation uses its WMO 66 contour');
+assert.match(symbols,/fill="#fff"/,'Phase plates must be opaque');
 assert.doesNotMatch(tables,/\{phase:'rain',label:'Regen'.*symbol/,'pure rain must not get an extra phase symbol');
 
 assert.match(panel,/showRadar&&!highResolution&&activeSource==='dwd'&&dwdVisualBlend\.map/,'1-km DWD radar render/crossfade path missing');

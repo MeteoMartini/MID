@@ -1,0 +1,21 @@
+MID weather symbol attribution
+
+Original artwork: OGC Meteorology and Oceanography Domain Working Group
+World Weather Symbols: https://github.com/OGCMetOceanDWG/WorldWeatherSymbols
+Font modifications: MetPy Developers, MetPy v1.7.1
+https://github.com/Unidata/MetPy/tree/v1.7.1/src/metpy/plots/fonts
+License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+https://creativecommons.org/licenses/by/4.0/
+
+MID changes: glyph contours converted from wx_symbols.ttf to SVG paths,
+scaled and centered on opaque plates. No endorsement by OGC, WMO or DWD implied.
+Source font SHA-256: 110f8c675dec96e68cead16e4fe4e94d5fe7516eb8dc4953c9ccb9261c4dc637
+
+The wx_symbols.ttf font is modified from the OGC Meteorology and Oceanography Domain Working
+Group World Weather Symbols repository.
+
+https://github.com/OGCMetOceanDWG/WorldWeatherSymbols
+
+Font is released under the Creative Commons Attribution 4.0 International (CC BY 4.0) license.
+
+http://creativecommons.org/licenses/by/4.0

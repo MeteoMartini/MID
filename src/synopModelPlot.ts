@@ -1,3 +1,4 @@
+import {precipitationTypeSymbolSvg,type PrecipitationSymbolPhase} from './precipitationTypeSymbols';
 /**
  * Original MID schematic glyphs based on WMO No. 306 table 4677 semantics.
  * Model-code interpretation ONLY: not SYNOP station observations or official WMO artwork.
@@ -28,32 +29,14 @@ export function verifiedModelPrecipGlyph(raw:unknown):ModelPrecipGlyph|null{
  const row=INDEX[raw];if(!row)return null;
  return {ww:raw,group:row[0],severity:row[1],label:row[2],sourceClass:'model-weather-code',shower:showers.has(raw)};
 }
-/** DOM-safe SVG fragment; no external images, font, or network requests. */
+const solidGroups=new Set<ModelPrecipGroup>(['freezing','mixed','snow','snow-shower','snow-grains','snow-crystals','ice-pellets','pellets-hail','hail','thunder-hail']);
+export function solidOrMixedModelGlyph(glyph:ModelPrecipGlyph){return solidGroups.has(glyph.group)}
+/** Shared opaque phase plates; never infer a solid phase from thunder alone. */
 export function modelPrecipGlyphSvg(glyph:ModelPrecipGlyph,size=30):string{
  if(!Number.isInteger(size)||size<20||size>48)throw new Error('Invalid map symbol target size');
- const p=(x:number,y:number)=>`<circle cx="${x}" cy="${y}" r="1.65" fill="currentColor"/>`;
- const snow=(x:number,y:number)=>`<path d="M${x-3} ${y}h6M${x} ${y-3}v6M${x-2.1} ${y-2.1}l4.2 4.2M${x+2.1} ${y-2.1}l-4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>`;
- const comma=(x:number,y:number)=>`<path d="M${x-1} ${y-2}q5 0 2 4l-2 2" fill="none" stroke="currentColor" stroke-width="1.5"/>`;
- const count=glyph.severity===1?1:glyph.severity===2?2:3;
- const xs=count===1?[16]:count===2?[11,21]:[8,16,24];
- let marks='';
- switch(glyph.group){
-  case 'drizzle':marks=xs.map(x=>comma(x,14)).join('');break;
-  case 'rain':case 'rain-shower':marks=xs.map(x=>p(x,14)).join('');break;
-  case 'freezing':marks=xs.map(x=>glyph.ww<=57?comma(x,12):p(x,12)).join('')+'<path d="M11 21h10M16 17v8" stroke="currentColor" stroke-width="1.6"/>';break;
-  case 'mixed':marks=xs.map((x,i)=>i%2?snow(x,15):p(x,15)).join('');if(count===1)marks+=snow(22,15);break;
-  case 'snow':case 'snow-shower':marks=xs.map(x=>snow(x,15)).join('');break;
-  case 'snow-grains':marks=xs.map(x=>`<circle cx="${x-2}" cy="14" r=".9" fill="currentColor"/><circle cx="${x+2}" cy="14" r=".9" fill="currentColor"/><circle cx="${x}" cy="11" r=".9" fill="currentColor"/>`).join('');break;
-  case 'snow-crystals':marks='<path d="M16 7v15M10 10l12 9M10 19l12-9" stroke="currentColor" stroke-width="1.4" fill="none"/>';break;
-  case 'pellets-hail':marks=xs.map(x=>`<path d="M${x} 11l3 5h-6z" fill="none" stroke="currentColor" stroke-width="1.5"/>`).join('');break;
-  case 'ice-pellets':marks=xs.map(x=>`<circle cx="${x}" cy="15" r="2.1" fill="none" stroke="currentColor" stroke-width="1.7"/>`).join('');break;
-  case 'hail':marks=xs.map(x=>`<path d="M${x} 11l3 5h-6z" fill="currentColor"/>`).join('');break;
-  case 'thunder':case 'thunder-hail':marks='<path d="M18 3l-5 9h5l-5 10 12-13h-6l3-6z" fill="none" stroke="currentColor" stroke-width="2"/>';
-   if(glyph.group==='thunder-hail')marks+='<path d="M7 13l3 5H4z" fill="currentColor"/>';break;
- }
- if(glyph.shower)marks='<path d="M7 7h18l-9 7z" fill="none" stroke="currentColor" stroke-width="1.3"/>'+marks;
- // A bounded, consistent transparent-backdrop outline keeps symbol visible on bright/cloudy/dark maps.
- return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 28" width="${size}" height="${size}" role="img" aria-label="Modellcode ww ${glyph.ww}: ${glyph.label}"><rect x=".75" y=".75" width="30.5" height="26.5" rx="7" fill="var(--mid-plot-bg, #f9fcff)" fill-opacity=".85" stroke="var(--mid-plot-border, #536679)" stroke-opacity=".65" stroke-width="1.1"/><g color="var(--mid-plot-fg, #12273a)">${marks}</g></svg>`;
+ if(!solidOrMixedModelGlyph(glyph))return '';
+ const phase:PrecipitationSymbolPhase=glyph.group==='mixed'?'mixed':glyph.group==='freezing'?'freezing':glyph.group==='snow-grains'?'snow-grains':glyph.group==='snow-crystals'?'snow-stars':glyph.group==='ice-pellets'?'ice-pellets':glyph.group==='pellets-hail'?'graupel-hail':glyph.group==='hail'||glyph.group==='thunder-hail'?'hail':'snow';
+ return precipitationTypeSymbolSvg(phase,glyph.ww).replace('aria-hidden="true"',`role="img" aria-label="Modellcode ww ${glyph.ww}: ${glyph.label}"`).replace('width="100%" height="100%"',`width="${size}" height="${size}"`);
 }
 export type ModelGrid={lats:readonly number[];lons:readonly number[];weather:readonly(number|null)[]};
 export type Pixel={x:number;y:number};
@@ -71,7 +54,7 @@ export function sparseModelWeatherGlyphs(grid:ModelGrid,project:(lat:number,lon:
  for(let row=0;row<rows;row+=stride)for(let col=0;col<cols;col+=stride){
   let winner:{row:number;col:number;glyph:ModelPrecipGlyph;priority:number}|null=null;
   for(let r=row;r<Math.min(rows,row+stride);r++)for(let c=col;c<Math.min(cols,col+stride);c++){
-   const glyph=verifiedModelPrecipGlyph(grid.weather[r*cols+c]);if(!glyph)continue;
+   const glyph=verifiedModelPrecipGlyph(grid.weather[r*cols+c]);if(!glyph||!solidOrMixedModelGlyph(glyph))continue;
    if(options.hideRainIfRadar&&['rain','drizzle','rain-shower'].includes(glyph.group))continue;
    const priority=((glyph.group==='thunder-hail'||glyph.group==='hail')?6:glyph.group==='thunder'?5:glyph.group==='freezing'?4:glyph.group==='mixed'||glyph.group==='pellets-hail'?3:glyph.group==='snow'||glyph.group==='snow-shower'||glyph.group==='snow-crystals'?2:1)*10+glyph.severity;
    if(!winner||priority>winner.priority)winner={row:r,col:c,glyph,priority};
@@ -88,4 +71,4 @@ export function sparseModelWeatherGlyphs(grid:ModelGrid,project:(lat:number,lon:
 }
 
 /** Same verified representative code in the UI and vector/raster export legends. */
-export function modelWeatherLegendGlyph(codes:readonly number[]){return codes.map(verifiedModelPrecipGlyph).find((glyph):glyph is ModelPrecipGlyph=>glyph!==null)??null}
+export function modelWeatherLegendGlyph(codes:readonly number[]){return codes.map(verifiedModelPrecipGlyph).find((glyph):glyph is ModelPrecipGlyph=>glyph!==null&&solidOrMixedModelGlyph(glyph))??null}

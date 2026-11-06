@@ -1,3 +1,4 @@
+import {SYNOP_WEATHER_PATHS} from './synopWeatherGlyphPaths';
 export type PrecipitationSymbolPhase='mixed'|'snow'|'snow-grains'|'snow-stars'|'ice-crystals'|'ice-pellets'|'freezing'|'graupel'|'hail'|'graupel-hail';
 
 export const PRECIPITATION_SYMBOL_META:Record<PrecipitationSymbolPhase,{label:string;shortLabel:string}>={
@@ -13,24 +14,10 @@ export const PRECIPITATION_SYMBOL_META:Record<PrecipitationSymbolPhase,{label:st
  'graupel-hail':{label:'Graupel oder Hagel',shortLabel:'Graupel/Hagel'}
 };
 
-const svgOpen='<svg viewBox="0 0 32 24" width="100%" height="100%" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">';
-const svgClose='</svg>';
-const hex=(cx:number,cy:number,r:number,filled=false)=>{const points=Array.from({length:6},(_,i)=>{const a=Math.PI/3*i-Math.PI/6;return`${(cx+Math.cos(a)*r).toFixed(1)},${(cy+Math.sin(a)*r).toFixed(1)}`}).join(' ');return`<polygon points="${points}" ${filled?'fill="currentColor"':'fill="none" stroke="currentColor" stroke-width="1.8"'} stroke-linejoin="round"/>`};
-const star=(cx:number,cy:number,r=3.2)=>`<g stroke="currentColor" stroke-width="1.65" stroke-linecap="round"><path d="M${cx-r} ${cy}H${cx+r}"/><path d="M${cx} ${cy-r}V${cy+r}"/><path d="M${(cx-r*.72).toFixed(1)} ${(cy-r*.72).toFixed(1)}L${(cx+r*.72).toFixed(1)} ${(cy+r*.72).toFixed(1)}"/><path d="M${(cx+r*.72).toFixed(1)} ${(cy-r*.72).toFixed(1)}L${(cx-r*.72).toFixed(1)} ${(cy+r*.72).toFixed(1)}"/></g>`;
-const drop=(cx:number,cy:number,scale=1)=>`<path d="M${cx} ${(cy-3.7*scale).toFixed(1)}C${(cx-1.7*scale).toFixed(1)} ${(cy-1.4*scale).toFixed(1)} ${(cx-2.6*scale).toFixed(1)} ${(cy+.2*scale).toFixed(1)} ${(cx-2.6*scale).toFixed(1)} ${(cy+1.6*scale).toFixed(1)}A${(2.6*scale).toFixed(1)} ${(2.6*scale).toFixed(1)} 0 0 0 ${(cx+2.6*scale).toFixed(1)} ${(cy+1.6*scale).toFixed(1)}C${(cx+2.6*scale).toFixed(1)} ${(cy+.2*scale).toFixed(1)} ${(cx+1.7*scale).toFixed(1)} ${(cy-1.4*scale).toFixed(1)} ${cx} ${(cy-3.7*scale).toFixed(1)}Z" fill="currentColor"/>`;
-
-export function precipitationTypeSymbolSvg(phase:PrecipitationSymbolPhase){
- let content='';
- if(phase==='graupel')content=`${hex(8,7,3.4)}${hex(20,8.5,3.4)}${hex(12.5,17,3.4)}`;
- else if(phase==='graupel-hail')content=`${hex(7.5,7,3.2)}${hex(19.5,8.5,3.35,true)}${hex(12.5,17,3.2)}`;
- else if(phase==='hail')content=`${hex(8,7,3.45,true)}${hex(20,8.5,3.45,true)}${hex(12.5,17,3.45,true)}`;
- else if(phase==='snow')content=`${star(8,7,3.3)}${star(20,8.5,3.3)}${star(12.5,17,3.3)}`;
- else if(phase==='snow-stars')content=`${star(8,8,2.55)}${star(21,15.5,2.55)}`;
- else if(phase==='ice-crystals')content='<g fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"><path d="M8 3v8M4 7h8M20 11v8M16 15h8"/><path d="M5.2 4.2l5.6 5.6M10.8 4.2L5.2 9.8M17.2 12.2l5.6 5.6M22.8 12.2l-5.6 5.6" opacity=".75"/></g>';
- else if(phase==='ice-pellets')content='<g fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="7" r="3"/><circle cx="20" cy="8.5" r="3"/><circle cx="12.5" cy="17" r="3"/></g>';
- else if(phase==='snow-grains')content='<g fill="currentColor"><circle cx="8" cy="7" r="1.8"/><circle cx="20" cy="8.5" r="1.8"/><circle cx="12.5" cy="17" r="1.8"/></g>';
- else if(phase==='mixed')content=`${star(8,7.2,3.1)}${drop(19,9.2,.9)}${drop(13.5,18,.85)}`;
- else if(phase==='freezing')content=`${drop(9.5,12.5,1.05)}${star(22,11.5,3.6)}<path d="M17 18.5h10" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>`;
- else content=`${drop(10,10.5,1)}${drop(21,15.5,.9)}`;
- return `${svgOpen}${content}${svgClose}`;
+// Original WMO present-weather contours, OGC/MetPy, CC BY 4.0.
+// Generic radar classifications use representative codes, not synthetic station reports.
+const phaseCode:Record<PrecipitationSymbolPhase,number>={snow:71,mixed:68,'snow-grains':77,'snow-stars':78,'ice-crystals':76,'ice-pellets':79,freezing:66,graupel:87,hail:89,'graupel-hail':96};
+export function precipitationTypeSymbolSvg(phase:PrecipitationSymbolPhase,verifiedCode?:number){
+ const mark=SYNOP_WEATHER_PATHS[verifiedCode??phaseCode[phase]]??SYNOP_WEATHER_PATHS[phaseCode[phase]];
+ return `<svg viewBox="0 0 32 24" width="100%" height="100%" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><rect x=".75" y=".75" width="30.5" height="22.5" rx="4" fill="#fff" stroke="#526575" stroke-width="1.5"/><g color="#14293b">${mark}</g></svg>`;
 }

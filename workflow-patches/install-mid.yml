@@ -22,7 +22,7 @@ jobs:
   prepare_release:
     name: Release-ZIP prüfen und immutable Snapshot vorbereiten
     if: github.event_name == 'workflow_dispatch' || (github.actor != 'github-actions[bot]' && github.actor != 'mid-release-bot-meteomartini[bot]')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read
@@ -149,7 +149,7 @@ jobs:
   verify_core:
     name: Release-Core, Build, Audit und iOS prüfen
     needs: prepare_release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
       contents: read
@@ -339,7 +339,7 @@ jobs:
   verify_core_shards:
     name: Release-Core-Regression · ${{ matrix.shard }}
     needs: prepare_release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
       contents: read
@@ -486,7 +486,7 @@ jobs:
   verify_heavy:
     name: Release-Heavy · ${{ matrix.shard }} · ${{ matrix.map_group }}
     needs: prepare_release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
       contents: read
@@ -636,7 +636,7 @@ jobs:
     name: Vollständig geprüften Release sammeln und committen
     needs: [prepare_release, verify_core, verify_core_shards, verify_heavy]
     if: needs.prepare_release.result == 'success' && needs.verify_core.result == 'success' && needs.verify_core_shards.result == 'success' && needs.verify_heavy.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 40
     permissions:
       contents: read
@@ -784,7 +784,7 @@ jobs:
     name: Geprüften MID-Worker sicher automatisch veröffentlichen
     needs: install_build
     if: needs.install_build.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read
@@ -1009,7 +1009,7 @@ jobs:
     name: GitHub-Pages-Artefakt parallel vorbereiten
     needs: install_build
     if: needs.install_build.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     permissions:
       contents: read
@@ -1083,7 +1083,7 @@ jobs:
       - deploy_worker
       - prepare_pages_artifact
     if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read
@@ -1130,7 +1130,7 @@ jobs:
       - deploy_worker
       - deploy_pages_1
     if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success' && needs.deploy_pages_1.outputs.deployed != 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 3
     steps:
       - name: Backoff vor zweitem Pages-Versuch
@@ -1153,7 +1153,7 @@ jobs:
       - pages_cooldown_1
       - prepare_pages_artifact
     if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success' && needs.deploy_pages_1.outputs.deployed != 'true' && needs.pages_cooldown_1.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 18
     permissions:
       contents: read
@@ -1274,7 +1274,7 @@ jobs:
       - deploy_pages_1
       - deploy_pages_2
     if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success' && needs.deploy_pages_1.outputs.deployed != 'true' && needs.deploy_pages_2.outputs.deployed != 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - name: Längerer Backoff vor letztem Pages-Versuch
@@ -1294,7 +1294,7 @@ jobs:
       - deploy_pages_2
       - pages_cooldown_2
     if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success' && needs.deploy_pages_1.outputs.deployed != 'true' && needs.deploy_pages_2.outputs.deployed != 'true' && needs.pages_cooldown_2.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 18
     permissions:
       contents: read
@@ -1396,7 +1396,7 @@ jobs:
       - deploy_pages_2
       - deploy_pages_3
     if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success' && (needs.deploy_pages_1.outputs.deployed == 'true' || needs.deploy_pages_2.outputs.deployed == 'true' || needs.deploy_pages_3.outputs.deployed == 'true')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 8
     permissions:
       contents: read

@@ -1,3 +1,7 @@
+# MID v0.9.85.437 · Kartenwechsel und Radarphasen
+
+Basis main=mid-stable .436 85876b67e9e11b6085bdf11178a18b055d2a5d0a. Native/Cloud-ImageQuad bleibt beim Terminwechsel erhalten; GDPS hält vollständige Kombinationen. Lauf-/Modellgrenzen, echte Bildzeit, Abbruch und Fehlerstatus bleiben explizit. Deckende Phasenplättchen ausschließlich über aktiviertem Radar mit geprüfter OPERA-Echomaske: fest/gemischt/gefrierend; kein Regen-/Gewitter-only-Marker. Dynamischer echter ImageQuad-Lifecycle-Test mit verzögerter Bildankunft, Fehler, schnellem Wechsel, Reduced Motion und Unmount. Nachweis docs/implementation/MID_C437_MAP_TRANSITIONS.md. Sämtliche regulären Source-/Installer-/Worker-/Pages-/Stable-Gates zwingend; keine physische iOS-Abnahme behauptet.
+
 # MID v0.9.85.436 · C56 Bedienung und Bildfehler
 
 Basis Stable .435 8b4d311227090ae7b38022173899b5be412f81ec. Gemeinsamer Kandidat #669: compositor-feste iOS-Navigation, semantische Einstellungsüberschriften und DWD-Bildfehlerstatus/Retry. Kein Meteorologie-, Datenquellen-, Warnschwellen- oder CSS-Farbumbau. 1080 Pflichtinventar; vollständiger Source-/Installer-/Worker-/Pages-/Stable-Pfad zwingend. Physische iOS-/VoiceOver-Abnahme und vollständiges Gesamtaudit weiterhin offen, keine umfassende WCAG-Konformität behauptet. Nachweise docs/implementation/MID_C56_UI_UX_PROGRESS.md.

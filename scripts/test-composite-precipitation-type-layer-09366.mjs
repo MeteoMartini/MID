@@ -8,6 +8,7 @@ const [radarPanel,overlay,standalone,worker,app,pkg,baseline]=await Promise.all(
   readFile(new URL('../package.json',import.meta.url),'utf8'),
   readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
 ]);
+const legend=await readFile(new URL('../src/RadarPhaseLegend.tsx',import.meta.url),'utf8');
 const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 const forbid=(label,text,token)=>{if(text.includes(token))failures.push(`${label} enthält weiterhin unerwünschten Pfad: ${token}`)};
@@ -20,7 +21,7 @@ for(const token of [
   'Niederschlagsart · Radar+Modell',
   'OPERA-CIRRUS-Echomaske + frischestes geeignetes Rapid-/Regionalmodell als radar-/modellgestützte Phasenklassifikation',
   'Reiner Regen bleibt ausschließlich als normales Radarecho sichtbar.'
-]) need('RadarPanel',radarPanel,token);
+]) need('RadarPanel',radarPanel+legend,token);
 for(const token of [
   "import('./CompositeHymecNgOverlay')",
   "from './CompositeHymecNgSource'",
