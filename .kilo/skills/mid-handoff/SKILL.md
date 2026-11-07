@@ -19,6 +19,12 @@ Kilo's Cloud Agent may run tools automatically. This skill is policy guidance an
 Live proof dated 05.11.2026: Kilo wrote Git objects plus [MID-KILO-HANDOFF] issue #662 under `kilo-code-bot[bot]` (ID 240665456); independent ChatGPT verified the exact parent/tree/blob/author chain and opened authorized Draft PR #663 with head `5afd5cc13885c0146b1e6d9ab66dd58ea82f5cc3`. The issue was closed only as completed transport; Draft PR #663 still needs Node-22, aggregate, browser and MID release gates. This first success proves an operational path, **not automatic initiation in all Kilo sessions**. Kilo Cloud loads AGENTS.md at session startup and discovers project skills; start new sessions on promoted Stable or reload instructions as supported. A token/readback/identity failure requires inspecting already-created objects/issues, **never blind resubmission**.
 
 
+## Kilo GitHub Issue mentions (optional, read-only only)
+
+For a task **initiated by ChatGPT in a GitHub Issue**, the official `@kilocode-bot` entry point is **not** a replacement for this skill's secure coding handoff. It is permitted only for explicit, tightly scoped **read-only** audits once the user's GitHub and Kilo accounts are linked and access/costs are verified. Read `AGENTS.md` and [the Kilo GitHub issue bridge](../../../docs/implementation/MID_KILO_GITHUB_ISSUE_BRIDGE_2026_11_07.md) before acting. For an audit: no file modifications, branch, commit, push, PR, workflow, secret, release action or task delegation; answer in the original GitHub Issue with full Base-SHA and exact file/line evidence. Any platform limitation is a blocker, **not** permission to open a PR or write code.
+
+**Live pilot #692** proved that the bot answers an `@kilocode-bot` mention but first requires **personal GitHub↔Kilo account linking**, which is not yet confirmed. Do not copy its signed linking URL/token into prompts, logs, repo documentation or another Issue; do not initiate a second task without user-completed linking and a fresh readback. For all actual Kilo source implementation/fix requests, use steps 1–8 above and only the previously authorized **ref-free Git-objects/Issue** transport.
+
 ## MID quality and continuity requirements
 
 - The task must name its exact permitted paths, non-goals and acceptance criteria. Preserve prior accepted work; do not rebuild #655 cache components or #657 UI-P0. A failed installer is not a published release. Read the current integration state before touching overlapping files.
