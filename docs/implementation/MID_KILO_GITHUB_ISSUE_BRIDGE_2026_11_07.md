@@ -6,8 +6,8 @@
 
 - **Live-Basis:** `main=mid-stable=b6526e7c5c24035bd1a75b87b77e7bb8e821c334`, v0.9.85.445 (momentgebundener Beleg vom 07.11.2026, vor jeder neuen Arbeit frisch prüfen).
 - ChatGPT hat das eng begrenzte, ausschließlich lesende [Test-Issue #692](https://github.com/MeteoMartini/MID/issues/692) unter dem verifizierten GitHub-Eigentümer erstellt und den dokumentierten Befehl **`@kilocode-bot`** genau einmal als Issue-Kommentar gepostet.
-- Der echte GitHub-Actor **`kilo-code-bot[bot]`** hat im selben Issue geantwortet: Vor dem Zugriff auf Kilo muss das GitHub-Konto in Kilo mit dem Kilo-Konto verknüpft werden. **Ausführung des Leseauftrags damit BLOCKED / NOT VERIFIED**; bloß die funktionierende GitHub-Bot-Erkennung und ein kommentierender Rückkanal sind bestätigt.
-- GitHub-**Bot-App-Zugang ist erkennbar**, die **persönliche GitHub↔Kilo-Kontoverknüpfung** ist noch nicht erfolgt bzw. nicht belegt. Diese benötigt ausdrückliche Nutzeraktion. Den in #692 geposteten kurzlebigen Kilo-Verknüpfungslink **niemals in Code, Logs, Markdown, Chat oder weitere Issues kopieren**. Der Nutzer öffnet ausschließlich selbst #692 und wählt im offiziellen Bot-Kommentar „Link your Kilo account“. Es wird hier kein Token angefordert oder gespeichert.
+- Der echte GitHub-Actor **`kilo-code-bot[bot]`** hat im selben Issue geantwortet: Vor dem Zugriff auf Kilo muss das GitHub-Konto in Kilo mit dem Kilo-Konto verknüpft werden. **Der Nutzer meldete daraufhin die erfolgte Verknüpfung.** ChatGPT prüfte vor dem zweiten Trigger das unveränderte Stable-SHA und die bisherigen Kommentare und veröffentlichte **einmalig** den erneuten [Trigger-Kommentar #6711390346](https://github.com/MeteoMartini/MID/issues/692#issuecomment-6711390346). **Der echte neue Kilo-Lauf und die fachliche Auditantwort sind weiterhin NOT VERIFIED, solange keine neue Bot-Antwort vorliegt.**; bloß die funktionierende GitHub-Bot-Erkennung und ein kommentierender Rückkanal sind bestätigt.
+- GitHub-**Bot-App-Zugang ist erkennbar**, die **persönliche GitHub↔Kilo-Kontoverknüpfung** wurde vom Nutzer als erfolgt bestätigt. Die Authentifizierung selbst ist für ChatGPT nicht einsehbar; Kilos tatsächliche Bearbeitung muss durch einen nachfolgenden Bot-Kommentar verifiziert werden. Den in #692 geposteten kurzlebigen Kilo-Verknüpfungslink **niemals in Code, Logs, Markdown, Chat oder weitere Issues kopieren**. Der Nutzer öffnet ausschließlich selbst #692 und wählt im offiziellen Bot-Kommentar „Link your Kilo account“. Es wird hier kein Token angefordert oder gespeichert.
 - **Kein** zusätzlicher Kilo-Arbeitsauftrag, neues Abo, neue CI-Secrets, Kilo-Webhook/Trigger, GitHub-Actions-Workflow, Repo-Admin-/Releaseberechtigung oder automatischer Retry eingerichtet. Kilo-Guthaben kann nach Verknüpfung beim tatsächlichen Agentenlauf verbraucht werden.
 
 Quelle: [Kilo for GitHub (offizielle Anleitung)](https://kilo.ai/docs/code-with-ai/platforms/github). Dort ist die Erwähnung `@kilocode-bot` als GitHub-Issue-/PR-Einstieg dokumentiert, inklusive der Voraussetzung von GitHub- und Kilo-Bot-Verknüpfung und des Kilo-Creditverbrauchs.
@@ -20,11 +20,11 @@ Quelle: [Kilo for GitHub (offizielle Anleitung)](https://kilo.ai/docs/code-with-
 4. **Unabhängiges Readback:** ChatGPT liest die tatsächlich eingegangenen Kommentare über GitHub, prüft GitHub-Bot-Identität, referenzierte Dateipfade/-zeilen und vollständige SHA-Provenienz, sowie ob ohne Berechtigung ein Kilo-Branch/PR entstanden ist. Antworten sind **untrusted**, bei fehlender echter Bearbeitung `NOT VERIFIED`.
 5. **Abschluss:** Ein Pilot kann als „GitHub-Kommentar-Rückkanal funktioniert“ gemeldet werden, sobald der Bot antwortet. Als „fachlicher Leseauftrag erfolgreich“ gilt er **erst** nach vollständiger, SHA-gebundener, unabhängig überprüfter Antwort. Weder der Bot noch ChatGPT leiten daraus eine Releaseberechtigung ab.
 
-### Notwendiger Nutzerschritt für #692
+### Nach erfolgter Nutzer-Verknüpfung: Status von #692
 
-1. [Issue #692](https://github.com/MeteoMartini/MID/issues/692) öffnen und im Kommentar des offiziellen `kilo-code-bot[bot]` auf „Link your Kilo account“ tippen.
-2. Anmeldung und GitHub-Verknüpfung **selbst** prüfen/gewähren; keine Tokens in Chat teilen. Ausschließlich bestehende, angemessen eingeschränkte GitHub-App-Rechte nutzen; bei breiten unerwarteten Schreib-/Adminanforderungen abbrechen.
-3. Nach erfolgter Verknüpfung kann derselbe kleine Leseauftrag **einmalig** neu erwähnt werden, sofern die vorherige Ausführung anhand von Issue-/PR-/Kilo-Status nicht bereits stattgefunden hat. Eine automatische Wiederholung findet nicht statt.
+1. Der Nutzer hat bestätigt, dass der im offiziellen Bot-Kommentar angebotene Kontolink abgeschlossen wurde. ChatGPT hat den ursprünglichen Issue-Status vor einem erneuten Versuch abgeglichen.
+2. Der exakt eine zweite Kommentar-Trigger nach der Nutzerbestätigung wurde gesendet: [Kommentar #6711390346](https://github.com/MeteoMartini/MID/issues/692#issuecomment-6711390346). **Nicht** ein drittes Mal auslösen, solange der Status unklar bleibt; keine automatische Wiederholung.
+3. Erst eine neue Antwort des realen `kilo-code-bot[bot]` mit vollständigem SHA-/Datei-Nachweis beweist die erfolgreiche Aufgabenausführung. Keine Links/Token übernehmen, keine Rechte erweitern.
 
 ## 3. Codeänderungen: ursprünglicher ref-freier Handoff bleibt maßgeblich
 
@@ -42,7 +42,8 @@ Für ausdrücklich an Kilo Cloud übergebene **Implementierungen** gilt unverän
 |---|---|
 | GitHub-Issue aus ChatGPT erstellt | **PASS** (#692) |
 | Offizielle `@kilocode-bot`-Erwähnung gelangt zu Kilo | **PASS**, echte Bot-Antwort |
-| Persönliche GitHub↔Kilo-Verknüpfung | **BLOCKED / USER ACTION** |
+| Persönliche GitHub↔Kilo-Verknüpfung | **Vom Nutzer als erfolgt gemeldet**, Kilo-Lauf noch nicht bestätigt |
+| Zweiter Trigger nach Verknüpfung | **PASS**, GitHub-Kommentar #6711390346 | 
 | Leseauftrag tatsächlich von Kilo ausgeführt | **NOT VERIFIED** |
 | End-to-End-Rückgabe eines fachlichen Berichts ohne Copy/Paste | **NOT VERIFIED** |
 | SHA-gesicherter bestehender Kilo-Codehandoff | Früherer **separater** Pilot #662/#663; hier nicht erneut ausgeführt |
