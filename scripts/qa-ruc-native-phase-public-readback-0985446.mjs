@@ -84,9 +84,30 @@ try{
  const beyondMs=phaseStamp(phase.times.at(-1))+15*60000,readsBefore=networkRequests;
  const beyond=await vm.runInContext('dwdRucStaticPhaseGrid('+JSON.stringify(lats)+','+JSON.stringify(lons)+','+beyondMs+',{})',context,{timeout:5000});
  check(beyond===null&&networkRequests===readsBefore,'Expired RUC Phase15 performed original record reads or extended into hourly horizon');
+ // Full real 13x19 MID map extent, not a synthetic fixture. Cost and
+ // latency are bounded by the same global 40s/48-original-object budget.
+ // This validates actual Pages decode and native-cell admission only;
+ // GitHub Runner duration is NOT Cloudflare Worker P95.
+ const fullLats=Array.from({length:13},(_,row)=>51.45-row*(1.3/12));
+ const fullLons=Array.from({length:19},(_,col)=>6.15+col*(1.9/18));
+ const fullStart=Date.now(),fullBefore=networkRequests;
+ const fullQuery='dwdRucStaticPhaseGrid('+JSON.stringify(fullLats)+','+JSON.stringify(fullLons)+','+targetMs+',{})';
+ const full=await Promise.race([
+  vm.runInContext(fullQuery,context,{timeout:5000}),
+  new Promise((_,reject)=>abort.signal.addEventListener('abort',()=>reject(abort.signal.reason),{once:true}))
+ ]);
+ check(full&&full.source==='DWD ICON-D2-RUC · native 15 min','Real 247-cell native RUC grid had no admissible data');
+ check(full.run===meta.run&&Date.parse(full.time)===targetMs,'Real 247-cell original run/validity mismatch');
+ check(full.total===247&&full.valid>0&&full.valid<=247,'Real full-grid native counts invalid');
+ for(const field of ['rain','snowfallWaterEquivalent','graupelWaterEquivalent']){
+  check(Array.isArray(full[field])&&full[field].length===247,'Full-grid original field length invalid '+field);
+  for(const value of full[field])check(Number.isNaN(value)||Number.isFinite(value)&&value>=0,'Full-grid original invalid field '+field);
+ }
+ const fullDurationMs=Date.now()-fullStart,fullObjectReads=networkRequests-fullBefore;
+ check(fullDurationMs<deadline,'Full-grid RUC original read exceeds global 40s probe budget');
  console.log('MID ORIGINAL RUC PHASE READBACK VERIFIED '+JSON.stringify({
   run:meta.run,validTime,storageProfile:meta.storageProfile,phaseHorizon15m:phase.times.length,
-  originalPoints:meta.pointCount,gridPoints:output.total,validNativePoints:output.valid,edgeInteriorPoints:edge.valid,edgeOutOfBoundsNoData:6,noPhaseAfterSixHours:true,
+  originalPoints:meta.pointCount,gridPoints:output.total,validNativePoints:output.valid,edgeInteriorPoints:edge.valid,edgeOutOfBoundsNoData:6,noPhaseAfterSixHours:true,fullGridPoints:full.total,fullValidNativePoints:full.valid,fullOriginalObjectReads:fullObjectReads,fullRunnerDurationMs:fullDurationMs,
   objectRequests:networkRequests,elapsedMs:Date.now()-started,
   source:output.source,classification:'Read-only runner sample; NOT Cloudflare Worker P95 or full-domain proof'
  }));
