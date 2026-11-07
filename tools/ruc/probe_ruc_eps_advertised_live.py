@@ -66,21 +66,32 @@ def probe(run: str, *, expected_partial: bool=False) -> dict:
     root = next((r for r in observations if r["kind"] == "root"), None)
     expected = set(range(1, 21))
     got = {r["member"] for r in seen}
-    if expected_partial:
+    if expected_partial is True:
         if result is not False:
             errors.append("Live partial index not classified as proven incomplete")
-    elif result is not True:
-        errors.append("Live guard did not conclusively confirm mature full index")
+    elif expected_partial is False:
+        if result is not True:
+            errors.append("Live guard did not conclusively confirm mature full index")
+    else:
+        # A real source directory eventually finishes publishing. Both
+        # evidenced partial/False and matured/True are valid observations;
+        # source errors/None are never reinterpreted as completeness.
+        if result not in (True,False):
+            errors.append("Live transition index is unknown, not admitted")
+        elif result is True and any(x["missingHourly"] for x in seen):
+            errors.append("Positive index with missing hourly filenames")
+        elif result is False and not any(x["missingHourly"] for x in seen):
+            errors.append("Negative index without evidence of missing hours")
     if root is None or root["memberCount"] != 20 or root["unknown"]:
         errors.append("Root directory is missing members or contains an unknown entry")
     if got != expected or len(seen) != 20:
         errors.append("Not all 20 independent member indexes were fetched")
-    if expected_partial and not any(r["missingHourly"] for r in seen):
+    if expected_partial is True and not any(r["missingHourly"] for r in seen):
         errors.append("No genuinely missing hourly file was observed")
     for r in seen:
         if r["duplicateNames"] or r["unknown"]:
             errors.append(f'Member {r["member"]}: duplicate or unknown file names')
-        if not expected_partial:
+        if expected_partial is False or (expected_partial is None and result is True):
             if r["hourly"] != 28 or r["missingHourly"]:
                 errors.append(f'Member {r["member"]}: incomplete mature index')
             if r["subhourly"] < 1:
@@ -105,9 +116,17 @@ def verify_live_pages_defer(partial_run: str, partial: dict) -> dict:
               "publishedRun": None, "pagesValid": False,
               "negativeIndex": partial["classification"] is False,
               "wouldDefer": False, "errors": []}
-    if partial["errors"] or partial["classification"] is not False:
-        report["errors"].append("No independently complete partial-index proof")
+    if partial["errors"]:
+        report["errors"].append("Source index had errors: no Pages admission")
         return report
+    if partial["classification"] is True:
+        report["status"]="22Z original index now complete; prior negative proof remains in captured CI logs"
+        report["freshNegativeProof"]=False
+        return report
+    if partial["classification"] is not False:
+        report["errors"].append("No independently validated source index")
+        return report
+    report["freshNegativeProof"]=True
     try:
         meta = guard.published_meta("https://midwx.app/ruc/")
         report["publishedRun"] = meta.get("run")
@@ -123,10 +142,13 @@ def verify_live_pages_defer(partial_run: str, partial: dict) -> dict:
         decision = guard.may_defer_incomplete_eps(
             partial_run, meta["run"], meta, False, now=now)
         report["wouldDefer"] = bool(decision)
-        if report["runGapHours"] != 1 or not 0 <= report["publishedAgeMinutes"] <= 240:
-            report["errors"].append("Pages run or freshness drift: not a valid live defer window")
-        if decision is not True:
-            report["errors"].append("Expected safe one-run negative-only defer not observed")
+        eligible=(report["runGapHours"] == 1
+                  and 0 <= report["publishedAgeMinutes"] <= 240)
+        report["expectedDefer"]=eligible
+        report["status"]=("Active negative-index deferral qualified"
+                          if eligible else "Current published run no longer qualifies for deferral")
+        if decision is not eligible:
+            report["errors"].append("Actual deferral mismatches current run/freshness eligibility")
         for listing in (None, True):
             if guard.may_defer_incomplete_eps(partial_run,meta["run"],meta,listing,now=now):
                 report["errors"].append("Unknown/full index incorrectly deferred")
@@ -146,6 +168,8 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--runs", nargs=2, required=True)
     p.add_argument("--partial-run", default=None)
+    p.add_argument("--allow-transition-completion", action="store_true",
+                   help="Do not invent a negative proof after a partial index becomes complete")
     p.add_argument("--verify-pages-defer", action="store_true")
     args = p.parse_args()
     if len(set(args.runs)) != 2:
@@ -154,7 +178,8 @@ def main() -> int:
     if args.partial_run:
         if not guard.RUN_RE.fullmatch(args.partial_run+"/"):
             p.error("Invalid partial-run UTC timestamp")
-        partial = probe(args.partial_run, expected_partial=True)
+        partial = probe(args.partial_run,
+                        expected_partial=None if args.allow_transition_completion else True)
         summaries.append(partial)
         print(json.dumps(partial, ensure_ascii=False, allow_nan=False,
                          separators=(",", ":")), flush=True)
@@ -164,8 +189,8 @@ def main() -> int:
                              separators=(",", ":")), flush=True)
             if pages["errors"]:
                 partial["errors"].extend(pages["errors"])
-    elif args.verify_pages_defer:
-        p.error("--verify-pages-defer requires --partial-run")
+    elif args.verify_pages_defer or args.allow_transition_completion:
+        p.error("--verify-pages-defer/--allow-transition-completion require --partial-run")
     for run in args.runs:
         if not guard.RUN_RE.fullmatch(run+"/"):
             p.error("Invalid DWD UTC run")

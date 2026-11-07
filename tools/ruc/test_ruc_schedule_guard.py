@@ -193,6 +193,40 @@ assert 20*28-sum(len(leads) for leads in partial_holes.values())==263
 assert all(13 in partial_holes[member] for member in missing_at_13)
 assert guard.advertised_eps_listing_complete(
     NEW,index_fixture(holes=partial_holes,subhourly=True)) is False
+
+# Immutable hourly-only projection of three ACTUAL 22Z DWD member-index
+# observations on 07 Nov 2026. Every hourly filename is reconstructed
+# from the logged missing-hour sets; 5-minute filenames were not logged
+# individually, so they are intentionally not invented for this replay.
+evidence_file=Path(__file__).with_name('fixtures') / 'eps20_2026_11_07_22z_observed_hourly_v1.json'
+evidence=json.loads(evidence_file.read_text(encoding='utf-8'))
+assert evidence['schema']=='mid.ruc.eps.observed-hourly-index.v1'
+assert [s['hourlyTotal'] for s in evidence['snapshots']]==[96,171,284]
+assert [s['sourceRunId'] for s in evidence['snapshots']]==[42421260789,42421528127,42421906576]
+for snapshot in evidence['snapshots']:
+    assert snapshot['dwdRun']=='2026-11-07T22:00' and snapshot['classification'] is False
+    assert snapshot['requestCount']==21 and snapshot['memberCount']==20
+    member_rows=snapshot['members']
+    assert [r['member'] for r in member_rows]==list(range(1,21))
+    assert sum(len(r['hourlyLeads']) for r in member_rows)==snapshot['hourlyTotal']
+    assert sum(r['subhourlyCount'] for r in member_rows)==snapshot['subhourlyTotal']
+    for row in member_rows:
+        leads=row['hourlyLeads']
+        assert leads==sorted(set(leads)) and all(0<=h<=27 for h in leads)
+        assert 0<=row['subhourlyCount']<=297
+    def logged_hourly_projection(url):
+        if url.endswith('/e/'):
+            return ''.join(f'<a href="{i:02d}/">{i:02d}/</a>' for i in range(1,21))
+        import re
+        m=re.search(r'/e/(\d{2})/s/$',url)
+        assert m,'unknown original member directory'
+        row=member_rows[int(m.group(1))-1]
+        return ''.join(f'<a href="PT{h:03d}H00M.grib2">PT{h:03d}H00M.grib2</a>'
+                       for h in row['hourlyLeads'])
+    assert guard.advertised_eps_listing_complete(
+        NEW,logged_hourly_projection) is False
+print('RUC 22Z three live 20-member negative index snapshots: hourly projection replay PASS')
+
 assert guard.advertised_eps_listing_complete(NEW,index_fixture({1:{13,27}})) is False
 assert guard.advertised_eps_listing_complete(NEW,index_fixture(missing_member=20)) is False
 assert guard.advertised_eps_listing_complete(NEW,index_fixture(unfamiliar=True)) is None
