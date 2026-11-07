@@ -55,9 +55,27 @@ Der Native-RUC-Decoder erhielt in Draft #685 einen konservativen, auf **8 gleich
 
 **NOT VERIFIED:** Die Vergleichsrechnung jedes Pages-Zellwerts gegen originalen DWD-GRIB2-Rohdatenlauf, tatsächliche vollständige 247-Zell-/Mehrregionen-/P95-Abnahme unter Cloudflare, 429-/Providerrealbetrieb und Nutzer-Endgeräte. Die hier gemessene 1240-ms-GitHub-Runner-Teilprobe ist ausdrücklich keine produktive P95-Laufzeit.
 
+## 3c. Live-Originaldaten: vollständige 13×19-Karte (2026-11-07)
+
+Der auf ausschließlich öffentliche MID-Pages-Daten begrenzte GitHub-Runner-Pilot [#42394324262](https://github.com/MeteoMartini/MID/actions/runs/42394324262) ist **SUCCESS auf Code-HEAD `615a4673ef3fc11ed4b8df5cdf46531d8c61b877`**. Er benutzt `scripts/qa-ruc-native-phase-public-readback-0985446.mjs` mit 40 s Gesamt-, 48 Objekt- und 12 MB pro Response begrenztem Readback und den kleineren, im Worker vorgesehenen HTTP-Abbruchsignalen. `main` und `mid-stable` werden nicht berührt; die Liveprüfung ist ausdrücklich keine Source-PR-/Installer-/Produktionsfreigabe.
+
+Öffentliches `pages-lossless-v1`, Original-Lauf **2026-11-07T15:00Z**, Feld `2026-11-07T17:00Z`:
+
+| Nachweis | Echter GitHub-Runner-Readback |
+| --- | ---: |
+| 13×19 = 247 reale Kartenrasterzellen in Westdeutschland | **247/247** gültige RUC-Phase-Original-Lookup-Zellen |
+| Zusätzliche unveränderliche Objektabrufe für die reale Vollkarte | **21** |
+| Reale 247-Zell-Lesephase nach zuvor gelesenen 9 Einheiten (teilweise aufgewärmter Cache) | **1015 ms** |
+| Kompletter Live-Lesepilot inklusive Metadaten/Innen- und Außenränder und Vollkarte | **1864 ms**, **30** Objektabrufe |
+| Abdeckungsrand | 3 Innenzellen gültig / 6 Koordinaten außerhalb der nativen Gittergrenze **NoData** |
+| Ende der veröffentlichten Phase15-Zeitachse (25 Viertelstundentermine bis +6h) | Kein Phasenwert, keine weiteren Record-Requests |
+| Bestehende adversariale 247-Zell-Kaltcache-Mocks | 493 Records, 8 gleichzeitig, Null und Missing getrennt |
+
+**Interpretation:** Der 247-Zell-Abgleich weist für genau diesen veröffentlichten Pages-Lauf, dieses Gebiet und diesen Feldzeitpunkt die tatsächliche Verlustfrei-Decoder-/Lookup-/Feldwert-Kette nach. Dies ist eine **GitHub-Runner-Teilcache-Messung**, keine Cloudflare Worker-P95 unter realer Last, keine Messung echter Endgeräte, keine DWD-Original-GRIB2-Wert-für-Wert-Gegenprobe und keine formale Freigabe beliebiger anderer Regionen oder Laufwechsel. Werte dürfen nicht aus dieser Einzelprobe auf P95, ganz Europa oder weitere Läufe extrapoliert werden.
+
 ## 4. Verbindliche Rest-Gates – NICHT ERFÜLLT
 
-1. Vollständige, echte räumlich-zeitliche Originaldaten-/Provider-Zellmatrix: RUC innerhalb/außerhalb originaler Masken, 15min-Endgrenze, D2 Nord/West/Süd, EU-only, Global-only, gültige 0 vs fehlend, Schnee/Regen/Graupel, Runwechsel, Zeitintervalle, Radar-OPERA-Echo.
+1. Nach bestandenem echtem 247-Zell-Pages-Readback für **ein** RUC-Gebiet/17Z weiterhin unabhängige DWD-GRIB2-Rohdaten-/Wert-Gegenprobe und echte Multi-Regionen-/Mehrlauf-/Rand-/ValidTime-Provider-Cross-Checks: D2 Nord/West/Süd, EU-only, Global-only, 15min-/hourly-Akkumulation, fehlende vs 0 und Schnee/Regen/Graupel, OPERA-Echo.
 2. **Run-Lineage:** Provider-Metadaten vs konkrete Open-Meteo-Forecast-Row unabhängig vergleichen oder nicht belegbare Run-Behauptung im UI explizit entschärfen; niemals einen pauschalen Metadatenlauf als originalen per-Zell-Forecast-Run zertifizieren.
 3. Praktische Cloudflare-Worker-Laufzeit, Backend-/Provider-Ratekosten, `28s` Client-Timeout, worst-case 400-Bisection und Cache/Stale-Path mit echten Messdaten; die deterministische Testumgebung ist kein produktiver P95-Nachweis.
 4. Vollständige 1083+ Regressionen, Source/Kern/Heavy/Browser und Touch/Responsive 320/390/430/834/1024/1440, Light/Dark, Worker/Pages-Readback, Widgets/PNG/SVG. Keine physische iOS-/VoiceOver-Abnahme behaupten.
