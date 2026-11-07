@@ -68,9 +68,25 @@ try{
   check(Array.isArray(output[field])&&output[field].length===9,'RUC phase grid field length invalid: '+field);
   for(const value of output[field])check(Number.isNaN(value)||Number.isFinite(value)&&value>=0,'RUC original field has invalid negative/nonfinite value '+field);
  }
+ // Real spatial NoData admission: 6 outside-bbox locations must not
+ // silently inherit phase from the three valid interior original grid cells.
+ check(meta.grid.lonMin>-4.5&&meta.grid.lonMin+meta.grid.dx*(meta.grid.nx-1)<21,'Original-grid edge fixture no longer out of bounds');
+ const edgeLons=[-4.5,7.1,21],edgeQuery='dwdRucStaticPhaseGrid('+JSON.stringify(lats)+','+JSON.stringify(edgeLons)+','+targetMs+',{})';
+ const edge=await vm.runInContext(edgeQuery,context,{timeout:5000});
+ check(edge&&edge.total===9&&edge.valid===3,'Original grid must retain only 3 genuine interior cells across mixed valid/outside domain');
+ check(edge.run===meta.run&&Date.parse(edge.time)===targetMs,'Original edge grid mixed run or phase time');
+ for(let row=0;row<3;row++)for(let col=0;col<3;col++){
+  const index=row*3+col;
+  if(col!==1)for(const field of ['rain','snowfallWaterEquivalent','graupelWaterEquivalent'])
+   check(Number.isNaN(edge[field][index]),'Outside original RUC grid was misrepresented as native '+field+' at '+index);
+ }
+ // 27-hour general RUC output never extends the actual 6-hour Phase15 horizon.
+ const beyondMs=phaseStamp(phase.times.at(-1))+15*60000,readsBefore=networkRequests;
+ const beyond=await vm.runInContext('dwdRucStaticPhaseGrid('+JSON.stringify(lats)+','+JSON.stringify(lons)+','+beyondMs+',{})',context,{timeout:5000});
+ check(beyond===null&&networkRequests===readsBefore,'Expired RUC Phase15 performed original record reads or extended into hourly horizon');
  console.log('MID ORIGINAL RUC PHASE READBACK VERIFIED '+JSON.stringify({
   run:meta.run,validTime,storageProfile:meta.storageProfile,phaseHorizon15m:phase.times.length,
-  originalPoints:meta.pointCount,gridPoints:output.total,validNativePoints:output.valid,
+  originalPoints:meta.pointCount,gridPoints:output.total,validNativePoints:output.valid,edgeInteriorPoints:edge.valid,edgeOutOfBoundsNoData:6,noPhaseAfterSixHours:true,
   objectRequests:networkRequests,elapsedMs:Date.now()-started,
   source:output.source,classification:'Read-only runner sample; NOT Cloudflare Worker P95 or full-domain proof'
  }));
