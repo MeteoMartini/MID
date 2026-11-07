@@ -42,7 +42,6 @@ function phaseFor(frame:WeatherPhaseGridFrame,index:number,source?:string):Phase
  if(explicitSnowGrains)return{phase:'snow-grains',label:'Schneegriesel',confidence:'hoch',modelEvidence};
  if(explicitSnowStars)return{phase:'snow-stars',label:'Vereinzelte Schneesterne',confidence:'hoch',modelEvidence};
  if(explicitIcePellets)return{phase:'ice-pellets',label:'Eiskörner',confidence:'hoch',modelEvidence};
- if(explicitSnow&&!Number.isFinite(temperature)&&!Number.isFinite(wetBulb))return{phase:'snow',label:'Schnee · Modell-WMO-Code',confidence:'mittel',modelEvidence};
  if(explicitSnow||snowfall>=.003){if(coldEnough&&((Number.isFinite(wetBulb)&&wetBulb<=.9)||snowLevelSupports))return{phase:'snow',label:'Schnee',confidence:explicitSnow?'hoch':'mittel',modelEvidence};if(Number.isFinite(wetBulb)&&wetBulb<=1.7)return{phase:'mixed',label:'Mischphase möglich',confidence:'mittel',modelEvidence}}
  if(explicitRain||explicitThunderPrecip||liquid>=.003){if((Number.isFinite(wetBulb)&&wetBulb>=1.3)||liquidLevelSupports)return{phase:'rain',label:'Regen',confidence:explicitRain?'hoch':'mittel',modelEvidence};if(Number.isFinite(wetBulb)&&wetBulb>=.1&&wetBulb<1.3)return{phase:'mixed',label:'Mischphase möglich',confidence:'eingeschränkt',modelEvidence}}
  if(modelEvidence&&Number.isFinite(wetBulb)){
