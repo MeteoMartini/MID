@@ -67,3 +67,14 @@ test('bad or repeated receipts fail closed',()=>{
  assert.throws(()=>receiptFrom([{body:'MID-COPILOT-RECEIPT-V1\n{}'},{body:'MID-COPILOT-RECEIPT-V1\n{}'}]),/multiple/);
 });
 test('audit mode explicitly read-only',()=>{assert.match(promptFor(4,{...original,mode:'audit'}),/READ ONLY/);assert.match(promptFor(4,original),/NOT RELEASE AUTHORIZED/);});
+
+test('historical task remains queryable after independent stable promotion',()=>{
+ const m=mock();start(m.client,4,true);
+ const receipt=m.calls.find(c=>c.path.endsWith('/issues/4/comments')&&c.body).body.body;
+ const s=mock({comments:[{body:receipt}],sha:'a'.repeat(40)});
+ const result=status(s.client,4);
+ assert.equal(result.status,'completed');
+ assert.equal(result.requiresFreshIntegration,true);
+ assert.equal(result.releaseAuthorized,false);
+ assert(s.calls.every(c=>c.body===undefined));
+});
