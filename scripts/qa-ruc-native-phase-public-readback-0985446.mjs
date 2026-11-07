@@ -38,7 +38,7 @@ try{
   networkRequests++;
   check(networkRequests<=48,'RUC readback network request ceiling reached');
   check(!abort.signal.aborted,'RUC readback overall deadline expired');
-  const options={...init,signal:abort.signal};
+  const options={...init,signal:AbortSignal.any([abort.signal,init?.signal].filter(Boolean))};
   const response=await rawFetch(u.toString(),options);
   check(response.ok,'RUC original object unavailable '+u.pathname+' HTTP '+response.status);
   const declared=Number(response.headers.get('content-length'));

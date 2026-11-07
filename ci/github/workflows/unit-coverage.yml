@@ -74,7 +74,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/test-ruc-native-phase-public-readback-0985446.mjs
+          node scripts/qa-ruc-native-phase-public-readback-0985446.mjs
 
       - name: Coverage-Bericht sichern
         if: always()
