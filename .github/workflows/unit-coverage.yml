@@ -69,12 +69,21 @@ jobs:
 
       # #683 public original-source QA: strictly read-only and PR-bound.
       # Not a source release gate; a failed public readback blocks Draft admission.
-      - name: Echte RUC-Phase15-Originalleseprobe (3x3, read-only, #685)
+      - name: Echte RUC-Phase15-Originalleseprobe (9 + 247 Zellen, read-only, #685)
         if: github.event_name == 'pull_request' && github.event.pull_request.number == 685
         shell: bash
         run: |
           set -euo pipefail
           node scripts/qa-ruc-native-phase-public-readback-0985446.mjs
+
+      # Only the designated QA Draft; provider calls are read-only and capped at five.
+      # Real provider smoke is NOT a production source-release gate.
+      - name: Echte D2-EU-Global-Fallback-Providerprobe (5 Orte, read-only, #685)
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 685
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/qa-phase-provider-native-fallback-0985447.mjs
 
       - name: Coverage-Bericht sichern
         if: always()
