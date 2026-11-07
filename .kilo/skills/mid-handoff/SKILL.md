@@ -5,6 +5,10 @@ description: Mandatory safe handoff workflow whenever a Kilo cloud coding agent 
 
 # MID Kilo work and handoff
 
+**Task-router gate:** ChatGPT selects Kilo only when a **specific user-authorized, bounded** MID task benefits from Kilo and existing connection/credits/scope are verified. See [MID agent/plugin routing](../../../docs/implementation/MID_AGENT_PLUGIN_ROUTING_2026_11_07.md) and `AGENTS.md`. For read-only GitHub audits use the independent `@kilocode-bot` Issue route only; for user-directed Kilo **code** work preserve the existing ref-free SHA-verified handoff steps below. Do not self-originate, duplicate or escalate tasks, make paid/credential changes, or use the GitHub bot's autonomous branch/PR creation for MID coding. Use connected GitHub evidence for response so no patch copying is needed; no source/release privileges are added.
+
+
+
 1. Before work read `AGENTS.md`, `MID_BASELINE.json`, `MID_SOURCE_OF_TRUTH.md`, `package.json`, and relevant normative contracts; verify exact live SHAs of `main` and `mid-stable`; identify active PRs and parallel work. If drift or overlap, stop changes.
 2. Run in a dedicated **local** worktree branch off the verified latest `mid-stable` commit. Never commit on `main` or `mid-stable`. Kilo cannot create/update protected `chatgpt/*`/`codex/*` refs. Do not attempt to push those refs and never use force, bypasses, SSH credential fallbacks or broaden GitHub permissions.
 3. Work only within the scope of the user's task, retain all existing functions, tests and WMO/DWD contracts. Apply least-privilege; never access or copy secrets.
