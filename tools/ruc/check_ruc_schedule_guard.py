@@ -100,14 +100,22 @@ def advertised_eps_listing_complete(run:str,fetch:Callable[[str],str]=fetch_text
     # If unsupported or occupied, fail open to the original safe producer.
     if not all(hasattr(signal,x) for x in ('SIGALRM','ITIMER_REAL','setitimer','getitimer')):
         return None
+    previous_handler=None
+    handler_installed=False
     try:
         previous_handler=signal.getsignal(signal.SIGALRM)
         if signal.getitimer(signal.ITIMER_REAL)[0]>0:return None
         def alarm_handler(_signum,_frame):
             raise TimeoutError('EPS total directory budget exceeded')
         signal.signal(signal.SIGALRM,alarm_handler)
+        handler_installed=True
         signal.setitimer(signal.ITIMER_REAL,budget_seconds)
     except (ValueError,AttributeError,OSError):
+        # The timer may fail *after* signal.signal succeeded. Restore the
+        # previous handler before returning to the safe original producer.
+        # Do not conceal a restoration failure as a clean fail-open.
+        if handler_installed:
+            signal.signal(signal.SIGALRM,previous_handler)
         return None
     base=f'{EPS_BASE}/TOT_PREC/r/{run}/e/'
     deadline=time.monotonic()+budget_seconds
@@ -158,7 +166,9 @@ def advertised_eps_listing_complete(run:str,fetch:Callable[[str],str]=fetch_text
 
 def may_defer_incomplete_eps(dwd:str,published:str,meta:dict,listing:bool|None,*,
                              now:dt.datetime|None=None,max_age_minutes:int=DEFAULT_MAX_AGE_MINUTES)->bool:
-    if listing is not False or not valid_pages_meta(meta) or meta.get('storageProfile')!=FULL_STORAGE_PROFILE:return False
+    if (listing is not False or not valid_pages_meta(meta)
+            or meta.get('storageProfile')!=FULL_STORAGE_PROFILE
+            or published!=meta.get('run')):return False
     try:
         clock=now or dt.datetime.now(dt.timezone.utc)
         if clock.tzinfo is None:return False

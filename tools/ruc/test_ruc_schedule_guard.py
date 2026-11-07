@@ -6,9 +6,11 @@ import json
 import tempfile
 import contextlib
 import io
+import signal
 import threading
 import time
 from pathlib import Path
+from unittest import mock
 
 path=Path(__file__).with_name('check_ruc_schedule_guard.py')
 spec=importlib.util.spec_from_file_location('guard',path);guard=importlib.util.module_from_spec(spec);assert spec.loader;spec.loader.exec_module(guard)
@@ -196,6 +198,12 @@ assert guard.advertised_eps_listing_complete(NEW,index_fixture(missing_member=20
 assert guard.advertised_eps_listing_complete(NEW,index_fixture(unfamiliar=True)) is None
 assert guard.advertised_eps_listing_complete(NEW,index_fixture(holes={1:{13}},unfamiliar=True)) is None
 assert guard.advertised_eps_listing_complete(NEW,index_fixture(timeout=True)) is None
+# A failure to arm the timer occurs after the global SIGALRM handler was
+# changed. The original handler must be restored before the safe fallback.
+original_sigalrm=signal.getsignal(signal.SIGALRM)
+with mock.patch.object(guard.signal,'setitimer',side_effect=OSError('timer refused')):
+    assert guard.advertised_eps_listing_complete(NEW,index_fixture()) is None
+assert signal.getsignal(signal.SIGALRM)==original_sigalrm, 'signal handler leaked after timer failure'
 def stalled_index(_url):
     time.sleep(1.0)
     return ''
@@ -207,6 +215,13 @@ assert guard.advertised_eps_listing_complete(NEW,lambda _: '<a href="new-format/
 healthy=json.loads(json.dumps(active))
 clock=dt.datetime(2026,8,30,3,41,tzinfo=dt.timezone.utc)
 assert guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,False,now=clock)
+# An internally valid but different Pages run is not authorization to
+# defer a run named by an inconsistent caller argument.
+wrong_run_meta=json.loads(json.dumps(healthy))
+wrong_run_meta['run']='2026-08-30T01:00'
+assert guard.valid_pages_meta(wrong_run_meta)
+assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',
+                                          wrong_run_meta,False,now=clock)
 # DWD 04Z incomplete while Pages is 02Z: 03Z could already be
 # complete. Deferring here would suppress a real catch-up, not only
 # a redundant rebuild. The guard must fail open to the original producer.
