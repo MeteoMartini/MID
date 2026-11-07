@@ -1,6 +1,7 @@
 """Lifecycle tests for deadline diagnostics, captured JSON and descendant cleanup."""
 import json,os,signal,subprocess,sys,tempfile,threading,time,unittest
 from pathlib import Path
+from unittest.mock import patch
 from timed_command import run
 ROOT=Path(__file__).resolve().parents[2]
 class TimingTests(unittest.TestCase):
@@ -10,13 +11,27 @@ class TimingTests(unittest.TestCase):
             self.assertEqual(run('ok',[sys.executable,'-c','pass'],report),0)
             self.assertEqual(run('exit7',[sys.executable,'-c','raise SystemExit(7)'],report),1)
             self.assertEqual(run('missing',['/nonexistent-mid-program'],report),1)
-            timer=threading.Timer(.15,lambda:os.kill(os.getpid(),signal.SIGTERM));timer.start()
-            try:self.assertEqual(run('parent-term',[sys.executable,'-c','import time;time.sleep(30)'],report),1)
+            ready=Path(td)/'parent-child-ready'
+            def interrupt_ready_child():
+                deadline=time.monotonic()+5
+                while not ready.exists() and time.monotonic()<deadline:time.sleep(.01)
+                if ready.exists():os.kill(os.getpid(),signal.SIGTERM)
+            # A child can report readiness only after run() installed its handlers.
+            # A wall-clock timer can instead kill the test during the start fsync.
+            timer=threading.Thread(target=interrupt_ready_child);timer.start()
+            command=f'from pathlib import Path;import time;Path({str(ready)!r}).write_text("ready");time.sleep(30)'
+            try:self.assertEqual(run('parent-term',[sys.executable,'-c',command],report),1)
             finally:timer.join()
+            self.assertTrue(ready.exists(),'real child must be running before SIGTERM')
             rows=[json.loads(s) for s in report.read_text().splitlines()];ends=[r for r in rows if r['event']=='finish']
             self.assertEqual([r['reason'] for r in ends],['success','nonzero-exit','spawn-error-2','parent-signal-15'])
             self.assertEqual(ends[1]['exitCode'],7);self.assertEqual(ends[-1]['signal'],signal.SIGTERM)
             self.assertTrue(all(r['elapsedSeconds']>=0 for r in ends));self.assertEqual(len(rows),8)
+    def test_parent_interruption_survives_slow_start_fsync(self):
+        # Reproduced old fixture failure: a 150ms signal killed the whole test
+        # process when the start-record fsync took 250ms, before handler setup.
+        with patch('timed_command.os.fsync',side_effect=lambda fd:time.sleep(.25)):
+            self.test_exit_spawn_and_parent_interruption_keep_reasons_and_signals()
     def test_deadline_kills_term_resistant_grandchild_with_inherited_descriptors(self):
         with tempfile.TemporaryDirectory() as td:
             root=Path(td);report=root/'timings';pidfile=root/'pid'
