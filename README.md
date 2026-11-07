@@ -118,6 +118,14 @@ Verbindliche Details: [AGENTS.md](AGENTS.md) · [Copilot-Anweisungen](.github/co
 
 Copilot-Ergebnisse aus `copilot/*` werden **nicht** direkt veröffentlicht. Unabhängige Integration, vollständige Gates und Stable-Promotion bleiben wie in `AGENTS.md` beschrieben verpflichtend.
 
+## Zusammenarbeit mit Kilo (ohne Copy/Paste)
+
+Für **ausdrücklich beauftragte, rein lesende** Audits kann ChatGPT künftig ein begrenztes GitHub-Issue anlegen und darin `@kilocode-bot` einmalig erwähnen. Kilo soll seine Antwort direkt im Issue dokumentieren, das ChatGPT dann unabhängig ausliest. Bei [Pilot #692](https://github.com/MeteoMartini/MID/issues/692) hat der offizielle Kilo-GitHub-Bot bereits geantwortet; **die eigentliche Aufgabenbearbeitung ist noch blockiert**, weil du zunächst in diesem Issue über „Link your Kilo account“ die persönliche GitHub↔Kilo-Verbindung herstellen musst. Den individuellen Verknüpfungslink niemals kopieren oder öffentlich weitergeben.
+
+**Codeänderungen laufen weiterhin nicht über GitHub-Bot-Fix-Kommandos.** Die erlaubte Kilo-Codeübergabe bleibt `scripts/mid-kilo-handoff.mjs` mit einmaligem SHA-gesicherten, **ref-freien** Git-Objekt-/Issue-Transport und unabhängiger ChatGPT-Intake-Prüfung (verifizierter Vorversuch [#662](https://github.com/MeteoMartini/MID/issues/662) → [Draft #663](https://github.com/MeteoMartini/MID/pull/663)). Kilo darf keine selbstständigen MID-Branches/PRs, Releases, neuen Secrets oder kostenpflichtigen Dienste anlegen; Kilo-Credits können verbraucht werden. Alle Source-/Installer-/Worker-/Pages-/Stable-Gates bleiben verbindlich.
+
+Vollständige Anleitung: [Kilo-GitHub-Issue-Rückkanal](docs/implementation/MID_KILO_GITHUB_ISSUE_BRIDGE_2026_11_07.md), [Kilo-Handoff-Vertrag](docs/implementation/MID_KILO_DEFAULT_HANDOFF_CONTRACT_2026_11_05.md), [AGENTS.md](AGENTS.md).
+
 ## Versionsschema
 
 - Funktionsrelease (`0.7.x` oder äquivalent `0.7.x.0`) für neue eigenständige Funktionen.
