@@ -2370,10 +2370,13 @@ function midPhaseIndex(group,targetMs,minutes){
  const times=group?.time;if(!Array.isArray(times))return null;
  let best=null,deltaBest=Infinity;
  for(let i=0;i<times.length;i++){
-  const stamp=midPhaseMs(times[i]),delta=targetMs-stamp;
-  // 15 min: same validity (<=90 s tolerance); hourly: LAST elapsed
-  // hour only, never a future or interpolated 15-min accumulation.
-  if(!Number.isFinite(stamp)||!(minutes===15?Math.abs(delta)<=90000:delta>=0&&delta<3600000))continue;
+  const stamp=midPhaseMs(times[i]);
+  // Open-Meteo precipitation/rain/snowfall is END-stamped, not instantaneous:
+  // at 17:15 the hourly value 18:00 covers [17:00,18:00], whereas 17:00
+  // covers the already elapsed [16:00,17:00] and MUST NOT be borrowed.
+  // RUC and D2 15min still require their exact native valid time (<=90s).
+  const delta=minutes===15?targetMs-stamp:stamp-targetMs;
+  if(!Number.isFinite(stamp)||!(minutes===15?Math.abs(delta)<=90000:delta>0&&delta<=3600000))continue;
   if(Math.abs(delta)<deltaBest){deltaBest=Math.abs(delta);best={index:i,time:new Date(stamp).toISOString(),stamp}}
  }
  return best;

@@ -58,6 +58,29 @@ assert.equal(phaseContext.__phaseFor(missingFrame,0).phase,'uncertain','missing 
 assert.equal(phaseContext.__phaseFor({...missingFrame,weatherCode:[66]},0).phase,'uncertain','missing temperature must not support freezing');
 assert.equal(phaseContext.__phaseFor({...missingFrame,temperature2m:[0],relativeHumidity2m:[90],snowfallHeight:[0],elevation:[100]},0).phase,'snow','actual zero Celsius remains valid cold support');
 
+// MID interval contract: raw hourly amounts are END-stamped. No stale hour
+// may be attributed to the following OPERA observation/time slot.
+const indexOfPhase=vm.runInContext('midPhaseIndex',context);
+const hourTimes=['2026-11-07T16:00','2026-11-07T17:00','2026-11-07T18:00','2026-11-07T19:00'];
+const atUtc=value=>Date.parse('2026-11-07T'+value+':00Z');
+const hourlySource={time:hourTimes};
+for(const [target,expected] of [
+ ['16:45','2026-11-07T17:00:00.000Z'],
+ ['17:00','2026-11-07T18:00:00.000Z'],
+ ['17:15','2026-11-07T18:00:00.000Z'],
+ ['17:45','2026-11-07T18:00:00.000Z'],
+ ['18:00','2026-11-07T19:00:00.000Z']
+])assert.equal(indexOfPhase(hourlySource,atUtc(target),60)?.time,expected,
+ 'Hourly source interval must CONTAIN the radar/map target: '+target);
+assert.equal(indexOfPhase({time:['2026-11-07T17:00']},atUtc('17:15'),60),null,
+ 'A completed [16:00,17:00] hour must not represent 17:15');
+assert.equal(indexOfPhase({time:['2026-11-07T19:00']},atUtc('17:15'),60),null,
+ 'No 1h/15min extrapolation across an absent source interval');
+assert.equal(indexOfPhase({time:['2026-11-07T17:15']},atUtc('17:15'),15)?.time,
+ '2026-11-07T17:15:00.000Z','RUC/D2 native 15min exact validity must stay unchanged');
+assert.equal(indexOfPhase({time:['2026-11-07T17:00']},atUtc('17:15'),15),null,
+ 'A prior 15min accumulation is not valid as a current 15min field');
+
 const nativeAdmission=vm.runInContext('midRucPhaseEnough',context),nativeAmount=vm.runInContext('midPhaseAmount',context);
 for(const [rain,snow,graupel,expected] of [
  [.1,NaN,NaN,true],[NaN,.1,NaN,true],[NaN,NaN,.1,true],

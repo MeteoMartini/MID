@@ -68,7 +68,7 @@ try{
  // D2 has source holes, EU only covers some of them, ICON Global the rest.
  metaInitialMs=targetMs-2*60*60*1000;
  const byModel={dwd_icon_d2_15min:0,dwd_icon_eu:0,dwd_icon:0};
- const iso=new Date(targetMs).toISOString(),hourIso=new Date(Math.floor(targetMs/3600000)*3600000).toISOString(),triple=value=>[value,value,value];
+ const iso=new Date(targetMs).toISOString(),hourIso=new Date((Math.floor(targetMs/3600000)+1)*3600000).toISOString(),triple=value=>[value,value,value];
  globalThis.fetch=async request=>{
   const url=new URL(typeof request==='string'?request:request.url);
   if(url.hostname==='api.open-meteo.com'&&url.pathname.includes('/static/meta.json'))
@@ -101,7 +101,7 @@ try{
   const id=sourceByCell[i],interval=priority.phaseIntervalMinutesByCell[i],valid=priority.phaseValidTimeByCell[i],run=priority.phaseRunByCell[i];
   if(!run||!valid||!(interval===(id==='dwd-icon-d2'?15:60)))throw new Error('Invalid per-cell run/validity/accumulation interval at '+i);
   if(id==='dwd-icon-d2'&&Date.parse(valid)!==targetMs)throw new Error('Original D2 15-minute valid time drift');
-  if(id!=='dwd-icon-d2'&&Date.parse(valid)>targetMs)throw new Error('ICON EU/global used a FUTURE hourly interval as 15 min');
+  if(id!=='dwd-icon-d2'&&!(Date.parse(valid)>targetMs&&Date.parse(valid)<=targetMs+3600000))throw new Error('ICON EU/global must use the end stamp of the 1h interval containing target, not an already elapsed hour');
   if(priority.frame.rucRain[i]!==null||priority.frame.rucSnowfallWaterEquivalent[i]!==null)throw new Error('Open-Meteo fallback wrongly labeled as RUC');
  }
  if(priority.provider.includes('native Originalzellen')&&!priority.provider.includes('nicht native Originalzellen'))throw new Error('Open-Meteo interpolated samples impersonate native DWD originals');
