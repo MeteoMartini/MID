@@ -12,6 +12,15 @@ need('Worker-Budget',worker,'requestBudget:{locations:count,batches,variables:8,
 need('Worker-Gesamtbudget',worker,'const phaseWallDeadlineMs=Date.now()+24000');
 need('Worker-zeitgebundenes Teilbudget',worker,'const perRequestMs=Math.min(18000,Math.max(0,phaseWallDeadlineMs-Date.now()-750))');
 need('Worker-48-/28-Aufrufgrenze',worker,'batches>=48||modelBatches>=28');
+need('Gemeinsames Phasen-Fetch-Budget',worker,'MID_PHASE_EXTERNAL_SUBREQUEST_CAP=46');
+need('Native Pages Fetch-Reserve',worker,'MID_PHASE_RUC_SUBREQUEST_CAP=30');
+need('Native Lookup Reserve',worker,'MID_PHASE_LOOKUP_SUBREQUEST_CAP=14');
+need('Pro-Invocation Budget',worker,'const phaseFetchBudget=midPhaseRequestBudget(phaseWallDeadlineMs)');
+need('Native Pages Propagation',worker,'dwdRucStaticPhaseGrid(lats,lons,roundedMs,env,phaseFetchBudget)');
+need('ICON Metadata Propagation',worker,'phaseModelMetadata(model,phaseWallDeadlineMs,phaseFetchBudget)');
+need('Live Budget Zähler',worker,'phaseFetchBudget:{limit:phaseFetchBudget.limit');
+need('Keine verborgenen Redirects',worker,"redirect:'manual'");
+
 need('Worker-per-cell-400-Isolation',worker,'const left=await requestValid(indices.slice(0,half))');
 need('Worker-NoData',worker,'fehlende Zellen bleiben NoData');
 need('Worker-Sequenz',worker,'for(let offset=0;offset<remaining.length;offset+=120)');

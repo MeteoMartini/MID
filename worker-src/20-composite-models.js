@@ -334,26 +334,28 @@ function midPhaseProviderEnvelope(wkt){
 // Phase-only response helper: the same abort signal covers BOTH HTTP headers
 // and JSON body. fetchWithDeadline elsewhere intentionally returns a Response;
 // its header-only timer must not be treated as a complete phase-field deadline.
-async function midPhaseJsonResponse(input,init={},timeoutMs=6000){
+async function midPhaseJsonResponse(input,init={},timeoutMs=6000,budget=null){
  const origin=openMeteoQuotaOrigin(input),now=Date.now(),retryAt=origin?openMeteoQuotaCooldownByOrigin.get(origin)||0:0;
  if(retryAt>now){
   const reason='Open-Meteo rate limit: Kontingent vorübergehend erschöpft.';
   return{response:new Response(JSON.stringify({error:true,reason}),{status:429,headers:{'content-type':'application/json','cache-control':'no-store','retry-after':String(Math.ceil((retryAt-now)/1000))}}),payload:{error:true,reason}};
  }
  if(origin)openMeteoQuotaCooldownByOrigin.delete(origin);
- const controller=new AbortController(),timer=setTimeout(()=>controller.abort(new DOMException('Phase JSON body deadline','TimeoutError')),timeoutMs);
+ const ms=budget?budget.remaining(timeoutMs,'provider'):timeoutMs;
+ if(budget&&(ms<250||!budget.claim('provider')))throw Error('Phasen-Subrequestbudget erreicht; unbestätigte Zellen bleiben NoData');
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(new DOMException('Phase JSON body deadline','TimeoutError')),ms);
  try{
-  const response=await fetch(input,{...init,signal:controller.signal});
+  const response=await fetch(input,{...init,redirect:budget?'manual':init.redirect,signal:controller.signal});
   rememberOpenMeteoQuota(response,origin);
   let payload={};
   try{payload=await response.json()}catch(error){if(controller.signal.aborted)throw error}
   return{response,payload};
  }finally{clearTimeout(timer)}
 }
-async function phaseModelMetadata(model,deadlineMs=Infinity){
+async function phaseModelMetadata(model,deadlineMs=Infinity,budget=null){
  if(model.retired||model.id==='geosphere-arome'||model.apiIds?.includes('geosphere_arome_austria'))return null;
  const cached=precipitationPhaseModelMetaCache.get(model.id);if(cached&&Date.now()-cached.storedAt<10*60000)return cached.value;
- let value=null;for(const metaId of model.metaIds||model.apiIds){try{const timeoutMs=Number.isFinite(deadlineMs)?Math.min(6000,deadlineMs-Date.now()-750):6000;if(timeoutMs<1200)return null;const {response,payload:meta}=await midPhaseJsonResponse(`https://api.open-meteo.com/data/${metaId}/static/meta.json?cache_buster=${Math.floor(Date.now()/300000)}`,{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:300,cacheEverything:true}},timeoutMs);if(!response.ok)continue;const raw=number(meta?.last_run_initialisation_time),available=number(meta?.last_run_availability_time),initMs=Number.isFinite(raw)?raw*(raw>1e12?1:1000):NaN,availableMs=Number.isFinite(available)?available*(available>1e12?1:1000):NaN,updateSeconds=Math.max(3600,number(meta?.update_interval_seconds)||Number(model.rapidUpdate?3600:10800)),maxRunAgeMs=model.rapidUpdate?Math.max(5*3600000,(Math.max(0,Number(model.latencyHours)||0)+5)*3600000):Math.max(8*3600000,updateSeconds*2.5*1000);if(!Number.isFinite(initMs)||Date.now()-initMs>maxRunAgeMs)continue;value={...model,metaId,providerEnvelope:midPhaseProviderEnvelope(meta?.crs_wkt),initialisationTime:new Date(initMs).toISOString(),availabilityTime:Number.isFinite(availableMs)?new Date(availableMs).toISOString():undefined,updateIntervalSeconds:updateSeconds,ageHours:Math.max(0,(Date.now()-(Number.isFinite(availableMs)?availableMs:initMs))/3600000)};break}catch{}}
+ let value=null;for(const metaId of model.metaIds||model.apiIds){try{const timeoutMs=Number.isFinite(deadlineMs)?Math.min(6000,deadlineMs-Date.now()-750):6000;if(timeoutMs<1200)return null;const {response,payload:meta}=await midPhaseJsonResponse(`https://api.open-meteo.com/data/${metaId}/static/meta.json?cache_buster=${Math.floor(Date.now()/300000)}`,{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:300,cacheEverything:true}},timeoutMs,budget);if(!response.ok)continue;const raw=number(meta?.last_run_initialisation_time),available=number(meta?.last_run_availability_time),initMs=Number.isFinite(raw)?raw*(raw>1e12?1:1000):NaN,availableMs=Number.isFinite(available)?available*(available>1e12?1:1000):NaN,updateSeconds=Math.max(3600,number(meta?.update_interval_seconds)||Number(model.rapidUpdate?3600:10800)),maxRunAgeMs=model.rapidUpdate?Math.max(5*3600000,(Math.max(0,Number(model.latencyHours)||0)+5)*3600000):Math.max(8*3600000,updateSeconds*2.5*1000);if(!Number.isFinite(initMs)||Date.now()-initMs>maxRunAgeMs)continue;value={...model,metaId,providerEnvelope:midPhaseProviderEnvelope(meta?.crs_wkt),initialisationTime:new Date(initMs).toISOString(),availabilityTime:Number.isFinite(availableMs)?new Date(availableMs).toISOString():undefined,updateIntervalSeconds:updateSeconds,ageHours:Math.max(0,(Date.now()-(Number.isFinite(availableMs)?availableMs:initMs))/3600000)};break}catch{}}
  precipitationPhaseModelMetaCache.set(model.id,{storedAt:Date.now(),value});return value;
 }
 function phaseModelScore(model){const age=Math.max(0,Number(model.ageHours)||0)+Math.max(0,Number(model.latencyHours)||0),resolution=Math.max(.8,Number(model.resolutionKm)||8),rapid=Boolean(model.rapidUpdate),native15=Boolean(model.native15);return 100-age*15-Math.log2(resolution)*9+(rapid?12:0)+(native15?5:0)}
@@ -405,6 +407,7 @@ function midRucPhaseEnough(rain,snow,graupel){
 async function precipitationPhaseGridData(lat,lon,target,env){
  // A 28s browser deadline cannot tolerate 48 sequential 18s provider calls.
  const phaseWallDeadlineMs=Date.now()+24000;
+ const phaseFetchBudget=midPhaseRequestBudget(phaseWallDeadlineMs);
  const requested=Date.parse(String(target||'')),targetMs=Number.isFinite(requested)?requested:Date.now(),roundedMs=Math.round(targetMs/900000)*900000;
  const centerLat=Math.round(lat*20)/20,centerLon=Math.round(lon*20)/20,key=precipitationPhaseGridCacheKey(centerLat,centerLon,roundedMs);
  const existing=precipitationPhaseGridCache.get(key);if(existing&&Date.now()-existing.storedAt<=720000)return{...existing.data,cache:'worker-memory'};
@@ -416,7 +419,7 @@ async function precipitationPhaseGridData(lat,lon,target,env){
  const frame={time:new Date(roundedMs).toISOString(),temperature2m:blank(),relativeHumidity2m:blank(),wetBulbTemperature2m:blank(),weatherCode:blank(),precipitation:blank(),rain:blank(),showers:blank(),snowfall:blank(),snowfallHeight:blank(),freezingLevelHeight:blank(),elevation:blank(),rucRain:blank(),rucSnowfallWaterEquivalent:blank(),graupelWaterEquivalent:blank()};
  const phaseSourceByCell=Array(count).fill(null),phaseValidTimeByCell=Array(count).fill(null),phaseRunByCell=Array(count).fill(null),phaseIntervalMinutesByCell=Array(count).fill(null);
  const candidateModels=[],errors=[];let ruc=null;
- try{ruc=await dwdRucStaticPhaseGrid(lats,lons,roundedMs,env)}catch(error){errors.push('RUC nicht verfuegbar: '+String(error))}
+ try{ruc=await dwdRucStaticPhaseGrid(lats,lons,roundedMs,env,phaseFetchBudget)}catch(error){errors.push('RUC nicht verfuegbar: '+String(error))}
  if(ruc){
   const valid=midPhaseMs(ruc.time),run=midPhaseMs(ruc.run);
   if(Number.isFinite(valid)&&Math.abs(valid-roundedMs)<=90000&&Number.isFinite(run)&&run<=valid&&Date.now()-run<=4*3600000){
@@ -445,7 +448,7 @@ async function precipitationPhaseGridData(lat,lon,target,env){
   url.searchParams.set('temperature_unit','celsius');url.searchParams.set('precipitation_unit','mm');
   const perRequestMs=Math.min(18000,Math.max(0,phaseWallDeadlineMs-Date.now()-750));
   if(perRequestMs<1200)throw new Error('Phasen-Gesamtbudget erreicht; keine weiteren Provider-Requests');
-  const {response,payload}=await midPhaseJsonResponse(url.toString(),{headers:{Accept:'application/json','User-Agent':'MID-weather-dashboard/'+WORKER_VERSION},cf:{cacheTtl:900,cacheEverything:true}},perRequestMs);
+  const {response,payload}=await midPhaseJsonResponse(url.toString(),{headers:{Accept:'application/json','User-Agent':'MID-weather-dashboard/'+WORKER_VERSION},cf:{cacheTtl:900,cacheEverything:true}},perRequestMs,phaseFetchBudget);
   if(!response.ok||payload?.error){const error=new Error(String(payload?.reason||payload?.error||'ICON phase HTTP '+response.status));error.status=response.status;throw error}
   const points=openMeteoRows(payload);if(points.length!==indices.length)throw new Error('ICON model phase missing requested cell records');
   return points;
@@ -453,7 +456,7 @@ async function precipitationPhaseGridData(lat,lon,target,env){
  for(const model of MID_ICON_PHASE_FALLBACKS){
   const shortlisted=coordinates.map((point,i)=>!phaseSourceByCell[i]&&phaseModelApplies(model,point.lat,point.lon)?i:null).filter(Number.isInteger);
   if(!shortlisted.length)continue;
-  const meta=await phaseModelMetadata(model,phaseWallDeadlineMs);
+  const meta=await phaseModelMetadata(model,phaseWallDeadlineMs,phaseFetchBudget);
   if(!meta){errors.push(model.label+': keine verifizierten aktuellen Metadaten');continue}
   // Respect the provider's current grid envelope, including D2's actual
   // northern latitude >58N. Small nearest-cell tolerance avoids false crops.
@@ -522,6 +525,7 @@ async function precipitationPhaseGridData(lat,lon,target,env){
    phaseValidTimeByCell[i]=choice.time;phaseRunByCell[i]=meta.initialisationTime;phaseIntervalMinutesByCell[i]=interval;
   }
  }
+ if(phaseFetchBudget.denied)errors.push('Gemeinsames Phasen-Subrequest-/Zeitbudget erreicht; unbestätigte Zellen bleiben NoData');
  const usable=phaseSourceByCell.filter(Boolean).length;
  if(!usable){
   if(rateLimited){const stale=precipitationPhaseStale(centerLat,centerLon,roundedMs);if(stale)return{...stale,stale:true,targetTime:new Date(roundedMs).toISOString(),fallbackReason:'Open-Meteo-Minutenlimit: gekennzeichnetes frueheres Phasenfeld'}}
@@ -529,7 +533,7 @@ async function precipitationPhaseGridData(lat,lon,target,env){
  }
  const sourceCounts=Object.fromEntries(['dwd-icon-d2-ruc','dwd-icon-d2','dwd-icon-eu','dwd-icon-global'].map(id=>[id,phaseSourceByCell.filter(s=>s===id).length]));
  const gridSpacingKm=Math.round(Math.max(Math.abs((north-south)/(rows-1))*111.2,Math.abs((east-west)/(cols-1))*111.2*Math.max(.3,Math.cos(centerLat*Math.PI/180)))*10)/10;
- const data={modelId:'icon-phase-priority',modelLabel:'ICON-D2-RUC → ICON-D2 → ICON-EU → ICON Global',targetTime:new Date(roundedMs).toISOString(),referenceTime:phaseRunByCell.find(Boolean),lats,lons,frame,phaseSourceByCell,phaseValidTimeByCell,phaseRunByCell,phaseIntervalMinutesByCell,sourceCounts,provider:'DWD-RUC Originalzellen via MID Pages; ICON-D2/EU/global via Open-Meteo (nicht native Originalzellen)',phaseSource:sourceCounts['dwd-icon-d2-ruc']?ruc?.source:undefined,checkedAt:new Date().toISOString(),gridSpacingKm,coverage:usable+'/'+count+' gueltige Zellen; Maskenluecken bleiben NoData',rapidUpdate:sourceCounts['dwd-icon-d2-ruc']>0,native15:sourceCounts['dwd-icon-d2-ruc']+sourceCounts['dwd-icon-d2']>0,updateIntervalSeconds:undefined,modelAgeHours:Math.round(Math.max(...phaseRunByCell.filter(Boolean).map(v=>Math.max(0,(Date.now()-midPhaseMs(v))/3600000)))*100)/100,candidateModels,requestBudget:{locations:count,batches,variables:8,modelPointRequests},sourceErrors:errors.slice(0,7),modelLimitWarning:rateLimited};
+ const data={modelId:'icon-phase-priority',modelLabel:'ICON-D2-RUC → ICON-D2 → ICON-EU → ICON Global',targetTime:new Date(roundedMs).toISOString(),referenceTime:phaseRunByCell.find(Boolean),lats,lons,frame,phaseSourceByCell,phaseValidTimeByCell,phaseRunByCell,phaseIntervalMinutesByCell,sourceCounts,provider:'DWD-RUC Originalzellen via MID Pages; ICON-D2/EU/global via Open-Meteo (nicht native Originalzellen)',phaseSource:sourceCounts['dwd-icon-d2-ruc']?ruc?.source:undefined,checkedAt:new Date().toISOString(),gridSpacingKm,coverage:usable+'/'+count+' gueltige Zellen; Maskenluecken bleiben NoData',rapidUpdate:sourceCounts['dwd-icon-d2-ruc']>0,native15:sourceCounts['dwd-icon-d2-ruc']+sourceCounts['dwd-icon-d2']>0,updateIntervalSeconds:undefined,modelAgeHours:Math.round(Math.max(...phaseRunByCell.filter(Boolean).map(v=>Math.max(0,(Date.now()-midPhaseMs(v))/3600000)))*100)/100,candidateModels,requestBudget:{locations:count,batches,variables:8,modelPointRequests},phaseFetchBudget:{limit:phaseFetchBudget.limit,used:phaseFetchBudget.used,native:phaseFetchBudget.nativeUsed,lookup:phaseFetchBudget.lookupUsed,provider:phaseFetchBudget.providerUsed,denied:phaseFetchBudget.denied},sourceErrors:errors.slice(0,7),modelLimitWarning:rateLimited};
  rememberPrecipitationPhase(key,data);return data;
 }
 

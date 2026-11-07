@@ -246,6 +246,41 @@ assert.equal(phaseContext.__phaseFor({...missingFrame,weatherCode:[89],precipita
  assert.equal(beyond,null,'no original phase beyond published 15min horizon');
  assert.equal(nativeReadCalls,beforeHorizonReads,'outside phase horizon must skip all native data IO');
 
+
+ // QA-only: the SAME request budget must account for cold native Pages
+ // metadata, lookup and original phase GETs. No global or cached accounting.
+ let countedPhaseGets=0,manualRedirectGets=0;
+ const boundedContext=vm.createContext({console,URL,URLSearchParams,Headers,Request,Response,
+  AbortController,DOMException,TextDecoder,TextEncoder,DataView,Uint8Array,ArrayBuffer,
+  crypto,setTimeout,clearTimeout,
+  fetch:async (url,init)=>{
+   countedPhaseGets++;
+   if(init?.redirect==='manual')manualRedirectGets++;
+   return manyFetch(url);
+  }});
+ vm.runInContext(raw,boundedContext,{timeout:5000,filename:'worker/metar-proxy.js'});
+ boundedContext.__budget=vm.runInContext('midPhaseRequestBudget(Date.now()+24000)',boundedContext);
+ const limitedGrid=await vm.runInContext(
+  'dwdRucStaticPhaseGrid('+JSON.stringify(manyLat)+','+JSON.stringify(manyLon)+','+now.getTime()+',{},__budget)',
+  boundedContext,{timeout:5000});
+ assert.ok(limitedGrid&&limitedGrid.total===manyTotal&&limitedGrid.valid>=10&&limitedGrid.valid<manyTotal-1,
+  'Bounded cold cache must preserve supported native cells and leave unknown native cells Missing');
+ assert.equal(boundedContext.__budget.used,countedPhaseGets,'Every Pages GET must debit exactly one source slot');
+ assert.ok(boundedContext.__budget.nativeUsed<=30&&boundedContext.__budget.lookupUsed<=14,
+  'Native RUC quota cannot consume all ICON fallback headroom');
+ assert.equal(manualRedirectGets,countedPhaseGets,
+  'A phase-only origin redirect must not silently add an untracked request');
+ assert.ok(boundedContext.__budget.denied>0,'Cold-cache quota exhaustion must remain observable');
+ for(let i=30;i<manyTotal;i++)
+  assert.ok(Number.isNaN(limitedGrid.rain[i]),
+   'Unverified original cell must remain Missing after bounded cold-cache source reads');
+ const isolatedBudget=vm.runInContext('midPhaseRequestBudget(Date.now()+24000)',boundedContext);
+ let permitted=0;
+ for(let i=0;i<80;i++)if(isolatedBudget.claim('provider'))permitted++;
+ assert.equal(permitted,46,'All original+model source calls must share the Free-compatible cap');
+ assert.equal(isolatedBudget.denied,34,'Extra provider calls must be denied before I/O');
+ assert.equal(boundedContext.__budget.providerUsed,0,'Separate invocations must not share mutable budget');
+
 for(const token of ['rucGraupel>=.003','rucSnow>=.003&&rucRain>=.003','Schnee · ICON-D2-RUC','Regen · ICON-D2-RUC'])assert.ok(overlay.includes(token),`radar phase priority missing: ${token}`);
 for(const token of ["Original-RUC-Lauf","Open-Meteo-Metadatenlauf (Feldlauf nicht zellverifiziert)"])assert.ok(overlay.includes(token),"Unverified provider run must not masquerade as a native DWD original: "+token);
 console.log('Native ICON-D2-RUC 15-min rain/snow/graupel phase decoder and radar-phase priority passed.');
