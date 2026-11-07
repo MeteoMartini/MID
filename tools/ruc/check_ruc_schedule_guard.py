@@ -119,7 +119,7 @@ def advertised_eps_listing_complete(run:str,fetch:Callable[[str],str]=fetch_text
 
 def may_defer_incomplete_eps(dwd:str,published:str,meta:dict,listing:bool|None,*,
                              now:dt.datetime|None=None,max_age_minutes:int=DEFAULT_MAX_AGE_MINUTES)->bool:
-    if listing is not False or not valid_pages_meta(meta):return False
+    if listing is not False or not valid_pages_meta(meta) or meta.get('storageProfile')!=FULL_STORAGE_PROFILE:return False
     try:
         clock=now or dt.datetime.now(dt.timezone.utc)
         if clock.tzinfo is None:return False
@@ -322,7 +322,7 @@ def main()->int:
         # but incomplete 19Z EPS index. Keep the authenticated healthy Pages
         # source only when the required filename layout is explicitly partial.
         # On index uncertainty, bad metadata or stale Pages, fail open.
-        if should_run and dwd and meta and valid_pages_meta(meta):
+        if should_run and dwd and meta and valid_pages_meta(meta) and meta.get('storageProfile')==FULL_STORAGE_PROFILE:
             try:
                 clock=dt.datetime.now(dt.timezone.utc)
                 age=(clock-run_time(published)).total_seconds()/60

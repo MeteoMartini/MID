@@ -32,8 +32,8 @@ jobs:
           test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" = "b6526e7c5c24035bd1a75b87b77e7bb8e821c334"
           git merge-base --is-ancestor "b6526e7c5c24035bd1a75b87b77e7bb8e821c334" HEAD
           cmp ci/github/workflows/mid-ruc-eps-advertised-index-qa.yml .github/workflows/mid-ruc-eps-advertised-index-qa.yml
-          test "$(git hash-object tools/ruc/check_ruc_schedule_guard.py)" = "8a8517bca17ab1c2202830c1c42b30c935e6e5e5"
-          test "$(git hash-object tools/ruc/test_ruc_schedule_guard.py)" = "9489576f25fdc502fec0b1abfec127b7c4ae9049"
+          test "$(git hash-object tools/ruc/check_ruc_schedule_guard.py)" = "448c88d019c52ab725e791fcc6a0288dfa5cf282"
+          test "$(git hash-object tools/ruc/test_ruc_schedule_guard.py)" = "4711ebcd80df9a4c35f681b71745f1e855dacaf0"
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'

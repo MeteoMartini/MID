@@ -156,9 +156,10 @@ assert guard.advertised_eps_listing_complete(NEW,index_fixture(holes={1:{13}},un
 assert guard.advertised_eps_listing_complete(NEW,index_fixture(timeout=True)) is None
 assert guard.advertised_eps_listing_complete('bad',index_fixture()) is None
 assert guard.advertised_eps_listing_complete(NEW,lambda _: '<a href="new-format/">new-format</a>') is None
-healthy=meta('2026-08-30T02:00')
+healthy=json.loads(json.dumps(active))
 clock=dt.datetime(2026,8,30,3,41,tzinfo=dt.timezone.utc)
 assert guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,False,now=clock)
+assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',meta('2026-08-30T02:00'),False,now=clock)  # raw emergency rollback must rebuild
 for unknown in (True,None,0,'False'):
     assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,unknown,now=clock)
 assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,False,
