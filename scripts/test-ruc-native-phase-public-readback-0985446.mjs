@@ -11,7 +11,7 @@ const started=Date.now();
 const abort=new AbortController();
 const deadlineTimer=setTimeout(()=>abort.abort(new Error('Original RUC public probe overall deadline')),deadline);
 let networkRequests=0;
-function phaseStamp(s){return Date.parse(/[zZ]$|[+-]\\d\\d:\\d\\d$/.test(String(s))?String(s):String(s)+'Z')}
+function phaseStamp(s){return Date.parse(/[zZ]$|[+-]\d\d:\d\d$/.test(String(s))?String(s):String(s)+'Z')}
 const check=(condition,msg)=>{if(!condition)throw Error(msg)};
 
 try{
@@ -46,8 +46,8 @@ try{
   return response;
  };
  const source=fs.readFileSync(new URL('../worker/metar-proxy.js',import.meta.url),'utf8')
-  .replace(/export default\\s*\\{/,'const __workerDefault={')
-  .replace(/^export \\{[^\\n]+\\};?$/gm,'');
+  .replace(/export default\s*\{/,'const __workerDefault={')
+  .replace(/^export \{[^\n]+\};?$/gm,'');
  const context=vm.createContext({
   console,URL,URLSearchParams,Headers,Request,Response,
   AbortController,DOMException,TextDecoder,TextEncoder,DataView,Uint8Array,ArrayBuffer,
