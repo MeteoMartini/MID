@@ -72,4 +72,5 @@ assert.equal(d2Phase({snowfall:.02,rain:.2,precipitation:.3,weatherCode:71}).pha
 assert.equal(d2Phase({snowfall:.02,rain:0,precipitation:.04}).confidence,'mittel','D2 amount-only evidence must not claim high confidence');
 
 for(const token of ['rucGraupel>=.003','rucSnow>=.003&&rucRain>=.003','Schnee · ICON-D2-RUC','Regen · ICON-D2-RUC'])assert.ok(overlay.includes(token),`radar phase priority missing: ${token}`);
+for(const token of ["Original-RUC-Lauf","Open-Meteo-Metadatenlauf (Feldlauf nicht zellverifiziert)"])assert.ok(overlay.includes(token),"Unverified provider run must not masquerade as a native DWD original: "+token);
 console.log('Native ICON-D2-RUC 15-min rain/snow/graupel phase decoder and radar-phase priority passed.');

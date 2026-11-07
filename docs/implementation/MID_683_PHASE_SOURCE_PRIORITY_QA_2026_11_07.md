@@ -38,6 +38,14 @@ Quellendokumentation: https://open-meteo.com/en/docs/dwd-api (Datenquellen, räu
 
 GitHub [Pilot-CI #42391594135](https://github.com/MeteoMartini/MID/actions/runs/42391594135) auf exakt `c5f909df0949a463e824b3d0f47218cb31469d0e`: **SUCCESS**. Die bestehende `unit-coverage`-Kette prüft Vitest, Native-RUC-Phasenregression, per-cell-RAPID/D2/EU/Global-Zustände samt 400-Isolierung, OPERA-Kombinationsgrenzen, TypeScript und CI-/Workflow-Integrität. **Skips in anderen Workflows sind keine grünen Freigabegates**. Für den jetzigen Dokumentationscommit ist erneut der neue SHA zu prüfen.
 
+## 3a. Zusätzlicher Run-Pinning-Readback (nur Forschung, kein Produktivpfad)
+
+Die offizielle Open-Meteo-Dokumentation https://open-meteo.com/en/docs/single-runs-api bestätigt: Der reguläre Forecast-Endpunkt ist eine kontinuierlich aktualisierte Zeitreihe; eine exakte Modellinitialisierung ist über **`single-runs-api.open-meteo.com/v1/forecast?run=YYYY-MM-DDTHH:mm`** separat abrufbar. Die verifizierten Nur-Lese-Einzelabfragen ergaben am 07.11.2026 jeweils **HTTP 200** für **D2 15Z** (8 Viertelstundentermine 15:00–16:45 UTC), **ICON-EU 09Z** (10 Stunden 09:00–18:00 UTC) und **ICON Global 06Z** (14 Stunden 06:00–19:00 UTC). Beim ersten D2-Zeitpunkt war die Niederschlagsmenge **Missing**, nicht Null; darauf folgten echte Nullen. Das erlaubt eine unabhängige, präzise Referenz auf Archivläufe für künftige wissenschaftliche Vergleiche.
+
+**Nicht gleichwertig zum bestehenden Live-Request:** Die Single-Runs-API lehnte `start_minutely_15` mit HTTP 400 ab, `forecast_minutely_15=8` wurde akzeptiert. Antworten/Leistung, individuelle Run-Verfügbarkeit, Kosten-/Nutzungsrechte, Rate-Limits und zeitlicher Zuschnitt müssten für 247 Zellen, Modellwechsel und Browser getrennt geprüft werden. Es fand **keine** produktive Umschaltung, kein neuer Dienstvertrag und keine pauschale Run-Bestätigung statt.
+
+Der Karten-Popup-Text unterscheidet im QA-Kandidaten nun ausdrücklich **RUC-Originallauf** von **Open-Meteo-Metadatenlauf (Feldlauf nicht zellverifiziert)**. Weder der Metadatenzeitpunkt noch ein punktueller Archivreadback werden zur unbelegten originalen Quelle hochgestuft.
+
 ## 4. Verbindliche Rest-Gates – NICHT ERFÜLLT
 
 1. Vollständige, echte räumlich-zeitliche Originaldaten-/Provider-Zellmatrix: RUC innerhalb/außerhalb originaler Masken, 15min-Endgrenze, D2 Nord/West/Süd, EU-only, Global-only, gültige 0 vs fehlend, Schnee/Regen/Graupel, Runwechsel, Zeitintervalle, Radar-OPERA-Echo.

@@ -92,7 +92,8 @@ function buildPhaseSymbols(data:WeatherPhaseGridData,raster:OperaRaster):PhaseSy
   if(typed==='freezing'&&(!coldSupport(temperature,wetBulb)||(Number.isFinite(temperature)&&temperature>2.5)||(Number.isFinite(wetBulb)&&wetBulb>.8)))continue;
   if((typed==='snow'||typed==='mixed')&&(Number.isFinite(temperature)&&temperature>4)&&(Number.isFinite(wetBulb)&&wetBulb>1.5))continue;
   if(echo.maxDbz<phaseMinimumDbz(typed))continue;
-  candidates.push({id:`${row}:${col}:${typed}`,lat,lon,phase:typed,label:`${phase.label} · ${Math.round(echo.maxDbz)} dBZ · ${source} · Lauf ${run} · Feld ${valid} · Intervall ${intervalMinutes} min`,dbz:echo.maxDbz,source,run:run||'',valid:valid||'',intervalMinutes:intervalMinutes||0});
+  const runEvidence=source==='dwd-icon-d2-ruc'?'Original-RUC-Lauf':'Open-Meteo-Metadatenlauf (Feldlauf nicht zellverifiziert)';
+  candidates.push({id:`${row}:${col}:${typed}`,lat,lon,phase:typed,label:`${phase.label} · ${Math.round(echo.maxDbz)} dBZ · ${source} · ${runEvidence} ${run} · Feld ${valid} · Intervall ${intervalMinutes} min`,dbz:echo.maxDbz,source,run:run||'',valid:valid||'',intervalMinutes:intervalMinutes||0});
  }
  const selected:PhaseSymbol[]=[];
  for(const item of candidates.sort((a,b)=>b.dbz-a.dbz)){
