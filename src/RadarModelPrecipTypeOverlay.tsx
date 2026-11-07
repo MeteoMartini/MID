@@ -36,6 +36,8 @@ function phaseFor(frame:WeatherPhaseGridFrame,index:number,source?:string):Phase
  if(rucSnow>=.003&&rucRain>=.003)return{phase:'mixed',label:'Mischphase · ICON-D2-RUC',confidence:'hoch',modelEvidence};
  if(rucSnow>=.003){if(((Number.isFinite(wetBulb)&&wetBulb<=1.2)||snowLevelSupports)&&coldEnough)return{phase:'snow',label:'Schnee · ICON-D2-RUC',confidence:'hoch',modelEvidence};return{phase:'mixed',label:'Mischphase · ICON-D2-RUC',confidence:'mittel',modelEvidence}}
  if(rucRain>=.003){if(coldEnough&&((Number.isFinite(wetBulb)&&wetBulb<=-.25)||(freezeSupports&&Number.isFinite(temperature)&&temperature<=1.2)))return{phase:'freezing',label:'gefrierende Phase möglich · ICON-D2-RUC',confidence:'mittel',modelEvidence};return{phase:'rain',label:'Regen · ICON-D2-RUC',confidence:'hoch',modelEvidence}}
+ if(source==='dwd-icon-d2'&&explicitSnow&&snowfall>=.003)return{phase:'snow',label:'Schnee · ICON-D2 (15 min)',confidence:'mittel',modelEvidence:true};
+ if(source==='dwd-icon-d2'&&explicitRain&&rain>=.003)return{phase:'rain',label:'Regen · ICON-D2 (15 min)',confidence:'mittel',modelEvidence:true};
  if(explicitFreezing&&coldEnough)return{phase:'freezing',label:'gefrierender Niederschlag',confidence:Number.isFinite(wetBulb)&&wetBulb<=.8?'hoch':'mittel',modelEvidence};
  if(explicitMixed||(snowfall>=.003&&liquid>=.003))return{phase:'mixed',label:'Schneeregen / Mischphase',confidence:'hoch',modelEvidence};
  if(explicitIceCrystals)return{phase:'ice-crystals',label:'Eisnadeln',confidence:'hoch',modelEvidence};

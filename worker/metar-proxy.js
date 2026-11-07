@@ -2315,7 +2315,7 @@ function phaseGridWeatherCode(value){return typeof value==='number'&&Number.isIn
 // #683: per-cell original RUC first, then D2 -> EU -> ICON global.
 // A geographic model BBOX is a shortlist only, never a valid-cell bitmap.
 const MID_ICON_PHASE_FALLBACKS=[
- {id:'icon-d2',label:'DWD ICON-D2',apiIds:['dwd_icon_d2'],metaIds:['dwd_icon_d2_15min','dwd_icon_d2'],bbox:[-6,43,26,58],resolutionKm:2,maxHours:48,intervalMinutes:15},
+ {id:'icon-d2',label:'DWD ICON-D2',apiIds:['dwd_icon_d2_15min'],metaIds:['dwd_icon_d2_15min'],bbox:[-6,43,26,58],resolutionKm:2,maxHours:48,intervalMinutes:15},
  {id:'icon-eu',label:'DWD ICON-EU',apiIds:['dwd_icon_eu'],metaIds:['dwd_icon_eu'],bbox:[-25,30,45,75],resolutionKm:7,maxHours:120,intervalMinutes:60},
  {id:'icon-global',label:'DWD ICON Global',apiIds:['dwd_icon'],metaIds:['dwd_icon'],bbox:[-180,-90,180,90],resolutionKm:11,maxHours:180,intervalMinutes:60}
 ];
@@ -2369,11 +2369,10 @@ async function precipitationPhaseGridData(lat,lon,target,env){
   if(isQuarter){
    url.searchParams.set('minutely_15','precipitation,rain,snowfall,snowfall_height,freezing_level_height,weather_code');
    url.searchParams.set('start_minutely_15',begin);url.searchParams.set('end_minutely_15',finish);
-   url.searchParams.set('hourly','temperature_2m,relative_humidity_2m');
-   url.searchParams.set('start_hour',new Date(Math.floor(roundedMs/3600000)*3600000).toISOString().slice(0,16));
-   url.searchParams.set('end_hour',new Date(Math.ceil(roundedMs/3600000)*3600000).toISOString().slice(0,16));
+   // The native D2 15-min dataset does not contain hourly thermodynamics.
+   // Do not silently borrow an unverified different run or source here.
   }else{
-   url.searchParams.set('hourly','temperature_2m,relative_humidity_2m,weather_code,precipitation,rain,snowfall,snowfall_height,freezing_level_height');
+   url.searchParams.set('hourly',model.id==='icon-global'?'temperature_2m,relative_humidity_2m,weather_code,precipitation,rain,snowfall,freezing_level_height':'temperature_2m,relative_humidity_2m,weather_code,precipitation,rain,snowfall,snowfall_height,freezing_level_height');
    url.searchParams.set('start_hour',begin);url.searchParams.set('end_hour',finish);
   }
   url.searchParams.set('models',apiId);url.searchParams.set('timezone','GMT');url.searchParams.set('cell_selection','nearest');
