@@ -72,10 +72,10 @@ assert.equal(d2Phase({snowfall:.02,rain:.2,precipitation:.3,weatherCode:71}).pha
 assert.equal(d2Phase({snowfall:.02,rain:0,precipitation:.04}).confidence,'mittel','D2 amount-only evidence must not claim high confidence');
 
 
- // A cold multi-cell original RUC phase grid must not execute two serial
- // chains of 16 independent remote Pages records or burst without a cap.
- const manyLat=[50,50.1,50.2,50.3],manyLon=[7,7.1,7.2,7.3],manyTotal=16;
- const manyMeta={...meta,pointCount:manyTotal,grid:{latMin:50,lonMin:7,dx:.1,dy:.1,nx:4,ny:4},
+ // A cold FULL 13x19 (247-cell) original RUC phase grid must not execute
+ // two serial chains of remote Pages records or burst without a cap.
+ const manyLat=Array.from({length:13},(_,i)=>50+i*.1),manyLon=Array.from({length:19},(_,i)=>7+i*.1),manyTotal=13*19;
+ const manyMeta={...meta,pointCount:manyTotal,grid:{latMin:50,lonMin:7,dx:.1,dy:.1,nx:19,ny:13},
   lookup:{dtype:'uint32-le',pages:{chunkRecords:1,chunkCount:manyTotal,recordBytes:4,prefix:`runs/${runKey}/lookup-bounded`}},
   rapid:{phase15:{...meta.rapid.phase15,pages:{chunkRecords:1,chunkCount:manyTotal,recordBytes:phaseRaw.byteLength,prefix:`runs/${runKey}/rapid/phase15-bounded`}}}};
  const manyObjects=new Map([['https://midwx.app/ruc/latest.json',new TextEncoder().encode(JSON.stringify(manyMeta))]]);

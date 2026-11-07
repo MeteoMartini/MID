@@ -46,6 +46,13 @@ Die offizielle Open-Meteo-Dokumentation https://open-meteo.com/en/docs/single-ru
 
 Der Karten-Popup-Text unterscheidet im QA-Kandidaten nun ausdrücklich **RUC-Originallauf** von **Open-Meteo-Metadatenlauf (Feldlauf nicht zellverifiziert)**. Weder der Metadatenzeitpunkt noch ein punktueller Archivreadback werden zur unbelegten originalen Quelle hochgestuft.
 
+
+## 3b. 247-Zell-Kaltcache-Parallelitäts-Regression (2026-11-07)
+
+Der Native-RUC-Decoder erhielt in Draft #685 einen konservativen, auf **8 gleichzeitig aktive Original-Pages-Leseoperationen** begrenzten Datenweg. Er dedupliziert Original-Lookup-Indizes und hält die Positionen sämtlicher Rasterzellen stabil, statt bis zu 247 Lookup- und 247 Phasen-Record-Lesevorgänge strikt nacheinander abzuarbeiten. Ein deterministischer **13×19-/247-Zell-Test** mit künstlicher Latenz und jeweils separaten Original-Record-URLs prüft 493 native Datenabrufe, die 8er-Grenze, eindeutige Indizes, echten 0-Schnee, einen Missing-Lookup-Sentinel und dass außerhalb des veröffentlichten Phasenhorizonts **keine** weiteren Record-Abrufe erfolgen. Der Test prüft fachliche Invarianten und I/O-Verhalten, nicht die tatsächliche Cloudflare-P95-Laufzeit.
+
+**Produktiv-Livebefund der öffentlichen Pages-Publikation:** Der inzwischen veröffentlichte **15Z-Lauf** (`generatedAt=2026-11-07T16:24:31.631100Z`) nutzt `pages-lossless-v1`, `productionEnabled=true`, `rapid.phase15` mit **265 komprimierten Blöcken**, 542040 Punkten, 25 gültigen Viertelstundenterminen 15:00–21:00 UTC. Native Lookup- und Datenblobs konnten mit den verfügbaren Lesezugriffen nicht unabhängig vollständig heruntergeladen und binär nachgerechnet werden; insbesondere belegen statische Source-/Mocktests weder echten Pages-Kaltstart noch Worker-P95. Ein aktiver Live-Performance-/Originalzell-Readback bleibt daher als **NOT VERIFIED** gesperrt.
+
 ## 4. Verbindliche Rest-Gates – NICHT ERFÜLLT
 
 1. Vollständige, echte räumlich-zeitliche Originaldaten-/Provider-Zellmatrix: RUC innerhalb/außerhalb originaler Masken, 15min-Endgrenze, D2 Nord/West/Süd, EU-only, Global-only, gültige 0 vs fehlend, Schnee/Regen/Graupel, Runwechsel, Zeitintervalle, Radar-OPERA-Echo.
