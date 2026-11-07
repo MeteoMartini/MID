@@ -17,12 +17,14 @@ newest-to-older candidates and only publishes a fully decoded candidate.
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import datetime as dt
 import html
 import html.parser
 import json
 import os
 import re
+import signal
 import time
 import urllib.parse
 import urllib.request
@@ -73,6 +75,111 @@ def newest_common_run(fetch:Callable[[str],str]=fetch_text)->str|None:
         if not common:return None
     common=(common or set())&discover_runs(EPS_BASE,'TOT_PREC',fetch)
     return max(common) if common else None
+
+
+# A new DWD RUC-EPS directory can exist before all 20x28 original GRIB
+# files are advertised. This is a NEGATIVE directory readiness filter only.
+# Unknown/inconsistent layouts fail OPEN to the original header/value decoder.
+EPS_MEMBER_DIR=re.compile(r'^(0[1-9]|1[0-9]|20)/$')
+EPS_GRIB_FILE=re.compile(r'^PT(\d{3})H(\d{2})M\.grib2$',re.I)
+EPS_REQUIRED_LEADS=frozenset(range(28))
+EPS_REQUIRED_MEMBERS=frozenset(range(1,21))
+
+
+def advertised_eps_listing_complete(run:str,fetch:Callable[[str],str]=fetch_text,*,budget_seconds:float=14.0)->bool|None:
+    """True=20x28 hourly names present; False=confirmed absence; None=unknown.
+
+    Real DWD member directories also contain 5-minute original GRIB files.
+    Never treat unrecognized names or an interrupted index as missing data.
+    A directory listing is NOT positive GRIB header, bitmap, or value proof.
+    """
+    if not isinstance(run,str) or not RUN_RE.fullmatch(run+'/') or not 0<budget_seconds<=14:
+        return None
+    # The Ubuntu GitHub scheduler runs in the main thread. A process wall
+    # clock alarm interrupts blocking I/O as well as the monotonic soft check.
+    # If unsupported or occupied, fail open to the original safe producer.
+    if not all(hasattr(signal,x) for x in ('SIGALRM','ITIMER_REAL','setitimer','getitimer')):
+        return None
+    previous_handler=None
+    handler_installed=False
+    try:
+        previous_handler=signal.getsignal(signal.SIGALRM)
+        if signal.getitimer(signal.ITIMER_REAL)[0]>0:return None
+        def alarm_handler(_signum,_frame):
+            raise TimeoutError('EPS total directory budget exceeded')
+        signal.signal(signal.SIGALRM,alarm_handler)
+        handler_installed=True
+        signal.setitimer(signal.ITIMER_REAL,budget_seconds)
+    except (ValueError,AttributeError,OSError):
+        # The timer may fail *after* signal.signal succeeded. Restore the
+        # previous handler before returning to the safe original producer.
+        # Do not conceal a restoration failure as a clean fail-open.
+        if handler_installed:
+            signal.signal(signal.SIGALRM,previous_handler)
+        return None
+    base=f'{EPS_BASE}/TOT_PREC/r/{run}/e/'
+    deadline=time.monotonic()+budget_seconds
+    executor=None
+    def links(url):
+        if time.monotonic()>=deadline:raise TimeoutError('EPS listing budget')
+        parser=Links();parser.feed(fetch(url))
+        return [urllib.parse.unquote(x) for x in parser.href
+                if x not in ('../','./') and not x.startswith(('?','#'))]
+    try:
+        roots=links(base)
+        if not roots or any(EPS_MEMBER_DIR.fullmatch(x) is None for x in roots):
+            return None
+        members={int(x[:-1]) for x in roots}
+        if not members.issubset(EPS_REQUIRED_MEMBERS):return None
+        missing=members!=EPS_REQUIRED_MEMBERS
+        # 21 serial TLS connections exceeded 14 s on the real DWD server:
+        # 20Z 14/20 members, 21Z 13/20, despite each observed index
+        # having the expected 325 files. Limit concurrent directory GETs
+        # to four (same 21-request ceiling and independent 4-s timeouts).
+        executor=ThreadPoolExecutor(max_workers=4,thread_name_prefix='mid-ruc-eps')
+        pending={executor.submit(links,f'{base}{member:02d}/s/'):member
+                 for member in sorted(members)}
+        remaining=deadline-time.monotonic()
+        if remaining<=0:raise TimeoutError('EPS listing budget exhausted')
+        for future in as_completed(pending,timeout=remaining):
+            filenames=future.result()
+            if not filenames:return None
+            matches=[EPS_GRIB_FILE.fullmatch(x) for x in filenames]
+            if any(m is None for m in matches):return None
+            if any(int(m.group(1))>27 or int(m.group(2))>=60 or int(m.group(2))%5
+                   or (m.group(1)=='027' and m.group(2)!='00') for m in matches):
+                return None
+            hours={int(m.group(1)) for m in matches if m.group(2)=='00'}
+            if not EPS_REQUIRED_LEADS.issubset(hours):missing=True
+        return not missing
+    except Exception:
+        return None
+    finally:
+        # Do not block past the 14-s admission deadline while a timed-out
+        # read finishes; its own network timeout remains 4 s. Never schedule
+        # further requests or count any incomplete future as positive proof.
+        if executor is not None:
+            executor.shutdown(wait=False,cancel_futures=True)
+        signal.setitimer(signal.ITIMER_REAL,0)
+        signal.signal(signal.SIGALRM,previous_handler)
+
+
+def may_defer_incomplete_eps(dwd:str,published:str,meta:dict,listing:bool|None,*,
+                             now:dt.datetime|None=None,max_age_minutes:int=DEFAULT_MAX_AGE_MINUTES)->bool:
+    if (listing is not False or not valid_pages_meta(meta)
+            or meta.get('storageProfile')!=FULL_STORAGE_PROFILE
+            or published!=meta.get('run')):return False
+    try:
+        clock=now or dt.datetime.now(dt.timezone.utc)
+        if clock.tzinfo is None:return False
+        age=(clock.astimezone(dt.timezone.utc)-run_time(published)).total_seconds()/60
+        # A later *complete* intermediate hourly run must never be
+        # skipped simply because the newest advertised run is incomplete.
+        # Only the immediate published predecessor can be deferred.
+        return (0<=age<=min(DEFAULT_MAX_AGE_MINUTES,max(1,max_age_minutes))
+                and run_time(dwd)-run_time(published)==dt.timedelta(hours=1))
+    except (ValueError,TypeError,OverflowError):return False
+
 
 def published_meta(base_url:str,fetch:Callable[[str],str]=fetch_text)->dict:
     base=base_url.rstrip('/')+'/'
@@ -264,6 +371,24 @@ def main()->int:
         should_run=True;reason=f'{error}; fail-open build';published=str((meta or {}).get('run') or '')
     else:
         should_run,reason,dwd,published=decide(dwd,meta,max_age_minutes=args.max_age_minutes)
+        # Expensive duplicate 18Z production is not a repair for an advertised
+        # but incomplete 19Z EPS index. Keep the authenticated healthy Pages
+        # source only when the required filename layout is explicitly partial.
+        # On index uncertainty, bad metadata or stale Pages, fail open.
+        if should_run and dwd and meta and valid_pages_meta(meta) and meta.get('storageProfile')==FULL_STORAGE_PROFILE:
+            try:
+                clock=dt.datetime.now(dt.timezone.utc)
+                age=(clock-run_time(published)).total_seconds()/60
+                if (0<=age<=min(DEFAULT_MAX_AGE_MINUTES,max(1,args.max_age_minutes))
+                    and run_time(dwd)-run_time(published)==dt.timedelta(hours=1)):
+                    listing=advertised_eps_listing_complete(
+                        dwd,lambda url:fetch_text(url,timeout=4))
+                    if may_defer_incomplete_eps(dwd,published,meta,listing,
+                                                 now=clock,max_age_minutes=args.max_age_minutes):
+                        should_run=False
+                        reason='Neuer DWD-EPS20-Dateiindex unvollständig; gültiger Pages-Lauf bleibt bis zur nächsten Prüfung'
+            except (ValueError,TypeError,OverflowError):
+                pass
     print(f'RUC schedule guard: should_run={str(should_run).lower()} · {reason}')
     if dwd:print(f'Newest common DWD run: {dwd}')
     if published:

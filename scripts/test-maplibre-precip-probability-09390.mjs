@@ -55,7 +55,7 @@ forbid('Radar-Modell-Phase',phase,'GeoJsonLayers');
 need('Radar-Modell-Phase',phase,"phase:'hail'");
 need('Radar-Modell-Phase',phase,"phase:'graupel'");
 for(const token of ["fields='pressure_msl,temperature_850hPa,relative_humidity_850hPa,temperature_2m,relative_humidity_2m,weather_code,precipitation,snowfall'",'temperature2m.push(','relativeHumidity2m.push(','snowfall.push(','frames.push({time:stamp,thetaE,temperature2m,relativeHumidity2m,weatherCode,precipitation,snowfall,isobars})'])need('Worker-Phasenfelder',worker,token);
-for(const token of ['precipitation-phase-grid','wet_bulb_temperature_2m','snowfall_height','freezing_level_height','const rows=13,cols=19','valid<coordinates.length*.9','maxRunAgeMs=model.rapidUpdate?Math.max(5*3600000'])need('Worker-Radarphasenraster',worker,token);
+for(const token of ['precipitation-phase-grid','wet_bulb_temperature_2m','snowfall_height','freezing_level_height','const rows=13,cols=19','const usable=phaseSourceByCell.filter(Boolean).length','maxRunAgeMs=model.rapidUpdate?Math.max(5*3600000'])need('Worker-Radarphasenraster',worker,token);
 need('OPERA-Sichtbarkeit',radar,"activeSource==='opera'&&operaDisplayFrame");
 forbid('OPERA-Sichtbarkeit',radar,"activeSource!=='rainviewer'&&operaDisplayFrame");
 if(pkg.version!==baseline.releaseVersion)failures.push(`Versionen nicht synchron: package ${pkg.version} / baseline ${baseline.releaseVersion}`);

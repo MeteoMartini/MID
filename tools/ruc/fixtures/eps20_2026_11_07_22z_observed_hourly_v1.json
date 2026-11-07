@@ -1,0 +1,962 @@
+{
+  "schema": "mid.ruc.eps.observed-hourly-index.v1",
+  "note": "Hourly original filename presence and counts of subhourly original filenames from SHA-bound GitHub runner logs. The full five-minute filename lists were NOT retained; tests replay the hourly projection only, never GRIB bodies or an invented exact DWD directory.",
+  "snapshots": [
+    {
+      "sourceRunId": 42421260789,
+      "sourceJobId": 128549972053,
+      "sourceCommit": "12ce731947c3d78c811dc6d37a123694a4103157",
+      "sourceUrl": "https://github.com/MeteoMartini/MID/actions/runs/42421260789",
+      "observedAt": "2026-11-07T22:35:53Z",
+      "dwdRun": "2026-11-07T22:00",
+      "classification": false,
+      "requestCount": 21,
+      "memberCount": 20,
+      "hourlyTotal": 96,
+      "subhourlyTotal": 1078,
+      "members": [
+        {
+          "member": 1,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "subhourlyCount": 44
+        },
+        {
+          "member": 2,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "subhourlyCount": 47
+        },
+        {
+          "member": 3,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "subhourlyCount": 50
+        },
+        {
+          "member": 4,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "subhourlyCount": 51
+        },
+        {
+          "member": 5,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "subhourlyCount": 49
+        },
+        {
+          "member": 6,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "subhourlyCount": 55
+        },
+        {
+          "member": 7,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "subhourlyCount": 56
+        },
+        {
+          "member": 8,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "subhourlyCount": 57
+        },
+        {
+          "member": 9,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "subhourlyCount": 57
+        },
+        {
+          "member": 10,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "subhourlyCount": 58
+        },
+        {
+          "member": 11,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "subhourlyCount": 55
+        },
+        {
+          "member": 12,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "subhourlyCount": 55
+        },
+        {
+          "member": 13,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "subhourlyCount": 57
+        },
+        {
+          "member": 14,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "subhourlyCount": 55
+        },
+        {
+          "member": 15,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "subhourlyCount": 57
+        },
+        {
+          "member": 16,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "subhourlyCount": 55
+        },
+        {
+          "member": 17,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "subhourlyCount": 55
+        },
+        {
+          "member": 18,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "subhourlyCount": 55
+        },
+        {
+          "member": 19,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "subhourlyCount": 55
+        },
+        {
+          "member": 20,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "subhourlyCount": 55
+        }
+      ]
+    },
+    {
+      "sourceRunId": 42421528127,
+      "sourceJobId": 128550785376,
+      "sourceCommit": "68898bd7cb632bb84c2a15296a76a0c34fd8d66b",
+      "sourceUrl": "https://github.com/MeteoMartini/MID/actions/runs/42421528127",
+      "observedAt": "2026-11-07T22:39:15Z",
+      "dwdRun": "2026-11-07T22:00",
+      "classification": false,
+      "requestCount": 21,
+      "memberCount": 20,
+      "hourlyTotal": 171,
+      "subhourlyTotal": 1822,
+      "members": [
+        {
+          "member": 1,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "subhourlyCount": 88
+        },
+        {
+          "member": 2,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "subhourlyCount": 93
+        },
+        {
+          "member": 3,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "subhourlyCount": 90
+        },
+        {
+          "member": 4,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "subhourlyCount": 88
+        },
+        {
+          "member": 5,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "subhourlyCount": 88
+        },
+        {
+          "member": 6,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "subhourlyCount": 88
+        },
+        {
+          "member": 7,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "subhourlyCount": 98
+        },
+        {
+          "member": 8,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "subhourlyCount": 88
+        },
+        {
+          "member": 9,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "subhourlyCount": 96
+        },
+        {
+          "member": 10,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "subhourlyCount": 93
+        },
+        {
+          "member": 11,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "subhourlyCount": 89
+        },
+        {
+          "member": 12,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "subhourlyCount": 88
+        },
+        {
+          "member": 13,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "subhourlyCount": 94
+        },
+        {
+          "member": 14,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "subhourlyCount": 92
+        },
+        {
+          "member": 15,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "subhourlyCount": 99
+        },
+        {
+          "member": 16,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "subhourlyCount": 90
+        },
+        {
+          "member": 17,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "subhourlyCount": 93
+        },
+        {
+          "member": 18,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "subhourlyCount": 88
+        },
+        {
+          "member": 19,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "subhourlyCount": 88
+        },
+        {
+          "member": 20,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "subhourlyCount": 91
+        }
+      ]
+    },
+    {
+      "sourceRunId": 42421906576,
+      "sourceJobId": 128551938565,
+      "sourceCommit": "15efe97ac2e701b139fc05df375d8c4b7075f9c6",
+      "sourceUrl": "https://github.com/MeteoMartini/MID/actions/runs/42421906576",
+      "observedAt": "2026-11-07T22:44:05Z",
+      "dwdRun": "2026-11-07T22:00",
+      "classification": false,
+      "requestCount": 21,
+      "memberCount": 20,
+      "hourlyTotal": 284,
+      "subhourlyTotal": 3110,
+      "members": [
+        {
+          "member": 1,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "subhourlyCount": 154
+        },
+        {
+          "member": 2,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "subhourlyCount": 154
+        },
+        {
+          "member": 3,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "subhourlyCount": 154
+        },
+        {
+          "member": 4,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "subhourlyCount": 154
+        },
+        {
+          "member": 5,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "subhourlyCount": 154
+        },
+        {
+          "member": 6,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "subhourlyCount": 154
+        },
+        {
+          "member": 7,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "subhourlyCount": 164
+        },
+        {
+          "member": 8,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "subhourlyCount": 154
+        },
+        {
+          "member": 9,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "subhourlyCount": 164
+        },
+        {
+          "member": 10,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "subhourlyCount": 154
+        },
+        {
+          "member": 11,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "subhourlyCount": 154
+        },
+        {
+          "member": 12,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "subhourlyCount": 154
+        },
+        {
+          "member": 13,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "subhourlyCount": 156
+        },
+        {
+          "member": 14,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "subhourlyCount": 156
+        },
+        {
+          "member": 15,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "subhourlyCount": 159
+        },
+        {
+          "member": 16,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "subhourlyCount": 154
+        },
+        {
+          "member": 17,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "subhourlyCount": 158
+        },
+        {
+          "member": 18,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "subhourlyCount": 154
+        },
+        {
+          "member": 19,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "subhourlyCount": 151
+        },
+        {
+          "member": 20,
+          "hourlyLeads": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "subhourlyCount": 154
+        }
+      ]
+    }
+  ]
+}

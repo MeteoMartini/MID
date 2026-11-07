@@ -59,7 +59,23 @@ def checked_source(records,run,field,lead):
         raise ValueError(f'Original native source missing/duplicated: {run} {field} +{lead}')
     return found[0]
 
-def build_original_eight(root:Path,manifest:Path,out:Path,lead:int=6):
+def select_verified_original_run(verified, requested_run=None):
+    """Choose exactly one source run from the prior three-cycle GRIB admission.
+
+    Selection is explicit for the older two cycles; the latest remains the
+    backwards-compatible default. Never manufacture or substitute a model run.
+    """
+    runs=sorted({row['run'] for row in verified if row['model']=='icon-d2'})
+    if len(runs)!=3:
+        raise ValueError('Three distinct native original model cycles required')
+    if requested_run is None:
+        return runs[-1]
+    if type(requested_run) is not str or requested_run not in runs:
+        raise ValueError('Requested D2 original run not in verified three-cycle inventory')
+    return requested_run
+
+
+def build_original_eight(root:Path,manifest:Path,out:Path,lead:int=6,run:str|None=None):
     # Missing T+(lead-1) is not a request to manufacture one-hour rainfall
     # from cumulative 6/12/24/48-hour totals.
     if type(lead) is not int or not 1<=lead<=48:
@@ -82,10 +98,7 @@ def build_original_eight(root:Path,manifest:Path,out:Path,lead:int=6):
                               leads=doc['expectedLeads'],required_runs=3)
     if scope.get('fullDomainProductionApproved') is True:
         raise ValueError('Read-only pilot cannot use production approved flag')
-    runs=sorted({row['run'] for row in verified if row['model']=='icon-d2'})
-    if len(runs)!=3:
-        raise ValueError('Three distinct native original model cycles required')
-    run=runs[-1]
+    run=select_verified_original_run(verified,run)
     from d2_native_full_fields import SOURCE_FIELDS
     components={}
     units={}
@@ -195,5 +208,6 @@ if __name__=='__main__':
     p.add_argument('--manifest',required=True,type=Path)
     p.add_argument('--output',required=True,type=Path)
     p.add_argument('--lead',type=int,default=6)
+    p.add_argument('--run',default=None,help='Exact verified native ICON-D2 cycle YYYYMMDDTHHMM; default latest')
     a=p.parse_args()
-    print(json.dumps(build_original_eight(a.root,a.manifest,a.output,a.lead),sort_keys=True))
+    print(json.dumps(build_original_eight(a.root,a.manifest,a.output,a.lead,run=a.run),sort_keys=True))

@@ -53,6 +53,38 @@ jobs:
           node scripts/test-security-diagnostics-0985347.mjs
           node scripts/test-ruc-pages-free-storage-09700.mjs
 
+      - name: Verbindliche RUC-D2-EU-Global-Phasenpriorität und OPERA-Isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check worker/metar-proxy.js
+          node scripts/test-ruc-native-phase-radar-098491.mjs
+          node scripts/test-radar-model-phase-reliability-09395.mjs
+          node scripts/test-composite-precipitation-type-layer-09366.mjs
+          npm run verify:types
+          cmp ci/github/workflows/unit-coverage.yml .github/workflows/unit-coverage.yml
+          npm run sync:github-workflows
+          git diff --exit-code -- .
+          test -z "$(git status --porcelain)"
+
+      # #683 public original-source QA: strictly read-only and PR-bound.
+      # Not a source release gate; a failed public readback blocks Draft admission.
+      - name: Echte RUC-Phase15-Originalleseprobe (9 + 247 Zellen, read-only, #685)
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 685
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/qa-ruc-native-phase-public-readback-0985446.mjs
+
+      # Only the designated QA Draft; provider calls are read-only and capped at five.
+      # Real provider smoke is NOT a production source-release gate.
+      - name: Echte D2-EU-Global-Fallback-Providerprobe (5 Orte, read-only, #685)
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 685
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/qa-phase-provider-native-fallback-0985447.mjs
+
       - name: Coverage-Bericht sichern
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

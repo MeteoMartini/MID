@@ -8,8 +8,13 @@ const [worker,overlay,data,baseline]=await Promise.all([
 const need=(label,text,token)=>{if(!text.includes(token))throw new Error(`${label}: ${token} fehlt.`)};
 if(!baseline.requiredRegressionTests?.includes('scripts/test-radar-model-phase-request-budget-093913.mjs'))throw new Error('Request-Budget-Test fehlt im Baseline-Vertrag.');
 need('Worker-Raster',worker,'const rows=13,cols=19');
-need('Worker-Budget',worker,"requestBudget:{locations:coordinates.length,batches:Math.ceil(coordinates.length/batchSize),variables:fields.split(',').length}");
-need('Worker-Sequenz',worker,'for(let start=0;start<coordinates.length;start+=batchSize)');
+need('Worker-Budget',worker,'requestBudget:{locations:count,batches,variables:8,modelPointRequests}');
+need('Worker-Gesamtbudget',worker,'const phaseWallDeadlineMs=Date.now()+24000');
+need('Worker-zeitgebundenes Teilbudget',worker,'const perRequestMs=Math.min(18000,Math.max(0,phaseWallDeadlineMs-Date.now()-750))');
+need('Worker-48-/28-Aufrufgrenze',worker,'batches>=48||modelBatches>=28');
+need('Worker-per-cell-400-Isolation',worker,'const left=await requestValid(indices.slice(0,half))');
+need('Worker-NoData',worker,'fehlende Zellen bleiben NoData');
+need('Worker-Sequenz',worker,'for(let offset=0;offset<remaining.length;offset+=120)');
 if(/Promise\.all\(batches\.map\(batch=>fetchBatch/.test(worker))throw new Error('Phasenbatches werden wieder parallel abgefeuert.');
 need('Worker-Rate-Limit',worker,'precipitationPhaseRateLimited');
 need('Worker-Stale',worker,'precipitationPhaseStale');

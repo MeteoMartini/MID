@@ -6,7 +6,11 @@ import json
 import tempfile
 import contextlib
 import io
+import signal
+import threading
+import time
 from pathlib import Path
+from unittest import mock
 
 path=Path(__file__).with_name('check_ruc_schedule_guard.py')
 spec=importlib.util.spec_from_file_location('guard',path);guard=importlib.util.module_from_spec(spec);assert spec.loader;spec.loader.exec_module(guard)
@@ -127,3 +131,154 @@ assert guard.valid_pages_meta([]) is False
 assert guard.valid_pages_meta({'schema':guard.SCHEMA,'storageProfile':guard.FULL_STORAGE_PROFILE}) is False
 print('RUC active compressed inventory guard rejects malformed manifests; raw-profile compatibility preserved.')
 
+
+# Real DWD EPS v1 member path: .../r/RUN/e/NN/s/PTxxxH00M.grib2 .
+# Directory checks are only negative readiness evidence; not GRIB admission.
+def index_fixture(holes=None,missing_member=None,unfamiliar=False,timeout=False,subhourly=False):
+    holes=holes or {}
+    def fetch(url):
+        if url.endswith('/e/'):
+            return ''.join(f'<a href="{i:02d}/">{i:02d}/</a>' for i in range(1,21)
+                           if i!=missing_member)
+        import re
+        member=re.search(r'/e/(\d{2})/s/$',url)
+        assert member,'wrong EPS directory'
+        n=int(member.group(1))
+        if timeout and n==1:raise TimeoutError('index unavailable')
+        parts=[f'<a href="PT{h:03d}H00M.grib2">PT{h:03d}H00M.grib2</a>'
+               for h in range(28) if h not in holes.get(n,set())]
+        if subhourly:
+            parts += [f'<a href="PT{h:03d}H{m:02d}M.grib2">PT{h:03d}H{m:02d}M.grib2</a>'
+                      for h in range(27) for m in range(5,60,5)]
+        if unfamiliar and n==2:parts.append('<a href="unexpected.grib2">x</a>')
+        return ''.join(parts)
+    return fetch
+
+NEW='2026-08-30T03:00'
+assert guard.advertised_eps_listing_complete(NEW,index_fixture()) is True
+# Real DWD 20Z example: 325 names = 28 hourly + 297 five-minute.
+assert guard.advertised_eps_listing_complete(NEW,index_fixture(subhourly=True)) is True
+# The live DWD 20Z/21Z trials proved serial 21-GET indexing cannot meet
+# the fixed 14-s budget; four bounded concurrent reads must actually overlap.
+lock=threading.Lock()
+active_calls=[0]
+peak_calls=[0]
+def latency_index(url):
+    if url.endswith('/e/'):
+        return index_fixture(subhourly=True)(url)
+    with lock:
+        active_calls[0]+=1
+        peak_calls[0]=max(peak_calls[0],active_calls[0])
+    try:
+        time.sleep(0.08)
+        return index_fixture(subhourly=True)(url)
+    finally:
+        with lock:active_calls[0]-=1
+start_parallel=time.monotonic()
+assert guard.advertised_eps_listing_complete(NEW,latency_index) is True
+assert 2<=peak_calls[0]<=4, 'bounded member GETs must overlap'
+assert time.monotonic()-start_parallel<1.15, 'sequential 20x GET regression'
+
+assert guard.advertised_eps_listing_complete(NEW,index_fixture(holes={1:{13}},subhourly=True)) is False
+# Adversarial HISTORICAL-SHAPE REPLAY, not a captured original directory:
+# real production logs of 19Z at 19:43:26 report 263/560 hourly
+# original names; exactly these 17 members were absent at +13h.
+# Full members at +13h are {8,17,20}. Missing leads below are
+# synthetic allocations consistent with aggregate 263/560, not
+# an invented reconstruction of DWD's precise per-member inventory.
+missing_at_13=[1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,18,19]
+partial_holes={member:set(range(11 if i<9 else 10,28))
+               for i,member in enumerate(missing_at_13)}
+assert 20*28-sum(len(leads) for leads in partial_holes.values())==263
+assert all(13 in partial_holes[member] for member in missing_at_13)
+assert guard.advertised_eps_listing_complete(
+    NEW,index_fixture(holes=partial_holes,subhourly=True)) is False
+
+# Immutable hourly-only projection of three ACTUAL 22Z DWD member-index
+# observations on 07 Nov 2026. Every hourly filename is reconstructed
+# from the logged missing-hour sets; 5-minute filenames were not logged
+# individually, so they are intentionally not invented for this replay.
+evidence_file=Path(__file__).with_name('fixtures') / 'eps20_2026_11_07_22z_observed_hourly_v1.json'
+evidence=json.loads(evidence_file.read_text(encoding='utf-8'))
+assert evidence['schema']=='mid.ruc.eps.observed-hourly-index.v1'
+assert [s['hourlyTotal'] for s in evidence['snapshots']]==[96,171,284]
+assert [s['sourceRunId'] for s in evidence['snapshots']]==[42421260789,42421528127,42421906576]
+for snapshot in evidence['snapshots']:
+    assert snapshot['dwdRun']=='2026-11-07T22:00' and snapshot['classification'] is False
+    assert snapshot['requestCount']==21 and snapshot['memberCount']==20
+    member_rows=snapshot['members']
+    assert [r['member'] for r in member_rows]==list(range(1,21))
+    assert sum(len(r['hourlyLeads']) for r in member_rows)==snapshot['hourlyTotal']
+    assert sum(r['subhourlyCount'] for r in member_rows)==snapshot['subhourlyTotal']
+    for row in member_rows:
+        leads=row['hourlyLeads']
+        assert leads==sorted(set(leads)) and all(0<=h<=27 for h in leads)
+        assert 0<=row['subhourlyCount']<=297
+    def logged_hourly_projection(url):
+        if url.endswith('/e/'):
+            return ''.join(f'<a href="{i:02d}/">{i:02d}/</a>' for i in range(1,21))
+        import re
+        m=re.search(r'/e/(\d{2})/s/$',url)
+        assert m,'unknown original member directory'
+        row=member_rows[int(m.group(1))-1]
+        return ''.join(f'<a href="PT{h:03d}H00M.grib2">PT{h:03d}H00M.grib2</a>'
+                       for h in row['hourlyLeads'])
+    assert guard.advertised_eps_listing_complete(
+        NEW,logged_hourly_projection) is False
+print('RUC 22Z three live 20-member negative index snapshots: hourly projection replay PASS')
+
+assert guard.advertised_eps_listing_complete(NEW,index_fixture({1:{13,27}})) is False
+assert guard.advertised_eps_listing_complete(NEW,index_fixture(missing_member=20)) is False
+assert guard.advertised_eps_listing_complete(NEW,index_fixture(unfamiliar=True)) is None
+assert guard.advertised_eps_listing_complete(NEW,index_fixture(holes={1:{13}},unfamiliar=True)) is None
+assert guard.advertised_eps_listing_complete(NEW,index_fixture(timeout=True)) is None
+# A failure to arm the timer occurs after the global SIGALRM handler was
+# changed. The original handler must be restored before the safe fallback.
+original_sigalrm=signal.getsignal(signal.SIGALRM)
+with mock.patch.object(guard.signal,'setitimer',side_effect=OSError('timer refused')):
+    assert guard.advertised_eps_listing_complete(NEW,index_fixture()) is None
+assert signal.getsignal(signal.SIGALRM)==original_sigalrm, 'signal handler leaked after timer failure'
+def stalled_index(_url):
+    time.sleep(1.0)
+    return ''
+start=time.monotonic()
+assert guard.advertised_eps_listing_complete(NEW,stalled_index,budget_seconds=0.03) is None
+assert time.monotonic()-start<0.7, 'wall-clock alarm must interrupt stalled I/O'
+assert guard.advertised_eps_listing_complete('bad',index_fixture()) is None
+assert guard.advertised_eps_listing_complete(NEW,lambda _: '<a href="new-format/">new-format</a>') is None
+healthy=json.loads(json.dumps(active))
+clock=dt.datetime(2026,8,30,3,41,tzinfo=dt.timezone.utc)
+assert guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,False,now=clock)
+# An internally valid but different Pages run is not authorization to
+# defer a run named by an inconsistent caller argument.
+wrong_run_meta=json.loads(json.dumps(healthy))
+wrong_run_meta['run']='2026-08-30T01:00'
+assert guard.valid_pages_meta(wrong_run_meta)
+assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',
+                                          wrong_run_meta,False,now=clock)
+# DWD 04Z incomplete while Pages is 02Z: 03Z could already be
+# complete. Deferring here would suppress a real catch-up, not only
+# a redundant rebuild. The guard must fail open to the original producer.
+assert not guard.may_defer_incomplete_eps(
+    '2026-08-30T04:00','2026-08-30T02:00',healthy,False,now=clock)
+assert not guard.may_defer_incomplete_eps(
+    '2026-08-30T05:00','2026-08-30T02:00',healthy,False,now=clock)
+assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',meta('2026-08-30T02:00'),False,now=clock)  # raw emergency rollback must rebuild
+for unknown in (True,None,0,'False'):
+    assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,unknown,now=clock)
+assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,False,
+                                         now=clock+dt.timedelta(hours=5))
+# The partial-index safety bound is independent of an override of the
+# general scheduler max-age argument/environment. Never defer on stale
+# Pages beyond the contracted maximum of 240 minutes.
+assert not guard.may_defer_incomplete_eps(
+    NEW,'2026-08-30T02:00',healthy,False,
+    now=clock+dt.timedelta(hours=3),max_age_minutes=600)
+assert guard.may_defer_incomplete_eps(
+    NEW,'2026-08-30T02:00',healthy,False,
+    now=clock,max_age_minutes=600)
+assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',bad,False,now=clock)
+assert not guard.may_defer_incomplete_eps('2026-08-30T01:00','2026-08-30T02:00',healthy,False,now=clock)
+assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,False,
+                                         now=dt.datetime(2026,8,30,1,0,tzinfo=dt.timezone.utc))
+print('RUC EPS advertised-incomplete 20x28 directory guard: fail-open negatives and healthy-only wait PASS')

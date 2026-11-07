@@ -2,7 +2,7 @@ name: MID D2 original native QA (read-only)
 on:
   push:
     branches:
-      - chatgpt/v0.9.85.412-d2-ruc-native-qa-from411
+      - chatgpt/v0.9.85.446-ruc-d2-three-cycle-selector-qa
     paths:
       - '.github/workflows/mid-d2-native-original-audit.yml'
       - 'tools/ruc/pilot_dwd_domain_inventory.py'
@@ -19,10 +19,11 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: mid-d2-native-original-qa
+  group: mid-d2-native-original-qa-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   qualify:
+    if: "${{ github.event.head_commit.message == 'qa(d2): three verified native cycles x72 on stable .445 (read-only)' }}"
     name: Three original DWD ICON-D2 cycles with GRIB/bitmap/WMO parity (read-only)
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -34,6 +35,7 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
+          fetch-depth: 0
       - name: Reject any source, Stable or Main drift
         env:
           GH_TOKEN: ${{ github.token }}
@@ -43,7 +45,9 @@ jobs:
           stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
           main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
           test "$stable" = "$main"
-          test "$stable" = 9bf44c3354f98937fa058aac5d6dceb5895d29e5
+          test "$stable" = b6526e7c5c24035bd1a75b87b77e7bb8e821c334
+          git merge-base --is-ancestor "$stable" HEAD
+          cmp ci/github/workflows/mid-d2-native-original-audit.yml .github/workflows/mid-d2-native-original-audit.yml
       - name: Python 3.12 for native GRIB QA
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -53,7 +57,7 @@ jobs:
       - name: Fail-closed D2 original-grid, source-schema and mask regression gates
         run: |
           cd tools/ruc
-          python -m unittest test_icon_d2_native_catalog test_icon_d2_native_scalar test_dwd_domain_inventory test_ruc_map_candidate test_d2_tot_prec_quantization_qa test_stage_d2_native_full_domain
+          python -m unittest test_icon_d2_native_catalog test_icon_d2_native_scalar test_dwd_domain_inventory test_ruc_map_candidate test_d2_tot_prec_quantization_qa test_d2_native_eight_bundle test_stage_d2_native_full_domain
       - name: Select aged three-hourly source cycles
         id: cycle
         run: |
@@ -71,44 +75,75 @@ jobs:
         timeout-minutes: 7
         run: |
           python tools/ruc/pilot_icon_d2_native_scalar.py --root "$RUNNER_TEMP/d2-originals" --manifest "$RUNNER_TEMP/d2-originals/inventory-input.json" --output "$RUNNER_TEMP/d2-native-scalar" --field t_2m --lead 6
-      - name: Prove eight full-domain native fields at all 9 offered leads with real one-hour precipitation (read-only)
+      - name: Prove three original D2 cycles x nine leads x eight native kinds (read-only)
         timeout-minutes: 28
         run: |
           set -euo pipefail
-          # Collect every original lead's failure without turning any into a pass.
-          # The complete SHA-bound gate remains red if even one lead is invalid.
-          failed=0
-          for lead in 1 2 3 4 5 6 12 24 48; do
-            if python tools/ruc/d2_native_eight_bundle.py --root "$RUNNER_TEMP/d2-originals" --manifest "$RUNNER_TEMP/d2-originals/inventory-input.json" --output "$RUNNER_TEMP/d2-native-eight-$lead" --lead "$lead"; then
-              :
-            else
-              echo "::error::Original ICON-D2 native full-grid field admission failed at +${lead}h"
-              failed=1
-            fi
-          done
-          if (( failed != 0 )); then
-            echo "::error::Original DWD native 72-frame admission failed; no release approval"
-            exit 1
-          fi
           python - <<'PY'
-          import json,os,pathlib
+          import json,os,pathlib,subprocess,sys
           root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          manifest=root/'d2-originals'/'inventory-input.json'
+          original=json.loads(manifest.read_bytes())
+          if original.get('schema')!='mid.dwd.domain-inventory-input.v1' or original.get('productionApproved') is not False:
+              raise SystemExit('Unqualified native original D2 manifest')
+          runs=sorted({r['run'] for r in original['records'] if r.get('model')=='icon-d2'})
+          if len(runs)!=3 or any(not isinstance(run,str) or len(run)!=13 for run in runs):
+              raise SystemExit('Three verified ICON-D2 source cycles mandatory')
           leads=(1,2,3,4,5,6,12,24,48)
           expected={'temperature','pressure','wind','gust','cloud','thetae','sigwx','precipitation'}
-          reports=[json.loads((root/f'd2-native-eight-{h}'/'pilot-index.json').read_bytes()) for h in leads]
-          for lead,r in zip(leads,reports):
-            assert r['schema']=='mid.dwd.native-eight-pilot.v1' and r['productionApproved'] is False
-            assert r['nativePoints']==542040 and r['leadHours']==lead
-            assert set(r['products'])==expected
-            assert all(0<x['bytes'] and 0<x['decodedBytes']<=12_000_000 for x in r['products'].values())
-            assert r['sourceObjects']['previous_tot_prec']['leadHours']==lead-1
-            assert r['sourceObjects']['previous_tot_prec']['run']==r['run']
-            assert all(p['sourceSha256'] and p['run']==r['run'] for p in r['sourceObjects'].values())
-          assert len({r['run'] for r in reports})==1
-          assert len({r['sourceInventorySha256'] for r in reports})==1
-          physical=sum(p['bytes'] for r in reports for p in r['products'].values())
-          assert physical<350_000_000,'Native original D2 sidecars exceed conservative map budget'
-          print('All 72 exact-source native original ICON-D2 product frames pass 9-lead x 8-kind map and 1h TOT_PREC audits; encoded candidate bytes='+str(physical))
+          inventory_sha=None
+          matrices=[]
+          for run in runs:
+              frames=[];bytes_per_run=0
+              for lead in leads:
+                  # Latest source cycle retains existing 72-field shadow
+                  # transport paths; older runs have separate QA directories.
+                  out=(root/f'd2-native-eight-{lead}' if run==runs[-1] else
+                       root/f'd2-native-cycle-{run}'/f'd2-native-eight-{lead}')
+                  out.parent.mkdir(parents=True,exist_ok=True)
+                  subprocess.run([sys.executable,'tools/ruc/d2_native_eight_bundle.py',
+                    '--root',str(root/'d2-originals'),'--manifest',str(manifest),
+                    '--output',str(out),'--lead',str(lead),'--run',run],check=True)
+                  r=json.loads((out/'pilot-index.json').read_bytes())
+                  if (r.get('schema')!='mid.dwd.native-eight-pilot.v1'
+                      or r.get('productionApproved') is not False
+                      or r.get('run')!=run or r.get('leadHours')!=lead
+                      or r.get('nativePoints')!=542040
+                      or set(r.get('products',{}))!=expected):
+                      raise SystemExit(f'Original D2 run/lead/kind drift: {run} +{lead}')
+                  sha=r.get('sourceInventorySha256')
+                  if not isinstance(sha,str) or len(sha)!=64:raise SystemExit('Original source inventory SHA missing')
+                  if inventory_sha is None:inventory_sha=sha
+                  if inventory_sha!=sha:raise SystemExit('Mixed original source SHA across model runs')
+                  for kind,field in r['products'].items():
+                      if not (0<field['bytes'] and 0<field['decodedBytes']<=12000000
+                              and isinstance(field.get('sha256'),str) and len(field['sha256'])==64):
+                          raise SystemExit(f'Original D2 field byte/sha budget failed: {run} +{lead} {kind}')
+                      bytes_per_run+=field['bytes']
+                  refs=r.get('sourceObjects',{})
+                  prev=refs.get('previous_tot_prec',{})
+                  if prev.get('run')!=run or prev.get('leadHours')!=lead-1:
+                      raise SystemExit('D2 original hourly precipitation interval drift')
+                  if not refs or any(v.get('run')!=run or len(v.get('sourceSha256',''))!=64 for v in refs.values()):
+                      raise SystemExit('D2 original WMO field source SHA/run mismatch')
+                  uncertain=r.get('unresolvedPrecipitationNoDataCells')
+                  if type(uncertain) is not int or uncertain<0:
+                      raise SystemExit('D2 negative precipitation mask evidence missing')
+                  frames.append({'leadHours':lead,'kinds':sorted(expected),
+                     'precipitationUncertainNoDataCells':uncertain,
+                     'wireFieldSha256':{k:v['sha256'] for k,v in sorted(r['products'].items())}})
+              if len(frames)!=9 or bytes_per_run>=350000000:
+                  raise SystemExit('D2 original per-cycle 72-field/350MB budget failed')
+              matrices.append({'run':run,'frames':frames,'encodedBytes':bytes_per_run})
+          if len(matrices)!=3 or sum(len(m['frames'])*8 for m in matrices)!=216:
+              raise SystemExit('Original 216-field D2 three-cycle matrix incomplete')
+          proof={'schema':'mid.d2.original-three-cycle-field-evidence.v1',
+                 'productionApproved':False,'sourceInventorySha256':inventory_sha,
+                 'nativePoints':542040,'totalFieldCount':216,'sourceCycles':matrices,
+                 'firstDwdPublicationVerified':False,'pagesWorkerReadbackVerified':False,
+                 'fullDomainProductionApproved':False,'releaseGateApproved':False}
+          (root/'d2-native-three-cycle-report.json').write_text(json.dumps(proof,sort_keys=True)+'\n')
+          print('D2 original 3 cycles x 9 leads x 8 native kinds = 216 QA-only fields PASS; no production approval')
           PY
       - name: Stage lossless 72-field Native D2 consumer candidate without production publication
         timeout-minutes: 20
@@ -152,3 +187,4 @@ jobs:
             ${{ runner.temp }}/d2-native-scalar/readme.json
             ${{ runner.temp }}/d2-native-eight-*/pilot-index.json
             ${{ runner.temp }}/d2-native-v2-transport/index.json
+            ${{ runner.temp }}/d2-native-three-cycle-report.json

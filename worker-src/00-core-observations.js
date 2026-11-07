@@ -190,14 +190,48 @@ async function dwdRucStaticContext(lat,lon,env){const current=await dwdRucStatic
 async function dwdRucR2RapidPayload(context){const{bucket,meta,pointIndex}=context,products=meta?.rapid&&typeof meta.rapid==='object'?meta.rapid:{},rapid={};await Promise.all(Object.entries(products).map(async([id,spec])=>{const recordBytes=Number(spec?.recordBytes);if(!spec?.key||!Number.isFinite(recordBytes)||recordBytes<=0)return;const bytes=await dwdRucR2Range(bucket,spec.key,pointIndex*recordBytes,recordBytes);if(bytes&&bytes.length===recordBytes)rapid[id]=dwdRucDecodeI16Record(bytes,spec,Array.isArray(spec?.times)?spec.times:[])}));return rapid}
 async function dwdRucR2PointPayload(lat,lon,env){const context=await dwdRucR2Context(lat,lon,env);if(!context)return null;const{bucket,meta,pointIndex}=context,det=meta.deterministic;if(!det?.key||!Number.isFinite(Number(det.recordBytes)))return null;const bytes=await dwdRucR2Range(bucket,det.key,pointIndex*Number(det.recordBytes),Number(det.recordBytes));if(!bytes||bytes.length!==Number(det.recordBytes))return null;const rapid=await dwdRucR2RapidPayload(context);return{latitude:lat,longitude:lon,timezone:'GMT',utc_offset_seconds:0,hourly:dwdRucDecodeI16(bytes,meta),rapid,mid_ruc:{run:meta.run,generatedAt:meta.generatedAt,source:'DWD ICON-D2-RUC',storage:'R2',rapidProducts:Object.keys(rapid)}}}
 async function dwdRucStaticRapidPayload(context){const{base,meta,pointIndex}=context,products=meta?.rapid&&typeof meta.rapid==='object'?meta.rapid:{},rapid={};await Promise.all(Object.entries(products).map(async([id,spec])=>{const bytes=await dwdRucStaticRecord(base,spec,pointIndex);if(bytes)rapid[id]=dwdRucDecodeI16Record(bytes,spec,Array.isArray(spec?.times)?spec.times:[])}));return rapid}
-function dwdRucRapidPhaseTimeIndex(spec,targetMs){const times=Array.isArray(spec?.times)?spec.times:[],parsed=times.map(value=>dwdRucMetaTimestamp({run:String(value)}));let best=-1,bestDelta=Infinity;for(let index=0;index<parsed.length;index++){const stamp=parsed[index],delta=Math.abs(stamp-targetMs);if(Number.isFinite(stamp)&&delta<bestDelta){best=index;bestDelta=delta}}return best>=0&&bestDelta<=20*60000?{index:best,time:String(times[best]),stamp:parsed[best],deltaMs:bestDelta}:null}
+function dwdRucRapidPhaseTimeIndex(spec,targetMs){const times=Array.isArray(spec?.times)?spec.times:[],parsed=times.map(value=>dwdRucMetaTimestamp({run:String(value)}));let best=-1,bestDelta=Infinity;for(let index=0;index<parsed.length;index++){const stamp=parsed[index],delta=Math.abs(stamp-targetMs);if(Number.isFinite(stamp)&&delta<bestDelta){best=index;bestDelta=delta}}return best>=0&&bestDelta<=7.5*60000?{index:best,time:String(times[best]),stamp:parsed[best],deltaMs:bestDelta}:null}
+// Strictly bounded phase-grid reads. 247 independent sequential record requests
+// exceed the client deadline on a cold Pages cache; never spawn an unbounded
+// burst of compressed-part fetch/decode operations. Preserve original cell order.
+async function dwdRucPhaseBoundedMap(items,read,limit=8){
+ const result=Array(items.length).fill(null);let next=0;
+ await Promise.all(Array.from({length:Math.min(limit,items.length)},async()=>{
+  while(next<items.length){
+   const index=next++;
+   try{result[index]=await read(items[index])}catch{result[index]=null}
+  }
+ }));
+ return result;
+}
 async function dwdRucStaticPhaseGrid(lats,lons,targetMs,env){
- const current=await dwdRucStaticLatest(env);if(!current)return null;const{base,meta}=current,spec=meta?.rapid?.phase15,timePick=dwdRucRapidPhaseTimeIndex(spec,targetMs);if(!spec||!timePick)return null;
- const coordinates=[];for(const lat of lats)for(const lon of lons)coordinates.push({lat,lon});const pointRefs=[],pointCache=new Map();
- for(const point of coordinates){const offset=dwdRucLookupOffset(meta,point.lat,point.lon);if(offset===null){pointRefs.push(null);continue}const recordIndex=offset/4,cacheKey=`${meta.run}:${recordIndex}`,cached=dwdRucStaticLookupCache.get(cacheKey);let pointIndex=cached&&Date.now()-cached.at<10*60*1000?cached.pointIndex:null;if(pointIndex===null){const lookup=await dwdRucStaticRecord(base,meta.lookup,recordIndex);if(lookup&&lookup.length===4){const decoded=new DataView(lookup.buffer,lookup.byteOffset,4).getUint32(0,true);if(decoded!==0xffffffff&&decoded<Number(meta.pointCount||0)){pointIndex=decoded;dwdRucStaticLookupCache.set(cacheKey,{at:Date.now(),pointIndex})}}}pointRefs.push(Number.isInteger(pointIndex)?pointIndex:null)}
- const unique=[...new Set(pointRefs.filter(Number.isInteger))],decodedByPoint=new Map();for(const pointIndex of unique){const bytes=await dwdRucStaticRecord(base,spec,pointIndex);if(!bytes)continue;const decoded=dwdRucDecodeI16Record(bytes,spec,spec.times||[]);decodedByPoint.set(pointIndex,{rain:decoded.rain?.[timePick.index],snow:decoded.snowfall_water_equivalent?.[timePick.index],graupel:decoded.graupel_water_equivalent?.[timePick.index]})}
- const rain=[],snowfallWaterEquivalent=[],graupelWaterEquivalent=[];let valid=0;for(const pointIndex of pointRefs){const row=decodedByPoint.get(pointIndex);if(row&&[row.rain,row.snow,row.graupel].some(Number.isFinite))valid++;rain.push(Number.isFinite(row?.rain)?Math.max(0,row.rain):NaN);snowfallWaterEquivalent.push(Number.isFinite(row?.snow)?Math.max(0,row.snow):NaN);graupelWaterEquivalent.push(Number.isFinite(row?.graupel)?Math.max(0,row.graupel):NaN)}
- if(valid<coordinates.length*.72)return null;return{time:new Date(timePick.stamp).toISOString(),run:String(meta.run||''),rain,snowfallWaterEquivalent,graupelWaterEquivalent,valid,total:coordinates.length,source:'DWD ICON-D2-RUC · native 15 min'}
+ const current=await dwdRucStaticLatest(env);if(!current)return null;const{base,meta}=current,spec=meta?.rapid?.phase15,timePick=dwdRucRapidPhaseTimeIndex(spec,targetMs);if(!spec||!timePick||!Array.isArray(spec.times)||spec.times.length<2||spec.times.some((t,i)=>i&&dwdRucMetaTimestamp({run:String(t)})-dwdRucMetaTimestamp({run:String(spec.times[i-1])})!==900000)||!Array.isArray(spec.fields)||!['rain','snowfall_water_equivalent','graupel_water_equivalent'].every(name=>spec.fields.some(x=>x.name===name&&x.unit==='mm'&&Number.isFinite(Number(x.scale))&&Number(x.scale)>0)))return null;
+ const coordinates=[];for(const lat of lats)for(const lon of lons)coordinates.push({lat,lon});
+ // Original lookup records can repeat where the view grid oversamples ICON-D2.
+ // Resolve each native lookup once, with capped I/O. Missing IDs remain Missing.
+ const lookupOffsets=coordinates.map(point=>dwdRucLookupOffset(meta,point.lat,point.lon));
+ const uniqueLookupRecords=[...new Set(lookupOffsets.filter(Number.isInteger).map(offset=>offset/4))];
+ const lookupPoints=await dwdRucPhaseBoundedMap(uniqueLookupRecords,async recordIndex=>{
+  const cacheKey=`${meta.run}:${recordIndex}`,cached=dwdRucStaticLookupCache.get(cacheKey);
+  if(cached&&Date.now()-cached.at<10*60*1000)return cached.pointIndex;
+  const lookup=await dwdRucStaticRecord(base,meta.lookup,recordIndex);
+  if(!lookup||lookup.length!==4)return null;
+  const pointIndex=new DataView(lookup.buffer,lookup.byteOffset,4).getUint32(0,true);
+  if(pointIndex===0xffffffff||pointIndex>=Number(meta.pointCount||0))return null;
+  dwdRucStaticLookupCache.set(cacheKey,{at:Date.now(),pointIndex});
+  return pointIndex;
+ });
+ const lookupByRecord=new Map(uniqueLookupRecords.map((key,i)=>[key,lookupPoints[i]]));
+ const pointRefs=lookupOffsets.map(offset=>offset===null?null:lookupByRecord.get(offset/4)??null);
+ const unique=[...new Set(pointRefs.filter(Number.isInteger))];
+ const decodedRecords=await dwdRucPhaseBoundedMap(unique,async pointIndex=>{
+  const bytes=await dwdRucStaticRecord(base,spec,pointIndex);if(!bytes)return null;
+  const decoded=dwdRucDecodeI16Record(bytes,spec,spec.times||[]);
+  return{rain:decoded.rain?.[timePick.index],snow:decoded.snowfall_water_equivalent?.[timePick.index],graupel:decoded.graupel_water_equivalent?.[timePick.index]};
+ });
+ const decodedByPoint=new Map(unique.map((key,i)=>[key,decodedRecords[i]]).filter(([,row])=>row));
+ const rain=[],snowfallWaterEquivalent=[],graupelWaterEquivalent=[];let valid=0;for(const pointIndex of pointRefs){const row=decodedByPoint.get(pointIndex);if(row&&[row.rain,row.snow,row.graupel].some(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0))valid++;rain.push(typeof row?.rain==='number'&&Number.isFinite(row.rain)&&row.rain>=0?row.rain:NaN);snowfallWaterEquivalent.push(typeof row?.snow==='number'&&Number.isFinite(row.snow)&&row.snow>=0?row.snow:NaN);graupelWaterEquivalent.push(typeof row?.graupel==='number'&&Number.isFinite(row.graupel)&&row.graupel>=0?row.graupel:NaN)}
+ if(valid===0)return null;return{time:new Date(timePick.stamp).toISOString(),run:String(meta.run||''),rain,snowfallWaterEquivalent,graupelWaterEquivalent,valid,total:coordinates.length,source:'DWD ICON-D2-RUC · native 15 min'}
 }
 async function dwdRucStaticPointPayload(lat,lon,env){const context=await dwdRucStaticContext(lat,lon,env);if(!context)return null;const{base,meta,pointIndex}=context,bytes=await dwdRucStaticRecord(base,meta.deterministic,pointIndex,env?.MID_DWD_RUC_LOSSLESS_READ!=='disabled');if(!bytes)return null;const rapid=await dwdRucStaticRapidPayload(context);return{latitude:lat,longitude:lon,timezone:'GMT',utc_offset_seconds:0,hourly:dwdRucDecodeI16(bytes,meta),rapid,mid_ruc:{run:meta.run,generatedAt:meta.generatedAt,source:'DWD ICON-D2-RUC',storage:'GitHub Pages',rapidProducts:Object.keys(rapid),...(bytes.midRucTransport?{transport:bytes.midRucTransport,codecReason:bytes.midRucCodecReason}:{})}}}
 async function dwdRucEpsSummaryR2Payload(lat,lon,env){const context=await dwdRucR2Context(lat,lon,env);if(!context)return null;const{bucket,meta,pointIndex}=context,spec=meta.epsSummary,times=Array.isArray(spec?.times)&&spec.times.length?spec.times:Array.isArray(meta.times)?meta.times:[],recordBytes=Number(spec?.recordBytes);if(!spec?.key||times.length<4||!Number.isFinite(recordBytes)||recordBytes<=0)return null;const bytes=await dwdRucR2Range(bucket,spec.key,pointIndex*recordBytes,recordBytes);if(!bytes||bytes.length!==recordBytes)return null;return{latitude:lat,longitude:lon,timezone:'GMT',utc_offset_seconds:0,hourly:dwdRucDecodeI16Record(bytes,spec,times),mid_ruc:{run:meta.run,generatedAt:meta.generatedAt,source:'DWD ICON-D2-RUC-EPS',storage:'R2',aggregation:'preprocessed',member_count:Number(meta.eps?.memberCount)||0}}}
