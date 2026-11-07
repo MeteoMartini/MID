@@ -426,7 +426,7 @@ def fetch_probe(url: str, timeout: float) -> ProbeResponse:
     except (UnicodeDecodeError, json.JSONDecodeError):
         raise _InvalidProbePayload from None
     if not isinstance(payload, dict):
-        raise ProbeResponse(payload, status, metadata)
+        return ProbeResponse(payload, status, metadata)
     return ProbeResponse(payload, status, metadata)
 
 

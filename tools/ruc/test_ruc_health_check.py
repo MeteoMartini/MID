@@ -337,6 +337,71 @@ class SafeDiagnosticsTests(unittest.TestCase):
                          fetcher=lambda *_:['not','an','object'])
   self.assertEqual(unusable.exception.code,'payload_not_object')
 
+ def test_real_http_non_object_json_is_payload_failure_for_pages_and_worker(self):
+  class Response:
+   status=200
+   def __init__(self,body):
+    self.body=body
+    self.headers=Message()
+    self.headers['Content-Type']='application/json'
+    self.headers['Age']='17'
+    self.headers['CF-Cache-Status']='MISS'
+   def __enter__(self):return self
+   def __exit__(self,*_):return False
+   def read(self):return self.body
+
+  for payload in ([],None,'private-token-fragment'):
+   with self.subTest(payload_type=type(payload).__name__):
+    body=json.dumps(payload).encode('utf-8')
+    journal=mod.ProbeJournal()
+    with mock.patch.object(mod.urllib.request,'urlopen',
+                           return_value=Response(body)):
+     with self.assertRaises(mod.WorkerPayloadError) as worker_error:
+      mod.probe_until_ready(
+       'https://host.invalid/health?token=private-token-fragment',
+       '2026082822',attempts=1,journal=journal)
+    self.assertEqual(worker_error.exception.code,'payload_not_object')
+    worker_record=journal.as_dict()['records'][0]
+    self.assertEqual(worker_record['httpStatus'],200)
+    self.assertEqual(worker_record['diagnosticCode'],'payload_not_object')
+    self.assertEqual(worker_record['metadata'],
+                     {'ageSeconds':17,'cacheStatus':'miss','contentType':'json'})
+
+    pages_journal=mod.ProbeJournal()
+    with mock.patch.object(mod.urllib.request,'urlopen',
+                           return_value=Response(body)):
+     with self.assertRaises(mod.PagesConvergenceError) as pages_error:
+      mod.probe_pages(
+       'https://host.invalid/ruc/','2026-11-07T18:00',attempts=1,
+       journal=pages_journal)
+    self.assertEqual(pages_error.exception.attempts,1)
+    pages_record=pages_journal.as_dict()['records'][0]
+    self.assertEqual(pages_record['httpStatus'],200)
+    self.assertEqual(pages_record['diagnosticCode'],'payload_not_object')
+    self.assertEqual(pages_record['metadata'],
+                     {'ageSeconds':17,'cacheStatus':'miss','contentType':'json'})
+
+    with tempfile.TemporaryDirectory() as directory:
+     metadata=Path(directory)/'latest.json'
+     metadata.write_text(json.dumps(sealed),encoding='utf-8')
+     for pages_mode in (False,True):
+      stdout=io.StringIO()
+      stderr=io.StringIO()
+      with mock.patch.object(mod.urllib.request,'urlopen',
+                             return_value=Response(body)):
+       with contextlib.redirect_stdout(stdout),contextlib.redirect_stderr(stderr):
+        args=['--url','https://host.invalid/health?token=private-token-fragment',
+              '--meta',str(metadata),'--attempts','1']
+        if pages_mode:
+         args.extend(['--pages-base','https://host.invalid/ruc/','--pages-attempts','1'])
+        exit_code=mod.main(args)
+      self.assertEqual(exit_code,2)
+      self.assertIn('MID RUC probe journal:',stderr.getvalue())
+      self.assertIn('httpStatus',stderr.getvalue())
+      self.assertNotIn('private-token-fragment',stderr.getvalue())
+      self.assertNotIn('token=',stderr.getvalue())
+      self.assertNotIn(json.dumps(payload),stderr.getvalue())
+
  def test_transport_and_unready_worker_are_not_codec_defects(self):
   with self.assertRaises(mod.WorkerTransportError) as transport:
    mod.probe_until_ready('https://host.invalid/','2026082822',attempts=1,
