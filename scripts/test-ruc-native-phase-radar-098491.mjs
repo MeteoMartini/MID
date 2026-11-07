@@ -84,9 +84,9 @@ assert.equal(indexOfPhase({time:['2026-11-07T17:00']},atUtc('17:15'),15),null,
 const nativeAdmission=vm.runInContext('midRucPhaseEnough',context),nativeAmount=vm.runInContext('midPhaseAmount',context);
 for(const [rain,snow,graupel,expected] of [
  [.1,NaN,NaN,true],[NaN,.1,NaN,true],[NaN,NaN,.1,true],
- [0,0,NaN,true],[0,0,0,true],[0,NaN,0,false],
- [NaN,NaN,NaN,false],[0,NaN,NaN,false],[-.1,NaN,NaN,false],
- [-.1,.2,NaN,true]
+ [0,0,NaN,false],[NaN,0,0,false],[0,NaN,0,false],[0,0,0,true],
+ [NaN,NaN,NaN,false],[0,NaN,NaN,false],[NaN,0,NaN,false],
+ [NaN,NaN,0,false],[-.1,NaN,NaN,false],[-.1,.2,NaN,true]
 ])assert.equal(nativeAdmission(rain,snow,graupel),expected,'native RUC single-field/zero/missing admission '+JSON.stringify([rain,snow,graupel]));
 assert.ok(Number.isNaN(nativeAmount(-.1)),'negative original precipitation is invalid Missing');
 assert.ok(Number.isNaN(nativeAmount(null)),'original Missing must not become dry 0');
@@ -130,6 +130,83 @@ assert.equal(phaseContext.__phaseFor({...missingFrame,weatherCode:[87],precipita
 assert.equal(phaseContext.__phaseFor({...missingFrame,weatherCode:[89],precipitation:[.1]},0,'dwd-icon-eu').phase,'hail','explicit WMO hail code must remain supported');
 
 
+
+ // Per-cell fallback integration: a native [rain=0, snow=0, graupel=Missing]
+ // is NOT dry RUC evidence and MUST admit D2 at that cell; all-three true
+ // zeros and independent positive original fields keep their RUC priority.
+ // This is an isolated deterministic Worker source selection test, not a
+ // substitute for original Pages or live Cloudflare/Provider provenance.
+ const partialTargetMs=Math.floor((Date.now()-15*60000)/(15*60000))*(15*60000);
+ const partialTarget=new Date(partialTargetMs).toISOString();
+ const partialRun=new Date(partialTargetMs-30*60000).toISOString();
+ const providerRun=new Date(partialTargetMs-2*3600000).toISOString();
+ let providerLocations=0,providerRequests=0;
+ const partialContext=vm.createContext({console,URL,URLSearchParams,Headers,Request,Response,
+  AbortController,DOMException,TextDecoder,TextEncoder,DataView,Uint8Array,ArrayBuffer,
+  crypto,setTimeout,clearTimeout,
+  fetch:async input=>{
+   const u=new URL(typeof input==='string'?input:input.url);
+   if(u.hostname!=='api.open-meteo.com')throw new Error('Unexpected native partial phase network '+u.hostname);
+   if(u.pathname.endsWith('/static/meta.json'))
+    return new Response(JSON.stringify({last_run_initialisation_time:Date.parse(providerRun)/1000}),{status:200,headers:{'content-type':'application/json'}});
+   if(u.pathname.includes('/v1/forecast')){
+    assert.equal(u.searchParams.get('models'),'dwd_icon_d2_15min','Missing original RUC must fall to D2 before EU/global');
+    const lats=String(u.searchParams.get('latitude')).split(',').map(Number);
+    const lons=String(u.searchParams.get('longitude')).split(',').map(Number);
+    assert.equal(lats.length,lons.length);
+    providerLocations+=lats.length;providerRequests++;
+    return new Response(JSON.stringify(lats.map((latitude,i)=>({
+     latitude,longitude:lons[i],elevation:40,minutely_15:{
+      time:[partialTarget,partialTarget,partialTarget],
+      precipitation:[.15,.15,.15],rain:[.15,.15,.15],snowfall:[0,0,0],
+      weather_code:[null,null,null],snowfall_height:[500,500,500],
+      freezing_level_height:[900,900,900]
+     }
+    }))),{status:200,headers:{'content-type':'application/json'}});
+   }
+   throw new Error('Unexpected partial RUC phase endpoint '+u.pathname);
+  }});
+ vm.runInContext(raw,partialContext,{timeout:5000,filename:'worker/metar-proxy.js'});
+ partialContext.dwdRucStaticPhaseGrid=async(lats,lons,when)=>{
+  assert.equal(when,partialTargetMs,'RUC native target must be exact 15min slot');
+  const total=lats.length*lons.length;
+  assert.equal(total,247,'native-to-D2 integration fixture is not full 13x19');
+  const rain=Array(total).fill(0),snowfallWaterEquivalent=Array(total).fill(0);
+  const graupelWaterEquivalent=Array(total).fill(NaN);
+  rain[0]=.3;snowfallWaterEquivalent[0]=NaN; // positive independent rain
+  graupelWaterEquivalent[1]=0; // all three genuinely zero
+  rain[3]=NaN;graupelWaterEquivalent[3]=0; // zero snow + zero graupel, rain missing
+  rain[4]=NaN;snowfallWaterEquivalent[4]=.2; // positive independent snow
+  snowfallWaterEquivalent[5]=NaN;graupelWaterEquivalent[5]=0; // partial dry unknown
+  rain[6]=NaN;snowfallWaterEquivalent[6]=NaN;graupelWaterEquivalent[6]=.1;
+  return{source:'DWD ICON-D2-RUC · native 15 min',run:partialRun,time:partialTarget,
+   valid:total,total,rain,snowfallWaterEquivalent,graupelWaterEquivalent};
+ };
+ const partial=await vm.runInContext(
+  'precipitationPhaseGridData(50.82,7.05,'+JSON.stringify(partialTarget)+',{})',
+  partialContext,{timeout:5000});
+ assert.equal(partial.phaseSourceByCell.length,247);
+ for(const index of [0,1,4,6]){
+  assert.equal(partial.phaseSourceByCell[index],'dwd-icon-d2-ruc',
+   'Positive original phase/all-three real dry zeros lost RUC priority: '+index);
+  assert.equal(partial.phaseIntervalMinutesByCell[index],15);
+  assert.equal(partial.phaseRunByCell[index],partialRun);
+ }
+ for(const index of [2,3,5,7]){
+  assert.equal(partial.phaseSourceByCell[index],'dwd-icon-d2',
+   'Incomplete RUC dry fields blocked required D2 fallback: '+index);
+  assert.equal(partial.phaseIntervalMinutesByCell[index],15);
+  assert.equal(partial.frame.rain[index],.15);
+  assert.ok(Number.isNaN(partial.frame.rucRain[index]),'A partial dry RUC value leaked into fallback cell '+index);
+ }
+ assert.equal(partial.frame.rucRain[1],0,'A genuine original zero was lost');
+ assert.equal(partial.frame.graupelWaterEquivalent[1],0,'Genuine zero graupel was lost');
+ assert.equal(partial.sourceCounts['dwd-icon-d2-ruc'],4,'Native RUC must admit exactly four independently supported cells');
+ assert.equal(partial.sourceCounts['dwd-icon-d2'],243,'All missing-sibling dry RUC cells must fall back to D2');
+ assert.equal(partial.sourceCounts['dwd-icon-eu'],0);
+ assert.equal(partial.sourceCounts['dwd-icon-global'],0);
+ assert.equal(providerLocations,243,'Provider should request ONLY cells not supported by RUC');
+ assert.equal(providerRequests,3,'D2 provider batches must remain bounded and sequential');
 
  // A cold FULL 13x19 (247-cell) original RUC phase grid must not execute
  // two serial chains of remote Pages records or burst without a cap.

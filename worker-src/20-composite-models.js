@@ -375,11 +375,13 @@ function midPhaseIndex(group,targetMs,minutes){
  return best;
 }
 function midRucPhaseEnough(rain,snow,graupel){
- // Positive native RUC rain/snow/graupel is evidence even if other fields
- // are Missing. One zero alone with unknown sibling phases is NOT dry proof.
+ // Positive original rain/snow/graupel is valid independent evidence.
+ // A dry cell is proven ONLY when all three original phase fields are 0;
+ // missing graupel or any other sibling cannot certify a dry RUC cell.
  const liquid=Number.isFinite(rain)&&rain>=0,solid=Number.isFinite(snow)&&snow>=0;
  return(liquid&&rain>0)||(solid&&snow>0)||
-       (Number.isFinite(graupel)&&graupel>0)||(liquid&&solid);
+       (Number.isFinite(graupel)&&graupel>0)||
+       (rain===0&&snow===0&&graupel===0);
 }
 async function precipitationPhaseGridData(lat,lon,target,env){
  // A 28s browser deadline cannot tolerate 48 sequential 18s provider calls.
