@@ -19,7 +19,7 @@ function mock(o={}){
   if(path.includes('/issues/4/comments?'))return list;
   if(path.endsWith('/issues/4/comments')&&body){if(o.failReceipt)throw Error('receipt denied');return {id:2,body:o.tamperReceipt?'tampered':body.body,user:{login:'MeteoMartini',id:75040651}};}
   if(path.endsWith('/issues/4'))return issue;
-  if(path==='agents/repos/MeteoMartini/MID/tasks'&&body)return {id:'01234567-aaaa-bbbb-cccc-1234567890ab',html_url:'https://github.com/agents/task'};
+  if(path==='agents/repos/MeteoMartini/MID/tasks'&&body){if(o.ambiguousTask)throw Error('network timeout');return {id:'01234567-aaaa-bbbb-cccc-1234567890ab',html_url:'https://github.com/agents/task'};}
   if(path.startsWith('agents/repos/MeteoMartini/MID/tasks/'))return {id:'01234567-aaaa-bbbb-cccc-1234567890ab',state:'completed',artifacts:[]};
   throw Error('unexpected path '+path);
  };
@@ -108,4 +108,11 @@ test('closed historical issue remains readable, but cannot start a new task',()=
  const closed=mock({comments:[{body:receipt}],issue:{state:'closed'}});
  assert.equal(status(closed.client,4).status,'completed');
  assert.throws(()=>start(closed.client,4,true),/issue state invalid/);
+});
+
+test('ambiguous post/transport timeout is not assumed to be safe to retry',()=>{
+ const m=mock({ambiguousTask:true});
+ assert.throws(()=>start(m.client,4,true),/cloud task outcome UNKNOWN; inspect GitHub Agents before any retry/);
+ assert.equal(m.calls.filter(c=>c.path==='agents/repos/MeteoMartini/MID/tasks').length,1);
+ assert.equal(m.calls.filter(c=>c.path.endsWith('/issues/4/comments')&&c.body).length,0);
 });
