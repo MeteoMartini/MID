@@ -112,11 +112,13 @@ jobs:
         shell: bash
         env:
           PYTHONPATH: tools/ruc
+          EXPECTED_PR_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
           import hashlib
           import json
+          import os
           import re
           import urllib.request
           from datetime import datetime, timedelta, timezone
@@ -171,7 +173,7 @@ jobs:
               raise ValueError('original DWD value/bitmap verification failed')
           report = {
               'schema': 'mid.ruc.ap1c.original-one-file-smoke.v1',
-              'prHeadSha': '9853de70b720318b9e57ca1d60c7bd5dbb69db21',
+              'prHeadSha': os.environ['EXPECTED_PR_HEAD'],
               'selectorRunUtc': run_text,
               'expectedOriginalFileCount': 1000,
               'realOriginalFilesChecked': 1,
