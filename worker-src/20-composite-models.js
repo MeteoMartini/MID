@@ -321,10 +321,20 @@ function precipitationPhaseStale(lat,lon,targetMs){
 }
 function rememberPrecipitationPhase(key,data){precipitationPhaseGridCache.set(key,{storedAt:Date.now(),data});if(precipitationPhaseGridCache.size>18){const oldest=[...precipitationPhaseGridCache.entries()].sort((a,b)=>a[1].storedAt-b[1].storedAt).slice(0,precipitationPhaseGridCache.size-18);for(const[item]of oldest)precipitationPhaseGridCache.delete(item)}}
 function phaseModelApplies(model,lat,lon){if(model.retired||model.id==='geosphere-arome')return false;const[minLon,minLat,maxLon,maxLat]=model.bbox;return lon>=minLon&&lon<=maxLon&&lat>=minLat&&lat<=maxLat}
+function midPhaseProviderEnvelope(wkt){
+ // Open-Meteo WGS84 model-grid CRS WKT BBOX is south,west,north,east.
+ // This is only a request SHORTLIST, never a valid original-cell bitmap.
+ if(typeof wkt!=='string'||!wkt.includes('GEOGCRS'))return null;
+ const m=wkt.match(/BBOX\[\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\]/);
+ if(!m)return null;
+ const [south,west,north,east]=m.slice(1).map(Number);
+ if(![south,west,north,east].every(Number.isFinite)||south < -90||north > 90||west < -180||east > 180||south>=north||west>=east)return null;
+ return [west,south,east,north];
+}
 async function phaseModelMetadata(model){
  if(model.retired||model.id==='geosphere-arome'||model.apiIds?.includes('geosphere_arome_austria'))return null;
  const cached=precipitationPhaseModelMetaCache.get(model.id);if(cached&&Date.now()-cached.storedAt<10*60000)return cached.value;
- let value=null;for(const metaId of model.metaIds||model.apiIds){try{const response=await fetchWithDeadline(`https://api.open-meteo.com/data/${metaId}/static/meta.json?cache_buster=${Math.floor(Date.now()/300000)}`,{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:300,cacheEverything:true}},6000);if(!response.ok)continue;const meta=await response.json(),raw=number(meta?.last_run_initialisation_time),available=number(meta?.last_run_availability_time),initMs=Number.isFinite(raw)?raw*(raw>1e12?1:1000):NaN,availableMs=Number.isFinite(available)?available*(available>1e12?1:1000):NaN,updateSeconds=Math.max(3600,number(meta?.update_interval_seconds)||Number(model.rapidUpdate?3600:10800)),maxRunAgeMs=model.rapidUpdate?Math.max(5*3600000,(Math.max(0,Number(model.latencyHours)||0)+5)*3600000):Math.max(8*3600000,updateSeconds*2.5*1000);if(!Number.isFinite(initMs)||Date.now()-initMs>maxRunAgeMs)continue;value={...model,metaId,initialisationTime:new Date(initMs).toISOString(),availabilityTime:Number.isFinite(availableMs)?new Date(availableMs).toISOString():undefined,updateIntervalSeconds:updateSeconds,ageHours:Math.max(0,(Date.now()-(Number.isFinite(availableMs)?availableMs:initMs))/3600000)};break}catch{}}
+ let value=null;for(const metaId of model.metaIds||model.apiIds){try{const response=await fetchWithDeadline(`https://api.open-meteo.com/data/${metaId}/static/meta.json?cache_buster=${Math.floor(Date.now()/300000)}`,{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:300,cacheEverything:true}},6000);if(!response.ok)continue;const meta=await response.json(),raw=number(meta?.last_run_initialisation_time),available=number(meta?.last_run_availability_time),initMs=Number.isFinite(raw)?raw*(raw>1e12?1:1000):NaN,availableMs=Number.isFinite(available)?available*(available>1e12?1:1000):NaN,updateSeconds=Math.max(3600,number(meta?.update_interval_seconds)||Number(model.rapidUpdate?3600:10800)),maxRunAgeMs=model.rapidUpdate?Math.max(5*3600000,(Math.max(0,Number(model.latencyHours)||0)+5)*3600000):Math.max(8*3600000,updateSeconds*2.5*1000);if(!Number.isFinite(initMs)||Date.now()-initMs>maxRunAgeMs)continue;value={...model,metaId,providerEnvelope:midPhaseProviderEnvelope(meta?.crs_wkt),initialisationTime:new Date(initMs).toISOString(),availabilityTime:Number.isFinite(availableMs)?new Date(availableMs).toISOString():undefined,updateIntervalSeconds:updateSeconds,ageHours:Math.max(0,(Date.now()-(Number.isFinite(availableMs)?availableMs:initMs))/3600000)};break}catch{}}
  precipitationPhaseModelMetaCache.set(model.id,{storedAt:Date.now(),value});return value;
 }
 function phaseModelScore(model){const age=Math.max(0,Number(model.ageHours)||0)+Math.max(0,Number(model.latencyHours)||0),resolution=Math.max(.8,Number(model.resolutionKm)||8),rapid=Boolean(model.rapidUpdate),native15=Boolean(model.native15);return 100-age*15-Math.log2(resolution)*9+(rapid?12:0)+(native15?5:0)}
@@ -342,7 +352,7 @@ function phaseGridWeatherCode(value){return typeof value==='number'&&Number.isIn
 // #683: per-cell original RUC first, then D2 -> EU -> ICON global.
 // A geographic model BBOX is a shortlist only, never a valid-cell bitmap.
 const MID_ICON_PHASE_FALLBACKS=[
- {id:'icon-d2',label:'DWD ICON-D2',apiIds:['dwd_icon_d2_15min'],metaIds:['dwd_icon_d2_15min'],bbox:[-6,43,26,58],resolutionKm:2,maxHours:48,intervalMinutes:15},
+ {id:'icon-d2',label:'DWD ICON-D2',apiIds:['dwd_icon_d2_15min'],metaIds:['dwd_icon_d2_15min'],bbox:[-6,42.9,26,58.5],resolutionKm:2,maxHours:48,intervalMinutes:15},
  {id:'icon-eu',label:'DWD ICON-EU',apiIds:['dwd_icon_eu'],metaIds:['dwd_icon_eu'],bbox:[-25,30,45,75],resolutionKm:7,maxHours:120,intervalMinutes:60},
  {id:'icon-global',label:'DWD ICON Global',apiIds:['dwd_icon'],metaIds:['dwd_icon'],bbox:[-180,-90,180,90],resolutionKm:11,maxHours:180,intervalMinutes:60}
 ];
@@ -411,10 +421,18 @@ async function precipitationPhaseGridData(lat,lon,target,env){
   return points;
  };
  for(const model of MID_ICON_PHASE_FALLBACKS){
-  const remaining=coordinates.map((point,i)=>!phaseSourceByCell[i]&&phaseModelApplies(model,point.lat,point.lon)?i:null).filter(Number.isInteger);
-  if(!remaining.length)continue;
+  const shortlisted=coordinates.map((point,i)=>!phaseSourceByCell[i]&&phaseModelApplies(model,point.lat,point.lon)?i:null).filter(Number.isInteger);
+  if(!shortlisted.length)continue;
   const meta=await phaseModelMetadata(model);
   if(!meta){errors.push(model.label+': keine verifizierten aktuellen Metadaten');continue}
+  // Respect the provider's current grid envelope, including D2's actual
+  // northern latitude >58N. Small nearest-cell tolerance avoids false crops.
+  // A point inside this envelope is NOT proven valid until its field response.
+  const envelope=meta.providerEnvelope,margin=model.intervalMinutes===15?.02:.05;
+  const remaining=shortlisted.filter(i=>!envelope||
+   (coordinates[i].lon>=envelope[0]-margin&&coordinates[i].lon<=envelope[2]+margin&&
+    coordinates[i].lat>=envelope[1]-margin&&coordinates[i].lat<=envelope[3]+margin));
+  if(!remaining.length)continue;
   const modelRun=midPhaseMs(meta.initialisationTime);
   if(!Number.isFinite(modelRun)||modelRun>roundedMs||roundedMs-modelRun>model.maxHours*3600000){errors.push(model.label+': ungueltige Lauf-/Geltungszeit');continue}
   const item={id:model.id,label:model.label,initialisationTime:meta.initialisationTime,intervalMinutes:model.intervalMinutes,source:'Open-Meteo ('+meta.metaId+')',verifiedNativeOriginalCells:false};

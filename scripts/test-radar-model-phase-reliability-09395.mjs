@@ -152,5 +152,35 @@ try{
   if(isolatedData.lats[j]<=50.55&&source==='dwd-icon-d2')throw new Error('Rejected D2 coordinate admitted as valid at '+index);
  }
 
+ // The real 2026-11-07 Open-Meteo D2 grid advertises north=58.08 in WGS84.
+ // Older candidate shortcut north=58 excluded a valid 58.05N D2 point.
+ let d2NorthSeen=0,d2OutsideProviderSeen=0;
+ globalThis.fetch=async request=>{
+  const url=new URL(typeof request==='string'?request:request.url);
+  if(url.hostname==='api.open-meteo.com'&&url.pathname.includes('/static/meta.json')){
+   const id=url.pathname.includes('dwd_icon_d2_15min')?'d2':url.pathname.includes('dwd_icon_eu')?'eu':'global';
+   const bbox=id==='d2'?'BBOX[43.18,-3.94,58.08,20.34]':id==='eu'?'BBOX[29.5,-23.5,70.5,62.5]':'BBOX[-90,-180,90,179.75]';
+   return new Response(JSON.stringify({last_run_initialisation_time:metaInitialMs/1000,crs_wkt:'GEOGCRS["WGS 84", '+bbox+']'}),{status:200,headers:{'content-type':'application/json'}});
+  }
+  if(url.hostname==='api.open-meteo.com'&&url.pathname.includes('/v1/forecast')){
+   const model=url.searchParams.get('models'),lats=url.searchParams.get('latitude').split(',').map(Number),lons=url.searchParams.get('longitude').split(',').map(Number),d2=model==='dwd_icon_d2_15min';
+   if(d2){d2NorthSeen+=lats.filter(v=>v>58&&v<=58.08).length;d2OutsideProviderSeen+=lats.filter(v=>v>58.1).length;}
+   if(!['dwd_icon_d2_15min','dwd_icon_eu','dwd_icon'].includes(model))throw new Error('Non-ICON provider');
+   return new Response(JSON.stringify(lats.map((lat,i)=>({latitude:lat,longitude:lons[i],elevation:20,[d2?'minutely_15':'hourly']:{
+    time:triple(d2?iso:hourIso),weather_code:triple(d2?null:71),precipitation:triple(.1),rain:triple(d2?.1:0),snowfall:triple(d2?0:.1),
+    snowfall_height:triple(500),freezing_level_height:triple(700),temperature_2m:triple(1),relative_humidity_2m:triple(90)
+   }}))),{status:200,headers:{'content-type':'application/json'}});
+  }
+  throw new Error('Unexpected model grid probe '+url);
+ };
+ const northernModule=await import('../worker/metar-proxy.js?phase-d2-north-WKT='+Date.now());
+ const northernResponse=await northernModule.default.fetch(new Request('https://mid.test/?mode=precipitation-phase-grid&lat=58.05&lon=7.05&target='+encodeURIComponent(target)),{});
+ const northern=await northernResponse.json();
+ if(!northernResponse.ok)throw new Error('Northern grid shortlist failed: '+JSON.stringify(northern));
+ const near58=northern.lats.findIndex(lat=>Math.abs(lat-58.05)<.001),centerLonIndex=Math.floor(northern.lons.length/2);
+ if(near58<0||northern.phaseSourceByCell[near58*northern.lons.length+centerLonIndex]!=='dwd-icon-d2')throw new Error('D2 actual 58.05N grid cell was cropped');
+ if(!d2NorthSeen||d2OutsideProviderSeen)throw new Error('D2 WKT shortlist is misaligned: north='+d2NorthSeen+' outside='+d2OutsideProviderSeen);
+ if(!northern.sourceCounts?.['dwd-icon-eu']||!northern.sourceCounts?.['dwd-icon-d2'])throw new Error('Both native-boundary D2 and EU outside D2 must coexist');
+
 }finally{globalThis.fetch=realFetch}
 console.log('Radar-/Regionalmodell-Phasenraster geprüft: dynamische Rapid-/Regionalmodellwahl, 13×19/247 Punkte, 3 sequenzielle Batches, Rate-Limit-Fallback und Stale-Run-Abbruch.');
