@@ -44,7 +44,7 @@ Das Ergebnis ist niemals automatisch eine autorisierte MID-Integration oder Ver�
 
 Der GitHub **Cloud Agent** ist laut GitHub für alle kostenpflichtigen Copilot-Pläne zugänglich, aber der programmatische **Agent-Tasks-REST-Endpunkt** derzeit nur für Business/Enterprise. Für andere bezahlte Pläne kann ChatGPT weiterhin **ohne Aufgaben-Copy/Paste** ein prüfbares MID-Issue anlegen; in GitHub Mobile über das Repository den Bereich **Agents** öffnen und eine neue branchbasierte Sitzung mit einer kurzen Referenz auf die Issue-Nummer starten („Arbeite den eng abgegrenzten Auftrag in MeteoMartini/MID Issue #NUMMER ab, beachte AGENTS.md; keine PR, kein Merge, kein Release“). Das ist **ein bewusster Bedienvorgang**, keine vollständig direkte ChatGPT-Auslösung.
 
-**Nicht Copilot direkt als Issue-Assignee auswählen:** GitHubs aktuelle Dokumentation stellt klar, dass das Zuweisen eines Issues an Copilot **immer einen Pull Request anlegt**. Das wäre ohne gesonderte kontrollierte Freigabe kein zulässiger MID-Handoff; deshalb nur eine neue Agents-Sitzung **auf einem Branch, ohne PR** nutzen. Branch-/Task-Ergebnisse bleiben untrusted und müssen gesondert geprüft werden.
+**Zusätzlicher, besonders komfortabler Weg für alle bezahlten Copilot-Pläne:** GitHub dokumentiert auch die **Issue-Zuweisung per REST** mit dem exakten Assignee `copilot-swe-agent[bot]` (optional: `agent_assignment.base_branch`). Bei Zuweisung entsteht laut GitHub ein **Draft-PR**, kein sofortiger Merge. Das wäre bei **einem explizit autorisierten, eng abgegrenzten** Auftrag ein zulässiger unvertrauenswürdiger Zwischenstand – niemals ein MID-Integrations-/Release-PR. Das bereits verbundene ChatGPT-GitHub-Plugin besitzt eine Issue-Assignee-Aktion, aber ob dessen konkrete Authentifizierung die kostenbezogene Copilot-Zuweisung wirklich auslöst, ist **NICHT VERIFIZIERT**. Die Ausgabe muss deshalb durch Task-/Draft-PR-Readback geprüft werden, nicht nur anhand eines Assignee-Feldes. Bei fehlender Plan-/API-/Kosten- oder Rechtebestätigung bleibt der direkte Start **BLOCKED**; keine neuen breiten Tokens und keine zusätzlichen kostenpflichtigen Abos. Ohne diese Voraussetzungen bleibt die oben genannte manuelle Agents-Sitzung der sichere Fallback.
 
 ## Weniger Freigabedialoge
 
@@ -61,3 +61,5 @@ Offizielle Dokumentation:
 - https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-via-the-api
 - https://docs.github.com/en/copilot/concepts/customizations/allowing-safe-commands
 - https://docs.github.com/en/copilot/how-tos/copilot-on-github/use-copilot-agents/kick-off-a-task
+- https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-via-the-api
+- https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/troubleshoot-cloud-agent
