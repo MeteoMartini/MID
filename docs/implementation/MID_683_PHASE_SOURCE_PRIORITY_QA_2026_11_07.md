@@ -83,6 +83,22 @@ Der QA-Kandidat inferiert daher aus Thermik, Schneefallgrenze und Echointensitä
 
 **Status:** wissenschaftlich begründete Korrektur mit deterministischen Regressionen; kein amtliches Radar-Hydrometeorklassifikationsverfahren, keine Warnung und kein neuer Produktivbuild.
 
+## 3e. Echte D2-/EU-/Global-Provider-Randfälle (07.11.2026)
+
+**GitHub-Runner [#42395439805](https://github.com/MeteoMartini/MID/actions/runs/42395439805) · Source-HEAD `07e217b4f2710e96845cc6005b6c0f5af16c120f` · SUCCESS.** Der kontrollierte, nur auf Draft-PR #685 aktive Live-Smoke-Test `scripts/qa-phase-provider-native-fallback-0985447.mjs` nutzte **fünf sequenzielle** öffentliche Open-Meteo-API-Abfragen mit pro Request 8 Sekunden, insgesamt 30 Sekunden Limit. Laufzeit der fünf reinen Providerabfragen auf dem Runner **666 ms**. Ein gebührenpflichtiger Dienst wurde nicht hinzugefügt.
+
+| Anfragestandort | Modell-ID | Originaler Provider-Response | Phasen-Zeitsemantik |
+| --- | --- | --- | --- |
+| 50,8 N / 7,1 O (D2-intern) | `dwd_icon_d2_15min` | HTTP 200; Niederschlag 0 mm, Regen 0 mm, Schnee 0 cm; `weather_code=null` | 15-min-Achse, 17:00 UTC |
+| 58,05 N / 7,1 O (innerhalb statischer D2-WKT-BBOX, außerhalb echter Datenmaske) | `dwd_icon_d2_15min` | **HTTP 400**, `No data is available for this location` | **NoData**, nicht Null und kein originaler D2-Phasenbeleg |
+| 50,8 N / −4,5 O (westlich D2) | `dwd_icon_eu` | HTTP 200; 0 mm, WMO-Code 2 | Stundenachse 17:00 UTC, keine erfundene 15-min-Akkumulation |
+| 40 N / −30 O (westlich EU) | `dwd_icon_eu` | **HTTP 400**, `No data is available for this location` | **NoData**, darf ICON Global nicht verhindern |
+| 40 N / −30 O | `dwd_icon` | HTTP 200; 0,7 mm Niederschlag und Regen, 0 cm Schnee, WMO-Code 61 | Stundenachse 17:00 UTC |
+
+Der reale Test prüft strikt die tatsächlichen Einheiten **Niederschlag/Regen mm, Schneefall cm**, Gültigkeitszeitachsen und 200-/400-Zellgrenzen. Der Fallback **D2 → EU → Global** und die Verlustfreiheit der RUC-Originalzellen werden zusätzlich durch deterministische Workerintegration und Original-Pages-Readbacks geprüft; ein **echter vollständiger 247-Zell-Open-Meteo-Worker-Cloudflare-E2E-Durchlauf** wurde noch nicht durchgeführt. Die API-Zeilen werden nicht als originäre DWD-GRIB-Läufe oder amtliche Warnungen bezeichnet.
+
+Die ergänzende fachliche Korrektur gegen unbewiesene Graupel-Inferenz (Abschnitt 3d) und die adversarialen WMO-87-/89- sowie RUC-Graupelbelege bestanden auf exakt `07e217b4f2710e96845cc6005b6c0f5af16c120f` ebenfalls. Dieses grüne Pilotresultat bedeutet **keine** vollständige Source-/Heavy-/Browser-/Installer-/Stable-Freigabe.
+
 ## 4. Verbindliche Rest-Gates – NICHT ERFÜLLT
 
 1. Nach bestandenem echtem 247-Zell-Pages-Readback für **ein** RUC-Gebiet/17Z weiterhin unabhängige DWD-GRIB2-Rohdaten-/Wert-Gegenprobe und echte Multi-Regionen-/Mehrlauf-/Rand-/ValidTime-Provider-Cross-Checks: D2 Nord/West/Süd, EU-only, Global-only, 15min-/hourly-Akkumulation, fehlende vs 0 und Schnee/Regen/Graupel, OPERA-Echo.
