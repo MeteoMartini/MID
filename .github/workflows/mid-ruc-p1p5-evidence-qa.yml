@@ -134,8 +134,8 @@ jobs:
           with urllib.request.urlopen(request, timeout=20) as response:
               if response.status != 200:
                   raise ValueError('public Pages run selector not OK')
-              manifest_raw = response.read(1_000_001)
-          if len(manifest_raw) > 1_000_000:
+              manifest_raw = response.read(3_000_001)
+          if len(manifest_raw) > 3_000_000:
               raise ValueError('public Pages run selector exceeds bound')
           manifest = json.loads(manifest_raw)
           run_text = manifest.get('run')
