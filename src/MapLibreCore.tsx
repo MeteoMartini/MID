@@ -204,9 +204,9 @@ export function CanvasOverlay({id,opacity=1,zIndex=5,render,events=['moveend','z
 }
 
 export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='linear',frameKey,onReady,onError}:{id:string;url:string;bounds:[[number,number],[number,number]];opacity?:number;zIndex?:number;resampling?:'linear'|'nearest';frameKey?:string;onReady?:()=>void;onError?:(message:string)=>void}){
- const map=useMidMap(),south=bounds[0][0],west=bounds[0][1],north=bounds[1][0],east=bounds[1][1],errorRef=useRef(onError),opacityRef=useRef(opacity),sequence=useRef(0),animation=useRef(0),fadeUntil=useRef(0),frames=useRef<{source:string;layer:string;weight:number}[]>([]);errorRef.current=onError;opacityRef.current=opacity;
+ const map=useMidMap(),south=bounds[0][0],west=bounds[0][1],north=bounds[1][0],east=bounds[1][1],errorRef=useRef(onError),opacityRef=useRef(opacity),sequence=useRef(0),animation=useRef(0),fading=useRef(false),frames=useRef<{source:string;layer:string;weight:number}[]>([]);errorRef.current=onError;opacityRef.current=opacity;
  const remove=(frame:{source:string;layer:string})=>{if(!map)return;unregisterMapLayerOrder(map,frame.layer);try{if(map.getLayer(frame.layer))map.removeLayer(frame.layer);if(map.getSource(frame.source))map.removeSource(frame.source)}catch{}};
- useEffect(()=>()=>{cancelAnimationFrame(animation.current);fadeUntil.current=0;for(const frame of frames.current)remove(frame);frames.current=[]},[map,id]);
+ useEffect(()=>()=>{cancelAnimationFrame(animation.current);fading.current=false;for(const frame of frames.current)remove(frame);frames.current=[]},[map,id]);
  useEffect(()=>{
   if(!map||!url)return;
   let active=true,timer=0,watchdog=0;
@@ -231,19 +231,22 @@ export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='lin
    const previous=frames.current.at(-1),next={source,layer,weight:.001};
    frames.current=previous?[previous,next]:[next];
    const start=performance.now(),duration=window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:350;
-   fadeUntil.current=start+duration;
+   fading.current=true;
    const fade=(now:number)=>{
     if(!map.getLayer(layer))return;
     const t=duration?Math.max(0,Math.min(1,(now-start)/duration)):1;
     next.weight=t;map.setPaintProperty(layer,'raster-opacity',t*opacityRef.current);
     if(previous&&map.getLayer(previous.layer)){previous.weight=1-t;map.setPaintProperty(previous.layer,'raster-opacity',(1-t)*opacityRef.current)}
     if(t<1)animation.current=requestAnimationFrame(fade);
-    else{if(previous)remove(previous);frames.current=[next];fadeUntil.current=0;onDisplayed?.()}
+    else{if(previous)remove(previous);frames.current=[next];fading.current=false;onDisplayed?.()}
    };
    animation.current=requestAnimationFrame(fade);
   };
   const install=()=>{
    if(!active)return;
+   // Wall time can pass while RAF is throttled. Wait for the actual prior
+   // fade completion so its callback cannot overwrite a newer frame list.
+   if(fading.current){timer=window.setTimeout(install,20);return;}
    const source=`${safeId(id)}-source-${generation}`,layer=`${safeId(id)}-layer-${generation}`;
    try{
     // The previous raster stays fully opaque while the successor is decoded,
@@ -263,7 +266,7 @@ export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='lin
     map.triggerRepaint();
    }catch{releaseStaging();remove({source,layer});fail()}
   };
-  image.onload=()=>{if(!active)return;const wait=fadeUntil.current-performance.now();if(wait>0)timer=window.setTimeout(install,wait+20);else install()};
+  image.onload=()=>{if(active)install()};
   image.onerror=fail;image.src=url;
   return()=>{active=false;window.clearTimeout(timer);image.onload=null;image.onerror=null;releaseStaging();if(!frames.current.some(frame=>frame.source===`${safeId(id)}-source-${generation}`))image.removeAttribute('src')};
  },[map,id,url,frameKey,south,west,north,east,zIndex,resampling]);

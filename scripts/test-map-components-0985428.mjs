@@ -97,6 +97,13 @@ try{
  render('cancelled');const cancelled=images.at(-1);render('latest');assert.equal(cancelled.onload,null,'Superseded image cannot install a stale term');images.at(-1).onload();ready();tick(400);assert.equal(layers.size,1);
  const sameUrlCount=displayed.length;render('same-raster','run-1');images.at(-1).onload();ready();tick(400);assert.equal(displayed.length,sameUrlCount+1);
  render('same-raster','run-2');images.at(-1).onload();assert.equal(displayed.length,sameUrlCount+1,'Same image bytes but a new forecast validity must wait for GPU-ready paint');ready();tick(400);assert.equal(displayed.length,sameUrlCount+2,'Distinct run/time must be acknowledged even when PNG bytes are identical');
+ // Diagnostic: timers can fire while software-GPU RAF delivery is delayed.
+ render('throttle-a');images.at(-1).onload();ready();tick(175);
+ render('throttle-b');images.at(-1).onload();
+ now+=200;for(const [id,timer] of [...timers])if(timer.time<=now){timers.delete(id);timer.fn()}
+ ready();tick(0);
+ render('throttle-c');images.at(-1).onload();ready();tick(400);
+ assert.equal(layers.size,1,'Delayed RAF and earlier timer must never orphan a previous raster');
  reduced=true;render('reduced');images.at(-1).onload();ready();tick(1);assert.equal(displayed.at(-1),'reduced');assert.equal(layers.size,1,'Reduced motion still requires an actually renderable successor');effects.forEach(effect=>effect?.cleanup?.());assert.equal(layers.size,0);assert.equal(sources.size,0);assert.equal(rafs.size,0);assert.equal(timers.size,0);assert.equal(listeners.get('render')?.size??0,0);assert.equal(listeners.get('error')?.size??0,0);check();
  }
  for(const [path,expected] of Object.entries({'src/synopPrecipitationSymbols.ts':'a6cf1869f801dd03209aba5d6fafc24a4456e035','src/RadarModelPrecipTypeOverlay.tsx':'51c7b3a463ed963b0c0706e857bd4a7bb5e63060','scripts/test-synop-precipitation-symbols-0985337.mjs':'bcd620bb09734c606fee9478d8d3d8ef3ea728b1'})){const bytes=readFileSync('docs/handoffs/PR480_originals/'+path);assert.equal(createHash('sha1').update(Buffer.concat([Buffer.from(`blob ${bytes.length}\0`),bytes])).digest('hex'),expected,'Historic PR480 original changed: '+path)}check();
