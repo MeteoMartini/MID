@@ -36,6 +36,7 @@ jobs:
           test "$(git hash-object tools/ruc/test_ruc_schedule_guard.py)" = "11bfccec89efee40624302882b0b8c068c155935"
           test "$(git hash-object tools/ruc/fixtures/eps20_2026_11_07_22z_observed_hourly_v1.json)" = "87f582b8c4910e5439cb349c2a88532371cd624a"
           test "$(git hash-object tools/ruc/probe_ruc_eps_advertised_live.py)" = "7d8a308336f9553bd2b08c05dcd455b8bcf775be"
+          test "$(git hash-object tools/ruc/test_ruc_eps_probe_transitions.py)" = "6005b350b484601f8bec5ce52e364245b3ae6093"
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
@@ -46,8 +47,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m py_compile tools/ruc/check_ruc_schedule_guard.py tools/ruc/test_ruc_schedule_guard.py tools/ruc/probe_ruc_eps_advertised_live.py
+          python -m py_compile tools/ruc/check_ruc_schedule_guard.py tools/ruc/test_ruc_schedule_guard.py tools/ruc/probe_ruc_eps_advertised_live.py tools/ruc/test_ruc_eps_probe_transitions.py
           python tools/ruc/test_ruc_schedule_guard.py
+          python tools/ruc/test_ruc_eps_probe_transitions.py
           node scripts/test-ruc-schedule-catchup-09745.mjs
           node scripts/test-ruc-scheduler-watchdog-09751.mjs
           echo 'QA-only: no original GRIB/EPS source positive admission, no DWD full publication proof, no 168h SLO, no production writes.' >> "$GITHUB_STEP_SUMMARY"
