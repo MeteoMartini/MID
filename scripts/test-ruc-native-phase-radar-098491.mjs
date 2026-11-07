@@ -58,6 +58,27 @@ assert.equal(phaseContext.__phaseFor(missingFrame,0).phase,'uncertain','missing 
 assert.equal(phaseContext.__phaseFor({...missingFrame,weatherCode:[66]},0).phase,'uncertain','missing temperature must not support freezing');
 assert.equal(phaseContext.__phaseFor({...missingFrame,temperature2m:[0],relativeHumidity2m:[90],snowfallHeight:[0],elevation:[100]},0).phase,'snow','actual zero Celsius remains valid cold support');
 
+const nativeAdmission=vm.runInContext('midRucPhaseEnough',context),nativeAmount=vm.runInContext('midPhaseAmount',context);
+for(const [rain,snow,graupel,expected] of [
+ [.1,NaN,NaN,true],[NaN,.1,NaN,true],[NaN,NaN,.1,true],
+ [0,0,NaN,true],[0,0,0,true],[0,NaN,0,false],
+ [NaN,NaN,NaN,false],[0,NaN,NaN,false],[-.1,NaN,NaN,false],
+ [-.1,.2,NaN,true]
+])assert.equal(nativeAdmission(rain,snow,graupel),expected,'native RUC single-field/zero/missing admission '+JSON.stringify([rain,snow,graupel]));
+assert.ok(Number.isNaN(nativeAmount(-.1)),'negative original precipitation is invalid Missing');
+assert.ok(Number.isNaN(nativeAmount(null)),'original Missing must not become dry 0');
+assert.equal(nativeAmount(0),0,'original 0 must remain 0');
+for(const [partial,expected] of [
+ [{rucRain:[.1],rucSnowfallWaterEquivalent:[null],graupelWaterEquivalent:[null]},'rain'],
+ [{rucRain:[null],rucSnowfallWaterEquivalent:[.2],graupelWaterEquivalent:[null]},'snow'],
+ [{rucRain:[null],rucSnowfallWaterEquivalent:[null],graupelWaterEquivalent:[.3]},'graupel'],
+ [{rucRain:[0],rucSnowfallWaterEquivalent:[0],graupelWaterEquivalent:[0]},'uncertain']
+]){
+ const frame={...missingFrame,weatherCode:[null],precipitation:[null],...partial};
+ assert.equal(phaseContext.__phaseFor(frame,0,'dwd-icon-d2-ruc').phase,expected,'positive native single-field phase must not be replaced: '+expected);
+}
+
+
 const d2Phase=({rain=null,snowfall=null,precipitation=null,weatherCode=null,temperature=null}={})=>phaseContext.__phaseFor({...missingFrame,weatherCode:[weatherCode],rain:[rain],snowfall:[snowfall],precipitation:[precipitation],temperature2m:[temperature]},0,'dwd-icon-d2');
 // Open-Meteo D2-15min: snowfall cm, rain mm; WW is often null. Positive native-interval
 // fields remain classifiable without borrowing hourly temperature from another run.

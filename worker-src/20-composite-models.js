@@ -372,10 +372,15 @@ function midPhaseIndex(group,targetMs,minutes){
  return best;
 }
 function midRucPhaseEnough(rain,snow,graupel){
- return Number.isFinite(rain)&&rain>=0&&Number.isFinite(snow)&&snow>=0||
-        Number.isFinite(graupel)&&graupel>0;
+ // Positive native RUC rain/snow/graupel is evidence even if other fields
+ // are Missing. One zero alone with unknown sibling phases is NOT dry proof.
+ const liquid=Number.isFinite(rain)&&rain>=0,solid=Number.isFinite(snow)&&snow>=0;
+ return(liquid&&rain>0)||(solid&&snow>0)||
+       (Number.isFinite(graupel)&&graupel>0)||(liquid&&solid);
 }
 async function precipitationPhaseGridData(lat,lon,target,env){
+ // A 28s browser deadline cannot tolerate 48 sequential 18s provider calls.
+ const phaseWallDeadlineMs=Date.now()+24000;
  const requested=Date.parse(String(target||'')),targetMs=Number.isFinite(requested)?requested:Date.now(),roundedMs=Math.round(targetMs/900000)*900000;
  const centerLat=Math.round(lat*20)/20,centerLon=Math.round(lon*20)/20,key=precipitationPhaseGridCacheKey(centerLat,centerLon,roundedMs);
  const existing=precipitationPhaseGridCache.get(key);if(existing&&Date.now()-existing.storedAt<=720000)return{...existing.data,cache:'worker-memory'};
@@ -392,7 +397,7 @@ async function precipitationPhaseGridData(lat,lon,target,env){
   const valid=midPhaseMs(ruc.time),run=midPhaseMs(ruc.run);
   if(Number.isFinite(valid)&&Math.abs(valid-roundedMs)<=90000&&Number.isFinite(run)&&run<=valid&&Date.now()-run<=4*3600000){
    for(let i=0;i<count;i++){
-    const rain=midPhaseNumber(ruc.rain?.[i]),snow=midPhaseNumber(ruc.snowfallWaterEquivalent?.[i]),graupel=midPhaseNumber(ruc.graupelWaterEquivalent?.[i]);
+    const rain=midPhaseAmount(ruc.rain?.[i]),snow=midPhaseAmount(ruc.snowfallWaterEquivalent?.[i]),graupel=midPhaseAmount(ruc.graupelWaterEquivalent?.[i]);
     if(!midRucPhaseEnough(rain,snow,graupel))continue;
     frame.rucRain[i]=rain;frame.rucSnowfallWaterEquivalent[i]=snow;frame.graupelWaterEquivalent[i]=graupel;
     phaseSourceByCell[i]='dwd-icon-d2-ruc';phaseValidTimeByCell[i]=ruc.time;phaseRunByCell[i]=ruc.run;phaseIntervalMinutesByCell[i]=15;
@@ -414,7 +419,9 @@ async function precipitationPhaseGridData(lat,lon,target,env){
   }
   url.searchParams.set('models',apiId);url.searchParams.set('timezone','GMT');url.searchParams.set('cell_selection','nearest');
   url.searchParams.set('temperature_unit','celsius');url.searchParams.set('precipitation_unit','mm');
-  const response=await fetchWithDeadline(url.toString(),{headers:{Accept:'application/json','User-Agent':'MID-weather-dashboard/'+WORKER_VERSION},cf:{cacheTtl:900,cacheEverything:true}},18000);
+  const perRequestMs=Math.min(18000,Math.max(0,phaseWallDeadlineMs-Date.now()-750));
+  if(perRequestMs<1200)throw new Error('Phasen-Gesamtbudget erreicht; keine weiteren Provider-Requests');
+  const response=await fetchWithDeadline(url.toString(),{headers:{Accept:'application/json','User-Agent':'MID-weather-dashboard/'+WORKER_VERSION},cf:{cacheTtl:900,cacheEverything:true}},perRequestMs);
   const payload=await response.json().catch(()=>({}));
   if(!response.ok||payload?.error){const error=new Error(String(payload?.reason||payload?.error||'ICON phase HTTP '+response.status));error.status=response.status;throw error}
   const points=openMeteoRows(payload);if(points.length!==indices.length)throw new Error('ICON model phase missing requested cell records');
@@ -445,6 +452,7 @@ async function precipitationPhaseGridData(lat,lon,target,env){
    // and cap all retries: no blind replay on 429/5xx or unlimited API fan-out.
    const requestValid=async(indices)=>{
     if(rateLimited||!indices.length)return[];
+    if(Date.now()>=phaseWallDeadlineMs-1200){errors.push(model.label+': Phasen-Gesamtbudget erreicht; fehlende Zellen bleiben NoData');return[]}
     if(batches>=48||modelBatches>=28){errors.push(model.label+': Phasenrequest-Budget erreicht; fehlende Zellen bleiben NoData');return[]}
     modelPointRequests+=indices.length;batches++;modelBatches++;
     try{
