@@ -237,5 +237,37 @@ try{
  if(!d2NorthSeen||d2OutsideProviderSeen)throw new Error('D2 WKT shortlist is misaligned: north='+d2NorthSeen+' outside='+d2OutsideProviderSeen);
  if(!northern.sourceCounts?.['dwd-icon-eu']||!northern.sourceCounts?.['dwd-icon-d2'])throw new Error('Both native-boundary D2 and EU outside D2 must coexist');
 
+
+ // A stalled Open-Meteo response BODY must be cancelled by the SAME signal
+ // that guards HTTP headers. Header-only timeouts are insufficient for a
+ // 28-second browser map deadline, and NoData must never turn into a zero.
+ const {createContext,runInContext}=await import('node:vm');
+ const phaseSource=await readFile(new URL('../worker-src/20-composite-models.js',import.meta.url),'utf8');
+ const helperStart=phaseSource.indexOf('async function midPhaseJsonResponse(');
+ const helperEnd=phaseSource.indexOf('\nasync function phaseModelMetadata(',helperStart);
+ if(helperStart<0||helperEnd<=helperStart)throw new Error('Phase full-body timeout helper missing from source.');
+ const bodyAbortCalls=[];
+ const abortContext=createContext({
+  URL,Response,DOMException,AbortController,Date,setTimeout,clearTimeout,
+  openMeteoQuotaOrigin:()=>null,openMeteoQuotaCooldownByOrigin:new Map(),rememberOpenMeteoQuota:()=>{},
+  fetch:async(_url,init)=>new Response(new ReadableStream({
+   start(controller){
+    init.signal.addEventListener('abort',()=>{
+     bodyAbortCalls.push('aborted');
+     controller.error(new Error('aborted stalled phase JSON body'));
+    },{once:true});
+   }
+  }),{status:200,headers:{'content-type':'application/json'}})
+ });
+ runInContext(phaseSource.slice(helperStart,helperEnd),abortContext,{timeout:2000});
+ let bodyRejected=false;
+ try{await runInContext('midPhaseJsonResponse("https://api.open-meteo.com/v1/forecast",{},35)',abortContext,{timeout:2000})}
+ catch(error){bodyRejected=/aborted stalled phase JSON body|abort/i.test(String(error))}
+ if(!bodyRejected||bodyAbortCalls.length!==1)throw new Error('A stalled JSON body passed the phase deadline or was not aborted: '+bodyAbortCalls.length);
+ abortContext.fetch=async()=>new Response(JSON.stringify({precipitation:0,rain:null}),{status:200,headers:{'content-type':'application/json'}});
+ const immediate=await runInContext('midPhaseJsonResponse("https://api.open-meteo.com/v1/forecast",{},200)',abortContext,{timeout:2000});
+ if(!immediate.response.ok||immediate.payload.precipitation!==0||immediate.payload.rain!==null)
+  throw new Error('Full-body response helper changed genuine dry zero or Missing null.');
+
 }finally{globalThis.fetch=realFetch}
 console.log('Radar-/Regionalmodell-Phasenraster geprüft: dynamische Rapid-/Regionalmodellwahl, 13×19/247 Punkte, 3 sequenzielle Batches, Rate-Limit-Fallback und Stale-Run-Abbruch.');
