@@ -103,11 +103,19 @@ export function start(client,num,submit=false){
  return {status:'STARTED',...receipt,url:t.html_url||null};
 }
 export function status(client,num){
- const s=preflight(client,num);
- check(s.receipt&&s.receipt.taskDigest===s.digest&&s.receipt.base===s.sha,'missing/mismatched task receipt');
- const t=client('agents/repos/'+REPO+'/tasks/'+s.receipt.id);
- check(t?.id===s.receipt.id,'task ID mismatch');
- return {status:t.state||'UNKNOWN',task:t.id,issue:num,url:t.html_url||null,artifacts:t.artifacts||[],releaseAuthorized:false};
+ check(Number.isSafeInteger(num)&&num>0,'positive issue number required');
+ const user=client('user');
+ check(user?.login===OWNER&&user?.id===USER_ID,'user-authenticated owner required');
+ const task=parseIssue(client('repos/'+REPO+'/issues/'+num));
+ const r=receiptFrom(comments(client,num));
+ check(r&&r.taskDigest===digest(task)&&r.base===task.baseSha,'missing/mismatched task receipt');
+ // Historical task status remains readable after a later, valid Stable promotion.
+ const main=client('repos/'+REPO+'/branches/main')?.commit?.sha;
+ const stable=client('repos/'+REPO+'/branches/mid-stable')?.commit?.sha;
+ check(HEX.test(main)&&main===stable,'main/stable drift');
+ const t=client('agents/repos/'+REPO+'/tasks/'+r.id);
+ check(t?.id===r.id,'task ID mismatch');
+ return {status:t.state||'UNKNOWN',task:t.id,issue:num,url:t.html_url||null,artifacts:t.artifacts||[],currentStable:stable,requiresFreshIntegration:stable!==r.base,releaseAuthorized:false};
 }
 if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
  try{
