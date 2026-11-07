@@ -588,3 +588,4 @@ jobs:
           path: ${{ runner.temp }}/ap1c-full-one-run.json
           retention-days: 7
           if-no-files-found: ignore
+# AP1c one-shot: retain PR-body authorization until matrix jobs are queued; then remove it.
