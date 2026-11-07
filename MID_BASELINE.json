@@ -600,6 +600,7 @@
     "scripts/test-mid-collaboration-hardening-0985106.mjs",
     "scripts/test-mid-followups-095323.mjs",
     "scripts/test-mid-copilot-handoff.mjs",
+    "scripts/test-mid-copilot-task.mjs",
     "scripts/test-mid-kilo-handoff-0985429.mjs",
     "scripts/test-mid-nine-step-integration-09530.mjs",
     "scripts/test-mid-original-dwd-weather-profile-09310.mjs",
