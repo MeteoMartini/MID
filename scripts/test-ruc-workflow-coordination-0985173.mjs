@@ -4,7 +4,15 @@ import {spawnSync} from 'node:child_process';
 import vm from 'node:vm';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const source=read('worker-src/00-core-observations.js');
-const fn=source.slice(source.indexOf('async function dwdRucStaticJson('),source.indexOf('\n',source.indexOf('async function dwdRucStaticJson(')));
+// The phase-only JSON reader is multiline and shares a body-bounded fetch
+// helper; exercise the COMPLETE actual implementation rather than truncating
+// the first line. The legacy forecast/health cache assertions remain strict.
+const helperStart=source.indexOf('async function midPhaseNativeReadResponse(');
+const jsonStart=source.indexOf('async function dwdRucStaticJson(',helperStart);
+const jsonEnd=source.indexOf('\nasync function dwdRucStaticObject(',jsonStart);
+assert.ok(helperStart>=0&&jsonStart>helperStart&&jsonEnd>jsonStart,
+ 'RUC JSON reader/helper extraction must be structurally complete');
+const fn=source.slice(helperStart,jsonEnd);
 const urls=[];
 const context={URL,Date,fetchWithDeadline:async url=>{urls.push(new URL(url));return{ok:true,json:async()=>({run:'new'})}}};
 vm.createContext(context);vm.runInContext(fn,context);
