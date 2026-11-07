@@ -40,6 +40,28 @@ jobs:
         shell: bash
         run: npm run test:coverage
 
+      # Additive shadow QA; original coverage/CI-origin checks remain unchanged.
+      - name: Open-Meteo RUC Spatial und DWD-Batch Shadow-Regressionen (offline)
+        shell: bash
+        timeout-minutes: 3
+        run: |
+          set -euo pipefail
+          node --test \
+            tools/ruc/test_openmeteo_spatial_shadow.mjs \
+            tools/ruc/test_openmeteo_spatial_byte_shadow.mjs \
+            tools/ruc/test_dwd_batch_source_plan_shadow.mjs \
+            tools/ruc/test_dwd_staged_source_sha_shadow.mjs
+
+      # Temporary science QA, restricted to this Draft investigation; no release permission.
+      - name: DWD ICON-D2 einmalige GRIB-Quellen je Batch prüfen (offline)
+        shell: bash
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s tools/ruc -p 'test_dwd_stage_batch_reuse.py' -v
+
+      # Branch-only real-source science experiments are retained as audited tools,
+      # not as fragile mandatory external live dependencies for ordinary CI.
       - name: CI/CD-Effizienz- und Herkunftsregressionen (read-only)
         shell: bash
         run: |
