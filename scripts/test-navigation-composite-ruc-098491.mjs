@@ -14,7 +14,9 @@ assert.ok(radar.includes("<Polyline renderer={renderer} positions={item.path as 
 assert.ok(radar.includes("renderer=useMemo(()=>L.svg({pane:'mid-model-lines'"),'Modelllinien müssen einen explizit an mid-model-lines gebundenen SVG-Renderer verwenden');
 for(const token of ['rucRain?:number[]','rucSnowfallWaterEquivalent?:number[]','graupelWaterEquivalent?:number[]','phaseSource?:string'])assert.ok(types.includes(token),`RUC-Phasentyp fehlt: ${token}`);
 for(const token of ['function dwdRucRapidPhaseTimeIndex','async function dwdRucStaticPhaseGrid','meta?.rapid?.phase15','graupel_water_equivalent'])assert.ok(core.includes(token),`RUC-Phasenadapter fehlt: ${token}`);
-assert.ok(models.includes('ruc=await dwdRucStaticPhaseGrid(lats,lons,roundedMs,env)'),'Radar-Phasenraster muss native RUC-Phase auf 15-min-gerundeter Feldgültigkeitszeit ergänzen');
+assert.ok(models.includes('const phaseFetchBudget=midPhaseRequestBudget(phaseWallDeadlineMs)')
+ && models.includes('ruc=await dwdRucStaticPhaseGrid(lats,lons,roundedMs,env,phaseFetchBudget)'),
+ 'Radar-Phasenraster muss native 15-min-RUC-Feldgültigkeit mit GET-Budget in derselben Invocation bewahren');
 assert.ok(models.includes("phaseSource:sourceCounts['dwd-icon-d2-ruc']?ruc?.source:undefined")&&models.includes("phaseValidTimeByCell[i]=ruc.time")&&models.includes("phaseRunByCell[i]=ruc.run"),'RUC Herkunft, Lauf und Gültigkeitszeit müssen pro Originalzelle erhalten bleiben');
 assert.ok(router.includes('precipitationPhaseGridData(lat,lon,target,env)'),'Workerroute muss RUC-Kontext weiterreichen');
 for(const token of ['Graupel · ICON-D2-RUC','Mischphase · ICON-D2-RUC','Schnee · ICON-D2-RUC','Regen · ICON-D2-RUC'])assert.ok(phase.includes(token),`RUC-Phasenauswertung fehlt: ${token}`);
