@@ -1,3 +1,13 @@
+# MID v0.9.85.445
+
+- Kartenbilder wechseln auch bei verzögerter Grafikausgabe zuverlässig, ohne alte Rasterebenen zurückzulassen.
+- Die geprüfte Copilot-Übergabe aus .444 bleibt enthalten. Wetterdaten und amtliche Warnungen bleiben unverändert.
+
+# MID v0.9.85.444
+
+- Geprüfte Übergabe der vorbereiteten RUC-Prüfwerkzeuge aus Copilot ergänzt; automatische Empfangsprüfung ohne Ausführung fremden Codes.
+- Wetterdaten und fachliche RUC-Freigaben bleiben unverändert; drei echte DWD-Prüfläufe weiterhin offen.
+
 # MID v0.9.85.443
 
 - Repository-Anweisungen, lesender Audit-Agent und prüfbare Übergaben für ausdrücklich beauftragte GitHub-Copilot-Arbeiten ergänzt. Wetterdaten, Oberfläche und Diagnoseauswahl unverändert.
