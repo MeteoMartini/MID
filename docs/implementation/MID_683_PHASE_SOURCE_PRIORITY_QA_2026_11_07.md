@@ -125,3 +125,10 @@ Die [verbindliche Niederschlags-Intervallvereinbarung](../../MID_PRECIPITATION_I
 6. Erst auf neuer vollständig verifizierter Basis synchronisierte Version/Changelogs für **tatsächlichen Build**; Source-PR-Gate → kontrollierter Bot-Merge → serverseitiges ZIP → `install-mid.yml` → Worker/Pages → Stable-Promotion. **Nicht** automatisch Ready, Mergen oder Publizieren, solange Abnahme fehlt.
 
 **Freigabe:** BLOCKED. Kein Source-/Installer-/Worker-/Pages-Green, kein neuer produktiver Build und keine Stable-Promotion durch diese Dokumentation.
+
+
+## 5c. NoData-Zellzulassung trotz abgeleitetem WW-Code (MID 18.2.78)
+
+Auf QA-HEAD `cc80d44484798c0ea0b661c1d55c8eab4bd3e6ec` zeigte der Review, dass `weather_code=0` oder `71` bei gleichzeitig fehlenden `precipitation`, `rain` und `snowfall` eine D2/EU-Zelle als abgedeckt markieren konnte. Der Code kann ein abgeleitetes Open-Meteo-Signal sein und ist bei diesen fehlenden Mengen **kein** Nachweis einer nutzbaren Niederschlagsphase. Die zellbezogene Zulassung fordert daher mindestens einen numerisch endlichen, nichtnegativen Mengenwert. `null`/Missing bleibt Missing; echte `0` bleibt eine gültige trockene Mengenaussage. Eine Code-only-Zelle wird nicht als Modellabdeckung gezählt und kann im nächsten ICON-Fallback auf belastbare Phasenwerte treffen.
+
+Die bestehende Baseline-Pflichtregression `scripts/test-radar-model-phase-reliability-09395.mjs` enthält dafür einen neuen funktionalen 13×19-Negativtest: D2 `weather_code=0/71` ohne jede Menge → EU-Evidenz, daneben D2 mit echten Mengen-Nullen bleibt D2; `sourceCounts`, Intervalle und phasenbezogene Werte werden geprüft. **Ergebnisse erst nach GitHub-CI auf endgültigem Kandidaten-HEAD ausweisen.** Keine Freigabe der Single-Runs-API, keine originale Open-Meteo-GRIB-Zellbehauptung und keine Source-/Installer-/Stable-Gates durch diesen gezielten Fix.

@@ -488,8 +488,11 @@ async function precipitationPhaseGridData(lat,lon,target,env){
    if(!choice)continue;
    const get=name=>values?.[name]?.[choice.index],code=phaseGridWeatherCode(midPhaseNumber(get('weather_code')));
    const precip=midPhaseAmount(get('precipitation')),rain=midPhaseAmount(get('rain')),snow=midPhaseAmount(get('snowfall'));
-   // Missing/NaN is NOT dry 0; even an edge cell inside BBOX can be absent.
-   if(!Number.isFinite(code)&&![precip,rain,snow].some(Number.isFinite))continue;
+   // Derived Open-Meteo weather_code alone is not a native rain/snow field:
+   // even weather_code=0/71 with all phase amounts Missing is NO DATA, not
+   // verified dry/snow coverage. Continue to the next source for this cell.
+   // Actual finite zeros remain valid dry-model evidence (never convert null to 0).
+   if(![precip,rain,snow].some(Number.isFinite))continue;
    const thermal=interval===15?point?.hourly:values,thermalPick=interval===15?midPhaseIndex(thermal,roundedMs,60):choice,sameTime=thermalPick?.stamp===choice.stamp;
    frame.temperature2m[i]=sameTime?midPhaseNumber(thermal?.temperature_2m?.[thermalPick.index]):NaN;
    frame.relativeHumidity2m[i]=sameTime?midPhaseAmount(thermal?.relative_humidity_2m?.[thermalPick.index]):NaN;

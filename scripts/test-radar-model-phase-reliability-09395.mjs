@@ -106,6 +106,61 @@ try{
  }
  if(priority.provider.includes('native Originalzellen')&&!priority.provider.includes('nicht native Originalzellen'))throw new Error('Open-Meteo interpolated samples impersonate native DWD originals');
 
+
+ // Code-only model metadata must NOT block a real fallback phase.
+ // The derived Open-Meteo weather_code may be finite even when ALL
+ // precipitation/rain/snowfall fields are Missing. A numeric code
+ // (including 0 = apparently dry, or 71 = snow) does not fill that gap.
+ let d2CodeOnlyCells=0,euCodeOnlyFallbackCalls=0;
+ globalThis.fetch=async request=>{
+  const url=new URL(typeof request==='string'?request:request.url);
+  if(url.hostname==='api.open-meteo.com'&&url.pathname.includes('/static/meta.json'))
+   return new Response(JSON.stringify({last_run_initialisation_time:metaInitialMs/1000}),{status:200,headers:{'content-type':'application/json'}});
+  if(url.hostname==='api.open-meteo.com'&&url.pathname.includes('/v1/forecast')){
+   const model=url.searchParams.get('models'),lats=url.searchParams.get('latitude').split(',').map(Number),lons=url.searchParams.get('longitude').split(',').map(Number);
+   const d2=model==='dwd_icon_d2_15min',eu=model==='dwd_icon_eu';
+   if(!d2&&!eu)throw new Error('Unexpected global phase request for covered D2/EU NoData fixture');
+   if(eu)euCodeOnlyFallbackCalls+=lats.length;
+   return new Response(JSON.stringify(lats.map((latitude,i)=>{
+    const codeOnly=d2&&latitude>50.9;
+    if(codeOnly)d2CodeOnlyCells++;
+    return{latitude,longitude:lons[i],elevation:50,[d2?'minutely_15':'hourly']:{
+     time:triple(d2?iso:hourIso),
+     weather_code:triple(d2?(codeOnly&&latitude>51.1?71:0):61),
+     precipitation:triple(d2?(codeOnly?null:0):.3),
+     rain:triple(d2?(codeOnly?null:0):.3),
+     snowfall:triple(d2?(codeOnly?null:0):0),
+     snowfall_height:triple(500),freezing_level_height:triple(900),
+     temperature_2m:triple(2),relative_humidity_2m:triple(85)
+    }};
+   })),{status:200,headers:{'content-type':'application/json'}});
+  }
+  throw new Error('Unexpected phase code-only NoData probe '+url);
+ };
+ const codeOnlyModule=await import('../worker/metar-proxy.js?phase-code-only-nodata='+Date.now());
+ const codeOnlyResponse=await codeOnlyModule.default.fetch(new Request('https://mid.test/?mode=precipitation-phase-grid&lat=50.82&lon=7.05&target='+encodeURIComponent(target)),{});
+ const codeOnlyGrid=await codeOnlyResponse.json();
+ if(!codeOnlyResponse.ok)throw new Error('Code-only NoData fallback request failed: '+JSON.stringify(codeOnlyGrid));
+ let expectedCodeOnly=0,expectedExplicitDry=0,seenDryCode=0,seenSnowCode=0;
+ for(let j=0;j<codeOnlyGrid.lats.length;j++)for(let i=0;i<codeOnlyGrid.lons.length;i++){
+  const latitude=codeOnlyGrid.lats[j],k=j*codeOnlyGrid.lons.length+i;
+  const source=codeOnlyGrid.phaseSourceByCell[k];
+  if(latitude>50.9){
+   expectedCodeOnly++;
+   if(latitude>51.1)seenSnowCode++;else seenDryCode++;
+   if(source!=='dwd-icon-eu'||codeOnlyGrid.frame.rain[k]!==.3||codeOnlyGrid.phaseIntervalMinutesByCell[k]!==60)
+    throw new Error('D2 WW-only Missing masked genuine EU phase at '+k+': '+source);
+  }else{
+   expectedExplicitDry++;
+   if(source!=='dwd-icon-d2'||codeOnlyGrid.frame.rain[k]!==0||codeOnlyGrid.frame.snowfall[k]!==0||codeOnlyGrid.phaseIntervalMinutesByCell[k]!==15)
+    throw new Error('D2 true zero amounts were not preserved as dry at '+k+': '+source);
+  }
+ }
+ if(!seenDryCode||!seenSnowCode||!expectedExplicitDry||d2CodeOnlyCells!==expectedCodeOnly||euCodeOnlyFallbackCalls!==expectedCodeOnly)
+  throw new Error('Code-only 0/71 and real dry 0 negative fixture did not execute all paths.');
+ if(codeOnlyGrid.sourceCounts?.['dwd-icon-d2']!==expectedExplicitDry||codeOnlyGrid.sourceCounts?.['dwd-icon-eu']!==expectedCodeOnly)
+  throw new Error('Code-only NoData cells were counted as valid D2 coverage '+JSON.stringify(codeOnlyGrid.sourceCounts));
+
  // Genuine provider behavior (HTTP 400): one out-of-domain D2 point invalidates
  // an entire multi-location call. Valid D2 cells must survive bounded bisection.
  let rejectedD2Groups=0,allD2Calls=0;
