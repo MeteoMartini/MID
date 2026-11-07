@@ -10,7 +10,7 @@ const RECEIPT='MID-COPILOT-RECEIPT-V1';
 
 export function check(ok,reason){if(!ok)throw new Error('MID Copilot bridge: '+reason);}
 export function api(path,payload){
- const args=['api','--method',payload===undefined?'GET':'POST',path];
+ const args=['api','-H','Accept: application/vnd.github+json','-H','X-GitHub-Api-Version: 2026-03-10','--method',payload===undefined?'GET':'POST',path];
  if(payload!==undefined)args.push('--input','-');
  return JSON.parse(execFileSync('gh',args,{input:payload===undefined?undefined:JSON.stringify(payload),encoding:'utf8',maxBuffer:8*1024*1024}));
 }
@@ -83,6 +83,7 @@ export function promptFor(num,t){
  'Acceptance: '+t.acceptance.join(' | '),
  t.mode==='audit'?'READ ONLY. No modifications.':'Only isolated untrusted copilot/* candidate; no protected/agent-integration refs, CI, governance, credentials or release changes.',
  'Do NOT create any pull request, merge, publish, deploy, expand rights or buy services.',
+ 'Report task status and exact base/head/tree/changed-path/QA evidence as a GitHub comment on the original Issue #'+num+' if allowed, with no secrets; if unavailable report the blocker instead.',
  'Provide exact original and candidate SHA/tree, changed files, focused tests, unverified gates, overlap analysis and safe handoff. Preserve work if transport is unavailable.',
  'NOT RELEASE AUTHORIZED.'
  ].join('\n\n');
