@@ -6,6 +6,7 @@ import json
 import tempfile
 import contextlib
 import io
+import time
 from pathlib import Path
 
 path=Path(__file__).with_name('check_ruc_schedule_guard.py')
@@ -130,7 +131,7 @@ print('RUC active compressed inventory guard rejects malformed manifests; raw-pr
 
 # Real DWD EPS v1 member path: .../r/RUN/e/NN/s/PTxxxH00M.grib2 .
 # Directory checks are only negative readiness evidence; not GRIB admission.
-def index_fixture(holes=None,missing_member=None,unfamiliar=False,timeout=False):
+def index_fixture(holes=None,missing_member=None,unfamiliar=False,timeout=False,subhourly=False):
     holes=holes or {}
     def fetch(url):
         if url.endswith('/e/'):
@@ -143,17 +144,29 @@ def index_fixture(holes=None,missing_member=None,unfamiliar=False,timeout=False)
         if timeout and n==1:raise TimeoutError('index unavailable')
         parts=[f'<a href="PT{h:03d}H00M.grib2">PT{h:03d}H00M.grib2</a>'
                for h in range(28) if h not in holes.get(n,set())]
+        if subhourly:
+            parts += [f'<a href="PT{h:03d}H{m:02d}M.grib2">PT{h:03d}H{m:02d}M.grib2</a>'
+                      for h in range(27) for m in range(5,60,5)]
         if unfamiliar and n==2:parts.append('<a href="unexpected.grib2">x</a>')
         return ''.join(parts)
     return fetch
 
 NEW='2026-08-30T03:00'
 assert guard.advertised_eps_listing_complete(NEW,index_fixture()) is True
+# Real DWD 20Z example: 325 names = 28 hourly + 297 five-minute.
+assert guard.advertised_eps_listing_complete(NEW,index_fixture(subhourly=True)) is True
+assert guard.advertised_eps_listing_complete(NEW,index_fixture(holes={1:{13}},subhourly=True)) is False
 assert guard.advertised_eps_listing_complete(NEW,index_fixture({1:{13,27}})) is False
 assert guard.advertised_eps_listing_complete(NEW,index_fixture(missing_member=20)) is False
 assert guard.advertised_eps_listing_complete(NEW,index_fixture(unfamiliar=True)) is None
 assert guard.advertised_eps_listing_complete(NEW,index_fixture(holes={1:{13}},unfamiliar=True)) is None
 assert guard.advertised_eps_listing_complete(NEW,index_fixture(timeout=True)) is None
+def stalled_index(_url):
+    time.sleep(1.0)
+    return ''
+start=time.monotonic()
+assert guard.advertised_eps_listing_complete(NEW,stalled_index,budget_seconds=0.03) is None
+assert time.monotonic()-start<0.7, 'wall-clock alarm must interrupt stalled I/O'
 assert guard.advertised_eps_listing_complete('bad',index_fixture()) is None
 assert guard.advertised_eps_listing_complete(NEW,lambda _: '<a href="new-format/">new-format</a>') is None
 healthy=json.loads(json.dumps(active))
