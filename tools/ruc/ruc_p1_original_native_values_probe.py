@@ -305,6 +305,10 @@ def probe(run_text, *, hours, rapid_hours=6, members=20, workers=3, getter=safe_
                     for future in done:
                         index = pending.pop(future)
                         ready[index] = future.result()
+                    # The completed Future also retains its GRIB payload.
+                    # Drop transient references once the result is owned by ready.
+                    done.clear()
+                    del future
                 while next_process in ready:
                     row, data, before, after = ready[next_process]
                     audit = examine(row, data, before, after, run)
@@ -337,6 +341,8 @@ def probe(run_text, *, hours, rapid_hours=6, members=20, workers=3, getter=safe_
                         eps_pairs.add(pair)
                     completed.append(audit)
                     del ready[next_process]
+                    # Avoid one extra untracked GRIB byte buffer retained by locals.
+                    del row, data, before, after
                     next_process += 1
                     refill(pool)
 
