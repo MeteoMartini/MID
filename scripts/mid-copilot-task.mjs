@@ -96,7 +96,9 @@ export function start(client,num,submit=false){
  liveBase(client,s.task);
  check(digest(parseIssue(client('repos/'+REPO+'/issues/'+num)))===s.digest,'issue changed during preflight');
  check(!receiptFrom(comments(client,num)),'concurrent receipt appeared');
- const t=client('agents/repos/'+REPO+'/tasks',{prompt:promptFor(num,s.task),base_ref:'mid-stable',create_pull_request:false});
+ let t;
+ try{t=client('agents/repos/'+REPO+'/tasks',{prompt:promptFor(num,s.task),base_ref:'mid-stable',create_pull_request:false});}
+ catch(e){throw new Error('MID Copilot bridge: cloud task outcome UNKNOWN; inspect GitHub Agents before any retry. '+String(e.message||e));}
  check(typeof t?.id==='string'&&/^[a-zA-Z0-9-]{8,100}$/.test(t.id),'cloud response uncertain; do not retry blindly');
  const receipt={schema:1,id:t.id,issue:num,base:s.sha,taskDigest:s.digest,noAutoPR:true,releaseAuthorized:false};
  try{
