@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 import tempfile
-from d2_native_eight_bundle import checked_source,build_original_eight,packing_quantum
+from d2_native_eight_bundle import checked_source,build_original_eight,packing_quantum,select_verified_original_run
 
 class EightOriginalBundleTests(unittest.TestCase):
  def fixture(self):
@@ -16,6 +16,27 @@ class EightOriginalBundleTests(unittest.TestCase):
    checked_source(rows,'20261101T0900','t_2m',6)
   with self.assertRaisesRegex(ValueError,'missing/duplicated'):
    checked_source(rows*2,'20261101T1200','t_2m',6)
+ def test_explicit_three_run_qa_selector_preserves_original_provenance(self):
+  runs=['20261107T0300','20261107T0600','20261107T0900']
+  records=[{'model':'icon-d2','run':run,'parameter':'t_2m','leadHours':6}
+           for run in runs]
+  self.assertEqual(select_verified_original_run(records),runs[-1])
+  for run in runs:
+   with self.subTest(run=run):
+    self.assertEqual(select_verified_original_run(records,run),run)
+  for invalid in ('20261107T0000','20261107T1200','20261107T0900Z',
+                  '20261107T0900 ', '',True,1,{}):
+   with self.subTest(invalid=invalid),self.assertRaisesRegex(
+       ValueError,'not in verified three-cycle'):
+    select_verified_original_run(records,invalid)
+  with self.assertRaisesRegex(ValueError,'Three distinct'):
+   select_verified_original_run(records[:2],runs[0])
+  with self.assertRaisesRegex(ValueError,'Three distinct'):
+   select_verified_original_run(records+[
+       {'model':'icon-d2','run':'20261107T1200'}],runs[0])
+  # A foreign model must not become an eligible D2 cycle.
+  self.assertEqual(select_verified_original_run(records+[
+      {'model':'icon-d2-ruc','run':'20261107T1000'}]),runs[-1])
  def test_unsupported_leads_and_disjoint_sandbox_guard(self):
   with tempfile.TemporaryDirectory() as td:
    root=Path(td);manifest=root/'inventory-input.json'
