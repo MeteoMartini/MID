@@ -8,7 +8,7 @@ const original={schema:'mid.copilot-task.v1',repository:'MeteoMartini/MID',baseS
 function mock(o={}){
  const task={...original,...o.task};
  const issue={state:'open',title:'[MID-COPILOT-TASK] scoped test',user:{login:'MeteoMartini',id:75040651},body:'<!-- MID-COPILOT-TASK-V1\n'+JSON.stringify(task)+'\n-->',...o.issue};
- const calls=[],list=o.comments||[];
+ const calls=[],list=(o.comments||[]).map(c=>c.user?c:{...c,user:{login:'MeteoMartini',id:75040651}});
  const b64=x=>({encoding:'base64',content:Buffer.from(JSON.stringify(x)).toString('base64')});
  const client=(path,body)=>{
   calls.push({path,body});
@@ -17,7 +17,7 @@ function mock(o={}){
   if(path.includes('/contents/package.json'))return b64({version:o.version||task.version});
   if(path.includes('/contents/MID_BASELINE.json'))return b64({releaseVersion:o.version||task.version});
   if(path.includes('/issues/4/comments?'))return list;
-  if(path.endsWith('/issues/4/comments')&&body){if(o.failReceipt)throw Error('receipt denied');return {id:2};}
+  if(path.endsWith('/issues/4/comments')&&body){if(o.failReceipt)throw Error('receipt denied');return {id:2,body:o.tamperReceipt?'tampered':body.body,user:{login:'MeteoMartini',id:75040651}};}
   if(path.endsWith('/issues/4'))return issue;
   if(path==='agents/repos/MeteoMartini/MID/tasks'&&body)return {id:'01234567-aaaa-bbbb-cccc-1234567890ab',html_url:'https://github.com/agents/task'};
   if(path.startsWith('agents/repos/MeteoMartini/MID/tasks/'))return {id:'01234567-aaaa-bbbb-cccc-1234567890ab',state:'completed',artifacts:[]};
@@ -63,7 +63,7 @@ test('status is read-only and cannot confer release approval',()=>{
  assert(x.calls.every(c=>c.body===undefined));
 });
 test('bad or repeated receipts fail closed',()=>{
- assert.throws(()=>receiptFrom([{body:'MID-COPILOT-RECEIPT-V1\n{}'}]),/receipt ID/);
+ assert.throws(()=>receiptFrom([{body:'MID-COPILOT-RECEIPT-V1\n{}',user:{login:'MeteoMartini',id:75040651}}]),/receipt fields/);
  assert.throws(()=>receiptFrom([{body:'MID-COPILOT-RECEIPT-V1\n{}'},{body:'MID-COPILOT-RECEIPT-V1\n{}'}]),/multiple/);
 });
 test('audit mode explicitly read-only',()=>{assert.match(promptFor(4,{...original,mode:'audit'}),/READ ONLY/);assert.match(promptFor(4,original),/NOT RELEASE AUTHORIZED/);});
@@ -77,4 +77,35 @@ test('historical task remains queryable after independent stable promotion',()=>
  assert.equal(result.requiresFreshIntegration,true);
  assert.equal(result.releaseAuthorized,false);
  assert(s.calls.every(c=>c.body===undefined));
+});
+
+test('untrusted public issue receipt cannot spoof cloud execution',()=>{
+ const m=mock();start(m.client,4,true);
+ const body=m.calls.find(c=>c.path.endsWith('/issues/4/comments')&&c.body).body.body;
+ const forged=mock({comments:[{body,user:{login:'outside-attacker',id:42}}]});
+ assert.throws(()=>start(forged.client,4,true),/untrusted receipt author/);
+ assert.equal(forged.calls.filter(c=>c.path==='agents/repos/MeteoMartini/MID/tasks').length,0);
+});
+test('receipt cannot claim release authorization or a different issue',()=>{
+ const m=mock();start(m.client,4,true);
+ const text=m.calls.find(c=>c.path.endsWith('/issues/4/comments')&&c.body).body.body;
+ for(const override of [{releaseAuthorized:true},{noAutoPR:false},{issue:5}]){
+  const record=JSON.parse(text.split('\n').slice(1).join('\n'));
+  const body='MID-COPILOT-RECEIPT-V1\n'+JSON.stringify({...record,...override});
+  const x=mock({comments:[{body}]});
+  assert.throws(()=>status(x.client,4),/receipt fields|mismatched task receipt/);
+ }
+});
+test('receipt write must be independently confirmed and must not auto-retry',()=>{
+ const m=mock({tamperReceipt:true});
+ assert.throws(()=>start(m.client,4,true),/TASK ALREADY STARTED.*receipt unverified/);
+ assert.equal(m.calls.filter(c=>c.path==='agents/repos/MeteoMartini/MID/tasks').length,1);
+});
+
+test('closed historical issue remains readable, but cannot start a new task',()=>{
+ const m=mock();start(m.client,4,true);
+ const receipt=m.calls.find(c=>c.path.endsWith('/issues/4/comments')&&c.body).body.body;
+ const closed=mock({comments:[{body:receipt}],issue:{state:'closed'}});
+ assert.equal(status(closed.client,4).status,'completed');
+ assert.throws(()=>start(closed.client,4,true),/issue state invalid/);
 });
