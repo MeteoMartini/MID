@@ -2,7 +2,7 @@ name: MID D2 original native QA (read-only)
 on:
   push:
     branches:
-      - chatgpt/v0.9.85.412-d2-ruc-native-qa-from411
+      - chatgpt/v0.9.85.446-d2-full-domain-ap2-original-qa
     paths:
       - '.github/workflows/mid-d2-native-original-audit.yml'
       - 'tools/ruc/pilot_dwd_domain_inventory.py'
@@ -19,10 +19,11 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: mid-d2-native-original-qa
+  group: mid-d2-native-original-qa-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   qualify:
+    if: github.event.head_commit.message == 'qa(d2): one bounded original 3-cycle full-domain qualification on stable .445'
     name: Three original DWD ICON-D2 cycles with GRIB/bitmap/WMO parity (read-only)
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -43,7 +44,9 @@ jobs:
           stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
           main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
           test "$stable" = "$main"
-          test "$stable" = 9bf44c3354f98937fa058aac5d6dceb5895d29e5
+          test "$stable" = b6526e7c5c24035bd1a75b87b77e7bb8e821c334
+          git merge-base --is-ancestor "$stable" HEAD
+          cmp ci/github/workflows/mid-d2-native-original-audit.yml .github/workflows/mid-d2-native-original-audit.yml
       - name: Python 3.12 for native GRIB QA
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
