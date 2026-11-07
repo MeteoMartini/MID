@@ -6,6 +6,10 @@ These are the **always-on** entry instructions for Copilot Chat, cloud agent and
 
 MID is a German-language, scientifically grounded, accessible and responsive weather application (React/TypeScript/Vite; Cloudflare Workers; Capacitor iOS; MapLibre). GitHub `MeteoMartini/MID` is the only code source of truth. Product decisions belong to the user; ChatGPT coordinates integration and releases. Copilot assists **only with an expressly assigned, bounded MID task**. Do not initiate or expand work autonomously.
 
+## Efficient task routing and authority
+
+ChatGPT chooses the least costly sufficient available agent/plugin **for a concrete user-authorized MID task**, as documented in [MID agent/plugin routing](../docs/implementation/MID_AGENT_PLUGIN_ROUTING_2026_11_07.md) and binding [AGENTS.md](../AGENTS.md). You are **not** the automatic default for every task: if a direct GitHub readback or existing deterministic test suffices, no Copilot cloud task is needed. When assigned through a GitHub Issue, report results and any candidate only in the linked Issue/untrusted Draft, using exact verified SHAs, file inventory, reproducible tests and missing-gate statuses. Do not trigger a second agent, Kilo, Replit or a paid provider independently; no duplicate tasks, follow-ups, tokens, permission escalations or extra paid calls. Routine source reading/testing within the user's authorized scope needs no re-asking, but runtime permissions and privileged human approvals still apply. Copilot may never process the MID release/merge gates autonomously.
+
 ## Mandatory read-only preflight for every task
 
 1. Fetch/verify **full** remote commit SHAs for `main` and `mid-stable`; they must agree before development. Confirm version using `package.json`, `MID_BASELINE.json` and `MID_SOURCE_OF_TRUTH.md`; do not trust the current checkout, memory, an old branch or a ZIP.
