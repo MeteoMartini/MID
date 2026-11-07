@@ -16,7 +16,7 @@ function phasePoint(lat,lon,targetMs){
 }
 globalThis.fetch=async input=>{
  const url=new URL(typeof input==='string'?input:input.url);
- if(url.hostname==='api.open-meteo.com'&&url.pathname.includes('/static/meta.json')){if(/icon_d2_ruc|dwd_icon_d2_ruc/.test(url.pathname))return new Response('{}',{status:404,headers:{'content-type':'application/json'}});return new Response(JSON.stringify({last_run_initialisation_time:metaInitialMs/1000}),{status:200,headers:{'content-type':'application/json'}})};
+ if(url.hostname==='api.open-meteo.com'&&url.pathname.includes('/static/meta.json')){if(/icon_d2_ruc|dwd_icon_d2_ruc|dwd_icon_eu|\/dwd_icon\//.test(url.pathname))return new Response('{}',{status:404,headers:{'content-type':'application/json'}});return new Response(JSON.stringify({last_run_initialisation_time:metaInitialMs/1000}),{status:200,headers:{'content-type':'application/json'}})};
  if(url.hostname==='api.open-meteo.com'&&url.pathname.includes('/v1/forecast')){
   phaseBatchCalls++;activeCalls++;maxConcurrent=Math.max(maxConcurrent,activeCalls);
   try{
