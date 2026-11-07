@@ -1,75 +1,43 @@
-# MID Copilot Cloud Bridge – 07.11.2026
+# MID × GitHub Copilot: direkter Issue-/Draft-Handoff (07.11.2026)
 
-## Ziel und Vertrauensmodell
+## Ziel und erfolgreich nachgewiesener Weg
 
-ChatGPT erstellt und liest GitHub-Issues mit dem vorhandenen GitHub-Plugin. Der begrenzte Dispatcher scripts/mid-copilot-task.mjs liest einen ausdrücklich beauftragten Task aus dem Issue, prüft die aktuelle Stable-Provenienz und versucht pro autorisiertem Submit **einen** Cloud-Agent-Start über die offizielle Agent-Tasks-API. Eine Task-ID-Quittung wird ins Issue geschrieben und vom Server zurückgelesen; Quittungen anderer GitHub-Konten gelten als unvertrauenswürdig. Task und Codekandidat sind unvertrauenswürdig; **keine** PR-, Merge-, Release- oder Stable-Autorisierung.
+**ChatGPT → GitHub Issue → Copilot Cloud Agent → untrusted Draft PR → ChatGPT Review.** Kein manueller Text-/Patchtransfer mehr. Die bereits verbundene GitHub-App genügt zur **Issue-Zuweisung**; der separate Copilot-Agent-Tasks-API-Start und zusätzliche Tokens werden nicht benötigt.
 
-Der bisherige AP1b-spezifische Handoff, bestehende Kilo-/Replit-Verträge und MID-Release-Gates werden nicht verändert. Keine neuen CI-Secrets, GitHub-Ruleset-Ausnahmen, Token oder Dienste.
+**Live-Pilot auf** `main=mid-stable=b6526e7c5c24035bd1a75b87b77e7bb8e821c334`, **v0.9.85.445:**
+- ChatGPT erstellte [Issue #688](https://github.com/MeteoMartini/MID/issues/688) mit klarer lesender QA-Aufgabe und SHA-/Pfad-/Rechte-/Kostenbegrenzung.
+- Das verbundene GitHub-Plugin wies `copilot-swe-agent[bot]` als Bearbeiter zu; GitHub lieferte `Copilot` als bestätigten Assignee.
+- GitHub eröffnete **automatisch** [Draft-PR #689](https://github.com/MeteoMartini/MID/pull/689), Autor `Copilot`, untrusted Branch `copilot/mid-copilot-pilot-review-draft-pr-687`, Basis `main` auf genau dem Stable-SHA, initialer HEAD `e6e37b77a409ffd21950ecb3138c79d0fbec1ca8`.
+- Der Copilot-Agent lieferte im PR-Text einen **rein lesenden, spezifischen Befund** zu früherem optionalem CLI-Code: Doppelstart-Race, sensitive Dateipfade und eine nicht atomar fixierte Stable-Basis. Der PR blieb **Draft ohne Dateiveränderungen**. Dieser Befund wurde unabhängig geprüft, nicht blind als PASS übernommen.
+- Der als optional vorbereitete **Business/Enterprise-REST-Dispatcher** `scripts/mid-copilot-task.mjs` samt `scripts/test-mid-copilot-task.mjs` wurde wegen dieser Risiken **aus dem Veröffentlichungsumfang entfernt**. Die unveränderlichen früheren Integrationscommits (vor der Entfernung: `14c001ea08e6411e55636e31b2b10685d23f69ec`) sichern seinen Code und 19 lokale adversariale Tests historisch. Keine produktive Verwendung und keine Behauptung vollständig gelöster API-Races.
+- Keine zusätzlichen GitHub-Berechtigungen, Token, Secrets, Abos, Workflowänderungen, automatischen Merges, Deployments oder Stable-Promotion. Die Copilot-Ausführung kann vorhandene **Copilot-AI-Credits** verbrauchen.
 
-## Voraussetzungen
+## Verbindlicher MID-Ablauf für künftige Beauftragungen
 
-- main und mid-stable müssen beide exakt dem SHA im Task-Manifest entsprechen; package.json und MID_BASELINE.json müssen die angegebene Version bestätigen. AGENTS.md, MID_SOURCE_OF_TRUTH.md, .github/copilot-instructions.md, contracts/index.json und parallele PRs bleiben verbindlich.
-- Ein Benutzer beauftragt explizit ein begrenztes Ziel. ChatGPT legt ein GitHub-Issue unter dem verifizierten Repo-Eigentümer mit dem Präfix [MID-COPILOT-TASK] an.
-- **Wichtige Tarifgrenze (offizielle API-Dokumentation, Stand 07.11.2026):** Der REST-Endpunkt zum Starten von Agent Tasks steht derzeit nur für **Copilot Business/Enterprise** bereit. Der Cloud Agent selbst ist auf allen bezahlten Copilot-Plänen verfügbar; diese zwei Zugangswege sind nicht gleichzusetzen. Keine Upgrade-/Bezahlentscheidung ohne ausdrückliche Nutzerfreigabe.
-- Die Copilot-Agent-Tasks-API braucht eine **nutzergebundene** GitHub-Anmeldung mit Agent-tasks-Zugriffsrechten. GitHub-Actions-GITHUB_TOKEN bzw. App-Installationstokens genügen dafür nicht. Der Dispatcher nutzt die bereits genehmigte lokale gh-Anmeldung des Repo-Eigentümers. Bei fehlender Berechtigung: fail-closed; keine Schlüssel, Secrets oder erweiterten Berechtigungen beschaffen.
-- Die Cloud-Aufgabe wird mit base_ref=mid-stable und create_pull_request=false übergeben. Der Prompt verbietet eigenständige PRs, Merge, Deploy, Release, Governance- und Workflowänderungen. Ein copilot/*-Kandidat bleibt außerhalb der vertrauenswürdigen Integrationszone.
+1. **Auftrag und Verträge:** Nur der Nutzer entscheidet über Produktziel und konkrete Copilot-Aufgabe. ChatGPT liest vorher GitHub `AGENTS.md`, `MID_SOURCE_OF_TRUTH.md`, `MID_BASELINE.json`, `contracts/index.json`, `.github/copilot-instructions.md` und relevante Pfadverträge; verifiziert `main`/`mid-stable` als vollständige SHAs, Version, aktuelle PRs/Branches, Rechte und Kosten. Bei Drift oder Überschneidung: fail-closed.
+2. **Issue statt Copy/Paste:** ChatGPT schreibt den vollständigen Nutzerauftrag als GitHub-Issue mit versionierter Ausgangsbasis, Scope, Test-/Abnahmekriterien, Provenienz, ausdrücklichen Ausschlüssen sowie `NO MERGE / NO DEPLOY / NO STABLE PROMOTION`. Bei Audit strikt **read-only**, bei Codearbeit nur eng begrenzter `copilot/*`-Kandidat.
+3. **Start:** ChatGPT verwendet die bestehende GitHub-`add_issue_assignees`-Aktion mit `copilot-swe-agent[bot]`, nicht eine neu erstellte API-Berechtigung. Pro explizitem Auftrag **höchstens eine** bewusste Zuweisung; bei unklarem Ergebnis niemals blind erneut starten. **Assignee-Anzeige allein beweist keinen gestarteten Task.**
+4. **Start-Readback:** GitHub-Issue/Timestamp, tatsächlich eröffneter **Draft PR**, `Copilot`-Autor, Branch `copilot/*`, exakter Base-/Head-SHA, Issue-Verknüpfung und zulässige Dateiumfang kontrollieren. Wenn der Copilot-PR nicht Draft ist, die Quellen-/Berechtigungsherkunft unklar bleibt oder der Start nicht nachgewiesen ist, **nicht** integrieren. Ein Draft wird niemals automatisch auf Ready gestellt.
+5. **Rückgabe ohne Kopieren:** ChatGPT holt den aktuellen Copilot-Draft, Kommentare, Diffs, Tests, Lauf-/Gültigkeitszeit und Fehlstellen selbst über GitHub ab. Fremdinhalte als **untrusted** behandeln; kein fremder Test-PASS oder wissenschaftlicher Nachweis ohne eigene Kontrolle.
+6. **Integration ausschließlich separat:** Erst nach unabhängiger SHA-/Tree-/Blob-/Diff-/Vertrags-/QA-Prüfung können geeignete Teiländerungen auf einem neuen autorisierten `chatgpt/*`- oder `codex/*`-Integrationsbranch aufgenommen werden. Danach unverändert Source-PR-Gate → SHA-gebundener Bot-Merge → serverseitiges ZIP → `install-mid.yml` → Worker/Pages-Gates → Stable-Promotion. Ein `copilot/*`-Draft ist **kein** Source-PR-Gate-Kandidat.
+7. **Abschluss:** Nur belegte Erfolgszustände als grün ausgeben; aktuelle Stable-Version/SHA, Draft-/Integrationsheads, Tests, Kosten-/Rechteblocker und offene Aufgaben sichern. Keine weiteren Agent-Aufträge ohne Nutzerbeauftragung.
 
-## Issue-Manifest
+## Laufzeit, Pläne und Berechtigungen
 
-Ein Issue enthält genau einen solchen HTML-Kommentar:
+- **Issue-Zuweisung:** GitHub dokumentiert die REST-Assignment-Route mit `copilot-swe-agent[bot]` für bezahlte Copilot-Pläne; sie erstellt einen Draft-PR. **Dieser Weg ist in MID live bestätigt.** Ein zukünftiger App-/Plan-/Policy-Wechsel kann ihn einschränken; immer erneut readback prüfen. Ohne neue Secrets/Scopes operieren.
+- **Separate Agent-Tasks-REST-API:** Nach offizieller GitHub-Dokumentation derzeit auf **Copilot Business/Enterprise** eingeschränkt und nur mit geeigneten **User-Tokens** (nicht App-Installationstokens) nutzbar. Diese API und ein optionaler lokaler `gh`-Dispatcher sind **nicht Teil des veröffentlichten MID-Standardwegs**; der Proof-of-Concept wurde bewusst de-scoped. Nie deswegen breite Tokens oder neue Bezahlpläne beschaffen.
+- **Copilot CLI:** Lokale, getrennte Sitzungen können `/permissions assisted` oder als persönliche Standardeinstellung `defaultPermissionMode: "assisted"` nutzen, ohne pauschale `--allow-all`/`--yolo`-Freigaben. Dies ist keine Cloud-Session-Erlaubnis und ändert MID-Berechtigungen nicht.
+- **iPhone/iPad:** Ein neuer konkreter Auftrag kann vollständig in ChatGPT formuliert werden; die native GitHub-Issue-Zuweisung ist vom Assistenten durchführbar. Copilot-Drafts lassen sich bei Bedarf in GitHub Mobile prüfen. Bei fehlendem Pluginzugriff ist die manuelle GitHub-Agents-Ansicht ein Fallback, nicht ein Ersatz für die Schutzprüfungen.
+- **Monitoring:** GitHub-PR-/Issue-Status ist auf Nachfrage hier direkt lesbar. Ein unabhängiges automatisches Stundensignal erfordert eine verfügbare Automation; die bestehenden fünf MID-Automationen wurden nicht verändert.
 
-~~~markdown
-<!-- MID-COPILOT-TASK-V1
-{"schema":"mid.copilot-task.v1","repository":"MeteoMartini/MID","baseSha":"b6526e7c5c24035bd1a75b87b77e7bb8e821c334","version":"0.9.85.445","mode":"audit","goal":"Conduct a read-only source review of the focused test fixture.","paths":["scripts/test-example.mjs"],"acceptance":["Return reproducible file and line evidence, without changing code."],"approvedByUser":true}
--->
-~~~
+## Abnahmegrenzen
 
-SHA und Version sind **nur ein Beispiel für die geprüfte .445-Basis**; nach jeder Stable-Promotion neu verifizieren. Der Modus lautet audit oder implementation; erlaubte Pfade sind auf src/, worker-src/, scripts/, tools/ oder tests/ begrenzt. Governance-, Secrets-, Workflow- und Vertragspfade werden abgewiesen.
+Verifiziert sind der **komplette Auftragsstart** #688 → #689 und eine **tatsächlich eingegangene Copilot-Review-Rückmeldung**, samt Draft-/GitHub-Readback. **Nicht** verifiziert sind eine durch Copilot erstellte neue Codeänderung mit unabhängiger Integration, Source-/Heavy-/Installer-/Browser-/iOS-/Worker-/Pages-/Stable-Gates und die Fertigstellung eines MID-App-Builds. Diese werden nicht als erfolgreich dargestellt.
 
-## Primärer MID-Betriebsweg: direkte ChatGPT-Issue-Zuweisung an Copilot
+**NO MERGE / NO DEPLOY / NO STABLE PROMOTION bis zu den unveränderten gates.**
 
-1. ChatGPT verifiziert live `main`/`mid-stable`, Version, AGENTS.md, Verträge, offene PRs und Überschneidungen. Bei Drift oder ungeklärten Rechten fail-closed.
-2. Ein **ausdrücklich beauftragter** eng gefasster Auftrag wird als GitHub-Issue vom verbundenen Repository-Eigentümer angelegt, mit Start-SHA, Gültigkeits-/Testanforderungen, Pfadgrenzen und `NO MERGE / NO DEPLOY / NO STABLE PROMOTION`.
-3. ChatGPT weist das Issue mit der bereits verbundenen GitHub-Issue-Assignee-Aktion an `copilot-swe-agent[bot]` zu. **Keine neue Anmeldung/Token/Scope- oder CI-Geheimnisänderung.** Bei Fehlern nicht blind doppelt zuweisen.
-4. Der Auftrag gilt **erst nach tatsächlichem Draft-PR-Readback** als gestartet: Copilot-Autor, Draft-Flag, untrusted `copilot/*`-Branch, Basis- und Kandidaten-SHAs, verknüpftes Issue, kein Hauptbranch-/Release-Schreibzugriff. Eine bloße Assignee-Anzeige reicht nicht.
-5. Sobald das Ergebnis vorliegt, verifiziert ChatGPT unabhängig die Aussagen, Diffs, Tests und Quellen; es übernimmt bei Berechtigung ausschließlich geprüfte Teiländerungen über den geschützten `chatgpt/*`-/`codex/*`-Integrationspfad. Der Copilot-Draft wird **niemals selbst** zur produktiven Releasequelle.
-
-Der folgende separate CLI-Dispatcher bleibt als **optionale** Alternative für tatsächlich berechtigte Business-/Enterprise-API-Zugänge erhalten. Er ist nicht mehr die einzige praktische Lösung.
-
-## Ausführung ohne Kopieren von Aufgaben und Antworten
-
-Auf einer lokalen Umgebung mit berechtigter nutzergebundener GitHub-CLI-Anmeldung:
-
-~~~sh
-node scripts/mid-copilot-task.mjs --dry-run 123
-node scripts/mid-copilot-task.mjs --submit 123
-node scripts/mid-copilot-task.mjs --status 123
-~~~
-
-123 steht für die Issue-Nummer. Dry-run ist vollständig lesend. Submit prüft erneut Stable und Issue-Digest, versucht genau einen Cloud-Aufruf und schreibt eine eindeutige Quittung mit Task-ID ins Issue. Falls der Cloud-POST einen Timeout/unklares Ergebnis liefert, die Quittung nach dem Start scheitert oder ihr Schreib-Readback nicht dem tatsächlich gesendeten Inhalt und Eigentümer entspricht, darf **nicht blind erneut gestartet** werden. Da GitHubs Agent-Tasks-API für diesen Dispatcher keinen serverseitigen Idempotency-Key nachweist, ist **keine verteilte Exactly-once-Garantie** über mehrere Geräte und parallele Submitter behauptet. Vor einem erneuten Versuch in der GitHub-Agents-Ansicht und im Issue manuell abgleichen. Die Quittung enthält zwingend Issue-Nummer, 40-stellige Basis-SHA, 64-stelligen Auftrags-Digest, `noAutoPR=true` und `releaseAuthorized=false`. Geschlossene, bereits beauftragte Issues sind nur noch lesend abfragbar. Status liest den Task-Zustand über die gleiche nutzergebundene Agent-Tasks-API. ChatGPT kann zumindest Issue und Quittung über das bereits verbundene GitHub-Plugin lesen.
-
-Das Ergebnis ist niemals automatisch eine autorisierte MID-Integration oder Veröffentlichung. Vor Übernahme vollständige SHA-/Diff-/Blob-/Tree-/QA-Prüfung und der unveränderte Source-PR-Gate → Bot-Merge → ZIP → Installer → Worker/Pages → Stable-Promotion-Pfad.
-
-## Sichere Alternative für andere bezahlte Copilot-Pläne (iPhone/iPad)
-
-Der GitHub **Cloud Agent** ist laut GitHub für alle kostenpflichtigen Copilot-Pläne zugänglich, aber der programmatische **Agent-Tasks-REST-Endpunkt** derzeit nur für Business/Enterprise. Für andere bezahlte Pläne kann ChatGPT weiterhin **ohne Aufgaben-Copy/Paste** ein prüfbares MID-Issue anlegen; in GitHub Mobile über das Repository den Bereich **Agents** öffnen und eine neue branchbasierte Sitzung mit einer kurzen Referenz auf die Issue-Nummer starten („Arbeite den eng abgegrenzten Auftrag in MeteoMartini/MID Issue #NUMMER ab, beachte AGENTS.md; keine PR, kein Merge, kein Release“). Das ist **ein bewusster Bedienvorgang**, keine vollständig direkte ChatGPT-Auslösung.
-
-**Zusätzlicher, besonders komfortabler Weg für alle bezahlten Copilot-Pläne:** GitHub dokumentiert auch die **Issue-Zuweisung per REST** mit dem exakten Assignee `copilot-swe-agent[bot]` (optional: `agent_assignment.base_branch`). Bei Zuweisung entsteht laut GitHub ein **Draft-PR**, kein sofortiger Merge. Das wäre bei **einem explizit autorisierten, eng abgegrenzten** Auftrag ein zulässiger unvertrauenswürdiger Zwischenstand – niemals ein MID-Integrations-/Release-PR. **LIVE VERIFIZIERT 07.11.2026:** Das verbundene ChatGPT-GitHub-Plugin hat unter dem bereits verbundenen Repository-Zugang [Issue #688](https://github.com/MeteoMartini/MID/issues/688) angelegt und anschließend `copilot-swe-agent[bot]` zugewiesen. GitHub bestätigte den Bearbeiter `Copilot` und eröffnete automatisch [Draft-PR #689](https://github.com/MeteoMartini/MID/pull/689) als Branch `copilot/mid-copilot-pilot-review-draft-pr-687` aus dem verifizierten `main`-SHA `b6526e7c5c24035bd1a75b87b77e7bb8e821c334`. PR #689 ist **Draft, untrusted und nicht gemergt**. Der Auftragsstart ist damit tatsächlich belegt; Abschluss des Reviews, dessen fachliche Qualität und spätere unabhängige Integration sind **NOT VERIFIED**. Dafür waren **kein Copy/Paste, kein neuer Token, keine Ruleset-Änderung und kein Agent-Tasks-Business-/Enterprise-Endpunkt** erforderlich. Der Einsatz kann GitHub-Copilot-AI-Credits verbrauchen, daher nur für explizit nutzerbeauftragte, begrenzte Aufgaben. GitHub-Pilot ist kein Freibrief für beliebige Agent-Aufträge. Ohne diese Voraussetzungen bleibt die oben genannte manuelle Agents-Sitzung der sichere Fallback.
-
-## Weniger Freigabedialoge
-
-In der lokalen Copilot CLI /permissions assisted aktivieren. Für eine dauerhafte lokale Standardeinstellung kann auf dem eigenen Gerät defaultPermissionMode = assisted in ~/.copilot/settings.json verwendet werden. Nichtinteraktive CLI unterstützt --assisted-approval. Das gilt **nicht** als generelle Cloud-Session-Freigabe. Keine allow-all/yolo-Freigaben, keine breiten Tool-/Pfad-/URL-Regeln und keine Änderungen an der lokalen Konfiguration durch MID.
-
-## Bekannte Lücke und Abnahme
-
-Der in diesem Chat verbundene GitHub-Connector bietet aktuell keine Agent-Task-Start-/Status-Aktion. Damit ist **unbeaufsichtigtes direktes Starten aus diesem Chat** ohne einen zusätzlich autorisierten Nutzer-OAuth-/Agent-Tasks-Connector nicht erreichbar; der lokale Dispatcher reduziert den Medienbruch auf einen CLI-Aufruf. Für öffentliche MID-Repositories eignen sich GitHubs Copilot-Automations laut aktueller Dokumentation nicht.
-
-Node 22: 19 von 19 lokalen Tests unter `scripts/test-mid-copilot-task.mjs` **PASS**; zusätzlich wurden `--dry-run` und `--submit` mit einer vollständig simulierten `gh api`-CLI ausgeführt (kein Netzwerk, kein Live-Task), wobei die geprüften beiden Quelldateien auf exakte Git-Blob-SHAs mit dem GitHub-PR-Kandidaten abgeglichen wurden. Dies belegt die Testlogik lokal, **nicht** die Live-API oder ein vollständiges CI-/Release-Gate. Live-Cloud-Start, automatische Ergebnis-Übernahme, vollständiges MID-Source-/Heavy-/Installer-/Worker-/Pages-/Stable-Gate sind **NOT VERIFIED**. Kein neuer kostenpflichtiger Task, kein Merge, kein Deployment.
-
-Offizielle Dokumentation:
-- https://docs.github.com/en/rest/agent-tasks/agent-tasks
-- https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-via-the-api
-- https://docs.github.com/en/copilot/concepts/customizations/allowing-safe-commands
-- https://docs.github.com/en/copilot/how-tos/copilot-on-github/use-copilot-agents/kick-off-a-task
+Offizielle Quellen:
 - https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/use-cloud-agent-via-the-api
 - https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/troubleshoot-cloud-agent
+- https://docs.github.com/en/rest/agent-tasks/agent-tasks
+- https://docs.github.com/en/copilot/concepts/customizations/allowing-safe-commands
