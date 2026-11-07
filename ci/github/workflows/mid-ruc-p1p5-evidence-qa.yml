@@ -187,7 +187,7 @@ jobs:
               'originalSample': record,
           }
           encoded = (json.dumps(report, sort_keys=True, indent=2, allow_nan=False) + '\n').encode()
-          Path('ap1c-one-original-smoke.json').write_bytes(encoded)
+          Path(os.environ['RUNNER_TEMP']).joinpath('ap1c-one-original-smoke.json').write_bytes(encoded)
           print('ONE_REAL_ORIGINAL_FILE', json.dumps({
               'run': run_text, 'memberId': 1, 'leadSeconds': 21600,
               'originalBytes': len(data), 'originalSha256': hashlib.sha256(data).hexdigest(),
@@ -205,7 +205,7 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mid-ap1c-one-original-smoke-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ap1c-one-original-smoke.json
+          path: ${{ runner.temp }}/ap1c-one-original-smoke.json
           retention-days: 7
           if-no-files-found: ignore
       - name: RUC release mirrors and exact canonical workflow sync are clean
