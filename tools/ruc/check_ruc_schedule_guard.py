@@ -105,13 +105,14 @@ def advertised_eps_listing_complete(run:str,fetch:Callable[[str],str]=fetch_text
             return None
         members={int(x[:-1]) for x in roots}
         if not members.issubset(EPS_REQUIRED_MEMBERS):return None
+        missing=members!=EPS_REQUIRED_MEMBERS
         for member in sorted(members):
             filenames=links(f'{base}{member:02d}/s/')
             if not filenames or any(EPS_GRIB_FILE.fullmatch(x) is None for x in filenames):
                 return None
             hours={int(EPS_GRIB_FILE.fullmatch(x).group(1)) for x in filenames}
-            if not EPS_REQUIRED_LEADS.issubset(hours):return False
-        return members==EPS_REQUIRED_MEMBERS
+            if not EPS_REQUIRED_LEADS.issubset(hours):missing=True
+        return not missing
     except Exception:
         return None
 

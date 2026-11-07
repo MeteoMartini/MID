@@ -152,6 +152,7 @@ assert guard.advertised_eps_listing_complete(NEW,index_fixture()) is True
 assert guard.advertised_eps_listing_complete(NEW,index_fixture({1:{13,27}})) is False
 assert guard.advertised_eps_listing_complete(NEW,index_fixture(missing_member=20)) is False
 assert guard.advertised_eps_listing_complete(NEW,index_fixture(unfamiliar=True)) is None
+assert guard.advertised_eps_listing_complete(NEW,index_fixture(holes={1:{13}},unfamiliar=True)) is None
 assert guard.advertised_eps_listing_complete(NEW,index_fixture(timeout=True)) is None
 assert guard.advertised_eps_listing_complete('bad',index_fixture()) is None
 assert guard.advertised_eps_listing_complete(NEW,lambda _: '<a href="new-format/">new-format</a>') is None
