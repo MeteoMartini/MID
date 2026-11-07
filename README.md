@@ -108,6 +108,14 @@ Direkte Änderungen an `main` oder `mid-stable` sind nicht zulässig. Siehe [AGE
 
 GitHub Copilot verwendet die [repositoryweiten MID-Anweisungen](.github/copilot-instructions.md), [fach- und pfadspezifischen Regeln](.github/instructions/), [wiederverwendbare Prüf- und Übergabe-Prompts](.github/prompts/) sowie den [lesenden Audit-Agenten](.github/agents/mid-auditor.agent.md). Die [Copilot-Koordinationsregeln](docs/implementation/MID_COPILOT_COLLABORATION_2026_11_06.md) beschreiben die SHA-Prüfung, den Umgang mit parallelen Arbeiten und die Integration ohne eigene Copilot-Releaseberechtigung.
 
+### Copilot direkt aus ChatGPT beauftragen (ohne Copy/Paste)
+
+Für **ausdrücklich vom Nutzer beauftragte MID-Aufgaben** kann ChatGPT über die bereits verbundene GitHub-App nach Live-Prüfung von `mid-stable`/`main` (volle SHAs), Version, Verträgen, Rechten und parallelen PRs ein GitHub-Issue mit konkretem Scope, Abnahmekriterien und Ausschlüssen erstellen und es **einmalig** `copilot-swe-agent[bot]` zuweisen. GitHub erzeugt daraufhin gegebenenfalls einen **unvertrauenswürdigen Draft-PR** auf einem `copilot/*`-Branch. ChatGPT überprüft GitHub-Issue, Copilot-PR, Basis-/Head-SHA, geänderte Dateien, Tests und Ergebnis direkt über GitHub – **ohne manuelles Kopieren von Prompt, Patch oder Rückmeldung**.
+
+Dieser Transport wurde mit [Pilot-Issue #688](https://github.com/MeteoMartini/MID/issues/688) und dem danach ohne Merge geschlossenen [Copilot-Draft #689](https://github.com/MeteoMartini/MID/pull/689) nachgewiesen. Ein gestarteter Task ist noch **keine Code- oder Releasefreigabe**. Copilot darf keine Aufgaben eigenständig ausweiten, keine neuen Tokens/Abos/Workflows einrichten und weder `main`/`mid-stable` noch `chatgpt/*`/`codex/*` verändern. Die normale unabhängige Review und der vollständige MID-Releasepfad bleiben zwingend. Die Zuweisung kann vorhandene Copilot-AI-Credits verbrauchen; bei unklaren Kosten oder Berechtigungen wird **fail-closed** abgebrochen.
+
+Verbindliche Details: [AGENTS.md](AGENTS.md) · [Copilot-Anweisungen](.github/copilot-instructions.md) · [erprobter Issue-/Draft-Handoff](docs/implementation/MID_COPILOT_CLOUD_BRIDGE_2026_11_07.md).
+
 Copilot-Ergebnisse aus `copilot/*` werden **nicht** direkt veröffentlicht. Unabhängige Integration, vollständige Gates und Stable-Promotion bleiben wie in `AGENTS.md` beschrieben verpflichtend.
 
 ## Versionsschema
