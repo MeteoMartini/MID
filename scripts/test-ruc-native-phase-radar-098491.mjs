@@ -55,5 +55,21 @@ missingFrame.weatherCode=[71];missingFrame.precipitation=[.1];
 assert.equal(phaseContext.__phaseFor(missingFrame,0).phase,'uncertain','missing thermal/height values must not invent snow support');
 assert.equal(phaseContext.__phaseFor({...missingFrame,weatherCode:[66]},0).phase,'uncertain','missing temperature must not support freezing');
 assert.equal(phaseContext.__phaseFor({...missingFrame,temperature2m:[0],relativeHumidity2m:[90],snowfallHeight:[0],elevation:[100]},0).phase,'snow','actual zero Celsius remains valid cold support');
+
+const d2Phase=({rain=null,snowfall=null,precipitation=null,weatherCode=null,temperature=null}={})=>phaseContext.__phaseFor({...missingFrame,weatherCode:[weatherCode],rain:[rain],snowfall:[snowfall],precipitation:[precipitation],temperature2m:[temperature]},0,'dwd-icon-d2');
+// Open-Meteo D2-15min: snowfall cm, rain mm; WW is often null. Positive native-interval
+// fields remain classifiable without borrowing hourly temperature from another run.
+assert.equal(d2Phase({snowfall:.02,rain:0,precipitation:.04}).phase,'snow','D2 snow without WW/thermal must stay snow');
+assert.equal(d2Phase({snowfall:.02,rain:null,precipitation:.04}).phase,'snow','missing rain is not a zero and does not erase observed D2 snow');
+assert.equal(d2Phase({snowfall:.02,rain:.2,precipitation:.3}).phase,'mixed','D2 mixed fields have different units and must not be numerically compared');
+assert.equal(d2Phase({snowfall:0,rain:.2,precipitation:.2}).phase,'rain','D2 rain without WW/thermal must stay rain');
+assert.equal(d2Phase({snowfall:null,rain:.2,precipitation:.2}).phase,'rain','missing snowfall is not zero, but does not erase D2 rain evidence');
+assert.equal(d2Phase({snowfall:0,rain:0,precipitation:0}).phase,'uncertain','true dry zero cannot invent a rain/snow phase');
+assert.equal(d2Phase({snowfall:null,rain:null,precipitation:null}).phase,'uncertain','missing D2 data cannot invent a phase');
+assert.equal(d2Phase({snowfall:-.02,rain:0,precipitation:0}).phase,'uncertain','negative/invalid D2 snowfall cannot become snow');
+assert.equal(d2Phase({snowfall:.02,rain:0,precipitation:.04,weatherCode:66}).phase,'uncertain','freezing code without cold support cannot be reinterpreted as plain snow');
+assert.equal(d2Phase({snowfall:.02,rain:.2,precipitation:.3,weatherCode:71}).phase,'mixed','real rain+snow fields beat a derived snow-only WW code');
+assert.equal(d2Phase({snowfall:.02,rain:0,precipitation:.04}).confidence,'mittel','D2 amount-only evidence must not claim high confidence');
+
 for(const token of ['rucGraupel>=.003','rucSnow>=.003&&rucRain>=.003','Schnee · ICON-D2-RUC','Regen · ICON-D2-RUC'])assert.ok(overlay.includes(token),`radar phase priority missing: ${token}`);
 console.log('Native ICON-D2-RUC 15-min rain/snow/graupel phase decoder and radar-phase priority passed.');
