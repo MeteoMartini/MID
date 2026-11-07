@@ -71,6 +71,45 @@ assert.equal(d2Phase({snowfall:.02,rain:0,precipitation:.04,weatherCode:66}).pha
 assert.equal(d2Phase({snowfall:.02,rain:.2,precipitation:.3,weatherCode:71}).phase,'mixed','real rain+snow fields beat a derived snow-only WW code');
 assert.equal(d2Phase({snowfall:.02,rain:0,precipitation:.04}).confidence,'mittel','D2 amount-only evidence must not claim high confidence');
 
+
+ // A cold multi-cell original RUC phase grid must not execute two serial
+ // chains of 16 independent remote Pages records or burst without a cap.
+ const manyLat=[50,50.1,50.2,50.3],manyLon=[7,7.1,7.2,7.3],manyTotal=16;
+ const manyMeta={...meta,pointCount:manyTotal,grid:{latMin:50,lonMin:7,dx:.1,dy:.1,nx:4,ny:4},
+  lookup:{dtype:'uint32-le',pages:{chunkRecords:1,chunkCount:manyTotal,recordBytes:4,prefix:`runs/${runKey}/lookup-bounded`}},
+  rapid:{phase15:{...meta.rapid.phase15,pages:{chunkRecords:1,chunkCount:manyTotal,recordBytes:phaseRaw.byteLength,prefix:`runs/${runKey}/rapid/phase15-bounded`}}}};
+ const manyObjects=new Map([['https://midwx.app/ruc/latest.json',new TextEncoder().encode(JSON.stringify(manyMeta))]]);
+ const u32=n=>new Uint8Array([n&255,(n>>>8)&255,(n>>>16)&255,(n>>>24)&255]);
+ for(let i=0;i<manyTotal;i++){
+  manyObjects.set(`https://midwx.app/ruc/runs/${runKey}/lookup-bounded/${String(i).padStart(4,'0')}.bin`,u32(i===5?0xffffffff:i));
+  manyObjects.set(`https://midwx.app/ruc/runs/${runKey}/rapid/phase15-bounded/${String(i).padStart(4,'0')}.bin`,i16([0,0,0,100+i,0,0,0,0,0,0,0,0]));
+ }
+ let inFlight=0,peakInFlight=0,nativeReadCalls=0;
+ const manyFetch=async url=>{
+  const value=manyObjects.get(String(url));
+  if(!value)return new Response('not found',{status:404});
+  if(String(url).endsWith('.bin')){
+   nativeReadCalls++;inFlight++;peakInFlight=Math.max(peakInFlight,inFlight);
+   try{await new Promise(resolve=>setTimeout(resolve,7))}finally{inFlight--}
+  }
+  return new Response(value,{status:200,headers:{'content-type':String(url).endsWith('.json')?'application/json':'application/octet-stream'}});
+ };
+ const manyContext=vm.createContext({console,URL,URLSearchParams,Headers,Request,Response,AbortController,DOMException,TextDecoder,TextEncoder,DataView,Uint8Array,ArrayBuffer,crypto,setTimeout,clearTimeout,fetch:manyFetch});
+ vm.runInContext(raw,manyContext,{timeout:5000,filename:'worker/metar-proxy.js'});
+ const multi=await vm.runInContext(`dwdRucStaticPhaseGrid(${JSON.stringify(manyLat)},${JSON.stringify(manyLon)},${now.getTime()}, {})`,manyContext,{timeout:5000});
+ assert.ok(multi&&multi.total===manyTotal&&multi.valid===manyTotal-1,'all genuine native cells except sentinel must remain valid');
+ assert.ok(peakInFlight>=2&&peakInFlight<=8,'bounded original read concurrency required, observed '+peakInFlight);
+ assert.equal(nativeReadCalls,manyTotal+(manyTotal-1),'original lookup and unique point payloads must be fetched once');
+ for(let i=0;i<manyTotal;i++){
+  if(i===5){assert.ok(Number.isNaN(multi.rain[i]),'native bitmap sentinel must remain Missing');continue}
+  assert.ok(Math.abs(multi.rain[i]-(.1+i*.001))<1e-8,'original grid order and per-cell rain must survive concurrency');
+  assert.equal(multi.snowfallWaterEquivalent[i],0,'original zero snow is a valid zero');
+ }
+ const beforeHorizonReads=nativeReadCalls;
+ const beyond=await vm.runInContext(`dwdRucStaticPhaseGrid(${JSON.stringify(manyLat)},${JSON.stringify(manyLon)},${now.getTime()+2*60*60*1000}, {})`,manyContext,{timeout:5000});
+ assert.equal(beyond,null,'no original phase beyond published 15min horizon');
+ assert.equal(nativeReadCalls,beforeHorizonReads,'outside phase horizon must skip all native data IO');
+
 for(const token of ['rucGraupel>=.003','rucSnow>=.003&&rucRain>=.003','Schnee · ICON-D2-RUC','Regen · ICON-D2-RUC'])assert.ok(overlay.includes(token),`radar phase priority missing: ${token}`);
 for(const token of ["Original-RUC-Lauf","Open-Meteo-Metadatenlauf (Feldlauf nicht zellverifiziert)"])assert.ok(overlay.includes(token),"Unverified provider run must not masquerade as a native DWD original: "+token);
 console.log('Native ICON-D2-RUC 15-min rain/snow/graupel phase decoder and radar-phase priority passed.');
