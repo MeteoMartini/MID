@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import json,tempfile,threading
+import contextlib,io,json,subprocess,sys,tempfile,threading,unittest,urllib.error
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 from pathlib import Path
 import importlib.util
+from email.message import Message
+from unittest import mock
 ROOT=Path(__file__).resolve().parents[2]; SCRIPT=ROOT/'tools/ruc/check_ruc_health.py'
 spec=importlib.util.spec_from_file_location('mid_ruc_health_check',SCRIPT); mod=importlib.util.module_from_spec(spec); assert spec.loader; spec.loader.exec_module(mod)
 assert mod.health_url('https://mid.example/worker?x=1&mode=old')=='https://mid.example/worker?x=1&mode=ruc-health'
@@ -263,3 +265,180 @@ try:
  raise AssertionError('shorter emergency worker health accepted')
 except RuntimeError:pass
 print('RUC distinct 27h production and validated 14h emergency raw rollback contracts OK')
+
+
+class SafeDiagnosticsTests(unittest.TestCase):
+ def test_diagnostic_classes_remain_runtime_errors(self):
+  for error_type in (mod.PagesConvergenceError,mod.SnapshotContractError,
+                     mod.WorkerHTTPError,mod.WorkerTransportError,
+                     mod.WorkerPayloadError,mod.WorkerAdoptionError,
+                     mod.CodecDefectError):
+   with self.subTest(error_type=error_type):
+    self.assertTrue(issubclass(error_type,RuntimeError))
+
+ def test_http_status_and_metadata_are_bound_to_each_probe(self):
+  secret='private-token-fragment'
+  headers=Message()
+  headers['Age']='41'
+  headers['CF-Cache-Status']='HIT'
+  headers['Authorization']=secret
+  headers['Set-Cookie']='session='+secret
+  responses=iter([
+   urllib.error.HTTPError('https://host.invalid/health?token='+secret,503,
+                          'private response text',headers,io.BytesIO(secret.encode())),
+   mod.ProbeResponse(good,200,{'Content-Type':'application/json'}),
+  ])
+  def next_response(*_):
+   response=next(responses)
+   if isinstance(response,BaseException):
+    raise response
+   return response
+  journal=mod.ProbeJournal()
+  payload,attempt=mod.probe_until_ready(
+   'https://host.invalid/health?access_token='+secret,'2026082822',attempts=2,
+   retry_delay=0,max_retry_delay=0,fetcher=next_response,
+   sleeper=lambda _:None,journal=journal)
+  self.assertEqual(attempt,2)
+  rows=journal.as_dict()['records']
+  self.assertEqual([row['httpStatus'] for row in rows],[503,200])
+  self.assertEqual(rows[0]['metadata'],{'ageSeconds':41,'cacheStatus':'hit'})
+  self.assertEqual(rows[1]['metadata'],{'contentType':'json'})
+  encoded=json.dumps(journal.as_dict())
+  for private in (secret,'access_token','Authorization','Set-Cookie','private response text'):
+   self.assertNotIn(private,encoded)
+
+ def test_http_json_and_payload_failures_have_closed_codes(self):
+  headers=Message()
+  headers['Age']='99'
+  http_error=urllib.error.HTTPError('https://host.invalid/?secret=value',503,
+                                    'private',headers,io.BytesIO(b'secret body'))
+  journal=mod.ProbeJournal()
+  with self.assertRaises(mod.WorkerHTTPError) as caught:
+   mod.probe_until_ready('https://host.invalid/','2026082822',attempts=1,
+                         fetcher=lambda *_:(_ for _ in ()).throw(http_error),
+                         journal=journal)
+  self.assertEqual(caught.exception.code,'worker_http_error')
+  self.assertEqual(journal.records[0]['httpStatus'],503)
+  self.assertNotIn('secret',json.dumps(journal.as_dict()))
+  fake_headers=Message()
+  fake_headers['CF-Cache-Status']='MISS'
+  class Response:
+   status=200
+   headers=fake_headers
+   def __enter__(self):return self
+   def __exit__(self,*_):return False
+   def read(self):return b'{bad json'
+  with mock.patch.object(mod.urllib.request,'urlopen',return_value=Response()):
+   with self.assertRaises(mod.WorkerPayloadError) as invalid_json:
+    mod.probe_until_ready('https://host.invalid/','2026082822',attempts=1)
+  self.assertEqual(invalid_json.exception.code,'invalid_json')
+  with self.assertRaises(mod.WorkerPayloadError) as unusable:
+   mod.probe_until_ready('https://host.invalid/','2026082822',attempts=1,
+                         fetcher=lambda *_:['not','an','object'])
+  self.assertEqual(unusable.exception.code,'payload_not_object')
+
+ def test_transport_and_unready_worker_are_not_codec_defects(self):
+  with self.assertRaises(mod.WorkerTransportError) as transport:
+   mod.probe_until_ready('https://host.invalid/','2026082822',attempts=1,
+                         fetcher=lambda *_:(_ for _ in ()).throw(
+                          urllib.error.URLError('secret transport detail')))
+  self.assertEqual(transport.exception.code,'probe_transport_failed')
+  with self.assertRaises(mod.WorkerAdoptionError) as unready:
+   mod.probe_until_ready('https://host.invalid/','2026082822',attempts=1,
+                         fetcher=lambda *_:{**good,'ready':False})
+  self.assertEqual(unready.exception.code,'worker_readiness_failed')
+  self.assertNotIsInstance(unready.exception,mod.CodecDefectError)
+
+ def test_journal_is_utc_safe_and_bounded(self):
+  journal=mod.ProbeJournal()
+  for attempt in range(1,80):
+   journal.record(attempt=attempt,phase='worker_adoption',
+                  run='2026-11-07T18:00',status=200,
+                  metadata={'Age':'120','CF-Cache-Status':'HIT',
+                            'Authorization':'secret','X-Debug':'secret'})
+  result=journal.as_dict()
+  self.assertEqual(len(result['records']),64)
+  self.assertEqual(result['deploymentId'],'unavailable')
+  self.assertRegex(result['records'][0]['utc'],r'Z$')
+  self.assertNotIn('secret',json.dumps(result))
+  self.assertEqual(result['records'][0]['metadata'],
+                   {'ageSeconds':120,'cacheStatus':'hit'})
+
+ def test_probe_budgets_remain_bounded_at_twelve_and_seven(self):
+  self.assertEqual(mod.MAX_PAGES_PROBE_ATTEMPTS,12)
+  self.assertEqual(mod.MAX_WORKER_PROBE_ATTEMPTS,7)
+  self.assertEqual(mod.MAX_PROBE_JOURNAL_RECORDS,64)
+  with self.assertRaises(mod.PagesConvergenceError) as pages:
+   mod.probe_pages(
+    'https://host.invalid/ruc/','2026-11-07T18:00',attempts=99,
+    fetcher=lambda *_:{'schema':'mid.dwd.ruc.grid.v2',
+                       'storageProfile':'pages-free-v1','run':'stale'},
+    sleeper=lambda _:None)
+  self.assertEqual(pages.exception.attempts,12)
+  with self.assertRaises(mod.WorkerAdoptionError) as worker:
+   mod.probe_until_ready(
+    'https://host.invalid/','2026082822',attempts=99,
+    fetcher=lambda *_:{**good,'ready':False},sleeper=lambda _:None)
+  self.assertEqual(worker.exception.attempts,7)
+
+ def test_cli_classifies_failures_and_preserves_exit_two(self):
+  with tempfile.TemporaryDirectory() as directory:
+   metadata=Path(directory)/'latest.json'
+   metadata.write_text(json.dumps(sealed),encoding='utf-8')
+   stdout=io.StringIO()
+   stderr=io.StringIO()
+   with contextlib.redirect_stdout(stdout),contextlib.redirect_stderr(stderr):
+    with mock.patch.object(
+      mod,'probe_until_ready',
+       side_effect=mod.WorkerHTTPError('private body and URL')
+    ):
+     result=mod.main(['--url','https://host.invalid/?token=secret',
+                      '--meta',str(metadata),'--attempts','1'])
+   self.assertEqual(result,2)
+   self.assertIn('worker_http_error',stderr.getvalue())
+   self.assertNotIn('private body',stderr.getvalue())
+   self.assertNotIn('token=secret',stderr.getvalue())
+   self.assertNotIn('secret',stderr.getvalue())
+
+ def test_cli_process_exits_two_for_transport_failure(self):
+  with tempfile.TemporaryDirectory() as directory:
+   metadata=Path(directory)/'latest.json'
+   metadata.write_text(json.dumps(sealed),encoding='utf-8')
+   result=subprocess.run(
+    [sys.executable,str(SCRIPT),'--url','http://127.0.0.1:1/?token=secret',
+     '--meta',str(metadata),'--attempts','1'],
+    text=True,capture_output=True,timeout=5,check=False)
+  self.assertEqual(result.returncode,2)
+  self.assertIn('probe_transport_failed',result.stderr)
+  self.assertNotIn('token=secret',result.stderr)
+  self.assertNotIn('secret',result.stderr)
+
+ def test_full_codec_nonverification_is_not_invented_as_a_codec_defect(self):
+  active=copy.deepcopy(sealed)
+  active.update({'storageProfile':'pages-lossless-v1',
+                 'migration':{'schema':'mid.ruc.migration-active.v1',
+                              'productionEnabled':True},
+                 'pages':{'profile':'pages-lossless-v1',
+                          'losslessTransport':{
+                           'profile':'mid.ruc.compressed-pages.v1',
+                           'mode':'replacement','rawRetained':False}}})
+  worker={**good,'run':MODEL_RUN,'timeCount':28,'pointCount':542040,
+          'epsMemberCount':20,'backend':'pages','nativeEpsMembers':False,
+          'storageProfile':'pages-lossless-v1',
+          'fullCodec':{'advertised':True,'verified':False,'rawRetained':False}}
+  self.assertFalse(mod.full_codec_evidence(worker,active)['verified'])
+  with tempfile.TemporaryDirectory() as directory:
+   metadata=Path(directory)/'latest.json'
+   metadata.write_text(json.dumps(active),encoding='utf-8')
+   stderr=io.StringIO()
+   with contextlib.redirect_stderr(stderr),mock.patch.object(
+    mod,'probe_until_ready',return_value=(worker,1)
+   ):
+    result=mod.main(['--url','https://host.invalid/','--meta',str(metadata)])
+   self.assertEqual(result,2)
+   self.assertIn('codec_evidence_unclassified',stderr.getvalue())
+   self.assertNotIn('codec_defect_proven',stderr.getvalue())
+
+
+if __name__=='__main__':
+ unittest.main()
