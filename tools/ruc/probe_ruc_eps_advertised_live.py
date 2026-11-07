@@ -21,7 +21,7 @@ FILE = re.compile(r"^PT(\d{3})H(\d{2})M\.grib2$", re.I)
 MEMBER = re.compile(r"^(0[1-9]|1[0-9]|20)/$")
 
 
-def probe(run: str) -> dict:
+def probe(run: str, *, expected_partial: bool=False) -> dict:
     observations: list[dict] = []
     errors: list[str] = []
 
@@ -65,31 +65,47 @@ def probe(run: str) -> dict:
     root = next((r for r in observations if r["kind"] == "root"), None)
     expected = set(range(1, 21))
     got = {r["member"] for r in seen}
-    if result is not True:
-        errors.append("Live guard did not conclusively confirm the matured full index")
+    if expected_partial:
+        if result is not False:
+            errors.append("Live partial index not classified as proven incomplete")
+    elif result is not True:
+        errors.append("Live guard did not conclusively confirm mature full index")
     if root is None or root["memberCount"] != 20 or root["unknown"]:
         errors.append("Root directory is missing members or contains an unknown entry")
     if got != expected or len(seen) != 20:
         errors.append("Not all 20 independent member indexes were fetched")
+    if expected_partial and not any(r["missingHourly"] for r in seen):
+        errors.append("No genuinely missing hourly file was observed")
     for r in seen:
-        if r["hourly"] != 28 or r["missingHourly"] or r["duplicateNames"] or r["unknown"]:
-            errors.append(f'Member {r["member"]}: hourly/duplicate/unknown mismatch')
-        if r["subhourly"] < 1:
-            errors.append(f'Member {r["member"]}: no real 5-minute index evidence')
+        if r["duplicateNames"] or r["unknown"]:
+            errors.append(f'Member {r["member"]}: duplicate or unknown file names')
+        if not expected_partial:
+            if r["hourly"] != 28 or r["missingHourly"]:
+                errors.append(f'Member {r["member"]}: incomplete mature index')
+            if r["subhourly"] < 1:
+                errors.append(f'Member {r["member"]}: no real 5-minute index evidence')
     if elapsed > 14:
         errors.append("14-second live index wall budget exceeded")
     return {"run": run, "classification": result, "elapsedSeconds": elapsed,
             "requestCount": len(observations), "root": root,
-            "members": seen, "errors": errors}
+            "expectedPartial": expected_partial, "members": seen, "errors": errors}
 
 
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--runs", nargs=2, required=True)
+    p.add_argument("--partial-run", default=None)
     args = p.parse_args()
     if len(set(args.runs)) != 2:
         p.error("Two different original DWD runs are required")
     summaries = []
+    if args.partial_run:
+        if not guard.RUN_RE.fullmatch(args.partial_run+"/"):
+            p.error("Invalid partial-run UTC timestamp")
+        partial = probe(args.partial_run, expected_partial=True)
+        summaries.append(partial)
+        print(json.dumps(partial, ensure_ascii=False, allow_nan=False,
+                         separators=(",", ":")), flush=True)
     for run in args.runs:
         if not guard.RUN_RE.fullmatch(run+"/"):
             p.error("Invalid DWD UTC run")
@@ -98,7 +114,7 @@ def main() -> int:
         print(json.dumps(summary, ensure_ascii=False, allow_nan=False,
                          separators=(",", ":")), flush=True)
     success = all(not s["errors"] for s in summaries)
-    print("Live DWD two-run 20x28 EPS listing QA:", "PASS" if success else "NOT ADMITTED",
+    print("Live DWD full+partial EPS20 listing QA:", "PASS" if success else "NOT ADMITTED",
           "(directory evidence only; GRIB, EPS values, client P95 NOT VERIFIED)")
     return 0 if success else 1
 
