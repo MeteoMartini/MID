@@ -105,5 +105,52 @@ try{
   if(priority.frame.rucRain[i]!==null||priority.frame.rucSnowfallWaterEquivalent[i]!==null)throw new Error('Open-Meteo fallback wrongly labeled as RUC');
  }
  if(priority.provider.includes('native Originalzellen')&&!priority.provider.includes('nicht native Originalzellen'))throw new Error('Open-Meteo interpolated samples impersonate native DWD originals');
+
+ // Genuine provider behavior (HTTP 400): one out-of-domain D2 point invalidates
+ // an entire multi-location call. Valid D2 cells must survive bounded bisection.
+ let rejectedD2Groups=0,allD2Calls=0;
+ globalThis.fetch=async request=>{
+  const url=new URL(typeof request==='string'?request:request.url);
+  if(url.hostname==='api.open-meteo.com'&&url.pathname.includes('/static/meta.json'))
+   return new Response(JSON.stringify({last_run_initialisation_time:metaInitialMs/1000}),{status:200,headers:{'content-type':'application/json'}});
+  if(url.hostname==='api.open-meteo.com'&&url.pathname.includes('/v1/forecast')){
+   const model=url.searchParams.get('models'),lats=url.searchParams.get('latitude').split(',').map(Number),lons=url.searchParams.get('longitude').split(',').map(Number);
+   if(lats.length>120||lats.length!==lons.length)throw new Error('HTTP400-isolation exceeded per-batch request limit');
+   if(model==='dwd_icon_d2_15min'){
+    allD2Calls++;
+    if(lats.some(lat=>lat<=50.55)){
+     rejectedD2Groups++;
+     return new Response(JSON.stringify({error:true,reason:'No data is available for this location'}),{status:400,headers:{'content-type':'application/json'}});
+    }
+   }
+   if(!['dwd_icon_d2_15min','dwd_icon_eu','dwd_icon'].includes(model))throw new Error('Unexpected non-ICON fallback model '+model);
+   const d2=model==='dwd_icon_d2_15min';
+   return new Response(JSON.stringify(lats.map((lat,i)=>{
+    const available=d2||model==='dwd_icon'?true:lat>50.35;
+    return{latitude:lat,longitude:lons[i],elevation:50,[d2?'minutely_15':'hourly']:{
+     time:triple(d2?iso:hourIso),weather_code:triple(available?(d2?null:model==='dwd_icon_eu'?71:87):null),
+     precipitation:triple(available?.3:null),rain:triple(available?(d2?.3:0):null),snowfall:triple(available?(d2?0:.2):null),
+     snowfall_height:triple(300),freezing_level_height:triple(500),temperature_2m:triple(1),relative_humidity_2m:triple(90)
+    }}
+   })),{status:200,headers:{'content-type':'application/json'}});
+  }
+  throw new Error('Unexpected network access '+url);
+ };
+ const isolatedModule=await import('../worker/metar-proxy.js?phase-http400-isolation='+Date.now());
+ const isolatedResponse=await isolatedModule.default.fetch(new Request('https://mid.test/?mode=precipitation-phase-grid&lat=50.82&lon=7.05&target='+encodeURIComponent(target)),{});
+ const isolatedData=await isolatedResponse.json();
+ if(!isolatedResponse.ok)throw new Error('D2 partial-coverage HTTP400 isolation failed: '+JSON.stringify(isolatedData));
+ const expectedValidD2=isolatedData.lats.filter(lat=>lat>50.55).length*isolatedData.lons.length;
+ if(!rejectedD2Groups||allD2Calls<4)throw new Error('Fixture never exercised failed batch plus cell bisection');
+ if(isolatedData.sourceCounts?.['dwd-icon-d2']!==expectedValidD2)throw new Error('Valid D2 cells lost after a single bad coordinate: '+JSON.stringify(isolatedData.sourceCounts)+' expected '+expectedValidD2);
+ if(!(isolatedData.sourceCounts?.['dwd-icon-eu']>0&&isolatedData.sourceCounts?.['dwd-icon-global']>0))throw new Error('Cell holes did not fall through EU/global');
+ if(Object.values(isolatedData.sourceCounts).reduce((sum,n)=>sum+n,0)!==247)throw new Error('Partial D2 HTTP400 caused missing/duplicate cells');
+ if(isolatedData.requestBudget?.batches>48||isolatedData.requestBudget?.locations!==247)throw new Error('Bisection exceeded bounded request budget');
+ for(let j=0;j<isolatedData.lats.length;j++)for(let i=0;i<isolatedData.lons.length;i++){
+  const index=j*isolatedData.lons.length+i,source=isolatedData.phaseSourceByCell[index];
+  if(isolatedData.lats[j]>50.55&&source!=='dwd-icon-d2')throw new Error('Valid original D2 geographic cell incorrectly replaced at '+index);
+  if(isolatedData.lats[j]<=50.55&&source==='dwd-icon-d2')throw new Error('Rejected D2 coordinate admitted as valid at '+index);
+ }
+
 }finally{globalThis.fetch=realFetch}
 console.log('Radar-/Regionalmodell-Phasenraster geprüft: dynamische Rapid-/Regionalmodellwahl, 13×19/247 Punkte, 3 sequenzielle Batches, Rate-Limit-Fallback und Stale-Run-Abbruch.');

@@ -421,22 +421,41 @@ async function precipitationPhaseGridData(lat,lon,target,env){
   candidateModels.push(item);
   let points=null;
   for(const apiId of model.apiIds){
-   try{
-    const rowsOut=[];
-    for(let offset=0;offset<remaining.length;offset+=120){
-     const part=remaining.slice(offset,offset+120);if(part.length>120||remaining.length>247)throw new Error('Phasen-Raster zu gross');
-     modelPointRequests+=part.length;batches++;rowsOut.push(...await fetchBatch(model,apiId,part));
+   const rowsOut=[];let modelBatches=0;
+   // Open-Meteo rejects a whole multi-point request if ONE coordinate is outside its
+   // native model domain. Isolate confirmed 400/NoData holes, preserve valid cells,
+   // and cap all retries: no blind replay on 429/5xx or unlimited API fan-out.
+   const requestValid=async(indices)=>{
+    if(rateLimited||!indices.length)return[];
+    if(batches>=48||modelBatches>=28){errors.push(model.label+': Phasenrequest-Budget erreicht; fehlende Zellen bleiben NoData');return[]}
+    modelPointRequests+=indices.length;batches++;modelBatches++;
+    try{
+     const results=await fetchBatch(model,apiId,indices);
+     return results.map((point,j)=>({i:indices[j],point}));
+    }catch(error){
+     const reason=error instanceof Error?error.message:String(error);
+     if(precipitationPhaseRateLimited(reason)){rateLimited=true;errors.push(model.label+': '+reason);return[]}
+     const cellOutside=error?.status===400&&/no data is available for this location/i.test(reason);
+     if(!cellOutside){errors.push(model.label+': '+reason);return[]}
+     if(indices.length===1)return[];
+     const half=Math.floor(indices.length/2);
+     const left=await requestValid(indices.slice(0,half));
+     const right=await requestValid(indices.slice(half));
+     return left.concat(right);
     }
-    points=rowsOut;item.apiId=apiId;break;
-   }catch(error){
-    const reason=error instanceof Error?error.message:String(error);errors.push(model.label+': '+reason);
-    if(precipitationPhaseRateLimited(reason)){rateLimited=true;break}
+   };
+   for(let offset=0;offset<remaining.length;offset+=120){
+    const part=remaining.slice(offset,offset+120);if(part.length>120||remaining.length>247)throw new Error('Phasen-Raster zu gross');
+    rowsOut.push(...await requestValid(part));
+    if(rateLimited||batches>=48)break;
    }
+   if(rateLimited)break;
+   if(rowsOut.length){points=rowsOut;item.apiId=apiId;break}
   }
   if(rateLimited)break;
-  if(!points||points.length!==remaining.length)continue;
-  for(let j=0;j<points.length;j++){
-   const i=remaining[j],point=points[j],interval=model.intervalMinutes,values=interval===15?point?.minutely_15:point?.hourly,choice=midPhaseIndex(values,roundedMs,interval);
+  if(!points?.length)continue;
+  for(const {i,point} of points){
+   const interval=model.intervalMinutes,values=interval===15?point?.minutely_15:point?.hourly,choice=midPhaseIndex(values,roundedMs,interval);
    if(!choice)continue;
    const get=name=>values?.[name]?.[choice.index],code=phaseGridWeatherCode(midPhaseNumber(get('weather_code')));
    const precip=midPhaseAmount(get('precipitation')),rain=midPhaseAmount(get('rain')),snow=midPhaseAmount(get('snowfall'));
