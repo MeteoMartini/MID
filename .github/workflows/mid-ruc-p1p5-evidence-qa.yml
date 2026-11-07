@@ -235,7 +235,9 @@ jobs:
       github.event.pull_request.number == 684 &&
       github.event.pull_request.draft == true &&
       github.event.pull_request.head.repo.full_name == github.repository &&
-      startsWith(github.head_ref, 'chatgpt/v')
+      startsWith(github.head_ref, 'chatgpt/v') &&
+      github.run_attempt == 1 &&
+      contains(github.event.pull_request.body, 'MID_AP1C_2WORKER_FULLRUN_AUTHORIZED_ONCE_20261107')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -276,6 +278,7 @@ jobs:
           import re
           import resource
           import time
+          from threading import Lock
           import urllib.request
           from datetime import datetime, timedelta, timezone
           from pathlib import Path
@@ -285,7 +288,8 @@ jobs:
           MAX_RSS_KIB = 1_500_000
           MAX_ELAPSED_SECONDS = 26 * 60
           started = time.monotonic()
-          counts = {'fetchedFiles': 0, 'fetchedBytes': 0}
+          counts = {'fetchedFiles': 0, 'fetchedBytes': 0, 'reservedBytes': 0}
+          budget_lock = Lock()
           output = Path(os.environ['RUNNER_TEMP']) / 'ap1c-full-one-run.json'
           request = urllib.request.Request(
               'https://midwx.app/ruc/latest.json',
@@ -316,17 +320,31 @@ jobs:
           def original_budgeted_fetch(row):
               if time.monotonic() - started >= MAX_ELAPSED_SECONDS:
                   raise TimeoutError('one-run original DWD evidence time budget reached')
-              if counts['fetchedBytes'] >= MAX_TOTAL_BYTES:
-                  raise ValueError('original DWD total byte budget reached')
-              item = safe_fetch(row)
-              amount = len(item[1])
-              if amount > MAX_FILE_BYTES or counts['fetchedBytes'] + amount > MAX_TOTAL_BYTES:
-                  raise ValueError('original DWD aggregate byte ceiling reached')
-              counts['fetchedFiles'] += 1
-              counts['fetchedBytes'] += amount
-              if resource.getrusage(resource.RUSAGE_SELF).ru_maxrss > MAX_RSS_KIB:
-                  raise MemoryError('original DWD QA peak resident memory budget exceeded')
-              return item
+              # Pessimistically reserve 40 MB for every concurrent GET.
+              # Both in-flight reservations and completed bytes count against
+              # the aggregate budget; network writes and retries stay disabled.
+              with budget_lock:
+                  if counts['fetchedBytes'] + counts['reservedBytes'] + MAX_FILE_BYTES > MAX_TOTAL_BYTES:
+                      raise ValueError('original DWD total byte budget reached')
+                  counts['reservedBytes'] += MAX_FILE_BYTES
+              reservation_live = True
+              try:
+                  item = safe_fetch(row)
+                  amount = len(item[1])
+                  with budget_lock:
+                      counts['reservedBytes'] -= MAX_FILE_BYTES
+                      reservation_live = False
+                      if amount > MAX_FILE_BYTES or counts['fetchedBytes'] + amount > MAX_TOTAL_BYTES:
+                          raise ValueError('original DWD aggregate byte ceiling reached')
+                      counts['fetchedFiles'] += 1
+                      counts['fetchedBytes'] += amount
+                  if resource.getrusage(resource.RUSAGE_SELF).ru_maxrss > MAX_RSS_KIB:
+                      raise MemoryError('original DWD QA peak resident memory budget exceeded')
+                  return item
+              finally:
+                  if reservation_live:
+                      with budget_lock:
+                          counts['reservedBytes'] -= MAX_FILE_BYTES
 
           base = {
               'schema': 'mid.ruc.ap1c-one-full-run-qualification.v1',
@@ -335,7 +353,7 @@ jobs:
               'sourceInventoryExpected': 1000,
               'fileBudgetBytes': MAX_FILE_BYTES,
               'aggregateByteBudget': MAX_TOTAL_BYTES,
-              'workerCount': 1,
+              'workerCount': 2,
               'productionSloAuthorized': False,
               'publicationAuthorized': False,
               'full168hObserved': False,
@@ -343,7 +361,7 @@ jobs:
           }
           try:
               audited = probe(run_text, hours=27, rapid_hours=6,
-                              members=20, workers=1, getter=original_budgeted_fetch)
+                              members=20, workers=2, getter=original_budgeted_fetch)
               if (audited['requestedFiles'] != 1000
                   or audited['originalFilesVerified'] != 1000
                   or not audited['everyRequestedOriginalValueAndBitmapVerified']
@@ -368,6 +386,7 @@ jobs:
                   'downloadedFileCount': counts['fetchedFiles'],
                   'downloadedBytes': counts['fetchedBytes'],
                   'peakRssKiB': base['peakRssKiB'],
+                  'workerCount': 2,
                   'reportSha256': hashlib.sha256(encoded).hexdigest(),
                   'full168hObserved': False,
                   'productionSloAuthorized': False,
