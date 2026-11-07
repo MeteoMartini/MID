@@ -1,3 +1,13 @@
+## MID v0.9.85.446 · 2026-11-07 · Gebündelte RUC-/Modellkarten-Korrekturen (Integrationskandidat)
+
+- **Basis** main=mid-stable v0.9.85.445 SHA b6526e7c5c24035bd1a75b87b77e7bb8e821c334; fünffache Git-Blob-Übernahme auf unabhängigem chatgpt/*-Integrationsbranch aus Drafts #700, #684, #695, #698, #685 (exakte Heads in docs/implementation/MID_446_BUNDLED_INTEGRATION_REVIEW.md).
+- RUC-P0: EPS20-H00-Index-Verfügbarkeit 20×28, fail-open bei nicht interpretierbarer Quelle/Timer/NoData, nur negative Readiness; 4 begrenzte parallel laufende Member-Index-Abrufe, 14s Hard-Limit, 240min Pages-Maximalalter und nur exakt +1h Laufabstand. Reale 22Z-Teilveröffentlichung zuvor getrennt belegt (96/171/284/427 von 560); nicht als GRIB-Feldwertnachweis missverstehen.
+- Originaldaten: drei DWD-RUC-Runs und drei D2-Zyklen mit 3×72-Feld-Auswahl wurden ausschließlich lesend qualifiziert. Keine P95-/CAS-Publisher-/FullDomain-/Client-Abnahme hierdurch.
+- RUC-P4: Healthgate-Fehlersicherheit gegen HTTP200-Nonobjects und CLI/Pages/Worker-Konvergenz; kein verteiltes Fencing durch diesen Kandidaten nachgewiesen.
+- Karte: zell- und gültigkeitszeitbezogene Phasenpriorität RUC → D2 → EU → global, UTC-Endstempel-/NoData- und Provenienzkorrekturen. Keine Wetterwerte synthetisch zu 0; RUC/D2 15-min Originalfelder nicht mit stündlichen EU/global-Feldern gleichsetzen. WMO/DWD, amtliche Warnungen unverändert.
+- Alle Versionsspiegel, Benutzerhinweise und technischen Nachweise müssen auf demselben exakten Integrations-SHA geprüft werden; Source/Core 4/4, Heavy 6/6, Responsive/Web/iOS-Shell/Widgets, Worker/Pages, unabhängiger Review und normale Installer-/Stable-Gates bleiben bis zum tatsächlichen PASS **NOT VERIFIED**.
+- Kein direkter Merge, kein manuelles ZIP, kein Force-Push. Erst offizielle Releasekette darf v0.9.85.446 als veröffentlicht melden.
+
 ## MID v0.9.85.443 · 2026-11-06 · Sichere Copilot-Zusammenarbeit
 
 - Original PR673 selektiv und ohne neue Rechte integriert; vollständige normale Releasegates zwingend.
