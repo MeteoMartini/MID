@@ -2312,27 +2312,128 @@ async function orderedPhaseModels(lat,lon){
 // Preserve absent/invalid model values through JSON (NaN -> null); real zero remains zero.
 function phaseGridAmount(value){return typeof value==='number'&&Number.isFinite(value)&&value>=0?value:NaN}
 function phaseGridWeatherCode(value){return typeof value==='number'&&Number.isInteger(value)&&value>=0&&value<=99?value:NaN}
+// #683: per-cell original RUC first, then D2 -> EU -> ICON global.
+// A geographic model BBOX is a shortlist only, never a valid-cell bitmap.
+const MID_ICON_PHASE_FALLBACKS=[
+ {id:'icon-d2',label:'DWD ICON-D2',apiIds:['dwd_icon_d2'],metaIds:['dwd_icon_d2_15min','dwd_icon_d2'],bbox:[-6,43,26,58],resolutionKm:2,maxHours:48,intervalMinutes:15},
+ {id:'icon-eu',label:'DWD ICON-EU',apiIds:['dwd_icon_eu'],metaIds:['dwd_icon_eu'],bbox:[-25,30,45,75],resolutionKm:7,maxHours:120,intervalMinutes:60},
+ {id:'icon-global',label:'DWD ICON Global',apiIds:['dwd_icon'],metaIds:['dwd_icon'],bbox:[-180,-90,180,90],resolutionKm:11,maxHours:180,intervalMinutes:60}
+];
+function midPhaseMs(s){if(typeof s!=='string'||!s)return NaN;return Date.parse(/Z$|[+-]\d\d:\d\d$/.test(s)?s:s+'Z')}
+function midPhaseNumber(v){return typeof v==='number'&&Number.isFinite(v)?v:NaN}
+function midPhaseAmount(v){const n=midPhaseNumber(v);return n>=0?n:NaN}
+function midPhaseIndex(group,targetMs,minutes){
+ const times=group?.time;if(!Array.isArray(times))return null;
+ let best=null,deltaBest=Infinity;
+ for(let i=0;i<times.length;i++){
+  const stamp=midPhaseMs(times[i]),delta=targetMs-stamp;
+  // 15 min: same validity (<=90 s tolerance); hourly: LAST elapsed
+  // hour only, never a future or interpolated 15-min accumulation.
+  if(!Number.isFinite(stamp)||!(minutes===15?Math.abs(delta)<=90000:delta>=0&&delta<3600000))continue;
+  if(Math.abs(delta)<deltaBest){deltaBest=Math.abs(delta);best={index:i,time:new Date(stamp).toISOString(),stamp}}
+ }
+ return best;
+}
+function midRucPhaseEnough(rain,snow,graupel){
+ return Number.isFinite(rain)&&rain>=0&&Number.isFinite(snow)&&snow>=0||
+        Number.isFinite(graupel)&&graupel>0;
+}
 async function precipitationPhaseGridData(lat,lon,target,env){
- const requestedMs=Date.parse(String(target||'')),targetMs=Number.isFinite(requestedMs)?requestedMs:Date.now(),quarterMs=15*60000,roundedMs=Math.round(targetMs/quarterMs)*quarterMs,centerLat=Math.round(lat*20)/20,centerLon=Math.round(lon*20)/20,cacheKey=precipitationPhaseGridCacheKey(centerLat,centerLon,roundedMs),cached=precipitationPhaseGridCache.get(cacheKey);
- if(cached&&Date.now()-cached.storedAt<=12*60000)return{...cached.data,cache:'worker-memory'};
- const modelOrder=await orderedPhaseModels(centerLat,centerLon);if(!modelOrder.length)throw new Error('Für diesen Standort ist derzeit kein geeignetes hochauflösendes Rapid-/Regionalmodell für die Radar-Niederschlagsart verfügbar.');
- const startIso=new Date(roundedMs-quarterMs).toISOString().slice(0,16),endIso=new Date(roundedMs+quarterMs).toISOString().slice(0,16);
- // Höchstens 247 Modellpunkte pro Versuch. Die Auswahl eines einzigen, nach Frische
- // und Auflösung bewerteten Modells verhindert den früheren RUC-/Raster-Requeststurm.
- const rows=13,cols=19,bbox=modelOrder[0].bbox,south=Math.max(bbox[1],centerLat-.65),north=Math.min(bbox[3],centerLat+.65),west=Math.max(bbox[0],centerLon-.95),east=Math.min(bbox[2],centerLon+.95),lats=Array.from({length:rows},(_,index)=>north-index*(north-south)/(rows-1)),lons=Array.from({length:cols},(_,index)=>west+index*(east-west)/(cols-1)),coordinates=[];
- for(let row=0;row<rows;row++)for(let col=0;col<cols;col++)coordinates.push({lat:lats[row],lon:lons[col]});
- const fields='temperature_2m,relative_humidity_2m,wet_bulb_temperature_2m,weather_code,precipitation,rain,snowfall,snowfall_height,freezing_level_height',batchSize=120;
- const fetchBatch=async(batch,apiId,label,endpoint=OPEN_METEO_FORECAST)=>{const url=new URL(endpoint);url.searchParams.set('latitude',batch.map(point=>point.lat.toFixed(4)).join(','));url.searchParams.set('longitude',batch.map(point=>point.lon.toFixed(4)).join(','));url.searchParams.set('minutely_15',fields);url.searchParams.set('start_minutely_15',startIso);url.searchParams.set('end_minutely_15',endIso);url.searchParams.set('models',apiId);url.searchParams.set('timezone','GMT');url.searchParams.set('cell_selection','nearest');url.searchParams.set('temperature_unit','celsius');url.searchParams.set('precipitation_unit','mm');const response=await fetchWithDeadline(url.toString(),{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:900,cacheEverything:true}},18000),body=await response.text();let payload={};try{payload=JSON.parse(body)}catch{}if(!response.ok||payload?.error){const message=payload?.reason||payload?.error||`Open-Meteo ${label} Phasenraster HTTP ${response.status}`;const error=new Error(String(message));error.status=response.status;throw error}const points=openMeteoRows(payload);if(points.length!==batch.length)throw new Error(`${label} Phasenraster: ${points.length} statt ${batch.length} Punkte.`);return points};
- let selected=null,selectedApiId='',points=[],lastError='';
- for(const model of modelOrder){for(const apiId of model.apiIds){try{const next=[];for(let start=0;start<coordinates.length;start+=batchSize){const batch=coordinates.slice(start,start+batchSize),set=await fetchBatch(batch,apiId,model.label,model.endpoint||OPEN_METEO_FORECAST);next.push(...set)}points=next;selected=model;selectedApiId=apiId;break}catch(error){lastError=error instanceof Error?error.message:String(error);if(precipitationPhaseRateLimited(lastError))break}}if(selected||precipitationPhaseRateLimited(lastError))break}
- if(!selected||points.length!==coordinates.length){if(precipitationPhaseRateLimited(lastError)){const stale=precipitationPhaseStale(centerLat,centerLon,targetMs);if(stale)return{...stale,targetTime:new Date(targetMs).toISOString(),stale:true,fallbackReason:'Temporäres Modell-API-Limit: letztes belastbares Radar-Phasenfeld wird vorübergehend weiterverwendet.'}}throw new Error(`Rapid-/Regionalmodell-Phasenraster nicht verfügbar${lastError?`: ${lastError}`:''}`)}
- const frame={time:new Date(roundedMs).toISOString(),temperature2m:[],relativeHumidity2m:[],wetBulbTemperature2m:[],weatherCode:[],precipitation:[],rain:[],showers:[],snowfall:[],snowfallHeight:[],freezingLevelHeight:[],elevation:[],rucRain:[],rucSnowfallWaterEquivalent:[],graupelWaterEquivalent:[]};let valid=0,actualTimes=[];
- for(const point of points){const minute=point?.minutely_15||{},times=Array.isArray(minute.time)?minute.time:[],parsed=times.map(value=>Date.parse(String(value))),index=parsed.reduce((best,value,current)=>Number.isFinite(value)&&Math.abs(value-targetMs)<Math.abs((parsed[best]??Infinity)-targetMs)?current:best,0),actual=parsed[index],usable=Number.isFinite(actual)&&Math.abs(actual-targetMs)<=20*60000;if(usable){valid++;actualTimes.push(actual)}const value=name=>{const raw=minute?.[name]?.[index];return usable&&typeof raw!=='boolean'&&!(typeof raw==='string'&&!raw.trim())?(number(raw)??NaN):NaN};frame.temperature2m.push(value('temperature_2m'));frame.relativeHumidity2m.push(value('relative_humidity_2m'));frame.wetBulbTemperature2m.push(value('wet_bulb_temperature_2m'));frame.weatherCode.push(phaseGridWeatherCode(value('weather_code')));frame.precipitation.push(phaseGridAmount(value('precipitation')));frame.rain.push(phaseGridAmount(value('rain')));frame.showers.push(NaN);frame.snowfall.push(phaseGridAmount(value('snowfall')));frame.snowfallHeight.push(value('snowfall_height'));frame.freezingLevelHeight.push(value('freezing_level_height'));frame.elevation.push(number(point?.elevation)??NaN)}
- if(valid<coordinates.length*.9)throw new Error(`${selected.label}-Phasenraster zeitlich unvollständig (${valid}/${coordinates.length} Punkte).`);if(actualTimes.length)frame.time=new Date(actualTimes.sort((a,b)=>a-b)[Math.floor(actualTimes.length/2)]).toISOString();
- let rucPhase=null;try{rucPhase=await dwdRucStaticPhaseGrid(lats,lons,targetMs,env)}catch{}if(rucPhase){frame.rucRain=rucPhase.rain;frame.rucSnowfallWaterEquivalent=rucPhase.snowfallWaterEquivalent;frame.graupelWaterEquivalent=rucPhase.graupelWaterEquivalent}else{frame.rucRain=Array(coordinates.length).fill(NaN);frame.rucSnowfallWaterEquivalent=Array(coordinates.length).fill(NaN);frame.graupelWaterEquivalent=Array(coordinates.length).fill(NaN)}
- const referenceTime=selected.initialisationTime,modelTimeMs=Date.parse(frame.time),referenceMs=Date.parse(referenceTime||'');if(Number.isFinite(referenceMs)&&Number.isFinite(modelTimeMs)&&modelTimeMs-referenceMs>Math.max(5*60*60000,(selected.maxHours||48)*3600000+30*60000))throw new Error(`Der verfügbare ${selected.label}-Lauf ist für eine belastbare Radarphase zu alt.`);
- const latStep=Math.abs((north-south)/(rows-1)),lonStep=Math.abs((east-west)/(cols-1)),gridSpacingKm=Math.round(Math.max(latStep*111.2,lonStep*111.2*Math.max(.3,Math.cos(centerLat*Math.PI/180)))*10)/10,data={modelId:selected.id,modelLabel:selected.label,targetTime:new Date(targetMs).toISOString(),referenceTime,lats,lons,frame,provider:`${selected.label} · Open-Meteo (${selectedApiId})${rucPhase?' · Phase: DWD ICON-D2-RUC':''}`,phaseSource:rucPhase?.source,checkedAt:new Date().toISOString(),gridSpacingKm,coverage:`lokales Radar-Phasenraster ${rows}×${cols} · ca. ${gridSpacingKm} km Modellstichpunkte · OPERA-Echomaske 1 km${rucPhase?` · RUC-Phase ${rucPhase.valid}/${rucPhase.total}`:''}`,rapidUpdate:Boolean(selected.rapidUpdate)||Boolean(rucPhase),native15:Boolean(selected.native15)||Boolean(rucPhase),updateIntervalSeconds:rucPhase?900:selected.updateIntervalSeconds,modelAgeHours:Number((selected.ageHours||0).toFixed(2)),selectionScore:Number(phaseModelScore(selected).toFixed(1)),candidateModels:modelOrder.map(model=>({id:model.id,label:model.label,rapidUpdate:Boolean(model.rapidUpdate),resolutionKm:model.resolutionKm,initialisationTime:model.initialisationTime,ageHours:Number((model.ageHours||0).toFixed(2)),score:Number(phaseModelScore(model).toFixed(1))})),requestBudget:{locations:coordinates.length,batches:Math.ceil(coordinates.length/batchSize),variables:fields.split(',').length}};
- rememberPrecipitationPhase(cacheKey,data);return data;
+ const requested=Date.parse(String(target||'')),targetMs=Number.isFinite(requested)?requested:Date.now(),roundedMs=Math.round(targetMs/900000)*900000;
+ const centerLat=Math.round(lat*20)/20,centerLon=Math.round(lon*20)/20,key=precipitationPhaseGridCacheKey(centerLat,centerLon,roundedMs);
+ const existing=precipitationPhaseGridCache.get(key);if(existing&&Date.now()-existing.storedAt<=720000)return{...existing.data,cache:'worker-memory'};
+ const rows=13,cols=19,south=Math.max(-89.95,centerLat-.65),north=Math.min(89.95,centerLat+.65),west=Math.max(-179.95,centerLon-.95),east=Math.min(179.95,centerLon+.95);
+ if(!(south<north&&west<east))throw new Error('Kartenregion ist keine gueltige WGS84-Flaeche.');
+ const lats=Array.from({length:rows},(_,r)=>north-r*(north-south)/(rows-1)),lons=Array.from({length:cols},(_,c)=>west+c*(east-west)/(cols-1));
+ const coordinates=[];for(const latitude of lats)for(const longitude of lons)coordinates.push({lat:latitude,lon:longitude});
+ const count=coordinates.length,blank=()=>Array(count).fill(NaN);
+ const frame={time:new Date(roundedMs).toISOString(),temperature2m:blank(),relativeHumidity2m:blank(),wetBulbTemperature2m:blank(),weatherCode:blank(),precipitation:blank(),rain:blank(),showers:blank(),snowfall:blank(),snowfallHeight:blank(),freezingLevelHeight:blank(),elevation:blank(),rucRain:blank(),rucSnowfallWaterEquivalent:blank(),graupelWaterEquivalent:blank()};
+ const phaseSourceByCell=Array(count).fill(null),phaseValidTimeByCell=Array(count).fill(null),phaseRunByCell=Array(count).fill(null),phaseIntervalMinutesByCell=Array(count).fill(null);
+ const candidateModels=[],errors=[];let ruc=null;
+ try{ruc=await dwdRucStaticPhaseGrid(lats,lons,roundedMs,env)}catch(error){errors.push('RUC nicht verfuegbar: '+String(error))}
+ if(ruc){
+  const valid=midPhaseMs(ruc.time),run=midPhaseMs(ruc.run);
+  if(Number.isFinite(valid)&&Math.abs(valid-roundedMs)<=90000&&Number.isFinite(run)&&run<=valid&&Date.now()-run<=4*3600000){
+   for(let i=0;i<count;i++){
+    const rain=midPhaseNumber(ruc.rain?.[i]),snow=midPhaseNumber(ruc.snowfallWaterEquivalent?.[i]),graupel=midPhaseNumber(ruc.graupelWaterEquivalent?.[i]);
+    if(!midRucPhaseEnough(rain,snow,graupel))continue;
+    frame.rucRain[i]=rain;frame.rucSnowfallWaterEquivalent[i]=snow;frame.graupelWaterEquivalent[i]=graupel;
+    phaseSourceByCell[i]='dwd-icon-d2-ruc';phaseValidTimeByCell[i]=ruc.time;phaseRunByCell[i]=ruc.run;phaseIntervalMinutesByCell[i]=15;
+   }
+  }else errors.push('RUC Phase15 ausserhalb gepruefter Lauf-/Feldzeit');
+ }
+ let batches=0,modelPointRequests=0,rateLimited=false;
+ const fetchBatch=async(model,apiId,indices)=>{
+  const interval=model.intervalMinutes,isQuarter=interval===15,url=new URL(OPEN_METEO_FORECAST),begin=new Date(roundedMs-(isQuarter?900000:7200000)).toISOString().slice(0,16),finish=new Date(roundedMs+(isQuarter?900000:3600000)).toISOString().slice(0,16);
+  url.searchParams.set('latitude',indices.map(i=>coordinates[i].lat.toFixed(4)).join(','));url.searchParams.set('longitude',indices.map(i=>coordinates[i].lon.toFixed(4)).join(','));
+  if(isQuarter){
+   url.searchParams.set('minutely_15','precipitation,rain,snowfall,snowfall_height,freezing_level_height,weather_code');
+   url.searchParams.set('start_minutely_15',begin);url.searchParams.set('end_minutely_15',finish);
+   url.searchParams.set('hourly','temperature_2m,relative_humidity_2m');
+   url.searchParams.set('start_hour',new Date(Math.floor(roundedMs/3600000)*3600000).toISOString().slice(0,16));
+   url.searchParams.set('end_hour',new Date(Math.ceil(roundedMs/3600000)*3600000).toISOString().slice(0,16));
+  }else{
+   url.searchParams.set('hourly','temperature_2m,relative_humidity_2m,weather_code,precipitation,rain,snowfall,snowfall_height,freezing_level_height');
+   url.searchParams.set('start_hour',begin);url.searchParams.set('end_hour',finish);
+  }
+  url.searchParams.set('models',apiId);url.searchParams.set('timezone','GMT');url.searchParams.set('cell_selection','nearest');
+  url.searchParams.set('temperature_unit','celsius');url.searchParams.set('precipitation_unit','mm');
+  const response=await fetchWithDeadline(url.toString(),{headers:{Accept:'application/json','User-Agent':'MID-weather-dashboard/'+WORKER_VERSION},cf:{cacheTtl:900,cacheEverything:true}},18000);
+  const payload=await response.json().catch(()=>({}));
+  if(!response.ok||payload?.error){const error=new Error(String(payload?.reason||payload?.error||'ICON phase HTTP '+response.status));error.status=response.status;throw error}
+  const points=openMeteoRows(payload);if(points.length!==indices.length)throw new Error('ICON model phase missing requested cell records');
+  return points;
+ };
+ for(const model of MID_ICON_PHASE_FALLBACKS){
+  const remaining=coordinates.map((point,i)=>!phaseSourceByCell[i]&&phaseModelApplies(model,point.lat,point.lon)?i:null).filter(Number.isInteger);
+  if(!remaining.length)continue;
+  const meta=await phaseModelMetadata(model);
+  if(!meta){errors.push(model.label+': keine verifizierten aktuellen Metadaten');continue}
+  const modelRun=midPhaseMs(meta.initialisationTime);
+  if(!Number.isFinite(modelRun)||modelRun>roundedMs||roundedMs-modelRun>model.maxHours*3600000){errors.push(model.label+': ungueltige Lauf-/Geltungszeit');continue}
+  const item={id:model.id,label:model.label,initialisationTime:meta.initialisationTime,intervalMinutes:model.intervalMinutes,source:'Open-Meteo ('+meta.metaId+')',verifiedNativeOriginalCells:false};
+  candidateModels.push(item);
+  let points=null;
+  for(const apiId of model.apiIds){
+   try{
+    const rowsOut=[];
+    for(let offset=0;offset<remaining.length;offset+=120){
+     const part=remaining.slice(offset,offset+120);if(part.length>120||remaining.length>247)throw new Error('Phasen-Raster zu gross');
+     modelPointRequests+=part.length;batches++;rowsOut.push(...await fetchBatch(model,apiId,part));
+    }
+    points=rowsOut;item.apiId=apiId;break;
+   }catch(error){
+    const reason=error instanceof Error?error.message:String(error);errors.push(model.label+': '+reason);
+    if(precipitationPhaseRateLimited(reason)){rateLimited=true;break}
+   }
+  }
+  if(rateLimited)break;
+  if(!points||points.length!==remaining.length)continue;
+  for(let j=0;j<points.length;j++){
+   const i=remaining[j],point=points[j],interval=model.intervalMinutes,values=interval===15?point?.minutely_15:point?.hourly,choice=midPhaseIndex(values,roundedMs,interval);
+   if(!choice)continue;
+   const get=name=>values?.[name]?.[choice.index],code=phaseGridWeatherCode(midPhaseNumber(get('weather_code')));
+   const precip=midPhaseAmount(get('precipitation')),rain=midPhaseAmount(get('rain')),snow=midPhaseAmount(get('snowfall'));
+   // Missing/NaN is NOT dry 0; even an edge cell inside BBOX can be absent.
+   if(!Number.isFinite(code)&&![precip,rain,snow].some(Number.isFinite))continue;
+   const thermal=interval===15?point?.hourly:values,thermalPick=interval===15?midPhaseIndex(thermal,roundedMs,60):choice,sameTime=thermalPick?.stamp===choice.stamp;
+   frame.temperature2m[i]=sameTime?midPhaseNumber(thermal?.temperature_2m?.[thermalPick.index]):NaN;
+   frame.relativeHumidity2m[i]=sameTime?midPhaseAmount(thermal?.relative_humidity_2m?.[thermalPick.index]):NaN;
+   frame.weatherCode[i]=code;frame.precipitation[i]=precip;frame.rain[i]=rain;frame.snowfall[i]=snow;
+   frame.snowfallHeight[i]=midPhaseNumber(get('snowfall_height'));frame.freezingLevelHeight[i]=midPhaseNumber(get('freezing_level_height'));frame.elevation[i]=midPhaseNumber(point?.elevation);
+   phaseSourceByCell[i]=model.id==='icon-d2'?'dwd-icon-d2':model.id==='icon-eu'?'dwd-icon-eu':'dwd-icon-global';
+   phaseValidTimeByCell[i]=choice.time;phaseRunByCell[i]=meta.initialisationTime;phaseIntervalMinutesByCell[i]=interval;
+  }
+ }
+ const usable=phaseSourceByCell.filter(Boolean).length;
+ if(!usable){
+  if(rateLimited){const stale=precipitationPhaseStale(centerLat,centerLon,roundedMs);if(stale)return{...stale,stale:true,targetTime:new Date(roundedMs).toISOString(),fallbackReason:'Open-Meteo-Minutenlimit: gekennzeichnetes frueheres Phasenfeld'}}
+  throw new Error('Keine mit Originalmaske / Modelllauf / Feldzeit gepruefte Phasenzelle: '+errors.slice(0,3).join('; '));
+ }
+ const sourceCounts=Object.fromEntries(['dwd-icon-d2-ruc','dwd-icon-d2','dwd-icon-eu','dwd-icon-global'].map(id=>[id,phaseSourceByCell.filter(s=>s===id).length]));
+ const gridSpacingKm=Math.round(Math.max(Math.abs((north-south)/(rows-1))*111.2,Math.abs((east-west)/(cols-1))*111.2*Math.max(.3,Math.cos(centerLat*Math.PI/180)))*10)/10;
+ const data={modelId:'icon-phase-priority',modelLabel:'ICON-D2-RUC → ICON-D2 → ICON-EU → ICON Global',targetTime:new Date(roundedMs).toISOString(),referenceTime:ruc?.run,lats,lons,frame,phaseSourceByCell,phaseValidTimeByCell,phaseRunByCell,phaseIntervalMinutesByCell,sourceCounts,provider:'DWD-RUC Originalzellen via MID Pages; ICON-D2/EU/global via Open-Meteo (nicht native Originalzellen)',phaseSource:ruc?.source,checkedAt:new Date().toISOString(),gridSpacingKm,coverage:usable+'/'+count+' gueltige Zellen; Maskenluecken bleiben NoData',rapidUpdate:sourceCounts['dwd-icon-d2-ruc']>0,native15:sourceCounts['dwd-icon-d2-ruc']+sourceCounts['dwd-icon-d2']>0,updateIntervalSeconds:null,modelAgeHours:0,candidateModels,requestBudget:{locations:count,batches,variables:8,modelPointRequests},sourceErrors:errors.slice(0,7),modelLimitWarning:rateLimited};
+ rememberPrecipitationPhase(key,data);return data;
 }
 
 const METEOGRAM_LEVELS=[1000,975,950,925,900,850,800,700,600,500,400,300,250,200,150,100];
