@@ -163,7 +163,7 @@ def may_defer_incomplete_eps(dwd:str,published:str,meta:dict,listing:bool|None,*
         clock=now or dt.datetime.now(dt.timezone.utc)
         if clock.tzinfo is None:return False
         age=(clock.astimezone(dt.timezone.utc)-run_time(published)).total_seconds()/60
-        return 0<=age<=max(1,max_age_minutes) and run_time(dwd)>run_time(published)
+        return 0<=age<=min(DEFAULT_MAX_AGE_MINUTES,max(1,max_age_minutes)) and run_time(dwd)>run_time(published)
     except (ValueError,TypeError,OverflowError):return False
 
 

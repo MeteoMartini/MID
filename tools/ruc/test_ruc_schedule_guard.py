@@ -178,6 +178,19 @@ assert 2<=peak_calls[0]<=4, 'bounded member GETs must overlap'
 assert time.monotonic()-start_parallel<1.15, 'sequential 20x GET regression'
 
 assert guard.advertised_eps_listing_complete(NEW,index_fixture(holes={1:{13}},subhourly=True)) is False
+# Adversarial HISTORICAL-SHAPE REPLAY, not a captured original directory:
+# real production logs of 19Z at 19:43:26 report 263/560 hourly
+# original names; exactly these 17 members were absent at +13h.
+# Full members at +13h are {8,17,20}. Missing leads below are
+# synthetic allocations consistent with aggregate 263/560, not
+# an invented reconstruction of DWD's precise per-member inventory.
+missing_at_13=[1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,18,19]
+partial_holes={member:set(range(11 if i<9 else 10,28))
+               for i,member in enumerate(missing_at_13)}
+assert 20*28-sum(len(leads) for leads in partial_holes.values())==263
+assert all(13 in partial_holes[member] for member in missing_at_13)
+assert guard.advertised_eps_listing_complete(
+    NEW,index_fixture(holes=partial_holes,subhourly=True)) is False
 assert guard.advertised_eps_listing_complete(NEW,index_fixture({1:{13,27}})) is False
 assert guard.advertised_eps_listing_complete(NEW,index_fixture(missing_member=20)) is False
 assert guard.advertised_eps_listing_complete(NEW,index_fixture(unfamiliar=True)) is None
@@ -199,6 +212,15 @@ for unknown in (True,None,0,'False'):
     assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,unknown,now=clock)
 assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,False,
                                          now=clock+dt.timedelta(hours=5))
+# The partial-index safety bound is independent of an override of the
+# general scheduler max-age argument/environment. Never defer on stale
+# Pages beyond the contracted maximum of 240 minutes.
+assert not guard.may_defer_incomplete_eps(
+    NEW,'2026-08-30T02:00',healthy,False,
+    now=clock+dt.timedelta(hours=3),max_age_minutes=600)
+assert guard.may_defer_incomplete_eps(
+    NEW,'2026-08-30T02:00',healthy,False,
+    now=clock,max_age_minutes=600)
 assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',bad,False,now=clock)
 assert not guard.may_defer_incomplete_eps('2026-08-30T01:00','2026-08-30T02:00',healthy,False,now=clock)
 assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,False,
