@@ -17,6 +17,7 @@ newest-to-older candidates and only publishes a fully decoded candidate.
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import datetime as dt
 import html
 import html.parser
@@ -110,6 +111,7 @@ def advertised_eps_listing_complete(run:str,fetch:Callable[[str],str]=fetch_text
         return None
     base=f'{EPS_BASE}/TOT_PREC/r/{run}/e/'
     deadline=time.monotonic()+budget_seconds
+    executor=None
     def links(url):
         if time.monotonic()>=deadline:raise TimeoutError('EPS listing budget')
         parser=Links();parser.feed(fetch(url))
@@ -122,8 +124,17 @@ def advertised_eps_listing_complete(run:str,fetch:Callable[[str],str]=fetch_text
         members={int(x[:-1]) for x in roots}
         if not members.issubset(EPS_REQUIRED_MEMBERS):return None
         missing=members!=EPS_REQUIRED_MEMBERS
-        for member in sorted(members):
-            filenames=links(f'{base}{member:02d}/s/')
+        # 21 serial TLS connections exceeded 14 s on the real DWD server:
+        # 20Z 14/20 members, 21Z 13/20, despite each observed index
+        # having the expected 325 files. Limit concurrent directory GETs
+        # to four (same 21-request ceiling and independent 4-s timeouts).
+        executor=ThreadPoolExecutor(max_workers=4,thread_name_prefix='mid-ruc-eps')
+        pending={executor.submit(links,f'{base}{member:02d}/s/'):member
+                 for member in sorted(members)}
+        remaining=deadline-time.monotonic()
+        if remaining<=0:raise TimeoutError('EPS listing budget exhausted')
+        for future in as_completed(pending,timeout=remaining):
+            filenames=future.result()
             if not filenames:return None
             matches=[EPS_GRIB_FILE.fullmatch(x) for x in filenames]
             if any(m is None for m in matches):return None
@@ -136,6 +147,11 @@ def advertised_eps_listing_complete(run:str,fetch:Callable[[str],str]=fetch_text
     except Exception:
         return None
     finally:
+        # Do not block past the 14-s admission deadline while a timed-out
+        # read finishes; its own network timeout remains 4 s. Never schedule
+        # further requests or count any incomplete future as positive proof.
+        if executor is not None:
+            executor.shutdown(wait=False,cancel_futures=True)
         signal.setitimer(signal.ITIMER_REAL,0)
         signal.signal(signal.SIGALRM,previous_handler)
 

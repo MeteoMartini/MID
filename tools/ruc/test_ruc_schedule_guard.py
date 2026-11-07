@@ -6,6 +6,7 @@ import json
 import tempfile
 import contextlib
 import io
+import threading
 import time
 from pathlib import Path
 
@@ -155,6 +156,27 @@ NEW='2026-08-30T03:00'
 assert guard.advertised_eps_listing_complete(NEW,index_fixture()) is True
 # Real DWD 20Z example: 325 names = 28 hourly + 297 five-minute.
 assert guard.advertised_eps_listing_complete(NEW,index_fixture(subhourly=True)) is True
+# The live DWD 20Z/21Z trials proved serial 21-GET indexing cannot meet
+# the fixed 14-s budget; four bounded concurrent reads must actually overlap.
+lock=threading.Lock()
+active_calls=[0]
+peak_calls=[0]
+def latency_index(url):
+    if url.endswith('/e/'):
+        return index_fixture(subhourly=True)(url)
+    with lock:
+        active_calls[0]+=1
+        peak_calls[0]=max(peak_calls[0],active_calls[0])
+    try:
+        time.sleep(0.08)
+        return index_fixture(subhourly=True)(url)
+    finally:
+        with lock:active_calls[0]-=1
+start_parallel=time.monotonic()
+assert guard.advertised_eps_listing_complete(NEW,latency_index) is True
+assert 2<=peak_calls[0]<=4, 'bounded member GETs must overlap'
+assert time.monotonic()-start_parallel<1.15, 'sequential 20x GET regression'
+
 assert guard.advertised_eps_listing_complete(NEW,index_fixture(holes={1:{13}},subhourly=True)) is False
 assert guard.advertised_eps_listing_complete(NEW,index_fixture({1:{13,27}})) is False
 assert guard.advertised_eps_listing_complete(NEW,index_fixture(missing_member=20)) is False
