@@ -62,6 +62,48 @@ try{
  rateLimited=false;metaInitialMs=testNowMs-12*60*60*1000;
  const staleModule=await import(`../worker/metar-proxy.js?phase-stale=${Date.now()}`);
  const staleResponse=await staleModule.default.fetch(new Request(`https://mid.test/?mode=precipitation-phase-grid&lat=50.82&lon=7.05&target=${encodeURIComponent(target)}`),{}),staleData=await staleResponse.json();
- if(staleResponse.ok||!/(?:zu alt|kein geeignetes)/i.test(String(staleData.error||'')))throw new Error(`Staler Regionalmodell-Lauf wurde nicht abgelehnt: ${JSON.stringify(staleData)}`);
+ if(staleResponse.ok||!/(?:zu alt|kein geeignetes|keine mit originalmaske|kein verifizierter aktueller)/i.test(String(staleData.error||'')))throw new Error(`Staler Regionalmodell-Lauf wurde nicht abgelehnt: ${JSON.stringify(staleData)}`);
+
+ // #683: The same visible 13x19 map MUST select phase source per cell.
+ // D2 has source holes, EU only covers some of them, ICON Global the rest.
+ metaInitialMs=targetMs-2*60*60*1000;
+ const byModel={dwd_icon_d2:0,dwd_icon_eu:0,dwd_icon:0};
+ const iso=new Date(targetMs).toISOString(),hourIso=new Date(Math.floor(targetMs/3600000)*3600000).toISOString(),triple=value=>[value,value,value];
+ globalThis.fetch=async request=>{
+  const url=new URL(typeof request==='string'?request:request.url);
+  if(url.hostname==='api.open-meteo.com'&&url.pathname.includes('/static/meta.json'))
+   return new Response(JSON.stringify({last_run_initialisation_time:metaInitialMs/1000}),{status:200,headers:{'content-type':'application/json'}});
+  if(url.hostname==='api.open-meteo.com'&&url.pathname.includes('/v1/forecast')){
+   const model=url.searchParams.get('models');
+   if(!Object.hasOwn(byModel,model))throw new Error('Prohibited non-ICON source '+model);
+   const lats=url.searchParams.get('latitude').split(',').map(Number),lons=url.searchParams.get('longitude').split(',').map(Number);
+   byModel[model]+=lats.length;
+   return new Response(JSON.stringify(lats.map((lat,i)=>{
+    const nativeD2=model==='dwd_icon_d2',available=nativeD2?lat>50.95:model==='dwd_icon_eu'?lat>50.35:true;
+    const values={time:triple(nativeD2?iso:hourIso),temperature_2m:triple(1),relative_humidity_2m:triple(95),weather_code:triple(available?nativeD2?61:model==='dwd_icon_eu'?71:87:null),precipitation:triple(available?.5:null),rain:triple(available?.4:null),snowfall:triple(available?0:null),snowfall_height:triple(400),freezing_level_height:triple(500)};
+    return {latitude:lat,longitude:lons[i],elevation:50,[nativeD2?'minutely_15':'hourly']:values};
+   })),{status:200,headers:{'content-type':'application/json'}});
+  }
+  throw new Error('Unexpected original/provider network endpoint '+url);
+ };
+ const priorityModule=await import('../worker/metar-proxy.js?phase-priority='+Date.now());
+ const priorityResponse=await priorityModule.default.fetch(new Request('https://mid.test/?mode=precipitation-phase-grid&lat=50.82&lon=7.05&target='+encodeURIComponent(target)),{});
+ const priority=await priorityResponse.json();
+ if(!priorityResponse.ok)throw new Error('Per-cell priority fixture failed: '+JSON.stringify(priority));
+ const sourceCounts=priority.sourceCounts||{},sourceByCell=priority.phaseSourceByCell;
+ if(!Array.isArray(sourceByCell)||sourceByCell.length!==247)throw new Error('Missing per-cell source map');
+ for(const id of ['dwd-icon-d2','dwd-icon-eu','dwd-icon-global'])if(!(sourceCounts[id]>0))throw new Error('Missing true source tier '+id+': '+JSON.stringify(sourceCounts));
+ if(sourceCounts['dwd-icon-d2-ruc']!==0)throw new Error('No original RUC fixture available here');
+ if(Object.values(sourceCounts).reduce((a,b)=>a+b,0)!==247)throw new Error('NoData source-selection gaps or duplicates');
+ if(byModel.dwd_icon_d2!==247||byModel.dwd_icon_eu<=0||byModel.dwd_icon<=0)throw new Error('Incorrect fallback request inventory '+JSON.stringify(byModel));
+ if(priority.requestBudget.modelPointRequests!==Object.values(byModel).reduce((a,b)=>a+b,0))throw new Error('Untruthful model request budget');
+ for(let i=0;i<247;i++){
+  const id=sourceByCell[i],interval=priority.phaseIntervalMinutesByCell[i],valid=priority.phaseValidTimeByCell[i],run=priority.phaseRunByCell[i];
+  if(!run||!valid||!(interval===(id==='dwd-icon-d2'?15:60)))throw new Error('Invalid per-cell run/validity/accumulation interval at '+i);
+  if(id==='dwd-icon-d2'&&Date.parse(valid)!==targetMs)throw new Error('Original D2 15-minute valid time drift');
+  if(id!=='dwd-icon-d2'&&Date.parse(valid)>targetMs)throw new Error('ICON EU/global used a FUTURE hourly interval as 15 min');
+  if(priority.frame.rucRain[i]!==null||priority.frame.rucSnowfallWaterEquivalent[i]!==null)throw new Error('Open-Meteo fallback wrongly labeled as RUC');
+ }
+ if(priority.provider.includes('native Originalzellen')&&!priority.provider.includes('nicht native Originalzellen'))throw new Error('Open-Meteo interpolated samples impersonate native DWD originals');
 }finally{globalThis.fetch=realFetch}
 console.log('Radar-/Regionalmodell-Phasenraster geprüft: dynamische Rapid-/Regionalmodellwahl, 13×19/247 Punkte, 3 sequenzielle Batches, Rate-Limit-Fallback und Stale-Run-Abbruch.');
