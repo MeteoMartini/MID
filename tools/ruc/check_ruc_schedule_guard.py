@@ -74,6 +74,59 @@ def newest_common_run(fetch:Callable[[str],str]=fetch_text)->str|None:
     common=(common or set())&discover_runs(EPS_BASE,'TOT_PREC',fetch)
     return max(common) if common else None
 
+
+# A new DWD RUC-EPS directory can exist before all 20x28 original GRIB
+# files are advertised. This is a NEGATIVE directory readiness filter only.
+# Unknown/inconsistent layouts fail OPEN to the original header/value decoder.
+EPS_MEMBER_DIR=re.compile(r'^(0[1-9]|1[0-9]|20)/$')
+EPS_GRIB_FILE=re.compile(r'^PT(\d{3})H00M\.grib2$',re.I)
+EPS_REQUIRED_LEADS=frozenset(range(28))
+EPS_REQUIRED_MEMBERS=frozenset(range(1,21))
+
+
+def advertised_eps_listing_complete(run:str,fetch:Callable[[str],str]=fetch_text)->bool|None:
+    """True=all expected 560 filenames; False=confirmed absence; None=unknown.
+
+    No claim about original GRIB headers, bitmap, values or first DWD publish.
+    At most 21 small HTTP directory requests and a bounded elapsed window.
+    """
+    if not isinstance(run,str) or not RUN_RE.fullmatch(run+'/'):
+        return None
+    base=f'{EPS_BASE}/TOT_PREC/r/{run}/e/'
+    deadline=time.monotonic()+14
+    def links(url):
+        if time.monotonic()>=deadline:raise TimeoutError('EPS listing budget')
+        parser=Links();parser.feed(fetch(url))
+        return [urllib.parse.unquote(x) for x in parser.href
+                if x not in ('../','./') and not x.startswith(('?','#'))]
+    try:
+        roots=links(base)
+        if not roots or any(EPS_MEMBER_DIR.fullmatch(x) is None for x in roots):
+            return None
+        members={int(x[:-1]) for x in roots}
+        if not members.issubset(EPS_REQUIRED_MEMBERS):return None
+        for member in sorted(members):
+            filenames=links(f'{base}{member:02d}/s/')
+            if not filenames or any(EPS_GRIB_FILE.fullmatch(x) is None for x in filenames):
+                return None
+            hours={int(EPS_GRIB_FILE.fullmatch(x).group(1)) for x in filenames}
+            if not EPS_REQUIRED_LEADS.issubset(hours):return False
+        return members==EPS_REQUIRED_MEMBERS
+    except Exception:
+        return None
+
+
+def may_defer_incomplete_eps(dwd:str,published:str,meta:dict,listing:bool|None,*,
+                             now:dt.datetime|None=None,max_age_minutes:int=DEFAULT_MAX_AGE_MINUTES)->bool:
+    if listing is not False or not valid_pages_meta(meta):return False
+    try:
+        clock=now or dt.datetime.now(dt.timezone.utc)
+        if clock.tzinfo is None:return False
+        age=(clock.astimezone(dt.timezone.utc)-run_time(published)).total_seconds()/60
+        return 0<=age<=max(1,max_age_minutes) and run_time(dwd)>run_time(published)
+    except (ValueError,TypeError,OverflowError):return False
+
+
 def published_meta(base_url:str,fetch:Callable[[str],str]=fetch_text)->dict:
     base=base_url.rstrip('/')+'/'
     url=urllib.parse.urljoin(base,'latest.json')
@@ -264,6 +317,23 @@ def main()->int:
         should_run=True;reason=f'{error}; fail-open build';published=str((meta or {}).get('run') or '')
     else:
         should_run,reason,dwd,published=decide(dwd,meta,max_age_minutes=args.max_age_minutes)
+        # Expensive duplicate 18Z production is not a repair for an advertised
+        # but incomplete 19Z EPS index. Keep the authenticated healthy Pages
+        # source only when the required filename layout is explicitly partial.
+        # On index uncertainty, bad metadata or stale Pages, fail open.
+        if should_run and dwd and meta and valid_pages_meta(meta):
+            try:
+                clock=dt.datetime.now(dt.timezone.utc)
+                age=(clock-run_time(published)).total_seconds()/60
+                if 0<=age<=max(1,args.max_age_minutes) and run_time(dwd)>run_time(published):
+                    listing=advertised_eps_listing_complete(
+                        dwd,lambda url:fetch_text(url,timeout=4))
+                    if may_defer_incomplete_eps(dwd,published,meta,listing,
+                                                 now=clock,max_age_minutes=args.max_age_minutes):
+                        should_run=False
+                        reason='Neuer DWD-EPS20-Dateiindex unvollständig; gültiger Pages-Lauf bleibt bis zur nächsten Prüfung'
+            except (ValueError,TypeError,OverflowError):
+                pass
     print(f'RUC schedule guard: should_run={str(should_run).lower()} · {reason}')
     if dwd:print(f'Newest common DWD run: {dwd}')
     if published:

@@ -127,3 +127,43 @@ assert guard.valid_pages_meta([]) is False
 assert guard.valid_pages_meta({'schema':guard.SCHEMA,'storageProfile':guard.FULL_STORAGE_PROFILE}) is False
 print('RUC active compressed inventory guard rejects malformed manifests; raw-profile compatibility preserved.')
 
+
+# Real DWD EPS v1 member path: .../r/RUN/e/NN/s/PTxxxH00M.grib2 .
+# Directory checks are only negative readiness evidence; not GRIB admission.
+def index_fixture(holes=None,missing_member=None,unfamiliar=False,timeout=False):
+    holes=holes or {}
+    def fetch(url):
+        if url.endswith('/e/'):
+            return ''.join(f'<a href="{i:02d}/">{i:02d}/</a>' for i in range(1,21)
+                           if i!=missing_member)
+        import re
+        member=re.search(r'/e/(\d{2})/s/$',url)
+        assert member,'wrong EPS directory'
+        n=int(member.group(1))
+        if timeout and n==1:raise TimeoutError('index unavailable')
+        parts=[f'<a href="PT{h:03d}H00M.grib2">PT{h:03d}H00M.grib2</a>'
+               for h in range(28) if h not in holes.get(n,set())]
+        if unfamiliar and n==2:parts.append('<a href="unexpected.grib2">x</a>')
+        return ''.join(parts)
+    return fetch
+
+NEW='2026-08-30T03:00'
+assert guard.advertised_eps_listing_complete(NEW,index_fixture()) is True
+assert guard.advertised_eps_listing_complete(NEW,index_fixture({1:{13,27}})) is False
+assert guard.advertised_eps_listing_complete(NEW,index_fixture(missing_member=20)) is False
+assert guard.advertised_eps_listing_complete(NEW,index_fixture(unfamiliar=True)) is None
+assert guard.advertised_eps_listing_complete(NEW,index_fixture(timeout=True)) is None
+assert guard.advertised_eps_listing_complete('bad',index_fixture()) is None
+assert guard.advertised_eps_listing_complete(NEW,lambda _: '<a href="new-format/">new-format</a>') is None
+healthy=meta('2026-08-30T02:00')
+clock=dt.datetime(2026,8,30,3,41,tzinfo=dt.timezone.utc)
+assert guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,False,now=clock)
+for unknown in (True,None,0,'False'):
+    assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,unknown,now=clock)
+assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,False,
+                                         now=clock+dt.timedelta(hours=5))
+assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',bad,False,now=clock)
+assert not guard.may_defer_incomplete_eps('2026-08-30T01:00','2026-08-30T02:00',healthy,False,now=clock)
+assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,False,
+                                         now=dt.datetime(2026,8,30,1,0,tzinfo=dt.timezone.utc))
+print('RUC EPS advertised-incomplete 20x28 directory guard: fail-open negatives and healthy-only wait PASS')

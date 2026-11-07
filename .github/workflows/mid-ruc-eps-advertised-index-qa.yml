@@ -1,0 +1,49 @@
+name: MID RUC EPS advertised index guard QA (read-only)
+on:
+  push:
+    branches:
+      - chatgpt/v0.9.85.446-ruc-eps-advertised-guard-qa
+permissions:
+  contents: read
+concurrency:
+  group: ruc-eps-index-qa-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  test:
+    if: "${{ github.event.head_commit.message == 'qa(ruc): bound incomplete EPS20 listing guard before redundant rebuild' }}"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Exact Stable/Main, source and workflow parity fail-closed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)" = "b6526e7c5c24035bd1a75b87b77e7bb8e821c334"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" = "b6526e7c5c24035bd1a75b87b77e7bb8e821c334"
+          git merge-base --is-ancestor "b6526e7c5c24035bd1a75b87b77e7bb8e821c334" HEAD
+          cmp ci/github/workflows/mid-ruc-eps-advertised-index-qa.yml .github/workflows/mid-ruc-eps-advertised-index-qa.yml
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22.16.0'
+      - name: Unchanged Scheduler plus bounded EPS20 negative evidence and watchdog
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile tools/ruc/check_ruc_schedule_guard.py tools/ruc/test_ruc_schedule_guard.py
+          python tools/ruc/test_ruc_schedule_guard.py
+          node scripts/test-ruc-schedule-catchup-09745.mjs
+          node scripts/test-ruc-scheduler-watchdog-09751.mjs
+          echo 'QA-only: no original GRIB/EPS source positive admission, no DWD full publication proof, no 168h SLO, no production writes.' >> "$GITHUB_STEP_SUMMARY"
