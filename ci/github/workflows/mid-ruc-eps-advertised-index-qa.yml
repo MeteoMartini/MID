@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   test:
-    if: "${{ github.event.head_commit.message == 'test(ruc): P0 final QA gate' || github.event.head_commit.message == 'qa(ruc): assert historical partial EPS evidence and hard freshness cap' }}"
+    if: "${{ github.event.head_commit.message == 'test(ruc): P0 final QA gate' || github.event.head_commit.message == 'qa(ruc): preserve intermediate completed RUC catch-up' }}"
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -32,8 +32,8 @@ jobs:
           test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" = "b6526e7c5c24035bd1a75b87b77e7bb8e821c334"
           git merge-base --is-ancestor "b6526e7c5c24035bd1a75b87b77e7bb8e821c334" HEAD
           cmp ci/github/workflows/mid-ruc-eps-advertised-index-qa.yml .github/workflows/mid-ruc-eps-advertised-index-qa.yml
-          test "$(git hash-object tools/ruc/check_ruc_schedule_guard.py)" = "604515f696ba377d408098a57dbaf2c6324ca1bb"
-          test "$(git hash-object tools/ruc/test_ruc_schedule_guard.py)" = "326cad72b591aab17b69c8e36c58c5474df80022"
+          test "$(git hash-object tools/ruc/check_ruc_schedule_guard.py)" = "96bce20a46654beb2ed35d40d8af1737a74d10f6"
+          test "$(git hash-object tools/ruc/test_ruc_schedule_guard.py)" = "2387a3b5ebde28fe4481c2ba251f29d76336efbb"
           test "$(git hash-object tools/ruc/probe_ruc_eps_advertised_live.py)" = "6d2360a9652d0aac1cf22b591e227c02028f9a60"
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:

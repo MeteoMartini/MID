@@ -163,7 +163,11 @@ def may_defer_incomplete_eps(dwd:str,published:str,meta:dict,listing:bool|None,*
         clock=now or dt.datetime.now(dt.timezone.utc)
         if clock.tzinfo is None:return False
         age=(clock.astimezone(dt.timezone.utc)-run_time(published)).total_seconds()/60
-        return 0<=age<=min(DEFAULT_MAX_AGE_MINUTES,max(1,max_age_minutes)) and run_time(dwd)>run_time(published)
+        # A later *complete* intermediate hourly run must never be
+        # skipped simply because the newest advertised run is incomplete.
+        # Only the immediate published predecessor can be deferred.
+        return (0<=age<=min(DEFAULT_MAX_AGE_MINUTES,max(1,max_age_minutes))
+                and run_time(dwd)-run_time(published)==dt.timedelta(hours=1))
     except (ValueError,TypeError,OverflowError):return False
 
 
@@ -365,7 +369,8 @@ def main()->int:
             try:
                 clock=dt.datetime.now(dt.timezone.utc)
                 age=(clock-run_time(published)).total_seconds()/60
-                if 0<=age<=max(1,args.max_age_minutes) and run_time(dwd)>run_time(published):
+                if (0<=age<=min(DEFAULT_MAX_AGE_MINUTES,max(1,args.max_age_minutes))
+                    and run_time(dwd)-run_time(published)==dt.timedelta(hours=1)):
                     listing=advertised_eps_listing_complete(
                         dwd,lambda url:fetch_text(url,timeout=4))
                     if may_defer_incomplete_eps(dwd,published,meta,listing,

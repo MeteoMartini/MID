@@ -207,6 +207,13 @@ assert guard.advertised_eps_listing_complete(NEW,lambda _: '<a href="new-format/
 healthy=json.loads(json.dumps(active))
 clock=dt.datetime(2026,8,30,3,41,tzinfo=dt.timezone.utc)
 assert guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,False,now=clock)
+# DWD 04Z incomplete while Pages is 02Z: 03Z could already be
+# complete. Deferring here would suppress a real catch-up, not only
+# a redundant rebuild. The guard must fail open to the original producer.
+assert not guard.may_defer_incomplete_eps(
+    '2026-08-30T04:00','2026-08-30T02:00',healthy,False,now=clock)
+assert not guard.may_defer_incomplete_eps(
+    '2026-08-30T05:00','2026-08-30T02:00',healthy,False,now=clock)
 assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',meta('2026-08-30T02:00'),False,now=clock)  # raw emergency rollback must rebuild
 for unknown in (True,None,0,'False'):
     assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,unknown,now=clock)
