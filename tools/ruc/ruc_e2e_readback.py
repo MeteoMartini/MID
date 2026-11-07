@@ -72,8 +72,9 @@ def _released_contract_readonly(pages):
 
 def _worker_readonly(worker, expected):
     if not isinstance(worker,dict):raise ValueError('worker unavailable')
-    if any(worker.get(k) is not True for k in ('configured','ready','fresh','schemaValid')):
-        raise ValueError('worker not validated')
+    for key in ('configured','ready','fresh','schemaValid'):
+        if worker.get(key) is not True:
+            raise ValueError('worker status not verified: '+key)
     if worker.get('run') != expected['run']:
         raise ValueError('worker run drift')
     for name in ('timeCount', 'pointCount', 'epsMemberCount'):
@@ -104,7 +105,7 @@ def inspect_readback(pages, worker, observed_at):
         raise ValueError('observation timestamp not UTC')
     result={'schema':'mid.ruc.e2e-readback-shadow.v1','observedAtUtc':observed_at,
             'pagesRun':None,'workerRun':None,'pagesValid':False,'workerValid':False,
-            'sameRun':False,'runAgeMinutes':None,'appAdopted':None,
+            'workerReadbackIssue':None,'sameRun':False,'runAgeMinutes':None,'appAdopted':None,
             'productionSloAuthorized':False}
     # Reuse the released MID production structural checks. This is still ONLY an
     # observational readback: no uploaded byte-SHA or App adoption is proven.
@@ -123,8 +124,12 @@ def inspect_readback(pages, worker, observed_at):
             _worker_readonly(worker,contract)
             result['workerRun']=worker['run']
             result['workerValid']=True
-        except (RuntimeError, ValueError, TypeError, KeyError, AttributeError):
+        except (RuntimeError, ValueError, TypeError, KeyError, AttributeError) as error:
             result['workerRun']=worker.get('run')
+            # Only messages from local validators, never raw remote payloads.
+            result['workerReadbackIssue']=str(error) if isinstance(error, ValueError) else 'worker validation error'
+    if not isinstance(worker,dict) and result['workerReadbackIssue'] is None:
+        result['workerReadbackIssue']='worker response missing or invalid'
     result['sameRun']=bool(result['pagesValid'] and result['workerValid'] and
                            result['pagesRun']==result['workerRun'])
     return result
