@@ -24,6 +24,43 @@ from pathlib import Path
 MAX_PAGES_PROBE_ATTEMPTS = 12
 MAX_WORKER_PROBE_ATTEMPTS = 7
 MAX_PROBE_JOURNAL_RECORDS = 64
+SAFE_DIAGNOSTIC_CODES = {
+    'codec_defect_proven',
+    'codec_evidence_unclassified',
+    'invalid_json',
+    'pages_convergence_timeout',
+    'pages_http_error',
+    'pages_pointer_not_converged',
+    'pages_profile_mismatch',
+    'pages_run_mismatch',
+    'payload_not_object',
+    'probe_timeout',
+    'probe_transport_failed',
+    'ruc_health_error',
+    'snapshot_axis_invalid',
+    'snapshot_grid_invalid',
+    'snapshot_member_or_point_count_invalid',
+    'snapshot_pages_dimensions_mismatch',
+    'snapshot_profile_inactive',
+    'snapshot_rollback_profile_invalid',
+    'snapshot_run_invalid',
+    'snapshot_schema_invalid',
+    'snapshot_worker_dimensions_mismatch',
+    'snapshot_worker_run_mismatch',
+    'snapshot_contract_invalid',
+    'unclassified_probe_error',
+    'worker_counts_incomplete',
+    'worker_eps_object_missing',
+    'worker_http_error',
+    'worker_not_adopted',
+    'worker_not_converged',
+    'worker_object_missing',
+    'worker_pages_profile_invalid',
+    'worker_payload_error',
+    'worker_readiness_failed',
+    'worker_run_mismatch',
+    'worker_transport_error',
+}
 
 
 class RucHealthError(RuntimeError):
@@ -151,7 +188,7 @@ class ProbeJournal:
             'httpStatus': status if type(status) is int and 100 <= status <= 599 else None,
             'metadata': _safe_response_metadata(metadata or {}),
             'diagnosticCode': diagnostic_code if isinstance(diagnostic_code, str)
-            and re.fullmatch(r'[a-z0-9_]{1,48}', diagnostic_code) else 'none',
+            and diagnostic_code in SAFE_DIAGNOSTIC_CODES else 'unclassified',
         })
 
     def as_dict(self) -> dict:
