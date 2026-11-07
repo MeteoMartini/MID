@@ -73,6 +73,16 @@ Der auf ausschließlich öffentliche MID-Pages-Daten begrenzte GitHub-Runner-Pil
 
 **Interpretation:** Der 247-Zell-Abgleich weist für genau diesen veröffentlichten Pages-Lauf, dieses Gebiet und diesen Feldzeitpunkt die tatsächliche Verlustfrei-Decoder-/Lookup-/Feldwert-Kette nach. Dies ist eine **GitHub-Runner-Teilcache-Messung**, keine Cloudflare Worker-P95 unter realer Last, keine Messung echter Endgeräte, keine DWD-Original-GRIB2-Wert-für-Wert-Gegenprobe und keine formale Freigabe beliebiger anderer Regionen oder Laufwechsel. Werte dürfen nicht aus dieser Einzelprobe auf P95, ganz Europa oder weitere Läufe extrapoliert werden.
 
+## 3d. P0 – Graupel nur bei eigenständigem Hydrometeor-Beleg
+
+Im Review vom 07.11.2026 wurde eine meteorologisch unzureichend abgesicherte Inferenz entfernt: (1) `phaseFor` klassifizierte sehr kaltes, feuchtes Wetter mit hohem Niederschlag und tiefer Schneefallgrenze als „Graupel möglich“, auch ohne Graupel-/Hydrometeorfeld; (2) `radarBackedThermalPhase` wandelte einen unbekannten Phasentyp allein bei Feuchtkugeltemperatur bis −0,7 °C und Echo mindestens 17 dBZ in „Graupel“ um. Das ist **keine** belastbare Hydrometeor-Klassifikation.
+
+**Quellen:** DWD, *PROMET 107 – Radarmeteorologie* (https://www.dwd.de/DE/leistungen/pbfb_verlag_promet/pdf_promethefte/107_pdf.pdf), Abschnitt zur Fuzzylogik und Schwierigkeit, Graupel und Schneeflocken anhand Radarstreuung zu trennen; NOAA NSSL, *Dual Polarized Radar* (https://www.nssl.noaa.gov/tools/radar/dualpol/), erläutert, weshalb alleinige Reflektivität keine Niederschlagsart eindeutig erfasst. Auch Polarimetrie verwendet zusätzliche Variablen/Algorithmen. **MID verwendet OPERA-Echo als getrennte Beobachtungsbedingung, nicht als autoritativen Graupeltyp.**
+
+Der QA-Kandidat inferiert daher aus Thermik, Schneefallgrenze und Echointensität allenfalls vorsichtigen Schnee oder belässt die Phase **unbestimmt**. Ein tatsächlicher positiver originaler RUC-`graupel_water_equivalent`-Wert oder ein expliziter, gültiger Modell-Wettercode für Graupel/Hagel bleibt erlaubt. Neue adversariale Assertions prüfen 35 dBZ bei −2 °C ohne Graupelcode, den unveränderten echten RUC-Graupelpfad und explizite WMO-87-/89-Codes.
+
+**Status:** wissenschaftlich begründete Korrektur mit deterministischen Regressionen; kein amtliches Radar-Hydrometeorklassifikationsverfahren, keine Warnung und kein neuer Produktivbuild.
+
 ## 4. Verbindliche Rest-Gates – NICHT ERFÜLLT
 
 1. Nach bestandenem echtem 247-Zell-Pages-Readback für **ein** RUC-Gebiet/17Z weiterhin unabhängige DWD-GRIB2-Rohdaten-/Wert-Gegenprobe und echte Multi-Regionen-/Mehrlauf-/Rand-/ValidTime-Provider-Cross-Checks: D2 Nord/West/Süd, EU-only, Global-only, 15min-/hourly-Akkumulation, fehlende vs 0 und Schnee/Regen/Graupel, OPERA-Echo.

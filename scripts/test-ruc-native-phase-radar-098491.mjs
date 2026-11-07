@@ -48,7 +48,9 @@ assert.ok(finiteSource);const finite=vm.runInNewContext(`(${finiteSource})`);
 for(const value of [null,undefined,'',' ',false,true,NaN,Infinity])assert.ok(Number.isNaN(finite(value)),'missing/non-numeric must not become a thermodynamic zero');
 for(const value of [0,'0',-2,.1])assert.equal(finite(value),Number(value));
 const phaseSource=overlay.slice(overlay.indexOf('function finite('),overlay.indexOf('function cellEchoSummary('));
-const compiled=await transform(`${phaseSource}\nglobalThis.__phaseFor=phaseFor;`,{loader:'ts',target:'es2022'});
+const radarThermalSource=overlay.slice(overlay.indexOf('function radarBackedThermalPhase('),overlay.indexOf('function distanceKm('));
+assert.ok(radarThermalSource.includes('function radarBackedThermalPhase('),'missing radar thermal classifier source');
+const compiled=await transform(`${phaseSource}\n${radarThermalSource}\nglobalThis.__phaseFor=phaseFor;globalThis.__radarBackedThermalPhase=radarBackedThermalPhase;`,{loader:'ts',target:'es2022'});
 const phaseContext=vm.createContext({});vm.runInContext(compiled.code,phaseContext);
 const missingFrame=Object.fromEntries(['temperature2m','relativeHumidity2m','wetBulbTemperature2m','weatherCode','precipitation','rain','showers','snowfall','snowfallHeight','freezingLevelHeight','elevation','rucRain','rucSnowfallWaterEquivalent','graupelWaterEquivalent'].map(name=>[name,[null]]));
 missingFrame.weatherCode=[71];missingFrame.precipitation=[.1];
@@ -70,6 +72,19 @@ assert.equal(d2Phase({snowfall:-.02,rain:0,precipitation:0}).phase,'uncertain','
 assert.equal(d2Phase({snowfall:.02,rain:0,precipitation:.04,weatherCode:66}).phase,'uncertain','freezing code without cold support cannot be reinterpreted as plain snow');
 assert.equal(d2Phase({snowfall:.02,rain:.2,precipitation:.3,weatherCode:71}).phase,'mixed','real rain+snow fields beat a derived snow-only WW code');
 assert.equal(d2Phase({snowfall:.02,rain:0,precipitation:.04}).confidence,'mittel','D2 amount-only evidence must not claim high confidence');
+
+const coldFrame={...missingFrame,weatherCode:[null],temperature2m:[-3],wetBulbTemperature2m:[-2],relativeHumidity2m:[92],precipitation:[.15],rain:[null],snowfall:[null],snowfallHeight:[100],elevation:[150]};
+assert.equal(phaseContext.__phaseFor(coldFrame,0,'dwd-icon-eu').phase,'snow','cold, wet, echo-compatible snow must not be auto-labelled graupel without source evidence');
+assert.equal(phaseContext.__phaseFor(coldFrame,0,'dwd-icon-global').phase,'snow','ICON global snow must not be upgraded to unverified graupel');
+const strongEcho={covered:true,maxDbz:35,meanDbz:27,hits:9,maxRate:2};
+const uncertainBase={phase:'uncertain',label:'Phase unbekannt',confidence:'eingeschränkt',modelEvidence:true};
+assert.equal(phaseContext.__radarBackedThermalPhase(uncertainBase,{...coldFrame,snowfallHeight:[1200]},0,strongEcho).phase,'uncertain','35 dBZ and -2C wetbulb alone must never invent graupel');
+assert.equal(phaseContext.__radarBackedThermalPhase(uncertainBase,coldFrame,0,strongEcho).phase,'snow','valid snow height/thermal evidence can still infer conservative snow');
+const rucGraupelFrame={...missingFrame,rucRain:[0],rucSnowfallWaterEquivalent:[0],graupelWaterEquivalent:[.2]};
+assert.equal(phaseContext.__phaseFor(rucGraupelFrame,0,'dwd-icon-d2-ruc').phase,'graupel','original native RUC graupel evidence must remain supported');
+assert.equal(phaseContext.__phaseFor({...missingFrame,weatherCode:[87],precipitation:[.1]},0,'dwd-icon-eu').phase,'graupel','explicit WMO graupel code must remain supported');
+assert.equal(phaseContext.__phaseFor({...missingFrame,weatherCode:[89],precipitation:[.1]},0,'dwd-icon-eu').phase,'hail','explicit WMO hail code must remain supported');
+
 
 
  // A cold FULL 13x19 (247-cell) original RUC phase grid must not execute

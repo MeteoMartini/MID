@@ -55,7 +55,9 @@ function phaseFor(frame:WeatherPhaseGridFrame,index:number,source?:string):Phase
  if(explicitSnow||snowfall>=.003){if(coldEnough&&((Number.isFinite(wetBulb)&&wetBulb<=.9)||snowLevelSupports))return{phase:'snow',label:'Schnee',confidence:explicitSnow?'hoch':'mittel',modelEvidence};if(Number.isFinite(wetBulb)&&wetBulb<=1.7)return{phase:'mixed',label:'Mischphase möglich',confidence:'mittel',modelEvidence}}
  if(explicitRain||explicitThunderPrecip||liquid>=.003){if((Number.isFinite(wetBulb)&&wetBulb>=1.3)||liquidLevelSupports)return{phase:'rain',label:'Regen',confidence:explicitRain?'hoch':'mittel',modelEvidence};if(Number.isFinite(wetBulb)&&wetBulb>=.1&&wetBulb<1.3)return{phase:'mixed',label:'Mischphase möglich',confidence:'eingeschränkt',modelEvidence}}
  if(modelEvidence&&Number.isFinite(wetBulb)){
-  if(coldEnough&&wetBulb<=.1&&snowLevelSupports&&precipitation>=.05)return{phase:'graupel',label:'Graupel möglich',confidence:'mittel',modelEvidence};
+  // Thermodynamics/reflectivity alone cannot distinguish snow from graupel.
+  // DWD hydrometeor classification needs further polarimetric evidence.
+  // Genuine RUC graupel amounts and explicit WW graupel codes are handled above.
   if(coldEnough&&wetBulb<=.35&&snowLevelSupports)return{phase:'snow',label:'Schneephase wahrscheinlich',confidence:'mittel',modelEvidence};
   if(wetBulb>=1.7&&!freezeSupports)return{phase:'rain',label:'flüssige Phase wahrscheinlich',confidence:'mittel',modelEvidence}
  }
@@ -75,7 +77,8 @@ function radarBackedThermalPhase(base:PhaseResult,frame:WeatherPhaseGridFrame,in
  if(!base.modelEvidence||(base.phase!=='uncertain'&&base.confidence!=='eingeschränkt')||!echo.covered||!Number.isFinite(echo.maxDbz)||echo.maxDbz<7)return base;
  const temperature=finite(frame.temperature2m[index]),humidity=finite(frame.relativeHumidity2m[index]),directWetBulb=finite(frame.wetBulbTemperature2m[index]),wetBulb=Number.isFinite(directWetBulb)?directWetBulb:wetBulbStull(temperature,humidity),snowfallHeight=finite(frame.snowfallHeight[index]),elevation=finite(frame.elevation[index]);
  if(Number.isFinite(wetBulb)&&wetBulb>=2)return{phase:'rain',label:'Regen · Radar + thermische Phase',confidence:'mittel',modelEvidence:true};
- if(Number.isFinite(wetBulb)&&wetBulb<=-.7&&echo.maxDbz>=17)return{phase:'graupel',label:'Graupel · Radar + thermische Phase',confidence:'mittel',modelEvidence:true};
+ // OPERA echo strength and cold wet-bulb do not identify graupel; a strong
+ // snow echo can look identical. Retain original uncertainty/snow evidence.
  if(Number.isFinite(wetBulb)&&wetBulb<=-.4&&Number.isFinite(snowfallHeight)&&Number.isFinite(elevation)&&snowfallHeight<=elevation+250)return{phase:'snow',label:'Schnee · Radar + thermische Phase',confidence:'mittel',modelEvidence:true};
  return base;
 }
