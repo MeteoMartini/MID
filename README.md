@@ -126,6 +126,12 @@ Für **ausdrücklich beauftragte, rein lesende** Audits kann ChatGPT künftig ei
 
 Vollständige Anleitung: [Kilo-GitHub-Issue-Rückkanal](docs/implementation/MID_KILO_GITHUB_ISSUE_BRIDGE_2026_11_07.md), [Kilo-Handoff-Vertrag](docs/implementation/MID_KILO_DEFAULT_HANDOFF_CONTRACT_2026_11_05.md), [AGENTS.md](AGENTS.md).
 
+## Automatische, bedarfsgerechte Zusammenarbeit
+
+Innerhalb eines **konkreten Nutzerauftrags** übernimmt ChatGPT die Wahl und Koordination geeigneter, bereits verbundener Dienste **ohne unnötiges Kopieren oder wiederholte technische Freigaben**: GitHub als Source of Truth, Copilot für eng beauftragte Coding-/Review-Drafts, Kilo-GitHub-Bot für **lesende** Audits und der bestehende ref-freie Kilo-Handoff für Implementierungen. Je nach nachgewiesenem Nutzen kommen Replit (UI), Product Design (UX), Context7 (API-/SDK-Doku), Firecrawl (Wetter-/Lizenzrecherche), PostHog (datensparsame Qualitätstelemetrie) und PR Completion (CI-/PR-Triage, nicht Merge) dazu. Nur vorhandene Rechte, Einwilligungen und freigegebene Budgets verwenden; keine Doppelaufträge, keine autonomen Folgeaufträge und keine ungeprüfte Agenten- oder Releaseintegration.
+
+**Bestehende fünf MID-Überwachungstasks bleiben aktiv**, da sie unterschiedliche Aufgaben erfüllen (Kilo-Code-Handoff, RUC-Betrieb, Open-Meteo-Änderungen, App-Gesamtaudit und neue Wetterdatenquellen). Einzelne Agentenaufträge ersetzen keine kontinuierliche Wache; Wachen erst nach nachgewiesen gleichwertiger Abdeckung deaktivieren. Vollständige Tool-Zuordnung und verbindliche Schutzregeln: [Agenten-/Plugin-Routing und Taskinventar](docs/implementation/MID_AGENT_PLUGIN_ROUTING_2026_11_07.md) und [AGENTS.md](AGENTS.md).
+
 ## Versionsschema
 
 - Funktionsrelease (`0.7.x` oder äquivalent `0.7.x.0`) für neue eigenständige Funktionen.
