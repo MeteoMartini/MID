@@ -23,7 +23,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   qualify:
-    if: github.event.head_commit.message == 'qa(d2): one bounded original 3-cycle full-domain qualification on stable .445'
+    if: "${{ github.event.head_commit.message == 'qa(d2): one bounded original 3-cycle full-domain qualification on stable .445' }}"
     name: Three original DWD ICON-D2 cycles with GRIB/bitmap/WMO parity (read-only)
     runs-on: ubuntu-latest
     timeout-minutes: 45
