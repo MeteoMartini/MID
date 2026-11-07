@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   test:
-    if: "${{ github.event.head_commit.message == 'test(ruc): P0 final QA gate' || github.event.head_commit.message == 'qa(ruc): repair guard blob for independent QA' }}"
+    if: "${{ github.event.head_commit.message == 'test(ruc): P0 final QA gate' || github.event.head_commit.message == 'qa(ruc): qualify 2 real DWD EPS indices read-only' }}"
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -34,6 +34,7 @@ jobs:
           cmp ci/github/workflows/mid-ruc-eps-advertised-index-qa.yml .github/workflows/mid-ruc-eps-advertised-index-qa.yml
           test "$(git hash-object tools/ruc/check_ruc_schedule_guard.py)" = "7e55d1d7994e9874559b885e4843cd968fb1b172"
           test "$(git hash-object tools/ruc/test_ruc_schedule_guard.py)" = "9368c00fd6c77e2eb73be7ddf61cc10105960fd7"
+          test "$(git hash-object tools/ruc/probe_ruc_eps_advertised_live.py)" = "6d2360a9652d0aac1cf22b591e227c02028f9a60"
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
@@ -49,3 +50,10 @@ jobs:
           node scripts/test-ruc-schedule-catchup-09745.mjs
           node scripts/test-ruc-scheduler-watchdog-09751.mjs
           echo 'QA-only: no original GRIB/EPS source positive admission, no DWD full publication proof, no 168h SLO, no production writes.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Read-only live DWD EPS20 2-run 20-member index and wall-time admission
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile tools/ruc/probe_ruc_eps_advertised_live.py
+          python tools/ruc/probe_ruc_eps_advertised_live.py --runs 2026-11-07T20:00 2026-11-07T21:00
+          echo 'Live DWD directory QA only: 2x20x28 hourly filename evidence; no GRIB headers/bitmap/values, first availability timestamp, publishing or 168h client SLO' >> "$GITHUB_STEP_SUMMARY"
