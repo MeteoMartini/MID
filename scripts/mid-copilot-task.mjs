@@ -14,8 +14,8 @@ export function api(path,payload){
  if(payload!==undefined)args.push('--input','-');
  return JSON.parse(execFileSync('gh',args,{input:payload===undefined?undefined:JSON.stringify(payload),encoding:'utf8',maxBuffer:8*1024*1024}));
 }
-export function parseIssue(issue){
- check(issue?.state==='open'&&!issue.pull_request,'open GitHub issue required');
+export function parseIssue(issue,{allowClosed=false}={}){
+ check((issue?.state==='open'||(allowClosed&&issue?.state==='closed'))&&!issue.pull_request,'GitHub issue state invalid');
  check(issue.user?.login===OWNER&&issue.user?.id===USER_ID,'untrusted issue author');
  check(/^\[MID-COPILOT-TASK\] /.test(issue.title||''),'invalid task title');
  const body=issue.body||'';
@@ -50,9 +50,10 @@ export function receiptFrom(comments){
  const items=comments.filter(c=>typeof c.body==='string'&&c.body.startsWith(RECEIPT+'\n'));
  check(items.length<=1,'multiple receipts: manual reconciliation');
  if(!items.length)return null;
+ check(items[0].user?.login===OWNER&&items[0].user?.id===USER_ID,'untrusted receipt author');
  let r;
  try{r=JSON.parse(items[0].body.slice(RECEIPT.length+1));}catch{throw new Error('MID Copilot bridge: invalid receipt');}
- check(r?.schema===1&&/^[a-zA-Z0-9-]{8,100}$/.test(r.id),'invalid receipt ID');
+ check(r?.schema===1&&/^[a-zA-Z0-9-]{8,100}$/.test(r.id)&&Number.isSafeInteger(r.issue)&&r.issue>0&&HEX.test(r.base)&&/^[a-f0-9]{64}$/.test(r.taskDigest)&&r.noAutoPR===true&&r.releaseAuthorized===false,'invalid receipt fields');
  return r;
 }
 export function comments(client,num){
@@ -98,17 +99,20 @@ export function start(client,num,submit=false){
  const t=client('agents/repos/'+REPO+'/tasks',{prompt:promptFor(num,s.task),base_ref:'mid-stable',create_pull_request:false});
  check(typeof t?.id==='string'&&/^[a-zA-Z0-9-]{8,100}$/.test(t.id),'cloud response uncertain; do not retry blindly');
  const receipt={schema:1,id:t.id,issue:num,base:s.sha,taskDigest:s.digest,noAutoPR:true,releaseAuthorized:false};
- try{client('repos/'+REPO+'/issues/'+num+'/comments',{body:RECEIPT+'\n'+JSON.stringify(receipt)});}
- catch(e){throw new Error('MID Copilot bridge: TASK ALREADY STARTED '+t.id+'; receipt failed; inspect before any retry. '+String(e.message||e));}
+ try{
+  const body=RECEIPT+'\n'+JSON.stringify(receipt);
+  const written=client('repos/'+REPO+'/issues/'+num+'/comments',{body});
+  check(Number.isSafeInteger(written?.id)&&written.body===body&&written.user?.login===OWNER&&written.user?.id===USER_ID,'receipt write readback mismatch');
+ }catch(e){throw new Error('MID Copilot bridge: TASK ALREADY STARTED '+t.id+'; receipt unverified; inspect before any retry. '+String(e.message||e));}
  return {status:'STARTED',...receipt,url:t.html_url||null};
 }
 export function status(client,num){
  check(Number.isSafeInteger(num)&&num>0,'positive issue number required');
  const user=client('user');
  check(user?.login===OWNER&&user?.id===USER_ID,'user-authenticated owner required');
- const task=parseIssue(client('repos/'+REPO+'/issues/'+num));
+ const task=parseIssue(client('repos/'+REPO+'/issues/'+num),{allowClosed:true});
  const r=receiptFrom(comments(client,num));
- check(r&&r.taskDigest===digest(task)&&r.base===task.baseSha,'missing/mismatched task receipt');
+ check(r&&r.issue===num&&r.taskDigest===digest(task)&&r.base===task.baseSha,'missing/mismatched task receipt');
  // Historical task status remains readable after a later, valid Stable promotion.
  const main=client('repos/'+REPO+'/branches/main')?.commit?.sha;
  const stable=client('repos/'+REPO+'/branches/mid-stable')?.commit?.sha;
