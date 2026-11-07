@@ -4,6 +4,8 @@ on:
     types: [opened, reopened, synchronize]
     paths:
       - 'tools/ruc/ruc_p1p5_censor_audit.py'
+      - 'tools/ruc/ruc_p1_original_native_values_probe.py'
+      - 'tools/ruc/test_ruc_p1_original_native_values_probe.py'
       - 'tools/ruc/ruc_observer_artifact_bundle.py'
       - 'tools/ruc/test_ruc_observer_artifact_bundle.py'
       - 'tools/ruc/ruc_github_observer_collect.py'
@@ -92,12 +94,120 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+          python3 -m py_compile tools/ruc/ruc_p1_original_native_values_probe.py tools/ruc/test_ruc_p1_original_native_values_probe.py
+          python3 tools/ruc/test_ruc_p1_original_native_values_probe.py -v
           python3 tools/ruc/test_ruc_fast_run_selector.py -v
           python3 tools/ruc/test_ruc_fast_lane_producer.py -v
           python3 tools/ruc/test_ruc_fast_pointer_staging.py -v
           cmp ci/github/workflows/mid-ruc-fast-lane-qualification.yml .github/workflows/mid-ruc-fast-lane-qualification.yml
           cmp ci/github/workflows/mid-ruc-availability-observer.yml .github/workflows/mid-ruc-availability-observer.yml
+          echo 'AP1c-a original GRIB probe offline tests only; no actual DWD downloads, 3-run EPS20 verification or 168h SLO.' >> "$GITHUB_STEP_SUMMARY"
           echo 'P2 is native offline QA only. No production pointer, release, actual DWD GRIB retrieval or app adoption.' >> "$GITHUB_STEP_SUMMARY"
+      - name: AP1c-b bounded one-real-DWD-original smoke (NO full-run authorization)
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.number == 684 &&
+          github.event.pull_request.draft == true
+        timeout-minutes: 3
+        shell: bash
+        env:
+          PYTHONPATH: tools/ruc
+          EXPECTED_PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import re
+          import urllib.request
+          from datetime import datetime, timedelta, timezone
+          from pathlib import Path
+          from scientific_grib_contract_probe import targets
+          from ruc_p1_original_native_values_probe import safe_fetch, examine, MAX_FILE_BYTES
+
+          # The live Pages manifest selects a real RUC run; it is NOT original-file evidence.
+          request = urllib.request.Request(
+              'https://midwx.app/ruc/latest.json',
+              headers={'Cache-Control': 'no-cache', 'User-Agent': 'MID-P1c-readonly-smoke/1'},
+          )
+          with urllib.request.urlopen(request, timeout=20) as response:
+              if response.status != 200:
+                  raise ValueError('public Pages run selector not OK')
+              manifest_raw = response.read(3_000_001)
+          if len(manifest_raw) > 3_000_000:
+              raise ValueError('public Pages run selector exceeds bound')
+          manifest = json.loads(manifest_raw)
+          run_text = manifest.get('run')
+          if not isinstance(run_text, str) or not re.fullmatch(
+              r'20\d{2}-\d{2}-\d{2}T\d{2}:00', run_text
+          ):
+              raise ValueError('untrusted or malformed public RUC run selector')
+          if (manifest.get('pointCount') != 542040
+              or manifest.get('eps', {}).get('memberCount') != 20
+              or len(manifest.get('eps', {}).get('times', [])) != 28
+              or len(manifest.get('deterministic', {}).get('times', [])) != 28):
+              raise ValueError('run selector does not certify expected 27-hour layout')
+          run = datetime.strptime(run_text, '%Y-%m-%dT%H:%M').replace(tzinfo=timezone.utc)
+          age = datetime.now(timezone.utc) - run
+          if not timedelta(0) <= age <= timedelta(hours=24):
+              raise ValueError('public RUC selector stale or future')
+          inventory = targets(run_text, hours=27, rapid_hours=6, members=20)
+          if len(inventory) != 1000:
+              raise ValueError('unexpected required original DWD inventory size')
+          selected = [
+              row for row in inventory
+              if row['parameter'] == 'TOT_PREC' and row['member'] == 1
+                 and row['url'].endswith('/s/PT006H00M.grib2')
+          ]
+          if len(selected) != 1:
+              raise ValueError('original EPS01 +06h specimen not unique')
+          row, data, before, after = safe_fetch(selected[0])
+          if len(data) > MAX_FILE_BYTES:
+              raise ValueError('DWD sample exceeds 40MB original download budget')
+          record = examine(row, data, before, after, run)
+          record.pop('_normalizedValues')
+          if record['memberId'] != 1 or record['requestedLeadSeconds'] != 21600:
+              raise ValueError('sample member/forecast lead mismatch')
+          if not record['missingMaskConsistent'] or not record['originalValuesVerified']:
+              raise ValueError('original DWD value/bitmap verification failed')
+          report = {
+              'schema': 'mid.ruc.ap1c.original-one-file-smoke.v1',
+              'prHeadSha': os.environ['EXPECTED_PR_HEAD'],
+              'selectorRunUtc': run_text,
+              'expectedOriginalFileCount': 1000,
+              'realOriginalFilesChecked': 1,
+              'full27hOriginalScopeVerified': False,
+              'all20EpsMembersVerified': False,
+              'full168hObserved': False,
+              'sourcePublicationLatencyP95Authorized': False,
+              'clientAdoptionVerified': False,
+              'productionSloAuthorized': False,
+              'publicationAuthorized': False,
+              'originalSample': record,
+          }
+          encoded = (json.dumps(report, sort_keys=True, indent=2, allow_nan=False) + '\n').encode()
+          Path(os.environ['RUNNER_TEMP']).joinpath('ap1c-one-original-smoke.json').write_bytes(encoded)
+          print('ONE_REAL_ORIGINAL_FILE', json.dumps({
+              'run': run_text, 'memberId': 1, 'leadSeconds': 21600,
+              'originalBytes': len(data), 'originalSha256': hashlib.sha256(data).hexdigest(),
+              'reportSha256': hashlib.sha256(encoded).hexdigest(),
+              'fullP1Verified': False,
+          }, sort_keys=True))
+          PY
+          echo 'One genuine DWD +06h/EPS01 sample only, max 40 MB, no complete EPS20 run or P95/production authorization.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Archive SHA-grounded one-original smoke JSON (no raw GRIB)
+        if: >-
+          always() &&
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.number == 684 &&
+          github.event.pull_request.draft == true
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-ap1c-one-original-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/ap1c-one-original-smoke.json
+          retention-days: 7
+          if-no-files-found: ignore
       - name: RUC release mirrors and exact canonical workflow sync are clean
         shell: bash
         run: |
@@ -116,3 +226,159 @@ jobs:
           assert json.loads(Path('contracts/index.json').read_text())['releaseVersion'] == version
           assert len(json.loads(Path('MID_BASELINE.json').read_text())['requiredRegressionTests']) >= 1059
           PY
+
+  genuine-p1-bounded:
+    name: AP1c-b one full native DWD 1000-object EPS20 qualification (NO publish)
+    needs: censored-evidence-qa
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.number == 684 &&
+      github.event.pull_request.draft == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.head_ref, 'chatgpt/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Exact QA HEAD checkout without persistence or production credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 100
+      - name: Require identical Live main/stable SHA and exact parent before DWD traffic
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)" = "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          git merge-base --is-ancestor "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" HEAD
+          cmp ci/github/workflows/mid-ruc-p1p5-evidence-qa.yml .github/workflows/mid-ruc-p1p5-evidence-qa.yml
+      - name: Prepare official read-only ecCodes original GRIB decoder
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: One bounded original DWD run and 20 EPS members, no retries
+        timeout-minutes: 27
+        env:
+          PYTHONPATH: tools/ruc
+          EXPECTED_PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import re
+          import resource
+          import time
+          import urllib.request
+          from datetime import datetime, timedelta, timezone
+          from pathlib import Path
+          from ruc_p1_original_native_values_probe import probe, safe_fetch, MAX_FILE_BYTES
+
+          MAX_TOTAL_BYTES = 1_200_000_000
+          MAX_RSS_KIB = 1_500_000
+          MAX_ELAPSED_SECONDS = 26 * 60
+          started = time.monotonic()
+          counts = {'fetchedFiles': 0, 'fetchedBytes': 0}
+          output = Path(os.environ['RUNNER_TEMP']) / 'ap1c-full-one-run.json'
+          request = urllib.request.Request(
+              'https://midwx.app/ruc/latest.json',
+              headers={'Cache-Control': 'no-cache', 'User-Agent': 'MID-P1c-full-readonly/1'},
+          )
+          with urllib.request.urlopen(request, timeout=20) as response:
+              if response.status != 200:
+                  raise ValueError('Pages model run selector is unavailable')
+              raw = response.read(3_000_001)
+          if len(raw) > 3_000_000:
+              raise ValueError('Pages model selector over 3MB bound')
+          manifest = json.loads(raw)
+          run_text = manifest.get('run')
+          if not isinstance(run_text, str) or not re.fullmatch(
+              r'20\d{2}-\d{2}-\d{2}T\d{2}:00', run_text
+          ):
+              raise ValueError('invalid public run selector')
+          if (manifest.get('pointCount') != 542040
+              or manifest.get('eps', {}).get('memberCount') != 20
+              or len(manifest.get('eps', {}).get('times', [])) != 28
+              or len(manifest.get('deterministic', {}).get('times', [])) != 28):
+              raise ValueError('public model selector missing 27h/EPS20 metadata')
+          run_utc = datetime.strptime(run_text, '%Y-%m-%dT%H:%M').replace(tzinfo=timezone.utc)
+          age = datetime.now(timezone.utc) - run_utc
+          if not timedelta(0) <= age <= timedelta(hours=24):
+              raise ValueError('public model run stale or future')
+
+          def original_budgeted_fetch(row):
+              if time.monotonic() - started >= MAX_ELAPSED_SECONDS:
+                  raise TimeoutError('one-run original DWD evidence time budget reached')
+              if counts['fetchedBytes'] >= MAX_TOTAL_BYTES:
+                  raise ValueError('original DWD total byte budget reached')
+              item = safe_fetch(row)
+              amount = len(item[1])
+              if amount > MAX_FILE_BYTES or counts['fetchedBytes'] + amount > MAX_TOTAL_BYTES:
+                  raise ValueError('original DWD aggregate byte ceiling reached')
+              counts['fetchedFiles'] += 1
+              counts['fetchedBytes'] += amount
+              if resource.getrusage(resource.RUSAGE_SELF).ru_maxrss > MAX_RSS_KIB:
+                  raise MemoryError('original DWD QA peak resident memory budget exceeded')
+              return item
+
+          base = {
+              'schema': 'mid.ruc.ap1c-one-full-run-qualification.v1',
+              'prHeadSha': os.environ['EXPECTED_PR_HEAD'],
+              'selectorRunUtc': run_text,
+              'sourceInventoryExpected': 1000,
+              'fileBudgetBytes': MAX_FILE_BYTES,
+              'aggregateByteBudget': MAX_TOTAL_BYTES,
+              'workerCount': 1,
+              'productionSloAuthorized': False,
+              'publicationAuthorized': False,
+              'full168hObserved': False,
+              'firstDwdPublicationInstantVerified': False,
+          }
+          try:
+              audited = probe(run_text, hours=27, rapid_hours=6,
+                              members=20, workers=1, getter=original_budgeted_fetch)
+              if (audited['requestedFiles'] != 1000
+                  or audited['originalFilesVerified'] != 1000
+                  or not audited['everyRequestedOriginalValueAndBitmapVerified']
+                  or not audited['everyRequestedEps20MemberAndLeadVerified']
+                  or not audited['full27hOriginalScopeVerified']):
+                  raise ValueError('actual original 1000-file acceptance incomplete')
+              base['status'] = 'PASS_ONE_RUN_ONLY'
+              base['originalFullRun'] = audited
+          except Exception as exc:
+              base['status'] = 'NOT_VERIFIED'
+              base['stopReasonType'] = type(exc).__name__
+              raise
+          finally:
+              base['downloadedFileCount'] = counts['fetchedFiles']
+              base['downloadedBytes'] = counts['fetchedBytes']
+              base['elapsedSeconds'] = round(time.monotonic() - started, 3)
+              base['peakRssKiB'] = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+              encoded = (json.dumps(base, sort_keys=True, indent=2, allow_nan=False) + '\n').encode()
+              output.write_bytes(encoded)
+              print('MID_AP1C_ONE_RUN', json.dumps({
+                  'run': run_text, 'status': base['status'],
+                  'downloadedFileCount': counts['fetchedFiles'],
+                  'downloadedBytes': counts['fetchedBytes'],
+                  'peakRssKiB': base['peakRssKiB'],
+                  'reportSha256': hashlib.sha256(encoded).hexdigest(),
+                  'full168hObserved': False,
+                  'productionSloAuthorized': False,
+              }, sort_keys=True))
+          PY
+          echo 'Exactly one real DWD +0…+27h, 20-EPS inventory required. Even PASS does NOT verify 168h, DWD first availability, E2E clients, or production release.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Archive bounded one-run original SHAs and status (NO GRIB raw data)
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-ap1c-one-fullrun-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/ap1c-full-one-run.json
+          retention-days: 7
+          if-no-files-found: ignore
