@@ -1,4 +1,7 @@
 import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {stripTypeScriptTypes} from 'node:module';
 import path from 'node:path';
 
 const source=fs.readFileSync(path.join(process.cwd(),'src','SubseasonalTrendPanel.tsx'),'utf8');
@@ -40,6 +43,27 @@ const checks=[
   ['dark theme parameter colors are concrete values',!foundation.includes('--param-precipitation:var(--param-precipitation)')&&!foundation.includes('--param-wind:var(--param-wind)')&&!foundation.includes('--param-gust:var(--param-gust)')],
   ['comparison list label reflects metric',source.includes('<h4>{def.label} je Wochenblock</h4>')]
 ];
+
+
+// Execute the actual source-only visibility resolver; a temporarily unavailable
+// family must change the rendered view, never overwrite the persisted preference.
+const fallbackStart=source.indexOf('function parseStoredSubseasonalView(');
+const fallbackEnd=source.indexOf('function renderComparisonArticle(',fallbackStart);
+assert.ok(fallbackStart>0&&fallbackEnd>fallbackStart,'Subseasonal availability helpers must be present');
+const fallbackContext={};vm.createContext(fallbackContext);
+vm.runInContext(stripTypeScriptTypes(source.slice(fallbackStart,fallbackEnd)),fallbackContext);
+const preferred=raw=>vm.runInContext('parseStoredSubseasonalView('+JSON.stringify(raw)+')',fallbackContext);
+const displayed=(choice,models)=>vm.runInContext('availableSubseasonalView('+JSON.stringify(choice)+','+JSON.stringify(models)+')',fallbackContext);
+for(const value of ['combined','ecmwf-ec46','noaa-gefs'])assert.equal(preferred(value),value,'Legacy keys and user choices remain valid');
+for(const value of [null,'bogus','',false,0])assert.equal(preferred(value),null,'Invalid/missing preferences are not a valid model');
+assert.equal(displayed('noaa-gefs',[{id:'ecmwf-ec46'}]),'combined','Missing NOAA temporarily displays a valid fallback');
+assert.equal(displayed('noaa-gefs',[{id:'noaa-gefs'}]),'noaa-gefs','NOAA restoration recovers the original user choice');
+assert.equal(displayed('ecmwf-ec46',[]),'combined','Empty provider reply cannot invent the requested model');
+assert.equal(displayed('combined',[{id:'noaa-gefs'}]),'combined','Explicit combined choice is not altered');
+assert.ok(source.includes("useRawDisplayPreference<ModelView>('mid:subseasonal-trend:view','combined',parseStoredSubseasonalView,String)"),'Store retains historical key with synchronous, validated durable writes');
+assert.ok(!source.includes("setView(current=>current==='combined'"),'Provider fetch must never mutate stored model choice');
+assert.ok(!source.includes("localStorage.setItem('mid:subseasonal-trend:view'"),'No stale effect may silently overwrite a preference');
+assert.ok(source.includes("view!==activeView?<p className=\"long-range-info\" role=\"status\""),'Temporary availability fallback is visibly explained');
 
 const failed=checks.filter(([,ok])=>!ok);
 if(failed.length){
