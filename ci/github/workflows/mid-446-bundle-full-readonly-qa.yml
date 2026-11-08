@@ -43,7 +43,7 @@ jobs:
           test "$(git hash-object tools/ruc/ruc_p1_original_native_values_probe.py)" = '42fe76f61b085de842493eef37bbf7a340810840'
           test "$(git hash-object tools/ruc/d2_native_eight_bundle.py)" = 'e2af48f715c180684a4dba4d00409fd568bebd01'
           test "$(git hash-object tools/ruc/check_ruc_health.py)" = '99dbf889dc4a1c7a451400b6fd80c8b3e7319d1e'
-          test "$(git hash-object src/WeatherMapsData.ts)" = '227bb945084d6d1b6683302e164e18349017bc84'
+          test "$(git hash-object src/WeatherMapsData.ts)" = 'd87278e141930e8dd8d884585faecfba5eded50f'
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22.16.0'
