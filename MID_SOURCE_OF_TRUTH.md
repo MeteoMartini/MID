@@ -1,3 +1,11 @@
+# MID v0.9.85.449 · Bergwetter-Ensemble-UTC und unsicherheitsgerechte Darstellung
+
+**Status des Quelltextes ist kein Release-Gate:** Dieser versionierte Abschnitt dokumentiert die anstehende v0.9.85.449 Source-Integration. Zuvor erfolgreich freigegebene Basis v0.9.85.448: `main=mid-stable=fd1fb594bc2b82913156ef0f8e82e22089379164`, Installer #42498549995 `completed/success`. Der neue Release gilt ausschließlich nach Source-Gate, geschützt SHA-gebundenem Bot-Merge, servergeneriertem ZIP, vollständigem Installer, Worker-/Pages-Gates und erfolgreicher Stable-Promotion als veröffentlicht. Maßgeblich ist anschließend der tatsächlich verifizierte `mid-stable`-SHA, nicht die historische Statusformulierung.
+
+**Fachbereich:** Alpine Open-Meteo-Ensemble-UTC-Zeitachsen, gültige Stunden-/Tageshorizonte, NoData-Fallback der Mittelmodell-Abfragen und wissenschaftlich ehrliche Näherungsbänder; keine Anpassung amtlicher Warnungen, DWD/RUC-Originaldaten oder Karten-/Worker-Logik. Originalprovenienz aus PR #703 und externe Stichproben im Dokument `docs/implementation/MID_C449_MOUNTAIN_UTC_NO_DATA_QA_DRAFT.md`.
+
+## Archivierte ältere Versionsabschnitte (historische Entwicklungsstände, keine aktuelle Release-Statusanzeige)
+
 # MID v0.9.85.448 · RUC-P4-Pre-Download-Vertragsprüfung
 
 **Source-Kandidat, nicht alleinige Freigabe:** Ausgangspunkt `main=mid-stable=568e45be3f4efcffaf52a87ec82784a7ea4db2f4` (v0.9.85.447); endgültige .448-Veröffentlichung ausschließlich über Source-PR-Gate → SHA-Bot-Merge → serverseitiges ZIP → Installer → betroffene Worker-/Pages-Gates → Stable-Promotion.
