@@ -3,8 +3,8 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {stripTypeScriptTypes} from 'node:module';
 
-const mountain=await readFile('src/mountainSports.ts','utf8'),view=await readFile('src/MountainWeather.tsx','utf8');
-const begin=mountain.indexOf('export function snowLineUnixEpoch('),end=mountain.indexOf('function snowLineQuantile(',begin);
+const mountain=await readFile('src/mountainSports.ts','utf8'),view=await readFile('src/MountainWeather.tsx','utf8'),combiner=await readFile('src/mountainSnowLineCombine.ts','utf8');
+const begin=mountain.indexOf('export function snowLineUnixEpoch('),end=mountain.indexOf('async function fetchSnowLineMeanModel(',begin);
 assert.ok(begin>0&&end>begin,'Production Unix-time and uncertainty helpers missing');
 const snippet=mountain.slice(begin,end).replaceAll('export function ','function ');
 const context={Number,Math,Date};vm.createContext(context);vm.runInContext(stripTypeScriptTypes(snippet),context);
@@ -46,12 +46,33 @@ assert.ok(Number.isNaN(spread(-1,0,null,null)),'Negative raw spreads must not be
 assert.ok(mountain.includes("timezone:'auto',timeformat:'unixtime'"),'Snowline ensemble must request absolute Unix seconds');
 assert.ok(mountain.includes('time:new Date(epoch).toISOString()'),'Public point time must be an unambiguous UTC timestamp');
 assert.ok(!mountain.includes('snowLineTimeEpoch('),'Fixed-offset DST parser may not be used for this ensemble');
+assert.ok(mountain.includes("import('./mountainSnowLineCombine')"),'Optional model aggregation must not inflate eager MID shell');
 for(const token of [
  'completeBounds=familyRows.every','p10:completeBounds?snowLineQuantile(pseudo,.1):Number.NaN',
  'Ensemble-Spanne nicht verfügbar','Number.isFinite(point[low])&&Number.isFinite(point[high])',
  'Modellspanne nicht verfügbar (Datenlücke)','Modellspanne (Näherung)','p25:Number.NaN'
-])assert.ok((mountain+'\n'+view).includes(token),'Missing/no-silent-zero contract '+token);
+])assert.ok((mountain+'\n'+view+'\n'+combiner).includes(token),'Missing/no-silent-zero contract '+token);
 assert.ok(!view.includes('10–90 %'),'Synthetic pseudo-quantiles may not be labelled empirical 10–90 %');
+
+// Run the extracted production aggregator, not just a text assertion: unknown bounds
+// must remain missing, while verified 0 m and one independent model family are valid.
+const combineStart=combiner.indexOf('function snowLineQuantile(');
+assert.ok(combineStart>0,'Extracted source combiner is absent');
+const combineSource=combiner.slice(combineStart).replace('export function combineSnowLineModels(','function combineSnowLineModels(');
+const aggregateContext={Number,Math,Date,Map,Set};vm.createContext(aggregateContext);
+vm.runInContext(stripTypeScriptTypes(combineSource),aggregateContext);
+const epoch=Date.parse('2026-11-08T18:00:00Z'),model=(low,mean,high)=>({
+ id:'dwd',label:'DWD',provider:'DWD',independenceGroup:'dwd',members:20,maxDays:3,
+ points:[{epoch,time:new Date(epoch).toISOString(),mean,spread:Number.NaN,low,high}]
+});
+const aggregate=models=>vm.runInContext('combineSnowLineModels('+JSON.stringify(models)+')',aggregateContext);
+const unknown=aggregate([model(null,1000,null)]);
+assert.equal(unknown.points[0].median,1000,'Median independent from missing spread');
+assert.ok(Number.isNaN(unknown.points[0].p10),'Missing spread must not become fabricated lower percentile');
+assert.ok(Number.isNaN(unknown.points[0].p90),'Missing spread must not become fabricated upper percentile');
+const genuineZero=aggregate([model(0,0,0)]);
+assert.equal(genuineZero.points[0].p10,0,'Verified spread zero remains valid lower bound');
+assert.equal(genuineZero.points[0].p90,0,'Verified spread zero remains valid upper bound');
 const pkg=JSON.parse(await readFile('package.json','utf8')),base=JSON.parse(await readFile('MID_BASELINE.json','utf8'));
 assert.equal(base.releaseVersion,pkg.version);
 const self='scripts/test-mountain-snowline-dst-nodata-0985415.mjs';
