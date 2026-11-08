@@ -5,6 +5,10 @@ on:
     paths:
       - 'tools/ruc/prepared_snapshot.py'
       - 'tools/ruc/test_prepared_snapshot.py'
+      - 'tools/ruc/predownload_contract.py'
+      - 'tools/ruc/test_ruc_predownload_contract.py'
+      - 'ci/github/workflows/mid-ruc-preprocess.yml'
+      - '.github/workflows/mid-ruc-preprocess.yml'
       - 'ci/github/workflows/mid-ruc-prepared-snapshot-qa.yml'
       - '.github/workflows/mid-ruc-prepared-snapshot-qa.yml'
 
@@ -51,6 +55,8 @@ jobs:
         run: |
           set -euo pipefail
           python -m py_compile tools/ruc/prepared_snapshot.py tools/ruc/test_prepared_snapshot.py
+          python -m py_compile tools/ruc/predownload_contract.py tools/ruc/test_ruc_predownload_contract.py
+          python tools/ruc/test_ruc_predownload_contract.py -v
           python tools/ruc/test_prepared_snapshot.py -v
           python tools/ruc/test_ruc_p4_pages_serialization_contract.py -v
           echo 'SHA/byte/ancestry/release compatibility QA only; no DWD fetch, no Pages/Worker publish, no Fast-Lane, no production freshness SLO attestation.' >> "$GITHUB_STEP_SUMMARY"

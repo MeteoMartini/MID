@@ -169,6 +169,7 @@ jobs:
       producer_run_attempt: ${{ steps.reuse.outputs.producer_run_attempt || github.run_attempt }}
       data_artifact_id: ${{ steps.reuse.outputs.data_artifact_id || steps.data_upload.outputs.artifact-id }}
       rollback_artifact_id: ${{ steps.reuse.outputs.rollback_artifact_id || steps.rollback_upload.outputs.artifact-id }}
+      compatibility_sha: ${{ steps.snapshot_fingerprint.outputs.compatibility_sha }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -360,6 +361,10 @@ jobs:
       - name: Geprüften Snapshot für spätere kompatible Releasewechsel versiegeln
         if: inputs.reuse_run_id == ''
         run: python tools/ruc/timed_command.py seal-prepared-snapshot -- python tools/ruc/prepared_snapshot.py seal --snapshot .ruc-pages/ruc
+      - name: Authentifizierten RUC-Contract im ursprünglichen Prepare-Job exportieren
+        id: snapshot_fingerprint
+        if: inputs.reuse_run_id == ''
+        run: python tools/ruc/predownload_contract.py export --snapshot .ruc-pages/ruc
       - name: Vorbereiteten RUC-Snapshot als unveränderliches Übergabeartefakt sichern
         id: data_upload
         if: ${{ inputs.reuse_run_id == '' }}
@@ -452,8 +457,19 @@ jobs:
           set -euo pipefail
           [[ "$RUC_DATA_ARTIFACT_ID" =~ ^[1-9][0-9]*$ ]] || { echo "::error::Missing or invalid prepared snapshot artifact ID"; exit 1; }
           [[ "$RUC_ROLLBACK_ARTIFACT_ID" =~ ^[1-9][0-9]*$ ]] || { echo "::error::Missing immutable raw rollback artifact ID"; exit 1; }
-      - name: Vorbereiteten RUC-Snapshot laden
+      - name: Vor dem großen Snapshot-Download authentifizierten Contract-Hash prüfen
+        id: predownload_guard
         if: steps.stable_guard.outputs.allowed == 'true'
+        env:
+          RUC_PREPARED_COMPAT_SHA: ${{ needs.prepare.outputs.compatibility_sha }}
+          RUC_PREPARED_STABLE_SHA: ${{ needs.prepare.outputs.stable_sha }}
+          RUC_PREPARED_EVENT_SHA: ${{ needs.prepare.outputs.producer_event_sha }}
+          RUC_PREPARED_RUN_ID: ${{ needs.prepare.outputs.producer_run_id }}
+          RUC_PREPARED_ATTEMPT: ${{ needs.prepare.outputs.producer_run_attempt }}
+          RUC_REUSE_RUN_ID: ${{ inputs.reuse_run_id }}
+        run: python tools/ruc/predownload_contract.py check
+      - name: Vorbereiteten RUC-Snapshot laden
+        if: steps.predownload_guard.outputs.allowed == 'true'
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           artifact-ids: ${{ needs.prepare.outputs.data_artifact_id }}
@@ -463,12 +479,12 @@ jobs:
           merge-multiple: true
           path: ./.ruc-pages/ruc
       - name: Aktuellen JS-Decoder für Snapshot-Zulassung laden
-        if: steps.stable_guard.outputs.allowed == 'true'
+        if: steps.predownload_guard.outputs.allowed == 'true'
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22.16.0
       - name: Vollständige Snapshot-Wiederzulassung mit aktuellem Stable-Datenvertrag
-        if: steps.stable_guard.outputs.allowed == 'true'
+        if: steps.predownload_guard.outputs.allowed == 'true'
         env:
           RUC_PRODUCER_RUN_ID: ${{ needs.prepare.outputs.producer_run_id }}
           RUC_PRODUCER_EVENT_SHA: ${{ needs.prepare.outputs.producer_event_sha }}
@@ -479,7 +495,7 @@ jobs:
           python tools/ruc/timed_command.py publish-readmission -- python tools/ruc/prepared_snapshot.py admit --snapshot .ruc-pages/ruc --run-id "$RUC_PRODUCER_RUN_ID" --event-sha "$RUC_PRODUCER_EVENT_SHA" --attempt "$RUC_PRODUCER_ATTEMPT" --pages-base "$MID_RUC_PAGES_BASE_URL"
           python tools/ruc/timed_command.py publish-js-decoder -- node tools/ruc/verify_prepared_snapshot.mjs .ruc-pages/ruc
       - name: MID-Seite mit aktuellem Stable-Stand und RUC-Snapshot zusammensetzen
-        if: steps.stable_guard.outputs.allowed == 'true'
+        if: steps.predownload_guard.outputs.allowed == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -500,7 +516,7 @@ jobs:
           find .ruc-site/ruc -type f -name 'eps-members.bin' -print -quit | grep -q . && { echo '::error::Native EPS member cube must not be published by the free Pages profile.'; exit 1; } || true
       - name: MID-Stable und Releasefenster unmittelbar vor dem Pages-Publish erneut prüfen
         id: publish_guard
-        if: steps.stable_guard.outputs.allowed == 'true'
+        if: steps.predownload_guard.outputs.allowed == 'true'
         env:
           EXPECTED_STABLE_SHA: ${{ steps.stable_guard.outputs.consumer_sha }}
         shell: bash
@@ -525,26 +541,26 @@ jobs:
           echo "allowed=true" >> "$GITHUB_OUTPUT"
           echo "MID-Stable unmittelbar vor Publish unverändert: ${actual_sha} · MID v${stable_version}"
       - name: Produktives RUC-Healthgate vor komprimiertem Pages-Publish verpflichtend prüfen
-        if: steps.stable_guard.outputs.allowed == 'true' && steps.publish_guard.outputs.allowed == 'true'
+        if: steps.predownload_guard.outputs.allowed == 'true' && steps.publish_guard.outputs.allowed == 'true'
         env:
           MID_RUC_WORKER_HEALTH_URL: ${{ vars.MID_RUC_WORKER_HEALTH_URL || vars.MID_WORKER_HEALTH_URL || vars.VITE_METAR_PROXY_URL }}
         run: |
           test -n "$MID_RUC_WORKER_HEALTH_URL" || { echo "::error::Ohne produktiven Worker-Health-Endpunkt keine RUC-Vollkompression."; exit 1; }
       - name: GitHub-Pages-Artefakt hochladen
-        if: steps.stable_guard.outputs.allowed == 'true' && steps.publish_guard.outputs.allowed == 'true'
+        if: steps.predownload_guard.outputs.allowed == 'true' && steps.publish_guard.outputs.allowed == 'true'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           name: mid-ruc-pages-${{ github.run_id }}-${{ github.run_attempt }}
           path: ./.ruc-site
       - name: MID + RUC kostenfrei auf GitHub Pages veröffentlichen
-        if: steps.stable_guard.outputs.allowed == 'true' && steps.publish_guard.outputs.allowed == 'true'
+        if: steps.predownload_guard.outputs.allowed == 'true' && steps.publish_guard.outputs.allowed == 'true'
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
           artifact_name: mid-ruc-pages-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Produktiven Worker gegen den veröffentlichten RUC-Lauf prüfen
         id: worker_health
-        if: ${{ steps.stable_guard.outputs.allowed == 'true' && steps.publish_guard.outputs.allowed == 'true' }}
+        if: ${{ steps.predownload_guard.outputs.allowed == 'true' && steps.publish_guard.outputs.allowed == 'true' }}
         env:
           MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL }}
           MID_RUC_WORKER_HEALTH_URL: ${{ vars.MID_RUC_WORKER_HEALTH_URL || vars.MID_WORKER_HEALTH_URL || vars.VITE_METAR_PROXY_URL }}
@@ -612,6 +628,7 @@ jobs:
         env:
           PREPARED: ${{ needs.prepare.outputs.should_run }}
           STABLE_ALLOWED: ${{ steps.stable_guard.outputs.allowed }}
+          PRE_DOWNLOAD_ALLOWED: ${{ steps.predownload_guard.outputs.allowed }}
           PUBLISH_ALLOWED: ${{ steps.publish_guard.outputs.allowed }}
           DEPLOYED: ${{ steps.deployment.outcome }}
           WORKER_HEALTH: ${{ steps.worker_health.outcome }}
@@ -619,6 +636,7 @@ jobs:
         run: |
           if [ "$DEPLOYED" = success ] && [ "$WORKER_HEALTH" = success ]; then result='vollständig komprimiert veröffentlicht und Worker/Pages geprüft';
           elif [ "$ROLLBACK_DEPLOYED" = success ]; then result='Codec-Publish fehlgeschlagen; RUC-Rohsnapshot nachveröffentlicht';
+          elif [ "$PRE_DOWNLOAD_ALLOWED" = false ]; then result='aufbereitet, authentifizierter Contract abgelöst; Download sicher übersprungen';
           elif [ "$STABLE_ALLOWED" = false ] || [ "$PUBLISH_ALLOWED" = false ]; then result='aufbereitet, wegen Releasewechsel übersprungen';
           elif [ "$DEPLOYED" = success ]; then result='Codec veröffentlicht, Worker-Übernahme NICHT bestätigt; sofortige Fehlerprüfung erforderlich';
           else result='nicht veröffentlicht; vorherige Schritte prüfen'; fi
