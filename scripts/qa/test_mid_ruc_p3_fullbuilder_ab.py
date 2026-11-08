@@ -76,7 +76,7 @@ class P3FullOriginalBuilderQa(unittest.TestCase):
                          {"wallSeconds": 48.5, "peakRssKiB": 8300000})
         with self.assertRaisesRegex(ValueError, "resource profile"):
             qa.profile(f)
-        f.write_text("P3_AB_PROFILE 55.0 5000000\\nP3_AB_PROFILE 52.0 4000000\n")
+        f.write_text("P3_AB_PROFILE 55.0 5000000\nP3_AB_PROFILE 52.0 4000000\n")
         self.assertIsNone(qa.diagnostic_profile(f))
 
     def test_verify_failure_persists_blocked_report_and_raises(self):
