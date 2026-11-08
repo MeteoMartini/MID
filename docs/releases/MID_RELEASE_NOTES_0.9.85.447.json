@@ -1,0 +1,13 @@
+{
+  "version": "0.9.85.447",
+  "date": "2026-11-08",
+  "title": "Verbindlicher Releaseprozess und effiziente Agenten-Zusammenarbeit",
+  "external": [
+    "Veröffentlichungsverfahren für geprüfte Änderungen verständlicher dokumentiert.",
+    "Bedarfsgerechte Zusammenarbeit von GitHub, Copilot und Kilo ohne neue Rechte, Kosten oder Eingriffe in Wetterfunktionen."
+  ],
+  "internal": [
+    "SHA-selektive Zusammenführung der Governance-Drafts #702 und #687 auf Stable .446.",
+    "Konfliktfreie normative Ergänzungen; getrennte Source-/Bot-/Installer-/Worker-/Pages-/Stable-Gates weiterhin zwingend."
+  ]
+}
