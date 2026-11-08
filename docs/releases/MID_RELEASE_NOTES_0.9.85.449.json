@@ -1,0 +1,14 @@
+{
+  "version": "0.9.85.449",
+  "date": "2026-11-08",
+  "title": "Bergwetter: korrekte Zeitachsen und transparente Modellunsicherheit",
+  "external": [
+    "Schneefallgrenzen-Ensemble und lokale Zeitachsen verlässlicher; echte Datenlücken sichtbar statt fiktiver Werte.",
+    "Modellspanne klar als Näherung gekennzeichnet, fehlende Unsicherheitsfelder nicht als Null dargestellt."
+  ],
+  "internal": [
+    "#428/#523: selektiver Bergwetter-Code aus QA-Draft #703; validierte Open-Meteo-UTC-Unixzeiten und ganzzahlige Forecast-Horizonte.",
+    "HTTP200 ohne meteorologisch nutzbare Mittelwerte löst nächsten dokumentierten Variablen-Tier aus; vollständige NoData-Arrays bleiben NoData.",
+    "Unveränderte 1084-er-Pflichtregressionen-/Source-/Installer- und Security-Gates erforderlich; neue reale Provider-Stichproben und QA-Abgrenzungen dokumentiert."
+  ]
+}

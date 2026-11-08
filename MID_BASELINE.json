@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.448",
+  "releaseVersion": "0.9.85.449",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -658,6 +658,7 @@
     "scripts/test-mountain-profile-plausibility.mjs",
     "scripts/test-mountain-progressive-ui.mjs",
     "scripts/test-mountain-seven-day-domain-1813.mjs",
+    "scripts/test-mountain-snowline-dst-nodata-0985415.mjs",
     "scripts/test-mountain-visual-acceptance-18213.mjs",
     "scripts/test-mountain-warm-rain-ui-0985176.mjs",
     "scripts/test-mountain-wind-normalization-071054.mjs",
@@ -1744,6 +1745,7 @@
     "scripts/test-mountain-profile-plausibility.mjs",
     "scripts/test-mountain-progressive-ui.mjs",
     "scripts/test-mountain-seven-day-domain-1813.mjs",
+    "scripts/test-mountain-snowline-dst-nodata-0985415.mjs",
     "scripts/test-mountain-visual-acceptance-18213.mjs",
     "scripts/test-mountain-warm-rain-ui-0985176.mjs",
     "scripts/test-mountain-wind-normalization-071054.mjs",
@@ -2860,6 +2862,7 @@
     "scripts/test-module-loading-state-c55.mjs",
     "scripts/test-mosmix-contribution-freshness-097915.mjs",
     "scripts/test-mosmix-hourly-run-metadata-097916.mjs",
+    "scripts/test-mountain-snowline-dst-nodata-0985415.mjs",
     "scripts/test-mrms-display-source-contract-098477.mjs",
     "scripts/test-native-external-navigation-096681.mjs",
     "scripts/test-native-location-adapter-09680.mjs",
@@ -3084,6 +3087,7 @@
     "src/midDesignWeFourteen.css",
     "src/midDesignWeSeven.css",
     "src/midPresentation.css",
+    "src/mountainSnowLineCombine.ts",
     "src/nativeSynopticFields.ts",
     "src/precipitationIntervals.ts",
     "src/precipitationPhaseColor.ts",
@@ -3947,7 +3951,7 @@
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
-  "version": "0.9.85.448",
+  "version": "0.9.85.449",
   "updatedAt": "2026-11-06",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",
