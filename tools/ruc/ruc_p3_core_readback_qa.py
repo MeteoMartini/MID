@@ -87,19 +87,22 @@ def verify_checkpoint(root: Path, source_sha: str, run_id: int, attempt: int,
            or row.get("unit") != spec.unit or row.get("offset") != spec.offset
            for row, spec in zip(fields, EPS_SUMMARY_FIELDS)):
         raise ValueError("summary field semantics changed")
-    def object_path(key, length):
-        if not isinstance(key, str) or Path(key).name != key:
-            raise ValueError("unsafe binary key")
-        if key not in metadata["objects"] or metadata["objects"][key]["bytes"] != length:
+    run_key = re.sub(r"[^0-9A-Za-z_-]", "", run)
+    def object_path(key, name, length):
+        # The public Pages key has a runs/<cycle>/ prefix, whereas the
+        # authentic core checkpoint stores the flat original object basename.
+        if key != f"runs/{run_key}/{name}":
+            raise ValueError("unsafe or incorrectly named binary Pages key")
+        if name not in metadata["objects"] or metadata["objects"][name]["bytes"] != length:
             raise ValueError("binary length differs from sealed core")
-        path = root / key
+        path = root / name
         if path.is_symlink() or not path.is_file() or path.resolve().parent != root:
             raise ValueError("unsafe or absent core object")
         if path.stat().st_size != length:
             raise ValueError("truncated core object")
         return path
-    eps_file = object_path(member.get("key"), points * 28 * 20 * 2)
-    summary_file = object_path(summary.get("key"), points * 28 * len(EPS_SUMMARY_FIELDS) * 2)
+    eps_file = object_path(member.get("key"), "eps-members.bin", points * 28 * 20 * 2)
+    summary_file = object_path(summary.get("key"), "eps-summary.bin", points * 28 * len(EPS_SUMMARY_FIELDS) * 2)
     return report, metadata, eps_file, summary_file
 
 
@@ -162,8 +165,8 @@ def assess(root: Path, source_sha: str, run_id: int, attempt: int,
         "producerRunId": run_id, "producerAttempt": attempt,
         "modelRunUtc": meta["run"],
         "coreManifestSha256": report["manifestSha256"],
-        "memberCoreSha256": meta["objects"][meta["eps"]["key"]]["sha256"],
-        "summaryCoreSha256": meta["objects"][meta["epsSummary"]["key"]]["sha256"],
+        "memberCoreSha256": meta["objects"]["eps-members.bin"]["sha256"],
+        "summaryCoreSha256": meta["objects"]["eps-summary.bin"]["sha256"],
         "points": points, "validTimes": 28, "members": 20, "chunks": chunks,
         "candidateQuantileDigestFromPostpackedValues": packed_digest.hexdigest(),
         "postpackedZeroMemberCells": zeros, "postpackedMissingMemberCells": missing,
