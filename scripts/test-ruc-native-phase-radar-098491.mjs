@@ -283,5 +283,6 @@ assert.equal(phaseContext.__phaseFor({...missingFrame,weatherCode:[89],precipita
  assert.equal(boundedContext.__budget.providerUsed,0,'Separate invocations must not share mutable budget');
 
 for(const token of ['rucGraupel>=.003','rucSnow>=.003&&rucRain>=.003','Schnee · ICON-D2-RUC','Regen · ICON-D2-RUC'])assert.ok(overlay.includes(token),`radar phase priority missing: ${token}`);
-for(const token of ["Original-RUC-Lauf","Open-Meteo-Metadatenlauf (Feldlauf nicht zellverifiziert)"])assert.ok(overlay.includes(token),"Unverified provider run must not masquerade as a native DWD original: "+token);
+for(const token of ["Original-RUC-Lauf","Open-Meteo-Feldlauf nicht nachgewiesen (Modellmetadaten separat)"])assert.ok(overlay.includes(token),"Unverified provider run must not masquerade as a native DWD original: "+token);
+assert.ok(!overlay.includes('Open-Meteo-Metadatenlauf (Feldlauf nicht zellverifiziert)'), 'Unverified per-cell forecast run must not be presented as metadata run');
 console.log('Native ICON-D2-RUC 15-min rain/snow/graupel phase decoder and radar-phase priority passed.');

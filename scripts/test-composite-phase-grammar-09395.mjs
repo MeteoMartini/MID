@@ -19,7 +19,7 @@ assert(!/Hagelsignal im Modell/.test(radar),'Ein unbestätigtes Modell-Hagelsign
 assert(/loadOperaRasterData/.test(overlay)&&/loadWeatherPhaseGrid/.test(overlay),'Phasenlayer muss Beobachtungsradar und dynamisches Regionalmodell gemeinsam verwenden.');
 assert(/Math\.abs\(targetMs-operaMs\)>12\*60000/.test(overlay),'OPERA-Zeitabstand muss begrenzt sein.');
 assert(/maxTimeDelta=grid\.stale\?45\*60000:20\*60000/.test(overlay),'Modell-Zeitabstand muss für Frisch- und Ersatzfelder begrenzt sein.');
-assert(/Number\(grid\.modelAgeHours\)>16/.test(overlay),'Modell-Laufalter muss zusätzlich im Frontend begrenzt sein.');
+assert(overlay.includes("typeof grid.modelAgeHours==='number'&&Number.isFinite(grid.modelAgeHours)&&grid.modelAgeHours>16"),'Nur ein tatsächlich endliches verifiziertes Modelllaufalter darf einen Phasenstatus als frisch bewerten; Missing ist keine 0.');
 assert(/phase\.confidence==='eingeschränkt'\)continue/.test(overlay),'Unsichere Phasen müssen ausgeblendet bleiben.');
 assert(/HtmlMarker/.test(overlay)&&!/GeoJsonLayers|fill-opacity/.test(overlay),'Niederschlagsarten müssen als kleine Symbole statt als flächige Rasterpolygone erscheinen.');
 assert(/asSymbolPhase\(phase\.phase\)/.test(overlay),'Nur explizit freigegebene nichtflüssige bzw. gemischte Phasen dürfen Symbole erhalten.');
