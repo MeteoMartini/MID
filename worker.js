@@ -2549,6 +2549,8 @@ async function precipitationPhaseGridData(lat,lon,target,env){
   if(!remaining.length)continue;
   const modelRun=midPhaseMs(meta.initialisationTime);
   if(!Number.isFinite(modelRun)||modelRun>roundedMs||roundedMs-modelRun>model.maxHours*3600000){errors.push(model.label+': ungueltige Lauf-/Geltungszeit');continue}
+  // Provider metadata selects eligible model domains; it does not authenticate
+  // the individual Forecast API response's run on eventually consistent servers.
   const item={id:model.id,label:model.label,initialisationTime:meta.initialisationTime,intervalMinutes:model.intervalMinutes,source:'Open-Meteo ('+meta.metaId+')',verifiedNativeOriginalCells:false};
   candidateModels.push(item);
   let points=null;
@@ -2603,7 +2605,7 @@ async function precipitationPhaseGridData(lat,lon,target,env){
    frame.weatherCode[i]=code;frame.precipitation[i]=precip;frame.rain[i]=rain;frame.snowfall[i]=snow;
    frame.snowfallHeight[i]=midPhaseNumber(get('snowfall_height'));frame.freezingLevelHeight[i]=midPhaseNumber(get('freezing_level_height'));frame.elevation[i]=midPhaseNumber(point?.elevation);
    phaseSourceByCell[i]=model.id==='icon-d2'?'dwd-icon-d2':model.id==='icon-eu'?'dwd-icon-eu':'dwd-icon-global';
-   phaseValidTimeByCell[i]=choice.time;phaseRunByCell[i]=meta.initialisationTime;phaseIntervalMinutesByCell[i]=interval;
+   phaseValidTimeByCell[i]=choice.time;phaseRunByCell[i]=null;phaseIntervalMinutesByCell[i]=interval;
   }
  }
  if(phaseFetchBudget.denied)errors.push('Gemeinsames Phasen-Subrequest-/Zeitbudget erreicht; unbestätigte Zellen bleiben NoData');
@@ -2614,7 +2616,11 @@ async function precipitationPhaseGridData(lat,lon,target,env){
  }
  const sourceCounts=Object.fromEntries(['dwd-icon-d2-ruc','dwd-icon-d2','dwd-icon-eu','dwd-icon-global'].map(id=>[id,phaseSourceByCell.filter(s=>s===id).length]));
  const gridSpacingKm=Math.round(Math.max(Math.abs((north-south)/(rows-1))*111.2,Math.abs((east-west)/(cols-1))*111.2*Math.max(.3,Math.cos(centerLat*Math.PI/180)))*10)/10;
- const data={modelId:'icon-phase-priority',modelLabel:'ICON-D2-RUC → ICON-D2 → ICON-EU → ICON Global',targetTime:new Date(roundedMs).toISOString(),referenceTime:phaseRunByCell.find(Boolean),lats,lons,frame,phaseSourceByCell,phaseValidTimeByCell,phaseRunByCell,phaseIntervalMinutesByCell,sourceCounts,provider:'DWD-RUC Originalzellen via MID Pages; ICON-D2/EU/global via Open-Meteo (nicht native Originalzellen)',phaseSource:sourceCounts['dwd-icon-d2-ruc']?ruc?.source:undefined,checkedAt:new Date().toISOString(),gridSpacingKm,coverage:usable+'/'+count+' gueltige Zellen; Maskenluecken bleiben NoData',rapidUpdate:sourceCounts['dwd-icon-d2-ruc']>0,native15:sourceCounts['dwd-icon-d2-ruc']+sourceCounts['dwd-icon-d2']>0,updateIntervalSeconds:undefined,modelAgeHours:Math.round(Math.max(...phaseRunByCell.filter(Boolean).map(v=>Math.max(0,(Date.now()-midPhaseMs(v))/3600000)))*100)/100,candidateModels,requestBudget:{locations:count,batches,variables:8,modelPointRequests},phaseFetchBudget:{limit:phaseFetchBudget.limit,used:phaseFetchBudget.used,native:phaseFetchBudget.nativeUsed,lookup:phaseFetchBudget.lookupUsed,provider:phaseFetchBudget.providerUsed,denied:phaseFetchBudget.denied},sourceErrors:errors.slice(0,7),modelLimitWarning:rateLimited};
+ // Only original RUC cells carry authenticated per-cell model runs. Provider
+ // metadata never certifies an individual Forecast API response's run.
+ const verifiedRunAges=phaseRunByCell.filter(Boolean).map(midPhaseMs).filter(Number.isFinite).map(ms=>Math.max(0,(Date.now()-ms)/3600000));
+ const verifiedModelAgeHours=verifiedRunAges.length?Math.round(Math.max(...verifiedRunAges)*100)/100:null;
+ const data={modelId:'icon-phase-priority',modelLabel:'ICON-D2-RUC → ICON-D2 → ICON-EU → ICON Global',targetTime:new Date(roundedMs).toISOString(),referenceTime:phaseRunByCell.find(Boolean),lats,lons,frame,phaseSourceByCell,phaseValidTimeByCell,phaseRunByCell,phaseIntervalMinutesByCell,sourceCounts,provider:'DWD-RUC Originalzellen via MID Pages; ICON-D2/EU/global via Open-Meteo (nicht native Originalzellen)',phaseSource:sourceCounts['dwd-icon-d2-ruc']?ruc?.source:undefined,checkedAt:new Date().toISOString(),gridSpacingKm,coverage:usable+'/'+count+' gueltige Zellen; Maskenluecken bleiben NoData',rapidUpdate:sourceCounts['dwd-icon-d2-ruc']>0,native15:sourceCounts['dwd-icon-d2-ruc']+sourceCounts['dwd-icon-d2']>0,updateIntervalSeconds:undefined,modelAgeHours:verifiedModelAgeHours,candidateModels,requestBudget:{locations:count,batches,variables:8,modelPointRequests},phaseFetchBudget:{limit:phaseFetchBudget.limit,used:phaseFetchBudget.used,native:phaseFetchBudget.nativeUsed,lookup:phaseFetchBudget.lookupUsed,provider:phaseFetchBudget.providerUsed,denied:phaseFetchBudget.denied},sourceErrors:errors.slice(0,7),modelLimitWarning:rateLimited};
  rememberPrecipitationPhase(key,data);return data;
 }
 

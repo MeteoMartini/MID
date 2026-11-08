@@ -99,11 +99,13 @@ try{
  if(priority.requestBudget.modelPointRequests!==Object.values(byModel).reduce((a,b)=>a+b,0))throw new Error('Untruthful model request budget');
  for(let i=0;i<247;i++){
   const id=sourceByCell[i],interval=priority.phaseIntervalMinutesByCell[i],valid=priority.phaseValidTimeByCell[i],run=priority.phaseRunByCell[i];
-  if(!run||!valid||!(interval===(id==='dwd-icon-d2'?15:60)))throw new Error('Invalid per-cell run/validity/accumulation interval at '+i);
+  if(run!==null||!valid||!(interval===(id==='dwd-icon-d2'?15:60)))throw new Error('Provider metadata must never impersonate a per-cell forecast run at '+i);
   if(id==='dwd-icon-d2'&&Date.parse(valid)!==targetMs)throw new Error('Original D2 15-minute valid time drift');
   if(id!=='dwd-icon-d2'&&!(Date.parse(valid)>targetMs&&Date.parse(valid)<=targetMs+3600000))throw new Error('ICON EU/global must use the end stamp of the 1h interval containing target, not an already elapsed hour');
   if(priority.frame.rucRain[i]!==null||priority.frame.rucSnowfallWaterEquivalent[i]!==null)throw new Error('Open-Meteo fallback wrongly labeled as RUC');
  }
+ if(priority.referenceTime!=null||priority.modelAgeHours!=null)throw new Error('Provider-only field falsely certified an original cell run or run age');
+ if(!priority.candidateModels?.some(model=>model.initialisationTime))throw new Error('Latest provider metadata must remain separately visible, not replace cell provenance');
  if(priority.provider.includes('native Originalzellen')&&!priority.provider.includes('nicht native Originalzellen'))throw new Error('Open-Meteo interpolated samples impersonate native DWD originals');
 
 

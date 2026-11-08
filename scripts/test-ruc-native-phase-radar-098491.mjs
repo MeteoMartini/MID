@@ -197,6 +197,7 @@ assert.equal(phaseContext.__phaseFor({...missingFrame,weatherCode:[89],precipita
    'Incomplete RUC dry fields blocked required D2 fallback: '+index);
   assert.equal(partial.phaseIntervalMinutesByCell[index],15);
   assert.equal(partial.frame.rain[index],.15);
+  assert.equal(partial.phaseRunByCell[index],null,'Unknown provider forecast field run cannot inherit latest model metadata');
   assert.ok(Number.isNaN(partial.frame.rucRain[index]),'A partial dry RUC value leaked into fallback cell '+index);
  }
  assert.equal(partial.frame.rucRain[1],0,'A genuine original zero was lost');
