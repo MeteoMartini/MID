@@ -108,7 +108,29 @@ Direkte Änderungen an `main` oder `mid-stable` sind nicht zulässig. Siehe [AGE
 
 GitHub Copilot verwendet die [repositoryweiten MID-Anweisungen](.github/copilot-instructions.md), [fach- und pfadspezifischen Regeln](.github/instructions/), [wiederverwendbare Prüf- und Übergabe-Prompts](.github/prompts/) sowie den [lesenden Audit-Agenten](.github/agents/mid-auditor.agent.md). Die [Copilot-Koordinationsregeln](docs/implementation/MID_COPILOT_COLLABORATION_2026_11_06.md) beschreiben die SHA-Prüfung, den Umgang mit parallelen Arbeiten und die Integration ohne eigene Copilot-Releaseberechtigung.
 
+### Copilot direkt aus ChatGPT beauftragen (ohne Copy/Paste)
+
+Für **ausdrücklich vom Nutzer beauftragte MID-Aufgaben** kann ChatGPT über die bereits verbundene GitHub-App nach Live-Prüfung von `mid-stable`/`main` (volle SHAs), Version, Verträgen, Rechten und parallelen PRs ein GitHub-Issue mit konkretem Scope, Abnahmekriterien und Ausschlüssen erstellen und es **einmalig** `copilot-swe-agent[bot]` zuweisen. GitHub erzeugt daraufhin gegebenenfalls einen **unvertrauenswürdigen Draft-PR** auf einem `copilot/*`-Branch. ChatGPT überprüft GitHub-Issue, Copilot-PR, Basis-/Head-SHA, geänderte Dateien, Tests und Ergebnis direkt über GitHub – **ohne manuelles Kopieren von Prompt, Patch oder Rückmeldung**.
+
+Dieser Transport wurde mit [Pilot-Issue #688](https://github.com/MeteoMartini/MID/issues/688) und dem danach ohne Merge geschlossenen [Copilot-Draft #689](https://github.com/MeteoMartini/MID/pull/689) nachgewiesen. Ein gestarteter Task ist noch **keine Code- oder Releasefreigabe**. Copilot darf keine Aufgaben eigenständig ausweiten, keine neuen Tokens/Abos/Workflows einrichten und weder `main`/`mid-stable` noch `chatgpt/*`/`codex/*` verändern. Die normale unabhängige Review und der vollständige MID-Releasepfad bleiben zwingend. Die Zuweisung kann vorhandene Copilot-AI-Credits verbrauchen; bei unklaren Kosten oder Berechtigungen wird **fail-closed** abgebrochen.
+
+Verbindliche Details: [AGENTS.md](AGENTS.md) · [Copilot-Anweisungen](.github/copilot-instructions.md) · [erprobter Issue-/Draft-Handoff](docs/implementation/MID_COPILOT_CLOUD_BRIDGE_2026_11_07.md).
+
 Copilot-Ergebnisse aus `copilot/*` werden **nicht** direkt veröffentlicht. Unabhängige Integration, vollständige Gates und Stable-Promotion bleiben wie in `AGENTS.md` beschrieben verpflichtend.
+
+## Zusammenarbeit mit Kilo (ohne Copy/Paste)
+
+Für **ausdrücklich beauftragte, rein lesende** Audits kann ChatGPT künftig ein begrenztes GitHub-Issue anlegen und darin `@kilocode-bot` einmalig erwähnen. Kilo soll seine Antwort direkt im Issue dokumentieren, das ChatGPT dann unabhängig ausliest. Der vollständige Ablauf wurde mit [Pilot-Issue #692](https://github.com/MeteoMartini/MID/issues/692) **erfolgreich verifiziert**: Nach deiner GitHub↔Kilo-Kontoverknüpfung hat der authentifizierte Kilo-Bot einen SHA-genauen [Auditbericht](https://github.com/MeteoMartini/MID/issues/692#issuecomment-6711417279) und die [Abschlussmeldung](https://github.com/MeteoMartini/MID/issues/692#issuecomment-6711420333) direkt in GitHub zurückgegeben. ChatGPT hat beide unabhängig ausgelesen. Kein Kopieren, kein neuer PR, kein Merge oder Release. Verknüpfungslinks/-tokens niemals kopieren oder öffentlich weitergeben.
+
+**Codeänderungen laufen weiterhin nicht über GitHub-Bot-Fix-Kommandos.** Die erlaubte Kilo-Codeübergabe bleibt `scripts/mid-kilo-handoff.mjs` mit einmaligem SHA-gesicherten, **ref-freien** Git-Objekt-/Issue-Transport und unabhängiger ChatGPT-Intake-Prüfung (verifizierter Vorversuch [#662](https://github.com/MeteoMartini/MID/issues/662) → [Draft #663](https://github.com/MeteoMartini/MID/pull/663)). Kilo darf keine selbstständigen MID-Branches/PRs, Releases, neuen Secrets oder kostenpflichtigen Dienste anlegen; Kilo-Credits können verbraucht werden. Alle Source-/Installer-/Worker-/Pages-/Stable-Gates bleiben verbindlich.
+
+Vollständige Anleitung: [Kilo-GitHub-Issue-Rückkanal](docs/implementation/MID_KILO_GITHUB_ISSUE_BRIDGE_2026_11_07.md), [Kilo-Handoff-Vertrag](docs/implementation/MID_KILO_DEFAULT_HANDOFF_CONTRACT_2026_11_05.md), [AGENTS.md](AGENTS.md).
+
+## Automatische, bedarfsgerechte Zusammenarbeit
+
+Innerhalb eines **konkreten Nutzerauftrags** übernimmt ChatGPT die Wahl und Koordination geeigneter, bereits verbundener Dienste **ohne unnötiges Kopieren oder wiederholte technische Freigaben**: GitHub als Source of Truth, Copilot für eng beauftragte Coding-/Review-Drafts, Kilo-GitHub-Bot für **lesende** Audits und der bestehende ref-freie Kilo-Handoff für Implementierungen. Je nach nachgewiesenem Nutzen kommen Replit (UI), Product Design (UX), Context7 (API-/SDK-Doku), Firecrawl (Wetter-/Lizenzrecherche), PostHog (datensparsame Qualitätstelemetrie) und PR Completion (CI-/PR-Triage, nicht Merge) dazu. Nur vorhandene Rechte, Einwilligungen und freigegebene Budgets verwenden; keine Doppelaufträge, keine autonomen Folgeaufträge und keine ungeprüfte Agenten- oder Releaseintegration.
+
+**Bestehende fünf MID-Überwachungstasks bleiben aktiv**, da sie unterschiedliche Aufgaben erfüllen (Kilo-Code-Handoff, RUC-Betrieb, Open-Meteo-Änderungen, App-Gesamtaudit und neue Wetterdatenquellen). Einzelne Agentenaufträge ersetzen keine kontinuierliche Wache; Wachen erst nach nachgewiesen gleichwertiger Abdeckung deaktivieren. Vollständige Tool-Zuordnung und verbindliche Schutzregeln: [Agenten-/Plugin-Routing und Taskinventar](docs/implementation/MID_AGENT_PLUGIN_ROUTING_2026_11_07.md) und [AGENTS.md](AGENTS.md).
 
 ## Versionsschema
 

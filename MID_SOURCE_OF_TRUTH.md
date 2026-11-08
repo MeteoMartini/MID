@@ -1,3 +1,11 @@
+# MID v0.9.85.447 · Source-Release-Governance und Agenten-Routing
+
+**Statusprüfung ist live:** Diese versionierte Source-Aufzeichnung ist selbst weder CI-Gate noch Beleg einer erfolgreichen Veröffentlichung. Der dokumentierte, zuletzt erfolgreich promotete Vorgänger war v0.9.85.446, `main=mid-stable=5e25ab60b365950a54a7d113483e8bf519911113`, Installer #42468176962 `completed/success`. Der zusätzliche v0.9.85.447-Kandidat aus den Original-Drafts #702 und #687 wird ausschließlich durch vollständige Source-/Bot-/Installer-/Worker-/Pages-/Stable-Gates freigegeben; nach erfolgreicher Promotion ist der GitHub-`mid-stable`-SHA maßgeblich, nicht dieses Textdokument.
+
+**Geltende Governance:** Dokumentierter Draft→Ready→Source-Gate-Einstieg und SHA-Bot-Releasepfad; eindeutiges bedarfsgebundenes Routing zwischen GitHub/ChatGPT/Copilot/Kilo/Replit. WMO/DWD-Standards, amtliche Warnungen, meteorologische Daten, bestehende Regeln, Secrets und Qualitätsgates bleiben unverändert. Historische Pilotevidenz ist keine aktuelle Berechtigungsfreigabe. Quellen, Dateien und offene Prüfungen: `docs/implementation/MID_C447_GOVERNANCE_BUNDLE_2026_11_08.md`.
+
+## Archivierte ältere Versionsabschnitte (historische Arbeitsstände, keine aktuelle Release-Statusanzeige)
+
 # MID v0.9.85.446 · RUC-/Karten-Sammelkandidat (vor Source-/Installer-Abnahme)
 
 **Stand: QA-Integrations-DRAFT, NICHT veröffentlicht.** Freigegebene Basis ist weiterhin v0.9.85.445 SHA b6526e7c5c24035bd1a75b87b77e7bb8e821c334. Der neue kurzfristige autorisierte Integrationsbranch vereinigt fünf auf derselben Basis geprüfte, dateipfad-disjunkte Kandidaten (#700, #684, #695, #698, #685); komplette Ursprungs-SHAs und Blockermatrix in docs/implementation/MID_446_BUNDLED_INTEGRATION_REVIEW.md. Der Versionsspiegel v0.9.85.446 beschreibt nur die angehende App-Kandidatenversion; er ist ohne Source-PR-, Installer-, Worker-/Pages- und Stable-Promotion keine Live-Freigabe.

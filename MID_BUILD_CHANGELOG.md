@@ -1,3 +1,11 @@
+## MID v0.9.85.447 · 2026-11-08 · Verbindlicher Source-Release-Einstieg und ressourcenschonendes Agenten-Routing
+
+- **Quelle:** released Stable .446 `5e25ab60b365950a54a7d113483e8bf519911113`; authorisierte neue Integration `chatgpt/v0.9.85.447-governance-702-687`. Original Governance-Drafts #702 HEAD `092371c27b3d852b1865e2a6d800a22a34c4d54b` und #687 HEAD `091fc4cce44d72b22651196674bb27cebd004a32`; nur SHA-verifizierte additiv kompatible Quellteile importiert.
+- **Releasevertrag #702:** tatsächlicher Draft→Ready→vollständiger Source-PR-Gate→SHA-Bot→serverseitiger ZIP→Installer→Worker/Pages→Stable. CODEOWNERS/Reviews gelten ausschließlich nach den wirksamen Schutzregeln; keine künstlichen externen Approvals oder Umgehungen. RUC-168h-SLO ist getrennt vom vollständig zwingenden Release-Gate.
+- **Routing #687:** begrenzte Nutzeraufträge, GitHub als einzige Codequelle, Copilot-Issue→untrusted Draft, Kilo GitHub nur read-only, Kilo-Code über bestehenden ref-freien Handoff, Replit nur UI-Handoff; Verfügbarkeit, Kosten und Rechte prüfen; keine autonomen weiteren Aufträge, Monitoring oder Produktion.
+- **Dateivertrag:** Normdateien `AGENTS.md`, `MID_CHATGPT_GITHUB_CONTRACT.md`, `.github/copilot-instructions.md`, `.kilo/skills/mid-handoff/SKILL.md`, `README.md` rein additiv; vier Originaldokumente plus versionierter Bundle-Nachweis. Keine Source-/WMO-/DWD-/Warn-/Wetterdaten-/Fachlogik- oder CI-Workflowänderung. Worker-/PWA-/iOS-Versionen nur synchron gespiegelt, keine Laufzeit-Funktionsänderung.
+- **Qualität:** Beide Ausgangs-Draft-SHAs und neue Git-Blobs, aktuelle GitHub-Schutzregeln und Parallel-PRs geprüft; vollständige Source-Core-/Heavy-/Browser-/Security-, Installer-, Worker-/Pages- und Stable-Gates auf **finalem** .447 Source-Head sind bis zur tatsächlichen GitHub-Prüfung **NOT VERIFIED**. Kein extra abgekürzter Dokumentationsrelease; keine Freigabe allein aus diesem Changelog. Parallel Bergwetter-Draft #703 getrennt.
+
 ## MID v0.9.85.446 · 2026-11-07 · Gebündelte RUC-/Modellkarten-Korrekturen (Integrationskandidat)
 
 - **Basis** main=mid-stable v0.9.85.445 SHA b6526e7c5c24035bd1a75b87b77e7bb8e821c334; fünffache Git-Blob-Übernahme auf unabhängigem chatgpt/*-Integrationsbranch aus Drafts #700, #684, #695, #698, #685 (exakte Heads in docs/implementation/MID_446_BUNDLED_INTEGRATION_REVIEW.md).

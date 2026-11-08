@@ -5,6 +5,10 @@ description: Mandatory safe handoff workflow whenever a Kilo cloud coding agent 
 
 # MID Kilo work and handoff
 
+**Task-router gate:** ChatGPT selects Kilo only when a **specific user-authorized, bounded** MID task benefits from Kilo and existing connection/credits/scope are verified. See [MID agent/plugin routing](../../../docs/implementation/MID_AGENT_PLUGIN_ROUTING_2026_11_07.md) and `AGENTS.md`. For read-only GitHub audits use the independent `@kilocode-bot` Issue route only; for user-directed Kilo **code** work preserve the existing ref-free SHA-verified handoff steps below. Do not self-originate, duplicate or escalate tasks, make paid/credential changes, or use the GitHub bot's autonomous branch/PR creation for MID coding. Use connected GitHub evidence for response so no patch copying is needed; no source/release privileges are added.
+
+
+
 1. Before work read `AGENTS.md`, `MID_BASELINE.json`, `MID_SOURCE_OF_TRUTH.md`, `package.json`, and relevant normative contracts; verify exact live SHAs of `main` and `mid-stable`; identify active PRs and parallel work. If drift or overlap, stop changes.
 2. Run in a dedicated **local** worktree branch off the verified latest `mid-stable` commit. Never commit on `main` or `mid-stable`. Kilo cannot create/update protected `chatgpt/*`/`codex/*` refs. Do not attempt to push those refs and never use force, bypasses, SSH credential fallbacks or broaden GitHub permissions.
 3. Work only within the scope of the user's task, retain all existing functions, tests and WMO/DWD contracts. Apply least-privilege; never access or copy secrets.
@@ -18,6 +22,12 @@ Kilo's Cloud Agent may run tools automatically. This skill is policy guidance an
 
 Live proof dated 05.11.2026: Kilo wrote Git objects plus [MID-KILO-HANDOFF] issue #662 under `kilo-code-bot[bot]` (ID 240665456); independent ChatGPT verified the exact parent/tree/blob/author chain and opened authorized Draft PR #663 with head `5afd5cc13885c0146b1e6d9ab66dd58ea82f5cc3`. The issue was closed only as completed transport; Draft PR #663 still needs Node-22, aggregate, browser and MID release gates. This first success proves an operational path, **not automatic initiation in all Kilo sessions**. Kilo Cloud loads AGENTS.md at session startup and discovers project skills; start new sessions on promoted Stable or reload instructions as supported. A token/readback/identity failure requires inspecting already-created objects/issues, **never blind resubmission**.
 
+
+## Kilo GitHub Issue mentions (optional, read-only only)
+
+For a task **initiated by ChatGPT in a GitHub Issue**, the official `@kilocode-bot` entry point is **not** a replacement for this skill's secure coding handoff. It is permitted only for explicit, tightly scoped **read-only** audits once the user's GitHub and Kilo accounts are linked and access/costs are verified. Read `AGENTS.md` and [the Kilo GitHub issue bridge](../../../docs/implementation/MID_KILO_GITHUB_ISSUE_BRIDGE_2026_11_07.md) before acting. For an audit: no file modifications, branch, commit, push, PR, workflow, secret, release action or task delegation; answer in the original GitHub Issue with full Base-SHA and exact file/line evidence. Any platform limitation is a blocker, **not** permission to open a PR or write code.
+
+**Full live read-only pilot #692 (07.11.2026) PASS:** the first `@kilocode-bot` mention required personal account linking; the user completed that action. After exactly one verified post-link mention, the authentic `kilo-code-bot[bot]` returned an exact Stable-SHA/`AGENTS.md` [audit report](https://github.com/MeteoMartini/MID/issues/692#issuecomment-6711417279) and [completion notice](https://github.com/MeteoMartini/MID/issues/692#issuecomment-6711420333) directly in the same Issue. No code changes or Kilo PR were observed. This confirms the **read-only** GitHub backchannel, NOT a bot-based coding handoff. Do not copy signed linking URLs/tokens or automatically retry uncertain mentions. For every actual Kilo source implementation/fix, use steps 1–8 above and only the preauthorized **ref-free Git-objects/Issue** transport.
 
 ## MID quality and continuity requirements
 
