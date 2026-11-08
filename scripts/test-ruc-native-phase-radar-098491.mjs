@@ -48,12 +48,241 @@ assert.ok(finiteSource);const finite=vm.runInNewContext(`(${finiteSource})`);
 for(const value of [null,undefined,'',' ',false,true,NaN,Infinity])assert.ok(Number.isNaN(finite(value)),'missing/non-numeric must not become a thermodynamic zero');
 for(const value of [0,'0',-2,.1])assert.equal(finite(value),Number(value));
 const phaseSource=overlay.slice(overlay.indexOf('function finite('),overlay.indexOf('function cellEchoSummary('));
-const compiled=await transform(`${phaseSource}\nglobalThis.__phaseFor=phaseFor;`,{loader:'ts',target:'es2022'});
+const radarThermalSource=overlay.slice(overlay.indexOf('function radarBackedThermalPhase('),overlay.indexOf('function distanceKm('));
+assert.ok(radarThermalSource.includes('function radarBackedThermalPhase('),'missing radar thermal classifier source');
+const compiled=await transform(`${phaseSource}\n${radarThermalSource}\nglobalThis.__phaseFor=phaseFor;globalThis.__radarBackedThermalPhase=radarBackedThermalPhase;`,{loader:'ts',target:'es2022'});
 const phaseContext=vm.createContext({});vm.runInContext(compiled.code,phaseContext);
 const missingFrame=Object.fromEntries(['temperature2m','relativeHumidity2m','wetBulbTemperature2m','weatherCode','precipitation','rain','showers','snowfall','snowfallHeight','freezingLevelHeight','elevation','rucRain','rucSnowfallWaterEquivalent','graupelWaterEquivalent'].map(name=>[name,[null]]));
 missingFrame.weatherCode=[71];missingFrame.precipitation=[.1];
 assert.equal(phaseContext.__phaseFor(missingFrame,0).phase,'uncertain','missing thermal/height values must not invent snow support');
 assert.equal(phaseContext.__phaseFor({...missingFrame,weatherCode:[66]},0).phase,'uncertain','missing temperature must not support freezing');
 assert.equal(phaseContext.__phaseFor({...missingFrame,temperature2m:[0],relativeHumidity2m:[90],snowfallHeight:[0],elevation:[100]},0).phase,'snow','actual zero Celsius remains valid cold support');
+
+// MID interval contract: raw hourly amounts are END-stamped. No stale hour
+// may be attributed to the following OPERA observation/time slot.
+const indexOfPhase=vm.runInContext('midPhaseIndex',context);
+const hourTimes=['2026-11-07T16:00','2026-11-07T17:00','2026-11-07T18:00','2026-11-07T19:00'];
+const atUtc=value=>Date.parse('2026-11-07T'+value+':00Z');
+const hourlySource={time:hourTimes};
+for(const [target,expected] of [
+ ['16:45','2026-11-07T17:00:00.000Z'],
+ ['17:00','2026-11-07T18:00:00.000Z'],
+ ['17:15','2026-11-07T18:00:00.000Z'],
+ ['17:45','2026-11-07T18:00:00.000Z'],
+ ['18:00','2026-11-07T19:00:00.000Z']
+])assert.equal(indexOfPhase(hourlySource,atUtc(target),60)?.time,expected,
+ 'Hourly source interval must CONTAIN the radar/map target: '+target);
+assert.equal(indexOfPhase({time:['2026-11-07T17:00']},atUtc('17:15'),60),null,
+ 'A completed [16:00,17:00] hour must not represent 17:15');
+assert.equal(indexOfPhase({time:['2026-11-07T19:00']},atUtc('17:15'),60),null,
+ 'No 1h/15min extrapolation across an absent source interval');
+assert.equal(indexOfPhase({time:['2026-11-07T17:15']},atUtc('17:15'),15)?.time,
+ '2026-11-07T17:15:00.000Z','RUC/D2 native 15min exact validity must stay unchanged');
+assert.equal(indexOfPhase({time:['2026-11-07T17:00']},atUtc('17:15'),15),null,
+ 'A prior 15min accumulation is not valid as a current 15min field');
+
+const nativeAdmission=vm.runInContext('midRucPhaseEnough',context),nativeAmount=vm.runInContext('midPhaseAmount',context);
+for(const [rain,snow,graupel,expected] of [
+ [.1,NaN,NaN,true],[NaN,.1,NaN,true],[NaN,NaN,.1,true],
+ [0,0,NaN,false],[NaN,0,0,false],[0,NaN,0,false],[0,0,0,true],
+ [NaN,NaN,NaN,false],[0,NaN,NaN,false],[NaN,0,NaN,false],
+ [NaN,NaN,0,false],[-.1,NaN,NaN,false],[-.1,.2,NaN,true]
+])assert.equal(nativeAdmission(rain,snow,graupel),expected,'native RUC single-field/zero/missing admission '+JSON.stringify([rain,snow,graupel]));
+assert.ok(Number.isNaN(nativeAmount(-.1)),'negative original precipitation is invalid Missing');
+assert.ok(Number.isNaN(nativeAmount(null)),'original Missing must not become dry 0');
+assert.equal(nativeAmount(0),0,'original 0 must remain 0');
+for(const [partial,expected] of [
+ [{rucRain:[.1],rucSnowfallWaterEquivalent:[null],graupelWaterEquivalent:[null]},'rain'],
+ [{rucRain:[null],rucSnowfallWaterEquivalent:[.2],graupelWaterEquivalent:[null]},'snow'],
+ [{rucRain:[null],rucSnowfallWaterEquivalent:[null],graupelWaterEquivalent:[.3]},'graupel'],
+ [{rucRain:[0],rucSnowfallWaterEquivalent:[0],graupelWaterEquivalent:[0]},'uncertain']
+]){
+ const frame={...missingFrame,weatherCode:[null],precipitation:[null],...partial};
+ assert.equal(phaseContext.__phaseFor(frame,0,'dwd-icon-d2-ruc').phase,expected,'positive native single-field phase must not be replaced: '+expected);
+}
+
+
+const d2Phase=({rain=null,snowfall=null,precipitation=null,weatherCode=null,temperature=null}={})=>phaseContext.__phaseFor({...missingFrame,weatherCode:[weatherCode],rain:[rain],snowfall:[snowfall],precipitation:[precipitation],temperature2m:[temperature]},0,'dwd-icon-d2');
+// Open-Meteo D2-15min: snowfall cm, rain mm; WW is often null. Positive native-interval
+// fields remain classifiable without borrowing hourly temperature from another run.
+assert.equal(d2Phase({snowfall:.02,rain:0,precipitation:.04}).phase,'snow','D2 snow without WW/thermal must stay snow');
+assert.equal(d2Phase({snowfall:.02,rain:null,precipitation:.04}).phase,'snow','missing rain is not a zero and does not erase observed D2 snow');
+assert.equal(d2Phase({snowfall:.02,rain:.2,precipitation:.3}).phase,'mixed','D2 mixed fields have different units and must not be numerically compared');
+assert.equal(d2Phase({snowfall:0,rain:.2,precipitation:.2}).phase,'rain','D2 rain without WW/thermal must stay rain');
+assert.equal(d2Phase({snowfall:null,rain:.2,precipitation:.2}).phase,'rain','missing snowfall is not zero, but does not erase D2 rain evidence');
+assert.equal(d2Phase({snowfall:0,rain:0,precipitation:0}).phase,'uncertain','true dry zero cannot invent a rain/snow phase');
+assert.equal(d2Phase({snowfall:null,rain:null,precipitation:null}).phase,'uncertain','missing D2 data cannot invent a phase');
+assert.equal(d2Phase({snowfall:-.02,rain:0,precipitation:0}).phase,'uncertain','negative/invalid D2 snowfall cannot become snow');
+assert.equal(d2Phase({snowfall:.02,rain:0,precipitation:.04,weatherCode:66}).phase,'uncertain','freezing code without cold support cannot be reinterpreted as plain snow');
+assert.equal(d2Phase({snowfall:.02,rain:.2,precipitation:.3,weatherCode:71}).phase,'mixed','real rain+snow fields beat a derived snow-only WW code');
+assert.equal(d2Phase({snowfall:.02,rain:0,precipitation:.04}).confidence,'mittel','D2 amount-only evidence must not claim high confidence');
+
+const coldFrame={...missingFrame,weatherCode:[null],temperature2m:[-3],wetBulbTemperature2m:[-2],relativeHumidity2m:[92],precipitation:[.15],rain:[null],snowfall:[null],snowfallHeight:[100],elevation:[150]};
+assert.equal(phaseContext.__phaseFor(coldFrame,0,'dwd-icon-eu').phase,'snow','cold, wet, echo-compatible snow must not be auto-labelled graupel without source evidence');
+assert.equal(phaseContext.__phaseFor(coldFrame,0,'dwd-icon-global').phase,'snow','ICON global snow must not be upgraded to unverified graupel');
+const strongEcho={covered:true,maxDbz:35,meanDbz:27,hits:9,maxRate:2};
+const uncertainBase={phase:'uncertain',label:'Phase unbekannt',confidence:'eingeschränkt',modelEvidence:true};
+assert.equal(phaseContext.__radarBackedThermalPhase(uncertainBase,{...coldFrame,snowfallHeight:[1200]},0,strongEcho).phase,'uncertain','35 dBZ and -2C wetbulb alone must never invent graupel');
+assert.equal(phaseContext.__radarBackedThermalPhase(uncertainBase,coldFrame,0,strongEcho).phase,'snow','valid snow height/thermal evidence can still infer conservative snow');
+const rucGraupelFrame={...missingFrame,rucRain:[0],rucSnowfallWaterEquivalent:[0],graupelWaterEquivalent:[.2]};
+assert.equal(phaseContext.__phaseFor(rucGraupelFrame,0,'dwd-icon-d2-ruc').phase,'graupel','original native RUC graupel evidence must remain supported');
+assert.equal(phaseContext.__phaseFor({...missingFrame,weatherCode:[87],precipitation:[.1]},0,'dwd-icon-eu').phase,'graupel','explicit WMO graupel code must remain supported');
+assert.equal(phaseContext.__phaseFor({...missingFrame,weatherCode:[89],precipitation:[.1]},0,'dwd-icon-eu').phase,'hail','explicit WMO hail code must remain supported');
+
+
+
+ // Per-cell fallback integration: a native [rain=0, snow=0, graupel=Missing]
+ // is NOT dry RUC evidence and MUST admit D2 at that cell; all-three true
+ // zeros and independent positive original fields keep their RUC priority.
+ // This is an isolated deterministic Worker source selection test, not a
+ // substitute for original Pages or live Cloudflare/Provider provenance.
+ const partialTargetMs=Math.floor((Date.now()-15*60000)/(15*60000))*(15*60000);
+ const partialTarget=new Date(partialTargetMs).toISOString();
+ const partialRun=new Date(partialTargetMs-30*60000).toISOString();
+ const providerRun=new Date(partialTargetMs-2*3600000).toISOString();
+ let providerLocations=0,providerRequests=0;
+ const partialContext=vm.createContext({console,URL,URLSearchParams,Headers,Request,Response,
+  AbortController,DOMException,TextDecoder,TextEncoder,DataView,Uint8Array,ArrayBuffer,
+  crypto,setTimeout,clearTimeout,
+  fetch:async input=>{
+   const u=new URL(typeof input==='string'?input:input.url);
+   if(u.hostname!=='api.open-meteo.com')throw new Error('Unexpected native partial phase network '+u.hostname);
+   if(u.pathname.endsWith('/static/meta.json'))
+    return new Response(JSON.stringify({last_run_initialisation_time:Date.parse(providerRun)/1000}),{status:200,headers:{'content-type':'application/json'}});
+   if(u.pathname.includes('/v1/forecast')){
+    assert.equal(u.searchParams.get('models'),'dwd_icon_d2_15min','Missing original RUC must fall to D2 before EU/global');
+    const lats=String(u.searchParams.get('latitude')).split(',').map(Number);
+    const lons=String(u.searchParams.get('longitude')).split(',').map(Number);
+    assert.equal(lats.length,lons.length);
+    providerLocations+=lats.length;providerRequests++;
+    return new Response(JSON.stringify(lats.map((latitude,i)=>({
+     latitude,longitude:lons[i],elevation:40,minutely_15:{
+      time:[partialTarget,partialTarget,partialTarget],
+      precipitation:[.15,.15,.15],rain:[.15,.15,.15],snowfall:[0,0,0],
+      weather_code:[null,null,null],snowfall_height:[500,500,500],
+      freezing_level_height:[900,900,900]
+     }
+    }))),{status:200,headers:{'content-type':'application/json'}});
+   }
+   throw new Error('Unexpected partial RUC phase endpoint '+u.pathname);
+  }});
+ vm.runInContext(raw,partialContext,{timeout:5000,filename:'worker/metar-proxy.js'});
+ partialContext.dwdRucStaticPhaseGrid=async(lats,lons,when)=>{
+  assert.equal(when,partialTargetMs,'RUC native target must be exact 15min slot');
+  const total=lats.length*lons.length;
+  assert.equal(total,247,'native-to-D2 integration fixture is not full 13x19');
+  const rain=Array(total).fill(0),snowfallWaterEquivalent=Array(total).fill(0);
+  const graupelWaterEquivalent=Array(total).fill(NaN);
+  rain[0]=.3;snowfallWaterEquivalent[0]=NaN; // positive independent rain
+  graupelWaterEquivalent[1]=0; // all three genuinely zero
+  rain[3]=NaN;graupelWaterEquivalent[3]=0; // zero snow + zero graupel, rain missing
+  rain[4]=NaN;snowfallWaterEquivalent[4]=.2; // positive independent snow
+  snowfallWaterEquivalent[5]=NaN;graupelWaterEquivalent[5]=0; // partial dry unknown
+  rain[6]=NaN;snowfallWaterEquivalent[6]=NaN;graupelWaterEquivalent[6]=.1;
+  return{source:'DWD ICON-D2-RUC · native 15 min',run:partialRun,time:partialTarget,
+   valid:total,total,rain,snowfallWaterEquivalent,graupelWaterEquivalent};
+ };
+ const partial=await vm.runInContext(
+  'precipitationPhaseGridData(50.82,7.05,'+JSON.stringify(partialTarget)+',{})',
+  partialContext,{timeout:5000});
+ assert.equal(partial.phaseSourceByCell.length,247);
+ for(const index of [0,1,4,6]){
+  assert.equal(partial.phaseSourceByCell[index],'dwd-icon-d2-ruc',
+   'Positive original phase/all-three real dry zeros lost RUC priority: '+index);
+  assert.equal(partial.phaseIntervalMinutesByCell[index],15);
+  assert.equal(partial.phaseRunByCell[index],partialRun);
+ }
+ for(const index of [2,3,5,7]){
+  assert.equal(partial.phaseSourceByCell[index],'dwd-icon-d2',
+   'Incomplete RUC dry fields blocked required D2 fallback: '+index);
+  assert.equal(partial.phaseIntervalMinutesByCell[index],15);
+  assert.equal(partial.frame.rain[index],.15);
+  assert.equal(partial.phaseRunByCell[index],null,'Unknown provider forecast field run cannot inherit latest model metadata');
+  assert.ok(Number.isNaN(partial.frame.rucRain[index]),'A partial dry RUC value leaked into fallback cell '+index);
+ }
+ assert.equal(partial.frame.rucRain[1],0,'A genuine original zero was lost');
+ assert.equal(partial.frame.graupelWaterEquivalent[1],0,'Genuine zero graupel was lost');
+ assert.equal(partial.sourceCounts['dwd-icon-d2-ruc'],4,'Native RUC must admit exactly four independently supported cells');
+ assert.equal(partial.sourceCounts['dwd-icon-d2'],243,'All missing-sibling dry RUC cells must fall back to D2');
+ assert.equal(partial.sourceCounts['dwd-icon-eu'],0);
+ assert.equal(partial.sourceCounts['dwd-icon-global'],0);
+ assert.equal(providerLocations,243,'Provider should request ONLY cells not supported by RUC');
+ assert.equal(providerRequests,3,'D2 provider batches must remain bounded and sequential');
+
+ // A cold FULL 13x19 (247-cell) original RUC phase grid must not execute
+ // two serial chains of remote Pages records or burst without a cap.
+ const manyLat=Array.from({length:13},(_,i)=>50+i*.1),manyLon=Array.from({length:19},(_,i)=>7+i*.1),manyTotal=13*19;
+ const manyMeta={...meta,pointCount:manyTotal,grid:{latMin:50,lonMin:7,dx:.1,dy:.1,nx:19,ny:13},
+  lookup:{dtype:'uint32-le',pages:{chunkRecords:1,chunkCount:manyTotal,recordBytes:4,prefix:`runs/${runKey}/lookup-bounded`}},
+  rapid:{phase15:{...meta.rapid.phase15,pages:{chunkRecords:1,chunkCount:manyTotal,recordBytes:phaseRaw.byteLength,prefix:`runs/${runKey}/rapid/phase15-bounded`}}}};
+ const manyObjects=new Map([['https://midwx.app/ruc/latest.json',new TextEncoder().encode(JSON.stringify(manyMeta))]]);
+ const u32=n=>new Uint8Array([n&255,(n>>>8)&255,(n>>>16)&255,(n>>>24)&255]);
+ for(let i=0;i<manyTotal;i++){
+  manyObjects.set(`https://midwx.app/ruc/runs/${runKey}/lookup-bounded/${String(i).padStart(4,'0')}.bin`,u32(i===5?0xffffffff:i));
+  manyObjects.set(`https://midwx.app/ruc/runs/${runKey}/rapid/phase15-bounded/${String(i).padStart(4,'0')}.bin`,i16([0,0,0,100+i,0,0,0,0,0,0,0,0]));
+ }
+ let inFlight=0,peakInFlight=0,nativeReadCalls=0;
+ const manyFetch=async url=>{
+  const value=manyObjects.get(String(url));
+  if(!value)return new Response('not found',{status:404});
+  if(String(url).endsWith('.bin')){
+   nativeReadCalls++;inFlight++;peakInFlight=Math.max(peakInFlight,inFlight);
+   try{await new Promise(resolve=>setTimeout(resolve,7))}finally{inFlight--}
+  }
+  return new Response(value,{status:200,headers:{'content-type':String(url).endsWith('.json')?'application/json':'application/octet-stream'}});
+ };
+ const manyContext=vm.createContext({console,URL,URLSearchParams,Headers,Request,Response,AbortController,DOMException,TextDecoder,TextEncoder,DataView,Uint8Array,ArrayBuffer,crypto,setTimeout,clearTimeout,fetch:manyFetch});
+ vm.runInContext(raw,manyContext,{timeout:5000,filename:'worker/metar-proxy.js'});
+ const multi=await vm.runInContext(`dwdRucStaticPhaseGrid(${JSON.stringify(manyLat)},${JSON.stringify(manyLon)},${now.getTime()}, {})`,manyContext,{timeout:5000});
+ assert.ok(multi&&multi.total===manyTotal&&multi.valid===manyTotal-1,'all genuine native cells except sentinel must remain valid');
+ assert.ok(peakInFlight>=2&&peakInFlight<=8,'bounded original read concurrency required, observed '+peakInFlight);
+ assert.equal(nativeReadCalls,manyTotal+(manyTotal-1),'original lookup and unique point payloads must be fetched once');
+ for(let i=0;i<manyTotal;i++){
+  if(i===5){assert.ok(Number.isNaN(multi.rain[i]),'native bitmap sentinel must remain Missing');continue}
+  assert.ok(Math.abs(multi.rain[i]-(.1+i*.001))<1e-8,'original grid order and per-cell rain must survive concurrency');
+  assert.equal(multi.snowfallWaterEquivalent[i],0,'original zero snow is a valid zero');
+ }
+ const beforeHorizonReads=nativeReadCalls;
+ const beyond=await vm.runInContext(`dwdRucStaticPhaseGrid(${JSON.stringify(manyLat)},${JSON.stringify(manyLon)},${now.getTime()+2*60*60*1000}, {})`,manyContext,{timeout:5000});
+ assert.equal(beyond,null,'no original phase beyond published 15min horizon');
+ assert.equal(nativeReadCalls,beforeHorizonReads,'outside phase horizon must skip all native data IO');
+
+
+ // QA-only: the SAME request budget must account for cold native Pages
+ // metadata, lookup and original phase GETs. No global or cached accounting.
+ let countedPhaseGets=0,manualRedirectGets=0;
+ const boundedContext=vm.createContext({console,URL,URLSearchParams,Headers,Request,Response,
+  AbortController,DOMException,TextDecoder,TextEncoder,DataView,Uint8Array,ArrayBuffer,
+  crypto,setTimeout,clearTimeout,
+  fetch:async (url,init)=>{
+   countedPhaseGets++;
+   if(init?.redirect==='manual')manualRedirectGets++;
+   return manyFetch(url);
+  }});
+ vm.runInContext(raw,boundedContext,{timeout:5000,filename:'worker/metar-proxy.js'});
+ boundedContext.__budget=vm.runInContext('midPhaseRequestBudget(Date.now()+24000)',boundedContext);
+ const limitedGrid=await vm.runInContext(
+  'dwdRucStaticPhaseGrid('+JSON.stringify(manyLat)+','+JSON.stringify(manyLon)+','+now.getTime()+',{},__budget)',
+  boundedContext,{timeout:5000});
+ assert.ok(limitedGrid&&limitedGrid.total===manyTotal&&limitedGrid.valid>=10&&limitedGrid.valid<manyTotal-1,
+  'Bounded cold cache must preserve supported native cells and leave unknown native cells Missing');
+ assert.equal(boundedContext.__budget.used,countedPhaseGets,'Every Pages GET must debit exactly one source slot');
+ assert.ok(boundedContext.__budget.nativeUsed<=30&&boundedContext.__budget.lookupUsed<=14,
+  'Native RUC quota cannot consume all ICON fallback headroom');
+ assert.equal(manualRedirectGets,countedPhaseGets,
+  'A phase-only origin redirect must not silently add an untracked request');
+ assert.ok(boundedContext.__budget.denied>0,'Cold-cache quota exhaustion must remain observable');
+ for(let i=30;i<manyTotal;i++)
+  assert.ok(Number.isNaN(limitedGrid.rain[i]),
+   'Unverified original cell must remain Missing after bounded cold-cache source reads');
+ const isolatedBudget=vm.runInContext('midPhaseRequestBudget(Date.now()+24000)',boundedContext);
+ let permitted=0;
+ for(let i=0;i<80;i++)if(isolatedBudget.claim('provider'))permitted++;
+ assert.equal(permitted,46,'All original+model source calls must share the Free-compatible cap');
+ assert.equal(isolatedBudget.denied,34,'Extra provider calls must be denied before I/O');
+ assert.equal(boundedContext.__budget.providerUsed,0,'Separate invocations must not share mutable budget');
+
 for(const token of ['rucGraupel>=.003','rucSnow>=.003&&rucRain>=.003','Schnee · ICON-D2-RUC','Regen · ICON-D2-RUC'])assert.ok(overlay.includes(token),`radar phase priority missing: ${token}`);
+for(const token of ["Original-RUC-Lauf","Open-Meteo-Feldlauf nicht nachgewiesen (Modellmetadaten separat)"])assert.ok(overlay.includes(token),"Unverified provider run must not masquerade as a native DWD original: "+token);
+assert.ok(!overlay.includes('Open-Meteo-Metadatenlauf (Feldlauf nicht zellverifiziert)'), 'Unverified per-cell forecast run must not be presented as metadata run');
 console.log('Native ICON-D2-RUC 15-min rain/snow/graupel phase decoder and radar-phase priority passed.');

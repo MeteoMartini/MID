@@ -19,7 +19,7 @@ assert(!/Hagelsignal im Modell/.test(radar),'Ein unbestätigtes Modell-Hagelsign
 assert(/loadOperaRasterData/.test(overlay)&&/loadWeatherPhaseGrid/.test(overlay),'Phasenlayer muss Beobachtungsradar und dynamisches Regionalmodell gemeinsam verwenden.');
 assert(/Math\.abs\(targetMs-operaMs\)>12\*60000/.test(overlay),'OPERA-Zeitabstand muss begrenzt sein.');
 assert(/maxTimeDelta=grid\.stale\?45\*60000:20\*60000/.test(overlay),'Modell-Zeitabstand muss für Frisch- und Ersatzfelder begrenzt sein.');
-assert(/Number\(grid\.modelAgeHours\)>16/.test(overlay),'Modell-Laufalter muss zusätzlich im Frontend begrenzt sein.');
+assert(overlay.includes("typeof grid.modelAgeHours==='number'&&Number.isFinite(grid.modelAgeHours)&&grid.modelAgeHours>16"),'Nur ein tatsächlich endliches verifiziertes Modelllaufalter darf einen Phasenstatus als frisch bewerten; Missing ist keine 0.');
 assert(/phase\.confidence==='eingeschränkt'\)continue/.test(overlay),'Unsichere Phasen müssen ausgeblendet bleiben.');
 assert(/HtmlMarker/.test(overlay)&&!/GeoJsonLayers|fill-opacity/.test(overlay),'Niederschlagsarten müssen als kleine Symbole statt als flächige Rasterpolygone erscheinen.');
 assert(/asSymbolPhase\(phase\.phase\)/.test(overlay),'Nur explizit freigegebene nichtflüssige bzw. gemischte Phasen dürfen Symbole erhalten.');
@@ -29,8 +29,8 @@ assert(/if\(!typed\|\|phase\.confidence==='eingeschränkt'\)continue/.test(overl
 assert(/loadWeatherPhaseGrid/.test(weatherMaps)&&/precipitation-phase-grid/.test(weatherMaps),'Eigener Phasenraster-Endpunkt fehlt.');
 assert(/const rows=13,cols=19/.test(worker),'Phasenraster muss das rate-limit-sichere lokale 13×19-Raster verwenden.');
 for(const field of ['wet_bulb_temperature_2m','snowfall_height','freezing_level_height','weather_code','precipitation','rain','snowfall'])assert(worker.includes(field),`Phasenrasterfeld fehlt: ${field}`);
-assert(/fields='[^']+'/.test(worker)&&/frame\.showers\.push\(NaN\)/.test(worker),'Nicht angeforderte Schauer müssen im Phasenraster Missing bleiben.');
-assert(/valid<coordinates\.length\*\.9/.test(worker),'Unvollständige Modellfelder müssen abgelehnt werden.');
+assert(/showers:blank\(\)/.test(worker)&&/const count=coordinates\.length,blank=\(\)=>Array\(count\)\.fill\(NaN\)/.test(worker),'Nicht angeforderte Schauer und unbekannte Zellfelder müssen Missing bleiben.');
+assert(/const usable=phaseSourceByCell\.filter\(Boolean\)\.length/.test(worker)&&/if\(!usable\)/.test(worker)&&/phaseSourceByCell\[i\]=/.test(worker),'Unvollständige Modellfelder müssen pro Zelle NoData bleiben; gültige Zellen dürfen nicht durch einen globalen Quotenfilter verschwinden.');
 assert(/maxRunAgeMs=model\.rapidUpdate\?Math\.max\(5\*3600000/.test(worker),'Worker muss Rapid-Update-Läufe konservativ nach Laufalter begrenzen.');
 
 // Grammar protection for the generated 7-day prose.

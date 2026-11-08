@@ -1,0 +1,70 @@
+name: MID RUC Healthgate Copilot intake QA (read-only)
+on:
+  push:
+    branches:
+      - chatgpt/v0.9.85.446-ruc-healthgate-copilot-intake-qa
+    paths:
+      - '.github/workflows/mid-ruc-healthgate-copilot-intake-qa.yml'
+      - 'ci/github/workflows/mid-ruc-healthgate-copilot-intake-qa.yml'
+      - 'tools/ruc/check_ruc_health.py'
+      - 'tools/ruc/test_ruc_health_check.py'
+permissions:
+  contents: read
+concurrency:
+  group: mid-ruc-healthgate-intake-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  prove:
+    if: "${{ github.event.head_commit.message == 'qa(ruc): replay P4 04Z stale-Pages incident on stable .445' }}"
+    name: Copilot-healthgate exact-source negative regression (NO PUBLISH)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    permissions:
+      contents: read
+    steps:
+      - name: SHA-bound exact branch checkout without credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Reject Stable/Main drift, untrusted source changes and workflow divergence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          current_stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          current_main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          test "$current_stable" = "$current_main"
+          test "$current_stable" = "b6526e7c5c24035bd1a75b87b77e7bb8e821c334"
+          git merge-base --is-ancestor "$current_stable" HEAD
+          cmp ci/github/workflows/mid-ruc-healthgate-copilot-intake-qa.yml .github/workflows/mid-ruc-healthgate-copilot-intake-qa.yml
+          test "$(git hash-object tools/ruc/check_ruc_health.py)" = "99dbf889dc4a1c7a451400b6fd80c8b3e7319d1e"
+          test "$(git hash-object tools/ruc/test_ruc_health_check.py)" = "6db165695f9a5201d8a61c00ea940b33df572b88"
+          test "$(git hash-object docs/implementation/MID_RUC_HEALTHGATE_HARDENING_0.9.85.445.md)" = "8c36660b610434b7939279d74003ad0fc16224ed"
+      - name: Python 3.12 for exact Healthgate negative tests
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Node.js 22 for unchanged RUC health convergence contract
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+      - name: Install existing pinned-range RUC QA dependencies
+        run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+      - name: Prove exact Copilot diagnostic and original P4/rollback regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile tools/ruc/check_ruc_health.py tools/ruc/test_ruc_health_check.py
+          python tools/ruc/test_ruc_health_check.py
+          PYTHONPATH=tools/ruc python -m unittest tools.ruc.test_workflow_coordination -v
+          PYTHONPATH=tools/ruc python tools/ruc/test_ruc_p4_pages_serialization_contract.py -v
+          PYTHONPATH=tools/ruc python tools/ruc/test_ruc_manual_pages_guard.py -v
+          PYTHONPATH=tools/ruc python tools/ruc/test_restore_ruc_pages_snapshot.py -v
+          PYTHONPATH=tools/ruc python tools/ruc/test_prepared_snapshot.py -v
+          PYTHONPATH=tools/ruc python tools/ruc/test_legacy_core_rollback.py -v
+          node scripts/test-ruc-health-convergence-09744.mjs
+          echo 'QA-only: No DWD original-product proof, Worker/Pages deployment, distributed fencing, 168h P95, full Source-Gate or Stable approval.' >> "$GITHUB_STEP_SUMMARY"

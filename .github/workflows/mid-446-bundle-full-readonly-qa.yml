@@ -1,0 +1,304 @@
+# MID #683: additional read-only independent admission for Draft #685 ONLY.
+# NEVER a substitute for the protected Source-PR, Installer or stable gates.
+# Runs pinned HEAD, not a moving checkout or an untrusted Copilot branch.
+name: MID .446 bundle full Draft regression preflight (read-only)
+run-name: "MID .446 bundled 1083+ core/heavy/responsive (NO RELEASE)"
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+permissions:
+  contents: read
+concurrency:
+  group: mid-446-bundle-readonly-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  precheck:
+    if: "github.event.pull_request.number == 701 && github.event.pull_request.draft == true && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'chatgpt/v0.9.85.446-ruc-maps-bundle-review'"
+    name: SHA-bound RUC/D2/Health/source/version preflight (NO RELEASE)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 24
+    steps:
+      - name: Exact integration candidate without write credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Stable/Main/PR/5 provenance hashes and workflow mirrors
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PINNED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$PINNED_HEAD"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/pulls/701" --jq .head.sha)" = "$PINNED_HEAD"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)" = 'b6526e7c5c24035bd1a75b87b77e7bb8e821c334'
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" = 'b6526e7c5c24035bd1a75b87b77e7bb8e821c334'
+          test "$(node -p "require('./package.json').version")" = '0.9.85.446'
+          cmp ci/github/workflows/mid-446-bundle-full-readonly-qa.yml .github/workflows/mid-446-bundle-full-readonly-qa.yml
+          test "$(git hash-object tools/ruc/check_ruc_schedule_guard.py)" = '468aab684d176fb0807750e00f76cb05a2ab3cc7'
+          test "$(git hash-object tools/ruc/ruc_p1_original_native_values_probe.py)" = '42fe76f61b085de842493eef37bbf7a340810840'
+          test "$(git hash-object tools/ruc/d2_native_eight_bundle.py)" = 'e2af48f715c180684a4dba4d00409fd568bebd01'
+          test "$(git hash-object tools/ruc/check_ruc_health.py)" = '99dbf889dc4a1c7a451400b6fd80c8b3e7319d1e'
+          test "$(git hash-object src/WeatherMapsData.ts)" = 'd87278e141930e8dd8d884585faecfba5eded50f'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22.16.0'
+          package-manager-cache: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Existing QA requirements, no DWD originals or provider traffic
+        shell: bash
+        timeout-minutes: 7
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+      - name: All selected RUC/D2/Healthgate negative and interop regressions
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          python tools/ruc/test_ruc_schedule_guard.py
+          python tools/ruc/test_ruc_eps_probe_transitions.py
+          python tools/ruc/test_ruc_health_check.py
+          python tools/ruc/test_ruc_p1_original_native_values_probe.py
+          ( cd tools/ruc && python -m unittest test_d2_native_eight_bundle )
+          node scripts/test-ruc-schedule-catchup-09745.mjs
+          node scripts/test-ruc-scheduler-watchdog-09751.mjs
+          node scripts/test-ruc-health-convergence-09744.mjs
+          node --check scripts/qa-phase-provider-native-fallback-0985447.mjs
+      - name: New version mirrors and all canonical workflow sources must be clean
+        shell: bash
+        timeout-minutes: 7
+        run: |
+          set -euo pipefail
+          npm run sync-version
+          npm run sync:github-workflows
+          node scripts/test-aggregate-version-contract-09613.mjs
+          git diff --exit-code
+          test -z "$(git status --porcelain)"
+          echo 'QA-only: No production writes, no authentic P4 fencing/168h P95/physical iOS admission' >> "$GITHUB_STEP_SUMMARY"
+  core:
+    needs: [precheck]
+    if: "github.event.pull_request.number == 701 && github.event.pull_request.draft == true && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'chatgpt/v0.9.85.446-ruc-maps-bundle-review'"
+    name: Core draft prerelease ${{ matrix.shard }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 32
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [core-1/4, core-2/4, core-3/4, core-4/4]
+    steps:
+      - name: Exakten PR-HEAD ohne Schreibschlüssel laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Verbindliche Identität, Stable-SHA, Verträge und Workflowspiegel lesend prüfen
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PINNED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$PINNED_HEAD"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/pulls/701" --jq .head.sha)" = "$PINNED_HEAD"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)" = 'b6526e7c5c24035bd1a75b87b77e7bb8e821c334'
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" = 'b6526e7c5c24035bd1a75b87b77e7bb8e821c334'
+          test "$(node -p "require('./package.json').version")" = '0.9.85.446'
+          cmp ci/github/workflows/mid-446-bundle-full-readonly-qa.yml .github/workflows/mid-446-bundle-full-readonly-qa.yml
+          test -f AGENTS.md && test -f MID_BASELINE.json && test -f MID_SOURCE_OF_TRUTH.md
+      - name: Pinned Node.js 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          package-manager-cache: false
+      - name: Reproduzierbare Abhängigkeiten
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: Python 3.12 und native Decoder-Prüfbibliotheken
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Gebundene RUC-Decoder-Abhängigkeiten
+        timeout-minutes: 5
+        run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+      - name: SHA-gebundene lokale Produktionsbuild-Regressionsbasis (KEIN Release)
+        timeout-minutes: 7
+        env:
+
+          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
+          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+        run: npm run build
+      - name: Vollständigen disjunkten Core-Shard ausführen
+        timeout-minutes: 16
+        env:
+          MID_REGRESSION_SHARD: ${{ matrix.shard }}
+          MID_REGRESSION_JOBS: '2'
+
+          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
+          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+        run: npm run test:regressions
+
+  responsive:
+    needs: [precheck]
+    if: "github.event.pull_request.number == 701 && github.event.pull_request.draft == true && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'chatgpt/v0.9.85.446-ruc-maps-bundle-review'"
+    name: Bundled responsive / web / widget / maps (NO RELEASE)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 28
+    steps:
+      - name: Exakten PR-HEAD ohne Schreibschlüssel laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Verbindliche Identität, Stable-SHA, Verträge und Workflowspiegel lesend prüfen
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PINNED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$PINNED_HEAD"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/pulls/701" --jq .head.sha)" = "$PINNED_HEAD"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)" = 'b6526e7c5c24035bd1a75b87b77e7bb8e821c334'
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" = 'b6526e7c5c24035bd1a75b87b77e7bb8e821c334'
+          test "$(node -p "require('./package.json').version")" = '0.9.85.446'
+          cmp ci/github/workflows/mid-446-bundle-full-readonly-qa.yml .github/workflows/mid-446-bundle-full-readonly-qa.yml
+          test -f AGENTS.md && test -f MID_BASELINE.json && test -f MID_SOURCE_OF_TRUTH.md
+      - name: Pinned Node.js 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          package-manager-cache: false
+      - name: Reproduzierbare Abhängigkeiten
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: Responsivität, Touch, Widget, Karten und iOS-Shell-Quelltests
+        shell: bash
+        timeout-minutes: 13
+        run: |
+          set -euo pipefail
+          npm run test:responsiveness
+          npm run test:appwide-touch-responsiveness
+          npm run test:responsive-layout-tooltip
+          npm run test:map-chart-responsive-continuation
+          npm run test:ios-safe-area-header
+          npm run test:ios-floating-bottom-bar
+          npm run test:widget-export-browser-runtime
+          npm run test:maplibre-v6-worker-runtime
+          npm run test:weather-maps-module
+      - name: SHA-gebundene lokale Produktionsbuild-Regressionsbasis (KEIN Release)
+        timeout-minutes: 7
+        env:
+
+          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
+          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+        run: npm run build
+      - name: Keine iOS- oder Cloudflare-Abnahme beanspruchen
+        run: |
+          echo 'Read-only responsive/build preflight only; no physical iOS, VoiceOver, Cloudflare-P95, or release signoff.' >> "$GITHUB_STEP_SUMMARY"
+
+  heavy:
+    needs: [core, responsive]
+    if: "github.event.pull_request.number == 701 && github.event.pull_request.draft == true && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'chatgpt/v0.9.85.446-ruc-maps-bundle-review'"
+    name: Heavy draft prerelease ${{ matrix.shard }} ${{ matrix.map_group }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 29
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: heavy-browser-state
+            map_group: ''
+          - shard: heavy-native-map
+            map_group: ''
+          - shard: heavy-mountain-visual
+            map_group: ''
+          - shard: heavy-unified-map
+            map_group: '1/3'
+          - shard: heavy-unified-map
+            map_group: '2/3'
+          - shard: heavy-unified-map
+            map_group: '3/3'
+    steps:
+      - name: Exakten PR-HEAD ohne Schreibschlüssel laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Verbindliche Identität, Stable-SHA, Verträge und Workflowspiegel lesend prüfen
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PINNED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$PINNED_HEAD"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/pulls/701" --jq .head.sha)" = "$PINNED_HEAD"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)" = 'b6526e7c5c24035bd1a75b87b77e7bb8e821c334'
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" = 'b6526e7c5c24035bd1a75b87b77e7bb8e821c334'
+          test "$(node -p "require('./package.json').version")" = '0.9.85.446'
+          cmp ci/github/workflows/mid-446-bundle-full-readonly-qa.yml .github/workflows/mid-446-bundle-full-readonly-qa.yml
+          test -f AGENTS.md && test -f MID_BASELINE.json && test -f MID_SOURCE_OF_TRUTH.md
+      - name: Pinned Node.js 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          package-manager-cache: false
+      - name: Reproduzierbare Abhängigkeiten
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: SHA-gebundene lokale Produktionsbuild-Regressionsbasis (KEIN Release)
+        timeout-minutes: 7
+        env:
+
+          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
+          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+        run: npm run build
+      - name: Bereits etablierte Pflicht-Browserlaufzeiten
+        if: matrix.shard == 'heavy-browser-state'
+        timeout-minutes: 10
+        run: node scripts/prepare-browser-runtimes.mjs
+      - name: Vollständigen isolierten Heavy-Shard ausführen
+        timeout-minutes: 15
+        env:
+          MID_REGRESSION_SHARD: ${{ matrix.shard }}
+          MID_MAP_QA_SHARD: ${{ matrix.map_group }}
+          MID_REGRESSION_VERBOSE: '1'
+          MID_REGRESSION_JOBS: '1'
+
+          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
+          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+        run: npm run test:regressions

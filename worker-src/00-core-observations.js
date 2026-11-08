@@ -52,7 +52,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.85.445';
+const WORKER_VERSION='0.9.85.446';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
@@ -152,25 +152,99 @@ async function dwdRucR2Health(env){
  return{configured:true,ready,fresh,schemaValid,backend:'r2',run:String(meta.run||''),generatedAt:String(meta.generatedAt||''),ageHours:ageHours==null?null:Number(ageHours.toFixed(2)),pointCount,timeCount,epsMemberCount:memberCount,nativeEpsMembers:true,objectsPresent,reason:ready?undefined:!schemaValid?'Schema ungültig':!fresh?'RUC-Lauf nicht frisch':!objectsReady?'Laufobjekte unvollständig':'Metadaten unvollständig'}
 }
 function dwdRucStaticObjectUrl(base,key){const clean=String(key||'');if(!clean||clean.startsWith('/')||clean.includes('..')||!clean.startsWith('runs/'))return null;try{const url=new URL(clean,base);if(url.origin!==base.origin||!url.pathname.startsWith(base.pathname))return null;return url}catch{return null}}
-async function dwdRucStaticJson(base,key,healthProbe=false){try{const url=key==='latest.json'?new URL('latest.json',base):dwdRucStaticObjectUrl(base,key);if(!url)return null;if(healthProbe&&key==='latest.json')url.searchParams.set('mid_ruc_health_probe',String(Date.now()));const response=await fetchWithDeadline(url.toString(),{headers:{Accept:'application/json','Cache-Control':'no-cache'},cf:{cacheEverything:key!=='latest.json',cacheTtl:key==='latest.json'?0:31536000}},8000);if(!response.ok)return null;return await response.json()}catch{return null}}
-async function dwdRucStaticObject(base,key){const url=dwdRucStaticObjectUrl(base,key);if(!url)return null;const cacheKey=url.toString(),cached=dwdRucStaticObjectCache.get(cacheKey);if(cached&&Date.now()-cached.at<15*60*1000)return cached.bytes;try{const response=await fetchWithDeadline(cacheKey,{headers:{Accept:'application/octet-stream','Accept-Encoding':'identity'},cf:{cacheEverything:true,cacheTtl:31536000}},12000);if(!response.ok)return null;const bytes=new Uint8Array(await response.arrayBuffer());dwdRucStaticObjectCache.set(cacheKey,{at:Date.now(),bytes});if(dwdRucStaticObjectCache.size>24)dwdRucStaticObjectCache.delete(dwdRucStaticObjectCache.keys().next().value);return bytes}catch{return null}}
+
+const MID_PHASE_EXTERNAL_SUBREQUEST_CAP=46;
+const MID_PHASE_RUC_SUBREQUEST_CAP=30;
+const MID_PHASE_LOOKUP_SUBREQUEST_CAP=14;
+// Counters are explicitly scoped to one phase-grid invocation, including
+// native Pages/codec, model metadata and forecast calls. No global quota state.
+function midPhaseRequestBudget(deadlineMs){
+ const nativeDeadlineMs=Math.min(deadlineMs-9000,Date.now()+11000);
+ return{
+  limit:MID_PHASE_EXTERNAL_SUBREQUEST_CAP,nativeLimit:MID_PHASE_RUC_SUBREQUEST_CAP,
+  lookupLimit:MID_PHASE_LOOKUP_SUBREQUEST_CAP,used:0,nativeUsed:0,lookupUsed:0,
+  providerUsed:0,denied:0,
+  remaining(ms,kind){
+   const stop=kind==='native'||kind==='lookup'?nativeDeadlineMs:deadlineMs;
+   return Math.max(0,Math.min(ms,stop-Date.now()-650));
+  },
+  claim(kind){
+   if(!['native','lookup','provider'].includes(kind)||
+      this.remaining(1000,kind)<250||this.used>=this.limit||
+      (kind!=='provider'&&this.nativeUsed>=this.nativeLimit)||
+      (kind==='lookup'&&this.lookupUsed>=this.lookupLimit)){
+    this.denied++;return false;
+   }
+   this.used++;
+   if(kind==='provider')this.providerUsed++;
+   else{this.nativeUsed++;if(kind==='lookup')this.lookupUsed++}
+   return true;
+  }
+ };
+}
+// Phase-only GET with one deadline across headers and decoded body.
+// Other MID routes keep their existing transport semantics.
+async function midPhaseNativeReadResponse(url,init,timeoutMs,budget,kind,read){
+ if(!budget){
+  const response=await fetchWithDeadline(url,init,timeoutMs);
+  return response.ok?read(response):null;
+ }
+ const ms=budget.remaining(timeoutMs,kind);
+ if(ms<250||!budget.claim(kind))return null;
+ const controller=new AbortController();
+ const timer=setTimeout(()=>controller.abort(new DOMException('Native phase I/O deadline','TimeoutError')),ms);
+ try{
+  const response=await fetch(url,{...init,redirect:'manual',signal:controller.signal});
+  if(!response.ok)return null;
+  return await read(response);
+ }finally{clearTimeout(timer)}
+}
+
+async function dwdRucStaticJson(base,key,healthProbe=false,budget=null){
+ try{
+  const url=key==='latest.json'?new URL('latest.json',base):dwdRucStaticObjectUrl(base,key);
+  if(!url)return null;
+  if(healthProbe&&key==='latest.json')url.searchParams.set('mid_ruc_health_probe',String(Date.now()));
+  return await midPhaseNativeReadResponse(url.toString(),
+   {headers:{Accept:'application/json','Cache-Control':'no-cache'},
+    cf:{cacheEverything:key!=='latest.json',cacheTtl:key==='latest.json'?0:31536000}},
+   8000,budget,'native',response=>response.json());
+ }catch{return null}
+}
+async function dwdRucStaticObject(base,key,budget=null,kind='native'){
+ const url=dwdRucStaticObjectUrl(base,key);if(!url)return null;
+ const cacheKey=url.toString(),cached=dwdRucStaticObjectCache.get(cacheKey);
+ if(cached&&Date.now()-cached.at<15*60*1000)return cached.bytes;
+ try{
+  const bytes=await midPhaseNativeReadResponse(cacheKey,
+   {headers:{Accept:'application/octet-stream','Accept-Encoding':'identity'},
+    cf:{cacheEverything:true,cacheTtl:31536000}},12000,budget,kind,
+   async response=>new Uint8Array(await response.arrayBuffer()));
+  if(!bytes)return null;
+  dwdRucStaticObjectCache.set(cacheKey,{at:Date.now(),bytes});
+  if(dwdRucStaticObjectCache.size>24)dwdRucStaticObjectCache.delete(dwdRucStaticObjectCache.keys().next().value);
+  return bytes;
+ }catch{return null}
+}
 function dwdRucStaticPageInfo(spec){const pages=spec?.pages,chunkRecords=Number(pages?.chunkRecords),recordBytes=Number(pages?.recordBytes||spec?.recordBytes),chunkCount=Number(pages?.chunkCount),prefix=String(pages?.prefix||''),chunkKeys=pages?.chunkKeys;if(chunkKeys!==undefined&&(!Array.isArray(chunkKeys)||chunkKeys.length!==chunkCount))return null;return chunkRecords>0&&recordBytes>0&&chunkCount>0&&prefix.startsWith('runs/')?{chunkRecords,recordBytes,chunkCount,prefix,chunkKeys,records:pages.records,losslessV1:pages.losslessV1}:null}
-async function dwdRucStaticCodecObject(base,key,limit,parentSignal){
+async function dwdRucStaticCodecObject(base,key,limit,parentSignal,budget=null,kind='native'){
  const url=dwdRucStaticObjectUrl(base,key);if(!url)throw Error('RUC codec key');
- const controller=new AbortController(),timer=setTimeout(()=>controller.abort(new DOMException('RUC codec deadline','TimeoutError')),3000);
+ const ms=budget?budget.remaining(3000,kind):3000;
+ if(budget&&(ms<250||!budget.claim(kind)))throw Error('RUC phase codec budget');
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(new DOMException('RUC codec deadline','TimeoutError')),ms);
  const onAbort=()=>controller.abort(parentSignal?.reason||new DOMException('RUC codec parent aborted','AbortError'));
  if(parentSignal?.aborted)onAbort();else parentSignal?.addEventListener('abort',onAbort,{once:true});
- try{const response=await fetch(url.toString(),{signal:controller.signal,headers:{Accept:'application/octet-stream','Accept-Encoding':'identity'},cf:{cacheEverything:true,cacheTtl:31536000}});return await readRucCanaryResponse(response,limit)}
+ try{const response=await fetch(url.toString(),{signal:controller.signal,redirect:budget?'manual':undefined,headers:{Accept:'application/octet-stream','Accept-Encoding':'identity'},cf:{cacheEverything:true,cacheTtl:31536000}});return await readRucCanaryResponse(response,limit)}
  finally{clearTimeout(timer);parentSignal?.removeEventListener('abort',onAbort)}
 }
-async function dwdRucStaticRecord(base,spec,recordIndex,allowCodec=false){
+async function dwdRucStaticRecord(base,spec,recordIndex,allowCodec=false,budget=null,kind='native'){
  if(spec?.compressedPages){
   const loaded=await preparedRucCompressedRecordReader.readRecord(base.toString(),spec,recordIndex,
-    (key,limit,signal)=>dwdRucStaticCodecObject(base,key,limit,signal),{enabled:true});
+    (key,limit,signal)=>dwdRucStaticCodecObject(base,key,limit,signal,budget,kind),{enabled:true});
   if(!loaded.bytes)return null;
   const result=loaded.bytes;result.midRucTransport=loaded.transport;result.midRucCodecReason=loaded.reason;
   return result;
- }const page=dwdRucStaticPageInfo(spec);if(!page||!Number.isInteger(recordIndex)||recordIndex<0)return null;const chunkIndex=Math.floor(recordIndex/page.chunkRecords);if(chunkIndex>=page.chunkCount)return null;const key=page.chunkKeys===undefined?`${page.prefix}/${String(chunkIndex).padStart(4,'0')}.bin`:page.chunkKeys[chunkIndex];if(typeof key!=='string'||!key.startsWith(page.prefix.split('/').slice(0,2).join('/')+'/')||key.includes('..')||!key.endsWith('.bin')||/[?#%\\]/.test(key))return null;const loaded=await loadRucDualReadChunk(base,page,chunkIndex,key,()=>dwdRucStaticObject(base,key),(wireKey,limit)=>dwdRucStaticCodecObject(base,wireKey,limit),allowCodec),bytes=loaded.bytes;if(!bytes)return null;const local=recordIndex%page.chunkRecords,offset=local*page.recordBytes;if(offset+page.recordBytes>bytes.length)return null;const result=bytes.slice(offset,offset+page.recordBytes);if(page.losslessV1){result.midRucTransport=loaded.transport;result.midRucCodecReason=loaded.reason}return result}
+ }const page=dwdRucStaticPageInfo(spec);if(!page||!Number.isInteger(recordIndex)||recordIndex<0)return null;const chunkIndex=Math.floor(recordIndex/page.chunkRecords);if(chunkIndex>=page.chunkCount)return null;const key=page.chunkKeys===undefined?`${page.prefix}/${String(chunkIndex).padStart(4,'0')}.bin`:page.chunkKeys[chunkIndex];if(typeof key!=='string'||!key.startsWith(page.prefix.split('/').slice(0,2).join('/')+'/')||key.includes('..')||!key.endsWith('.bin')||/[?#%\\]/.test(key))return null;const loaded=await loadRucDualReadChunk(base,page,chunkIndex,key,()=>dwdRucStaticObject(base,key,budget,kind),(wireKey,limit)=>dwdRucStaticCodecObject(base,wireKey,limit,undefined,budget,kind),allowCodec),bytes=loaded.bytes;if(!bytes)return null;const local=recordIndex%page.chunkRecords,offset=local*page.recordBytes;if(offset+page.recordBytes>bytes.length)return null;const result=bytes.slice(offset,offset+page.recordBytes);if(page.losslessV1){result.midRucTransport=loaded.transport;result.midRucCodecReason=loaded.reason}return result}
 function dwdRucSupportedStaticProfile(meta){
  if(meta?.schema!=='mid.dwd.ruc.grid.v2')return false;
  if(meta.storageProfile==='pages-free-v1')return true;
@@ -178,7 +252,7 @@ function dwdRucSupportedStaticProfile(meta){
    meta.pages?.profile==='pages-lossless-v1'&&meta.pages?.losslessTransport?.profile==='mid.ruc.compressed-pages.v1'&&
    meta.pages.losslessTransport.mode==='replacement'&&meta.pages.losslessTransport.rawRetained===false;
 }
-async function dwdRucStaticLatest(env){const base=dwdRucStaticBaseUrl(env);if(!base)return null;if(dwdRucStaticLatestCache&&dwdRucStaticLatestCache.base===base.toString()&&Date.now()-dwdRucStaticLatestCache.at<45*1000&&dwdRucMetaFresh(dwdRucStaticLatestCache.meta))return{base,meta:dwdRucStaticLatestCache.meta};const meta=await dwdRucStaticJson(base,'latest.json');if(!dwdRucSupportedStaticProfile(meta)||!dwdRucMetaFresh(meta))return null;dwdRucStaticLatestCache={at:Date.now(),base:base.toString(),meta};return{base,meta}}
+async function dwdRucStaticLatest(env,budget=null){const base=dwdRucStaticBaseUrl(env);if(!base)return null;if(dwdRucStaticLatestCache&&dwdRucStaticLatestCache.base===base.toString()&&Date.now()-dwdRucStaticLatestCache.at<45*1000&&dwdRucMetaFresh(dwdRucStaticLatestCache.meta))return{base,meta:dwdRucStaticLatestCache.meta};const meta=await dwdRucStaticJson(base,'latest.json',false,budget);if(!dwdRucSupportedStaticProfile(meta)||!dwdRucMetaFresh(meta))return null;dwdRucStaticLatestCache={at:Date.now(),base:base.toString(),meta};return{base,meta}}
 async function dwdRucStaticHealth(env){const base=dwdRucStaticBaseUrl(env);if(!base)return{configured:false,ready:false,fresh:false,schemaValid:false,backend:'pages',reason:'statischer RUC-Datenweg deaktiviert'};const meta=await dwdRucStaticJson(base,'latest.json',true);if(!meta)return{configured:true,ready:false,fresh:false,schemaValid:false,backend:'pages',reason:'GitHub-Pages latest.json fehlt oder ist ungültig'};const schemaValid=dwdRucSupportedStaticProfile(meta),fresh=schemaValid&&dwdRucMetaFresh(meta),stamp=dwdRucMetaTimestamp(meta),ageHours=Number.isFinite(stamp)?Math.max(0,(Date.now()-stamp)/3600000):null,pointCount=Number(meta.pointCount)||0,timeCount=Array.isArray(meta.times)?meta.times.length:0,memberCount=Number(meta?.eps?.memberCount)||0,objectsPresent={lookup:false,deterministic:false,epsSummary:false,epsMembers:false,rapidPrecip5:false,rapidConvection15:false,rapidExtreme:false,rapidReflectivity15:false,rapidPhase15:false,rapidSevere15:false,rapidSolar15:false,rapidState15:false,specialistHourly:false};if(schemaValid){const probes=[['lookup',meta.lookup],['deterministic',meta.deterministic],['epsSummary',meta.epsSummary],['rapidPrecip5',meta?.rapid?.precip5],['rapidConvection15',meta?.rapid?.convection15],['rapidReflectivity15',meta?.rapid?.reflectivity15],['rapidPhase15',meta?.rapid?.phase15],['rapidSevere15',meta?.rapid?.severe15],['rapidSolar15',meta?.rapid?.solar15],['rapidState15',meta?.rapid?.state15],['specialistHourly',meta?.rapid?.specialistHourly]].filter(([,spec])=>spec);await Promise.all(probes.map(async([name,spec])=>{objectsPresent[name]=Boolean(await dwdRucStaticRecord(base,spec,0))}));objectsPresent.rapidExtreme=Boolean(meta?.rapidExtreme?.key&&await dwdRucStaticJson(base,meta.rapidExtreme.key))}const objectsReady=objectsPresent.lookup&&objectsPresent.deterministic&&objectsPresent.epsSummary&&objectsPresent.rapidPrecip5&&objectsPresent.rapidConvection15&&objectsPresent.rapidExtreme,ready=Boolean(schemaValid&&fresh&&pointCount>0&&timeCount>=4&&memberCount>=2&&objectsReady);const codecPilot=await dwdRucDualReadHealth(base,meta,env);return{configured:true,ready,fresh,schemaValid,codecPilot,fullCodec:meta.storageProfile==='pages-lossless-v1'?{advertised:true,verified:objectsReady,rawRetained:false}:{advertised:false},backend:'pages',storageProfile:String(meta.storageProfile||''),run:String(meta.run||''),generatedAt:String(meta.generatedAt||''),ageHours:ageHours==null?null:Number(ageHours.toFixed(2)),pointCount,timeCount,epsMemberCount:memberCount,nativeEpsMembers:false,objectsPresent,reason:ready?undefined:!schemaValid?'Schema/Pages-Profil ungültig':!fresh?'RUC-Lauf nicht frisch':!objectsReady?'Pages-Laufobjekte unvollständig':'Metadaten unvollständig'}}
 async function dwdRucRapidExtremeSnapshot(env){const current=await dwdRucStaticLatest(env);if(!current)return null;const{base,meta}=current,spec=meta?.rapidExtreme,key=String(spec?.key||'');if(!key)return null;const payload=await dwdRucStaticJson(base,key);if(!payload||!['mid.dwd.ruc.rapid-extreme.v1','mid.dwd.ruc.rapid-extreme.v2','mid.dwd.ruc.rapid-extreme.v3','mid.dwd.ruc.rapid-extreme.v4'].includes(payload.schema)||String(payload.run)!==String(meta.run)||!Array.isArray(payload.cells))return null;return payload}
 async function dwdRucStorageHealth(env){let r2=null;if(dwdRucR2Configured(env)){r2=await dwdRucR2Health(env);if(r2.ready)return r2}const pages=await dwdRucStaticHealth(env);if(pages.ready)return pages;return r2?.configured?{...r2,fallbackBackend:'pages',fallbackReady:Boolean(pages.ready)}:pages}
@@ -190,14 +264,48 @@ async function dwdRucStaticContext(lat,lon,env){const current=await dwdRucStatic
 async function dwdRucR2RapidPayload(context){const{bucket,meta,pointIndex}=context,products=meta?.rapid&&typeof meta.rapid==='object'?meta.rapid:{},rapid={};await Promise.all(Object.entries(products).map(async([id,spec])=>{const recordBytes=Number(spec?.recordBytes);if(!spec?.key||!Number.isFinite(recordBytes)||recordBytes<=0)return;const bytes=await dwdRucR2Range(bucket,spec.key,pointIndex*recordBytes,recordBytes);if(bytes&&bytes.length===recordBytes)rapid[id]=dwdRucDecodeI16Record(bytes,spec,Array.isArray(spec?.times)?spec.times:[])}));return rapid}
 async function dwdRucR2PointPayload(lat,lon,env){const context=await dwdRucR2Context(lat,lon,env);if(!context)return null;const{bucket,meta,pointIndex}=context,det=meta.deterministic;if(!det?.key||!Number.isFinite(Number(det.recordBytes)))return null;const bytes=await dwdRucR2Range(bucket,det.key,pointIndex*Number(det.recordBytes),Number(det.recordBytes));if(!bytes||bytes.length!==Number(det.recordBytes))return null;const rapid=await dwdRucR2RapidPayload(context);return{latitude:lat,longitude:lon,timezone:'GMT',utc_offset_seconds:0,hourly:dwdRucDecodeI16(bytes,meta),rapid,mid_ruc:{run:meta.run,generatedAt:meta.generatedAt,source:'DWD ICON-D2-RUC',storage:'R2',rapidProducts:Object.keys(rapid)}}}
 async function dwdRucStaticRapidPayload(context){const{base,meta,pointIndex}=context,products=meta?.rapid&&typeof meta.rapid==='object'?meta.rapid:{},rapid={};await Promise.all(Object.entries(products).map(async([id,spec])=>{const bytes=await dwdRucStaticRecord(base,spec,pointIndex);if(bytes)rapid[id]=dwdRucDecodeI16Record(bytes,spec,Array.isArray(spec?.times)?spec.times:[])}));return rapid}
-function dwdRucRapidPhaseTimeIndex(spec,targetMs){const times=Array.isArray(spec?.times)?spec.times:[],parsed=times.map(value=>dwdRucMetaTimestamp({run:String(value)}));let best=-1,bestDelta=Infinity;for(let index=0;index<parsed.length;index++){const stamp=parsed[index],delta=Math.abs(stamp-targetMs);if(Number.isFinite(stamp)&&delta<bestDelta){best=index;bestDelta=delta}}return best>=0&&bestDelta<=20*60000?{index:best,time:String(times[best]),stamp:parsed[best],deltaMs:bestDelta}:null}
-async function dwdRucStaticPhaseGrid(lats,lons,targetMs,env){
- const current=await dwdRucStaticLatest(env);if(!current)return null;const{base,meta}=current,spec=meta?.rapid?.phase15,timePick=dwdRucRapidPhaseTimeIndex(spec,targetMs);if(!spec||!timePick)return null;
- const coordinates=[];for(const lat of lats)for(const lon of lons)coordinates.push({lat,lon});const pointRefs=[],pointCache=new Map();
- for(const point of coordinates){const offset=dwdRucLookupOffset(meta,point.lat,point.lon);if(offset===null){pointRefs.push(null);continue}const recordIndex=offset/4,cacheKey=`${meta.run}:${recordIndex}`,cached=dwdRucStaticLookupCache.get(cacheKey);let pointIndex=cached&&Date.now()-cached.at<10*60*1000?cached.pointIndex:null;if(pointIndex===null){const lookup=await dwdRucStaticRecord(base,meta.lookup,recordIndex);if(lookup&&lookup.length===4){const decoded=new DataView(lookup.buffer,lookup.byteOffset,4).getUint32(0,true);if(decoded!==0xffffffff&&decoded<Number(meta.pointCount||0)){pointIndex=decoded;dwdRucStaticLookupCache.set(cacheKey,{at:Date.now(),pointIndex})}}}pointRefs.push(Number.isInteger(pointIndex)?pointIndex:null)}
- const unique=[...new Set(pointRefs.filter(Number.isInteger))],decodedByPoint=new Map();for(const pointIndex of unique){const bytes=await dwdRucStaticRecord(base,spec,pointIndex);if(!bytes)continue;const decoded=dwdRucDecodeI16Record(bytes,spec,spec.times||[]);decodedByPoint.set(pointIndex,{rain:decoded.rain?.[timePick.index],snow:decoded.snowfall_water_equivalent?.[timePick.index],graupel:decoded.graupel_water_equivalent?.[timePick.index]})}
- const rain=[],snowfallWaterEquivalent=[],graupelWaterEquivalent=[];let valid=0;for(const pointIndex of pointRefs){const row=decodedByPoint.get(pointIndex);if(row&&[row.rain,row.snow,row.graupel].some(Number.isFinite))valid++;rain.push(Number.isFinite(row?.rain)?Math.max(0,row.rain):NaN);snowfallWaterEquivalent.push(Number.isFinite(row?.snow)?Math.max(0,row.snow):NaN);graupelWaterEquivalent.push(Number.isFinite(row?.graupel)?Math.max(0,row.graupel):NaN)}
- if(valid<coordinates.length*.72)return null;return{time:new Date(timePick.stamp).toISOString(),run:String(meta.run||''),rain,snowfallWaterEquivalent,graupelWaterEquivalent,valid,total:coordinates.length,source:'DWD ICON-D2-RUC · native 15 min'}
+function dwdRucRapidPhaseTimeIndex(spec,targetMs){const times=Array.isArray(spec?.times)?spec.times:[],parsed=times.map(value=>dwdRucMetaTimestamp({run:String(value)}));let best=-1,bestDelta=Infinity;for(let index=0;index<parsed.length;index++){const stamp=parsed[index],delta=Math.abs(stamp-targetMs);if(Number.isFinite(stamp)&&delta<bestDelta){best=index;bestDelta=delta}}return best>=0&&bestDelta<=7.5*60000?{index:best,time:String(times[best]),stamp:parsed[best],deltaMs:bestDelta}:null}
+// Strictly bounded phase-grid reads. 247 independent sequential record requests
+// exceed the client deadline on a cold Pages cache; never spawn an unbounded
+// burst of compressed-part fetch/decode operations. Preserve original cell order.
+async function dwdRucPhaseBoundedMap(items,read,limit=8){
+ const result=Array(items.length).fill(null);let next=0;
+ await Promise.all(Array.from({length:Math.min(limit,items.length)},async()=>{
+  while(next<items.length){
+   const index=next++;
+   try{result[index]=await read(items[index])}catch{result[index]=null}
+  }
+ }));
+ return result;
+}
+async function dwdRucStaticPhaseGrid(lats,lons,targetMs,env,budget=null){
+ const current=await dwdRucStaticLatest(env,budget);if(!current)return null;const{base,meta}=current,spec=meta?.rapid?.phase15,timePick=dwdRucRapidPhaseTimeIndex(spec,targetMs);if(!spec||!timePick||!Array.isArray(spec.times)||spec.times.length<2||spec.times.some((t,i)=>i&&dwdRucMetaTimestamp({run:String(t)})-dwdRucMetaTimestamp({run:String(spec.times[i-1])})!==900000)||!Array.isArray(spec.fields)||!['rain','snowfall_water_equivalent','graupel_water_equivalent'].every(name=>spec.fields.some(x=>x.name===name&&x.unit==='mm'&&Number.isFinite(Number(x.scale))&&Number(x.scale)>0)))return null;
+ const coordinates=[];for(const lat of lats)for(const lon of lons)coordinates.push({lat,lon});
+ // Original lookup records can repeat where the view grid oversamples ICON-D2.
+ // Resolve each native lookup once, with capped I/O. Missing IDs remain Missing.
+ const lookupOffsets=coordinates.map(point=>dwdRucLookupOffset(meta,point.lat,point.lon));
+ const uniqueLookupRecords=[...new Set(lookupOffsets.filter(Number.isInteger).map(offset=>offset/4))];
+ const lookupPoints=await dwdRucPhaseBoundedMap(uniqueLookupRecords,async recordIndex=>{
+  const cacheKey=`${meta.run}:${recordIndex}`,cached=dwdRucStaticLookupCache.get(cacheKey);
+  if(cached&&Date.now()-cached.at<10*60*1000)return cached.pointIndex;
+  const lookup=await dwdRucStaticRecord(base,meta.lookup,recordIndex,false,budget,'lookup');
+  if(!lookup||lookup.length!==4)return null;
+  const pointIndex=new DataView(lookup.buffer,lookup.byteOffset,4).getUint32(0,true);
+  if(pointIndex===0xffffffff||pointIndex>=Number(meta.pointCount||0))return null;
+  dwdRucStaticLookupCache.set(cacheKey,{at:Date.now(),pointIndex});
+  return pointIndex;
+ },budget?4:8);
+ const lookupByRecord=new Map(uniqueLookupRecords.map((key,i)=>[key,lookupPoints[i]]));
+ const pointRefs=lookupOffsets.map(offset=>offset===null?null:lookupByRecord.get(offset/4)??null);
+ const unique=[...new Set(pointRefs.filter(Number.isInteger))];
+ const decodedRecords=await dwdRucPhaseBoundedMap(unique,async pointIndex=>{
+  const bytes=await dwdRucStaticRecord(base,spec,pointIndex,false,budget,'native');if(!bytes)return null;
+  const decoded=dwdRucDecodeI16Record(bytes,spec,spec.times||[]);
+  return{rain:decoded.rain?.[timePick.index],snow:decoded.snowfall_water_equivalent?.[timePick.index],graupel:decoded.graupel_water_equivalent?.[timePick.index]};
+ },budget?4:8);
+ const decodedByPoint=new Map(unique.map((key,i)=>[key,decodedRecords[i]]).filter(([,row])=>row));
+ const rain=[],snowfallWaterEquivalent=[],graupelWaterEquivalent=[];let valid=0;for(const pointIndex of pointRefs){const row=decodedByPoint.get(pointIndex);if(row&&[row.rain,row.snow,row.graupel].some(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0))valid++;rain.push(typeof row?.rain==='number'&&Number.isFinite(row.rain)&&row.rain>=0?row.rain:NaN);snowfallWaterEquivalent.push(typeof row?.snow==='number'&&Number.isFinite(row.snow)&&row.snow>=0?row.snow:NaN);graupelWaterEquivalent.push(typeof row?.graupel==='number'&&Number.isFinite(row.graupel)&&row.graupel>=0?row.graupel:NaN)}
+ if(valid===0)return null;return{time:new Date(timePick.stamp).toISOString(),run:String(meta.run||''),rain,snowfallWaterEquivalent,graupelWaterEquivalent,valid,total:coordinates.length,source:'DWD ICON-D2-RUC · native 15 min'}
 }
 async function dwdRucStaticPointPayload(lat,lon,env){const context=await dwdRucStaticContext(lat,lon,env);if(!context)return null;const{base,meta,pointIndex}=context,bytes=await dwdRucStaticRecord(base,meta.deterministic,pointIndex,env?.MID_DWD_RUC_LOSSLESS_READ!=='disabled');if(!bytes)return null;const rapid=await dwdRucStaticRapidPayload(context);return{latitude:lat,longitude:lon,timezone:'GMT',utc_offset_seconds:0,hourly:dwdRucDecodeI16(bytes,meta),rapid,mid_ruc:{run:meta.run,generatedAt:meta.generatedAt,source:'DWD ICON-D2-RUC',storage:'GitHub Pages',rapidProducts:Object.keys(rapid),...(bytes.midRucTransport?{transport:bytes.midRucTransport,codecReason:bytes.midRucCodecReason}:{})}}}
 async function dwdRucEpsSummaryR2Payload(lat,lon,env){const context=await dwdRucR2Context(lat,lon,env);if(!context)return null;const{bucket,meta,pointIndex}=context,spec=meta.epsSummary,times=Array.isArray(spec?.times)&&spec.times.length?spec.times:Array.isArray(meta.times)?meta.times:[],recordBytes=Number(spec?.recordBytes);if(!spec?.key||times.length<4||!Number.isFinite(recordBytes)||recordBytes<=0)return null;const bytes=await dwdRucR2Range(bucket,spec.key,pointIndex*recordBytes,recordBytes);if(!bytes||bytes.length!==recordBytes)return null;return{latitude:lat,longitude:lon,timezone:'GMT',utc_offset_seconds:0,hourly:dwdRucDecodeI16Record(bytes,spec,times),mid_ruc:{run:meta.run,generatedAt:meta.generatedAt,source:'DWD ICON-D2-RUC-EPS',storage:'R2',aggregation:'preprocessed',member_count:Number(meta.eps?.memberCount)||0}}}
