@@ -43,7 +43,7 @@ for(const token of ['ncep_aigefs025','ecmwf_aifs_europe_ensemble','google_weathe
 assert.ok(mountain.includes("independenceGroup:'ecmwf'"),'Schneefallgrenze muss ECMWF-Varianten gruppieren.');
 assert.ok(mountain.includes("import('./mountainSnowLineCombine')"),'Schneefallgrenzen-Konsens muss das überprüfte familienweise Lazy-Modul laden.');
 assert.ok(mountainCombiner.includes("const grouped=new Map<string,typeof rows>()")&&mountainCombiner.includes('completeBounds=familyRows.every'),'Schneefallgrenzen-Konsens muss gruppieren und Missing-Unsicherheiten nicht als Nullwerte ausgeben.');
-assert.ok(mountain.includes('unabhängige Modellfamilien gleich gewichtet'),'Schneefallgrenzen-Methodik muss Familiengewichtung transparent machen.');
+assert.ok(mountainCombiner.includes('unabhängige Modellfamilien gleich gewichtet'),'Schneefallgrenzen-Methodik muss Familiengewichtung im ausgelagerten echten Aggregator transparent machen.');
 
 // Langfrist ist bereits familien-dedupliziert und darf nicht regressieren.
 assert.ok(seasonal.includes('freshDeduped=preferredIndependentModels(freshModels)')&&seasonal.includes('model.independenceKey||model.modelKey||model.family'),'Saisonmodelle müssen über kanonische Unabhängigkeits-IDs dedupliziert bleiben.');
