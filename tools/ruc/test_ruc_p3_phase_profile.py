@@ -143,10 +143,8 @@ class RucEpsP3Timing(unittest.TestCase):
         release. The already separately verified authentic GRIB A/B remains
         in #709. This exercises both full binary outputs of the true writer.
         """
-        import copy
         import hashlib
         from ruc_pack import EPS_SUMMARY_FIELDS, pack_cell_major, pack_eps_members
-        from ruc_p3_eps_quantile_candidate import candidate_eps_linear_quantiles
 
         script = ROOT / 'build_ruc_bundle.py'
         tree = ast.parse(script.read_text(encoding='utf-8'), filename=str(script))
@@ -154,33 +152,38 @@ class RucEpsP3Timing(unittest.TestCase):
                and n.name == 'eps_summary']
         self.assertEqual(len(eps), 1, 'production summary changed: requalify P3')
         self.assertEqual([a.arg for a in eps[0].args.args], ['interval'])
-        experimental = copy.deepcopy(eps[0])
-        targets = [n for n in ast.walk(experimental)
-                   if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
-                   and isinstance(n.func.value, ast.Name)
-                   and n.func.value.id == 'np' and n.func.attr == 'nanquantile']
-        self.assertEqual(len(targets), 1, 'one-to-one candidate insertion no longer safe')
-        call = targets[0]
-        self.assertEqual(len(call.args), 2)
-        self.assertEqual(ast.unparse(call.args[0]), 'safe')
-        self.assertEqual(ast.literal_eval(call.args[1]), (0.25, 0.5, 0.75))
-        self.assertEqual(len(call.keywords), 1)
-        self.assertEqual(call.keywords[0].arg, 'axis')
-        self.assertEqual(ast.literal_eval(call.keywords[0].value), 1)
-        call.func = ast.Name(id='candidate_eps_linear_quantiles', ctx=ast.Load())
-        call.args = [call.args[0]]
-        call.keywords = []
-        ast.fix_missing_locations(experimental)
+        assignments = [
+            n for n in tree.body if isinstance(n, ast.Assign)
+            and any(isinstance(t, ast.Name)
+                    and t.id == '_P3_ACCELERATED_QUANTILE_ENABLED'
+                    for t in n.targets)
+        ]
+        self.assertEqual(len(assignments), 1, 'one literal P3 source gate required')
+        self.assertIsInstance(assignments[0].value, ast.Constant)
+        self.assertIs(assignments[0].value.value, False)
+        switches = [
+            n for n in ast.walk(eps[0]) if isinstance(n, ast.If)
+            and ast.unparse(n.test) ==
+            "globals().get('_P3_ACCELERATED_QUANTILE_ENABLED') is True"
+        ]
+        self.assertEqual(len(switches), 1)
+        switch = switches[0]
+        self.assertIn('candidate_eps_linear_quantiles', ast.unparse(switch.body))
+        self.assertNotIn('candidate_eps_linear_quantiles', ast.unparse(switch.orelse))
+        self.assertIn('np.nanquantile', ast.unparse(switch.orelse))
+        self.assertNotIn('np.nanquantile', ast.unparse(switch.body))
 
-        def compile_summary(node, injected=False):
-            space = {'np': np}
-            if injected:
-                space['candidate_eps_linear_quantiles'] = candidate_eps_linear_quantiles
-            exec(compile(ast.Module(body=[node], type_ignores=[]), str(script), 'exec'), space)
+        def compile_summary(*, test_flag=False):
+            # The real source AST is unchanged. The production default is
+            # permanently OFF; only the isolated in-memory test namespace
+            # may inject literal True to validate the guarded candidate.
+            space = {'np': np, '_P3_ACCELERATED_QUANTILE_ENABLED': test_flag}
+            exec(compile(ast.Module(body=eps, type_ignores=[]),
+                         str(script), 'exec'), space)
             return space['eps_summary']
 
-        reference = compile_summary(eps[0])
-        shadow = compile_summary(experimental, injected=True)
+        reference = compile_summary()
+        shadow = compile_summary(test_flag=True)
         original_writer = load_subject(pack_eps_members, reference,
                                        pack_cell_major, EPS_SUMMARY_FIELDS)
         shadow_writer = load_subject(pack_eps_members, shadow,
