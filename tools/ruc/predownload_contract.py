@@ -13,7 +13,7 @@ through the existing complete admit() path.
 from __future__ import annotations
 
 import argparse
-import hashlib
+import hmac
 import json
 import os
 from pathlib import Path
@@ -41,7 +41,7 @@ def export_sealed_fingerprint(snapshot: Path, repo: Path, *, output: Path) -> st
     if not isinstance(sealed, str) or not SHA256.fullmatch(sealed):
         raise ValueError("prepared compatibility hash malformed")
     actual = compatibility(repo)
-    if not hashlib.compare_digest(sealed, actual):
+    if not hmac.compare_digest(sealed, actual):
         raise ValueError("prepared compatibility source changed after sealing")
     if not output:
         raise ValueError("protected GitHub output file required")
@@ -94,7 +94,7 @@ def check_authenticated_fingerprint(
     consumer = compatibility(repo)
     if not SHA256.fullmatch(consumer):
         raise ValueError("invalid current compatibility digest")
-    if not hashlib.compare_digest(supplied_hash, consumer):
+    if not hmac.compare_digest(supplied_hash, consumer):
         return {"allowed": "false", "reason": "superseded-contract"}
     return {"allowed": "true", "reason": "hash-match-full-admit-required"}
 
