@@ -61,7 +61,7 @@ class P3FullOriginalBuilderQa(unittest.TestCase):
         f.write_text("P3_AB_PROFILE 95.500 5600000\n")
         self.assertEqual(qa.profile(f), {"wallSeconds": 95.5, "peakRssKiB": 5600000})
         for invalid in ("", "P3_AB_PROFILE 3.0 700\n",
-                        "P3_AB_PROFILE 3500.0 5600000\n",
+                        "P3_AB_PROFILE 3600.0 5600000\n",
                         "P3_AB_PROFILE 3.0 7600000\n",
                         "P3_AB_PROFILE 95.0 5600000\nP3_AB_PROFILE 96.0 5600000\n"):
             with self.subTest(invalid=invalid), self.assertRaises(ValueError):
