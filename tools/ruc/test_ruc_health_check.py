@@ -446,6 +446,83 @@ class SafeDiagnosticsTests(unittest.TestCase):
     fetcher=lambda *_:{**good,'ready':False},sleeper=lambda _:None)
   self.assertEqual(worker.exception.attempts,7)
 
+ def test_observed_04z_twelve_stale_pages_is_not_codec_defect(self):
+  # 08.11.2026 public Pages incident, *offline synthetic replay* based on
+  # authenticated GitHub Actions log #42449728271. The cache headers in this
+  # fixture are NOT claimed as actual recorded production response headers.
+  from urllib.parse import urlsplit,parse_qs
+  expected='2026-11-08T04:00'
+  prior='2026-11-08T03:00'
+  metadata=copy.deepcopy(full_meta)
+  metadata['run']=prior
+  self.assertTrue(mod.active_profile_valid(metadata))
+  journal=mod.ProbeJournal()
+  urls=[]
+  def stale(url,timeout):
+   urls.append(parse_qs(urlsplit(url).query))
+   return mod.ProbeResponse(copy.deepcopy(metadata),200,
+                            {'ageSeconds':42,'cacheStatus':'hit',
+                             'contentType':'json'})
+  with self.assertRaises(mod.PagesConvergenceError) as caught:
+   mod.probe_pages('https://host.invalid/ruc/?token=private-token-fragment',
+                   expected,attempts=12,
+                   expected_profile='pages-lossless-v1',
+                   fetcher=stale,sleeper=lambda _:None,journal=journal)
+  error=caught.exception
+  self.assertEqual(error.code,'pages_convergence_timeout')
+  self.assertEqual(error.attempts,12)
+  self.assertNotIsInstance(error,mod.CodecDefectError)
+  self.assertEqual(len(urls),12)
+  self.assertEqual([q.get('mid_ruc_probe') for q in urls],
+                   [[str(i)] for i in range(1,13)])
+  self.assertTrue(all(q.get('mid_ruc_expected')==[expected] for q in urls))
+  rows=journal.as_dict()['records']
+  self.assertEqual(len(rows),12)
+  self.assertEqual({r['diagnosticCode'] for r in rows},
+                   {'pages_run_mismatch'})
+  self.assertEqual({r['phase'] for r in rows},{'pages_pointer'})
+  self.assertEqual({r['httpStatus'] for r in rows},{200})
+  self.assertEqual(rows[0]['metadata'],
+                   {'ageSeconds':42,'cacheStatus':'hit','contentType':'json'})
+  dump=json.dumps(journal.as_dict())
+  for secret in ('private-token-fragment','token=','Authorization'):
+   self.assertNotIn(secret,dump)
+
+ def test_pages_04z_must_converge_on_exact_run_and_active_profile(self):
+  expected='2026-11-08T04:00'
+  prior='2026-11-08T03:00'
+  fresh=copy.deepcopy(full_meta)
+  fresh['run']=expected
+  stale={**fresh,'run':prior}
+  calls=[]
+  def delayed(url,timeout):
+   calls.append(url)
+   return fresh if len(calls)==9 else stale
+  journal=mod.ProbeJournal()
+  self.assertEqual(mod.probe_pages('https://host.invalid/ruc/',expected,
+   attempts=12,expected_profile='pages-lossless-v1',
+   fetcher=delayed,sleeper=lambda _:None,journal=journal),9)
+  self.assertEqual(len(calls),9)
+  self.assertEqual([r['diagnosticCode'] for r in journal.records[:8]],
+                   ['pages_run_mismatch']*8)
+  self.assertEqual(journal.records[8]['httpStatus'],None)
+  # Correct run with an emergency/raw profile is not a 27h full-codec pass.
+  raw={**fresh,'storageProfile':'pages-free-v1',
+       'pages':{'profile':'pages-free-v1','nativeEpsMembers':False}}
+  newer={**fresh,'run':'2026-11-08T05:00'}
+  for payload,reason in ((raw,'pages_profile_mismatch'),
+                         (newer,'pages_run_mismatch')):
+   with self.subTest(reason=reason):
+    journal=mod.ProbeJournal()
+    with self.assertRaises(mod.PagesConvergenceError) as failed:
+     mod.probe_pages('https://host.invalid/ruc/',expected,
+      attempts=1,expected_profile='pages-lossless-v1',
+      fetcher=lambda url,timeout:payload,
+      sleeper=lambda _:None,journal=journal)
+    self.assertEqual(failed.exception.code,'pages_convergence_timeout')
+    self.assertEqual(journal.records[0]['diagnosticCode'],reason)
+    self.assertNotIsInstance(failed.exception,mod.CodecDefectError)
+
  def test_cli_classifies_failures_and_preserves_exit_two(self):
   with tempfile.TemporaryDirectory() as directory:
    metadata=Path(directory)/'latest.json'
