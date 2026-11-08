@@ -85,11 +85,11 @@ def stage_inventory(stage: Path) -> dict:
                 raise ValueError("empty/escaped GRIB source")
             relative = item.relative_to(stage).as_posix()
             rows.append([relative, item.stat().st_size, sha_file(item)])
-    if len(rows) < 560:
-        raise ValueError("full-stage GRIB inventory incomplete")
     eps = [x for x in rows if x[0].startswith("eps/TOT_PREC/")]
     if len(eps) != 560:
         raise ValueError("original complete 28x20 EPS20 inventory absent")
+    if len(rows) < 560:
+        raise ValueError("full-stage GRIB inventory incomplete")
     raw = json.dumps(rows, separators=(",", ":"), ensure_ascii=True).encode()
     return {
         "fileCount": len(rows),
