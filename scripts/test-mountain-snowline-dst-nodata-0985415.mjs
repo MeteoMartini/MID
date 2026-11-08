@@ -73,6 +73,13 @@ assert.ok(Number.isNaN(unknown.points[0].p90),'Missing spread must not become fa
 const genuineZero=aggregate([model(0,0,0)]);
 assert.equal(genuineZero.points[0].p10,0,'Verified spread zero remains valid lower bound');
 assert.equal(genuineZero.points[0].p90,0,'Verified spread zero remains valid upper bound');
+// Different variants of one meteorological model family count as ONE vote.
+// This is a real execution of the extracted production combiner, not a string check.
+const dwdA=model(900,1000,1100),dwdB={...model(3900,4000,4100),id:'dwd-alt'},ncep={...model(1900,2000,2100),id:'ncep',provider:'NCEP',independenceGroup:'ncep'};
+const independent=aggregate([dwdA,dwdB,ncep]);
+assert.equal(independent.points[0].modelCount,2,'Correlated DWD variants must not count as two independent families');
+assert.equal(independent.points[0].median,2250,'Each independent family contributes exactly one median vote');
+assert.equal(independent.points[0].memberEquivalent,40,'Do not double count members within a model family');
 const pkg=JSON.parse(await readFile('package.json','utf8')),base=JSON.parse(await readFile('MID_BASELINE.json','utf8'));
 assert.equal(base.releaseVersion,pkg.version);
 const self='scripts/test-mountain-snowline-dst-nodata-0985415.mjs';
