@@ -239,5 +239,121 @@ class RucEpsP3Timing(unittest.TestCase):
         self.assertEqual(len(stdout), 2)
 
 
+    def test_native_shape_bounded_memory_133_chunks_without_original_download(self):
+        """Synthetic full 542040-grid stress; no claim of native GRIB E2E or SLO.
+
+        Feed exactly the production 28xEPS20/4096 geometry but do not allocate
+        a 2.4 GiB full-grid source or retain binary outputs in memory. This
+        bounds only incremental quantile/packer RSS, not the full GRIB decoder
+        or production whole-process RSS. Four chunks are byte-matched against
+        the unmodified production AST, including the final partial chunk.
+        """
+        import hashlib
+        import resource
+        from ruc_pack import EPS_SUMMARY_FIELDS, pack_cell_major, pack_eps_members
+        from ruc_p3_eps_quantile_candidate import candidate_eps_linear_quantiles
+
+        tree = ast.parse((ROOT / 'build_ruc_bundle.py').read_text(encoding='utf-8'))
+        functions = [n for n in tree.body if isinstance(n, ast.FunctionDef)
+                     and n.name == 'eps_summary']
+        self.assertEqual(len(functions), 1, 'production reference moved: requalify')
+        namespace = {'np': np}
+        exec(compile(ast.Module(body=functions, type_ignores=[]),
+                     'build_ruc_bundle.py', 'exec'), namespace)
+        original = namespace['eps_summary']
+
+        total_points, chunk_points, valid_times, members = 542040, 4096, 28, 20
+        rng = np.random.default_rng(2026110819)
+        member_sha, summary_sha = hashlib.sha256(), hashlib.sha256()
+        member_bytes = summary_bytes = 0
+        reference_checked = 0
+        started = time.perf_counter()
+        for chunk_index, start in enumerate(range(0, total_points, chunk_points)):
+            width = min(chunk_points, total_points - start)
+            cube = rng.gamma(1.9, 2.8, size=(valid_times, members, width))
+            cube[:, :, 0] = np.nan  # all member data missing: never dry
+            cube[:, :, 1] = 0.0    # genuinely dry: must be zero
+            cube[0, 0, 2] = np.inf
+            cube[1, 1, 2] = -np.inf
+            cube[2, 2, 2] = 1e10  # retain extreme before normal int16 clip
+            cube[3, :10, 3] = np.nan
+            cube[4, 7:, 4] = np.nan
+            cube[5, 0, 5] = .005
+            cube[5, 1, 5] = .015
+
+            # Reproduce the unchanged production mean and probability contract.
+            valid = np.isfinite(cube)
+            safe = np.where(valid, cube, np.nan)
+            count = np.sum(valid, axis=1)
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore', RuntimeWarning)
+                mean = np.nanmean(safe, axis=1)
+                quantiles = candidate_eps_linear_quantiles(safe)
+            denom = np.maximum(count, 1)
+            optimized = {
+                'precipitation_probability': np.where(
+                    count > 0, 100 * np.sum(valid & (cube > .2), axis=1) / denom, np.nan),
+                'precipitation_probability_significant': np.where(
+                    count > 0, 100 * np.sum(valid & (cube > 5.0), axis=1) / denom, np.nan),
+                'precipitation_mean': mean,
+                'precipitation_q25': quantiles[0],
+                'precipitation_q50': quantiles[1],
+                'precipitation_q75': quantiles[2],
+            }
+            member_wire = pack_eps_members(cube, .01)
+            summary_wire = pack_cell_major(optimized, EPS_SUMMARY_FIELDS)
+            member_sha.update(member_wire)
+            summary_sha.update(summary_wire)
+            member_bytes += len(member_wire)
+            summary_bytes += len(summary_wire)
+            self.assertEqual(len(member_wire), width * valid_times * members * 2)
+            self.assertEqual(len(summary_wire),
+                             width * valid_times * len(EPS_SUMMARY_FIELDS) * 2)
+            member_view = np.frombuffer(member_wire, dtype='<u2').reshape(
+                width, valid_times, members)
+            summary_view = np.frombuffer(summary_wire, dtype='<i2').reshape(
+                width, valid_times, len(EPS_SUMMARY_FIELDS))
+            self.assertTrue(np.all(member_view[0] == 65535))
+            self.assertTrue(np.all(summary_view[0] == -32768))
+            self.assertTrue(np.all(member_view[1] == 0))
+            self.assertTrue(np.all(summary_view[1] == 0))
+            if chunk_index in (0, 1, 65, 132):
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore', RuntimeWarning)
+                    genuine_reference = original(cube)
+                self.assertEqual(summary_wire,
+                                 pack_cell_major(genuine_reference, EPS_SUMMARY_FIELDS))
+                reference_checked += 1
+            del cube, valid, safe, count, mean, quantiles, optimized
+            del member_wire, summary_wire, member_view, summary_view
+
+        n_chunks = (total_points + chunk_points - 1) // chunk_points
+        elapsed = time.perf_counter() - started
+        peak_mib = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
+        self.assertEqual(n_chunks, 133)
+        self.assertEqual(reference_checked, 4)
+        self.assertEqual(member_bytes, total_points * valid_times * members * 2)
+        self.assertEqual(summary_bytes, total_points * valid_times *
+                         len(EPS_SUMMARY_FIELDS) * 2)
+        self.assertLess(peak_mib, 1024.0,
+                        'incremental EPS quantile+packing process RSS >= 1 GiB')
+        evidence = {
+            'schema': 'mid.ruc.p3-synthetic-chunk-memory.v1',
+            'realDwdGribDownloaded': False,
+            'fullPipelinePeakRamVerified': False,
+            'productionSpeedupVerified': False,
+            'points': total_points, 'times': valid_times, 'members': members,
+            'chunks': n_chunks, 'byteMatchedReferenceChunks': reference_checked,
+            'memberBytesHashed': member_bytes,
+            'summaryBytesHashed': summary_bytes,
+            'memberDigest': member_sha.hexdigest(),
+            'summaryDigest': summary_sha.hexdigest(),
+            'incrementalProcessPeakRssMiB': round(peak_mib, 2),
+            'syntheticCpuWallSeconds': round(elapsed, 3),
+        }
+        print('RUC_P3_SYNTHETIC_MEMORY_QA ' +
+              json.dumps(evidence, sort_keys=True), flush=True)
+
+
 if __name__ == '__main__':
     unittest.main()
