@@ -68,6 +68,47 @@ class P3FullOriginalBuilderQa(unittest.TestCase):
                 f.write_text(invalid)
                 qa.profile(f)
 
+
+    def test_over_budget_measurement_is_visible_but_remains_rejected(self):
+        f = self.root / "over-budget.txt"
+        f.write_text("P3_AB_PROFILE 48.5 8300000\n")
+        self.assertEqual(qa.diagnostic_profile(f),
+                         {"wallSeconds": 48.5, "peakRssKiB": 8300000})
+        with self.assertRaisesRegex(ValueError, "resource profile"):
+            qa.profile(f)
+        f.write_text("P3_AB_PROFILE 55.0 5000000\\nP3_AB_PROFILE 52.0 4000000\n")
+        self.assertIsNone(qa.diagnostic_profile(f))
+
+    def test_verify_failure_persists_blocked_report_and_raises(self):
+        ref = self.root / "reference-profile.txt"
+        cand = self.root / "candidate-profile.txt"
+        ref.write_text("P3_AB_PROFILE 900.0 8300000\n")
+        cand.write_text("P3_AB_PROFILE 100.0 7600000\n")
+        report = self.root / "qa-evidence.json"
+        argv = ["mid_ruc_p3_fullbuilder_ab.py", "verify",
+                "--stage", str(self.root / "original"), "--run", "2026-11-08T20:00",
+                "--output", str(self.root / "candidate"),
+                "--reference", str(self.root / "reference"),
+                "--reference-log", str(self.root / "reference.log"),
+                "--reference-profile", str(ref), "--candidate-profile", str(cand),
+                "--head", "f" * 40, "--report", str(report)]
+        with patch.object(sys, "argv", argv), patch.object(
+                qa, "verify", side_effect=ValueError(
+                    "invalid or unbounded actual builder resource profile")):
+            with self.assertRaisesRegex(ValueError, "resource profile"):
+                qa.main()
+        blocked = json.loads(report.read_text())
+        self.assertEqual(blocked["qualificationStatus"], "BLOCKED")
+        self.assertEqual(blocked["observedReferenceProfile"]["peakRssKiB"], 8300000)
+        self.assertEqual(blocked["observedCandidateProfile"]["peakRssKiB"], 7600000)
+        self.assertFalse(blocked["realOriginalGribFullBuilderE2eCompared"])
+        self.assertFalse(blocked["nativeOutputsFullyVerified"])
+        self.assertFalse(blocked["releaseAuthorized"])
+        with patch.object(sys, "argv", argv):
+            with self.assertRaisesRegex(ValueError, "never replace"):
+                qa.main()
+
+
     def test_original_builder_timing_cannot_be_claimed_without_exact_phase_line(self):
         f = self.root / "reference.log"
         f.write_text("RUC_P3_PHASES run=2026-11-08T19:00 "

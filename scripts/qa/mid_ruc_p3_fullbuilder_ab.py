@@ -169,6 +169,29 @@ def verify_outputs(ref: Path, candidate: Path, run: str) -> dict:
     }
 
 
+
+def diagnostic_profile(path: Path) -> dict | None:
+    """Bounded, untrusted GNU-time measurement for a BLOCKED evidence report.
+
+    Unlike the strict admission validator, this reads and reports an over-budget
+    positive RSS as evidence; it never confers acceptance or bypasses a gate.
+    """
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return None
+    if len(raw) > 256:
+        return None
+    match = METRIC.fullmatch(raw.strip())
+    if match is None:
+        return None
+    wall = float(match.group(1))
+    rss = int(match.group(2))
+    if not 0 < wall < 3600 or rss <= 0:
+        return None
+    return {"wallSeconds": round(wall, 3), "peakRssKiB": rss}
+
+
 def profile(path: Path) -> dict:
     rows = [x for x in path.read_text(encoding="utf-8").splitlines()
             if METRIC.fullmatch(x)]
@@ -284,9 +307,31 @@ def main() -> None:
             ap.error("verification needs all exact source/metric/report paths")
         if args.report.exists() or args.report.is_symlink():
             raise ValueError("never replace an existing scientific QA report")
-        record = verify(args.reference, args.output, args.stage, args.run,
-                        args.head, args.reference_log,
-                        args.reference_profile, args.candidate_profile)
+        try:
+            record = verify(args.reference, args.output, args.stage, args.run,
+                            args.head, args.reference_log,
+                            args.reference_profile, args.candidate_profile)
+        except Exception as error:
+            # Failure is still a FAILED job. Preserve only bounded measurements,
+            # never mark the original-GRIB or publication qualification as PASS.
+            blocked = {
+                "schema": SCHEMA,
+                "qualificationStatus": "BLOCKED",
+                "claimedCandidateHeadSha": args.head,
+                "failureReason": (type(error).__name__ + ": " + str(error))[:256],
+                "observedReferenceProfile": diagnostic_profile(args.reference_profile),
+                "observedCandidateProfile": diagnostic_profile(args.candidate_profile),
+                "nativeOutputsFullyVerified": False,
+                "realOriginalGribFullBuilderE2eCompared": False,
+                "production60MinuteP95Verified": False,
+                "releaseAuthorized": False,
+            }
+            with args.report.open("x", encoding="utf-8") as handle:
+                json.dump(blocked, handle, indent=2, sort_keys=True, allow_nan=False)
+                handle.write("\n")
+            print("RUC_P3_NATIVE_FULLBUILDER_AB_BLOCKED " +
+                  json.dumps(blocked, sort_keys=True), flush=True)
+            raise
         with args.report.open("x", encoding="utf-8") as handle:
             json.dump(record, handle, indent=2, sort_keys=True, allow_nan=False)
             handle.write("\n")
