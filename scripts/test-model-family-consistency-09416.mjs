@@ -6,6 +6,7 @@ const weather=fs.readFileSync('src/weather.ts','utf8');
 const fusion=fs.readFileSync('src/forecastFusion.ts','utf8');
 const worker=fs.readFileSync('worker/metar-proxy.js','utf8');
 const mountain=fs.readFileSync('src/mountainSports.ts','utf8');
+const mountainCombiner=fs.readFileSync('src/mountainSnowLineCombine.ts','utf8');
 const seasonal=fs.readFileSync('src/seasonalForecast.ts','utf8');
 
 // Wetterplaner darf keine eigene rohe Wetterlogik führen, sondern nutzt denselben
@@ -40,7 +41,8 @@ for(const token of ['ncep_aigefs025','ecmwf_aifs_europe_ensemble','google_weathe
 
 // Schneefallgrenze: IFS/AIFS bleiben sichtbar, ECMWF bekommt aber nur ein Familiengewicht.
 assert.ok(mountain.includes("independenceGroup:'ecmwf'"),'Schneefallgrenze muss ECMWF-Varianten gruppieren.');
-assert.ok(mountain.includes("const grouped=new Map<string,typeof rows>()"),'Schneefallgrenzen-Konsens muss familienweise aggregieren.');
+assert.ok(mountain.includes("import('./mountainSnowLineCombine')"),'Schneefallgrenzen-Konsens muss das überprüfte familienweise Lazy-Modul laden.');
+assert.ok(mountainCombiner.includes("const grouped=new Map<string,typeof rows>()")&&mountainCombiner.includes('completeBounds=familyRows.every'),'Schneefallgrenzen-Konsens muss gruppieren und Missing-Unsicherheiten nicht als Nullwerte ausgeben.');
 assert.ok(mountain.includes('unabhängige Modellfamilien gleich gewichtet'),'Schneefallgrenzen-Methodik muss Familiengewichtung transparent machen.');
 
 // Langfrist ist bereits familien-dedupliziert und darf nicht regressieren.
