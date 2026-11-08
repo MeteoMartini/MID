@@ -32,8 +32,8 @@ jobs:
           test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" = "b6526e7c5c24035bd1a75b87b77e7bb8e821c334"
           git merge-base --is-ancestor "b6526e7c5c24035bd1a75b87b77e7bb8e821c334" HEAD
           cmp ci/github/workflows/mid-ruc-eps-advertised-index-qa.yml .github/workflows/mid-ruc-eps-advertised-index-qa.yml
-          test "$(git hash-object tools/ruc/check_ruc_schedule_guard.py)" = "ca1626b2f8ca640ca48247c042a57e761f864860"
-          test "$(git hash-object tools/ruc/test_ruc_schedule_guard.py)" = "11bfccec89efee40624302882b0b8c068c155935"
+          test "$(git hash-object tools/ruc/check_ruc_schedule_guard.py)" = "468aab684d176fb0807750e00f76cb05a2ab3cc7"
+          test "$(git hash-object tools/ruc/test_ruc_schedule_guard.py)" = "82fb8a4e508b4d3a300732655dbbc5509fca8b1d"
           test "$(git hash-object tools/ruc/fixtures/eps20_2026_11_07_22z_observed_hourly_v1.json)" = "87f582b8c4910e5439cb349c2a88532371cd624a"
           test "$(git hash-object tools/ruc/probe_ruc_eps_advertised_live.py)" = "7d8a308336f9553bd2b08c05dcd455b8bcf775be"
           test "$(git hash-object tools/ruc/test_ruc_eps_probe_transitions.py)" = "6005b350b484601f8bec5ce52e364245b3ae6093"
@@ -43,7 +43,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22.16.0'
-      - name: Unchanged Scheduler plus bounded EPS20 negative evidence and watchdog
+      - name: Scheduler process-deadline, fresh-clock EPS20 negative evidence and watchdog
         shell: bash
         run: |
           set -euo pipefail

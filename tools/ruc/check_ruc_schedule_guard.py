@@ -25,6 +25,8 @@ import json
 import os
 import re
 import signal
+import subprocess
+import sys
 import time
 import urllib.parse
 import urllib.request
@@ -162,6 +164,34 @@ def advertised_eps_listing_complete(run:str,fetch:Callable[[str],str]=fetch_text
             executor.shutdown(wait=False,cancel_futures=True)
         signal.setitimer(signal.ITIMER_REAL,0)
         signal.signal(signal.SIGALRM,previous_handler)
+
+
+
+def bounded_eps_listing_complete(run:str,*,budget_seconds:float=14.0)->bool|None:
+    """Scheduler-only process boundary: no outstanding EPS network threads.
+
+    SIGALRM only interrupts the main Python thread. The preflight's four
+    directory readers may otherwise keep this process alive beyond 14 s.
+    Terminate the *entire child process* at the absolute parent deadline.
+    An unavailable child, timeout or malformed response is UNKNOWN and must
+    fail OPEN to the original lossless meteorological builder.
+    """
+    if (not isinstance(run,str) or not RUN_RE.fullmatch(run+'/')
+            or not 0<budget_seconds<=14):
+        return None
+    try:
+        completed=subprocess.run(
+            [sys.executable,'-B',os.path.realpath(__file__),
+             '--eps-listing-child',run],
+            stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,text=True,timeout=budget_seconds,
+            check=False)
+    except (OSError,subprocess.TimeoutExpired,ValueError):
+        return None
+    if completed.returncode!=0:
+        return None
+    result=completed.stdout.strip()
+    return True if result=='true' else False if result=='false' else None
 
 
 def may_defer_incomplete_eps(dwd:str,published:str,meta:dict,listing:bool|None,*,
@@ -381,10 +411,10 @@ def main()->int:
                 age=(clock-run_time(published)).total_seconds()/60
                 if (0<=age<=min(DEFAULT_MAX_AGE_MINUTES,max(1,args.max_age_minutes))
                     and run_time(dwd)-run_time(published)==dt.timedelta(hours=1)):
-                    listing=advertised_eps_listing_complete(
-                        dwd,lambda url:fetch_text(url,timeout=4))
+                    listing=bounded_eps_listing_complete(dwd)
                     if may_defer_incomplete_eps(dwd,published,meta,listing,
-                                                 now=clock,max_age_minutes=args.max_age_minutes):
+                                                 now=dt.datetime.now(dt.timezone.utc),
+                                                 max_age_minutes=args.max_age_minutes):
                         should_run=False
                         reason='Neuer DWD-EPS20-Dateiindex unvollständig; gültiger Pages-Lauf bleibt bis zur nächsten Prüfung'
             except (ValueError,TypeError,OverflowError):
@@ -405,4 +435,10 @@ def main()->int:
     ])
     return 0
 
-if __name__=='__main__':raise SystemExit(main())
+if __name__=='__main__':
+    if len(sys.argv)==3 and sys.argv[1]=='--eps-listing-child':
+        result=advertised_eps_listing_complete(
+            sys.argv[2],lambda url:fetch_text(url,timeout=4))
+        print('true' if result is True else 'false' if result is False else 'unknown')
+        raise SystemExit(0)
+    raise SystemExit(main())
