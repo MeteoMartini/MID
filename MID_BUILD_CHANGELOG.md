@@ -1,3 +1,9 @@
+## MID v0.9.85.449 · 2026-11-08 · Bergwetter: korrekte Zeitachsen und transparente Modellunsicherheit
+
+- #428/#523: selektiver Bergwetter-Code aus QA-Draft #703; validierte Open-Meteo-UTC-Unixzeiten und ganzzahlige Forecast-Horizonte.
+- HTTP200 ohne meteorologisch nutzbare Mittelwerte löst nächsten dokumentierten Variablen-Tier aus; vollständige NoData-Arrays bleiben NoData.
+- Unveränderte 1084-er-Pflichtregressionen-/Source-/Installer- und Security-Gates erforderlich; neue reale Provider-Stichproben und QA-Abgrenzungen dokumentiert.
+
 ## MID v0.9.85.449 · 2026-11-08 · Alpine UTC-Zeit, echte NoData-Grenzen und ehrliche Modellspanne
 
 - **Freigegebene Basis vor Änderung:** `main=mid-stable=fd1fb594bc2b82913156ef0f8e82e22089379164` / v0.9.85.448, [Installer #42498549995](https://github.com/MeteoMartini/MID/actions/runs/42498549995) abgeschlossen erfolgreich. Diese Quelländerung überträgt ausschließlich den fachlichen Teil des unveröffentlichten Drafts #703 HEAD `730280066f766adf171070fa6abe7fd66589d437` auf einen autorisierten `chatgpt/*`-Branch, Original-Draft unangetastet.
