@@ -1,3 +1,15 @@
+# MID v0.9.85.448 · RUC-P4-Pre-Download-Vertragsprüfung
+
+**Source-Kandidat, nicht alleinige Freigabe:** Ausgangspunkt `main=mid-stable=568e45be3f4efcffaf52a87ec82784a7ea4db2f4` (v0.9.85.447); endgültige .448-Veröffentlichung ausschließlich über Source-PR-Gate → SHA-Bot-Merge → serverseitiges ZIP → Installer → betroffene Worker-/Pages-Gates → Stable-Promotion.
+
+Der SHA256-Fingerabdruck wird nach vollständiger Versiegelung ausschließlich im authentifizierten Prepare-Job aus demselben Source-Contract erneut geprüft und als geschützter GitHub-Joboutput weitergereicht. Der aktuelle Stable-Vertrag wird im vorhandenen `mid-pages`-Lock **vor** dem großen RUC-Artefaktdownload verglichen. Nur eine belegte Differenz erlaubt den schadlosen Abbruch `superseded-contract`, ohne den bestehenden Last-Good-Pointer zu ändern. Fehlende/gefälschte Provenienz darf keinen positiven Befund erzeugen; explizite Legacy-Wiederverwendung geht unverändert durch die vollständige späte `admit()`-Prüfung.
+
+**Ein gleicher Hash ist kein meteorologisches Freigabesignal.** Artifact-ID/Digest, 27h/20 EPS, UTC-/Run-/ValidTime-/Akkumulationsfelder, Bitmap/NoData ≠ 0, alle Originalbytes, Full-Codec/JS, 900-MB-Budget, aktueller Stable-Guard, Rollback, Pages- und Worker-Health bleiben zwingend. Keine amtlichen Warnungen, Modelle oder Endclient-Einheiten geändert.
+
+**Separat offene #541-Nachweise:** P1 Original-DWD-Erstverfügbarkeit mit zensierungsrichtiger mehrtägiger P50/P90/P95-Serie; P2 produktiver atomarer 0–6h-Fast-Pointer; P3 identisches reales Native-Input-A/B; P4 globales CAS/Fencing mit Negativ-Races; P5 reale Pages→Worker→App/Widget/Export-/Geräteabnahme. 168 Stunden sind keine pauschale Versionswartezeit und ein ungemessener 60-min-P95 darf nicht als PASS gelten.
+
+## Bisheriger historischer Source-Stand
+
 # MID v0.9.85.447 · Source-Release-Governance und Agenten-Routing
 
 **Statusprüfung ist live:** Diese versionierte Source-Aufzeichnung ist selbst weder CI-Gate noch Beleg einer erfolgreichen Veröffentlichung. Der dokumentierte, zuletzt erfolgreich promotete Vorgänger war v0.9.85.446, `main=mid-stable=5e25ab60b365950a54a7d113483e8bf519911113`, Installer #42468176962 `completed/success`. Der zusätzliche v0.9.85.447-Kandidat aus den Original-Drafts #702 und #687 wird ausschließlich durch vollständige Source-/Bot-/Installer-/Worker-/Pages-/Stable-Gates freigegeben; nach erfolgreicher Promotion ist der GitHub-`mid-stable`-SHA maßgeblich, nicht dieses Textdokument.

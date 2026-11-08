@@ -1,3 +1,9 @@
+## MID v0.9.85.448 · 2026-11-08 · RUC: veraltete vorbereitete Datenpakete früher erkennen
+
+- WE RUC 1.5 / #704 / #541 / PR #707: Authentifizierter negativer SHA256-Vertragsvorfilter aus versiegeltem Prepare-Job unter exklusivem mid-pages-Publish-Lock. Reuse ohne frühe authentifizierte Evidenz bleibt beim vollständigen admit().
+- Nachgelagerte GitHub-Artefakt-ID/Digest-, Byte-/Originaldaten-/27h-/EPS-/Bitmap-/NoData-/Codec-/JS-/Worker-/Pages-/Rollback- und Stable-Guards bleiben obligatorisch; Hash-Match ist keine Positivzulassung.
+- Isolierte Python-PR-QA #42495706947 auf Vorversions-HEAD: 9 neue Negativtests, 12 Snapshot- und 6 Shared-Pages-Regressionsfälle PASS. Vollständiger .448-Source-/Installer-/Live-P5-Nachweis vor Veröffentlichung separat erforderlich.
+
 ## MID v0.9.85.447 · 2026-11-08 · Verbindlicher Releaseprozess und effiziente Agenten-Zusammenarbeit
 
 - SHA-selektive Zusammenführung der Governance-Drafts #702 und #687 auf Stable .446.
