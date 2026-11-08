@@ -121,6 +121,14 @@ def read_meta(root: Path, run: str) -> dict:
     for name in ("deterministic", "epsSummary", "eps"):
         if meta.get(name, {}).get("times") != expected:
             raise ValueError("incomplete full native UTC model horizon")
+    # A matching JSON inventory SHA cannot replace a native field-layout proof.
+    if (meta["objects"]["eps-members.bin"].get("bytes") != 542040 * 28 * 20 * 2
+            or meta["objects"]["eps-summary.bin"].get("bytes") != 542040 * 28 * 6 * 2
+            or meta["eps"].get("recordBytes") != 28 * 20 * 2
+            or meta["epsSummary"].get("recordBytes") != 28 * 6 * 2
+            or meta["epsSummary"].get("dtype") != "int16-le"
+            or meta["eps"].get("dtype") != "uint16-le"):
+        raise ValueError("EPS20/27h native packed record geometry mismatch")
     return meta
 
 
@@ -193,6 +201,8 @@ def run_candidate(stage: Path, output: Path, run: str) -> None:
         raise ValueError("original same-stage DWD inputs absent")
     if not (stage / "eps" / "TOT_PREC").is_dir():
         raise ValueError("original DWD EPS20 input directory absent")
+    source_before = stage_inventory(stage)
+    print("RUC_P3_ORIGINAL_STAGE_SHA " + source_before["sha256"], flush=True)
     setattr(production, FLAG, True)
     if getattr(production, FLAG) is not True:
         raise ValueError("in-memory candidate activation did not succeed")
@@ -204,6 +214,8 @@ def run_candidate(stage: Path, output: Path, run: str) -> None:
     finally:
         sys.argv = argv
         setattr(production, FLAG, False)
+    if stage_inventory(stage) != source_before:
+        raise ValueError("original DWD stage was modified by optimized builder")
 
 
 def verify(ref: Path, fast: Path, stage: Path, run: str, expected_sha: str,
