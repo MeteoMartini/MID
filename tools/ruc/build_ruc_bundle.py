@@ -395,13 +395,23 @@ def write_eps_products(interval,members_path,summary_path,chunk_points=4096):
     },sort_keys=True,allow_nan=False,separators=(',',':')),flush=True)
 
 
+# P3 experimental source integration: LOCKED OFF in all production builds.
+# Enabling requires a SEPARATE reviewed source release and full native/runtime
+# qualification. No env/CLI/config path may switch this on in the current tree.
+_P3_ACCELERATED_QUANTILE_ENABLED = False
+
 def eps_summary(interval):
     valid=np.isfinite(interval)
     member_count=np.sum(valid,axis=1)
     safe=np.where(valid,interval,np.nan)
     with np.errstate(invalid='ignore'):
       mean=np.nanmean(safe,axis=1)
-      q25,q50,q75=np.nanquantile(safe,(.25,.50,.75),axis=1)
+      if globals().get('_P3_ACCELERATED_QUANTILE_ENABLED') is True:
+        # Only an isolated SHA-bound test can inject True in its AST namespace.
+        from ruc_p3_eps_quantile_candidate import candidate_eps_linear_quantiles
+        q25,q50,q75=candidate_eps_linear_quantiles(safe)
+      else:
+        q25,q50,q75=np.nanquantile(safe,(.25,.50,.75),axis=1)
     wet=np.where(member_count>0,100*np.sum(valid&(interval>.2),axis=1)/np.maximum(member_count,1),np.nan)
     significant=np.where(member_count>0,100*np.sum(valid&(interval>5.0),axis=1)/np.maximum(member_count,1),np.nan)
     return {
