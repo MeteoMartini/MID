@@ -1,3 +1,8 @@
+## MID v0.9.85.447 · 2026-11-08 · Verbindlicher Releaseprozess und effiziente Agenten-Zusammenarbeit
+
+- SHA-selektive Zusammenführung der Governance-Drafts #702 und #687 auf Stable .446.
+- Konfliktfreie normative Ergänzungen; getrennte Source-/Bot-/Installer-/Worker-/Pages-/Stable-Gates weiterhin zwingend.
+
 ## MID v0.9.85.447 · 2026-11-08 · Verbindlicher Source-Release-Einstieg und ressourcenschonendes Agenten-Routing
 
 - **Quelle:** released Stable .446 `5e25ab60b365950a54a7d113483e8bf519911113`; authorisierte neue Integration `chatgpt/v0.9.85.447-governance-702-687`. Original Governance-Drafts #702 HEAD `092371c27b3d852b1865e2a6d800a22a34c4d54b` und #687 HEAD `091fc4cce44d72b22651196674bb27cebd004a32`; nur SHA-verifizierte additiv kompatible Quellteile importiert.
