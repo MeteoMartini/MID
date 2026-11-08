@@ -3087,6 +3087,7 @@
     "src/midDesignWeFourteen.css",
     "src/midDesignWeSeven.css",
     "src/midPresentation.css",
+    "src/mountainSnowLineCombine.ts",
     "src/nativeSynopticFields.ts",
     "src/precipitationIntervals.ts",
     "src/precipitationPhaseColor.ts",
