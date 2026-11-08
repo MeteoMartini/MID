@@ -136,5 +136,108 @@ class RucEpsP3Timing(unittest.TestCase):
             self.assertFalse((Path(td)/'s').exists())
 
 
+    def test_actual_writer_candidate_shadow_exact_full_binary(self):
+        """Prospective one-call P3 substitution through actual production writer.
+
+        Original AST is never edited on disk, no DWD download, deploy, or
+        release. The already separately verified authentic GRIB A/B remains
+        in #709. This exercises both full binary outputs of the true writer.
+        """
+        import copy
+        import hashlib
+        from ruc_pack import EPS_SUMMARY_FIELDS, pack_cell_major, pack_eps_members
+        from ruc_p3_eps_quantile_candidate import candidate_eps_linear_quantiles
+
+        script = ROOT / 'build_ruc_bundle.py'
+        tree = ast.parse(script.read_text(encoding='utf-8'), filename=str(script))
+        eps = [n for n in tree.body if isinstance(n, ast.FunctionDef)
+               and n.name == 'eps_summary']
+        self.assertEqual(len(eps), 1, 'production summary changed: requalify P3')
+        self.assertEqual([a.arg for a in eps[0].args.args], ['interval'])
+        experimental = copy.deepcopy(eps[0])
+        targets = [n for n in ast.walk(experimental)
+                   if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+                   and isinstance(n.func.value, ast.Name)
+                   and n.func.value.id == 'np' and n.func.attr == 'nanquantile']
+        self.assertEqual(len(targets), 1, 'one-to-one candidate insertion no longer safe')
+        call = targets[0]
+        self.assertEqual(len(call.args), 2)
+        self.assertEqual(ast.unparse(call.args[0]), 'safe')
+        self.assertEqual(ast.literal_eval(call.args[1]), (0.25, 0.5, 0.75))
+        self.assertEqual(len(call.keywords), 1)
+        self.assertEqual(call.keywords[0].arg, 'axis')
+        self.assertEqual(ast.literal_eval(call.keywords[0].value), 1)
+        call.func = ast.Name(id='candidate_eps_linear_quantiles', ctx=ast.Load())
+        call.args = [call.args[0]]
+        call.keywords = []
+        ast.fix_missing_locations(experimental)
+
+        def compile_summary(node, injected=False):
+            space = {'np': np}
+            if injected:
+                space['candidate_eps_linear_quantiles'] = candidate_eps_linear_quantiles
+            exec(compile(ast.Module(body=[node], type_ignores=[]), str(script), 'exec'), space)
+            return space['eps_summary']
+
+        reference = compile_summary(eps[0])
+        shadow = compile_summary(experimental, injected=True)
+        original_writer = load_subject(pack_eps_members, reference,
+                                       pack_cell_major, EPS_SUMMARY_FIELDS)
+        shadow_writer = load_subject(pack_eps_members, shadow,
+                                     pack_cell_major, EPS_SUMMARY_FIELDS)
+        points = 4096 + 37  # real full production chunk plus non-full tail
+        cube = np.random.default_rng(20261108).gamma(
+            1.8, 3.1, size=(28, 20, points)).astype(np.float64)
+        cube[:, :, 0:2] = np.nan
+        cube[:, :, 2] = 0.0
+        cube[:, 0, 3] = 0.0
+        cube[11, 17, 4] = np.inf
+        cube[12, 9, 5] = -np.inf
+        cube[20, 4, 6] = 1e10  # preserve physical extremes before int16 clipping
+        cube[23, 13, 12] = np.nan
+        cube[27, 2, 4096] = 0.0
+        before = hashlib.sha256(cube.tobytes()).hexdigest()
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            ref_members, ref_summary = root/'ref-members.bin', root/'ref-summary.bin'
+            fast_members, fast_summary = root/'fast-members.bin', root/'fast-summary.bin'
+            stdout = []
+            for writer, members, summary in (
+                (original_writer, ref_members, ref_summary),
+                (shadow_writer, fast_members, fast_summary),
+            ):
+                with warnings.catch_warnings(), contextlib.redirect_stdout(io.StringIO()) as out:
+                    warnings.simplefilter('ignore', RuntimeWarning)
+                    writer(cube, members, summary, chunk_points=4096)
+                timing = [line for line in out.getvalue().splitlines()
+                          if line.startswith('RUC_P3_EPS_TIMINGS ')]
+                self.assertEqual(len(timing), 1)
+                evidence = json.loads(timing[0].split(' ', 1)[1])
+                self.assertEqual((evidence['chunks'], evidence['points'],
+                                  evidence['validTimes'], evidence['members']),
+                                 (2, points, 28, 20))
+                stdout.append(evidence)
+            ref_bm = ref_members.read_bytes()
+            ref_bs = ref_summary.read_bytes()
+            self.assertEqual(hashlib.sha256(ref_bm).digest(),
+                             hashlib.sha256(fast_members.read_bytes()).digest())
+            self.assertEqual(hashlib.sha256(ref_bs).digest(),
+                             hashlib.sha256(fast_summary.read_bytes()).digest())
+            self.assertEqual(ref_bm, fast_members.read_bytes())
+            self.assertEqual(ref_bs, fast_summary.read_bytes())
+            self.assertEqual(len(ref_bm), points * 28 * 20 * 2)
+            self.assertEqual(len(ref_bs), points * 28 * len(EPS_SUMMARY_FIELDS) * 2)
+            member_data = np.frombuffer(ref_bm, dtype='<u2').reshape(points, 28, 20)
+            summary_data = np.frombuffer(ref_bs, dtype='<i2').reshape(
+                points, 28, len(EPS_SUMMARY_FIELDS))
+            self.assertTrue(np.all(member_data[0] == 65535))
+            self.assertTrue(np.all(summary_data[0] == -32768))
+            self.assertTrue(np.all(member_data[2] == 0))
+            self.assertTrue(np.all(summary_data[2] == 0))
+            self.assertTrue(np.any(summary_data[6] != -32768))
+        self.assertEqual(hashlib.sha256(cube.tobytes()).hexdigest(), before)
+        self.assertEqual(len(stdout), 2)
+
+
 if __name__ == '__main__':
     unittest.main()
