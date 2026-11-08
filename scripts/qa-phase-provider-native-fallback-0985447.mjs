@@ -6,6 +6,16 @@ import assert from 'node:assert/strict';
 const start=Date.now(),limitMs=30000,deadline=AbortSignal.timeout(limitMs);
 const quarter=15*60*1000,rounded=Math.floor((start-15*60*1000)/quarter)*quarter;
 const time=d=>new Date(d).toISOString().slice(0,16);
+const hourMs=60*60*1000;
+const expectedFieldEnd=(intervalMinutes,targetMs)=>intervalMinutes===15?targetMs:Math.floor(targetMs/hourMs)*hourMs+hourMs;
+// Hourly precipitation is END-stamped: 17:15 and exactly 17:00 BOTH
+// select the 17:00-18:00 accumulation, never the prior 16:00-17:00.
+for(const [target,expected] of [
+ ['2026-11-07T17:15:00Z','2026-11-07T18:00:00Z'],
+ ['2026-11-07T17:00:00Z','2026-11-07T18:00:00Z'],
+ ['2026-11-07T17:45:00Z','2026-11-07T18:00:00Z']
+])assert.equal(expectedFieldEnd(60,Date.parse(target)),Date.parse(expected),'hourly fallback field must match production end-stamp contract');
+assert.equal(expectedFieldEnd(15,Date.parse('2026-11-07T17:15:00Z')),Date.parse('2026-11-07T17:15:00Z'));
 const cases=[
  {id:'d2-original-domain',model:'dwd_icon_d2_15min',lat:50.8,lon:7.1,interval:15,kind:'valid'},
  {id:'d2-north-within-envelope-but-nodata',model:'dwd_icon_d2_15min',lat:58.05,lon:7.1,interval:15,kind:'nodata'},
@@ -22,8 +32,10 @@ async function checkOne(t){
  url.searchParams.set('cell_selection','nearest');
  url.searchParams.set('precipitation_unit','mm');
  const fifteen=t.interval===15,group=fifteen?'minutely_15':'hourly';
- const startMs=fifteen?rounded-quarter:Math.floor(rounded/(60*60*1000))*(60*60*1000)-60*60*1000;
- const endMs=fifteen?rounded+quarter:Math.floor(rounded/(60*60*1000))*(60*60*1000)+60*60*1000;
+ const hourStart=Math.floor(rounded/hourMs)*hourMs;
+ const checkedStamp=expectedFieldEnd(t.interval,rounded);
+ const startMs=fifteen?rounded-quarter:hourStart-hourMs;
+ const endMs=fifteen?rounded+quarter:hourStart+hourMs;
  url.searchParams.set(group,'precipitation,rain,snowfall,weather_code');
  url.searchParams.set(fifteen?'start_minutely_15':'start_hour',time(startMs));
  url.searchParams.set(fifteen?'end_minutely_15':'end_hour',time(endMs));
@@ -49,12 +61,14 @@ async function checkOne(t){
  const stamps=values.time.map(t=>Date.parse(t+'Z'));
  assert.ok(stamps.every(Number.isFinite),t.id+': invalid validity stamps');
  for(let i=1;i<stamps.length;i++)assert.equal(stamps[i]-stamps[i-1],t.interval*60000,t.id+': invalid native interval');
- assert.ok(stamps.includes(fifteen?rounded:Math.floor(rounded/(60*60*1000))*60*60*1000),t.id+': no target-field validity');
+ assert.ok(stamps.includes(checkedStamp),t.id+': no matching target-field END validity');
+ assert.ok(fifteen?Math.abs(checkedStamp-rounded)<=90000:checkedStamp>rounded&&checkedStamp-rounded<=hourMs,
+  t.id+': invalid hourly accumulation END timestamp');
  for(const field of ['precipitation','rain','snowfall']){
   assert.equal(values[field]?.length,stamps.length,t.id+': '+field+' axis mismatch');
   for(const value of values[field])assert.ok(value===null||typeof value==='number'&&Number.isFinite(value)&&value>=0,t.id+': invalid '+field+' or Missing falsely set to 0');
  }
- const where=stamps.indexOf(fifteen?rounded:Math.floor(rounded/(60*60*1000))*60*60*1000);
+ const where=stamps.indexOf(checkedStamp);
  return{id:t.id,source:t.model,status:response.status,cellEvidence:'Open-Meteo provider output, NOT native DWD GRIB',intervalMinutes:t.interval,validTime:values.time[where]+'Z',precipitation:values.precipitation[where],rain:values.rain[where],snowfallCm:values.snowfall[where],weatherCode:values.weather_code?.[where]??null};
 }
 try{

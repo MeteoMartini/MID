@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime as dt
 import importlib.util
 import json
+import os
 import tempfile
 import contextlib
 import io
@@ -281,4 +282,44 @@ assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',bad,False,now=c
 assert not guard.may_defer_incomplete_eps('2026-08-30T01:00','2026-08-30T02:00',healthy,False,now=clock)
 assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,False,
                                          now=dt.datetime(2026,8,30,1,0,tzinfo=dt.timezone.utc))
+# The scheduler must NOT allow four running network threads to keep the
+# process alive after the 14s budget (SIGALRM only raises in main thread).
+# A separate artificial child deliberately starts a long-running member read;
+# this is a real subprocess termination test, never a DWD/API network probe.
+with tempfile.TemporaryDirectory() as tmp:
+    root=Path(tmp)
+    child_script=root/'stalled_eps_child.py'
+    child_pid=root/'child.pid'
+    child_script.write_text(
+        'import os,time\nfrom pathlib import Path\n'
+        'from concurrent.futures import ThreadPoolExecutor\n'
+        +f'Path({str(child_pid)!r}).write_text(str(os.getpid()))\n'
+        +'pool=ThreadPoolExecutor(max_workers=4)\n'
+        +'pool.submit(time.sleep,20)\n'
+        +'time.sleep(20)\n',encoding='utf-8')
+    started=time.monotonic()
+    with mock.patch.object(guard,'__file__',str(child_script)):
+        assert guard.bounded_eps_listing_complete(NEW,budget_seconds=.7) is None
+    elapsed=time.monotonic()-started
+    assert elapsed<3.0, f'child EPS threads outlived the scheduler limit: {elapsed:.3f}s'
+    assert child_pid.is_file(), 'stalled child never entered member-read section'
+    try:
+        os.kill(int(child_pid.read_text()),0)
+    except ProcessLookupError:
+        pass
+    else:
+        raise AssertionError('EPS child still alive after subprocess timeout')
+assert guard.bounded_eps_listing_complete('bad') is None
+# 239 min 55s initially looks fresh; after a 14s directory probe, it is
+# already 240 min 09s old and must fail OPEN rather than defer a rebuild.
+before=dt.datetime(2026,8,30,5,59,55,tzinfo=dt.timezone.utc)
+after=before+dt.timedelta(seconds=14)
+assert guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,False,now=before)
+assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,False,now=after)
+# Guard against reverting to the stale pre-probe clock at the call site.
+import inspect
+main_source=inspect.getsource(guard.main)
+assert 'listing=bounded_eps_listing_complete(dwd)' in main_source
+assert 'now=dt.datetime.now(dt.timezone.utc)' in main_source
+
 print('RUC EPS advertised-incomplete 20x28 directory guard: fail-open negatives and healthy-only wait PASS')

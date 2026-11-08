@@ -39,7 +39,7 @@ jobs:
           test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" = 'b6526e7c5c24035bd1a75b87b77e7bb8e821c334'
           test "$(node -p "require('./package.json').version")" = '0.9.85.446'
           cmp ci/github/workflows/mid-446-bundle-full-readonly-qa.yml .github/workflows/mid-446-bundle-full-readonly-qa.yml
-          test "$(git hash-object tools/ruc/check_ruc_schedule_guard.py)" = 'ca1626b2f8ca640ca48247c042a57e761f864860'
+          test "$(git hash-object tools/ruc/check_ruc_schedule_guard.py)" = '468aab684d176fb0807750e00f76cb05a2ab3cc7'
           test "$(git hash-object tools/ruc/ruc_p1_original_native_values_probe.py)" = '42fe76f61b085de842493eef37bbf7a340810840'
           test "$(git hash-object tools/ruc/d2_native_eight_bundle.py)" = 'e2af48f715c180684a4dba4d00409fd568bebd01'
           test "$(git hash-object tools/ruc/check_ruc_health.py)" = '99dbf889dc4a1c7a451400b6fd80c8b3e7319d1e'
@@ -70,6 +70,7 @@ jobs:
           node scripts/test-ruc-schedule-catchup-09745.mjs
           node scripts/test-ruc-scheduler-watchdog-09751.mjs
           node scripts/test-ruc-health-convergence-09744.mjs
+          node --check scripts/qa-phase-provider-native-fallback-0985447.mjs
       - name: New version mirrors and all canonical workflow sources must be clean
         shell: bash
         timeout-minutes: 7
