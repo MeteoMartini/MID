@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   prove:
-    if: "${{ github.event.head_commit.message == 'qa(ruc): once exact Copilot healthgate intake on stable .445' }}"
+    if: "${{ github.event.head_commit.message == 'qa(ruc): replay P4 04Z stale-Pages incident on stable .445' }}"
     name: Copilot-healthgate exact-source negative regression (NO PUBLISH)
     runs-on: ubuntu-24.04
     timeout-minutes: 18
@@ -42,8 +42,8 @@ jobs:
           git merge-base --is-ancestor "$current_stable" HEAD
           cmp ci/github/workflows/mid-ruc-healthgate-copilot-intake-qa.yml .github/workflows/mid-ruc-healthgate-copilot-intake-qa.yml
           test "$(git hash-object tools/ruc/check_ruc_health.py)" = "99dbf889dc4a1c7a451400b6fd80c8b3e7319d1e"
-          test "$(git hash-object tools/ruc/test_ruc_health_check.py)" = "a5841dd934a359a5f43e52f42951e79ef8f6a122"
-          test "$(git hash-object docs/implementation/MID_RUC_HEALTHGATE_HARDENING_0.9.85.445.md)" = "0daab10abbac680c402c7ad7ba6fcbe438730f9f"
+          test "$(git hash-object tools/ruc/test_ruc_health_check.py)" = "6db165695f9a5201d8a61c00ea940b33df572b88"
+          test "$(git hash-object docs/implementation/MID_RUC_HEALTHGATE_HARDENING_0.9.85.445.md)" = "8c36660b610434b7939279d74003ad0fc16224ed"
       - name: Python 3.12 for exact Healthgate negative tests
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:

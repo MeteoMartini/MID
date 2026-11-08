@@ -91,3 +91,11 @@ Merge, Deploy oder Stable-Promotion.
 
 **NO MERGE / NO DEPLOY / NO STABLE PROMOTION.** Unabhängige QA und eine
 etwaige selektive Integration bleiben dem autorisierten Integrator vorbehalten.
+
+### MID 18.2.79 · P4 Produktionsvorfall 08.11.2026 als reine negative QA (KEIN Release)
+
+Lesender Originalbefund: Stable/Main `b6526e7c5c24035bd1a75b87b77e7bb8e821c334`, veröffentlichte v0.9.85.445. Prod-Run [#42449728271](https://github.com/MeteoMartini/MID/actions/runs/42449728271) vom 08.11.2026: 12 echte öffentliche Pages-Probes 05:33:43–05:38:18 UTC lieferten trotz Pages-Deploy unverändert 03Z statt erwarteter 04Z; danach trat konservativer Rohdaten-Rollback ein. Folge-Run [#42451702171](https://github.com/MeteoMartini/MID/actions/runs/42451702171) bewies später 04Z komprimiert mit `fullCodec.verified=true`. Dieser Befund ist ein Pages-Pointer-/Konvergenzvorfall, **kein nachgewiesener Codec-Defekt oder gesicherter CDN/Origin-Ursachennachweis**.
+
+Eine zusätzliche **synthetische offline Regressionswiedergabe** prüft genau den 12×-veralteten Pointer mit aktivem Lossless-Profil, erwarteter Run-ID, URL-Parameter-Monotonie und begrenztem Probenjournal. Ein erkennbarer 03Z→04Z-Übergang in Versuch 9 wird positiv akzeptiert; falsches Profil sowie bereits vorauseilender 05Z-Pointer dagegen niemals. Header-Metadaten `Age=42`/`HIT` sind explizit **Testfixture, keine empirischen Produktionsheader**. Bei 12× 03Z muss Fehler `pages_convergence_timeout` bleiben; `codec_defect_proven` darf nicht erfunden werden. Kein URL-/Token-Leck, kein 13. Probeversuch.
+
+Dieser isolierte Test ändert **keine** Produktions-Publisher-, Rollback-, CAS-/Fencing-, Timeout-/Retry-, Worker- oder Pages-Logik und gewährt keine Freigabe. Das unverkürzte 168h-/Original-GRIB-/Client-/P95-Gate bleibt offen. Erst nach unabhängiger echter Deployment-/Pointer-/Header-/Race- und CAS-/Rohsnapshot-Validierung darf über eine alternative Rollbackentscheidung beraten werden. Ursprünglicher #698-Healthgate-Nachweis bleibt separate Quelle; #701 benötigt eine **selektive neue SHA-Übernahme plus vollständig neue kombinierte QA**, falls dieser Test später ins Sammelrelease aufgenommen wird.
