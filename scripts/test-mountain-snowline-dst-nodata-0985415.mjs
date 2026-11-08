@@ -84,4 +84,29 @@ const pkg=JSON.parse(await readFile('package.json','utf8')),base=JSON.parse(awai
 assert.equal(base.releaseVersion,pkg.version);
 const self='scripts/test-mountain-snowline-dst-nodata-0985415.mjs';
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])assert.ok(base[key].includes(self),self+' missing from '+key);
+// Source-native fixed-offset mountain point hour parser (separate from UTC Unix snowline).
+// A provider's fixed response offset must not be replaced with 0 or recomputed with IANA DST.
+const pointStart=mountain.indexOf('export function mountainTimeEpoch('),pointEnd=mountain.indexOf('function currentValue(',pointStart);
+assert.ok(pointStart>0&&pointEnd>pointStart,'Point-hour source parser and nearest-index helper missing');
+const pointContext={Date,Number,Math};vm.createContext(pointContext);
+vm.runInContext(stripTypeScriptTypes(mountain.slice(pointStart,pointEnd).replace('export function mountainTimeEpoch(','function mountainTimeEpoch(')),pointContext);
+const pointEpoch=(weather,value)=>{pointContext.weather=weather;pointContext.value=value;return vm.runInContext('mountainTimeEpoch(weather,value)',pointContext)};
+const pointWeather=(offset)=>({timezone:'Europe/Berlin',utc_offset_seconds:offset,hourly:{time:['2026-11-08T18:00'],temperature_2m:[12]}});
+assert.equal(pointEpoch(pointWeather(0),'2026-11-08T18:00'),Date.parse('2026-11-08T18:00:00Z'),'Explicit valid zero offset remains real zero');
+assert.equal(pointEpoch(pointWeather(3600),'2026-03-29T03:00'),Date.parse('2026-03-29T02:00:00Z'),'Open-Meteo raw fixed offset must not be reinterpreted with IANA DST');
+assert.equal(pointEpoch(pointWeather(7200),'2026-10-25T02:30'),Date.parse('2026-10-25T00:30:00Z'),'Explicit fixed summertime offset preserved');
+assert.equal(pointEpoch(pointWeather(3600),'2026-10-25T02:30'),Date.parse('2026-10-25T01:30:00Z'),'Explicit winter offset distinct across repeated local hour');
+assert.equal(pointEpoch(pointWeather(20700),'2028-02-29T12:00'),Date.parse('2028-02-29T06:15:00Z'),'Nepal quarter-hour offset and valid leap day');
+for(const bad of ['2026-02-29T12:00','2026-04-31T10:00','2026-13-01T00:00','2026-00-01T00:00','2026-11-08T24:00','2026-11-08T18:60','2026-11-08T18:00:60','2026-11-08T18:00Z','2026-11-08T18:00+01:00','2026-11-08T18:00broken','garbage',null,0]){
+ assert.ok(Number.isNaN(pointEpoch(pointWeather(3600),bad)),'Malformed/non-provider wall time cannot become plausible valid time: '+bad);
+}
+for(const badOffset of [undefined,null,'0',NaN,Infinity,-Infinity,18*3600+1]){
+ assert.ok(Number.isNaN(pointEpoch(pointWeather(badOffset),'2026-11-08T18:00')),'Unknown or out-of-range provider offset cannot become 0: '+badOffset);
+ pointContext.weather=pointWeather(badOffset);
+ assert.equal(vm.runInContext('nearestHourlyIndex(weather)',pointContext),-1,'Invalid provider axis cannot select first-hour fallback');
+}
+pointContext.weather=pointWeather(0);
+assert.equal(vm.runInContext('nearestHourlyIndex(weather)',pointContext),0,'Valid provider epoch still selects a real point');
+assert.ok(mountain.includes('if(!Number.isFinite(epoch)||epoch<=previous)return []'),'Daily summaries must reject invalid/repeated provider time axes rather than report plausible quantities');
+
 console.log('MID mountain ensemble: DST-independent UTC Unix seconds; missing uncertainty stays a visual/data gap, real zero remains zero.');
