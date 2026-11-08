@@ -252,6 +252,18 @@ export function snowLineEnsembleHorizon(maxDays:unknown):{forecast_hours:string}
 function snowLineNumber(value:unknown){if(value===null||value===undefined||value==='')return NaN;const parsed=Number(value);return Number.isFinite(parsed)?parsed:NaN}
 /** A missing spread component cannot be interpreted as physical certainty (sigma=0). */
 export function snowLinePhysicalSpread(t850:unknown,z850:unknown,snowSpread:unknown,freezeSpread:unknown,gradient:number){const temperature=snowLineNumber(t850),height=snowLineNumber(z850);if(Number.isFinite(temperature)&&temperature>=0&&Number.isFinite(height)&&height>=0&&Number.isFinite(gradient)&&gradient>0)return Math.sqrt((temperature/gradient)**2+height**2);for(const candidate of [snowSpread,freezeSpread]){const value=snowLineNumber(candidate);if(Number.isFinite(value)&&value>=0)return value;}return Number.NaN;}
+/** A 200-OK NoData response must not suppress narrower, potentially valid variable tiers. */
+export function snowLineHasUsableMean(hourly:unknown){
+ if(!hourly||typeof hourly!=='object')return false;
+ const row=hourly as Record<string,unknown>,times=row.time;
+ if(!Array.isArray(times)||!times.length)return false;
+ const at=(key:string,index:number)=>Array.isArray(row[key])?snowLineNumber((row[key] as unknown[])[index]):Number.NaN;
+ for(let i=0;i<times.length;i++){
+  const snow=at('snowfall_height',i),freezing=at('freezing_level_height',i),t850=at('temperature_850hPa',i),z850=at('geopotential_height_850hPa',i);
+  if(Number.isFinite(snow)||Number.isFinite(freezing)||(Number.isFinite(t850)&&Number.isFinite(z850)&&z850>-500&&z850<7000))return true;
+ }
+ return false;
+}
 function snowLineQuantile(values:number[],q:number){if(!values.length)return NaN;const sorted=[...values].sort((a,b)=>a-b),position=(sorted.length-1)*q,lower=Math.floor(position),upper=Math.ceil(position);if(lower===upper)return sorted[lower];const weight=position-lower;return sorted[lower]*(1-weight)+sorted[upper]*weight}
 async function fetchSnowLineMeanModel(loc:Location,definition:(typeof SNOWLINE_ENSEMBLE_MODELS)[number],signal?:AbortSignal):Promise<MountainSnowLineModel>{
  const variableTiers=[
@@ -268,6 +280,7 @@ async function fetchSnowLineMeanModel(loc:Location,definition:(typeof SNOWLINE_E
    if(!response.ok){lastError=`HTTP ${response.status}`;continue}
    const candidate=await response.json() as SnowLineMeanPayload;
    if(candidate.error||!candidate.hourly){lastError=candidate.reason||'ohne Ensemble-Mittel';continue}
+   if(!snowLineHasUsableMean(candidate.hourly)){lastError='Keine gültigen Schneefallgrenzenfelder';continue}
    payload=candidate;break;
   }catch(error){if(signal?.aborted)throw error;lastError=error instanceof Error?error.message:String(error)}
  }

@@ -26,6 +26,16 @@ for(const [days,key,value] of [[1.4,'forecast_hours','34'],[.5,'forecast_hours',
 for(const bad of [0,-1,'1.4',null,undefined,NaN,Infinity])assert.throws(()=>horizon(bad),/Ungültiger Ensemble-Prognosehorizont/);
 assert.ok(!mountain.includes('forecast_days:String(Math.min(14,definition.maxDays))'),'Fractional forecast_days must not return');
 assert.ok(mountain.includes('Object.entries(snowLineEnsembleHorizon(definition.maxDays))'),'Source request must use validated horizon');
+const usable=hourly=>vm.runInContext('snowLineHasUsableMean('+JSON.stringify(hourly)+')',context);
+const observedTime=[1794153600];
+assert.equal(usable({time:observedTime,temperature_850hPa:[null],geopotential_height_850hPa:[null],snowfall_height:[null],freezing_level_height:[null]}),false,'HTTP 200 with all-null fields is still NoData');
+assert.equal(usable({time:observedTime,snowfall_height:[0]}),true,'Genuine 0m snowline must count as valid data');
+assert.equal(usable({time:observedTime,freezing_level_height:[600]}),true,'Physical freezing-level fallback is valid');
+assert.equal(usable({time:observedTime,temperature_850hPa:[1],geopotential_height_850hPa:[1450]}),true,'Complete 850hPa means are usable');
+assert.equal(usable({time:observedTime,temperature_850hPa:[1],geopotential_height_850hPa:[null]}),false,'Incomplete 850hPa pair does not suppress fallback tiers');
+assert.equal(usable({time:observedTime,temperature_850hPa:[1],geopotential_height_850hPa:[8500]}),false,'Physically implausible pressure-level height cannot trigger usable field');
+assert.equal(usable({time:observedTime,snowfall_height:[null]}),false,'NoData must not be treated as numeric 0');
+assert.ok(mountain.includes('if(!snowLineHasUsableMean(candidate.hourly))'),'HTTP-200 all-null provider must continue fallback tiers');
 const spread=(t,z,s,f,g=.0065)=>vm.runInContext('snowLinePhysicalSpread('+[t,z,s,f,g].map(x=>x===undefined?'undefined':JSON.stringify(x)).join(',')+')',context);
 assert.equal(spread(0,0,null,null),0,'Genuine zero spread must remain zero');
 assert.equal(spread(null,0,125,null),125,'Native snow spread is a valid fallback');
