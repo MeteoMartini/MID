@@ -102,6 +102,28 @@ const mutations = [
 for (const [label, mut] of mutations) {
   ok(label, () => rejectRoute(label, { providers: [{ ...openrouter, ...mut }] }));
 }
+ok('Vercel included credits cannot be self-labeled as zero-priced direct model', () => {
+  rejectRoute('priced Sonar', {
+    providers: [{
+      ...openrouter,
+      id: 'vercel-perplexity-sonar',
+      model: 'perplexity/sonar',
+      accountTier: 'free',
+      priceInputUsd: 0,
+      priceOutputUsd: 0,
+      paidOveragePossible: false,
+      hardStopVerified: true,
+      credentialPresent: true
+    }]
+  });
+});
+ok('Vercel Sonar cannot bypass fixed direct provider allowlist with a forged execution plan', () => {
+  assert.throws(() => buildMidAiRequest({
+    plan: {...plan,provider:'vercel-perplexity-sonar',model:'perplexity/sonar'},
+    prompt: task.prompt, credential: 'FAKE_TEST_KEY'
+  }), err => err instanceof MidAiRouterBlocked &&
+    err.reason === 'UNSUPPORTED_EXECUTION_PLAN');
+});
 ok('routing returns no credential', () => {
   const text = JSON.stringify(plan);
   assert.equal(text.includes('API_KEY'), false);
