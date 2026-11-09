@@ -27,7 +27,7 @@ export type SpatialRangeProofResult=
 
 const MAX_RANGE=4*1024*1024,MAX_FILE=256*1024*1024;
 const utc=(s:unknown):number|null=>{
- if(typeof s!=='string'||!/^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d(?::\\d\\d)?Z$/.test(s))return null;
+ if(typeof s!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d)?Z$/.test(s))return null;
  const n=Date.parse(s);if(!Number.isFinite(n))return null;
  const canonical=new Date(n).toISOString();
  return s===canonical.slice(0,16)+'Z'||s===canonical.slice(0,19)+'Z'?n:null;
