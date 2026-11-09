@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const runner = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-0985452.mjs', import.meta.url));
 const ledgerRunner = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-ledger-0985452.mjs', import.meta.url));
+const vercelPolicyRunner = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-vercel-policy-0985452.mjs', import.meta.url));
 const githubReadbackRunner = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-github-readback-0985452.mjs', import.meta.url));
 const blendRunner = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-blend-0985452.mjs', import.meta.url));
 
@@ -47,6 +48,17 @@ describe('MID AI Router: separate direct Free-provider safety QA (issue #725)', 
     expect(r.error).toBeUndefined();
     expect(r.status, r.stderr || r.stdout).toBe(0);
     expect(r.stdout).toMatch(/MID AI Router GitHub fixed-origin readback QA OK; scenarios=14; no network or secrets\./);
+    expect(r.stderr).toBe('');
+  });
+
+  it('keeps Vercel $1 soft budgets and included credits non-executable without verified zero-cash controls', () => {
+    const r = spawnSync(process.execPath, [vercelPolicyRunner], {
+      cwd: root, timeout: 20_000, encoding: 'utf8', maxBuffer: 128 * 1024,
+      env: { PATH: process.env.PATH || '' }, stdio: ['ignore', 'pipe', 'pipe']
+    });
+    expect(r.error).toBeUndefined();
+    expect(r.status, r.stderr || r.stdout).toBe(0);
+    expect(r.stdout).toMatch(/MID AI Router Vercel soft-budget offline QA OK; scenarios=20; no live API used\./);
     expect(r.stderr).toBe('');
   });
 
