@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { createHash } from 'node:crypto';
+import {verifyMidAiExecutionGrant} from './mid-ai-router-approval.mjs';
 /**
  * MID AI Router (non-production QA candidate).
  * Server-side only. No automatic network, GitHub write, release, or paid fallback.
@@ -12,6 +13,16 @@ const MAX_PROMPT = 12000;
 const FRESH_MS = 6 * 60 * 60 * 1000;
 const taskFingerprint = (task) => createHash('sha256').update(JSON.stringify([
   task.requestId, task.kind, task.dataClass, task.expectedStableSha, task.prompt
+])).digest('hex');
+/* Proof hash never contains the credential. Signed grant binds exact source
+ * of trusted billing/privacy/model evidence as passed to the dispatcher.
+ * The attesting authority must verify its truth; a hash cannot do that. */
+const proofFingerprint = (p) => createHash('sha256').update(JSON.stringify([
+  p.id,p.model,p.enabled,p.accountTier,p.hardStopVerified,p.paidFallback,
+  p.paidOveragePossible,p.priceInputUsd,p.priceOutputUsd,p.freePriceProven,
+  p.credentialPresent,p.modelAvailabilityVerified,p.privacyApproved,
+  p.privacyCheckedAt,p.proofCheckedAt,p.remainingRequests,
+  [...p.capabilities].sort()
 ])).digest('hex');
 const PROVIDERS = Object.freeze({
   openrouter: Object.freeze({
@@ -97,7 +108,8 @@ export function planMidAiRoute({ task, snapshot, providers = [], now = Date.now(
   return Object.freeze({
     status: 'PLAN_ONLY', provider: p.id, model: p.model,
     requestId: task.requestId, taskKind: task.kind, expectedStableSha: snapshot.stableSha,
-    taskFingerprint: taskFingerprint(task), proofCheckedAt: p.proofCheckedAt
+    taskFingerprint: taskFingerprint(task), proofFingerprint: proofFingerprint(p),
+    proofCheckedAt: p.proofCheckedAt
   });
 }
 /** Build an endpoint-bound request without exposing credentials in logs. */
@@ -140,7 +152,7 @@ export function buildMidAiRequest({ plan, prompt, credential }) {
  */
 export async function executeMidAiRoute({
   plan, task, snapshot, providers, credential, fetchImpl, liveApproved = false,
-  durableClaim, now = Date.now()
+  durableClaim, approvalGrant, approvalSignature, now = Date.now()
 }) {
   if (liveApproved !== true) block('LIVE_NOT_APPROVED');
   if (typeof durableClaim !== 'function') block('DURABLE_IDEMPOTENCY_REQUIRED');
@@ -149,13 +161,19 @@ export async function executeMidAiRoute({
   if (!plan || plan.provider !== renewed.provider || plan.model !== renewed.model ||
       plan.requestId !== renewed.requestId ||
       plan.taskFingerprint !== renewed.taskFingerprint ||
+      plan.proofFingerprint !== renewed.proofFingerprint ||
       plan.proofCheckedAt !== renewed.proofCheckedAt ||
       plan.expectedStableSha !== renewed.expectedStableSha)
     block('PLAN_STALE');
   if (typeof fetchImpl !== 'function') block('TRANSPORT_NOT_AVAILABLE');
+  // Non-forgeable approval by a separately controlled private signing key.
+  // Cannot be replaced by liveApproved or self-reported account flags.
+  verifyMidAiExecutionGrant({grant: approvalGrant, signature: approvalSignature,
+    plan: renewed, task, snapshot, now});
+  // Reject missing credentials before burning the one-shot durable claim.
+  const req = buildMidAiRequest({ plan: renewed, prompt: task.prompt, credential });
   if (!await durableClaim(task.requestId, plan.provider, plan.model))
     block('DUPLICATE_REQUEST');
-  const req = buildMidAiRequest({ plan: renewed, prompt: task.prompt, credential });
   const response = await fetchImpl(req.url, {
     method: 'POST', headers: req.headers, body: req.body,
     signal: AbortSignal.timeout(15000), redirect: 'error'
