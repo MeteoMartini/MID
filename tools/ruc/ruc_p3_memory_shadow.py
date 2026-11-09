@@ -10,19 +10,19 @@ import ast
 from pathlib import Path
 import numpy as np
 
-OLD = '''  eps,members=collect_eps(eps_files,eps_times,point_count,expected_members=range(1,21))
-  eps_period_summary=rapid_extreme_eps_period_summary(eps,eps_times,a.run)
-  extreme=build_rapid_extreme_summary(base_grid[0],base_grid[1],a.run,rapid15_times,rapid_precip15,np.stack([rapid_cape[t] for t in rapid15_times]),np.stack([rapid_cin[t] for t in rapid15_times]),rapid_precip5,severe_for_extreme,deterministic_times=det_times,deterministic_fields=fields,specialist_fields=specialist_fields,phase_fields=phase_for_extreme,eps_period_summary=eps_period_summary)
+OLD = ''' eps,members=collect_eps(eps_files,eps_times,point_count,expected_members=range(1,21))
+ eps_period_summary=rapid_extreme_eps_period_summary(eps,eps_times,a.run)
+ extreme=build_rapid_extreme_summary(base_grid[0],base_grid[1],a.run,rapid15_times,rapid_precip15,np.stack([rapid_cape[t] for t in rapid15_times]),np.stack([rapid_cin[t] for t in rapid15_times]),rapid_precip5,severe_for_extreme,deterministic_times=det_times,deterministic_fields=fields,specialist_fields=specialist_fields,phase_fields=phase_for_extreme,eps_period_summary=eps_period_summary)
 '''
-NEW = '''  # QA-only: seal all deterministic/native-rapid regional fields before EPS20.
-  # The original builder's wire/output contract is checked independently.
-  extreme=build_rapid_extreme_summary(base_grid[0],base_grid[1],a.run,rapid15_times,rapid_precip15,np.stack([rapid_cape[t] for t in rapid15_times]),np.stack([rapid_cin[t] for t in rapid15_times]),rapid_precip5,severe_for_extreme,deterministic_times=det_times,deterministic_fields=fields,specialist_fields=specialist_fields,phase_fields=phase_for_extreme,eps_period_summary={})
-  # All these native arrays have been written to the sealed object files.
-  # Keep only tiny regional scalars while decoding the 20-member full cube.
-  del fields,specialist_fields,severe_fields,severe_for_extreme,phase_for_extreme,dbz_cube,rapid_precip15,rapid_precip5,rapid_cape,rapid_cin
-  eps,members=collect_eps(eps_files,eps_times,point_count,expected_members=range(1,21))
-  eps_period_summary=rapid_extreme_eps_period_summary(eps,eps_times,a.run)
-  _p3_qa_attach_eps(extreme,eps_period_summary,base_grid)
+NEW = ''' # QA-only: seal all deterministic/native-rapid regional fields before EPS20.
+ # The original builder's wire/output contract is checked independently.
+ extreme=build_rapid_extreme_summary(base_grid[0],base_grid[1],a.run,rapid15_times,rapid_precip15,np.stack([rapid_cape[t] for t in rapid15_times]),np.stack([rapid_cin[t] for t in rapid15_times]),rapid_precip5,severe_for_extreme,deterministic_times=det_times,deterministic_fields=fields,specialist_fields=specialist_fields,phase_fields=phase_for_extreme,eps_period_summary={})
+ # All these native arrays have been written to the sealed object files.
+ # Keep only tiny regional scalars while decoding the 20-member full cube.
+ del fields,specialist_fields,severe_fields,severe_for_extreme,phase_for_extreme,dbz_cube,rapid_precip15,rapid_precip5,rapid_cape,rapid_cin
+ eps,members=collect_eps(eps_files,eps_times,point_count,expected_members=range(1,21))
+ eps_period_summary=rapid_extreme_eps_period_summary(eps,eps_times,a.run)
+ _p3_qa_attach_eps(extreme,eps_period_summary,base_grid)
 '''
 EPS_SCALARS = (
     ('epsMemberCount', 'memberCount', 0),
