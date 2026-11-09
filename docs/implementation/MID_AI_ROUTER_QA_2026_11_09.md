@@ -50,6 +50,39 @@ rather than funnel all providers through Kilo. Available execution lanes:
 been contacted by this implementation.** Do not publish keys to the weather
 frontend, Pages, issues, comments, logs or AI prompts.
 
+### Local durable claim ledger — QA boundary only
+
+`scripts/mid-ai-router-ledger.mjs` adds a filesystem-backed, one-use
+`makeMidAiLocalDurableClaim({directory,plan})` callback for a *future*
+trusted local runner. The callback is compatible with `executeMidAiRoute`'s
+`durableClaim` interface but is **never automatically invoked** by MID.
+
+Properties:
+- Uses an OS-provisioned, existing **absolute** private (0700) directory
+  owned by the current user on a local POSIX filesystem. No default directory,
+  no implicit directory creation, no public frontend exposure.
+- An `O_CREAT | O_EXCL | O_NOFOLLOW` file reservation prevents two
+  local processes from claiming the same request ID. The file and parent
+  directory are synced. Records contain no prompt, API key or secret.
+- The key is the **request ID alone**, not a combination of provider/model:
+  a failed, timed-out or ambiguous call can never be retried automatically
+  via another free provider. Even an incomplete claim file stays reserved.
+- Stale, malformed, non-private or symlinked directories, non-POSIX systems,
+  mismatched plans and filesystem failures **block** execution.
+- **Not approved for NFS, ephemeral GitHub runners, distributed Workers,
+  multi-host execution or production.** The exclusivity guarantee may not
+  hold on network filesystems; the reference implementation does not
+  prove host/volume permanence, crash fsync guarantees of underlying media
+  or account spending constraints. A production shared store would need
+  its own atomically conditional write, durable readback and recovery audit.
+
+Offline QA: `node scripts/qa-mid-ai-router-ledger-0985452.mjs`.
+`tests/unit/mid-ai-router.test.ts` also runs this suite via the
+existing Node 22 Vitest pilot. The QA tests include 24 concurrent contenders,
+process-restart replay, symlink and permission checks, invalid request IDs,
+truncated/crashed reservation and metadata privacy. This is a safe local
+countermeasure, **not a completed production secret/dispatch host**.
+
 ## Router credentials (future controlled environment only)
 
 When independently checked and authorized, the backend will read:
@@ -114,6 +147,8 @@ durable duplicate prevention, direct model response, and Kilo exclusion.
 The `tests/unit/mid-ai-router.test.ts` Vitest test runs the full offline QA
 suite in real Node 22 on GitHub; the suite includes streaming response-size
 limits, malformed UTF-8 and invalid/missing HTTP body/length handling.
+The additional local filesystem-ledger QA covers the same-request provider
+switch, concurrent claims and replay after a fresh Node process.
 No real credentials or real network used; mocked HTTP is not a
 real provider, privacy, billing, RUC or iOS acceptance test.
 
