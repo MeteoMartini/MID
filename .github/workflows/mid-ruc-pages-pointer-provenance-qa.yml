@@ -1,0 +1,54 @@
+name: MID RUC Pages pointer provenance QA (PR read-only)
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'tools/ruc/check_ruc_health.py'
+      - 'tools/ruc/test_ruc_health_check.py'
+      - '.github/workflows/mid-ruc-pages-pointer-provenance-qa.yml'
+      - 'ci/github/workflows/mid-ruc-pages-pointer-provenance-qa.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-ruc-pages-pointer-provenance-qa-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  pointer-provenance-negative:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.draft == true &&
+      github.head_ref == 'chatgpt/v0.9.85.451-ruc-pages-pointer-readback-diagnostic-qa'
+    name: Exact-HEAD Pages/Worker/14h rollback regression (NO PUBLISH)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Fetch exact untrusted PR HEAD, never persist credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Verify immutable HEAD and canonical workflow mirror
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          cmp .github/workflows/mid-ruc-pages-pointer-provenance-qa.yml ci/github/workflows/mid-ruc-pages-pointer-provenance-qa.yml
+          test -f tools/ruc/check_ruc_health.py
+          test -f tools/ruc/test_ruc_health_check.py
+      - name: Prepare Python 3.12
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Run genuine health journal and strict fail-closed tests (offline)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile tools/ruc/check_ruc_health.py tools/ruc/test_ruc_health_check.py
+          python3 tools/ruc/test_ruc_health_check.py
+          echo 'Original PR HEAD offline replay only; 12/7 bounded retry and raw 14h rollback remain fail-closed.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'NO DWD/Pages/Worker production dispatch, deployment, first-publication proof, real iOS or production P95/SLO approval.' >> "$GITHUB_STEP_SUMMARY"
