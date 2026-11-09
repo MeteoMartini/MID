@@ -250,7 +250,7 @@ export function planOmRootIndexProbe(
   }
   return { ok: true, probe: {
     status: 'planned-root-index-only', url: frame.probe.url,
-    range: \`bytes=\${trailer.metadataOffset}-\${trailer.metadataOffset + trailer.metadataLength - 1}\`,
+    range: `bytes=${trailer.metadataOffset}-${trailer.metadataOffset + trailer.metadataLength - 1}`,
     metadataOffset: trailer.metadataOffset, metadataLength: trailer.metadataLength,
     totalBytes: trailer.totalBytes,
   } };
@@ -277,7 +277,7 @@ export async function inspectOmRootIndexResponse(
     return { ok: false, reason: 'invalid-root-index-plan' };
   }
   if (response.status !== 206) return { ok: false, reason: 'range-not-honored' };
-  const expectedRange = \`bytes \${probe.metadataOffset}-\${probe.metadataOffset + probe.metadataLength - 1}/\${probe.totalBytes}\`;
+  const expectedRange = `bytes ${probe.metadataOffset}-${probe.metadataOffset + probe.metadataLength - 1}/${probe.totalBytes}`;
   if (response.headers.get('content-range') !== expectedRange) {
     return { ok: false, reason: 'invalid-or-unexposed-content-range' };
   }
