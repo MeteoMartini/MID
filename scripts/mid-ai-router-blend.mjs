@@ -19,7 +19,7 @@ export const MID_AI_RESEARCHED_CANDIDATES=Object.freeze([
   Object.freeze({id:'cohere-trial',status:'EVALUATION_ONLY_NOT_PRODUCTION',costType:'free-trial-key'}),
   Object.freeze({id:'sambanova',status:'CANDIDATE_NO_KEY_OR_ATTESTER',costType:'free-account-rate-limited'}),
   Object.freeze({id:'cloudflare-workers-ai',status:'CANDIDATE_FREE_PLAN_ONLY',costType:'10000-free-neurons-per-day'}),
-  Object.freeze({id:'vercel-perplexity-sonar',status:'CANDIDATE_ACCOUNT_BILLING_PROOF_REQUIRED',costType:'included-monthly-5-usd-credits-not-zero-price'}),
+  Object.freeze({id:'vercel-perplexity-sonar',status:'CANDIDATE_ACCOUNT_BILLING_PROOF_REQUIRED',costType:'included-monthly-5-usd-credits-not-zero-price',cashRisk:'PAYMENT_METHOD_REQUIRED_SOFT_BUDGET',directExecutionAllowed:false}),
   Object.freeze({id:'huggingface-inference',status:'LOW_PRIORITY_CREDIT_GRANT',costType:'included-monthly-0.10-usd-credits'}),
   Object.freeze({id:'perplexity-direct',status:'BLOCKED_NO_FREE_API_CREDITS',costType:'paid-api'}),
   Object.freeze({id:'github-models',status:'RETIRED_2026_07_30',costType:'unavailable'}),
