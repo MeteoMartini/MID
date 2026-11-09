@@ -191,3 +191,135 @@ export async function verifyOmTrailerResponse(
     metadataOffset: Number(rootOffset), metadataLength: Number(rootLength),
     pixelValidated: false };
 }
+
+/**
+ * The root node is an index of child-variable metadata positions. Inspect
+ * structure only: an indexed child is NOT evidence of a usable weather field.
+ * No GPL reader, compression algorithm, grid decoding or network call.
+ */
+export interface OmRootIndexProbe {
+  readonly status: 'planned-root-index-only';
+  readonly url: string;
+  readonly range: string;
+  readonly metadataOffset: number;
+  readonly metadataLength: number;
+  readonly totalBytes: number;
+}
+
+export type OmRootIndexPlan =
+  | { readonly ok: true; readonly probe: OmRootIndexProbe }
+  | { readonly ok: false; readonly reason: string };
+
+export interface OmChildMetadataSpan {
+  readonly offset: number;
+  readonly length: number;
+}
+
+export type OmRootIndexResult =
+  | {
+      readonly ok: true;
+      readonly status: 'root-index-verified';
+      readonly childCount: number;
+      readonly children: readonly OmChildMetadataSpan[];
+      readonly pixelValidated: false;
+    }
+  | { readonly ok: false; readonly reason: string };
+
+const MAX_ROOT_CHILDREN = 4096;
+
+/**
+ * Only consume a successfully verified root pointer and an independently
+ * qualified model/run/valid-time. The source URL is never user supplied.
+ */
+export function planOmRootIndexProbe(
+  candidate: FrameResult,
+  trailer: OmTrailerResult,
+): OmRootIndexPlan {
+  const frame = planOmTrailerProbe(candidate);
+  if (!frame.ok) return frame;
+  if (!trailer.ok || trailer.status !== 'metadata-position-verified' ||
+      !Number.isSafeInteger(trailer.metadataOffset) ||
+      !Number.isSafeInteger(trailer.metadataLength) ||
+      !Number.isSafeInteger(trailer.totalBytes) ||
+      trailer.metadataOffset < 3 ||
+      trailer.metadataLength < 8 ||
+      trailer.metadataLength > MAX_ROOT_METADATA_BYTES ||
+      trailer.totalBytes > MAX_OMFILE_BYTES ||
+      trailer.metadataOffset + trailer.metadataLength !== trailer.totalBytes - TRAILER_BYTES) {
+    return { ok: false, reason: 'unverified-root-metadata-pointer' };
+  }
+  return { ok: true, probe: {
+    status: 'planned-root-index-only', url: frame.probe.url,
+    range: \`bytes=\${trailer.metadataOffset}-\${trailer.metadataOffset + trailer.metadataLength - 1}\`,
+    metadataOffset: trailer.metadataOffset, metadataLength: trailer.metadataLength,
+    totalBytes: trailer.totalBytes,
+  } };
+}
+
+/**
+ * Inspect the simple OM-v3 root-container layout documented by Open-Meteo:
+ * 8-byte node preamble, then N little-endian u64 child lengths and N u64
+ * child offsets. Root children are metadata references, not decoded values.
+ * We deliberately reject array-valued roots (different layout).
+ */
+export async function inspectOmRootIndexResponse(
+  response: Pick<Response, 'status' | 'headers' | 'arrayBuffer'>,
+  probe: OmRootIndexProbe,
+): Promise<OmRootIndexResult> {
+  if (probe.status !== 'planned-root-index-only' ||
+      !Number.isSafeInteger(probe.metadataOffset) ||
+      !Number.isSafeInteger(probe.metadataLength) ||
+      !Number.isSafeInteger(probe.totalBytes) ||
+      probe.metadataOffset < 3 || probe.metadataLength < 8 ||
+      probe.metadataLength > MAX_ROOT_METADATA_BYTES ||
+      probe.metadataOffset + probe.metadataLength !== probe.totalBytes - TRAILER_BYTES ||
+      probe.totalBytes > MAX_OMFILE_BYTES) {
+    return { ok: false, reason: 'invalid-root-index-plan' };
+  }
+  if (response.status !== 206) return { ok: false, reason: 'range-not-honored' };
+  const expectedRange = \`bytes \${probe.metadataOffset}-\${probe.metadataOffset + probe.metadataLength - 1}/\${probe.totalBytes}\`;
+  if (response.headers.get('content-range') !== expectedRange) {
+    return { ok: false, reason: 'invalid-or-unexposed-content-range' };
+  }
+  if (response.headers.get('content-length') !== String(probe.metadataLength)) {
+    return { ok: false, reason: 'unbounded-or-incomplete-body' };
+  }
+  if (response.headers.get('content-type')?.toLowerCase().split(';')[0].trim() !== 'application/octet-stream') {
+    return { ok: false, reason: 'unexpected-content-type' };
+  }
+  let bytes: Uint8Array;
+  try { bytes = new Uint8Array(await response.arrayBuffer()); }
+  catch { return { ok: false, reason: 'range-read-failed' }; }
+  if (bytes.byteLength !== probe.metadataLength) return { ok: false, reason: 'wrong-range-length' };
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  // OM data-type 0 is a container, not an array-valued root node.
+  if (view.getUint8(0) !== 0) return { ok: false, reason: 'unsupported-root-node-type' };
+  const nameBytes = view.getUint16(2, true);
+  const childrenCount = view.getUint32(4, true);
+  if (!childrenCount || childrenCount > MAX_ROOT_CHILDREN ||
+      8 + 16 * childrenCount + nameBytes !== bytes.byteLength) {
+    return { ok: false, reason: 'invalid-root-index-layout' };
+  }
+
+  const children: OmChildMetadataSpan[] = [];
+  for (let i = 0; i < childrenCount; i++) {
+    const length = view.getBigUint64(8 + i * 8, true);
+    const offset = view.getBigUint64(8 + childrenCount * 8 + i * 8, true);
+    // All nested variable descriptions must be fully before the root.
+    if (offset < 3n || length < 8n ||
+        offset + length > BigInt(probe.metadataOffset)) {
+      return { ok: false, reason: 'invalid-child-metadata-bounds' };
+    }
+    children.push({ offset: Number(offset), length: Number(length) });
+  }
+  // An overlapping child pointer could make two named fields refer to
+  // ambiguous metadata; be conservative until an independent reader agrees.
+  const sorted = [...children].sort((a, b) => a.offset - b.offset);
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i - 1].offset + sorted[i - 1].length > sorted[i].offset) {
+      return { ok: false, reason: 'overlapping-child-metadata' };
+    }
+  }
+  return { ok: true, status: 'root-index-verified',
+    childCount: childrenCount, children, pixelValidated: false };
+}
