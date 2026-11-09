@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 /** MID AI Router offline contract/negative tests. No network, no credentials. */
 import assert from 'node:assert/strict';
+import {generateKeyPairSync, sign} from 'node:crypto';
+import {midAiGrantSigningBytes} from './mid-ai-router-approval.mjs';
 import {
   planMidAiRoute, buildMidAiRequest, executeMidAiRoute,
   MidAiRouterBlocked, MID_AI_PROVIDER_ENV
 } from './mid-ai-router.mjs';
 
-const now = Date.parse('2026-11-09T10:00:00Z');
+const now = Date.now();
 const sha = 'a'.repeat(40);
 const snapshot = { stableSha: sha, mainSha: sha, version: '0.9.85.451' };
 const task = {
@@ -77,7 +79,7 @@ const mutations = [
   ['unverified model availability', { modelAvailabilityVerified: false }],
   ['missing privacy approval', { privacyApproved: undefined }],
   ['declined privacy approval', { privacyApproved: false }],
-  ['stale privacy proof', { privacyCheckedAt: '2026-11-08T01:00:00Z' }],
+  ['stale privacy proof', { privacyCheckedAt: new Date(now - 7 * 3600000).toISOString() }],
   ['paid tier', { accountTier: 'developer' }],
   ['soft limit', { hardStopVerified: false }],
   ['unknown limit', { hardStopVerified: undefined }],
@@ -93,7 +95,7 @@ const mutations = [
   ['unknown quota', { remainingRequests: undefined }],
   ['not enabled', { enabled: false }],
   ['stale proof', { proofCheckedAt: '2026-11-08T01:00:00Z' }],
-  ['future proof', { proofCheckedAt: '2026-11-10T11:00:00Z' }],
+  ['future proof', { proofCheckedAt: new Date(now + 7 * 3600000).toISOString() }],
   ['unapproved paid OpenRouter model', { model: 'openai/gpt-4.1' }],
   ['openrouter auto-model selector not permitted', { model: 'openrouter/free' }]
 ];
@@ -135,6 +137,28 @@ ok('only server-side env names are exposed', () => {
   assert.deepEqual(Object.keys(MID_AI_PROVIDER_ENV).sort(), ['gemini', 'groq', 'openrouter']);
   assert.equal(MID_AI_PROVIDER_ENV.groq, 'GROQ_API_KEY');
 });
+// Test-only ephemeral signer; production must use a separately controlled
+// private signing authority. The private key is never stored or logged.
+const {privateKey,publicKey} = generateKeyPairSync('ed25519');
+process.env.MID_AI_ROUTER_APPROVAL_KEY_ID = 'mid-qa-approval-key';
+process.env.MID_AI_ROUTER_APPROVAL_PUBLIC_KEY_PEM =
+  publicKey.export({format:'pem',type:'spki'}).toString();
+function signedFor(p=plan,changes={},signingKey=privateKey){
+  const grant={
+    schema:'mid.ai-router.execution-grant.v1',
+    audience:'mid-ai-router-direct-free-review-v1',
+    keyId:'mid-qa-approval-key',
+    requestId:p.requestId,taskKind:p.taskKind,
+    taskFingerprint:p.taskFingerprint,proofFingerprint:p.proofFingerprint,
+    provider:p.provider,model:p.model,expectedStableSha:p.expectedStableSha,
+    version:snapshot.version,dataClass:'public-redacted',maxCostUsd:0,
+    issuedAt:new Date(Date.now()-10000).toISOString(),
+    expiresAt:new Date(Date.now()+90000).toISOString(),
+    ...changes
+  };
+  return {approvalGrant:grant,
+    approvalSignature:sign(null,midAiGrantSigningBytes(grant),signingKey).toString('base64url')};
+}
 const durableOk = async () => true;
 const textResponse = (text, reportedLength = null, chunkSize = 7) => {
   const bytes = new TextEncoder().encode(text);
@@ -156,7 +180,7 @@ async function rejected(label, args, expected) {
   assertions++;
 }
 const args = {
-  ...setup(), plan, credential: 'FAKE_TEST_SECRET',
+  ...setup(), plan, ...signedFor(plan), credential: 'FAKE_TEST_SECRET',
   liveApproved: true, durableClaim: durableOk,
   fetchImpl: async () => goodResponse({ choices: [{ message: { content: 'Untrusted QA result.' } }] })
 };
@@ -171,6 +195,59 @@ await rejected('stale plan', {
   ...args, plan: { ...plan, model: 'openai/changed' }
 }, 'PLAN_STALE');
 await rejected('prompt changed after planning', { ...args, task: { ...task, prompt: 'Unapproved different payload' } }, 'PLAN_STALE');
+
+await rejected('missing signed approval', {
+  ...args, approvalGrant: undefined
+}, 'INVALID_GRANT_SCHEMA');
+await rejected('bad signature', {
+  ...args, approvalSignature: 'x'.repeat(86)
+}, 'GRANT_SIGNATURE_REJECTED');
+await rejected('wrong signing key', {
+  ...args, ...signedFor(plan,{},generateKeyPairSync('ed25519').privateKey)
+}, 'GRANT_SIGNATURE_REJECTED');
+await rejected('free cost tampering after signature', {
+  ...args, approvalGrant: {...args.approvalGrant,maxCostUsd:1}
+}, 'INVALID_GRANT_POLICY');
+await rejected('wrong provider in grant', {
+  ...args, approvalGrant: {...args.approvalGrant,provider:'gemini'}
+}, 'GRANT_BINDING_MISMATCH');
+await rejected('wrong proof hash in grant', {
+  ...args, approvalGrant: {...args.approvalGrant,proofFingerprint:'f'.repeat(64)}
+}, 'GRANT_BINDING_MISMATCH');
+await rejected('expired signed approval', {
+  ...args, ...signedFor(plan,{
+    issuedAt:new Date(now-120000).toISOString(),
+    expiresAt:new Date(now-1000).toISOString()
+  })
+}, 'GRANT_EXPIRED_OR_INVALID_TIME');
+await rejected('long validity signed approval', {
+  ...args, ...signedFor(plan,{
+    issuedAt:new Date(now-20000).toISOString(),
+    expiresAt:new Date(now+3600000).toISOString()
+  })
+}, 'GRANT_EXPIRED_OR_INVALID_TIME');
+await rejected('changed provider price after planning', {
+  ...args, providers:[{...groq,remainingRequests:1}]
+}, 'PLAN_STALE');
+await rejected('changed privacy proof after planning', {
+  ...args, providers:[{...groq,privacyCheckedAt:new Date(now-60000).toISOString()}]
+}, 'PLAN_STALE');
+{
+  const saved=process.env.MID_AI_ROUTER_APPROVAL_PUBLIC_KEY_PEM;
+  delete process.env.MID_AI_ROUTER_APPROVAL_PUBLIC_KEY_PEM;
+  try{
+    await rejected('unconfigured approval trust anchor',args,'APPROVER_NOT_CONFIGURED');
+  }finally{process.env.MID_AI_ROUTER_APPROVAL_PUBLIC_KEY_PEM=saved;}
+}
+{
+  let claims=0,requests=0;
+  await rejected('bad grant never reserves a request', {
+    ...args,approvalSignature:'x'.repeat(86),
+    durableClaim:async()=>{claims++;return true;},
+    fetchImpl:async()=>{requests++;return goodResponse({});}
+  },'GRANT_SIGNATURE_REJECTED');
+  assert.equal(claims,0);assert.equal(requests,0);
+}
 await rejected('429 no paid retries', { ...args, fetchImpl: async () => ({ ok: false, status: 429 }) },
   'PROVIDER_HTTP_ERROR_429');
 await rejected('malformed JSON', {
@@ -216,7 +293,7 @@ assert.ok(!JSON.stringify(result).includes('FAKE_TEST_SECRET'));
 assertions++;
 const gp = planMidAiRoute(setup({ providers: [gemini] }));
 const gr = await executeMidAiRoute({
-  ...args, plan: gp, providers: [gemini],
+  ...args, plan: gp, providers: [gemini], ...signedFor(gp),
   fetchImpl: async () => goodResponse({
     candidates: [{ content: { parts: [{ text: 'Review A' }, { text: 'Review B' }] } }]
   })
