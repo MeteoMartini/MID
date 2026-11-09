@@ -82,14 +82,16 @@ export function startMidPosthogTelemetry(){
  window.addEventListener('mid:runtime-healthy',onRuntimeHealthy,{once:true});
 }
 export function setMidPosthogConsent(granted:boolean){
+ // Fail closed immediately, even if the browser refuses to persist revocation.
+ if(!granted){
+  for(const controller of pending)controller.abort();
+  pending.clear();distinctId='';
+ }
  try{
   if(granted)localStorage.setItem(MID_POSTHOG_CONSENT_KEY,'1');
   else localStorage.removeItem(MID_POSTHOG_CONSENT_KEY);
  }catch{return false}
- if(!granted){
-  for(const controller of pending)controller.abort();
-  pending.clear();distinctId='';
- }else{
+ if(granted){
   if(installed&&!distinctId)distinctId=crypto.randomUUID();
   startMidPosthogTelemetry();
  }
