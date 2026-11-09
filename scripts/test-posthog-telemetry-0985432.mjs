@@ -14,10 +14,10 @@ const [source,app,main]=await Promise.all([
 assert.match(app,/Freiwillige MID-Diagnose \(PostHog\)/);
 assert.match(app,/data-mid-telemetry-section=\{tab\.id\}/);
 assert.match(app,/setMidPosthogConsent\(next\)/);
-assert.doesNotMatch(app,/checked=\\{posthogConsent\\}\\s+disabled=/,'iPhone/native UI must not disable consent when transport is unavailable');
-assert.match(app,/setPosthogConsentError\\('Die Auswahl konnte auf diesem Gerät nicht gespeichert werden/,'storage denial must be explained to the user');
+assert.ok(!app.includes('checked={posthogConsent} disabled='),'iPhone/native UI must not disable consent when transport is unavailable');
+assert.ok(app.includes("setPosthogConsentError('Die Auswahl konnte auf diesem Gerät nicht gespeichert werden"),'storage denial must be explained to the user');
 assert.match(app,/posthogConsentError&&<small role="alert">/,'storage denial must be announced beside the checkbox');
-assert.match(app,/checked=\\{posthogConsent\\} style=\\{\\{width:22,height:22,flexShrink:0\\}\\}/,'touch checkbox should not depend on a tiny native hit target');
+assert.ok(app.includes('checked={posthogConsent} style={{width:22,height:22,flexShrink:0}}'),'touch checkbox should not depend on a tiny native hit target');
 
 assert.match(main,/startMidPosthogTelemetry\(\)/);
 assert.doesNotMatch(source,/\$current_url|\$referrer|identify\(|session_recording|autocapture:/);
@@ -25,7 +25,7 @@ assert.match(source,/\$process_person_profile:false/);
 assert.match(source,/MAX_EVENTS_PER_PAGE=30/);
 assert.match(source,/isMidNativeRuntime\(\)/);
 
-function harness({consent=false,token='phc_test_project',host='https://eu.i.posthog.com',prod=true,native=false}={}){
+function harness({consent=false,token='phc_test_project',host='https://eu.i.posthog.com',prod=true,native=false,storageBlocked=false}={}){
  const requests=[];
  const storage=new Map(consent?[['mid:posthog-diagnostics-consent:v1','1']]:[]);
  const listeners=new Map();
@@ -43,8 +43,8 @@ function harness({consent=false,token='phc_test_project',host='https://eu.i.post
  const document={addEventListener:(n,fn)=>add(documentListeners,n,fn)};
  const localStorage={
   getItem:k=>storage.get(k)??null,
-  setItem:(k,v)=>{storage.set(k,String(v))},
-  removeItem:k=>storage.delete(k),
+  setItem:(k,v)=>{if(storageBlocked)throw new Error('local storage blocked');storage.set(k,String(v))},
+  removeItem:k=>{if(storageBlocked)throw new Error('local storage blocked');storage.delete(k)},
  };
  let prepared=source.replace(/^import [^\n]*\n/gm,'').replace(/^export /gm,'');
  prepared=prepared
@@ -102,6 +102,18 @@ const bounded=harness({consent:true});bounded.startMidPosthogTelemetry();
 for(let i=0;i<100;i++)bounded.captureNav('today');
 assert.equal(bounded.requests.length,30);
 console.log('MID opt-in PostHog: 17 assertions + event-budget/privacy testgruppen PASS');
+
+// iOS/native must be able to store a visible opt-in without enabling network capture.
+const nativeChoice=harness({native:true});
+assert.equal(nativeChoice.setMidPosthogConsent(true),true);
+assert.equal(nativeChoice.isMidPosthogConsentGranted(),true);
+nativeChoice.startMidPosthogTelemetry();
+assert.equal(nativeChoice.requests.length,0);
+// Some mobile browser/storage contexts refuse writes: UI must receive false rather than claim success.
+const deniedChoice=harness({storageBlocked:true});
+assert.equal(deniedChoice.setMidPosthogConsent(true),false);
+assert.equal(deniedChoice.isMidPosthogConsentGranted(),false);
+assert.equal(deniedChoice.requests.length,0);
 
 // A stored opt-in without a configured transport must remain network silent.
 for(const options of [{token:''},{native:true},{host:'https://us.i.posthog.com'}]){const blocked=harness(options);assert.equal(blocked.setMidPosthogConsent(true),true);blocked.startMidPosthogTelemetry();blocked.captureNav('current');assert.equal(blocked.requests.length,0);blocked.setMidPosthogConsent(false);assert.equal(blocked.requests.length,0)}
