@@ -162,10 +162,36 @@ export async function executeMidAiRoute({
   });
   if (!response || response.ok !== true)
     block('PROVIDER_HTTP_ERROR_' + (Number.isInteger(response?.status) ? response.status : 'UNKNOWN'));
-  const bytes = Number(response.headers?.get?.('content-length'));
-  if (Number.isFinite(bytes) && bytes > 65536) block('RESPONSE_TOO_LARGE');
-  const raw = await response.text();
-  if (raw.length > 65536) block('RESPONSE_TOO_LARGE');
+  // Streaming cap: response.text() would allocate the entire untrusted body
+  // before checking length, and Content-Length can be missing or forged.
+  const headerLength = response.headers?.get?.('content-length');
+  if (headerLength != null && headerLength !== '') {
+    const declared = Number(headerLength);
+    if (!Number.isSafeInteger(declared) || declared < 0) block('INVALID_RESPONSE_LENGTH');
+    if (declared > 65536) block('RESPONSE_TOO_LARGE');
+  }
+  if (!response.body || typeof response.body.getReader !== 'function')
+    block('UNSTREAMED_RESPONSE');
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8', { fatal: true });
+  let totalBytes = 0, raw = '';
+  try {
+    while (true) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      if (!(chunk.value instanceof Uint8Array)) block('INVALID_RESPONSE_CHUNK');
+      totalBytes += chunk.value.byteLength;
+      if (totalBytes > 65536) block('RESPONSE_TOO_LARGE');
+      raw += decoder.decode(chunk.value, { stream: true });
+    }
+    raw += decoder.decode();
+  } catch (error) {
+    try { await reader.cancel(); } catch { /* transport already closed */ }
+    if (error instanceof MidAiRouterBlocked) throw error;
+    block('INVALID_RESPONSE_STREAM');
+  } finally {
+    reader.releaseLock();
+  }
   let data;
   try { data = JSON.parse(raw); } catch { block('INVALID_PROVIDER_RESPONSE'); }
   const answer = plan.provider === 'gemini' ?
