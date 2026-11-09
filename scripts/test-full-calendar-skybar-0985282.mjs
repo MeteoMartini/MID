@@ -53,5 +53,46 @@ try{
  assert.ok(repeatedX[1]>repeatedX[0],'Repeated local 02:00 slots remain in chronological order');
  assert.ok(Math.abs(repeatedX[1]-repeatedX[0]-4)<.1,'Autumn DST width uses 25 real hours');
  assert.equal(daySkybarUnavailableRanges([{epoch:spring.startEpoch+m}],spring).reduce((sum,gap)=>sum+gap.end-gap.start,0)/m,22);
+
+ // Runtime schema hardening: a missing epoch cannot become Unix 1970 or a
+ // spurious square on a date whose real calendar window is otherwise known.
+ for(const invalid of [null,undefined,'',' ',false,true,NaN,Infinity,-Infinity,[],{}]){
+  const sample=[{epoch:invalid},{epoch:normal.startEpoch+14*m}];
+  const starts=daySkybarTimelinePositions(sample,0,0,100,normal),ends=daySkybarHourEndPositions(sample,normal,0,0,100);
+  assert.ok(Number.isNaN(starts[0]),'Missing first epoch must not paint: '+String(invalid));
+  assert.ok(Number.isNaN(ends[0]),'Missing first epoch has no forward accumulation: '+String(invalid));
+  assert.ok(Math.abs(starts[1]-14/24*100)<1e-8,'Real 14h point keeps its calendar position despite missing neighboring hour');
+  assert.ok(Math.abs(ends[1]-15/24*100)<1e-8);
+  assert.deepEqual(daySkybarUnavailableRanges(sample,normal),daySkybarUnavailableRanges(sample.slice(1),normal),'Missing time cannot close a genuine data gap');
+ }
+ const validEpochZero={startEpoch:0,endEpoch:24*m};
+ assert.equal(daySkybarTimelinePositions([{epoch:0}],0,0,100,validEpochZero)[0],0,'A true numeric Unix 0 remains valid for its own calendar day');
+ assert.equal(daySkybarHourEndPositions([{epoch:0}],validEpochZero,0,0,100)[0],100/24,'A real Unix 0 is not missing');
+ for(const dst of [spring,fall]){
+  const sample=[{epoch:undefined},{epoch:dst.startEpoch+2*m},{epoch:dst.startEpoch+3*m}];
+  const start=daySkybarTimelinePositions(sample,0,0,100,dst);
+  assert.ok(Number.isNaN(start[0])&&start[2]>start[1],'Missing time must not collapse real 23/25h DST hours');
+  assert.equal(daySkybarUnavailableRanges(sample,dst)[0].end,dst.startEpoch+2*m);
+ }
+ // Use the actual SVG renderer and actual meteorological band renderer, not
+ // a reimplemented approximation, to check no index fallback paints NoData.
+ await build({stdin:{contents:"export{SkyBarHourCellsSvg}from'./src/SkyBarSegments';export{detailSkyBarSegments,detailSkyBarSolarSegments}from'./src/detailSkyBar';export{renderToStaticMarkup}from'react-dom/server';export{createElement}from'react';",resolveDir:process.cwd()},bundle:true,platform:'node',format:'cjs',outfile:join(dir,'skybar-render.cjs'),jsx:'automatic',logLevel:'silent'});
+ const {SkyBarHourCellsSvg,detailSkyBarSegments,detailSkyBarSolarSegments,renderToStaticMarkup,createElement}=await import(pathToFileURL(join(dir,'skybar-render.cjs')));
+ const originalDayHour=normal.startEpoch+14*m;
+ const makeHour=(epoch)=>({epoch,isDay:true,cloud:70,sunshineDuration:null,precipitation:1,rain:1,showers:0,snowfall:0,code:61,precipitationIntervalStartEpoch:epoch,precipitationIntervalEndEpoch:epoch+m});
+ const rows=[makeHour(null),makeHour(originalDayHour)],points=daySkybarTimelinePositions(rows,0,0,100,normal),endPoints=daySkybarHourEndPositions(rows,normal,0,0,100);
+ const painted=detailSkyBarSegments(rows,0,0,100,8,points,endPoints);
+ assert.equal(painted.filter(x=>x.layer==='base').length,1,'No cloud paint at invalid timestamp');
+ assert.equal(painted.filter(x=>x.layer==='precip').length,1,'No false precipitation at invalid timestamp');
+ const solarPaint=detailSkyBarSolarSegments(rows,0,0,100,8,points,[{startEpoch:normal.startEpoch,endEpoch:normal.startEpoch+6*m}],endPoints);
+ assert.equal(solarPaint.filter(x=>x.layer==='base').length,1,'Solar renderer skips invalid epoch as well');
+ const known={color:'#aeb3b9',thicknessLevel:2,opacity:1,title:'Known cloud'},cells2=[
+  {key:'0',index:0,base:known,precip:null,state:'weather',title:'Unknown epoch'},
+  {key:'1',index:1,base:known,precip:null,state:'weather',title:'Real 14h'},
+ ];
+ const rendered=renderToStaticMarkup(createElement('svg',null,createElement(SkyBarHourCellsSvg,{cells:cells2,left:0,right:0,chartW:100,centerY:8,xPositions:points,xEndPositions:endPoints})));
+ assert.ok(!rendered.includes('data-skybar-hour="0"'),'Invalid epoch may not produce even an accessible false cell');
+ assert.ok(rendered.includes('data-skybar-hour="1"'),'Valid neighboring hour remains visible');
+
  console.log('Calendar-day Skybars: full-day axis, real hour widths, genuine missing slots, DST 23/25h and full-day sums protected.');
 }finally{rmSync(dir,{recursive:true,force:true})}
