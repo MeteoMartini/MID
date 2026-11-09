@@ -22,7 +22,7 @@ const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failu
  // Nicht vorhandene Tooltip-Werte sind unbekannt (–), keine erfundenen 0 °C.
  need('Stundentooltip NoData',app,"detailDegree(currentHour.temperature)} / {detailDegree(currentHour.apparent)");
  need('Stundentooltip NoData',app,"detailDegree(currentHour.dewPoint)} · {Number.isFinite(currentHour.humidity)");
- const degreeStart=app.indexOf('const detailDegree='),degreeEnd=app.indexOf('\\nfunction detailSaturationVaporPressureHpa(',degreeStart);
+ const degreeStart=app.indexOf('const detailDegree='),degreeEnd=app.indexOf('function detailSaturationVaporPressureHpa(',degreeStart);
  if(degreeStart<0||degreeEnd<=degreeStart)failures.push('Produktiver NoData-Formatierer fehlt');
  else{
   const expression=app.slice(degreeStart,degreeEnd).replace('(value:number)','(value)');
