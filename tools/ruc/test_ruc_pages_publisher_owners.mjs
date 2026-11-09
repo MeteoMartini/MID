@@ -54,3 +54,40 @@ test('all GitHub Pages publishers are enumerated, SHA mirrored and share global 
  }
  assert.deepEqual(observed,authorized,'unexpected global Pages writer owner inventory');
 });
+
+/* P4 shadow-only writer-ownership regression. The historical R2 shell helper
+ * uses an unconditional latest.json write. This test prevents a workflow from
+ * silently making it an additional competing production pointer owner.
+ * It does NOT claim transactional CAS across GitHub Pages and Cloudflare R2.
+ */
+function assertNoUnfencedR2WorkflowWrite(source, name) {
+  assert.doesNotMatch(
+    source,
+    /\bpublish_ruc_r2\.sh\b/,
+    'unfenced historical R2 shell publisher must not be workflow-dispatched: '+name,
+  );
+  assert.doesNotMatch(
+    source,
+    /\baws\s+s3(?:api)?\s+(?:cp|put-object)\b/,
+    'workflow must not introduce a raw S3/R2 pointer writer: '+name,
+  );
+}
+
+test('active and canonical workflow mirrors cannot activate the unfenced R2 pointer',()=>{
+  for(const name of readdirSync(canonical).filter(x=>x.endsWith('.yml'))){
+    const source=readFileSync(resolve(canonical,name),'utf8');
+    assert.equal(readFileSync(resolve(active,name),'utf8'),source,'workflow mirror drift: '+name);
+    assertNoUnfencedR2WorkflowWrite(source,name);
+  }
+});
+
+test('R2 ownership guard rejects explicit competing publisher injection',()=>{
+  for(const injected of [
+    'run: bash tools/ruc/publish_ruc_r2.sh',
+    'run: aws s3 cp latest.json s3://bucket/latest.json',
+    'run: aws s3api put-object --bucket bucket --key ruc/latest.json',
+  ]){
+    assert.throws(()=>assertNoUnfencedR2WorkflowWrite(injected,'injected-workflow'),
+      /unfenced historical R2|raw S3\/R2 pointer writer/);
+  }
+});

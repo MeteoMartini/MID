@@ -93,6 +93,65 @@ class GitHubReadOnly:
     def download_zip(self, artifact_id):
         return self.get(f'/repos/{REPO}/actions/artifacts/{artifact_id}/zip', binary=True)
 
+    def list_run_jobs(self, run_id):
+        """Inspect ONLY a successful observer without a ZIP; no workflow dispatch."""
+        if type(run_id) is not int or run_id <= 0:
+            raise ValueError('invalid read-only GitHub job request')
+        return self.get(f'/repos/{REPO}/actions/runs/{run_id}/jobs?per_page=100')
+
+
+def classify_absent_artifact(client, run):
+    """Classify absence without inventing DWD observations or release success.
+
+    A GitHub successful job can be the expected result of the original
+    release-lineage guard when all observation and upload steps are skipped.
+    Authenticate its exact job, SHA and run attempt before calling it gated.
+    Other green-but-unexplained missing ZIPs remain UNKNOWN.
+    """
+    if run['status'] != 'completed':
+        return 'incomplete-run-no-zip'
+    if run['conclusion'] == 'skipped':
+        return 'expected-workflow-skip-no-zip'
+    if run['conclusion'] != 'success':
+        return 'non-success-run-no-zip'
+    payload = client.list_run_jobs(run['runId'])
+    jobs = payload.get('jobs') if isinstance(payload, dict) else None
+    count = payload.get('total_count') if isinstance(payload, dict) else None
+    if (type(count) is not int or not 0 <= count <= 100
+            or not isinstance(jobs, list) or len(jobs) != count):
+        raise ValueError('incomplete/untrusted successful missing-artifact job inventory')
+    if len(jobs) != 1:
+        return 'unverified-success-no-zip'
+    job = jobs[0]
+    if (not isinstance(job, dict) or job.get('run_id') != run['runId']
+            or job.get('run_attempt') != run['runAttempt']
+            or job.get('head_sha') != run['headSha']):
+        raise ValueError('successful missing-artifact job identity mismatch')
+    if (job.get('name') != 'observe' or job.get('status') != 'completed'
+            or job.get('conclusion') != 'success'):
+        return 'unverified-success-no-zip'
+    steps = job.get('steps')
+    if not isinstance(steps, list) or len(steps) > 100:
+        raise ValueError('untrusted observer job-step inventory')
+    states = {}
+    for step in steps:
+        if (not isinstance(step, dict) or not isinstance(step.get('name'), str)
+                or step.get('name') in states
+                or step.get('conclusion') not in ('success', 'failure', 'skipped',
+                                                 'cancelled', None)):
+            raise ValueError('untrusted or duplicated observer job-step evidence')
+        states[step['name']] = step['conclusion']
+    # The original 2026-11-01 observer version intentionally skipped upload
+    # on release window drift; newer versions use an always() status artifact.
+    guard = 'SHA-gebundenen Stable/Main-Releasezustand vor jeder Probe prüfen'
+    withheld = ('DWD-Verzeichnisverfügbarkeit ohne GRIB-Download beobachten',
+                'Öffentlichen Pages-/Worker-Readback separat erfassen (kein App-/SLO-Beweis)',
+                'Stichproben für sieben Tage auswertbar sichern')
+    if states.get(guard) == 'success' and all(states.get(k) == 'skipped' for k in withheld):
+        return 'lineage-gated-no-sampling-or-zip'
+    return 'unverified-success-no-zip'
+
+
 
 def parse_observed_runs(client, cutoff):
     first = cutoff - timedelta(hours=192)  # preserve brackets for 168 model hours
@@ -348,6 +407,8 @@ def collect(client, *, cutoff_utc, output_dir):
                           archiveDigestVerified=False)
             expected_name = f'dwd-ruc-observation-{run_id}-{attempt}'
             art = artifact_index.get((run_id, attempt))
+            if art is None:
+                result['artifactAbsenceClass'] = classify_absent_artifact(client, run)
             if art is not None:
                 workflow_run = art.get('workflow_run')
                 if workflow_run is not None and (not isinstance(workflow_run, dict) or workflow_run.get('id') != run_id):
@@ -394,6 +455,17 @@ def collect(client, *, cutoff_utc, output_dir):
         summary['suppressedObserverRunIds'] = [row['runId'] for row in suppressed]
         summary['artifactInventoryFetchMode'] = inventory_mode
         summary['observerRunRecords'] = records
+        absence = {}
+        for record in records:
+            kind = record.get('artifactAbsenceClass')
+            if kind is not None:
+                absence[kind] = absence.get(kind, 0) + 1
+        summary['noArtifactEntryProvenance'] = {
+            'schema': 'mid.ruc.observer-zip-absence-classes.v1',
+            'totalAbsentZipEntries': sum(absence.values()),
+            'classes': dict(sorted(absence.items())),
+            'evidenceLimit': 'authenticated GitHub run/job-step evidence; no DWD GRIB/first publication or SLO proof',
+        }
         summary['archiveSha256AuthenticatedViaGithubApiOnly'] = True
         summary['complete168hNativeGribOrClientSloProof'] = False
         for name, data in (('github-run-manifest.json', manifest_rows), ('provenance.json', summary)):

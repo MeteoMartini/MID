@@ -38,12 +38,14 @@ def zipped(run_id=42, attempt=1, *, valid=True):
 
 
 class Reader:
-    def __init__(self, runs=None, artifacts=None, zips=None):
+    def __init__(self, runs=None, artifacts=None, zips=None, jobs=None):
         self.runs = list(runs if runs is not None else [run()])
         self.artifacts=artifacts or {}
         self.zips=zips or {}
         self.repository_artifact_calls = 0
         self.run_artifact_calls = 0
+        self.jobs = jobs or {}
+        self.run_job_calls = 0
     def list_runs(self,page):
         if page==1:return {'workflow_runs':list(self.runs)}
         return {'workflow_runs':[]}
@@ -57,6 +59,9 @@ class Reader:
         return {'total_count':len(rows),
                 'artifacts':rows[(page - 1)*100:page*100]}
     def download_zip(self,artifact_id):return self.zips[artifact_id]
+    def list_run_jobs(self,run_id):
+        self.run_job_calls += 1
+        return self.jobs.get(run_id, {'total_count':0, 'jobs':[]})
 
 
 def artifact(id=111, run_id=42, attempt=1, data=None, **extra):
@@ -85,6 +90,63 @@ class Collector(unittest.TestCase):
         self.assertFalse(summary['productionSloAuthorized'])
         self.assertEqual((self.root/'report'/'directory.jsonl').read_text().count('\n'),1)
         self.assertEqual((self.root/'report'/'artifacts'/'dwd-ruc-observation-42-1.zip').read_bytes(),raw)
+
+    def test_historical_lineage_gated_success_does_not_fake_broken_archive(self):
+        """Original 2026-11-01 release-window step pattern, not original DWD data."""
+        history = run()
+        steps = [
+            ('SHA-gebundenen Stable/Main-Releasezustand vor jeder Probe prüfen','success'),
+            ('DWD-Verzeichnisverfügbarkeit ohne GRIB-Download beobachten','skipped'),
+            ('Öffentlichen Pages-/Worker-Readback separat erfassen (kein App-/SLO-Beweis)','skipped'),
+            ('Stichproben für sieben Tage auswertbar sichern','skipped'),
+        ]
+        job = {'run_id':42,'run_attempt':1,'head_sha':SHA,'name':'observe',
+               'status':'completed','conclusion':'success',
+               'steps':[{'name':name,'conclusion':state} for name,state in steps]}
+        client=Reader(runs=[history],jobs={42:{'total_count':1,'jobs':[job]}})
+        summary=self.check(client)
+        self.assertEqual(summary['missingGitHubRunAttemptArtifacts'],1)
+        self.assertEqual(client.run_job_calls,1)
+        self.assertEqual(summary['observerRunRecords'][0]['artifactState'],'missing-or-unavailable')
+        self.assertEqual(summary['observerRunRecords'][0]['artifactAbsenceClass'],
+                         'lineage-gated-no-sampling-or-zip')
+        self.assertEqual(summary['noArtifactEntryProvenance']['classes'],
+                         {'lineage-gated-no-sampling-or-zip':1})
+        self.assertEqual((summary['directorySamples'],summary['publicReadbacks']),(0,0))
+        self.assertFalse(summary['productionSloAuthorized'])
+
+    def test_expected_github_skip_is_not_a_broken_upload_or_job_api_call(self):
+        client=Reader(runs=[run(conclusion='skipped')])
+        summary=self.check(client)
+        self.assertEqual(client.run_job_calls,0)
+        self.assertEqual(summary['observerRunRecords'][0]['artifactAbsenceClass'],
+                         'expected-workflow-skip-no-zip')
+        self.assertEqual(summary['noArtifactEntryProvenance']['totalAbsentZipEntries'],1)
+        self.assertFalse(summary['productionSloAuthorized'])
+
+    def test_completed_success_missing_zip_without_matching_gate_stays_unknown(self):
+        state={'run_id':42,'run_attempt':1,'head_sha':SHA,'name':'observe',
+               'status':'completed','conclusion':'success',
+               'steps':[{'name':'DWD-Verzeichnisverfügbarkeit ohne GRIB-Download beobachten',
+                         'conclusion':'success'}]}
+        report=self.check(Reader(jobs={42:{'total_count':1,'jobs':[state]}}))
+        self.assertEqual(report['observerRunRecords'][0]['artifactAbsenceClass'],
+                         'unverified-success-no-zip')
+        self.assertEqual(report['directorySamples'],0)
+
+    def test_github_job_sha_or_attempt_mismatch_fails_before_archive(self):
+        for mismatch in ({'head_sha':'f'*40},{'run_attempt':99}):
+            job={'run_id':42,'run_attempt':1,'head_sha':SHA,'name':'observe',
+                 'status':'completed','conclusion':'success','steps':[]}
+            job.update(mismatch)
+            with self.subTest(mismatch=mismatch), self.assertRaisesRegex(ValueError,'identity mismatch'):
+                self.check(Reader(jobs={42:{'total_count':1,'jobs':[job]}}))
+            self.assertFalse((self.root/'report').exists())
+
+    def test_incomplete_success_job_pagination_fails_closed(self):
+        with self.assertRaisesRegex(ValueError,'job inventory'):
+            self.check(Reader(jobs={42:{'total_count':2,'jobs':[]}}))
+        self.assertFalse((self.root/'report').exists())
 
     def test_missing_zip_is_gap_not_zero(self):
         report=self.check(Reader())
