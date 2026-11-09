@@ -69,6 +69,13 @@ export async function verifySpatialRangeReceipt(
  if(!(bytes instanceof Uint8Array)||bytes.byteLength!==length||bytes.byteLength>MAX_RANGE||
    typeof r.sha256!=='string'||!/^[a-f0-9]{64}$/.test(r.sha256))
    return{ok:false,reason:'invalid-bytes-or-digest'};
+ // A digest proves only that the bytes match the supplied digest; it must
+ // never be mistaken for OM format verification. Check known boundary magic.
+ if((r.kind==='header'||r.kind==='trailer')&&
+    (bytes[0]!==0x4f||bytes[1]!==0x4d||bytes[2]!==0x03))
+   return{ok:false,reason:'invalid-om-boundary-magic'};
+ if(r.kind==='trailer'&&bytes.slice(3,8).some(byte=>byte!==0))
+   return{ok:false,reason:'invalid-om-trailer-preamble'};
  if(typeof crypto==='undefined'||!crypto.subtle?.digest)
    return{ok:false,reason:'sha256-unavailable'};
  let digest:ArrayBuffer;

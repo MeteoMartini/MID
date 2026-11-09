@@ -7,6 +7,7 @@ const frame:FrameResult={status:'manifest-only',model:'dwd_icon_d2',
  referenceTime:'2026-11-09T06:00:00Z',validTime:'2026-11-09T07:00:00Z',
  variable:'cloud_cover_high',accumulationHours:null};
 const bytes=Uint8Array.from(Array.from({length:64},(_,i)=>i));
+bytes.set([0x4f,0x4d,0x03],0);
 const sha=async(b:Uint8Array)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',Uint8Array.from(b))),
  v=>v.toString(16).padStart(2,'0')).join('');
 const receipt=async()=>({model:'dwd_icon_d2',run:'2026-11-09T06:00:00Z',valid:'2026-11-09T07:00:00Z',
@@ -36,6 +37,11 @@ describe('MID research-only original byte-range capture integrity',()=>{
   }
   expect(await verifySpatialRangeReceipt(frame,await receipt(),bytes.subarray(0,63)))
    .toEqual({ok:false,reason:'invalid-bytes-or-digest'});
+ });
+ it('rejects fake OM magic even when SHA-256 is self-consistent',async()=>{
+  const altered=Uint8Array.from(bytes);altered[0]=0;
+  expect(await verifySpatialRangeReceipt(frame,{...await receipt(),sha256:await sha(altered)},altered))
+   .toEqual({ok:false,reason:'invalid-om-boundary-magic'});
  });
  it('refuses run/valid/model/field/path cross-contamination',async()=>{
   const r=await receipt();
