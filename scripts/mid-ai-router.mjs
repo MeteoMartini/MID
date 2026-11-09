@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createHash } from 'node:crypto';
 /**
  * MID AI Router (non-production QA candidate).
  * Server-side only. No automatic network, GitHub write, release, or paid fallback.
@@ -9,6 +10,9 @@ const SHA = /^[a-f0-9]{40}$/;
 const ID = /^[a-zA-Z0-9][a-zA-Z0-9_-]{7,79}$/;
 const MAX_PROMPT = 12000;
 const FRESH_MS = 6 * 60 * 60 * 1000;
+const taskFingerprint = (task) => createHash('sha256').update(JSON.stringify([
+  task.requestId, task.kind, task.dataClass, task.expectedStableSha, task.prompt
+])).digest('hex');
 const PROVIDERS = Object.freeze({
   openrouter: Object.freeze({
     key: 'OPENROUTER_API_KEY',
@@ -91,7 +95,7 @@ export function planMidAiRoute({ task, snapshot, providers = [], now = Date.now(
   return Object.freeze({
     status: 'PLAN_ONLY', provider: p.id, model: p.model,
     requestId: task.requestId, taskKind: task.kind, expectedStableSha: snapshot.stableSha,
-    proofCheckedAt: p.proofCheckedAt
+    taskFingerprint: taskFingerprint(task), proofCheckedAt: p.proofCheckedAt
   });
 }
 /** Build an endpoint-bound request without exposing credentials in logs. */
@@ -136,6 +140,7 @@ export async function executeMidAiRoute({
   if (renewed.provider === 'github-native') block('GITHUB_NATIVE_IS_NOT_HTTP');
   if (!plan || plan.provider !== renewed.provider || plan.model !== renewed.model ||
       plan.requestId !== renewed.requestId ||
+      plan.taskFingerprint !== renewed.taskFingerprint ||
       plan.expectedStableSha !== renewed.expectedStableSha)
     block('PLAN_STALE');
   if (typeof fetchImpl !== 'function') block('TRANSPORT_NOT_AVAILABLE');
