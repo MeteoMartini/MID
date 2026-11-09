@@ -1,5 +1,5 @@
 import {describe,expect,it} from 'vitest';
-import {inspectOmRootIndexResponse,planOmRootIndexProbe,verifyOmTrailerResponse} from '../../src/openMeteoSpatialByteRange';
+import {inspectOmRootIndexResponse,planOmRootIndexProbe,verifyOmTrailerResponse,planOmArrayDescriptorProbe,inspectOmArrayDescriptorResponse} from '../../src/openMeteoSpatialByteRange';
 import {qualifySpatialManifest,spatialFrameCandidate} from '../../src/openMeteoSpatialManifest';
 import type {OmRootIndexProbe} from '../../src/openMeteoSpatialByteRange';
 
@@ -128,5 +128,108 @@ describe('Open-Meteo spatial OM-v3 metadata-only safety gates',()=>{
   const forged={...planned.probe,metadataLength:23575944} as OmRootIndexProbe;
   expect(await inspectOmRootIndexResponse(rangeResponse(root,'bytes 23574344-23575919/23575944'),forged))
    .toEqual({ok:false,reason:'invalid-root-index-plan'});
+ });
+});
+
+
+describe('OM-v3 bounded array descriptor metadata (synthetic only)',()=>{
+ const originalD2TrailerLocal=parseHex('4f4d03000000000048b76701000000002806000000000000');
+ const candidate={
+  status:'manifest-only' as const,model:'dwd_icon_d2' as const,
+  referenceTime:'2026-11-09T06:00Z',validTime:'2026-11-09T07:00Z',
+  variable:'geopotential_height_500hPa',accumulationHours:null,
+ };
+ const makeDescriptor=(field='geopotential_height_500hPa_extra')=>{
+  // Format-layout fixture: length 104, numeric float-array (20), two
+  // dimensions, 32-byte name. Not an original model cell/field descriptor.
+  if(field.length!==32)throw Error('fixture must have 32-byte name');
+  const a=new Uint8Array(104),v=new DataView(a.buffer);
+  v.setUint8(0,20);v.setUint8(1,0);
+  v.setUint16(2,field.length,true);v.setUint32(4,0,true);
+  v.setBigUint64(8,32n,true);v.setBigUint64(16,4n,true);
+  v.setBigUint64(24,2n,true);
+  v.setFloat32(32,1,true);v.setFloat32(36,0,true);
+  v.setBigUint64(40,3n,true);v.setBigUint64(48,4n,true);
+  v.setBigUint64(56,2n,true);v.setBigUint64(64,2n,true);
+  for(let i=0;i<field.length;i++)a[72+i]=field.charCodeAt(i);
+  return a;
+ };
+ const context=async()=>{
+  const trailer=await verifyOmTrailerResponse(
+    rangeResponse(originalD2TrailerLocal,'bytes 23575920-23575943/23575944'));
+  const rootPlan=planOmRootIndexProbe(candidate,trailer);
+  if(!rootPlan.ok)throw Error(rootPlan.reason);
+  const root=await inspectOmRootIndexResponse(
+    rangeResponse(makeRootFixture(98),'bytes 23574344-23575919/23575944'),rootPlan.probe);
+  if(!root.ok)throw Error(root.reason);
+  const planned=planOmArrayDescriptorProbe(rootPlan.probe,root,0);
+  if(!planned.ok)throw Error(planned.reason);
+  return {planned,root,rootPlan};
+ };
+ it('plans only previously checked child-metadata spans on fixed source origin',async()=>{
+  const {planned,root,rootPlan}=await context();
+  expect(planned.probe.url).toBe(
+    'https://openmeteo.s3.amazonaws.com/data_spatial/dwd_icon_d2/2026/11/09/0600Z/2026-11-09T0700.om');
+  expect(planned.probe.range).toBe('bytes=100-203');
+  expect(planOmArrayDescriptorProbe(rootPlan.probe,root,98))
+   .toEqual({ok:false,reason:'unverified-root-or-child'});
+  expect(planOmArrayDescriptorProbe({...rootPlan.probe,url:'https://evil.invalid/a.om'},root,0))
+   .toEqual({ok:false,reason:'unverified-root-or-child'});
+  expect(planOmArrayDescriptorProbe(rootPlan.probe,{ok:false,reason:'bad'},0))
+   .toEqual({ok:false,reason:'unverified-root-or-child'});
+ });
+ it('validates a synthetic numerical descriptor and preserves pixelValidated=false',async()=>{
+  const {planned}=await context();
+  const resp=rangeResponse(makeDescriptor(),'bytes 100-203/23575944');
+  const out=await inspectOmArrayDescriptorResponse(resp,planned.probe);
+  expect(out.ok).toBe(true);
+  if(out.ok)expect(out.descriptor).toMatchObject({
+   status:'descriptor-verified',
+   name:'geopotential_height_500hPa_extra',dataTypeId:20,
+   compressionId:0,dimensions:[3,4],chunks:[2,2],
+   scaleFactor:1,addOffset:0,lutOffset:4,lutLength:32,
+   pixelValidated:false,
+  });
+ });
+ it('rejects 200/full-file responses before reading and rejects malformed ranges',async()=>{
+  const {planned}=await context();
+  let readCalled=false;
+  const ignored=await inspectOmArrayDescriptorResponse({
+   status:200,headers:new Headers(),arrayBuffer:async()=>{
+    readCalled=true;return new ArrayBuffer(0);
+   },
+  },planned.probe);
+  expect(ignored).toEqual({ok:false,reason:'range-not-honored'});
+  expect(readCalled).toBe(false);
+  expect(await inspectOmArrayDescriptorResponse(
+    rangeResponse(makeDescriptor(),'bytes 0-103/23575944'),planned.probe))
+   .toEqual({ok:false,reason:'invalid-or-unexposed-content-range'});
+  expect(await inspectOmArrayDescriptorResponse(
+    rangeResponse(makeDescriptor().slice(0,10),'bytes 100-203/23575944',{
+     'content-length':'104',
+    }),planned.probe))
+   .toEqual({ok:false,reason:'wrong-range-length'});
+ });
+ it('fails closed on array type, codec, dimensions, index, packing and field name',async()=>{
+  const {planned}=await context();
+  const mutated=(fn:(v:DataView,b:Uint8Array)=>void)=>{
+   const bytes=makeDescriptor();fn(new DataView(bytes.buffer),bytes);
+   return rangeResponse(bytes,'bytes 100-203/23575944');
+  };
+  const cases:[Pick<Response,'status'|'headers'|'arrayBuffer'>,string][]=[
+   [mutated(v=>v.setUint8(0,0)),'not-numeric-array'],
+   [mutated(v=>v.setUint8(1,8)),'unknown-array-compression'],
+   [mutated(v=>v.setUint16(2,255,true)),'invalid-array-metadata-shape'],
+   [mutated(v=>v.setBigUint64(24,0n,true)),'invalid-array-metadata-shape'],
+   [mutated(v=>v.setFloat32(32,NaN,true)),'invalid-array-packing-coefficients'],
+   [mutated(v=>v.setBigUint64(16,200n,true)),'invalid-chunk-index-bounds'],
+   [mutated(v=>v.setBigUint64(40,0n,true)),'invalid-array-grid-or-chunk-shape'],
+   [mutated(v=>v.setBigUint64(56,10n,true)),'invalid-array-grid-or-chunk-shape'],
+   [mutated((_v,b)=>{b[78]=47;}) ,'invalid-array-field-name'],
+  ];
+  for(const [response,reason] of cases){
+   const x=await inspectOmArrayDescriptorResponse(response,planned.probe);
+   expect(x).toEqual({ok:false,reason});
+  }
  });
 });
