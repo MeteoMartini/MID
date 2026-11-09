@@ -1,4 +1,4 @@
-import {useDisplayPreference,displayBoolean} from './useDisplayPreference';
+import {useDisplayPreference,useRawDisplayPreference,displayBoolean} from './useDisplayPreference';
 import {formatWeatherValue} from './weatherValueFormat';
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {Cloud,CloudRain,Gauge,Info,RefreshCw,ThermometerSun,Wind as WindIcon} from 'lucide-react';
@@ -705,6 +705,10 @@ function metricSelectorFromStorage(stored:string|null):ViewMetric{
   return 'temperature';
 }
 
+/** A missing model is a transient data-availability fallback, never a saved user choice. */
+function parseStoredSubseasonalView(raw:string|null):ModelView|null{return raw==='combined'||raw==='ecmwf-ec46'||raw==='noaa-gefs'?raw:null}
+function availableSubseasonalView(preferred:ModelView,models:readonly TrendModel[]):ModelView{return preferred==='combined'||models.some(model=>model.id===preferred)?preferred:'combined'}
+
 function renderComparisonArticle(metric:ViewMetric,week:TrendWeek,models:TrendModel[],combinedWeek:TrendWeek,climateWeeks:ClimateWeek[],windUnit:WindUnit){
   if(metric==='temperature'){
     const climateMax=climateNumber(climateWeeks,week.id,'temperature_max');
@@ -758,12 +762,7 @@ export default function SubseasonalTrendPanel({location,windUnit='kn'}:{location
   const [metric,setMetric]=useState<ViewMetric>(()=>{
     try{return metricSelectorFromStorage(localStorage.getItem('mid:subseasonal-trend:metric'));}catch{return 'temperature';}
   });
-  const [view,setView]=useState<ModelView>(()=>{
-    try{
-      const stored=localStorage.getItem('mid:subseasonal-trend:view');
-      return stored==='ecmwf-ec46'||stored==='noaa-gefs'?stored:'combined';
-    }catch{return 'combined';}
-  });
+  const [view,setView]=useRawDisplayPreference<ModelView>('mid:subseasonal-trend:view','combined',parseStoredSubseasonalView,String);
   const [infoOpen,setInfoOpen]=useState(false);
   const [anomalyMode,setAnomalyMode]=useDisplayPreference('SubseasonalTrendPanel.anomalyMode',true,displayBoolean);
   const controllerRef=useRef<AbortController|null>(null);
@@ -778,7 +777,6 @@ export default function SubseasonalTrendPanel({location,windUnit='kn'}:{location
       const bundle=await loadTrend(location,controller.signal,refresh);
       if(!controller.signal.aborted){
         setData(bundle);
-        setView(current=>current==='combined'||bundle.models.some(model=>model.id===current)?current:'combined');
       }
     }catch(reason){
       if(!controller.signal.aborted)setError(reason instanceof Error?reason.message:'Witterungstrend konnte nicht geladen werden.');
@@ -790,14 +788,13 @@ export default function SubseasonalTrendPanel({location,windUnit='kn'}:{location
 
   useEffect(()=>{load();return()=>controllerRef.current?.abort();},[load]);
   useEffect(()=>{try{localStorage.setItem('mid:subseasonal-trend:metric',metric);}catch{}},[metric]);
-  useEffect(()=>{try{localStorage.setItem('mid:subseasonal-trend:view',view);}catch{}},[view]);
 
-  const models=data?.models??[];
+  const models=data?.models??[],activeView=availableSubseasonalView(view,models);
   const combined=useMemo(()=>combineWeeks(models),[models]);
-  const selectedModel=view==='combined'?null:models.find(model=>model.id===view)??null;
+  const selectedModel=activeView==='combined'?null:models.find(model=>model.id===activeView)??null;
   const selectedWeeks=selectedModel?.weeks??combined;
   const climateWeeks=data?.climateWeeks??[];
-  const selectedLabel=view==='combined'?'Multi-Modell':selectedModel?.family??'Multi-Modell';
+  const selectedLabel=activeView==='combined'?'Multi-Modell':selectedModel?.family??'Multi-Modell';
   const def=viewMetricDefinition(metric);
   const Icon=def.icon;
   const cacheLabel=data?.cacheStatus==='fresh-cache'?`Cache · ${data.cacheAgeMinutes} min`:data?.cacheStatus==='stale-cache'?`Fallback-Cache · ${data.cacheAgeMinutes} min`:data?.cacheStatus==='mixed-stale'?`teilweise Cache · ${data.cacheAgeMinutes} min`:'';
@@ -819,13 +816,14 @@ export default function SubseasonalTrendPanel({location,windUnit='kn'}:{location
     {!loading&&error?<p className="section-status error">{error}</p>:null}
 
     {!loading&&models.length?<>
+      {view!==activeView?<p className="long-range-info" role="status">Das gespeicherte Modell ist vorübergehend nicht verfügbar. Multi-Modell wird als Ersatz angezeigt; die persönliche Auswahl bleibt erhalten.</p>:null}
       <div className="long-range-controls subseasonal-controls">
         <div className="long-range-model-selector subseasonal-model-selector">
-          <button type="button" className={view==='combined'?'active':''} onClick={()=>setView('combined')}>
+          <button type="button" className={activeView==='combined'?'active':''} onClick={()=>setView('combined')}>
             <b>Multi-Modell</b>
             <small>{models.length} unabhängige Familien</small>
           </button>
-          {models.map(model=><button key={model.id} type="button" className={view===model.id?'active':''} onClick={()=>setView(model.id)}>
+          {models.map(model=><button key={model.id} type="button" className={activeView===model.id?'active':''} onClick={()=>setView(model.id)}>
             <b>{model.family}</b>
             <small>{model.members} Mitglieder{model.weeks.length?` · bis ${formatDate(model.weeks[model.weeks.length-1].endDate)}`:''}</small>
           </button>)}
@@ -859,13 +857,13 @@ export default function SubseasonalTrendPanel({location,windUnit='kn'}:{location
           <div className="long-range-model-selector"><button type="button" className={anomalyMode?'active':''} aria-pressed={anomalyMode} onClick={()=>setAnomalyMode(true)}>Abweichung & Unsicherheit</button><button type="button" className={!anomalyMode?'active':''} aria-pressed={!anomalyMode} onClick={()=>setAnomalyMode(false)}>Absolute Wochenwerte</button></div>
           {!anomalyMode&&<div className="subseasonal-chart-legend">
             {metric==='temperature'?<>
-              <LegendLine label={view==='combined'?'Multi-Modell-Mittel Tmax':'Ensemble-Mittel Tmax'} color="var(--param-temperature-max)"/>
-              <LegendLine label={view==='combined'?'Multi-Modell-Mittel Tmin':'Ensemble-Mittel Tmin'} color="var(--param-temperature-min)"/>
+              <LegendLine label={activeView==='combined'?'Multi-Modell-Mittel Tmax':'Ensemble-Mittel Tmax'} color="var(--param-temperature-max)"/>
+              <LegendLine label={activeView==='combined'?'Multi-Modell-Mittel Tmin':'Ensemble-Mittel Tmin'} color="var(--param-temperature-min)"/>
               <LegendLine label="Klimamittel Tmax" color="var(--param-temperature-max-climate)" dashed/>
               <LegendLine label="Klimamittel Tmin" color="var(--param-temperature-min-climate)" dashed/>
               <SpreadLegend/>
             </>:<>
-              <LegendLine label={view==='combined'?'Multi-Modell-Mittel':'Ensemble-Mittel'} color="currentColor"/>
+              <LegendLine label={activeView==='combined'?'Multi-Modell-Mittel':'Ensemble-Mittel'} color="currentColor"/>
               <LegendLine label="Klimamittel 1991–2020" color="currentColor" dashed/>
               <SpreadLegend/>
             </>}
@@ -873,7 +871,7 @@ export default function SubseasonalTrendPanel({location,windUnit='kn'}:{location
           {anomalyMode?<WeeklyAnomalyChart weeks={selectedWeeks} climateWeeks={climateWeeks} metric={metric} windUnit={windUnit}/>:metric==='temperature'?<CombinedTrendChart weeks={selectedWeeks} climateWeeks={climateWeeks} series={TEMPERATURE_SERIES} windUnit={windUnit} ariaLabel="Witterungstrend Temperatur mit Tmax und Tmin"/>:<ScalarTrendChart weeks={selectedWeeks} climateWeeks={climateWeeks} metric={metricRawKeys(metric)[0]} windUnit={windUnit}/>}
           <footer>
             <span>Außen P10–P90 · innen P25–P75</span>
-            <span>{view==='combined'?'Modellfamilien gleich gewichtet':'Ensemblemitglieder des gewählten Modells'}</span>
+            <span>{activeView==='combined'?'Modellfamilien gleich gewichtet':'Ensemblemitglieder des gewählten Modells'}</span>
           </footer>
         </article>
       </div>
