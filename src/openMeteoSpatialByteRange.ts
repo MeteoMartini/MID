@@ -323,3 +323,180 @@ export async function inspectOmRootIndexResponse(
   return { ok: true, status: 'root-index-verified',
     childCount: childrenCount, children, pixelValidated: false };
 }
+
+/**
+ * OM-v3 array variable descriptor probe. This checks *metadata* only:
+ * it does not fetch or decompress the corresponding LUT or numerical pixels.
+ * The semantics below were independently derived from the public OM-v3
+ * binary layout, not copied from the GPL reference reader.
+ */
+export interface OmArrayDescriptorProbe {
+  readonly status: 'planned-descriptor-only';
+  readonly url: string;
+  readonly range: string;
+  readonly metadataOffset: number;
+  readonly metadataLength: number;
+  readonly rootOffset: number;
+  readonly totalBytes: number;
+}
+
+export type OmArrayDescriptorPlan =
+  | { readonly ok: true; readonly probe: OmArrayDescriptorProbe }
+  | { readonly ok: false; readonly reason: string };
+
+export interface OmArrayDescriptor {
+  readonly status: 'descriptor-verified';
+  readonly name: string;
+  readonly dataTypeId: number;
+  readonly compressionId: number;
+  readonly dimensions: readonly number[];
+  readonly chunks: readonly number[];
+  readonly scaleFactor: number;
+  readonly addOffset: number;
+  readonly lutOffset: number;
+  readonly lutLength: number;
+  readonly pixelValidated: false;
+}
+
+export type OmArrayDescriptorResult =
+  | { readonly ok: true; readonly descriptor: OmArrayDescriptor }
+  | { readonly ok: false; readonly reason: string };
+
+const MAX_DESCRIPTOR_BYTES = 16 * 1024;
+const MAX_ARRAY_DIMENSIONS = 6;
+const MAX_GRID_CELLS = 120_000_000;
+const SPATIAL_ORIGIN_PATH = 'https://openmeteo.s3.amazonaws.com/data_spatial/';
+
+/** The child span must come from a previously checked root, not from caller-provided URL parameters. */
+export function planOmArrayDescriptorProbe(
+  root: OmRootIndexProbe,
+  index: OmRootIndexResult,
+  childNumber: number,
+): OmArrayDescriptorPlan {
+  if (root.status !== 'planned-root-index-only' ||
+      !root.url.startsWith(SPATIAL_ORIGIN_PATH) ||
+      !/^https:\/\/openmeteo\.s3\.amazonaws\.com\/data_spatial\/dwd_icon_(?:d2|eu)\/\d{4}\/\d{2}\/\d{2}\/\d{4}Z\/\d{4}-\d{2}-\d{2}T\d{4}\.om$/.test(root.url) ||
+      !index.ok || index.status !== 'root-index-verified' ||
+      !Number.isSafeInteger(childNumber) || childNumber < 0 ||
+      childNumber >= index.childCount || index.children.length !== index.childCount ||
+      !Number.isSafeInteger(root.metadataOffset) || root.metadataOffset < 3 ||
+      !Number.isSafeInteger(root.totalBytes) ||
+      root.metadataOffset + root.metadataLength !== root.totalBytes - TRAILER_BYTES) {
+    return { ok: false, reason: 'unverified-root-or-child' };
+  }
+  const child = index.children[childNumber];
+  if (!child || !Number.isSafeInteger(child.offset) || !Number.isSafeInteger(child.length) ||
+      child.offset < 3 || child.length < 40 || child.length > MAX_DESCRIPTOR_BYTES ||
+      child.offset + child.length > root.metadataOffset) {
+    return { ok: false, reason: 'unqualified-child-metadata-span' };
+  }
+  return { ok: true, probe: {
+    status: 'planned-descriptor-only', url: root.url,
+    range: 'bytes=' + child.offset + '-' + (child.offset + child.length - 1),
+    metadataOffset: child.offset, metadataLength: child.length,
+    rootOffset: root.metadataOffset, totalBytes: root.totalBytes,
+  } };
+}
+
+/**
+ * Accept only numerical array types (OM-v3 type IDs 12..21). Scalars, strings
+ * and containers can be useful metadata, but never prove a weather raster.
+ * The index and compressed field data are NOT read or validated here.
+ */
+export async function inspectOmArrayDescriptorResponse(
+  response: Pick<Response, 'status' | 'headers' | 'arrayBuffer'>,
+  probe: OmArrayDescriptorProbe,
+): Promise<OmArrayDescriptorResult> {
+  if (probe.status !== 'planned-descriptor-only' ||
+      !Number.isSafeInteger(probe.metadataOffset) ||
+      !Number.isSafeInteger(probe.metadataLength) ||
+      !Number.isSafeInteger(probe.rootOffset) ||
+      !Number.isSafeInteger(probe.totalBytes) ||
+      probe.metadataOffset < 3 || probe.metadataLength < 40 ||
+      probe.metadataLength > MAX_DESCRIPTOR_BYTES ||
+      probe.metadataOffset + probe.metadataLength > probe.rootOffset ||
+      probe.rootOffset >= probe.totalBytes - TRAILER_BYTES ||
+      probe.totalBytes > MAX_OMFILE_BYTES) {
+    return { ok: false, reason: 'invalid-descriptor-plan' };
+  }
+  if (response.status !== 206) return { ok: false, reason: 'range-not-honored' };
+  const expected = 'bytes ' + probe.metadataOffset + '-' +
+    (probe.metadataOffset + probe.metadataLength - 1) + '/' + probe.totalBytes;
+  if (response.headers.get('content-range') !== expected) {
+    return { ok: false, reason: 'invalid-or-unexposed-content-range' };
+  }
+  if (response.headers.get('content-length') !== String(probe.metadataLength)) {
+    return { ok: false, reason: 'unbounded-or-incomplete-body' };
+  }
+  if (response.headers.get('content-type')?.toLowerCase().split(';')[0].trim() !== 'application/octet-stream') {
+    return { ok: false, reason: 'unexpected-content-type' };
+  }
+  let bytes: Uint8Array;
+  try { bytes = new Uint8Array(await response.arrayBuffer()); }
+  catch { return { ok: false, reason: 'range-read-failed' }; }
+  if (bytes.length !== probe.metadataLength) return { ok: false, reason: 'wrong-range-length' };
+
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const type = view.getUint8(0);
+  const compression = view.getUint8(1);
+  if (type < 12 || type > 21) return { ok: false, reason: 'not-numeric-array' };
+  if (compression > 4) return { ok: false, reason: 'unknown-array-compression' };
+
+  const nameLength = view.getUint16(2, true);
+  const children = view.getUint32(4, true);
+  const lutLength64 = view.getBigUint64(8, true);
+  const lutOffset64 = view.getBigUint64(16, true);
+  const dimensionCount64 = view.getBigUint64(24, true);
+  const scaleFactor = view.getFloat32(32, true);
+  const addOffset = view.getFloat32(36, true);
+  if (dimensionCount64 < 1n || dimensionCount64 > BigInt(MAX_ARRAY_DIMENSIONS) ||
+      children > 512 || nameLength < 1 || nameLength > 256 ||
+      40n + 16n * BigInt(children) + 16n * dimensionCount64 + BigInt(nameLength) !== BigInt(bytes.length)) {
+    return { ok: false, reason: 'invalid-array-metadata-shape' };
+  }
+  if (!Number.isFinite(scaleFactor) || scaleFactor <= 0 ||
+      !Number.isFinite(addOffset)) {
+    return { ok: false, reason: 'invalid-array-packing-coefficients' };
+  }
+  if (lutLength64 < 1n || lutOffset64 < 3n ||
+      lutLength64 + lutOffset64 > BigInt(probe.metadataOffset)) {
+    return { ok: false, reason: 'invalid-chunk-index-bounds' };
+  }
+
+  const dimensionCount = Number(dimensionCount64);
+  const dimensions: number[] = [], chunks: number[] = [];
+  let cells = 1;
+  const dimensionBase = 40 + 16 * children;
+  for (let i = 0; i < dimensionCount; i++) {
+    const dim64 = view.getBigUint64(dimensionBase + 8 * i, true);
+    const chunk64 = view.getBigUint64(dimensionBase + 8 * dimensionCount + 8 * i, true);
+    if (dim64 === 0n || dim64 > BigInt(MAX_GRID_CELLS) ||
+        chunk64 === 0n || chunk64 > dim64) {
+      return { ok: false, reason: 'invalid-array-grid-or-chunk-shape' };
+    }
+    const dim = Number(dim64);
+    cells *= dim;
+    if (!Number.isSafeInteger(cells) || cells > MAX_GRID_CELLS) {
+      return { ok: false, reason: 'unqualified-grid-size' };
+    }
+    dimensions.push(dim);
+    chunks.push(Number(chunk64));
+  }
+
+  const nameStart = dimensionBase + 16 * dimensionCount;
+  const nameBytes = bytes.subarray(nameStart, nameStart + nameLength);
+  if (nameBytes.some(byte => byte < 0x21 || byte > 0x7e)) {
+    return { ok: false, reason: 'invalid-array-field-name' };
+  }
+  const name = String.fromCharCode(...nameBytes);
+  if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(name)) {
+    return { ok: false, reason: 'invalid-array-field-name' };
+  }
+  return { ok: true, descriptor: {
+    status: 'descriptor-verified', name, dataTypeId: type,
+    compressionId: compression, dimensions, chunks,
+    scaleFactor, addOffset,
+    lutOffset: Number(lutOffset64), lutLength: Number(lutLength64),
+    pixelValidated: false,
+  } };
+}
