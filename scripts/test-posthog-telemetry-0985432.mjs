@@ -22,7 +22,7 @@ assert.match(source,/\$process_person_profile:false/);
 assert.match(source,/MAX_EVENTS_PER_PAGE=30/);
 assert.match(source,/isMidNativeRuntime\(\)/);
 
-function harness({consent=false,token='phc_test_project',host='https://eu.i.posthog.com',prod=true,native=false,storageWriteThrows=false,storageRemoveThrows=false,uuidThrows=false}={}){
+function harness({consent=false,token='phc_test_project',host='https://eu.i.posthog.com',prod=true,native=false,storageWriteThrows=false,storageWriteNoop=false,storageRemoveThrows=false,uuidThrows=false}={}){
  const requests=[];
  const storage=new Map(consent?[['mid:posthog-diagnostics-consent:v1','1']]:[]);
  const listeners=new Map();
@@ -40,7 +40,7 @@ function harness({consent=false,token='phc_test_project',host='https://eu.i.post
  const document={addEventListener:(n,fn)=>add(documentListeners,n,fn)};
  const localStorage={
   getItem:k=>storage.get(k)??null,
-  setItem:(k,v)=>{if(storageWriteThrows)throw new Error('Storage write denied');storage.set(k,String(v))},
+  setItem:(k,v)=>{if(storageWriteThrows)throw new Error('Storage write denied');if(!storageWriteNoop)storage.set(k,String(v))},
   removeItem:k=>{if(storageRemoveThrows)throw new Error('Storage removal denied');storage.delete(k)},
  };
  let prepared=source.replace(/^import [^\n]*\n/gm,'').replace(/^export /gm,'');
@@ -110,6 +110,10 @@ assert.equal(iosStorageBlocked.setMidPosthogConsent(true),false,'denied storage 
 assert.equal(iosStorageBlocked.isMidPosthogConsentGranted(),false);
 iosStorageBlocked.captureNav('current');
 assert.equal(iosStorageBlocked.requests.length,0,'blocked consent cannot send data');
+const iosStorageNoop=harness({storageWriteNoop:true});
+assert.equal(iosStorageNoop.setMidPosthogConsent(true),false,'ignored storage write must be rejected by readback');
+assert.equal(iosStorageNoop.isMidPosthogConsentGranted(),false);
+assert.equal(iosStorageNoop.requests.length,0);
 // Secure randomness is optional for consent storage, but mandatory for capture.
 const iosNoUuid=harness({uuidThrows:true});
 assert.equal(iosNoUuid.setMidPosthogConsent(true),true,'consent must be selectable even when telemetry cannot be started');
