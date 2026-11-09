@@ -30,6 +30,49 @@ Free has three materially different meanings:
 | **ChatGPT Plus API** | [OpenAI API credit eligibility](https://help.openai.com/en/articles/20001626-api-credits-benefit-for-eligible-chatgpt-subscriptions): Plus **not eligible** for included API credits. | Existing ChatGPT/Work/Codex interfaces only, no implied OpenAI API balance |
 
 
+### Vercel AI Gateway / Perplexity — read-only account verification 2026-11-09
+
+The newly connected Vercel app was queried **read-only**. It returned
+`403 forbidden` for the intended MID team scope; a team-specific
+permission/consent URL was issued, but **authorization completion has not
+been verified**. Thus account plan, true available credit, payment-method
+status, AI Gateway key/budget settings, provider routing and auto-top-up
+are **unknown**. No deployment, provider key, purchase or API request
+was made. A connected app is *not* an attested payment-safe runtime.
+
+Current originals:
+- [Pricing](https://vercel.com/docs/ai-gateway/pricing):
+  $5 included every 30 days on an unpurchased/free AI Gateway tier, lost
+  once credits are bought. Auto top-up is disabled by default, but current
+  account settings must be read back, not assumed.
+- [Sonar model price](https://vercel.com/ai-gateway/models/sonar):
+  \`perplexity/sonar\` is **priced**, currently $0.25 / 1M input tokens
+  and $2.50 / 1M output tokens **plus web search charges** around
+  $2.50 / 1,000 searches; exact live model/provider costs must be refreshed.
+  It is not a $0-per-token model and its web search cannot be disabled.
+- [AI Gateway budget semantics](https://vercel.com/docs/ai-gateway/observability-and-spend/budgets):
+  budgets are **soft limits**; a single admitted request may exceed them.
+  They do not reserve credits, BYOK costs do **not** count toward budgets,
+  and a team still needs credits or a payment method to make requests.
+- [Gateway usage API](https://vercel.com/docs/ai-gateway/observability-and-spend/usage):
+  authenticated credits/balance and per-generation costs can support
+  evidence *after* team permission, but cannot alone guarantee that an
+  in-flight request will never exceed the remaining free allowance.
+
+**MID decision: LIVE BLOCKED.** Provider-side hard fail at zero cash,
+account Free-tier state, no purchased credit, no auto top-up, no BYOK
+billing bypass, no Vercel spend outside prepaid entitlement, a private
+execution location, a bound signed approval, token/search upper bounds
+and non-overlapping durable credit admission must all be demonstrated
+before any conditional Sonar implementation. A key-scoped or team budget
+alone is **not sufficient** under the MID cost governance contract.
+
+Do **not** add \`vercel-perplexity-sonar\` to the direct zero-priced
+allowlist. \`mid-ai-router-blend.mjs\` catalog records
+\`directExecutionAllowed:false\` and the soft-budget/payment caution.
+The existing direct provider builder rejects even a forged
+\`perplexity/sonar\` plan, regardless of self-supplied free flags.
+
 ### GitHub Copilot Fusion: existing subscription blend, not external API
 
 [Official Copilot Fusion documentation](https://docs.github.com/en/copilot/concepts/models/copilot-fusion) describes **Single**, **Cascade**, and **Critique** execution patterns. Fusion Standard generally routes to one model; High/Max may use several and consume more included GitHub AI Credits. Official [Copilot individual billing](https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing) confirms per-model/token AI credit metering. Paid plan users are advertised 30% off Fusion model charges only **through 2026-11-30**; do not treat that as a permanent allowance. No extra Fusion subscription is required, but overage purchase or billing must stay **disabled**.
