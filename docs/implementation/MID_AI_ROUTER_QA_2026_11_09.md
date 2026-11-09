@@ -205,6 +205,39 @@ Provider REST references:
 - Gemini https://ai.google.dev/gemini-api/docs/generate-content/text-generation
 - MID issue https://github.com/MeteoMartini/MID/issues/725
 
+## New free-model research and independent two-model blends (2026-11-09)
+
+The evidence-led provider review and specific no-credit-purchase decisions
+are in \`docs/implementation/MID_AI_ROUTER_FREE_MODELS_2026_11_09.md\`.
+It documents **GitHub Models retired 2026-07-30**, direct Perplexity API
+having no free credit grant, Vercel's included (but priced) $5/30-day
+allowance as a **separately gated disabled Sonar candidate**, current
+Mistral Free mode having **no API**, and Cohere evaluation, SambaNova
+and Cloudflare Workers Free as conditional QA-only possibilities.
+GitHub Copilot Fusion is an existing **supported Copilot client**
+orchestrator with model/credit metering, not a general purpose REST API
+that the MID router can transparently invoke.
+
+\`scripts/mid-ai-router-blend.mjs\` is a **pure network-free planner**.
+By default it plans one verified zero-priced provider; a two-model
+independent review requires explicit user-initiated two-call authorization,
+two different provider IDs, two different underlying model families, exact
+SHA and full provider account/price/privacy/quota proof. It never sends
+two requests, silently falls back, merges untrusted model claims, or
+treats a consensus as meteorological evidence. Each planned leg must
+later obtain its **own** short-lived signed grant and durable claim.
+
+\`scripts/qa-mid-ai-router-blend-0985452.mjs\` contains 20 independent
+selection, authorization, pricing, provenance, privacy and negative tests.
+Existing \`tests/unit/mid-ai-router.test.ts\` invokes all 3 offline suites
+under the native Node22/Vitest pilot. Latest observed exact-head run:
+https://github.com/MeteoMartini/MID/actions/runs/42633941432
+(56 PASS / 1 existing SKIP across Vitest; both old QA suites still pass).
+
+Research is never a signed cost attestation. No user provider account,
+billing, Vercel credits, Copilot Fusion model session or real API was
+accessed in this QA work.
+
 ## Next acceptance gate
 
 1. Validate native Node 22 offline QA via the existing Vitest unit/Coverage
