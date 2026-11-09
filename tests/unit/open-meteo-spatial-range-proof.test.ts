@@ -26,7 +26,7 @@ describe('MID research-only original byte-range capture integrity',()=>{
    expect(result.nativeDwdParityVerified).toBe(false);}
  });
  it('refuses tampering, missing digest, hash spoofing, and missing bytes',async()=>{
-  const altered=Uint8Array.from(bytes);altered[0]^=1;
+  const altered=Uint8Array.from(bytes);altered[10]^=1;
   expect(await verifySpatialRangeReceipt(frame,await receipt(),altered))
    .toEqual({ok:false,reason:'sha256-mismatch'});
   expect(await verifySpatialRangeReceipt(frame,{...await receipt(),sha256:'a'.repeat(64)},bytes))
