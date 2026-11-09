@@ -91,7 +91,7 @@ export function qualifySpatialManifest(
     previous = time;
   }
   if (!Array.isArray(source.variables) || !source.variables.length ||
-      source.variables.some(v => typeof v !== 'string' || !/^[a-z][a-z0-9_]*$/.test(v)) ||
+      source.variables.some(v => typeof v !== 'string' || !/^[a-z][a-zA-Z0-9_]*$/.test(v)) ||
       new Set(source.variables).size !== source.variables.length) {
     return { ok: false, reason: 'invalid-variable-catalog' };
   }
