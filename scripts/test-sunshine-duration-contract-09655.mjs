@@ -73,7 +73,9 @@ for(const [file,tokens] of contracts){const text=fs.readFileSync(path.join(root,
  const dailySrc='export function sumDetailSunshine(group:{sunshineDuration?:number|null}[]){const '+fragment+';return sunshineDuration;}';
  const detailJs=ts.transpileModule(dailySrc,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022},fileName:'detailSunshineProbe.ts',reportDiagnostics:true});
  assert.equal((detailJs.diagnostics??[]).filter(item=>item.category===ts.DiagnosticCategory.Error).length,0,'Aggregat-Ausdruck muss TypeScript-kompilierbar sein');
- const detailFile=path.join(tempDir,'detailSunshineProbe.mjs');fs.writeFileSync(detailFile,detailJs.outputText);
+ const detailDir=fs.mkdtempSync(path.join(os.tmpdir(),'mid-daily-sunshine-detail-'));
+ try{
+ const detailFile=path.join(detailDir,'detailSunshineProbe.mjs');fs.writeFileSync(detailFile,detailJs.outputText);
  const {sumDetailSunshine}=await import(pathToFileURL(detailFile).href);
  const sum=values=>sumDetailSunshine(values.map(sunshineDuration=>({sunshineDuration})));
  assert.equal(sum([0,3600,0]),3600,'Gültige Stunden inklusive echter Null bleiben exakt erhalten');
@@ -84,5 +86,6 @@ for(const [file,tokens] of contracts){const text=fs.readFileSync(path.join(root,
  assert.equal(sum([0,NaN,0]),null,'NaN darf keine Teil-Summe erzeugen');
  assert.equal(sum([0,-1,0]),null,'Unphysikalisch negative Sonne ist nicht 0');
  assert.equal(sum([0,3601,0]),null,'Mehr als 3600 s/h ist kein valider Stundenwert');
+ }finally{fs.rmSync(detailDir,{recursive:true,force:true})}
 
 console.log('0.9.65.5: appweiter Sunshine-Duration-Contract von 15 min über Stunde/Tag bis Ensemble, Events und Widgets geprüft.');
