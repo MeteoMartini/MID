@@ -21,6 +21,62 @@ class P3FullOriginalBuilderQa(unittest.TestCase):
         self.addCleanup(folder.cleanup)
         self.root = Path(folder.name)
 
+
+    def test_bounded_eps_decode_preserves_original_units_member_axes_missing_and_extremes(self):
+        """Small authentic-shape semantics, not a substitute for original DWD GRIB."""
+        from datetime import datetime, timedelta, timezone
+        np = qa.production.np
+        t0 = datetime(2026, 11, 8, 21, tzinfo=timezone.utc)
+        targets = [t0, t0 + timedelta(hours=1)]
+        original_files = []
+        records = {}
+        for ti, t in enumerate(targets):
+            for member in range(1, 11):
+                path = self.root / f"eps-{ti}-{member}.grib2"
+                original_files.append(path)
+                values = np.array([ti * 2 + member * .125, 0, np.nan,
+                                   75 + 20 * ti], dtype=np.float64)
+                records[str(path)] = (t, member, values, 'mm', 'test-signature')
+        # Input order must not affect member ordering or native UTC/point wires.
+        original_files.reverse()
+        def decode(task):
+            return [records[task[0]]]
+        def signature(_name, prev, incoming):
+            if prev is not None and prev != incoming:
+                raise ValueError('original GRIB signature mismatch')
+            return incoming
+        with patch.dict(qa.production.os.environ, {'MID_RUC_EPS_DECODE_WORKERS': '1'}), \
+             patch.object(qa.production, 'decode_file_batch', side_effect=decode), \
+             patch.object(qa.production, 'assert_same_parameter_signature', side_effect=signature):
+            original, baseline_members = qa.production.collect_eps(
+                original_files, targets, 4, expected_members=range(1, 11))
+            bounded, members = qa.production.collect_eps_preallocated(
+                original_files, targets, 4, expected_members=range(1, 11))
+            self.assertEqual(members, baseline_members)
+            np.testing.assert_array_equal(bounded, original)
+            self.assertTrue(np.isnan(bounded[:, :, 2]).all())
+            self.assertEqual(float(bounded[0, 0, 1]), 0.0)
+            self.assertEqual(float(bounded[1, 0, 3]), 20.0)
+            # Suppressed original EPS records must never be silently filled.
+            missing_file = original_files[:-1]
+            with self.assertRaisesRegex(SystemExit, 'missing members'):
+                qa.production.collect_eps_preallocated(
+                    missing_file, targets, 4, expected_members=range(1, 11))
+            # A true duplicate in a single original message is an error.
+            with patch.object(qa.production, 'decode_file_batch',
+                              side_effect=lambda task: decode(task) * 2):
+                with self.assertRaisesRegex(SystemExit, 'duplicate member'):
+                    qa.production.collect_eps_preallocated(
+                        original_files, targets, 4, expected_members=range(1, 11))
+            # Different original member identity must never be accepted.
+            bad_record = (targets[0], 99, np.ones(4), 'mm', 'test-signature')
+            with patch.object(qa.production, 'decode_file_batch',
+                              side_effect=lambda task: [bad_record] if task[0] == str(original_files[0]) else decode(task)):
+                with self.assertRaisesRegex(qa.production.MeteoIntegrityError, 'unexpected member'):
+                    qa.production.collect_eps_preallocated(
+                        original_files, targets, 4, expected_members=range(1, 11))
+
+
     def test_no_source_activation_in_production(self):
         qa.unaltered_source_gate()
         self.assertIs(getattr(qa.production, qa.FLAG), False)

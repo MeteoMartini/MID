@@ -363,6 +363,62 @@ def collect_eps(files,targets,expected_points,expected_members=None):
     return cube,members
 
 
+
+def collect_eps_preallocated(files,targets,expected_points,expected_members):
+    """Experimental P3-only decode, never used while the static flag is False.
+
+    Insert normalized native values directly into their final float64 cube.
+    Unlike collect_eps(), do not keep a second all-member/time 'rows' copy.
+    Every original GRIB signature, native grid, member, interval, and missing
+    validity gate remains mandatory. A skipped cell remains UNINITIALIZED and
+    therefore MUST cause an exception before this cube can be read or packed.
+    """
+    if expected_members is None or not targets or not files or expected_points <= 0:
+      raise MeteoIntegrityError('P3 bounded EPS requires explicit source axes')
+    members=sorted(tuple(expected_members))
+    if len(members)<10 or len(set(members))!=len(members):
+      raise MeteoIntegrityError('P3 bounded EPS invalid original member identities')
+    valid_index={t:step for step,t in enumerate(targets)}
+    if len(valid_index)!=len(targets):
+      raise MeteoIntegrityError('P3 bounded EPS duplicate UTC target')
+    member_index={m:i for i,m in enumerate(members)}
+    seen=np.zeros((len(targets),len(members)),dtype=np.bool_)
+    cube=np.empty((len(targets),len(members),expected_points),dtype=np.float64)
+    reference_signature=None
+    # Serial GRIB decoder has no hidden, prefetched process futures retaining
+    # decoded per-file arrays. This is an experimental P3 memory/speed tradeoff,
+    # not a production setting or undocumented availability fallback.
+    for file in files:
+      messages=decode_file_batch((str(file),True,targets[0]))
+      for valid,member,vals,units,signature in messages:
+        reference_signature=assert_same_parameter_signature('RUC-EPS TOT_PREC',reference_signature,signature)
+        if valid not in valid_index:continue
+        if len(vals)!=expected_points:
+          raise SystemExit('RUC-EPS native point count differs from deterministic RUC grid')
+        if member not in member_index:
+          raise MeteoIntegrityError(f'RUC-EPS unexpected member {member} at {valid}')
+        ti=valid_index[valid];mi=member_index[member]
+        if seen[ti,mi]:
+          raise SystemExit(f'RUC-EPS duplicate member {member} at {valid}')
+        # This is the identical float32 normalization used by collect_eps.
+        # float64 conversion on assignment preserves all float32 bit-values.
+        cube[ti,mi]=normalize('precipitation_acc',vals,units)
+        seen[ti,mi]=True
+    for ti,t in enumerate(targets):
+      missing=[m for mi,m in enumerate(members) if not seen[ti,mi]]
+      if missing:
+        raise SystemExit(f'RUC-EPS missing members {missing[:24]} at forecast step {ti} ({t})')
+    coverage=validate_eps_member_coverage(cube,members)
+    validate_accumulation(cube,'RUC-EPS TOT_PREC')
+    print('RUC_MISSING_METRICS '+json.dumps({'validTimes':[t.isoformat() for t in targets],**coverage},allow_nan=False,separators=(',',':')),flush=True)
+    for step in range(len(targets)-1,0,-1):
+      np.subtract(cube[step],cube[step-1],out=cube[step])
+      np.maximum(cube[step],0,out=cube[step])
+    np.subtract(cube[0],cube[0],out=cube[0])
+    return cube,members
+
+
+
 def write_eps_products(interval,members_path,summary_path,chunk_points=4096):
     """Same point-major bytes, bounded temporary arrays per native point block.
 
@@ -580,7 +636,12 @@ def main():
  if dbz_cube is not None:severe_for_extreme['dbz_cmax']=dbz_cube
  eps_files=sorted((a.staging/'eps'/'TOT_PREC').glob('**/*.grib2*'))
  if not eps_files:raise SystemExit('missing staged RUC-EPS TOT_PREC')
- eps,members=collect_eps(eps_files,eps_times,point_count,expected_members=range(1,21));eps_period_summary=rapid_extreme_eps_period_summary(eps,eps_times,a.run)
+ if globals().get('_P3_ACCELERATED_QUANTILE_ENABLED') is True:
+  # Only QA in-memory injection can use this bounded-RSS experimental decode.
+  eps,members=collect_eps_preallocated(eps_files,eps_times,point_count,expected_members=range(1,21))
+ else:
+  eps,members=collect_eps(eps_files,eps_times,point_count,expected_members=range(1,21))
+ eps_period_summary=rapid_extreme_eps_period_summary(eps,eps_times,a.run)
  extreme=build_rapid_extreme_summary(base_grid[0],base_grid[1],a.run,rapid15_times,rapid_precip15,np.stack([rapid_cape[t] for t in rapid15_times]),np.stack([rapid_cin[t] for t in rapid15_times]),rapid_precip5,severe_for_extreme,deterministic_times=det_times,deterministic_fields=fields,specialist_fields=specialist_fields,phase_fields=phase_for_extreme,eps_period_summary=eps_period_summary)
  extreme_path=a.output/'rapid-extreme.json';extreme_path.write_text(json.dumps(extreme,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')
  eps_path=a.output/'eps-members.bin';summary_path=a.output/'eps-summary.bin'
