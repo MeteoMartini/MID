@@ -62,4 +62,27 @@ const contracts=[
 ];
 for(const [file,tokens] of contracts){const text=fs.readFileSync(path.join(root,file),'utf8');for(const token of tokens)assert.ok(text.includes(token),`${file}: Sunshine-Contract fehlt: ${token}`)}
 
+ // Tested expression is extracted from production 3-h detail grouping rather
+ // than duplicated: partial coverage must never appear as a complete sum.
+ const detailSource=fs.readFileSync(path.join(root,'src','App.tsx'),'utf8');
+ const marker='sunshineValues=group.map(hour=>hour.sunshineDuration)';
+ const begin=detailSource.indexOf(marker),finish=detailSource.indexOf(',cloud=meanCloudLayer(group',begin);
+ assert.ok(begin>=0&&finish>begin,'3-h-Sonnenscheindauer muss aus dem produktiven Stundenaggregat stammen');
+ const fragment=detailSource.slice(begin,finish);
+ assert.match(fragment,/sunshineValues\.length===group\.length/,'Nur vollständig vorhandene 3-h-Stundenwerte dürfen aufsummiert werden');
+ const dailySrc='export function sumDetailSunshine(group:{sunshineDuration?:number|null}[]){const '+fragment+';return sunshineDuration;}';
+ const detailJs=ts.transpileModule(dailySrc,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022},fileName:'detailSunshineProbe.ts',reportDiagnostics:true});
+ assert.equal((detailJs.diagnostics??[]).filter(item=>item.category===ts.DiagnosticCategory.Error).length,0,'Aggregat-Ausdruck muss TypeScript-kompilierbar sein');
+ const detailFile=path.join(tempDir,'detailSunshineProbe.mjs');fs.writeFileSync(detailFile,detailJs.outputText);
+ const {sumDetailSunshine}=await import(pathToFileURL(detailFile).href);
+ const sum=values=>sumDetailSunshine(values.map(sunshineDuration=>({sunshineDuration})));
+ assert.equal(sum([0,3600,0]),3600,'Gültige Stunden inklusive echter Null bleiben exakt erhalten');
+ assert.equal(sum([0,0,0]),0,'Drei nachgewiesene Nullen sind eine echte 0');
+ assert.equal(sum([null,1800,null]),null,'Lücken nicht als vollständige 3-h-Summe anzeigen');
+ assert.equal(sum([0,null,0]),null,'Eine einzige fehlende Stunde macht die 3-h-Summe unbekannt');
+ assert.equal(sum([undefined,1800,900]),null,'Undefined darf keine Teil-Summe erzeugen');
+ assert.equal(sum([0,NaN,0]),null,'NaN darf keine Teil-Summe erzeugen');
+ assert.equal(sum([0,-1,0]),null,'Unphysikalisch negative Sonne ist nicht 0');
+ assert.equal(sum([0,3601,0]),null,'Mehr als 3600 s/h ist kein valider Stundenwert');
+
 console.log('0.9.65.5: appweiter Sunshine-Duration-Contract von 15 min über Stunde/Tag bis Ensemble, Events und Widgets geprüft.');
