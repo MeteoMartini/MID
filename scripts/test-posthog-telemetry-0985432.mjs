@@ -97,6 +97,7 @@ assert.equal(live.requests[0].body.properties.dom_content_loaded_ms,240);
 assert.equal(live.requests[1].body.properties.section,'current');
 assert.equal(live.setMidPosthogConsent(false),true);
 assert.equal(live.isMidPosthogConsentGranted(),false);
+assert.equal(live.storage.get('mid:posthog-diagnostics-consent:v1'),'0','explicit denial must survive as a durable setting');
 live.captureNav('forecast');
 assert.equal(live.requests.length,4);
 // A new, distinct tab in the same test gets a per-page event budget.
