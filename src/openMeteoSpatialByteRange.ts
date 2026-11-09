@@ -104,3 +104,90 @@ export async function verifyOmHeaderResponse(
   return { ok: true, status: 'header-verified', formatVersion: 3,
     sampleBytes: HEADER_LENGTH, totalBytes, pixelValidated: false };
 }
+
+/** The trailing 24 bytes are separate from the OMfile header. */
+export interface OmTrailerProbe {
+  readonly status: 'planned-trailer-only';
+  readonly model: SpatialModelId;
+  readonly url: string;
+  readonly range: 'bytes=-24';
+}
+
+export type OmTrailerPlan =
+  | { readonly ok: true; readonly probe: OmTrailerProbe }
+  | { readonly ok: false; readonly reason: string };
+
+export type OmTrailerResult =
+  | {
+      readonly ok: true;
+      readonly status: 'metadata-position-verified';
+      readonly totalBytes: number;
+      readonly metadataOffset: number;
+      readonly metadataLength: number;
+      readonly pixelValidated: false;
+    }
+  | { readonly ok: false; readonly reason: string };
+
+const TRAILER_BYTES = 24;
+const MAX_ROOT_METADATA_BYTES = 4 * 1024 * 1024;
+
+/** Same already-qualified origin/model/run/time; do not construct user-supplied URLs. */
+export function planOmTrailerProbe(candidate: FrameResult): OmTrailerPlan {
+  const planned = planOmHeaderProbe(candidate);
+  if (!planned.ok) return planned;
+  return { ok: true, probe: {
+    status: 'planned-trailer-only',
+    model: planned.probe.model,
+    url: planned.probe.url,
+    range: 'bytes=-24',
+  } };
+}
+
+/**
+ * Check the trailing OM-v3 metadata pointer without decoding any weather field.
+ * The first little-endian uint64 is the root metadata OFFSET and the second
+ * uint64 its LENGTH (verified against original D2 and EU byte-range captures).
+ * The root must end exactly where the 24-byte trailer starts.
+ *
+ * Never read the response body if Range, length, content-type or file bounds
+ * fail: some HTTP endpoints reply with a full 20+ MB body to Range requests.
+ */
+export async function verifyOmTrailerResponse(
+  response: Pick<Response, 'status' | 'headers' | 'arrayBuffer'>,
+): Promise<OmTrailerResult> {
+  if (response.status !== 206) return { ok: false, reason: 'range-not-honored' };
+  const match = /^bytes (\d+)-(\d+)\/([1-9]\d*)$/.exec(response.headers.get('content-range') ?? '');
+  if (!match) return { ok: false, reason: 'invalid-or-unexposed-content-range' };
+  const [start, end, total] = match.slice(1).map(Number);
+  if (![start, end, total].every(Number.isSafeInteger) ||
+      total <= TRAILER_BYTES || total > MAX_OMFILE_BYTES ||
+      start !== total - TRAILER_BYTES || end !== total - 1) {
+    return { ok: false, reason: 'unqualified-trailer-range' };
+  }
+  if (response.headers.get('content-length') !== String(TRAILER_BYTES)) {
+    return { ok: false, reason: 'unbounded-or-incomplete-body' };
+  }
+  if (response.headers.get('content-type')?.toLowerCase().split(';')[0].trim() !== 'application/octet-stream') {
+    return { ok: false, reason: 'unexpected-content-type' };
+  }
+  let bytes: Uint8Array;
+  try { bytes = new Uint8Array(await response.arrayBuffer()); }
+  catch { return { ok: false, reason: 'range-read-failed' }; }
+  if (bytes.byteLength !== TRAILER_BYTES) return { ok: false, reason: 'wrong-range-length' };
+  if (bytes[0] !== 0x4f || bytes[1] !== 0x4d || bytes[2] !== 0x03 ||
+      bytes.slice(3, 8).some(value => value !== 0)) {
+    return { ok: false, reason: 'unknown-om-trailer-or-version' };
+  }
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const rootOffset = view.getBigUint64(8, true);
+  const rootLength = view.getBigUint64(16, true);
+  const trailerStart = BigInt(total - TRAILER_BYTES);
+  if (rootOffset < 3n || rootLength < 8n ||
+      rootLength > BigInt(MAX_ROOT_METADATA_BYTES) ||
+      rootOffset + rootLength !== trailerStart) {
+    return { ok: false, reason: 'invalid-root-metadata-bounds' };
+  }
+  return { ok: true, status: 'metadata-position-verified', totalBytes: total,
+    metadataOffset: Number(rootOffset), metadataLength: Number(rootLength),
+    pixelValidated: false };
+}
