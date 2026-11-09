@@ -154,12 +154,30 @@ export function buildMidAiRequest({ plan, prompt, credential }) {
  */
 export async function executeMidAiRoute({
   plan, task, snapshot, providers, credential, fetchImpl, liveApproved = false,
-  durableClaim, approvalGrant, approvalSignature
+  durableClaim, approvalGrant, approvalSignature, trustedSourceReadback
 }) {
   // Dispatch checks real server time, not a caller-supplied historical timestamp.
   const now = Date.now();
   if (liveApproved !== true) block('LIVE_NOT_APPROVED');
   if (typeof durableClaim !== 'function') block('DURABLE_IDEMPOTENCY_REQUIRED');
+  // A trusted server runner MUST perform a fresh, independent GitHub readback.
+  // Do not accept a caller-supplied snapshot as evidence that stable is current.
+  // The runner is responsible for making this callback authoritative; the
+  // callback alone is not a cryptographic attestation of GitHub API origin.
+  if (typeof trustedSourceReadback !== 'function') block('SOURCE_READBACK_REQUIRED');
+  let current;
+  try { current = await trustedSourceReadback(); }
+  catch { block('SOURCE_READBACK_UNAVAILABLE'); }
+  const checked = Date.parse(current?.checkedAt);
+  if (!Number.isFinite(checked) || checked > now || now-checked > 30000)
+    block('SOURCE_READBACK_STALE');
+  if (!SHA.test(current?.mainSha || '') || !SHA.test(current?.stableSha || '') ||
+      current.mainSha !== current.stableSha ||
+      current.mainSha !== snapshot?.mainSha ||
+      current.stableSha !== snapshot?.stableSha ||
+      current.stableSha !== task?.expectedStableSha ||
+      current.version !== snapshot?.version)
+    block('SOURCE_DRIFT');
   const renewed = planMidAiRoute({ task, snapshot, providers, now });
   if (renewed.provider === 'github-native') block('GITHUB_NATIVE_IS_NOT_HTTP');
   if (!plan || plan.provider !== renewed.provider || plan.model !== renewed.model ||
@@ -233,7 +251,9 @@ export async function executeMidAiRoute({
     status: 'UNTRUSTED_REVIEW_ONLY', requestId: task.requestId, provider: plan.provider,
     model: plan.model, providerReportedModel: reportedModel,
     expectedStableSha: snapshot.stableSha,
-    text: answer.slice(0, 16000), usage: data?.usage ?? data?.usageMetadata ?? null
+    text: answer.slice(0, 16000), usage: data?.usage ?? data?.usageMetadata ?? null,
+    usageStatus: data?.usage || data?.usageMetadata ? 'UPSTREAM_REPORTED_UNVERIFIED' : 'NOT_VERIFIED',
+    costStatus: 'NOT_VERIFIED'
   });
 }
 export const MID_AI_PROVIDER_ENV = Object.freeze(

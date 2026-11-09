@@ -204,10 +204,44 @@ async function rejected(label, args, expected) {
 const args = {
   ...setup(), plan, ...signedFor(plan), credential: 'FAKE_TEST_SECRET',
   liveApproved: true, durableClaim: durableOk,
+  trustedSourceReadback: async () => ({...snapshot,checkedAt:new Date().toISOString()}),
   fetchImpl: async () => goodResponse({ model:plan.model, choices: [{ message: { content: 'Untrusted QA result.' } }] })
 };
 await rejected('network disabled by default', { ...args, liveApproved: false }, 'LIVE_NOT_APPROVED');
 await rejected('durable claim is mandatory', { ...args, durableClaim: undefined }, 'DURABLE_IDEMPOTENCY_REQUIRED');
+
+await rejected('independent source readback is mandatory', {
+  ...args,trustedSourceReadback:undefined
+}, 'SOURCE_READBACK_REQUIRED');
+await rejected('source readback cannot fail open', {
+  ...args,trustedSourceReadback:async()=>{throw new Error('API inaccessible')}
+}, 'SOURCE_READBACK_UNAVAILABLE');
+await rejected('stale readback timestamps are blocked', {
+  ...args,trustedSourceReadback:async()=>({...snapshot,
+    checkedAt:new Date(Date.now()-60000).toISOString()})
+}, 'SOURCE_READBACK_STALE');
+await rejected('future readback timestamps are blocked', {
+  ...args,trustedSourceReadback:async()=>({...snapshot,
+    checkedAt:new Date(Date.now()+60000).toISOString()})
+}, 'SOURCE_READBACK_STALE');
+await rejected('independently observed stable drift blocks before reservation', {
+  ...args,trustedSourceReadback:async()=>({...snapshot,
+    stableSha:'b'.repeat(40),checkedAt:new Date().toISOString()})
+}, 'SOURCE_DRIFT');
+await rejected('independently observed version drift blocks before reservation', {
+  ...args,trustedSourceReadback:async()=>({...snapshot,
+    version:'0.9.85.452',checkedAt:new Date().toISOString()})
+}, 'SOURCE_DRIFT');
+{
+  let claims=0,network=0;
+  await rejected('source mismatch cannot consume durable claim or model request',{
+    ...args,trustedSourceReadback:async()=>({...snapshot,
+      mainSha:'b'.repeat(40),checkedAt:new Date().toISOString()}),
+    durableClaim:async()=>{claims++;return true;},
+    fetchImpl:async()=>{network++;return goodResponse({})}
+  },'SOURCE_DRIFT');
+  assert.equal(claims,0);assert.equal(network,0);
+}
 await rejected('unknown credential', { ...args, credential: '' }, 'MISSING_CREDENTIAL');
 await rejected('duplicate', { ...args, durableClaim: async () => false }, 'DUPLICATE_REQUEST');
 await rejected('stale free-tier evidence after plan', {
@@ -339,6 +373,8 @@ assert.equal(result.status, 'UNTRUSTED_REVIEW_ONLY');
 assert.equal(result.text, 'Untrusted QA result.');
 assert.equal(result.providerReportedModel,plan.model);
 assert.equal(result.usage.total_tokens, 14);
+assert.equal(result.usageStatus,'UPSTREAM_REPORTED_UNVERIFIED');
+assert.equal(result.costStatus,'NOT_VERIFIED');
 assert.equal(received.length, 1);
 assert.equal(received[0].input.redirect, 'error');
 assert.equal(received[0].input.method, 'POST');
@@ -356,4 +392,6 @@ const gr = await executeMidAiRoute({
 assert.equal(gr.text, 'Review A\nReview B');
 assertions++;
 assert.equal(gr.providerReportedModel,'models/'+gp.model);
+assert.equal(gr.usageStatus,'NOT_VERIFIED');
+assert.equal(gr.costStatus,'NOT_VERIFIED');
 console.log('MID AI Router offline tests OK; scenarios=' + assertions + '; no live API used.');
