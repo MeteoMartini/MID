@@ -234,3 +234,70 @@ describe('OM-v3 bounded array descriptor metadata (synthetic only)',()=>{
   }
  });
 });
+
+
+describe('real original OM-v3 cloud-cover descriptors (historical immutable evidence)',()=>{
+ const captures=[
+  {
+   model:'dwd_icon_d2',valid:'2026-11-09T0700.om',
+   uri:'https://openmeteo.s3.amazonaws.com/data_spatial/dwd_icon_d2/2026/11/09/0600Z/2026-11-09T0700.om',
+   total:23575944, rootOffset:23574344,
+   childOffset:23561712,childLength:104,grid:[746,1215],
+   lutOffset:23449648,lutLength:1185,
+   hex:'1400100001000000a10400000000000030d065010000000002000000000000000000803f000000001500000000000000d885670100000000ea02000000000000bf0400000000000020000000000000002000000000000000636c6f75645f636f7665725f68696768',
+  },
+  {
+   model:'dwd_icon_eu',valid:'2026-11-09T0700.om',
+   uri:'https://openmeteo.s3.amazonaws.com/data_spatial/dwd_icon_eu/2026/11/09/0300Z/2026-11-09T0700.om',
+   total:33758848,rootOffset:33756800,
+   childOffset:33740296,childLength:104,grid:[657,1377],
+   lutOffset:33594321,lutLength:1245,
+   hex:'1400100001000000dd04000000000000d19b00020000000002000000000000000000803f000000001500000000000000f0d50202000000009102000000000000610500000000000020000000000000002000000000000000636c6f75645f636f7665725f68696768',
+  },
+ ] as const;
+ it('decodes two ORIGINAL S3 field descriptors, still never claims raster-pixel QA',async()=>{
+  for(const capture of captures){
+   const bytes=parseHex(capture.hex);
+   expect(bytes.byteLength).toBe(capture.childLength);
+   const probe={
+    status:'planned-descriptor-only' as const,
+    url:capture.uri,
+    range:'bytes='+capture.childOffset+'-'+(capture.childOffset+capture.childLength-1),
+    metadataOffset:capture.childOffset,
+    metadataLength:capture.childLength,
+    rootOffset:capture.rootOffset,
+    totalBytes:capture.total,
+   };
+   const response=rangeResponse(bytes,
+    'bytes '+capture.childOffset+'-'+(capture.childOffset+capture.childLength-1)+'/'+capture.total);
+   const result=await inspectOmArrayDescriptorResponse(response,probe);
+   expect(result.ok).toBe(true);
+   if(!result.ok)throw Error(capture.model+': '+result.reason);
+   expect(result.descriptor).toMatchObject({
+    status:'descriptor-verified',
+    name:'cloud_cover_high',dataTypeId:20,compressionId:0,
+    dimensions:[...capture.grid],chunks:[32,32],
+    scaleFactor:1,addOffset:0,
+    lutOffset:capture.lutOffset,lutLength:capture.lutLength,pixelValidated:false,
+   });
+  }
+ });
+
+ it('does not reuse EU04 root/trailer offsets for EU07 despite the same model run',async()=>{
+  // Two genuine snapshots from the SAME run have different total file sizes
+  // and root offsets. Each file MUST be independently range-validated.
+  const eu04={
+   status:'planned-descriptor-only' as const,
+   url:'https://openmeteo.s3.amazonaws.com/data_spatial/dwd_icon_eu/2026/11/09/0300Z/2026-11-09T0400.om',
+   metadataOffset:33740296,metadataLength:104,rootOffset:32901848,
+   totalBytes:32903896,range:'bytes=33740296-33740399',
+  };
+  const validEu07=captures[1];
+  const response=rangeResponse(parseHex(validEu07.hex),
+   'bytes 33740296-33740399/33758848');
+  expect(await inspectOmArrayDescriptorResponse(response,eu04))
+   .toEqual({ok:false,reason:'invalid-descriptor-plan'});
+  // Source-datetime-specific trailer is therefore mandatory; the 07Z
+  // descriptor is not a substitute for any 04Z model-file readback.
+ });
+});
