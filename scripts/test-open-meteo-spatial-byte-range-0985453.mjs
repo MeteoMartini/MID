@@ -8,7 +8,7 @@ const compiled = ts.transpileModule(source, {
   reportDiagnostics: true,
 });
 assert.equal(compiled.diagnostics?.length ?? 0, 0);
-const { planOmHeaderProbe, verifyOmHeaderResponse } =
+const { planOmHeaderProbe, verifyOmHeaderResponse, planOmTrailerProbe, verifyOmTrailerResponse } =
   await import(`data:text/javascript;base64,${Buffer.from(compiled.outputText).toString('base64')}`);
 
 const valid = {
@@ -57,3 +57,60 @@ for (const [probe, reason] of [
 ]) assert.equal((await verifyOmHeaderResponse(probe)).reason, reason);
 assert.equal((await verifyOmHeaderResponse({ ...response(), arrayBuffer: async () => { throw new Error('network'); } })).reason, 'range-read-failed');
 console.log('PASS spatial OM range: origin/path, 206, size bounds, magic, no full-body fallback and no pixel claim');
+
+const trailerPlan = planOmTrailerProbe(valid);
+assert.equal(trailerPlan.ok, true);
+assert.equal(trailerPlan.probe.url, p.probe.url);
+assert.equal(trailerPlan.probe.range, 'bytes=-24');
+assert.equal(planOmTrailerProbe({ status: 'unavailable', reason: 'missing' }).ok, false);
+assert.equal(planOmTrailerProbe({ ...valid, model: 'dwd_icon_seamless' }).ok, false);
+
+// Actual 24-byte tail read from two ORIGINAL Open-Meteo S3 OMfiles 2026-11-09.
+// These bytes only prove the metadata root pointer, not the decoded variable.
+const rawHex = hex => Uint8Array.from(hex.match(/../g), v => parseInt(v, 16));
+const d2Trailer = rawHex('4f4d03000000000048b76701000000002806000000000000');
+const euTrailer = rawHex('4f4d030000000000d80af60100000000e807000000000000');
+const trailerResponse = (b = d2Trailer, status = 206, headers = {}) => {
+  const h = new Headers({
+    'content-range': 'bytes 23575920-23575943/23575944',
+    'content-length': '24',
+    'content-type': 'application/octet-stream',
+    ...headers,
+  });
+  return { status, headers: h,
+    arrayBuffer: async () => b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) };
+};
+assert.deepEqual(await verifyOmTrailerResponse(trailerResponse()), {
+  ok: true, status: 'metadata-position-verified', totalBytes: 23575944,
+  metadataOffset: 23574344, metadataLength: 1576, pixelValidated: false,
+});
+assert.deepEqual(await verifyOmTrailerResponse(trailerResponse(euTrailer, 206, {
+  'content-range': 'bytes 32903872-32903895/32903896',
+})), {
+  ok: true, status: 'metadata-position-verified', totalBytes: 32903896,
+  metadataOffset: 32901848, metadataLength: 2024, pixelValidated: false,
+});
+let trailerBodyCalled = false;
+assert.equal((await verifyOmTrailerResponse({
+  status: 200, headers: new Headers(), arrayBuffer: async () => {
+    trailerBodyCalled = true; throw Error('full body prohibited');
+  },
+})).reason, 'range-not-honored');
+assert.equal(trailerBodyCalled, false);
+for (const [r, reason] of [
+  [trailerResponse(d2Trailer, 206, { 'content-range': 'bytes 0-23/23575944' }), 'unqualified-trailer-range'],
+  [trailerResponse(d2Trailer, 206, { 'content-range': 'bytes 23575920-23575943/*' }), 'invalid-or-unexposed-content-range'],
+  [trailerResponse(d2Trailer, 206, { 'content-range': 'bytes 23575920-23575943/9999999999999999' }), 'unqualified-trailer-range'],
+  [trailerResponse(d2Trailer, 206, { 'content-length': '23575944' }), 'unbounded-or-incomplete-body'],
+  [trailerResponse(d2Trailer, 206, { 'content-type': 'text/html' }), 'unexpected-content-type'],
+  [trailerResponse(d2Trailer.slice(0, 20)), 'wrong-range-length'],
+  [trailerResponse(new Uint8Array(24)), 'unknown-om-trailer-or-version'],
+  [trailerResponse(rawHex('4f4d04000000000048b76701000000002806000000000000')), 'unknown-om-trailer-or-version'],
+  [trailerResponse(rawHex('4f4d03010000000048b76701000000002806000000000000')), 'unknown-om-trailer-or-version'],
+  [trailerResponse(rawHex('4f4d03000000000048b76701000000002906000000000000')), 'invalid-root-metadata-bounds'],
+  [trailerResponse(rawHex('4f4d03000000000048b76701000000000000000000000000')), 'invalid-root-metadata-bounds'],
+]) assert.equal((await verifyOmTrailerResponse(r)).reason, reason);
+assert.equal((await verifyOmTrailerResponse({
+  ...trailerResponse(), arrayBuffer: async () => { throw Error('network'); },
+})).reason, 'range-read-failed');
+console.log('PASS spatial OM trailer: original D2/EU root pointers, exact 24-byte range and hostile-response rejection');
