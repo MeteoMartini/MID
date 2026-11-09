@@ -59,7 +59,7 @@ function validateTask(task, snapshot) {
 }
 function freeProofOk(p, now) {
   if (!p || p.enabled !== true || p.accountTier !== 'free' ||
-      p.hardStopVerified !== true || p.paidFallback === true ||
+      p.hardStopVerified !== true || p.paidFallback !== false ||
       p.paidOveragePossible !== false || p.priceInputUsd !== 0 ||
       p.priceOutputUsd !== 0 || p.freePriceProven !== true ||
       p.credentialPresent !== true || !Number.isInteger(p.remainingRequests) ||
