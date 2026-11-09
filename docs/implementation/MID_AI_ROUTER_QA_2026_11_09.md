@@ -78,8 +78,16 @@ bill. For every call, a future audited control plane must fetch/revalidate:
 - Price for that **exact** model, both input and output = USD 0, evidence
   from an official source; free-pricing proof newer than six hours.
 - Account-specific remaining requests and rate limits; cap exhaustion
-  blocks routing.
-- Privacy terms, prompt redaction, request scope and retention.
+  blocks routing. The requested exact model must have independently verified
+  current Free-tier availability (`modelAvailabilityVerified`).
+- Privacy terms, prompt redaction, request scope and retention. The control
+  plane supplies explicit `privacyApproved` and fresh `privacyCheckedAt`
+  only after the data-use rules were independently reviewed; Gemini Free
+  may use prompts for product improvement, so private/unreleased MID data
+  remain excluded. OpenRouter requests additionally set `data_collection:deny`,
+  `zdr:true`, `max_price:{prompt:0,completion:0,request:0}` and
+  `allow_fallbacks:false`; incompatibility is a deliberate no-result, not a
+  reason to relax privacy or cost filters. Groq uses `max_completion_tokens`.
 - Stable+main exact SHA and version, user-initiated task ID and
   **durable exactly-once dispatch**. A simple volatile in-memory Set
   is insufficient. No automatic retry after ambiguous response.
@@ -103,6 +111,9 @@ missing hard stop, paid/unknown model price, paid or unknown fallback,
 quota exhaustion, stale evidence, a non-free OpenRouter model, prompt
 isolation, request headers, failed HTTP, 429, malformed/oversized response,
 durable duplicate prevention, direct model response, and Kilo exclusion.
+The `tests/unit/mid-ai-router.test.ts` Vitest test runs the full offline QA
+suite in real Node 22 on GitHub; the suite includes streaming response-size
+limits, malformed UTF-8 and invalid/missing HTTP body/length handling.
 No real credentials or real network used; mocked HTTP is not a
 real provider, privacy, billing, RUC or iOS acceptance test.
 
@@ -114,7 +125,8 @@ Provider REST references:
 
 ## Next acceptance gate
 
-1. Validate node offline test and independent code/security review on exact PR HEAD.
+1. Validate native Node 22 offline QA via the existing Vitest unit/Coverage
+   pilot on exact PR HEAD, then obtain independent code/security review.
 2. Set up a non-public, protected existing-infrastructure control plane with
    no extra costs. No product build or extra packages for this draft.
 3. Verify provider-specific hard zero-cost boundaries and account-specific
