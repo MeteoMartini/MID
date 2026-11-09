@@ -260,3 +260,12 @@ accessed in this QA work.
 5. If desired, integrate with MID CI via the **standard** source-PR, exact-head
    source gate, release-bot ZIP, installer, Worker/Pages and Stable-promotion;
    bump version/changelog/mirrors with that actual release candidate.
+
+
+### MID AI Router 1.1 · konservative Publisher-Provenienz (09.11.2026, QA Draft)
+
+Auf Draft #728 wird ein Grenzfall des früheren `family(p)`-Heuristikcodes behoben: Die Groq-ID `llama-3.3-70b-versatile` und eine OpenRouter-ID `meta-llama/…:free` dürfen **keine unabhängigen Foundation-Familien** nur aufgrund abweichender Namespace-Präfixe darstellen. OpenRouter-IDs im Test sind synthetische Offline-Fixtures, **keine geprüfte Free-Modellverfügbarkeit**.
+
+Für den ausdrücklich genehmigten Zwei-Request-Plan wird jetzt ein vom unabhängigen Attester auf Originalanbieter-/Modellmetadaten geprüfter kanonischer `foundationPublisher` verlangt, mit `lineageVerified=true`, frischem `lineageCheckedAt` und `lineageEvidenceSha256`. Alle vier Felder werden in `proofFingerprint` gebunden und damit durch die bereits vorhandene Ed25519-Ausführungsfreigabe SHA-/Request-/Plan-gebunden. Der Router prüft bekannte Modellnamespace-/Alias-Zuordnungen zusätzlich konservativ; unbekannte oder widersprüchliche Namespaces, fehlende oder abgelaufene Evidenz blockieren den Blend. Eine synthetische Mock-Attestierung ist **kein echter Provenienzbeleg** und ermöglicht ohne unabhängige Signierinstanz keinen Live-Dispatch.
+
+Sieben zusätzliche reine Offline-Regressionsfälle (insgesamt 27 Blend-Szenarien) prüfen Groq-Llama↔OpenRouter-Meta-Llama, widersprüchliche Herkunftsangaben, fehlenden Echtheitsmarker, unbekannte Aliasse, fehlenden Digest, veraltete Provenienz und Signatur-Hash-Bindung. Die drei direkten Provider-Adapter bleiben unverändert, kein Kilo-/Copilot-Doppelauftrag, keine kostenpflichtige Modellanfrage, keine Secret- oder Release-Änderung.

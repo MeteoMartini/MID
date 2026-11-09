@@ -22,6 +22,8 @@ const proofFingerprint = (p) => createHash('sha256').update(JSON.stringify([
   p.paidOveragePossible,p.priceInputUsd,p.priceOutputUsd,p.freePriceProven,
   p.credentialPresent,p.modelAvailabilityVerified,p.privacyApproved,
   p.privacyCheckedAt,p.proofCheckedAt,p.remainingRequests,
+  p.foundationPublisher ?? null,p.lineageVerified ?? null,
+  p.lineageCheckedAt ?? null,p.lineageEvidenceSha256 ?? null,
   [...p.capabilities].sort()
 ])).digest('hex');
 const PROVIDERS = Object.freeze({

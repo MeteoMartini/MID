@@ -3,6 +3,8 @@
  * QA/DRAFT ONLY. No network or model dispatch.
  * Static research is information, NOT a cost/free-tier attestation.
  * Actual direct dispatch still needs signed, fresh account-specific proof.
+ * Publisher evidence must be independently attested; provider/gateway model IDs
+ * are not themselves provenance of a distinct foundation family.
  */
 import {planMidAiRoute,MidAiRouterBlocked} from './mid-ai-router.mjs';
 
@@ -29,13 +31,44 @@ export const MID_AI_RESEARCHED_CANDIDATES=Object.freeze([
 ]);
 export const MID_AI_RESEARCH_DATE=EVIDENCE_DATE;
 
-function family(p) {
+// Independent reviews require canonical model-publisher identity, NOT a
+// gateway namespace or the first token of an upstream model ID. This is a
+// separate, account-verified attestation whose evidence is included in the
+// execution grant's signed proofFingerprint (see mid-ai-router.mjs).
+// Unknown aliases fail closed rather than falsely claiming independence.
+const PUBLISHER_ALIASES=Object.freeze({
+  'meta':'meta','meta-llama':'meta','openai':'openai','cohere':'cohere',
+  'google':'google','qwen':'qwen','deepseek':'deepseek',
+  'mistral':'mistral','mistralai':'mistral'
+});
+const LINEAGE_FRESH_MS=6*60*60*1000;
+function expectedPublisher(p){
+  if(!p||typeof p.model!=='string')return null;
   if(p.id==='gemini')return 'google';
-  if(p.id==='openrouter'||p.id==='groq'){
-    const head=typeof p.model==='string'?p.model.split('/')[0]:null;
-    return head && /^[a-z0-9_-]{2,40}$/.test(head) ? head : null;
+  let namespace=null;
+  if(p.id==='openrouter'){
+    if(!p.model.includes('/'))return null;
+    namespace=p.model.split('/')[0];
+  }else if(p.id==='groq'){
+    if(/^llama[-/]/.test(p.model))namespace='meta';
+    else if(/^gemma[-/]/.test(p.model))namespace='google';
+    else if(/^qwen[-/]/.test(p.model))namespace='qwen';
+    else if(/^deepseek[-/]/.test(p.model))namespace='deepseek';
+    else if(p.model.includes('/'))namespace=p.model.split('/')[0];
   }
-  return null;
+  return Object.hasOwn(PUBLISHER_ALIASES,namespace)?PUBLISHER_ALIASES[namespace]:null;
+}
+function family(p,now){
+  if(p?.lineageVerified!==true ||
+     typeof p.foundationPublisher!=='string' ||
+     !/^[a-z][a-z0-9_-]{1,39}$/.test(p.foundationPublisher) ||
+     !/^[a-f0-9]{64}$/.test(p.lineageEvidenceSha256||'') ||
+     typeof p.lineageCheckedAt!=='string')return null;
+  const checked=Date.parse(p.lineageCheckedAt);
+  if(!Number.isFinite(checked)||checked>now||now-checked>LINEAGE_FRESH_MS)
+    return null;
+  const expected=expectedPublisher(p);
+  return expected!==null&&expected===p.foundationPublisher?expected:null;
 }
 /**
  * Deliberate bounded two-model PLAN, never automatic fanout.
@@ -66,10 +99,10 @@ export function planMidAiBlend({task,snapshot,providers=[],mode='single',now=Dat
   const first=planMidAiRoute({task:primaryTask,snapshot,providers,now});
   if(first.provider==='github-native')block('BLEND_GITHUB_READBACK_ONLY');
   const selected=providers.find(p=>p.id===first.provider);
-  const firstFamily=family(selected);
+  const firstFamily=family(selected,now);
   if(!firstFamily)block('UNKNOWN_PRIMARY_MODEL_FAMILY');
   const candidates=providers.filter(p=>p.id!==first.provider &&
-    family(p)!==null && family(p)!==firstFamily);
+    family(p,now)!==null && family(p,now)!==firstFamily);
   let second;
   try {
     second=planMidAiRoute({task:secondaryTask,snapshot,providers:candidates,now});

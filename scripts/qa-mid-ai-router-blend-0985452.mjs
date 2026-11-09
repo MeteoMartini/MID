@@ -10,17 +10,19 @@ const snapshot={mainSha:sha,stableSha:sha,version:'0.9.85.451'};
 const task={requestId:'mid-blend-qa-0001',userInitiated:true,
  expectedStableSha:sha,kind:'independent-review',dataClass:'public-redacted',
  prompt:'Review public, nonsecret scientific statements only.',maxExternalCalls:2};
-const model=(id,name,priority)=>({
+const model=(id,name,priority,publisher)=>({
  id,model:name,priority,enabled:true,accountTier:'free',hardStopVerified:true,
+ foundationPublisher:publisher,lineageVerified:true,
+ lineageCheckedAt:new Date(now).toISOString(),lineageEvidenceSha256:'b'.repeat(64),
  paidFallback:false,paidOveragePossible:false,priceInputUsd:0,priceOutputUsd:0,
  freePriceProven:true,credentialPresent:true,modelAvailabilityVerified:true,
  privacyApproved:true,privacyCheckedAt:new Date(now).toISOString(),
  proofCheckedAt:new Date(now).toISOString(),remainingRequests:2,
  capabilities:['independent-review','weather-science','bounded-code-review']
 });
-const groq=model('groq','openai/gpt-oss-20b',1);
-const openrouter=model('openrouter','cohere/north-mini-code:free',2);
-const gemini=model('gemini','gemini-2.5-flash',3);
+const groq=model('groq','openai/gpt-oss-20b',1,'openai');
+const openrouter=model('openrouter','cohere/north-mini-code:free',2,'cohere');
+const gemini=model('gemini','gemini-2.5-flash',3,'google');
 const params=(overrides={})=>({task,snapshot,providers:[groq,openrouter,gemini],
  mode:'independent-two-models',now,...overrides});
 let scenarios=0;
@@ -50,10 +52,10 @@ test('deterministic selection independent of registry order',()=>{
  assert.deepEqual(p.plans.map(x=>x.provider),['groq','openrouter']);
 });
 test('different provider not independent when same foundational model family',()=>
- blocked({providers:[groq,{...openrouter,model:'openai/gpt-oss-20b:free'}]},
+ blocked({providers:[groq,{...openrouter,model:'openai/gpt-oss-20b:free',foundationPublisher:'openai'}]},
  'TWO_INDEPENDENT_FREE_PROVIDERS_REQUIRED'));
 test('Google Gemma through OpenRouter and direct Gemini cannot count twice',()=>
- blocked({providers:[{...openrouter,priority:1,model:'google/gemma-4-26b-a4b-it:free'},gemini]},
+ blocked({providers:[{...openrouter,priority:1,model:'google/gemma-4-26b-a4b-it:free',foundationPublisher:'google'},gemini]},
  'TWO_INDEPENDENT_FREE_PROVIDERS_REQUIRED'));
 test('requires explicit two-call user authorization',()=>
  blocked({task:{...task,maxExternalCalls:undefined}},'TWO_CALL_APPROVAL_REQUIRED'));
@@ -83,6 +85,33 @@ test('secrets and missing prompt blocked by underlying independent planner',()=>
  blocked({task:{...task,prompt:'api_key: supersecretlongtoken123'}},'SECRET_PATTERN'));
 test('no eligible first provider fails closed',()=>
  blocked({providers:[{...groq,paidFallback:true}]},'NO_VERIFIED_ZERO_COST_PROVIDER'));
+test('Groq Llama and OpenRouter Meta Llama aliases are NOT independent',()=>
+ blocked({providers:[
+  {...groq,model:'llama-3.3-70b-versatile',foundationPublisher:'meta'},
+  {...openrouter,model:'meta-llama/llama-3.3-70b-instruct:free',foundationPublisher:'meta'}
+ ]},'TWO_INDEPENDENT_FREE_PROVIDERS_REQUIRED'));
+test('self-declared different publisher contradicting model namespace fails closed',()=>
+ blocked({providers:[{...groq,foundationPublisher:'cohere'},openrouter]},
+ 'UNKNOWN_PRIMARY_MODEL_FAMILY'));
+test('unverified primary foundation identity never forms independent pair',()=>
+ blocked({providers:[{...groq,lineageVerified:false},openrouter]},
+ 'UNKNOWN_PRIMARY_MODEL_FAMILY'));
+test('unrecognized Groq model alias has no inferred independence',()=>
+ blocked({providers:[{...groq,model:'unknown-new-alias'},openrouter]},
+ 'UNKNOWN_PRIMARY_MODEL_FAMILY'));
+test('missing foundation evidence digest denies dual route',()=>
+ blocked({providers:[{...groq,lineageEvidenceSha256:undefined},openrouter]},
+ 'UNKNOWN_PRIMARY_MODEL_FAMILY'));
+test('stale publisher proof denies dual route',()=>
+ blocked({providers:[groq,{...openrouter,lineageCheckedAt:'2026-11-08T00:00:00.000Z'}]},
+ 'TWO_INDEPENDENT_FREE_PROVIDERS_REQUIRED'));
+test('signed provider proof fingerprint changes when foundation evidence changes',()=>{
+ const original=planMidAiBlend(params({mode:'single'})).plans[0];
+ const updated=planMidAiBlend(params({mode:'single',providers:[
+  {...groq,lineageEvidenceSha256:'c'.repeat(64)},openrouter,gemini
+ ]})).plans[0];
+ assert.notEqual(original.proofFingerprint,updated.proofFingerprint);
+});
 test('candidates do not authorize API calls or billing',()=>{
  const catalog=MID_AI_RESEARCHED_CANDIDATES;
  assert.equal(catalog.find(x=>x.id==='github-models').status,'RETIRED_2026_07_30');
