@@ -14,7 +14,9 @@ const [source,app,main]=await Promise.all([
 assert.match(app,/Freiwillige MID-Diagnose \(PostHog\)/);
 assert.match(app,/data-mid-telemetry-section=\{tab\.id\}/);
 assert.match(app,/setMidPosthogConsent\(next\)/);
-assert.ok(!app.includes('checked={posthogConsent} disabled='),'iPhone/native UI must not disable consent when transport is unavailable');
+const posthogStart=app.indexOf('Freiwillige MID-Diagnose (PostHog)');
+const posthogLabel=app.slice(posthogStart,app.indexOf('</label>',posthogStart));
+assert.ok(posthogStart>=0&&posthogLabel.includes('<input type="checkbox"')&&!posthogLabel.includes('disabled='),'iPhone/native UI must not disable consent when transport is unavailable');
 assert.ok(app.includes("setPosthogConsentError('Die Auswahl konnte auf diesem Gerät nicht gespeichert werden"),'storage denial must be explained to the user');
 assert.match(app,/posthogConsentError&&<small role="alert">/,'storage denial must be announced beside the checkbox');
 assert.ok(app.includes('checked={posthogConsent} style={{width:22,height:22,flexShrink:0}}'),'touch checkbox should not depend on a tiny native hit target');
@@ -114,6 +116,16 @@ const deniedChoice=harness({storageBlocked:true});
 assert.equal(deniedChoice.setMidPosthogConsent(true),false);
 assert.equal(deniedChoice.isMidPosthogConsentGranted(),false);
 assert.equal(deniedChoice.requests.length,0);
+
+// A refused revocation must stop new requests immediately even when storage still says consent=1.
+const deniedRevoke=harness({consent:true,storageBlocked:true});
+deniedRevoke.startMidPosthogTelemetry();
+deniedRevoke.captureNav('current');
+assert.equal(deniedRevoke.requests.length,1,'pre-revocation captured navigation');
+assert.equal(deniedRevoke.setMidPosthogConsent(false),false,'storage refusal is surfaced to the UI');
+assert.equal(deniedRevoke.requests[0].options.signal.aborted,true,'in-flight capture is aborted before the refused write returns');
+deniedRevoke.captureNav('today');
+assert.equal(deniedRevoke.requests.length,1,'a failed revoke cannot send new events, regardless of stale stored consent');
 
 // A stored opt-in without a configured transport must remain network silent.
 for(const options of [{token:''},{native:true},{host:'https://us.i.posthog.com'}]){const blocked=harness(options);assert.equal(blocked.setMidPosthogConsent(true),true);blocked.startMidPosthogTelemetry();blocked.captureNav('current');assert.equal(blocked.requests.length,0);blocked.setMidPosthogConsent(false);assert.equal(blocked.requests.length,0)}
