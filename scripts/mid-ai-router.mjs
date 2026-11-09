@@ -168,8 +168,9 @@ export async function executeMidAiRoute({
   let current;
   try { current = await trustedSourceReadback(); }
   catch { block('SOURCE_READBACK_UNAVAILABLE'); }
+  const readbackNow = Date.now(); // clock sampled AFTER the awaited GitHub read
   const checked = Date.parse(current?.checkedAt);
-  if (!Number.isFinite(checked) || checked > now || now-checked > 30000)
+  if (!Number.isFinite(checked) || checked > readbackNow || readbackNow-checked > 30000)
     block('SOURCE_READBACK_STALE');
   if (!SHA.test(current?.mainSha || '') || !SHA.test(current?.stableSha || '') ||
       current.mainSha !== current.stableSha ||
