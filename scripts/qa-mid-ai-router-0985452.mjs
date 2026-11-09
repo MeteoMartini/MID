@@ -200,7 +200,7 @@ await rejected('missing signed approval', {
   ...args, approvalGrant: undefined
 }, 'INVALID_GRANT_SCHEMA');
 await rejected('bad signature', {
-  ...args, approvalSignature: 'x'.repeat(86)
+  ...args, approvalSignature: 'A'.repeat(86)
 }, 'GRANT_SIGNATURE_REJECTED');
 await rejected('wrong signing key', {
   ...args, ...signedFor(plan,{},generateKeyPairSync('ed25519').privateKey)
@@ -242,7 +242,7 @@ await rejected('changed privacy proof after planning', {
 {
   let claims=0,requests=0;
   await rejected('bad grant never reserves a request', {
-    ...args,approvalSignature:'x'.repeat(86),
+    ...args,approvalSignature:'A'.repeat(86),
     durableClaim:async()=>{claims++;return true;},
     fetchImpl:async()=>{requests++;return goodResponse({});}
   },'GRANT_SIGNATURE_REJECTED');
