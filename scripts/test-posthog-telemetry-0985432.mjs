@@ -14,6 +14,11 @@ const [source,app,main]=await Promise.all([
 assert.match(app,/Freiwillige MID-Diagnose \(PostHog\)/);
 assert.match(app,/data-mid-telemetry-section=\{tab\.id\}/);
 assert.match(app,/setMidPosthogConsent\(next\)/);
+assert.doesNotMatch(app,/checked=\\{posthogConsent\\}\\s+disabled=/,'iPhone/native UI must not disable consent when transport is unavailable');
+assert.match(app,/setPosthogConsentError\\('Die Auswahl konnte auf diesem Gerät nicht gespeichert werden/,'storage denial must be explained to the user');
+assert.match(app,/posthogConsentError&&<small role="alert">/,'storage denial must be announced beside the checkbox');
+assert.match(app,/checked=\\{posthogConsent\\} style=\\{\\{width:22,height:22,flexShrink:0\\}\\}/,'touch checkbox should not depend on a tiny native hit target');
+
 assert.match(main,/startMidPosthogTelemetry\(\)/);
 assert.doesNotMatch(source,/\$current_url|\$referrer|identify\(|session_recording|autocapture:/);
 assert.match(source,/\$process_person_profile:false/);
