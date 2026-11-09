@@ -636,11 +636,7 @@ def main():
  if dbz_cube is not None:severe_for_extreme['dbz_cmax']=dbz_cube
  eps_files=sorted((a.staging/'eps'/'TOT_PREC').glob('**/*.grib2*'))
  if not eps_files:raise SystemExit('missing staged RUC-EPS TOT_PREC')
- if globals().get('_P3_ACCELERATED_QUANTILE_ENABLED') is True:
-  # Only QA in-memory injection can use this bounded-RSS experimental decode.
-  eps,members=collect_eps_preallocated(eps_files,eps_times,point_count,expected_members=range(1,21))
- else:
-  eps,members=collect_eps(eps_files,eps_times,point_count,expected_members=range(1,21))
+ eps,members=collect_eps(eps_files,eps_times,point_count,expected_members=range(1,21))
  eps_period_summary=rapid_extreme_eps_period_summary(eps,eps_times,a.run)
  extreme=build_rapid_extreme_summary(base_grid[0],base_grid[1],a.run,rapid15_times,rapid_precip15,np.stack([rapid_cape[t] for t in rapid15_times]),np.stack([rapid_cin[t] for t in rapid15_times]),rapid_precip5,severe_for_extreme,deterministic_times=det_times,deterministic_fields=fields,specialist_fields=specialist_fields,phase_fields=phase_for_extreme,eps_period_summary=eps_period_summary)
  extreme_path=a.output/'rapid-extreme.json';extreme_path.write_text(json.dumps(extreme,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')

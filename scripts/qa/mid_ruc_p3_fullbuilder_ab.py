@@ -226,7 +226,12 @@ def run_candidate(stage: Path, output: Path, run: str) -> None:
         raise ValueError("original DWD EPS20 input directory absent")
     source_before = stage_inventory(stage)
     print("RUC_P3_ORIGINAL_STAGE_SHA " + source_before["sha256"], flush=True)
+    # Both experimental substitutions exist solely in this disposable
+    # scientific QA interpreter. The genuine production main() and default
+    # collector remain byte-for-byte unchanged in the source tree.
+    original_collector = production.collect_eps
     setattr(production, FLAG, True)
+    production.collect_eps = production.collect_eps_preallocated
     if getattr(production, FLAG) is not True:
         raise ValueError("in-memory candidate activation did not succeed")
     argv = sys.argv
@@ -236,6 +241,7 @@ def run_candidate(stage: Path, output: Path, run: str) -> None:
         production.main()
     finally:
         sys.argv = argv
+        production.collect_eps = original_collector
         setattr(production, FLAG, False)
     if stage_inventory(stage) != source_before:
         raise ValueError("original DWD stage was modified by optimized builder")
