@@ -86,6 +86,8 @@ test('no eligible first provider fails closed',()=>
 test('candidates do not authorize API calls or billing',()=>{
  const catalog=MID_AI_RESEARCHED_CANDIDATES;
  assert.equal(catalog.find(x=>x.id==='github-models').status,'RETIRED_2026_07_30');
+ assert.equal(catalog.find(x=>x.id==='github-copilot-fusion').status,
+   'EXISTING_SUPPORTED_COPILOT_CLIENT_ONLY');
  assert.equal(catalog.find(x=>x.id==='perplexity-direct').status,'BLOCKED_NO_FREE_API_CREDITS');
  assert.equal(catalog.find(x=>x.id==='mistral-api').status,'BLOCKED_FREE_MODE_NO_API');
  assert.equal(catalog.find(x=>x.id==='vercel-perplexity-sonar').status,
