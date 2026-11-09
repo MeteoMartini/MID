@@ -191,11 +191,20 @@ quota exhaustion, stale evidence, a non-free OpenRouter model, prompt
 isolation, request headers, failed HTTP, 429, malformed/oversized response,
 durable duplicate prevention, direct model response, and Kilo exclusion.
 The `tests/unit/mid-ai-router.test.ts` Vitest test runs both offline QA
-suites in real Node 22 on GitHub: 70 direct-provider/Ed25519/Vercel-exclusion cases and 15
+suites in real Node 22 on GitHub: 74 direct-provider/Ed25519/Vercel-exclusion/returned-model checks and 15
 local idempotency cases (last observed successful run #42627839522). the suite includes streaming response-size
 limits, malformed UTF-8 and invalid/missing HTTP body/length handling.
 The additional local filesystem-ledger QA covers the same-request provider
 switch, concurrent claims and replay after a fresh Node process.
+The response must report the **actual served model** matching the signed
+request. Groq/OpenRouter response `model` and Gemini `modelVersion`
+are checked exactly (Gemini may use a `models/` prefix); missing or
+unexpected model IDs **block** a result. This prevents a silently changed
+provider model from being labeled as the approved model, but cannot
+recover free quota spent by an already completed request. See the
+[Groq API reference](https://console.groq.com/docs/api-reference),
+[OpenRouter Chat Completions](https://openrouter.ai/docs/api/api-reference/chat/send-chat-completion-request)
+and [Google GenerateContentResponse](https://ai.google.dev/api/generate-content).
 No real credentials or real network used; mocked HTTP is not a
 real provider, privacy, billing, RUC or iOS acceptance test.
 
