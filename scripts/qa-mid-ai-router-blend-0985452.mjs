@@ -92,6 +92,8 @@ test('candidates do not authorize API calls or billing',()=>{
  assert.equal(catalog.find(x=>x.id==='mistral-api').status,'BLOCKED_FREE_MODE_NO_API');
  assert.equal(catalog.find(x=>x.id==='vercel-perplexity-sonar').status,
    'CANDIDATE_ACCOUNT_BILLING_PROOF_REQUIRED');
+ assert.equal(catalog.find(x=>x.id==='vercel-perplexity-sonar').directExecutionAllowed,false);
+ assert.equal(catalog.find(x=>x.id==='vercel-perplexity-sonar').cashRisk,'PAYMENT_METHOD_REQUIRED_SOFT_BUDGET');
  assert.equal(catalog.find(x=>x.id==='cohere-trial').status,
    'EVALUATION_ONLY_NOT_PRODUCTION');
  const p=planMidAiBlend(params());
