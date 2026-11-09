@@ -282,6 +282,7 @@ export function detailSkyBarSegments(
     const rightEdge=Math.max(leftEdge,chartW-right);
     const positions=xPositions.slice(0,hours.length);
     hours.forEach((hour,index)=>{
+      if(!Number.isFinite(positions[index])||(xEndPositions&&(!Number.isFinite(xEndPositions[index])||xEndPositions[index]<=positions[index])))return;
       const visuals=weatherStripVisuals(hour,sampleIntervalSeconds(hours,index));
       if(!visuals.length)return;
       // xPositions represent interval starts. Accumulated precipitation and sunshine
@@ -343,6 +344,7 @@ export function detailSkyBarSolarSegments(
   const leftEdge=left,rightEdge=Math.max(leftEdge,chartW-right),uniformWidth=(rightEdge-leftEdge)/hours.length;
   const positions=xPositions?.slice(0,hours.length);
   hours.forEach((hour,index)=>{
+    if(positions&&(!Number.isFinite(positions[index])||(xEndPositions&&(!Number.isFinite(xEndPositions[index])||xEndPositions[index]<=positions[index]))))return;
     const rawStart=positions?Number(positions[index]):leftEdge+index*uniformWidth;
     const previous=positions?Number(positions[index-1]):NaN;
     const following=positions?Number(positions[index+1]):NaN;
