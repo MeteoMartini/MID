@@ -29,6 +29,15 @@ Free has three materially different meanings:
 | **Cerebras** | Historical free docs conflict with newer 2026 trial/promo reports requiring payment method. | Fail-closed; no standing free-tier assumption or adapter |
 | **ChatGPT Plus API** | [OpenAI API credit eligibility](https://help.openai.com/en/articles/20001626-api-credits-benefit-for-eligible-chatgpt-subscriptions): Plus **not eligible** for included API credits. | Existing ChatGPT/Work/Codex interfaces only, no implied OpenAI API balance |
 
+
+### GitHub Copilot Fusion: existing subscription blend, not external API
+
+[Official Copilot Fusion documentation](https://docs.github.com/en/copilot/concepts/models/copilot-fusion) describes **Single**, **Cascade**, and **Critique** execution patterns. Fusion Standard generally routes to one model; High/Max may use several and consume more included GitHub AI Credits. Official [Copilot individual billing](https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing) confirms per-model/token AI credit metering. Paid plan users are advertised 30% off Fusion model charges only **through 2026-11-30**; do not treat that as a permanent allowance. No extra Fusion subscription is required, but overage purchase or billing must stay **disabled**.
+
+**Surface limitations:** Official docs list VS Code, Copilot CLI, GitHub Copilot app and JetBrains as Fusion clients. Do **not** claim Fusion is callable through ChatGPT, the MID AI Router REST dispatcher or GitHub Issues by a hidden API. For mostly iPhone/iPad workflows, prefer existing **GitHub-connected Copilot agent issue/Draft bridge** for bounded coding; Fusion can be invoked *only* in an actually available supported Copilot client, optionally through a computer if necessary, while respecting the existing GitHub permissions and spend caps. GitHub Models' retired inference API is not a substitute.
+
+Do not install a new Copilot SDK, a paid token broker or another GitHub App just to invoke Fusion. Any future programmatic adapter requires confirmed interface availability, model/credit readback and independent GitHub security review.
+
 ### Exact OpenRouter models for *public* QA pilots (not private source)
 
 - **Cohere North Mini Code** \`cohere/north-mini-code:free\`: [original model page](https://openrouter.ai/cohere/north-mini-code), appropriate for redacted public code review.
