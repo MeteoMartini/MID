@@ -24,6 +24,8 @@ assert.equal(p.probe.range, 'bytes=0-63');
 assert.equal(planOmHeaderProbe({ status: 'unavailable', reason: 'no-field' }).reason, 'no-qualified-frame');
 assert.equal(planOmHeaderProbe({ ...valid, model: 'dwd_icon_seamless' }).reason, 'unsupported-model');
 assert.equal(planOmHeaderProbe({ ...valid, variable: '../cape' }).reason, 'invalid-field-name');
+assert.equal(planOmHeaderProbe({ ...valid, variable: 'geopotential_height_500hPa' }).ok, true);
+assert.equal(planOmHeaderProbe({ ...valid, variable: 'geopotential_height_500hPa' }).probe.url, p.probe.url);
 assert.equal(planOmHeaderProbe({ ...valid, validTime: '2026-11-09T07:15Z' }).reason, 'invalid-run-or-valid-time');
 assert.equal(planOmHeaderProbe({ ...valid, validTime: '2026-11-09T07:00+01:00' }).reason, 'invalid-run-or-valid-time');
 assert.equal(planOmHeaderProbe({ ...valid, validTime: '2026-11-09T05:00Z' }).reason, 'invalid-run-or-valid-time');
