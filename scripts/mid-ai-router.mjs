@@ -66,7 +66,9 @@ function freeProofOk(p, now) {
       p.hardStopVerified !== true || p.paidFallback !== false ||
       p.paidOveragePossible !== false || p.priceInputUsd !== 0 ||
       p.priceOutputUsd !== 0 || p.freePriceProven !== true ||
-      p.credentialPresent !== true || !Number.isInteger(p.remainingRequests) ||
+      p.credentialPresent !== true || p.modelAvailabilityVerified !== true ||
+      p.privacyApproved !== true || !fresh(p.privacyCheckedAt, now) ||
+      !Number.isInteger(p.remainingRequests) ||
       p.remainingRequests < 1 || !fresh(p.proofCheckedAt, now))
     return false;
   const def = PROVIDERS[p.id];
@@ -121,9 +123,15 @@ export function buildMidAiRequest({ plan, prompt, credential }) {
   const headers = { 'content-type': 'application/json', authorization: 'Bearer ' + credential };
   const payload = {
     model: plan.model, messages: [{ role: 'user', content: prompt }],
-    max_tokens: 512, stream: false
+    stream: false
   };
-  if (plan.provider === 'openrouter') payload.provider = { allow_fallbacks: false };
+  if (plan.provider === 'openrouter') {
+    payload.max_tokens = 512;
+    payload.provider = {
+      allow_fallbacks: false, data_collection: 'deny', zdr: true,
+      max_price: { prompt: 0, completion: 0, request: 0 }
+    };
+  } else payload.max_completion_tokens = 512;
   return { url: def.endpoint, headers, body: JSON.stringify(payload) };
 }
 /**
@@ -141,6 +149,7 @@ export async function executeMidAiRoute({
   if (!plan || plan.provider !== renewed.provider || plan.model !== renewed.model ||
       plan.requestId !== renewed.requestId ||
       plan.taskFingerprint !== renewed.taskFingerprint ||
+      plan.proofCheckedAt !== renewed.proofCheckedAt ||
       plan.expectedStableSha !== renewed.expectedStableSha)
     block('PLAN_STALE');
   if (typeof fetchImpl !== 'function') block('TRANSPORT_NOT_AVAILABLE');
