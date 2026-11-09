@@ -18,6 +18,18 @@ const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failu
  if(Math.abs(actualShare-.8)>1e-9)failures.push('Null-Sonnenschein muss bei bekannter Bewölkung die Wolkenlücken-Näherung verwenden');
 
 
+
+ // Nicht vorhandene Tooltip-Werte sind unbekannt (–), keine erfundenen 0 °C.
+ need('Stundentooltip NoData',app,"detailDegree(currentHour.temperature)} / {detailDegree(currentHour.apparent)");
+ need('Stundentooltip NoData',app,"detailDegree(currentHour.dewPoint)} · {Number.isFinite(currentHour.humidity)");
+ const degreeStart=app.indexOf('const detailDegree='),degreeEnd=app.indexOf('\\nfunction detailSaturationVaporPressureHpa(',degreeStart);
+ if(degreeStart<0||degreeEnd<=degreeStart)failures.push('Produktiver NoData-Formatierer fehlt');
+ else{
+  const expression=app.slice(degreeStart,degreeEnd).replace('(value:number)','(value)');
+  const format=new Function(expression+';return detailDegree;')();
+  if(format(0)!=='0°'||format(13.5)!=='14°'||format(null)!=='–'||format(undefined)!=='–'||format(NaN)!=='–')failures.push('Fehlende Gradwerte dürfen nicht als 0 oder NaN angezeigt werden');
+ }
+
  // Quellbasierte NoData-Regression: Null bei apparent/dewpoint ist nicht 0 °C.
  need('Tagesdetail-Thermik NoData',app,'apparent=Number(hour.apparent??NaN),felt=');
  need('Tagesdetail-Thermik NoData',app,'dew=Number(hour.dewPoint??NaN),humidity=');
