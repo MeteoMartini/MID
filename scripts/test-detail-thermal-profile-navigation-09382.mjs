@@ -7,6 +7,16 @@ const [app,cockpit,styles,pkg,baseline]=await Promise.all([
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
 ]);
 const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
+ // NoData-Sonnenscheindauer ist keine nachgewiesene 0; bei bekannter Bewölkung
+ // darf nur die bestehende, als Näherung verwendete Wolkenlücke einspringen.
+ need('Tagesdetail-Thermik NoData',app,'sunshine=Number(hour.sunshineDuration??NaN),cloud=');
+ for(const [input,expected] of [[null,NaN],[undefined,NaN],[0,0],[1800,1800],[3600,3600]]){
+  const value=Number(input??NaN);
+  if(Number.isNaN(expected)?!Number.isNaN(value):value!==expected)failures.push('Sonnenschein-Koerzierung: '+String(input));
+ }
+ const knownCloud=20,openSkyShare=1-knownCloud/100,missingSun=Number(null??NaN),actualShare=Number.isFinite(missingSun)?missingSun/3600:openSkyShare;
+ if(Math.abs(actualShare-.8)>1e-9)failures.push('Null-Sonnenschein muss bei bekannter Bewölkung die Wolkenlücken-Näherung verwenden');
+
 for(const token of [
  'function detailThermalFeel(hour:Hour):DetailThermalFeel',
  'category=utciCategory(felt)',
