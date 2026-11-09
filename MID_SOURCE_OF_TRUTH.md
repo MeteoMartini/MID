@@ -1,3 +1,11 @@
+# MID v0.9.85.450 · geprüfter Integrationskandidat für Wochenentwicklung und Bergwetter-Zeitsemantik
+
+**Quelle:** Die 0.9.85.450-Integration wird aus der am 09.11.2026 frisch überprüften veröffentlichten Stable 0.9.85.449 (`main=mid-stable=a7c4f432b3b21c24a876527a585fe423a55dcdbe`) vorbereitet. Die Original-Drafts #718 (Subseasonal-Modellpräferenz) und #719 (Bergwetter-Originaloffset) werden SHA-/Blob-genau, mit unveränderten Pflichtregressionen, gezielt vereint. **Diese Versionsbeschreibung ist keine Freigabe.** Erst der erfolgreiche vollständige etablierte Source-/Bot-/ZIP-/Installer-/Worker-/Pages-/Stable-Gate-Pfad darf v0.9.85.450 als veröffentlicht markieren. Die tatsächlich promotete Stable-SHA bleibt allein maßgeblich.
+
+Keine amtlichen Warnfarben/-stufen, DWD-/RUC-Originalwerte, Quellenfelder, Modelllaufzeiten, Pseudoperzentile, Klimareferenzen oder geographische Regionen aus diesem Sammelkandidaten verändert. Missing, echte 0, Anbieter-Fixoffset und IANA-Ortskalender bleiben ausdrücklich getrennt. Konkrete Änderungs-/Test-/Blockernachweise siehe `MID_BUILD_CHANGELOG.md` und die Ausgangs-PRs #718/#719. 
+
+## Archivierte ältere Versionsabschnitte (historische Entwicklungsstände, keine aktuelle Release-Statusanzeige)
+
 # MID v0.9.85.449 · Bergwetter-Ensemble-UTC und unsicherheitsgerechte Darstellung
 
 **Status des Quelltextes ist kein Release-Gate:** Dieser versionierte Abschnitt dokumentiert die anstehende v0.9.85.449 Source-Integration. Zuvor erfolgreich freigegebene Basis v0.9.85.448: `main=mid-stable=fd1fb594bc2b82913156ef0f8e82e22089379164`, Installer #42498549995 `completed/success`. Der neue Release gilt ausschließlich nach Source-Gate, geschützt SHA-gebundenem Bot-Merge, servergeneriertem ZIP, vollständigem Installer, Worker-/Pages-Gates und erfolgreicher Stable-Promotion als veröffentlicht. Maßgeblich ist anschließend der tatsächlich verifizierte `mid-stable`-SHA, nicht die historische Statusformulierung.
