@@ -51,7 +51,7 @@ export function planOmHeaderProbe(candidate: FrameResult): OmProbePlan {
   if (candidate.model !== 'dwd_icon_d2' && candidate.model !== 'dwd_icon_eu') {
     return { ok: false, reason: 'unsupported-model' };
   }
-  if (!/^[a-z][a-z0-9_]*$/.test(candidate.variable)) {
+  if (!/^[a-z][a-zA-Z0-9_]*$/.test(candidate.variable)) {
     return { ok: false, reason: 'invalid-field-name' };
   }
   const run = hourDate(candidate.referenceTime);
