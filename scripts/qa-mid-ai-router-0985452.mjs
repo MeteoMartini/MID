@@ -204,7 +204,7 @@ async function rejected(label, args, expected) {
 const args = {
   ...setup(), plan, ...signedFor(plan), credential: 'FAKE_TEST_SECRET',
   liveApproved: true, durableClaim: durableOk,
-  fetchImpl: async () => goodResponse({ choices: [{ message: { content: 'Untrusted QA result.' } }] })
+  fetchImpl: async () => goodResponse({ model:plan.model, choices: [{ message: { content: 'Untrusted QA result.' } }] })
 };
 await rejected('network disabled by default', { ...args, liveApproved: false }, 'LIVE_NOT_APPROVED');
 await rejected('durable claim is mandatory', { ...args, durableClaim: undefined }, 'DURABLE_IDEMPOTENCY_REQUIRED');
@@ -295,17 +295,49 @@ await rejected('bad utf8 in stream', {
     }})
   })
 }, 'INVALID_RESPONSE_STREAM');
+await rejected('missing provider-reported model rejects plausible output', {
+  ...args,fetchImpl:async()=>goodResponse({
+    choices:[{message:{content:'Unverified model'}}]
+  })
+}, 'RESPONSE_MODEL_MISMATCH');
+await rejected('Groq response model mismatch rejects unexpected fallback', {
+  ...args,fetchImpl:async()=>goodResponse({
+    model:'openai/gpt-oss-120b',
+    choices:[{message:{content:'Different actual model'}}]
+  })
+}, 'RESPONSE_MODEL_MISMATCH');
+{
+  const op=planMidAiRoute(setup({providers:[openrouter]}));
+  await rejected('OpenRouter response model mismatch rejects cross-model routing', {
+    ...args, plan:op,providers:[openrouter],...signedFor(op),
+    fetchImpl:async()=>goodResponse({
+      model:'openai/gpt-4.1',
+      choices:[{message:{content:'Unapproved paid model output'}}]
+    })
+  }, 'RESPONSE_MODEL_MISMATCH');
+}
+{
+  const gp=planMidAiRoute(setup({providers:[gemini]}));
+  await rejected('Gemini response modelVersion mismatch rejects drift', {
+    ...args, plan:gp,providers:[gemini],...signedFor(gp),
+    fetchImpl:async()=>goodResponse({
+      modelVersion:'gemini-2.5-pro',
+      candidates:[{content:{parts:[{text:'Wrong model version'}]}}]
+    })
+  }, 'RESPONSE_MODEL_MISMATCH');
+}
 const received = [];
 const result = await executeMidAiRoute({
   ...args, fetchImpl: async (url, input) => {
     received.push({ url, input }); return goodResponse({
-      choices: [{ message: { content: 'Untrusted QA result.' } }],
+      model:plan.model, choices: [{ message: { content: 'Untrusted QA result.' } }],
       usage: { total_tokens: 14 }
     });
   }
 });
 assert.equal(result.status, 'UNTRUSTED_REVIEW_ONLY');
 assert.equal(result.text, 'Untrusted QA result.');
+assert.equal(result.providerReportedModel,plan.model);
 assert.equal(result.usage.total_tokens, 14);
 assert.equal(received.length, 1);
 assert.equal(received[0].input.redirect, 'error');
@@ -317,9 +349,11 @@ const gp = planMidAiRoute(setup({ providers: [gemini] }));
 const gr = await executeMidAiRoute({
   ...args, plan: gp, providers: [gemini], ...signedFor(gp),
   fetchImpl: async () => goodResponse({
+    modelVersion:'models/'+gp.model,
     candidates: [{ content: { parts: [{ text: 'Review A' }, { text: 'Review B' }] } }]
   })
 });
 assert.equal(gr.text, 'Review A\nReview B');
 assertions++;
+assert.equal(gr.providerReportedModel,'models/'+gp.model);
 console.log('MID AI Router offline tests OK; scenarios=' + assertions + '; no live API used.');
