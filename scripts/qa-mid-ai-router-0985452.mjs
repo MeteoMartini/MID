@@ -18,6 +18,8 @@ const provider = (id, model, priority = 1) => ({
   id, model, enabled: true, accountTier: 'free', hardStopVerified: true,
   paidFallback: false, paidOveragePossible: false, priceInputUsd: 0,
   priceOutputUsd: 0, freePriceProven: true, credentialPresent: true,
+  modelAvailabilityVerified: true, privacyApproved: true,
+  privacyCheckedAt: new Date(now).toISOString(),
   proofCheckedAt: new Date(now).toISOString(), remainingRequests: 2,
   capabilities: ['independent-review', 'weather-science'], priority
 });
@@ -71,6 +73,11 @@ ok('reject overlong task', () => rejectRoute(
 const mutations = [
   ['missing key', { credentialPresent: false }],
   ['unknown key status', { credentialPresent: undefined }],
+  ['unknown model availability', { modelAvailabilityVerified: undefined }],
+  ['unverified model availability', { modelAvailabilityVerified: false }],
+  ['missing privacy approval', { privacyApproved: undefined }],
+  ['declined privacy approval', { privacyApproved: false }],
+  ['stale privacy proof', { privacyCheckedAt: '2026-11-08T01:00:00Z' }],
   ['paid tier', { accountTier: 'developer' }],
   ['soft limit', { hardStopVerified: false }],
   ['unknown limit', { hardStopVerified: undefined }],
@@ -104,8 +111,17 @@ ok('build authenticates only fixed provider endpoints', () => {
   assert.equal(req.url, 'https://openrouter.ai/api/v1/chat/completions');
   assert.equal(req.headers.authorization, 'Bearer FAKE_TEST_SECRET');
   assert.equal(JSON.parse(req.body).provider.allow_fallbacks, false);
+  assert.equal(JSON.parse(req.body).provider.data_collection, 'deny');
+  assert.equal(JSON.parse(req.body).provider.zdr, true);
+  assert.deepEqual(JSON.parse(req.body).provider.max_price, {prompt:0,completion:0,request:0});
   assert.equal(JSON.parse(req.body).model, 'google/gemma-3-27b-it:free');
   assert.equal(req.body.includes('FAKE_TEST_SECRET'), false);
+});
+ok('Groq uses current output token limit', () => {
+  const p = planMidAiRoute(setup({ providers: [groq] }));
+  const req = buildMidAiRequest({ plan: p, prompt: task.prompt, credential: 'FAKE_TEST_SECRET' });
+  assert.equal(JSON.parse(req.body).max_completion_tokens, 512);
+  assert.equal(JSON.parse(req.body).max_tokens, undefined);
 });
 ok('Gemini request is x-goog-api-key only', () => {
   const p = planMidAiRoute(setup({ providers: [gemini] }));
@@ -138,6 +154,9 @@ await rejected('network disabled by default', { ...args, liveApproved: false }, 
 await rejected('durable claim is mandatory', { ...args, durableClaim: undefined }, 'DURABLE_IDEMPOTENCY_REQUIRED');
 await rejected('unknown credential', { ...args, credential: '' }, 'MISSING_CREDENTIAL');
 await rejected('duplicate', { ...args, durableClaim: async () => false }, 'DUPLICATE_REQUEST');
+await rejected('stale free-tier evidence after plan', {
+  ...args, plan: {...plan, proofCheckedAt: '2026-11-09T09:30:00Z' }
+}, 'PLAN_STALE');
 await rejected('stale plan', {
   ...args, plan: { ...plan, model: 'openai/changed' }
 }, 'PLAN_STALE');
