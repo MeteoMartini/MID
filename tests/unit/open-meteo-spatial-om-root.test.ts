@@ -41,7 +41,7 @@ describe('Open-Meteo spatial OM-v3 metadata-only safety gates',()=>{
    reference_time:'2026-11-09T06:00:00Z',
    last_modified_time:'2026-11-09T07:22:54Z',
    valid_times:['2026-11-09T06:00Z','2026-11-09T07:00Z'],
-   variables:['cape','precipitation','snowfall_water_equivalent'],
+   variables:['cape','precipitation','snowfall_water_equivalent','geopotential_height_500hPa'],
   };
   const result=qualifySpatialManifest(raw,'dwd_icon_d2');
   expect(result.ok).toBe(true);
@@ -52,6 +52,7 @@ describe('Open-Meteo spatial OM-v3 metadata-only safety gates',()=>{
   expect(second.status).toBe('manifest-only');
   if(second.status==='manifest-only')expect(second.accumulationHours).toBe(1);
   expect(result.manifest.status).toBe('manifest-only');
+  expect(spatialFrameCandidate(result.manifest,'geopotential_height_500hPa',raw.valid_times[1]).status).toBe('manifest-only');
  });
 
  it('checks real D2 and EU trailer pointer evidence with explicit non-pixel status',async()=>{
