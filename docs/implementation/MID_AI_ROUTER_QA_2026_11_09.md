@@ -191,7 +191,7 @@ quota exhaustion, stale evidence, a non-free OpenRouter model, prompt
 isolation, request headers, failed HTTP, 429, malformed/oversized response,
 durable duplicate prevention, direct model response, and Kilo exclusion.
 The `tests/unit/mid-ai-router.test.ts` Vitest test runs both offline QA
-suites in real Node 22 on GitHub: 68 direct-provider/Ed25519 cases and 15
+suites in real Node 22 on GitHub: 70 direct-provider/Ed25519/Vercel-exclusion cases and 15
 local idempotency cases (last observed successful run #42627839522). the suite includes streaming response-size
 limits, malformed UTF-8 and invalid/missing HTTP body/length handling.
 The additional local filesystem-ledger QA covers the same-request provider
