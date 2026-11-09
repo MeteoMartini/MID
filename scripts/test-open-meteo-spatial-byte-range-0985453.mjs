@@ -8,7 +8,7 @@ const compiled = ts.transpileModule(source, {
   reportDiagnostics: true,
 });
 assert.equal(compiled.diagnostics?.length ?? 0, 0);
-const { planOmHeaderProbe, verifyOmHeaderResponse, planOmTrailerProbe, verifyOmTrailerResponse } =
+const { planOmHeaderProbe, verifyOmHeaderResponse, planOmTrailerProbe, verifyOmTrailerResponse, planOmRootIndexProbe, inspectOmRootIndexResponse } =
   await import(`data:text/javascript;base64,${Buffer.from(compiled.outputText).toString('base64')}`);
 
 const valid = {
@@ -114,3 +114,91 @@ assert.equal((await verifyOmTrailerResponse({
   ...trailerResponse(), arrayBuffer: async () => { throw Error('network'); },
 })).reason, 'range-read-failed');
 console.log('PASS spatial OM trailer: original D2/EU root pointers, exact 24-byte range and hostile-response rejection');
+
+// Root-index QA: the provider's original root prefix contains 98 (D2) or
+// 126 (EU) child pointers and its verified 1576/2024-byte trailer-described
+// region matches exactly 8+16*N. We have NOT decoded full real root indices:
+// payloads below are explicitly SYNTHETIC pointers for validator regression.
+const d2RootEvidence = await verifyOmTrailerResponse(trailerResponse());
+const d2IndexPlan = planOmRootIndexProbe(valid, d2RootEvidence);
+assert.equal(d2IndexPlan.ok, true);
+assert.equal(d2IndexPlan.probe.range, 'bytes=23574344-23575919');
+assert.equal(d2IndexPlan.probe.url, p.probe.url);
+assert.equal(planOmRootIndexProbe({ status: 'unavailable', reason: 'missing' }, d2RootEvidence).ok, false);
+assert.equal(planOmRootIndexProbe(valid, { ok: false, reason: 'bad' }).reason, 'unverified-root-metadata-pointer');
+assert.equal(planOmRootIndexProbe(valid, { ...d2RootEvidence, metadataOffset: 5 }).reason, 'unverified-root-metadata-pointer');
+
+const syntheticRoot = (count, offsets, lengths) => {
+  const b = new Uint8Array(8 + 16 * count);
+  const view = new DataView(b.buffer);
+  view.setUint8(0, 0); // root container, not a grid array
+  view.setUint8(1, 4);
+  view.setUint32(4, count, true);
+  for (let i = 0; i < count; i++) {
+    view.setBigUint64(8 + i * 8, BigInt(lengths[i] ?? 104), true);
+    view.setBigUint64(8 + count * 8 + i * 8, BigInt(offsets[i] ?? 100 + i * 150), true);
+  }
+  return b;
+};
+const knownD2Prefix = rawHex('000400006200000068000000000000006700000000000000');
+const d2Synthetic = syntheticRoot(98, [], [104, 103, 103, 99, 108, 109, 108]);
+assert.deepEqual([...d2Synthetic.slice(0, knownD2Prefix.length)], [...knownD2Prefix],
+  'Only the already observed original prefix is byte-derived; subsequent synthetic pointers do NOT prove real-field data');
+const d2RootResponse = (b = d2Synthetic, status = 206, headers = {}) => ({
+  status,
+  headers: new Headers({
+    'content-range': 'bytes 23574344-23575919/23575944',
+    'content-length': '1576',
+    'content-type': 'application/octet-stream',
+    ...headers,
+  }),
+  arrayBuffer: async () => b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength),
+});
+const d2Root = await inspectOmRootIndexResponse(d2RootResponse(), d2IndexPlan.probe);
+assert.equal(d2Root.ok, true);
+assert.equal(d2Root.status, 'root-index-verified');
+assert.equal(d2Root.childCount, 98);
+assert.equal(d2Root.children.length, 98);
+assert.deepEqual(d2Root.children[0], { offset: 100, length: 104 });
+assert.equal(d2Root.pixelValidated, false);
+const euCandidate = { ...valid, model: 'dwd_icon_eu',
+  referenceTime: '2026-11-09T03:00Z', validTime: '2026-11-09T04:00Z' };
+const euTrailerResult = await verifyOmTrailerResponse(trailerResponse(euTrailer, 206, {
+  'content-range': 'bytes 32903872-32903895/32903896',
+}));
+const euIndexPlan = planOmRootIndexProbe(euCandidate, euTrailerResult);
+assert.equal(euIndexPlan.ok, true);
+assert.equal(euIndexPlan.probe.range, 'bytes=32901848-32903871');
+const euSynthetic = syntheticRoot(126, [], [108, 99, 104, 109, 103, 103, 108]);
+assert.deepEqual([...euSynthetic.slice(0, 8)], [...rawHex('000400007e000000')]);
+assert.equal((await inspectOmRootIndexResponse({
+  ...d2RootResponse(euSynthetic), headers: new Headers({
+    'content-range': 'bytes 32901848-32903871/32903896',
+    'content-length': '2024', 'content-type': 'application/octet-stream',
+  }),
+}, euIndexPlan.probe)).childCount, 126);
+
+let rootBodyCalled = false;
+assert.equal((await inspectOmRootIndexResponse({
+  status: 200, headers: new Headers(),
+  arrayBuffer: async () => { rootBodyCalled = true; throw Error('full-body read prohibited'); },
+}, d2IndexPlan.probe)).reason, 'range-not-honored');
+assert.equal(rootBodyCalled, false);
+const corruptRoot = mutator => { const b = new Uint8Array(d2Synthetic); mutator(b, new DataView(b.buffer)); return b; };
+for (const [r, reason] of [
+  [d2RootResponse(d2Synthetic, 206, { 'content-range': 'bytes 0-1575/23575944' }), 'invalid-or-unexposed-content-range'],
+  [d2RootResponse(d2Synthetic, 206, { 'content-length': '23575944' }), 'unbounded-or-incomplete-body'],
+  [d2RootResponse(d2Synthetic, 206, { 'content-type': 'text/html' }), 'unexpected-content-type'],
+  [d2RootResponse(d2Synthetic.slice(0, 60)), 'wrong-range-length'],
+  [d2RootResponse(corruptRoot(b => { b[0] = 15; })), 'unsupported-root-node-type'],
+  [d2RootResponse(corruptRoot((_b, v) => { v.setUint32(4, 0, true); })), 'invalid-root-index-layout'],
+  [d2RootResponse(corruptRoot((_b, v) => { v.setUint32(4, 50000, true); })), 'invalid-root-index-layout'],
+  [d2RootResponse(corruptRoot((_b, v) => { v.setUint16(2, 1, true); })), 'invalid-root-index-layout'],
+  [d2RootResponse(corruptRoot((_b, v) => { v.setBigUint64(8 + 98 * 8, 23574340n, true); })), 'invalid-child-metadata-bounds'],
+  [d2RootResponse(corruptRoot((_b, v) => { v.setBigUint64(8, 7n, true); })), 'invalid-child-metadata-bounds'],
+  [d2RootResponse(corruptRoot((_b, v) => { v.setBigUint64(8 + 98 * 8 + 8, 150n, true); })), 'overlapping-child-metadata'],
+]) assert.equal((await inspectOmRootIndexResponse(r, d2IndexPlan.probe)).reason, reason);
+assert.equal((await inspectOmRootIndexResponse({
+  ...d2RootResponse(), arrayBuffer: async () => { throw Error('read failed'); },
+}, d2IndexPlan.probe)).reason, 'range-read-failed');
+console.log('PASS synthetic OM root index layout/child span protections; D2/EU real prefixes verified, pixel claims prohibited');
