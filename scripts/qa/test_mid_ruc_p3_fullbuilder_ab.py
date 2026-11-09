@@ -215,6 +215,102 @@ class P3FullOriginalBuilderQa(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "mismatch"):
                 qa.verify_outputs(ref, fast, meta["run"])
 
+    def test_full_reference_peak_is_observable_without_relaxing_candidate_budget(self):
+        f = self.root / "profile-observation.txt"
+        f.write_text("P3_AB_PROFILE 778.81 8072836\n")
+        self.assertEqual(qa.profile(f, reference=True)["peakRssKiB"], 8072836)
+        with self.assertRaisesRegex(ValueError, "resource profile"):
+            qa.profile(f)
+        f.write_text("P3_AB_PROFILE 120.0 6799999\n")
+        self.assertEqual(qa.profile(f)["peakRssKiB"], 6799999)
+        f.write_text("P3_AB_PROFILE 120.0 6800000\n")
+        with self.assertRaisesRegex(ValueError, "resource profile"):
+            qa.profile(f)
+        f.write_text("P3_AB_PROFILE 120.0 10000000\n")
+        with self.assertRaisesRegex(ValueError, "resource profile"):
+            qa.profile(f, reference=True)
+
+    def test_p3_memory_candidate_compiles_only_in_qa_and_restores_source(self):
+        original_main = qa.production.main
+        source_path = Path(qa.production.__file__)
+        before = source_path.read_bytes()
+        try:
+            compiled = qa.install_qa_only_memory_main(qa.production)
+            self.assertIs(compiled, qa.production.main)
+            self.assertIsNot(compiled, original_main)
+            self.assertIn("_p3_qa_attach_eps", compiled.__code__.co_names)
+            self.assertIn("collect_eps", compiled.__code__.co_names)
+            self.assertEqual(source_path.read_bytes(), before)
+        finally:
+            qa.production.main = original_main
+            qa.production.__dict__.pop("_p3_qa_attach_eps", None)
+        self.assertIs(qa.production.main, original_main)
+        self.assertIs(getattr(qa.production, qa.FLAG), False)
+
+    def test_regional_eps_memory_shadow_is_byte_identical_to_real_production(self):
+        from datetime import datetime, timedelta, timezone
+        import numpy as np
+        from ruc_p3_memory_shadow import attach_eps
+        base = datetime(2026, 11, 9, 7, tzinfo=timezone.utc)
+        run = base.isoformat()
+        rows, cols = 13, 23
+        south, west, north, east = 43.45, -3.5, 57.75, 19.9
+        coordinates = [(south + (north - south) * r / (rows - 1),
+                        west + (east - west) * c / (cols - 1))
+                       for r in range(rows) for c in range(cols)]
+        lats = np.array([x[0] for x in coordinates], dtype=np.float32)
+        lons = np.array([x[1] for x in coordinates], dtype=np.float32)
+        points = lats.size
+        hourly = [base + timedelta(hours=h) for h in range(28)]
+        quarter = [base + timedelta(minutes=15 * h) for h in range(25)]
+        rapid15 = np.zeros((25, points), dtype=np.float32)
+        rapid5 = np.zeros((73, points), dtype=np.float32)
+        deterministic_fields = {
+            "precipitation": np.broadcast_to(np.array([.125]), (28, points)),
+            "temperature_2m": np.broadcast_to(np.array([-3.]), (28, points)),
+            "wind_speed_10m": np.broadcast_to(np.array([14.]), (28, points)),
+        }
+        eps = {}
+        for step, pid in enumerate(("0-6", "6-12", "12-14")):
+            values = np.arange(points, dtype=np.float64) + step
+            zero = np.zeros(points, dtype=np.float64)
+            missing = np.full(points, np.nan, dtype=np.float64)
+            row = {
+                "memberCount": np.full(points, 20., dtype=np.float64),
+                "wetProbabilityPct": np.where(values % 2 == 0, 50., np.nan),
+                "significantProbabilityPct": zero,
+                "max1hQ75Mm": values / 7,
+                "totalQ75Mm": missing.copy(),
+                "rain1hProbabilityPct": np.stack([values, zero, missing, values * .2]),
+            }
+            if pid != "12-14":
+                row["rain6hProbabilityPct"] = np.stack([values * 2, zero, missing, values * .3])
+            eps[pid] = row
+        def build(regional_eps):
+            return qa.production.build_rapid_extreme_summary(
+                lats, lons, run, quarter, rapid15, rapid15, rapid15, rapid5,
+                severe_fields={}, deterministic_times=hourly,
+                deterministic_fields=deterministic_fields, specialist_fields={},
+                phase_fields={}, eps_period_summary=regional_eps)
+        original = build(eps)
+        candidate = attach_eps(build({}), eps, (lats, lons))
+        wire = lambda result: json.dumps(result, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode("utf-8")
+        self.assertEqual(wire(candidate), wire(original),
+                         "regional DWD EPS JSON source bytes changed")
+        self.assertEqual(len(candidate["cells"]), rows * cols)
+        self.assertNotIn("epsTotalQ75Mm", candidate["cells"][0]["periods"]["0-6"])
+        self.assertNotIn("epsRain6hProbabilityPct", candidate["cells"][0]["periods"]["12-14"])
+        for mutation in ("schema", "length", "location"):
+            broken = build({})
+            if mutation == "schema":
+                broken["schema"] = "untrusted"
+            elif mutation == "length":
+                broken["cells"].pop()
+            else:
+                broken["cells"][0]["longitude"] = -90
+            with self.subTest(mutation=mutation), self.assertRaises(ValueError):
+                attach_eps(broken, eps, (lats, lons))
+
     def test_qa_cannot_override_existing_artifacts_or_global_flag(self):
         stage = self.root / "stage"
         stage.mkdir()

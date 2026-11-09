@@ -26,6 +26,8 @@ ROOT = Path(__file__).resolve().parents[2]
 RUC = ROOT / "tools" / "ruc"
 sys.path.insert(0, str(RUC))
 import build_ruc_bundle as production
+from ruc_p3_memory_shadow import install_qa_only_memory_main
+from ruc_p3_extreme_chunk_shadow import candidate_eps_period_summary
 
 SCHEMA = "mid.ruc.p3-full-native-same-stage-ab.v1"
 RUN = re.compile(r"^20\d\d-\d\d-\d\dT\d\d:00$")
@@ -192,7 +194,13 @@ def diagnostic_profile(path: Path) -> dict | None:
     return {"wallSeconds": round(wall, 3), "peakRssKiB": rss}
 
 
-def profile(path: Path) -> dict:
+def profile(path: Path, *, reference: bool = False) -> dict:
+    """An authentic baseline may exceed the admission limit; candidate may NOT.
+
+    The earlier shared 7.5m KiB parser incorrectly rejected actual reference
+    observations before evaluating the candidate. Reference is a bounded
+    measurement only; it never confers product or candidate acceptance.
+    """
     rows = [x for x in path.read_text(encoding="utf-8").splitlines()
             if METRIC.fullmatch(x)]
     if len(rows) != 1:
@@ -201,7 +209,8 @@ def profile(path: Path) -> dict:
     assert found
     wall = float(found.group(1))
     maxrss = int(found.group(2))
-    if not 0 < wall < 3600 or not 500000 <= maxrss < 7500000:
+    max_allowed_exclusive = 10000000 if reference else 6800000
+    if not 0 < wall < 3600 or not 500000 <= maxrss < max_allowed_exclusive:
         raise ValueError("invalid or unbounded actual builder resource profile")
     return {"wallSeconds": round(wall, 3), "peakRssKiB": maxrss}
 
@@ -215,7 +224,7 @@ def baseline_builder_seconds(log: Path, run: str) -> float:
 
 
 def run_candidate(stage: Path, output: Path, run: str) -> None:
-    """Only this QA interpreter may enable the experimental source branch."""
+    """Use a disposable QA interpreter only; the production source stays OFF."""
     clean_run(run)
     unaltered_source_gate()
     if output.exists() or output.is_symlink():
@@ -226,22 +235,29 @@ def run_candidate(stage: Path, output: Path, run: str) -> None:
         raise ValueError("original DWD EPS20 input directory absent")
     source_before = stage_inventory(stage)
     print("RUC_P3_ORIGINAL_STAGE_SHA " + source_before["sha256"], flush=True)
-    # Both experimental substitutions exist solely in this disposable
-    # scientific QA interpreter. The genuine production main() and default
-    # collector remain byte-for-byte unchanged in the source tree.
+    original_main = production.main
     original_collector = production.collect_eps
-    setattr(production, FLAG, True)
-    production.collect_eps = production.collect_eps_preallocated
-    if getattr(production, FLAG) is not True:
-        raise ValueError("in-memory candidate activation did not succeed")
+    original_regional = production.rapid_extreme_eps_period_summary
     argv = sys.argv
     try:
+        setattr(production, FLAG, True)
+        production.collect_eps = production.collect_eps_preallocated
+        production.rapid_extreme_eps_period_summary = candidate_eps_period_summary
+        # Strict AST/source-fenced reorder: large already-packed native arrays
+        # are freed before EPS20 decode; attach EPS with exact sampled cell keys.
+        # This executable main() exists only in this untrusted QA process.
+        production.main = install_qa_only_memory_main(production)
+        if getattr(production, FLAG) is not True:
+            raise ValueError("in-memory P3 candidate activation did not succeed")
         sys.argv = ["build_ruc_bundle.py", "--staging", str(stage),
                     "--output", str(output), "--run", run, "--hours", "27"]
         production.main()
     finally:
         sys.argv = argv
+        production.main = original_main
         production.collect_eps = original_collector
+        production.rapid_extreme_eps_period_summary = original_regional
+        production.__dict__.pop("_p3_qa_attach_eps", None)
         setattr(production, FLAG, False)
     if stage_inventory(stage) != source_before:
         raise ValueError("original DWD stage was modified by optimized builder")
@@ -261,7 +277,7 @@ def verify(ref: Path, fast: Path, stage: Path, run: str, expected_sha: str,
         raise ValueError("GitHub candidate SHA drift")
     stage_proof = stage_inventory(stage)
     checked = verify_outputs(ref, fast, run)
-    a, b = profile(reference_profile), profile(candidate_profile)
+    a, b = profile(reference_profile, reference=True), profile(candidate_profile)
     builder_a = baseline_builder_seconds(reference_log, run)
     if b["peakRssKiB"] >= 6800000 or b["peakRssKiB"] > a["peakRssKiB"] + 262144:
         raise ValueError("candidate full-builder peak RAM regression")
