@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {regressionSuite} from './regression-suite.mjs';
-import {REGRESSION_CORE_SUBSHARDS,REGRESSION_SHARD_NAMES,regressionCoreSubshards,regressionShard,regressionShardPlan} from './regression-shards.mjs';
+import {REGRESSION_CORE_SUBSHARDS,REGRESSION_CORE_BALANCE_SWAPS,REGRESSION_SHARD_NAMES,regressionCoreSubshards,regressionShard,regressionShardPlan} from './regression-shards.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const file='scripts/test-core-regression-isolated-matrix-0985354.mjs';
@@ -27,8 +27,25 @@ assert.equal(actual.length,full.length,'All core tests must execute once across 
 assert.equal(keys.size,full.length,'No test may be executed by two Core jobs.');
 assert.deepEqual([...keys].sort(),[...full].sort(),'Missing core tests are a release blocker.');
 assert.equal(actual.filter(name=>name==='test-core-regression-isolated-matrix-0985354.mjs').length,1);
+// The original modulo partition remains the independent reference. Verify
+// precisely the three evidence-bound swaps, unchanged per-shard counts, and
+// complete one-to-one test inventory. Any missing/renamed test fails closed.
+const expectedSwaps=[
+ {slow:'test-compact-profile-location-0985235.mjs',destination:'core-1/4',light:'test-mid-original-dwd-weather-profile-09310.mjs'},
+ {slow:'test-favorites-profile-0985242.mjs',destination:'core-3/4',light:'test-pollen-compact-dwd-levels-0985129.mjs'},
+ {slow:'test-module-css-consolidation-0985170.mjs',destination:'core-4/4',light:'test-mid-weather-profile-axes-09322.mjs'},
+];
+assert.deepEqual(REGRESSION_CORE_BALANCE_SWAPS,expectedSwaps,'Only the independently reviewed three cost-balancing swaps are authorized.');
+const expected=Object.fromEntries(REGRESSION_CORE_SUBSHARDS.map((name,index)=>[name,full.filter((_,i)=>i%REGRESSION_CORE_SUBSHARDS.length===index)]));
+for(const {slow,destination,light} of expectedSwaps){
+ const overloaded=expected['core-2/4'],spare=expected[destination],sourceIndex=overloaded.indexOf(slow),destIndex=spare.indexOf(light);
+ assert.notEqual(sourceIndex,-1,'Original slow test must belong to core-2/4: '+slow);
+ assert.notEqual(destIndex,-1,'Lightweight donor must belong to original destination: '+light);
+ overloaded[sourceIndex]=light;spare[destIndex]=slow;
+}
 for(const [index,name] of REGRESSION_CORE_SUBSHARDS.entries()){
- assert.deepEqual(parts[name],full.filter((_,i)=>i%REGRESSION_CORE_SUBSHARDS.length===index));
+ assert.deepEqual(parts[name],expected[name].sort(),'Shard membership or deterministic execution order drift: '+name);
+ assert.equal(parts[name].length,full.filter((_,i)=>i%REGRESSION_CORE_SUBSHARDS.length===index).length,'Balancing may not change mandated Core test counts: '+name);
  assert.ok(parts[name].length>0,`Core subshard empty: ${name}`);
 }
 await assert.rejects(regressionShard(root,'core-0/4'),/Unknown MID regression shard/);

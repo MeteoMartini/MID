@@ -1,3 +1,7 @@
+# MID v0.9.85.451 · vorläufige Korrektur des Installer-JS-Rohbudgets [nicht veröffentlicht]
+
+Der vollständig grüne Source-Gate-Lauf der .450 (42568701822) rechtfertigte den regulären Bot-Merge PR #722. Der Installer 42570011322 zeigte danach einen neuen echten JS-Größenbudgetfehler (1.500.098 B > 1.500.000 B), während CSS bei 1.759.965 B knapp innerhalb 1.760.000 B blieb. Main ist noch unveröffentlicht .450; `mid-stable` verbleibt bis zur gesicherten Promotion auf .449. Diese .451-Reparatur erhält die .450-Fachfunktionen und optimiert ausschließlich identische JSX-Literale ohne neue Meteorologielogik. Ein neuer Originalbuild, alle Core-/Heavy-Gates und Installer-/Stable-Promotion sind vor einer Freigabe obligatorisch. Keine unmittelbare App-/Serverfreigabe durch diesen Dokumentstand.
+
 # MID v0.9.85.450 · geprüfter Integrationskandidat für Wochenentwicklung und Bergwetter-Zeitsemantik
 
 **Quelle:** Die 0.9.85.450-Integration wird aus der am 09.11.2026 frisch überprüften veröffentlichten Stable 0.9.85.449 (`main=mid-stable=a7c4f432b3b21c24a876527a585fe423a55dcdbe`) vorbereitet. Die Original-Drafts #718 (Subseasonal-Modellpräferenz) und #719 (Bergwetter-Originaloffset) werden SHA-/Blob-genau, mit unveränderten Pflichtregressionen, gezielt vereint. **Diese Versionsbeschreibung ist keine Freigabe.** Erst der erfolgreiche vollständige etablierte Source-/Bot-/ZIP-/Installer-/Worker-/Pages-/Stable-Gate-Pfad darf v0.9.85.450 als veröffentlicht markieren. Die tatsächlich promotete Stable-SHA bleibt allein maßgeblich.
