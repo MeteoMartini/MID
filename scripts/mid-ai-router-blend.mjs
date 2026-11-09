@@ -15,6 +15,7 @@ export const MID_AI_RESEARCHED_CANDIDATES=Object.freeze([
   Object.freeze({id:'openrouter',status:'EXISTING_DIRECT_QA',costType:'free-suffix-only'}),
   Object.freeze({id:'gemini',status:'EXISTING_DIRECT_QA',costType:'free-unbilled-project-only'}),
   Object.freeze({id:'github-copilot',status:'EXISTING_GITHUB_BRIDGE',costType:'included-subscription-limits'}),
+  Object.freeze({id:'github-copilot-fusion',status:'EXISTING_SUPPORTED_COPILOT_CLIENT_ONLY',costType:'included-ai-credit-budget-not-api'}),
   Object.freeze({id:'cohere-trial',status:'EVALUATION_ONLY_NOT_PRODUCTION',costType:'free-trial-key'}),
   Object.freeze({id:'sambanova',status:'CANDIDATE_NO_KEY_OR_ATTESTER',costType:'free-account-rate-limited'}),
   Object.freeze({id:'cloudflare-workers-ai',status:'CANDIDATE_FREE_PLAN_ONLY',costType:'10000-free-neurons-per-day'}),
