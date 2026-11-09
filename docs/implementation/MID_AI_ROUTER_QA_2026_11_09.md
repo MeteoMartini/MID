@@ -93,8 +93,9 @@ permission gateway.
 
 ## Validation and constraints
 
-Offline deterministic test:
-`node scripts/test-mid-ai-router-0985452.mjs`
+Offline deterministic QA script (named `qa-` to avoid falsely joining the mandatory
+`requiredRegressionTests` inventory before versioned release integration):
+`node scripts/qa-mid-ai-router-0985452.mjs`
 
 Tests cover stale/mismatched SHA, user authorization, private data and
 secrets, unsupported release tasks, missing key, wrong/unknown Free tier,
