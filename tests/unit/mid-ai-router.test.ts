@@ -13,7 +13,7 @@ describe('MID AI Router: separate direct Free-provider safety QA (issue #725)', 
     });
     expect(r.error).toBeUndefined();
     expect(r.status, r.stderr || r.stdout).toBe(0);
-    expect(r.stdout).toMatch(/MID AI Router offline tests OK; scenarios=52; no live API used\./);
+    expect(r.stdout).toMatch(/MID AI Router offline tests OK; scenarios=56; no live API used\./);
     expect(r.stderr).toBe('');
   });
 });
