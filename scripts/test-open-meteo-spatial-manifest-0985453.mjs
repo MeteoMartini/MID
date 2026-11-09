@@ -16,7 +16,7 @@ const t0 = '2026-11-09T06:00Z', t1 = '2026-11-09T07:00Z', t2 = '2026-11-09T09:00
 const sample = {
   completed: true, reference_time: run, last_modified_time: modified,
   valid_times: [t0, t1, t2],
-  variables: ['precipitation', 'snowfall_height', 'freezing_level_height', 'cape', 'convective_inhibition'],
+  variables: ['precipitation', 'snowfall_height', 'freezing_level_height', 'cape', 'convective_inhibition', 'geopotential_height_500hPa'],
 };
 const qualified = qualifySpatialManifest(sample, 'dwd_icon_d2', Date.parse('2026-11-09T08:00Z'));
 assert.equal(qualified.ok, true);
@@ -31,6 +31,7 @@ assert.equal(spatialFrameCandidate(m, 'precipitation', t0).reason, 'initial-accu
 assert.equal(spatialFrameCandidate(m, 'precipitation', t1).accumulationHours, 1);
 assert.equal(spatialFrameCandidate(m, 'precipitation', t2).accumulationHours, 2);
 assert.equal(spatialFrameCandidate(m, 'cape', t0).status, 'manifest-only');
+assert.equal(spatialFrameCandidate(m, 'geopotential_height_500hPa', t1).status, 'manifest-only');
 assert.equal(spatialFrameCandidate(m, 'cape', '2026-11-09T06:15Z').status, 'unavailable');
 assert.equal(spatialFrameCandidate(m, 'snowfall', t1).reason, 'field-not-declared');
 assert.equal(spatialFrameCandidate(m, 'cape', '2026-11-09T06:00+01:00').reason, 'invalid-utc-valid-time');
