@@ -89,7 +89,7 @@ export function setMidPosthogConsent(granted:boolean){
  }
  try{
   if(granted)localStorage.setItem(MID_POSTHOG_CONSENT_KEY,'1');
-  else localStorage.removeItem(MID_POSTHOG_CONSENT_KEY);
+  else localStorage.setItem(MID_POSTHOG_CONSENT_KEY,'0');
  }catch{return false}
  if(granted){
   if(installed&&!distinctId)distinctId=crypto.randomUUID();
