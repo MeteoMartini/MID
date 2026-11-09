@@ -141,6 +141,7 @@ await rejected('duplicate', { ...args, durableClaim: async () => false }, 'DUPLI
 await rejected('stale plan', {
   ...args, plan: { ...plan, model: 'openai/changed' }
 }, 'PLAN_STALE');
+await rejected('prompt changed after planning', { ...args, task: { ...task, prompt: 'Unapproved different payload' } }, 'PLAN_STALE');
 await rejected('429 no paid retries', { ...args, fetchImpl: async () => ({ ok: false, status: 429 }) },
   'PROVIDER_HTTP_ERROR_429');
 await rejected('malformed JSON', {
