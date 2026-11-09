@@ -21,7 +21,7 @@ const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failu
  // Quellbasierte NoData-Regression: Null bei apparent/dewpoint ist nicht 0 °C.
  need('Tagesdetail-Thermik NoData',app,'apparent=Number(hour.apparent??NaN),felt=');
  need('Tagesdetail-Thermik NoData',app,'dew=Number(hour.dewPoint??NaN),humidity=');
- const thermalStart=app.indexOf('function detailSaturationVaporPressureHpa('),thermalEnd=app.indexOf('\\nfunction detailCalendarAxis(',thermalStart);
+ const thermalStart=app.indexOf('function detailSaturationVaporPressureHpa('),thermalEnd=app.indexOf('function detailCalendarAxis(',thermalStart);
  if(!(thermalStart>=0&&thermalEnd>thermalStart))failures.push('Produktive thermische Berechnung nicht auffindbar');
  else {
   const thermalCode=app.slice(thermalStart,thermalEnd).replace('temperature:number','temperature').replace('hour:Hour):DetailThermalFeel','hour)');
