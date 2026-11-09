@@ -152,8 +152,10 @@ export function buildMidAiRequest({ plan, prompt, credential }) {
  */
 export async function executeMidAiRoute({
   plan, task, snapshot, providers, credential, fetchImpl, liveApproved = false,
-  durableClaim, approvalGrant, approvalSignature, now = Date.now()
+  durableClaim, approvalGrant, approvalSignature
 }) {
+  // Dispatch checks real server time, not a caller-supplied historical timestamp.
+  const now = Date.now();
   if (liveApproved !== true) block('LIVE_NOT_APPROVED');
   if (typeof durableClaim !== 'function') block('DURABLE_IDEMPOTENCY_REQUIRED');
   const renewed = planMidAiRoute({ task, snapshot, providers, now });
