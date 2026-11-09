@@ -12,9 +12,26 @@ export const REGRESSION_SHARD_NAMES=Object.freeze(['core',...Object.keys(REGRESS
 // developer verification; only the CI source gate uses these disjoint subsets.
 export const REGRESSION_CORE_SUBSHARDS=Object.freeze(['core-1/4','core-2/4','core-3/4','core-4/4']);
 
+// Budget-neutral test scheduling, measured on actual SHA-bound Source gate #42568701822:
+// core-2/4 was 776.3 s against its unchanged 780 s step cap, while the other
+// core jobs took 85.5–146.7 s. Transfer only three expensive complete tests
+// to underloaded mandatory jobs, exchanging three lightweight complete tests.
+// Never omit, duplicate, shorten, mock or downgrade any regression.
+export const REGRESSION_CORE_BALANCE_SWAPS=Object.freeze([
+ Object.freeze({slow:'test-compact-profile-location-0985235.mjs',destination:'core-1/4',light:'test-mid-original-dwd-weather-profile-09310.mjs'}),
+ Object.freeze({slow:'test-favorites-profile-0985242.mjs',destination:'core-3/4',light:'test-pollen-compact-dwd-levels-0985129.mjs'}),
+ Object.freeze({slow:'test-module-css-consolidation-0985170.mjs',destination:'core-4/4',light:'test-mid-weather-profile-axes-09322.mjs'}),
+]);
+
 export function regressionCoreSubshards(core){
  const parts=Object.fromEntries(REGRESSION_CORE_SUBSHARDS.map(name=>[name,[]]));
  for(const [index,name] of core.entries())parts[REGRESSION_CORE_SUBSHARDS[index%REGRESSION_CORE_SUBSHARDS.length]].push(name);
+ for(const {slow,destination,light} of REGRESSION_CORE_BALANCE_SWAPS){
+  const overloaded=parts['core-2/4'],spare=parts[destination],fromIndex=overloaded.indexOf(slow),toIndex=spare?.indexOf(light)??-1;
+  if(destination==='core-2/4'||fromIndex<0||toIndex<0)throw new Error('Stale core balance swap: '+slow+' <-> '+light);
+  overloaded[fromIndex]=light;spare[toIndex]=slow;
+ }
+ for(const name of REGRESSION_CORE_SUBSHARDS)parts[name].sort();
  const assigned=REGRESSION_CORE_SUBSHARDS.flatMap(name=>parts[name]);
  if(assigned.length!==core.length||new Set(assigned).size!==core.length||core.some(name=>!assigned.includes(name)))throw new Error('Core subshards do not cover every required regression exactly once.');
  return parts;
