@@ -1,0 +1,358 @@
+{
+  "schema": "mid.spatial-s3.sparse-original-readback.v1",
+  "captureDateUtc": "2026-11-09",
+  "status": "research-evidence-only",
+  "licenseScope": "Official GPL-2.0 omfiles==1.2.0 used in an isolated research environment; no GPL binary/source in MID",
+  "decoder": "open-meteo/python-omfiles 1.2.0 (research-only), fsspec+s3fs anonymous S3 byte-range backend",
+  "readback": "Actual named compressed Open-Meteo S3 OM array slices decoded via OmFileReader.read_array; not a manifest-only claim. The fixture is not a transferable full-raster validation.",
+  "uriPrefix": "s3://openmeteo/data_spatial/",
+  "metadataSource": "https://github.com/open-meteo/open-data",
+  "timeBasis": "UTC; model run distinct from forecast valid time; accumulated values cover preceding step and first timestep is absent",
+  "gridCaveat": "Grid definitions refer to historical Nov 9 sample only. Open-Meteo documents a DWD ICON native-grid migration 2026-11-30. Runtime MUST validate current grid and cannot hard-code these dimensions.",
+  "nullMeaning": "null represents an actual non-finite NaN readback for an existing field, never zero; omission from first-run variable catalog is a distinct not-present state",
+  "units": {
+    "temperature_2m": "degC",
+    "precipitation": "mm/preceding-hour",
+    "rain": "mm/preceding-hour",
+    "showers": "mm/preceding-hour",
+    "snowfall_water_equivalent": "mm/preceding-hour",
+    "snow_depth": "m",
+    "snowfall_height": "m MSL (negative raw values possible; meaning not yet calibrated)",
+    "freezing_level_height": "m MSL",
+    "cape": "J/kg",
+    "convective_inhibition": "J/kg (sign convention needs original source verification)"
+  },
+  "snapshots": [
+    {
+      "model": "dwd_icon_d2",
+      "run": "2026-11-09T06:00:00Z",
+      "valid": "2026-11-09T06:00:00Z",
+      "file": "dwd_icon_d2/2026/11/09/0600Z/2026-11-09T0600.om",
+      "grid": {
+        "rows": 746,
+        "cols": 1215,
+        "latMin": 43.18,
+        "lonMin": -3.94,
+        "stepLat": 0.02,
+        "stepLon": 0.02,
+        "source": "https://github.com/open-meteo/open-meteo/blob/main/Sources/App/Icon/Icon.swift",
+        "gridKind": "Open-Meteo regular-grid representation, not DWD original GRIB rotated grid"
+      },
+      "absentFields": [
+        "precipitation",
+        "rain",
+        "showers",
+        "snowfall_water_equivalent"
+      ],
+      "samples": [
+        {
+          "site": "D2-center-initial",
+          "row": 373,
+          "col": 607,
+          "values": {
+            "snowfall_height": 1070,
+            "freezing_level_height": 1810,
+            "cape": 0,
+            "convective_inhibition": 0
+          }
+        }
+      ]
+    },
+    {
+      "model": "dwd_icon_d2",
+      "run": "2026-11-09T06:00:00Z",
+      "valid": "2026-11-09T07:00:00Z",
+      "file": "dwd_icon_d2/2026/11/09/0600Z/2026-11-09T0700.om",
+      "grid": {
+        "rows": 746,
+        "cols": 1215,
+        "latMin": 43.18,
+        "lonMin": -3.94,
+        "stepLat": 0.02,
+        "stepLon": 0.02,
+        "source": "https://github.com/open-meteo/open-meteo/blob/main/Sources/App/Icon/Icon.swift",
+        "gridKind": "Open-Meteo regular-grid representation, not DWD original GRIB rotated grid"
+      },
+      "absentFields": [],
+      "samples": [
+        {
+          "site": "Koeln",
+          "row": 388,
+          "col": 545,
+          "values": {
+            "cape": 0,
+            "convective_inhibition": 0,
+            "precipitation": 0,
+            "rain": 0,
+            "showers": 0,
+            "snowfall_water_equivalent": 0,
+            "snow_depth": 0,
+            "temperature_2m": 5.7,
+            "freezing_level_height": 1610,
+            "snowfall_height": 880
+          }
+        },
+        {
+          "site": "Innsbruck",
+          "row": 204,
+          "col": 767,
+          "values": {
+            "cape": 0,
+            "convective_inhibition": 0,
+            "precipitation": 0,
+            "rain": 0,
+            "showers": 0,
+            "snowfall_water_equivalent": 0,
+            "snow_depth": 0,
+            "temperature_2m": 0,
+            "freezing_level_height": 2000,
+            "snowfall_height": 1240
+          }
+        },
+        {
+          "site": "D2-center",
+          "row": 373,
+          "col": 607,
+          "values": {
+            "cape": 0,
+            "convective_inhibition": 0,
+            "precipitation": 0,
+            "rain": 0,
+            "showers": 0,
+            "snowfall_water_equivalent": 0,
+            "snow_depth": 0,
+            "temperature_2m": 3.95,
+            "freezing_level_height": 1830,
+            "snowfall_height": 1020
+          }
+        },
+        {
+          "site": "D2-NaN-domain-corner",
+          "row": 0,
+          "col": 0,
+          "values": {
+            "temperature_2m": null,
+            "precipitation": null,
+            "rain": null,
+            "showers": null,
+            "snowfall_water_equivalent": null,
+            "snowfall_height": null,
+            "freezing_level_height": null,
+            "cape": null,
+            "convective_inhibition": null,
+            "snow_depth": null
+          }
+        }
+      ]
+    },
+    {
+      "model": "dwd_icon_eu",
+      "run": "2026-11-09T03:00:00Z",
+      "valid": "2026-11-09T03:00:00Z",
+      "file": "dwd_icon_eu/2026/11/09/0300Z/2026-11-09T0300.om",
+      "grid": {
+        "rows": 657,
+        "cols": 1377,
+        "latMin": 29.5,
+        "lonMin": -23.5,
+        "stepLat": 0.0625,
+        "stepLon": 0.0625,
+        "source": "https://github.com/open-meteo/open-meteo/blob/main/Sources/App/Icon/Icon.swift",
+        "gridKind": "Open-Meteo regular-grid representation, not guaranteed native DWD grid"
+      },
+      "absentFields": [
+        "precipitation",
+        "rain",
+        "showers",
+        "snowfall_water_equivalent"
+      ],
+      "samples": [
+        {
+          "site": "EU-subzero-initial",
+          "row": 338,
+          "col": 698,
+          "values": {
+            "snowfall_height": -70,
+            "freezing_level_height": 1920,
+            "cape": 0,
+            "convective_inhibition": 0
+          }
+        }
+      ]
+    },
+    {
+      "model": "dwd_icon_eu",
+      "run": "2026-11-09T03:00:00Z",
+      "valid": "2026-11-09T04:00:00Z",
+      "file": "dwd_icon_eu/2026/11/09/0300Z/2026-11-09T0400.om",
+      "grid": {
+        "rows": 657,
+        "cols": 1377,
+        "latMin": 29.5,
+        "lonMin": -23.5,
+        "stepLat": 0.0625,
+        "stepLon": 0.0625,
+        "source": "https://github.com/open-meteo/open-meteo/blob/main/Sources/App/Icon/Icon.swift",
+        "gridKind": "Open-Meteo regular-grid representation, not guaranteed native DWD grid"
+      },
+      "absentFields": [],
+      "samples": [
+        {
+          "site": "EU-subzero-following",
+          "row": 338,
+          "col": 698,
+          "values": {
+            "cape": 0,
+            "convective_inhibition": 0,
+            "precipitation": 0,
+            "rain": 0,
+            "showers": 0,
+            "snowfall_water_equivalent": 0,
+            "snow_depth": 0,
+            "temperature_2m": -4.55,
+            "snowfall_height": -70,
+            "freezing_level_height": 1910
+          }
+        }
+      ]
+    },
+    {
+      "model": "dwd_icon_eu",
+      "run": "2026-11-09T03:00:00Z",
+      "valid": "2026-11-09T07:00:00Z",
+      "file": "dwd_icon_eu/2026/11/09/0300Z/2026-11-09T0700.om",
+      "grid": {
+        "rows": 657,
+        "cols": 1377,
+        "latMin": 29.5,
+        "lonMin": -23.5,
+        "stepLat": 0.0625,
+        "stepLon": 0.0625,
+        "source": "https://github.com/open-meteo/open-meteo/blob/main/Sources/App/Icon/Icon.swift",
+        "gridKind": "Open-Meteo regular-grid representation, not guaranteed native DWD grid"
+      },
+      "absentFields": [],
+      "samples": [
+        {
+          "site": "Koeln",
+          "row": 343,
+          "col": 487,
+          "values": {
+            "cape": 0,
+            "convective_inhibition": 0,
+            "precipitation": 0,
+            "rain": 0,
+            "showers": 0,
+            "snowfall_water_equivalent": 0,
+            "snow_depth": 0,
+            "temperature_2m": 4.2,
+            "freezing_level_height": 1680,
+            "snowfall_height": 880
+          }
+        },
+        {
+          "site": "Innsbruck",
+          "row": 284,
+          "col": 558,
+          "values": {
+            "cape": 0,
+            "convective_inhibition": 0,
+            "precipitation": 0,
+            "rain": 0,
+            "showers": 0,
+            "snowfall_water_equivalent": 0,
+            "snow_depth": 0,
+            "temperature_2m": 3.35,
+            "freezing_level_height": 2230,
+            "snowfall_height": 1260
+          }
+        },
+        {
+          "site": "EU-center",
+          "row": 338,
+          "col": 507,
+          "values": {
+            "cape": 0,
+            "convective_inhibition": 0,
+            "precipitation": 0,
+            "rain": 0,
+            "showers": 0,
+            "snowfall_water_equivalent": 0,
+            "snow_depth": 0,
+            "temperature_2m": 3.5,
+            "freezing_level_height": 1180,
+            "snowfall_height": 980
+          }
+        },
+        {
+          "site": "Northern-Italy-rain",
+          "row": 248,
+          "col": 537,
+          "values": {
+            "cape": 0,
+            "convective_inhibition": 0,
+            "precipitation": 0.1,
+            "rain": 0.1,
+            "showers": 0,
+            "snowfall_water_equivalent": 0,
+            "snow_depth": 0,
+            "temperature_2m": 7.9,
+            "snowfall_height": 2120,
+            "freezing_level_height": 2340
+          }
+        },
+        {
+          "site": "Western-Mediterranean-rain",
+          "row": 168,
+          "col": 376,
+          "values": {
+            "cape": 0,
+            "convective_inhibition": 0,
+            "precipitation": 0.4,
+            "rain": 0.4,
+            "showers": 0,
+            "snowfall_water_equivalent": 0,
+            "snow_depth": 0,
+            "temperature_2m": 15.9,
+            "snowfall_height": 3200,
+            "freezing_level_height": 3640
+          }
+        },
+        {
+          "site": "EU-negative-snowline",
+          "row": 338,
+          "col": 698,
+          "values": {
+            "cape": 0,
+            "convective_inhibition": 0,
+            "precipitation": 0,
+            "rain": 0,
+            "showers": 0,
+            "snowfall_water_equivalent": 0,
+            "snow_depth": 0,
+            "temperature_2m": -5.65,
+            "snowfall_height": -140,
+            "freezing_level_height": 1930
+          }
+        },
+        {
+          "site": "EU-field-specific-NoData-and-unallocated-precip",
+          "row": 656,
+          "col": 1376,
+          "values": {
+            "cape": 0,
+            "convective_inhibition": 0,
+            "precipitation": 0.7,
+            "rain": 0,
+            "showers": 0,
+            "snowfall_water_equivalent": 0,
+            "snow_depth": 0,
+            "snowfall_height": null,
+            "freezing_level_height": 160,
+            "temperature_2m": 1.85
+          }
+        }
+      ]
+    }
+  ]
+}
