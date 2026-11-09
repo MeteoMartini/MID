@@ -214,13 +214,23 @@ export async function executeMidAiRoute({
   }
   let data;
   try { data = JSON.parse(raw); } catch { block('INVALID_PROVIDER_RESPONSE'); }
+  // Validate the actual model returned by the upstream API. A requested
+  // model name is not evidence that an intermediary really served it.
+  // OpenRouter and Groq return `model`; Gemini returns `modelVersion`.
+  const reportedModel = plan.provider === 'gemini' ? data?.modelVersion : data?.model;
+  const normalizedModel = plan.provider === 'gemini' &&
+    typeof reportedModel === 'string' && reportedModel.startsWith('models/') ?
+    reportedModel.slice('models/'.length) : reportedModel;
+  if (typeof normalizedModel !== 'string' || normalizedModel !== plan.model)
+    block('RESPONSE_MODEL_MISMATCH');
   const answer = plan.provider === 'gemini' ?
     data?.candidates?.[0]?.content?.parts?.filter((x) => typeof x.text === 'string').map((x) => x.text).join('\n') :
     data?.choices?.[0]?.message?.content;
   if (typeof answer !== 'string' || !answer.trim()) block('EMPTY_PROVIDER_RESPONSE');
   return Object.freeze({
     status: 'UNTRUSTED_REVIEW_ONLY', requestId: task.requestId, provider: plan.provider,
-    model: plan.model, expectedStableSha: snapshot.stableSha,
+    model: plan.model, providerReportedModel: reportedModel,
+    expectedStableSha: snapshot.stableSha,
     text: answer.slice(0, 16000), usage: data?.usage ?? data?.usageMetadata ?? null
   });
 }
