@@ -136,10 +136,20 @@ ok('only server-side env names are exposed', () => {
   assert.equal(MID_AI_PROVIDER_ENV.groq, 'GROQ_API_KEY');
 });
 const durableOk = async () => true;
-const goodResponse = (body) => ({
-  ok: true, status: 200, headers: { get: () => null },
-  text: async () => JSON.stringify(body)
-});
+const textResponse = (text, reportedLength = null, chunkSize = 7) => {
+  const bytes = new TextEncoder().encode(text);
+  return {
+    ok: true, status: 200, headers: { get: () => reportedLength },
+    body: new ReadableStream({
+      start(controller) {
+        for (let i = 0; i < bytes.length; i += chunkSize)
+          controller.enqueue(bytes.subarray(i, i + chunkSize));
+        controller.close();
+      }
+    })
+  };
+};
+const goodResponse = (body) => textResponse(JSON.stringify(body));
 async function rejected(label, args, expected) {
   await assert.rejects(() => executeMidAiRoute(args), (err) =>
     err instanceof MidAiRouterBlocked && err.reason === expected, label);
@@ -164,15 +174,28 @@ await rejected('prompt changed after planning', { ...args, task: { ...task, prom
 await rejected('429 no paid retries', { ...args, fetchImpl: async () => ({ ok: false, status: 429 }) },
   'PROVIDER_HTTP_ERROR_429');
 await rejected('malformed JSON', {
-  ...args, fetchImpl: async () => ({
-    ok: true, headers: { get: () => null }, text: async () => 'not-json'
-  })
+  ...args, fetchImpl: async () => textResponse('not-json')
 }, 'INVALID_PROVIDER_RESPONSE');
-await rejected('oversized response', {
-  ...args, fetchImpl: async () => ({
-    ok: true, headers: { get: () => '66000' }, text: async () => '{}'
-  })
+await rejected('oversized content length', {
+  ...args, fetchImpl: async () => textResponse('{}', '66000')
 }, 'RESPONSE_TOO_LARGE');
+await rejected('invalid content length', {
+  ...args, fetchImpl: async () => textResponse('{}', 'not-a-length')
+}, 'INVALID_RESPONSE_LENGTH');
+await rejected('unstreamed body blocked', {
+  ...args, fetchImpl: async () => ({ok:true,headers:{get:()=>null},text:async()=> '{}'})
+}, 'UNSTREAMED_RESPONSE');
+await rejected('oversized stream with no content length', {
+  ...args, fetchImpl: async () => textResponse('X'.repeat(66000), null, 1024)
+}, 'RESPONSE_TOO_LARGE');
+await rejected('bad utf8 in stream', {
+  ...args, fetchImpl: async () => ({
+    ok:true, headers:{get:()=>null},
+    body:new ReadableStream({start(controller){
+      controller.enqueue(new Uint8Array([0xff,0xfe]));controller.close();
+    }})
+  })
+}, 'INVALID_RESPONSE_STREAM');
 const received = [];
 const result = await executeMidAiRoute({
   ...args, fetchImpl: async (url, input) => {
