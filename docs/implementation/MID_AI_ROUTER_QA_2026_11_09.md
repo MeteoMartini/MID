@@ -294,3 +294,7 @@ Der Nutzer meldet eine **1-US-Dollar-Obergrenze** für den im neuen Team `mid-e1
 `scripts/qa-mid-ai-router-vercel-policy-0985452.mjs` führt **20 Offline-Mock-Szenarien** durch: $1-Kontoaussage allein, Soft-Cap, Paid/Top-up/BYOK, alte/fehlende Budgetdaten, unbewiesene Sonar-Free-Fähigkeit, fehlende Freicredits, fehlender unabhängiger Nachweis, Budget-Grenzüberschreitung, falsches Team, Datenschutz und Secrets-Redaktion. **Keine echten Gateway-/Sonar-Requests, keine zusätzlichen Kosten.**
 
 Offizielle Referenzen: https://vercel.com/docs/ai-gateway/pricing ; https://vercel.com/docs/ai-gateway/observability-and-spend/budgets .
+
+
+#### Preflight-Negativhärtung (09.11.2026)
+Das als einmalige 1-USD-Obergrenze gemeldete Budget darf nicht täglich, wöchentlich oder monatlich neu beginnen und damit mehrere Dollar über wiederholte Zeitfenster ermöglichen. Der Evidenzprüfer verlangt daher ausschließlich `refreshPeriod=none`; jede andere, fehlende oder unklare Reset-Angabe erzeugt `KEY_BUDGET_RESETS_OR_UNVERIFIED`. Null-/ungültige Konto- und Attestierungsobjekte blockieren strukturiert, statt einen unkontrollierten Laufzeitfehler zu werfen. Drei zusätzliche Offline-Negativtests; insgesamt **23 Vercel-Preflight-Szenarien**. Die unabhängige Konto-Originalattestierung bleibt weiterhin offen, und die seitens des Nutzers berichtete 1-USD-Grenze wird nicht als verifizierter Hard-Cap ausgegeben.

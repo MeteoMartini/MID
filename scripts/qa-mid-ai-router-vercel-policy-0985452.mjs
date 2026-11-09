@@ -37,6 +37,9 @@ test(()=>{const f=fixture();f.budget.scope='team';must(f,'ONE_DOLLAR_KEY_BUDGET_
 test(()=>{const f=fixture();f.budget.limitUsd=100;must(f,'ONE_DOLLAR_KEY_BUDGET_NOT_VERIFIED')});
 test(()=>{const f=fixture();f.budget.enforced=false;must(f,'KEY_BUDGET_ENFORCEMENT_UNVERIFIED')});
 test(()=>{const f=fixture();f.budget.checkedAt='2026-11-08T20:00:00.000Z';must(f,'KEY_BUDGET_ENFORCEMENT_UNVERIFIED')});
+test(()=>{const f=fixture();f.budget.refreshPeriod='monthly';must(f,'KEY_BUDGET_RESETS_OR_UNVERIFIED')});
+test(()=>{const f=fixture();f.account=null;must(f,'FREE_ONLY_ACCOUNT_NOT_VERIFIED')});
+test(()=>{const f=fixture();f.evidence=null;must(f,'INDEPENDENT_ATTESTATION_MISSING')});
 test(()=>{const f=fixture();f.model.freeTierEligible=undefined;must(f,'MODEL_FREE_TIER_ELIGIBILITY_UNVERIFIED')});
 test(()=>{const f=fixture();f.model.maxEstimatedRequestUsd=6;must(f,'SINGLE_REQUEST_CREDIT_HEADROOM_UNVERIFIED')});
 test(()=>{const f=fixture();f.evidence.origin='user-screenshot';must(f,'INDEPENDENT_ATTESTATION_MISSING')});

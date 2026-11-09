@@ -58,7 +58,7 @@ describe('MID AI Router: separate direct Free-provider safety QA (issue #725)', 
     });
     expect(r.error).toBeUndefined();
     expect(r.status, r.stderr || r.stdout).toBe(0);
-    expect(r.stdout).toMatch(/MID AI Router Vercel soft-budget offline QA OK; scenarios=20; no live API used\./);
+    expect(r.stdout).toMatch(/MID AI Router Vercel soft-budget offline QA OK; scenarios=23; no live API used\./);
     expect(r.stderr).toBe('');
   });
 

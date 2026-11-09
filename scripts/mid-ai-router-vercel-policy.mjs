@@ -15,9 +15,12 @@ const fresh=(iso,now)=>{
 const SHA=/^[a-f0-9]{64}$/;
 const TEAM=/^team_[a-zA-Z0-9]{6,64}$/;
 export function assessMidVercelFreeCreditPreflight({
-  teamId=null,modelId=null,account={},budget={},model={},evidence={},
-  now=Date.now()
+  teamId=null,modelId=null,account:rawAccount={},budget:rawBudget={},
+  model:rawModel={},evidence:rawEvidence={},now=Date.now()
 }={}){
+ const record=v=>v!==null&&typeof v==='object'&&!Array.isArray(v)?v:{};
+ const account=record(rawAccount),budget=record(rawBudget);
+ const model=record(rawModel),evidence=record(rawEvidence);
  const blockers=[];
  const deny=(code)=>{if(!blockers.includes(code))blockers.push(code);};
  if(!TEAM.test(teamId||'')||account.teamId!==teamId)
@@ -32,8 +35,8 @@ export function assessMidVercelFreeCreditPreflight({
    deny('FREE_CREDIT_BALANCE_NOT_VERIFIED');
  if(budget.scope!=='api-key'||!finite(budget.limitUsd)||budget.limitUsd!==1)
    deny('ONE_DOLLAR_KEY_BUDGET_NOT_VERIFIED');
- if(!['none','daily','weekly','monthly'].includes(budget.refreshPeriod))
-   deny('KEY_BUDGET_RESET_UNVERIFIED');
+ if(budget.refreshPeriod!=='none')
+   deny('KEY_BUDGET_RESETS_OR_UNVERIFIED');
  if(budget.enforced!==true||!fresh(budget.checkedAt,now))
    deny('KEY_BUDGET_ENFORCEMENT_UNVERIFIED');
  if(typeof modelId!=='string'||!/^([a-z0-9_-]+)\/([a-z0-9_.-]+)$/.test(modelId)||
