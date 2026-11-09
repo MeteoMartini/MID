@@ -32,13 +32,18 @@ Free has three materially different meanings:
 
 ### Vercel AI Gateway / Perplexity — read-only account verification 2026-11-09
 
-The newly connected Vercel app was queried **read-only**. It returned
-`403 forbidden` for the intended MID team scope; a team-specific
-permission/consent URL was issued, but **authorization completion has not
-been verified**. Thus account plan, true available credit, payment-method
-status, AI Gateway key/budget settings, provider routing and auto-top-up
-are **unknown**. No deployment, provider key, purchase or API request
-was made. A connected app is *not* an attested payment-safe runtime.
+The Vercel connector was granted read-only MID team access after an
+initial `403 forbidden`. The actual team `mid-0529` / `MID` is now
+readable. Vercel's Git deployment-context readback reports **Hobby plan**,
+**zero Vercel projects** and **zero Git-linked Vercel projects**.
+A team-scoped November billing-charge lookup returned `404
+costs_not_found`; this means costs were not available through that
+API, **not** a verified $0 spend. The connector does not expose the
+authenticated AI Gateway credit balance, payment-method status, budgets,
+paid overage / auto-top-up state or all AI Gateway API key metadata.
+Therefore there is **still no account-specific zero-cash attestation**.
+No deployment, provider key, purchase or API request was made.
+A connected app is *not* an attested payment-safe runtime.
 
 Current originals:
 - [Pricing](https://vercel.com/docs/ai-gateway/pricing):
