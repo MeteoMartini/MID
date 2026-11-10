@@ -1,3 +1,4 @@
+import './midPollen.css';
 import {useDisplayPreference,displayBoolean} from './useDisplayPreference';
 import {useState,useEffect,type CSSProperties} from 'react';
 import {fetchWorkerJson} from './workerClient';
