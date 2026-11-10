@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import ts from 'typescript';
 import {readFile} from 'node:fs/promises';
 const versionAtLeast=(value,target)=>{const a=String(value).split('.').map(Number),b=String(target).split('.').map(Number);for(let i=0;i<Math.max(a.length,b.length);i++){if((a[i]||0)!==(b[i]||0))return(a[i]||0)>(b[i]||0)}return true};
 
@@ -30,4 +31,20 @@ assert.ok(css.includes('.pollen-all-toggle{justify-self:start;min-height:44px'),
 assert.ok(css.includes('grid-template-columns:minmax(76px,1.12fr) repeat(var(--pollen-days,3),minmax(0,1fr))'),'Die 3-Tage-Tabelle muss ohne künstliche 420-px-Mindestbreite in mobile Karten passen.');
 assert.ok(!css.includes('min-width:420px'),'Die mobile Pollenmatrix darf keine horizontale Mindestbreite erzwingen.');
 assert.ok(css.includes('scroll-margin-bottom:calc(5.5rem + env(safe-area-inset-bottom))'),'Geöffnete Pollendetails brauchen Abstand zur festen Bottom-Bar.');
+// Run the actual TypeScript severity and coverage helpers against DWD boundary codes.
+const start=pollen.indexOf('function pollenSeverity('),end=pollen.indexOf('function pollenLabel(');
+assert.ok(start>=0&&end>start,'Original pollen functions not found');
+const compiled=ts.transpileModule(pollen.slice(start,end),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None}}).outputText;
+const {pollenSeverity,pollenHasMissing}=new Function(compiled+';return {pollenSeverity,pollenHasMissing}')();
+const item=(value,integer,date='2026-11-10')=>({pollenValue:value,pollenInt:integer,forecastDate:date});
+for(const [value,integer,expected] of [['0',-1,0],['0-1',0,0.5],['1-2',0,1.5],['2-3',0,2.5],['3',3,3],['-1',0,-1],['',undefined,-1],['',null,-1],['unbekannt',undefined,-1],['',0,0]])
+ assert.equal(pollenSeverity(item(value,integer)),expected,'DWD pollen level '+String(value)+' / '+String(integer));
+const map=new Map([['Hasel',[item('0',0)]],['Erle',[item('-1',0)]]]);
+assert.equal(pollenHasMissing('2026-11-10',['Hasel'],map),false,'Valid 0 is genuine no burden');
+assert.equal(pollenHasMissing('2026-11-10',['Hasel','Erle'],map),true,'Missing -1 remains unknown');
+assert.equal(pollenHasMissing('2026-11-11',['Hasel','Erle'],map),true,'Missing entire day remains unknown');
+assert.equal(pollenHasMissing('2026-11-10',[],map),true,'Missing pollen inventory remains unknown');
+assert.ok(pollen.includes("todayHasMissing?'DWD-Angaben unvollständig':'keine Belastung'"));
+assert.ok(pollen.includes("forecastHasMissing?'Pollenangaben teilweise nicht verfügbar.'"));
+assert.ok(pollen.includes("entry&&pollenSeverity(entry)>=0?<span"),'DWD -1 grid cell must not inherit green level 0');
 console.log(`MID v${pkg.version}: kompakte Pollenhierarchie und siebenstufige DWD-Zwischenwerte ab v0.9.85.129 geschützt.`);
