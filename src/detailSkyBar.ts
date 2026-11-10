@@ -277,7 +277,7 @@ export function detailSkyBarSegments(
   const precipSegments:SkyBarSegment[]=[];
   const segmentsForLayer=(layer:WeatherStripLayer)=>layer==='precip'?precipSegments:baseSegments;
 
-  if(Array.isArray(xPositions)&&xPositions.length){
+  if(Array.isArray(xPositions)){
     const leftEdge=left;
     const rightEdge=Math.max(leftEdge,chartW-right);
     const positions=xPositions.slice(0,hours.length);
