@@ -1,3 +1,13 @@
+# MID v0.9.85.453 · DWD ICON-D2 Saisonkarten [Sourcekandidat – keine Produktionsfreigabe]
+
+Basis (Stand 10.11.2026): main=mid-stable=d8852f672a40d26348d214dc85e9a3a1b9d79c1f (v0.9.85.451). Die .452 ist ein getrenntes AI-Router-Draft; die Karten-.453 ist ein eigenständiger Kandidat, kein übergangenes Release-Gate.
+
+Winter/Berge: 1-h-Gesamtniederschlag und Temperatur-Isothermen auf 2 m; Sommer: 1-h-Gesamtniederschlag und Böen-Isolinien. Nur unabhängige originale SHA-geprüfte DWD ICON-D2-Felder im selben Lauf, gültigen Termin und identischen Raster. NoData-Schnittmenge ohne Nullersatz oder extreme smoothing; Originalintervalle und Einheiten transparent. Keine aus Temperatur allein erfundene Schneefallphase oder aus Böen allein abgeleitete Gewitterwahrscheinlichkeit; keine amtliche Warnung.
+
+Die Funktionen verwenden den bestehenden einheitlichen MapLibre-Kartenbereich samt Zeitachse, Legende, Favoriten und SVG-/PNG-Export. DWD Open Data CC BY 4.0. Keine Open-Meteo-GPL-Reader, OM-Byte-Range-Probe oder RUC/AI-Router-Änderungen im Releaseumfang. Isoliert aus QA-Draft #729 in einen SHA-genau von Stable abgeleiteten Integrationsbranch; der Forschungskandidat bleibt unmerged.
+
+Unit-/Typ-Vorqualifikation auf vorherigem Forschungs-PR SHA 37cfe8e8: #42765577123 SUCCESS. Ein grüner Unit-Lauf allein ist kein voller Browser-, Originaldaten-, Build-, iOS-Shell- oder Release-Nachweis. Freigabe ausschließlich nach erfolgreichem Source-Gate auf genau diesem neuen Head, kontrolliertem Bot-Merge, serverseitigem ZIP, install-mid.yml, Worker-/Pages-Gates und Stable-Promotion. Bei unbelegter Produktionsreife fail-closed.
+
 # MID v0.9.85.451 · vorläufige Korrektur des Installer-JS-Rohbudgets [nicht veröffentlicht]
 
 Der vollständig grüne Source-Gate-Lauf der .450 (42568701822) rechtfertigte den regulären Bot-Merge PR #722. Der Installer 42570011322 zeigte danach einen neuen echten JS-Größenbudgetfehler (1.500.098 B > 1.500.000 B), während CSS bei 1.759.965 B knapp innerhalb 1.760.000 B blieb. Main ist noch unveröffentlicht .450; `mid-stable` verbleibt bis zur gesicherten Promotion auf .449. Diese .451-Reparatur erhält die .450-Fachfunktionen und optimiert ausschließlich identische JSX-Literale ohne neue Meteorologielogik. Ein neuer Originalbuild, alle Core-/Heavy-Gates und Installer-/Stable-Promotion sind vor einer Freigabe obligatorisch. Keine unmittelbare App-/Serverfreigabe durch diesen Dokumentstand.
