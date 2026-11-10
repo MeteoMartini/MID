@@ -15,6 +15,11 @@ try{
     process.env.GITHUB_REF!=='refs/heads/mid-stable'||
     typeof process.env.GITHUB_EVENT_PATH!=='string')
    throw Object.assign(new Error('Context denied'),{reason:'TRUSTED_WORKFLOW_ONLY'});
+ // GitHub may implicitly create an unprotected environment when first used.
+ // Do not even read a provider key or start a GET unless the owner
+ // deliberately armed this narrow read-only QA check.
+ if(process.env.MID_AI_ROUTER_GROQ_CATALOG_ARMED!=='MID-GROQ-CATALOG-QA-V1')
+   throw Object.assign(new Error('QA not armed'),{reason:'GROQ_QA_NOT_ARMED'});
  const raw=readFileSync(process.env.GITHUB_EVENT_PATH,'utf8');
  if(raw.length>16384)
    throw Object.assign(new Error('Excessive'),{reason:'INVALID_WORKFLOW_INPUTS'});

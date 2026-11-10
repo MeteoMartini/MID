@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
 import {makeGroqCatalogIssue,validateGroqCatalogIssue,relayGroqCatalogIssue,
  validateGroqCatalogDispatch} from './mid-ai-router-groq-issue-bridge.mjs';
 const sha='a'.repeat(40),version='0.9.85.453',now=Date.parse('2026-11-10T11:00:00Z');
@@ -73,5 +74,38 @@ await test(()=>{
  assert.match(catalog,/process\.env\.GITHUB_RUN_ATTEMPT!=='1'/);
  assert.match(relay,/p\.GITHUB_RUN_ATTEMPT!=='1'/);
 });
+await test(()=>{
+ // Secret read requires a separate owner-controlled arming token.
+ // GitHub Environment naming alone does not establish protection.
+ const wf=readFileSync(new URL('../.github/workflows/mid-ai-router-groq-free-preflight.yml',import.meta.url),'utf8');
+ assert.match(wf,/secrets\.MID_AI_ROUTER_GROQ_FREE_QA_KEY/);
+ assert.match(wf,/vars\.MID_AI_ROUTER_GROQ_CATALOG_ARMED/);
+ assert.doesNotMatch(wf,/secrets\.GROQ_API_KEY/);
+ const runner=readFileSync(new URL('./run-mid-ai-router-groq-connectivity.mjs',import.meta.url),'utf8');
+ assert.match(runner,/GROQ_QA_NOT_ARMED/);
+});
+for(const armed of ['', 'random-wrong-arming-value']){
+ await test(()=>{
+  const testRun=spawnSync(process.execPath,[
+   new URL('./run-mid-ai-router-groq-connectivity.mjs',import.meta.url).pathname
+  ],{
+   encoding:'utf8',timeout:8000,maxBuffer:64*1024,
+   env:{
+    PATH:process.env.PATH||'',
+    GITHUB_ACTIONS:'true',
+    GITHUB_RUN_ATTEMPT:'1',
+    GITHUB_EVENT_NAME:'workflow_dispatch',
+    GITHUB_REPOSITORY:'MeteoMartini/MID',
+    GITHUB_REF:'refs/heads/mid-stable',
+    GITHUB_EVENT_PATH:'/nonexistent/mid-ai-router-groq-qa.json',
+    MID_AI_ROUTER_GROQ_CATALOG_ARMED:armed,
+   },
+  });
+  assert.equal(testRun.error,undefined);
+  assert.equal(testRun.status,1);
+  assert.match(testRun.stderr,/MID Groq Free preflight: GROQ_QA_NOT_ARMED/);
+  assert.equal(testRun.stdout,'');
+ });
+}
 console.log('MID Groq ChatGPT Issue bridge QA OK; scenarios='+n+
  '; no GitHub actions, secrets, provider calls or network.');

@@ -205,7 +205,7 @@ describe('MID AI Router: ChatGPT GitHub issue to stable-only Groq catalog relay'
     });
     expect(r.error).toBeUndefined();
     expect(r.status,r.stderr||r.stdout).toBe(0);
-    expect(r.stdout).toMatch(/MID Groq ChatGPT Issue bridge QA OK; scenarios=21; no GitHub actions, secrets, provider calls or network\./);
+    expect(r.stdout).toMatch(/MID Groq ChatGPT Issue bridge QA OK; scenarios=24; no GitHub actions, secrets, provider calls or network\./);
     expect(r.stderr).toBe('');
   });
 });

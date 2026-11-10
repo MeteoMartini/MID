@@ -38,7 +38,10 @@ jobs:
           node-version: '22.16.0'
       - name: Read Groq model catalog – no inference
         env:
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          # Dedicated Environment secret + separate explicit QA arming.
+          # Never use a generic repo-wide GROQ_API_KEY secret.
+          GROQ_API_KEY: ${{ secrets.MID_AI_ROUTER_GROQ_FREE_QA_KEY }}
+          MID_AI_ROUTER_GROQ_CATALOG_ARMED: ${{ vars.MID_AI_ROUTER_GROQ_CATALOG_ARMED }}
         run: |
           set -euo pipefail
           node scripts/run-mid-ai-router-groq-connectivity.mjs
