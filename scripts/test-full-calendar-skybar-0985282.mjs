@@ -26,7 +26,7 @@ assert.match(cells,/xEndPositions/);assert.match(bars,/xEndPositions/);
 const dir=mkdtempSync(join(tmpdir(),'mid-day-skybar-'));
 try{
  await build({entryPoints:['src/daySkybarTimeline.ts'],outfile:join(dir,'day.mjs'),bundle:true,platform:'node',format:'esm',packages:'external',logLevel:'silent'});
- const {daySkybarCalendarWindow,daySkybarTimelinePositions,daySkybarHourEndPositions,daySkybarUnavailableRanges}=await import(pathToFileURL(join(dir,'day.mjs')));
+ const {daySkybarCalendarWindow,daySkybarTimelinePositions,daySkybarHourEndPositions,daySkybarUnavailableRanges,daySkybarEpoch}=await import(pathToFileURL(join(dir,'day.mjs')));
  const zone='Europe/Berlin',m=3600000;
  const normal=daySkybarCalendarWindow('2026-10-17',zone),spring=daySkybarCalendarWindow('2026-03-29',zone),fall=daySkybarCalendarWindow('2026-10-25',zone);
  assert.ok(normal&&spring&&fall);
