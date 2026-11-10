@@ -24,10 +24,10 @@ const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failu
   const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
   for(const [isDay,originalSun,cloud,expected] of [
    [true,null,20,.8],[true,0,20,0],[true,1800,20,.5],
-   [true,undefined,80,.2],[true,Infinity,60,.4],[false,null,20,0]
+   [true,undefined,80,.2],[true,Infinity,60,.4],[true,null,NaN,NaN],[true,0,NaN,0],[false,null,NaN,0],[false,null,20,0]
   ]){
    const sunshine=Number(originalSun??NaN),value=actualShare({isDay},sunshine,cloud,clamp);
-   if(!Number.isFinite(value)||Math.abs(value-expected)>1e-9)
+   if(Number.isNaN(expected)?!Number.isNaN(value):!Number.isFinite(value)||Math.abs(value-expected)>1e-9)
     failures.push('Produktiver Sonnenanteil-Fallback '+String(originalSun)+' / '+String(cloud));
   }
  }
@@ -77,6 +77,18 @@ const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failu
   if(unproven.score!==null||!unproven.burden.includes('Provenienz'))failures.push('Fehlende UTCI-Provenienz wird nicht als klassifizierter UTCI angenommen');
   const missingAll=calc({...baseHour,temperature:null,apparent:null});
   if(missingAll.score!==null||missingAll.label!=='–')failures.push('Unbekannte Luft-/Index-Temperatur bleibt unbekannt, niemals 0°C');
+  // Missing source values are not physical zeroes. Valid UTCI provenance
+  // remains independent from this MID-only sultriness calculation.
+  const missingCloud=calc({...baseHour,cloud:null,sunshineDuration:null});
+  if(missingCloud.sultry!==null||missingCloud.score!==8)failures.push('Unknown sunshine and cloud cannot imply definite sultriness');
+  const missingWind=calc({...baseHour,wind:null});
+  if(missingWind.sultry!==null)failures.push('Unknown wind cannot be modeled as calm conditions');
+  const missingHumidity=calc({...baseHour,humidity:null,dewPoint:null});
+  if(missingHumidity.sultry!==null)failures.push('Unknown humidity and dew point cannot imply 0% humidity');
+  const dewPointFallback=calc({...baseHour,humidity:null});
+  if(dewPointFallback.sultry!==true)failures.push('Known dew point must support moisture evaluation even if RH is missing');
+  const realZeros=calc({...baseHour,dewPoint:0,humidity:0,wind:0,cloud:0,sunshineDuration:0});
+  if(realZeros.sultry!==false||realZeros.score!==8)failures.push('Genuine zero RH/wind/cloud/sunshine must remain valid zeros');
  }
 
 for(const token of [
