@@ -106,3 +106,51 @@ binding, public domain, publisher, dispatch, merge, release or Stable promotion.
 retrieval and decoding, then real Cloudflare Worker Free CPU/subrequest
 benchmarks **only if they can be done without activating metered R2**.
 No compromise to MID/P2–P5 scientific or release contracts.
+
+
+## Genuine original-DWD Worker-compatible range comparison (128 KiB)
+
+A second **read-only authentic-artifact** run completed successfully:
+[Actions #42780229524](https://github.com/MeteoMartini/MID/actions/runs/42780229524),
+exact PR source SHA `16bf1cb8a5266288fb20f9f6ce70cbcec4a10e3a`,
+same original DWD `2026-11-09T14:00` / producer SHA
+`d8852f672a40d26348d214dc85e9a3a1b9d79c1f`.
+The workflow mirrors under `ci/github/workflows` and `.github/workflows`
+have identical Git blob `4740277de7cc0e65f021b5b338844fdccc35c672`.
+
+| Original DWD SHA-verified measurement | 1 MiB independent chunks | 128 KiB independent chunks |
+| --- | ---: | ---: |
+| Original 12 wire product bytes | 1,999,624,596 B | 1,999,624,596 B |
+| 14 packed objects (12 files + 2 metadata) | 667,095,029 B | **672,790,506 B** |
+| Six same-size retained+staging run copies | 4,002,570,174 B | **4,036,743,036 B** |
+| Projected Class A (744 cycles × 2 attempts) | 174,096/month | **175,584/month** |
+| Independent compressed range chunks | 1,913 | **15,268** |
+| Index JSON | 403,113 B | **3,157,750 B** |
+| 7 cells × 10 native products: compressed bytes fetched | 6,997,555 B | **842,924 B** |
+| Same offline Node decoder 70 point records: process CPU | 434,665 µs | **90,457 µs** |
+| After full Python decode & SHA and Node point parity | PASS | **PASS** |
+
+The 128-KiB variant costs **5,695,477 B** additional physical storage per run
+(+0.85%) but reduces the sampled Node process CPU by **79.2%** and sampled
+compressed transport by **88.0%**. It remains well inside the internal 5-GB
+six-run planning envelope. The returned 70 native binary point records match
+the genuine original files exactly. No precipitation, missing-data, actual
+zero, member index, spatial offset, scaling, or valid-time conversion occurs.
+
+**Critical remaining CPU limit:** Node `DecompressionStream('deflate')` is
+Web-API-compatible, not a real Cloudflare Workers Free budget test. For the
+seven sampled native cells, mean *primary deterministic+EPS-summary* Node CPU
+was **4,646 µs/cell**, but the **maximum 17,600 µs** exceeded the theoretical
+Workers Free 10-ms request budget; the all-ten-product maximum was
+**28,894 µs**. Node CPU additionally measures file/crypto QA overhead, so
+this is not a proof that real Workers either pass or fail. A real Cloudflare
+Worker integration, explicit CPU/subrequest/cache/key-lookup budget and
+bounded-client request mix are separately mandatory. One full-cell mock
+point required 10 R2 ranges; seven cells generated 70 ranges total.
+Index size also grows to 3.16 MB and must be cached/bounded by run.
+
+**Account and production holds:** Neither free-tier Class-B throughput nor
+Worker traffic nor complete Pages map/synoptic sidecars have been measured.
+No durable hard `$0` R2 invoice cap has been shown. Therefore all code remains
+QA-only and `productionApproved=false`, `r2ActivationAuthorized=false`.
+Do not activate R2 or change Pages/Worker/Secrets/DNS/Rulesets/MID release.
