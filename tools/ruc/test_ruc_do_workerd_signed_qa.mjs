@@ -1,5 +1,6 @@
 /** Local workerd signed-ingestion evidence. Ed25519 PRIVATE key lives in this Node process only. */
 import assert from "node:assert/strict";
+import {readFile} from "node:fs/promises";
 import {fileURLToPath} from "node:url";
 import {deflateSync} from "node:zlib";
 import {Miniflare} from "miniflare";
@@ -66,7 +67,25 @@ async function makeDataset(modelRun=run){
     segments,products,
   };
 }
+
+const pinnedReceipt=JSON.parse(await readFile(process.env.MID_RUC_PINNED_PROOF_RECEIPT,"utf8"));
+assert.equal(pinnedReceipt.schema,"mid.ruc.do.original-proof-bridge-qa.v1");
+assert.equal(pinnedReceipt.historicalProofMetadataPinnedAndCheckedNow,true);
+assert.equal(pinnedReceipt.sourceChecksRecomputedFromOriginalBytesNow,false);
+assert.equal(pinnedReceipt.dwdOfficialSignatureVerified,false);
+assert.equal(pinnedReceipt.productionApproved,false);
+assert.equal(pinnedReceipt.activationAuthorized,false);
+function bindHistoricalMetadataOnly(manifest){
+  manifest.sourceSha=pinnedReceipt.originalProducerSha;
+  manifest.sourceProofSha256=pinnedReceipt.originalSourceArtifactSha256;
+  manifest.historicalProofArchiveSha256=pinnedReceipt.proofArchiveSha256;
+  manifest.historicalOriginalPayloadNotInWorkerdQa=true;
+}
 async function sign(manifest,key=signer.privateKey){
+  assert.equal(manifest.sourceSha,pinnedReceipt.originalProducerSha,"untrusted producer SHA claim");
+  assert.equal(manifest.sourceProofSha256,pinnedReceipt.originalSourceArtifactSha256,"untrusted source artifact claim");
+  assert.equal(manifest.historicalProofArchiveSha256,pinnedReceipt.proofArchiveSha256,"wrong pinned original proof");
+  assert.equal(manifest.historicalOriginalPayloadNotInWorkerdQa,true);
   const bytes=new TextEncoder().encode(await signedManifestMessage(manifest));
   return base64(await crypto.subtle.sign({name:"Ed25519"},key,bytes));
 }
@@ -81,6 +100,8 @@ try{
   const initial=await mf.dispatchFetch("http://localhost/qa/status");
   assert.equal((await initial.json()).active.generation,0);
   const fixture=await makeDataset();
+  await assert.rejects(sign(fixture.manifest),/untrusted producer SHA claim/);
+  bindHistoricalMetadataOnly(fixture.manifest);
   const authenticQaSig=await sign(fixture.manifest);
   const absent=await post({...fixture,signature:null});
   assert.equal(absent.status,422,"unverified manifest accepted");
@@ -105,6 +126,7 @@ try{
   const replay=await post({manifest:fixture.manifest,segments:fixture.segments,signature:authenticQaSig});
   assert.equal(replay.status,422,"sealed run overwritten");
   const later=await makeDataset("2026-11-09T15:00");
+  bindHistoricalMetadataOnly(later.manifest);
   const laterSig=await sign(later.manifest);
   const poisoned=structuredClone(later.segments);
   const poisonedBuffer=Buffer.from(poisoned[0].data,"base64");
@@ -123,6 +145,7 @@ try{
     correctManifestAdmitted:true,missingDataAsZero:false,allPointBytesExact:true,
     immutableReplayRejected:true,corruptedNextRunRejected:true,lastGoodKept:true,
     sourceSynthetic:true,originalDwdIssuerVerified:false,
+    originalProofMetadataPinnedInCi:true,originalDwdBytesNotSignedHere:true,
     productionApproved:false,activationAuthorized:false,cloudflareAccountTouched:false};
   console.log(JSON.stringify(result));
 }finally{await mf.dispose();}

@@ -491,3 +491,41 @@ A future production-candidate protocol needs bounded incremental
 verification, a verified manifest commitment/bitmap persisted in SQL
 and a short final atomic state change. Do not remove this validation
 to meet CPU budgets; design a bounded chunk-check protocol instead.
+
+## Pinned historical original-DWD proof → local Ed25519 QA metadata bridge
+
+The original read-only 128KiB point-parity GitHub artifact
+[Actions #42780229524](https://github.com/MeteoMartini/MID/actions/runs/42780229524),
+ID `13746075942`, is only **1.25MB** compressed. It contains four
+proof JSON files (not the ~763MB original DWD archived input).
+It was independently SHA-256 checked locally at
+`28ed26fe81a29dc74d0360db1a822446dd29479eed1d07ef21ba9f74e68433c1`.
+The new `tools/ruc/ruc_do_original_proof_bridge_qa.py` verifies pinned
+SHA-256 hashes of **every extracted JSON** and independently validates:
+12 original field/rapid products, full native point-record geometry,
+all 15,268 bounded compressed range descriptors, 27 hourly lead hours,
+20 real native EPS members, original full-byte/70-point readbacks as
+**historical prior QA assertions**, pinned producer `.451` SHA,
+and exact source-run identity. Negative tests reject SHA drift,
+unsigned file replacement/symlink, missing files and bogus model-run
+metadata. The old large source artifact is never re-downloaded.
+
+The script emits a small **historical evidence receipt**, explicitly
+`sourceChecksRecomputedFromOriginalBytesNow=false`,
+`dwdOfficialSignatureVerified=false`,
+`midCiTrustedIssuerKeyConfigured=false`,
+`productionApproved=false`, and `activationAuthorized=false`.
+A local offline Ed25519 test signer will now refuse to sign a synthetic
+manifest without exactly these independently pinned receipt SHA/source
+references. The signed synthetic manifest binds to the **historical
+metadata** only; it does **not** claim to sign the real weather payload.
+One extra `actions:read` GitHub-token permission is scoped only to
+downloading that known artifact inside the existing GitHub PR QA, and
+`contents:read` remains unchanged. No Cloudflare calls or new accounts.
+
+**Expiry caveat:** the historical GitHub artifact has short retention.
+If it expires, the exact QA will fail closed, not silently replace
+the evidence with an invented fixture. After successful validation,
+store the minimal immutable evidence receipt and its independent SHA
+in the repository for sustainable follow-up tests; *never* convert
+this historical QA receipt to a production origin-signing authority.
