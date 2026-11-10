@@ -18,13 +18,26 @@ assert.ok(check(ready,[],[thread('t1',false,[bot,human],true)]).blockers.include
 assert.ok(check(ready,[],[thread('t1',true,[bot])]).blockers.includes('RESOLUTION_EVIDENCE_MISSING:t1'));
 assert.ok(check(ready,[],[thread('t1',true,[bot,{...human,author:{__typename:'Bot',login:'other'}}])]).blockers.includes('RESOLUTION_EVIDENCE_MISSING:t1'));
 assert.ok(check(ready,[],[thread('t1',true,[bot,{...human,bodyText:'fixed'}])]).blockers.includes('RESOLUTION_EVIDENCE_MISSING:t1'));
-assert.equal(check(ready,[],[thread('t1')]).ok,true,'Human evidence and resolution are needed, not fabricated approvals');
+assert.ok(check(ready,[],[thread('t1')]).blockers.includes('INDEPENDENT_TRIAGE_ATTESTATION_REQUIRED'),'Human reply and resolved thread are insufficient without independently verified SHA-bound correction');
 assert.equal(check(ready,[review('dismissed','DISMISSED')],[]).ok,true,'Dismissed submission alone is not a live defect');
 assert.ok(check(ready,[review('r1')],[]).blockers.includes('ISSUE_SUMMARY_THREADS_INCOMPLETE'));
 assert.ok(check(ready,[review('r1','COMMENTED','Nontrivial review without inline comments')],[]).blockers.includes('REVIEW_SUMMARY_WITHOUT_THREADS:r1'));
 const threads=Array.from({length:15},(_,i)=>thread('t'+i,true));
-assert.equal(check(ready,[review('r1')],threads).ok,true,'Fully triaged threads may pass without invented formal approval');
+assert.ok(check(ready,[review('r1')],threads).blockers.includes('INDEPENDENT_TRIAGE_ATTESTATION_REQUIRED'),'Even 15 resolved reviewer findings require separate verified disposition');
 assert.equal(check(ready,[review('r1')],threads.map((t,i)=>i===14?{...t,isResolved:false}:t)).ok,false);
 assert.ok(check(ready,[],[thread('t1'),thread('t1')]).blockers.includes('THREAD_ID_DUPLICATED_OR_MISSING'));
 assert.ok(check(ready,[{...review('r1'),commit:null}],threads).blockers.includes('REVIEW_PROVENANCE_MISSING:r1'));
-console.log('MID review evidence fail-closed QA: 17 independent negative/positive scenarios PASS; NO workflow attached.');
+assert.ok(check(ready,[review('r1'),review('r1')],threads).blockers.includes('REVIEW_ID_DUPLICATED:r1'));
+assert.equal(check(ready,[review('r0','COMMENTED','0 issues found')],[]).ok,true,'Zero-finding summary is not a substantive review blocker');
+assert.ok(check(ready,[],[thread('resolved',true,[bot,human],true)]).blockers.includes('INDEPENDENT_TRIAGE_ATTESTATION_REQUIRED'),'Outdated human answered thread still requires original code provenance');
+// Original issue #740 readback: PR #729 received 15+6 Cubic findings and
+// 21 unresolved threads before its merge. This synthetic regression embeds
+// only counts and resolution state; it never claims an authenticated replay.
+const cubic729=Array.from({length:21},(_,i)=>thread('review729-t'+i,false,[bot]));
+const historic=check(ready,[review('cubic1','COMMENTED','15 issues found'),review('cubic2','COMMENTED','6 issues found')],cubic729);
+assert.equal(historic.ok,false);
+assert.equal(historic.reportedIssues,21);
+assert.equal(historic.threadCount,21);
+assert.ok(historic.blockers.includes('UNRESOLVED_REVIEW_THREAD:review729-t0'));
+assert.ok(historic.blockers.includes('INDEPENDENT_TRIAGE_ATTESTATION_REQUIRED'));
+console.log('MID review evidence fail-closed QA: SHA/duplicate/zero-finding/review729 negatives PASS; NO workflow attached.');
