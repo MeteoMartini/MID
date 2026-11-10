@@ -1,3 +1,13 @@
+# MID v0.9.85.454 · RUC Pages-Provenienzdiagose (SHA-gebundener Source-Kandidat)
+
+**Quellbasis:** `main=mid-stable=ba4901932c33e584167c31c310fb11601e77b6df` (veröffentlicht `v0.9.85.453` zum Integrationszeitpunkt). Diese Änderung übernimmt die vier exakt verifizierten QA-Originaldateien aus [PR #732](https://github.com/MeteoMartini/MID/pull/732) HEAD `e2fe7d832b1514d29f29b110df6d01f40eb24e38`. Weitere RUC-PRs #727/#738, Karten, AI-Router und sonstige Parallelbereiche bleiben unangetastet.
+
+**Fachumfang:** ausschließlich streng sanitisiertes, read-only Pages-/Worker-Probejournal um den *tatsächlich beobachteten* kanonischen UTC-Modelllauf und das bekannte Speicherprofil. Keine Änderung an meteorologischer Originalquelle, 27h/EPS20, 5/15min-Fast-Lane, Veröffentlichungszeitleiste, Rückfall, amtlichen Warnungen, App/Widget/Export oder Cloud-Konto. Sicherheitsinvarianten und bestehende Tests unverändert.
+
+**Nachweise:** [13/13 explizite negative Diagnose-Tests](https://github.com/MeteoMartini/MID/actions/runs/42808191010) PASS und [vollständige MID-Revision](https://github.com/MeteoMartini/MID/actions/runs/42808190991) nach einem unveränderten Runner-Setup-Retry `completed/success` auf exakt `e2fe7d832b1514d29f29b110df6d01f40eb24e38`. Diese historischen Tests sind keine Source-Gate-/Installer-Freigabe für die neue Versions-HEAD.
+
+**Veröffentlichung:** Einmaliges versioniertes Source-Ziel `0.9.85.453 → 0.9.85.454` über den vorhandenen Release-Vertrag, `docs/releases/MID_RELEASE_NOTES_0.9.85.454.json` und synchronisierte Versionenspiegel beim echten Build. *Kein* Direktmerge oder vorweggenommener Produktivstatus: nur Quell-PR-Gate → SHA-Bot-Merge → serverseitiges ZIP → `install-mid.yml` → betroffene Worker-/Pages-Gates → erfolgreiche `mid-stable`-Promotion.
+
 # MID v0.9.85.453 · unabhängige DWD-Saisonkarten nach WXCharts-Parametervergleich [Integrationskandidat]
 
 **Basis:** `main=mid-stable=d8852f672a40d26348d214dc85e9a3a1b9d79c1f` / v0.9.85.451 zum Integrationszeitpunkt. **Umfang:** Winter & Berge (1-h-Gesamtniederschlag + 2-m-Isothermen) und Sommer (1-h-Gesamtniederschlag + Böen-Isolinien), jeweils zwei Originalfelder aus demselben ICON-D2-Modelllauf und gültigen Termin mit identischem Raster und NoData-Schnittmenge. Vorhandene MID-Kartennavigation, Zeitachse und Quellen bleiben erhalten. Vollständiger kombinierter PNG-/SVG-Export und beide Ortswerte. Feldmatrix/Lizenzen/ausdrücklich nicht freigegebene Schneehöhen-, CAPE-, Bulk-Shear- und Blitzprodukte: `docs/implementation/MID_WXCHARTS_SEASONAL_MAP_MATRIX_2026_11_10.md`.
