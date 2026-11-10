@@ -191,7 +191,7 @@ describe('MID AI Router: Groq connection qualification with no inference', () =>
     });
     expect(r.error).toBeUndefined();
     expect(r.status,r.stderr||r.stdout).toBe(0);
-    expect(r.stdout).toMatch(/MID AI Router Groq API GET models QA OK; scenarios=17; no network, inference, credentials or paid calls\./);
+    expect(r.stdout).toMatch(/MID AI Router Groq API GET models QA OK; scenarios=21; no network, inference, credentials or paid calls\./);
     expect(r.stderr).toBe('');
   });
 });
