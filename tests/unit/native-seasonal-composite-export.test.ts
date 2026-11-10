@@ -23,10 +23,10 @@ describe('native paired DWD seasonal export',()=>{
   expect(()=>nativeSeasonalSvg('winter-berge',precip,{...temperature,time:'2026-11-09T08:00:00Z'},raster,place)).toThrow();
   expect(()=>nativeSeasonalSvg('winter-berge',precip,{...temperature,lons:[7,7.2]},raster,place)).toThrow();
   expect(()=>nativeSeasonalSvg('winter-berge',precip,temperature,'javascript:alert(1)',place)).toThrow();
-  expect(()=>nativeSeasonalSvg('sommer-gewitter',precip,mk('gust',[20,40,60,80]),raster,place,'kn',undefined,0)).toThrow();
+  expect(()=>nativeSeasonalSvg('sommer-gewitter',precip,mk('gust',[20,40,60,80]),raster,place,'kn',undefined,[],0)).toThrow();
  });
  it('labels gust maximum interval without claiming lightning or warnings',()=>{
-  const src=nativeSeasonalSvg('sommer-gewitter',precip,mk('gust',[20,40,60,80]),raster,place,'kn',undefined,3);
+  const src=nativeSeasonalSvg('sommer-gewitter',precip,mk('gust',[20,40,60,80]),raster,place,'kn',undefined,[],3);
   expect(src).toContain('3-h-Intervall');
   expect(src).toContain('keine Gewitterwarnung');
   expect(src).toContain('Böen:');
