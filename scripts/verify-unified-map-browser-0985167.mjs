@@ -193,17 +193,21 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  if(width===844||width===1024)await page.setViewportSize({width,height:920});
  await page.getByLabel('Modell für Parameter').selectOption('icon-d2');await page.getByRole('button',{name:'Parameter zuerst',exact:true}).click();await page.getByLabel('Parameter-Layer').selectOption('temperature');
  await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('Rastertermin'));
- // The two new seasonal products must be actually selectable and exportable in
- // real MapLibre Chromium. Existing 24-case browser coverage stays mandatory.
- if(width===390&&theme==='light'&&design==='next'){
+ // The established 24-case MapLibre matrix checks both seasonal products for
+ // exact pairing, nearest resampling, two point values and no mobile overflow.
+ // File downloads remain in the bounded single-view Chrome pilot.
+ {
+  const seasonalExportPilot=width===390&&theme==='light'&&design==='next';
   const initialMaps=await page.locator('.maplibregl-map').count();
   for(const [id,secondary,caption] of [['winter-berge','Temperatur · 2 m','keine Aussage zur Niederschlagsphase'],['sommer-gewitter','Böen · 10 m','1-h-Intervall']]){
    await page.getByLabel('Parameter-Layer').selectOption(id);
    await page.waitForFunction(()=>{const text=document.querySelector('.unified-layer-status')?.textContent||'';return text.includes('Rastertermin')&&text.includes('ICON-D2')&&!text.includes('lädt')});
    await page.waitForFunction(()=>Boolean(window.__qaMap?.getStyle()?.layers?.some(l=>l.id.startsWith('unified-model-field')&&l.type==='raster'&&window.__qaMap.getPaintProperty(l.id,'raster-resampling')==='nearest')));
-   const fav=page.locator('.unified-favorites');if(await fav.getAttribute('open')===null)await fav.locator(':scope > summary').click();
-   assert.ok((await fav.locator('thead').innerText()).includes(secondary),'Original companion appears as second numeric field');
+   const fav=page.locator('.unified-favorites');
+   if(seasonalExportPilot&&await fav.getAttribute('open')===null)await fav.locator(':scope > summary').click();
+   assert.ok((await fav.locator('thead').textContent()||'').includes(secondary),'Original companion appears as second numeric field');
    assert.equal(await fav.locator('thead th').count(),3,'Seasonal native pair has both variable columns');
+   if(seasonalExportPilot){
    // A real installed Chrome may expose native Web Share. Explicitly test the
    // ordinary fallback-download path; native iOS sharing needs a device check.
    await page.evaluate(()=>Object.defineProperty(navigator,'canShare',{configurable:true,value:()=>false}));
@@ -254,8 +258,9 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
      assert.ok(png.colorCount>=2,'Downloaded PNG contains visible pixels, not a blank image');
     }
    }
+   }
    assert.equal(await page.locator('.maplibregl-map').count(),initialMaps,'One retained MapLibre instance');
-   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'390px seasonal map fits mobile viewport');
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Seasonal map fits viewport without horizontal page overflow');
   }
   await page.getByLabel('Parameter-Layer').selectOption('temperature');
   await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('Rastertermin'));
