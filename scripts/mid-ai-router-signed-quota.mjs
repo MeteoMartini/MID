@@ -35,7 +35,7 @@ const bytesB64=(s,len)=>{
  if(typeof s!=='string'||!B64URL.test(s)||
     s.length!==(len===32?43:86))fail('INVALID_BASE64URL');
  let result;
- try{const decoded=atob(s.replace(/-/g,'+').replace(/_/g,'/')+'==');
+ try{const decoded=atob(s.replace(/-/g,'+').replace(/_/g,'/')+(len===32?'=':'=='));
   result=Uint8Array.from(decoded,c=>c.charCodeAt(0));
  }catch{fail('INVALID_BASE64URL');}
  if(result.length!==len)fail('INVALID_BASE64URL');
