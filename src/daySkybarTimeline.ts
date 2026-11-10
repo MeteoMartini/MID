@@ -4,7 +4,7 @@ export type DaySkybarTimedSample={epoch?:number};
 export type DaySkybarCalendarWindow={startEpoch:number;endEpoch:number};
 const ONE_HOUR_MS=3_600_000;
 // Source epochs: absent, blank and boolean values are unknown, never Unix 0.
-const daySkybarEpoch=(sample:DaySkybarTimedSample):number=>{const value=(sample as {epoch?:unknown}).epoch;return typeof value==='number'||(typeof value==='string'&&value.trim()!=='')?Number(value):NaN};
+export const daySkybarEpoch=(sample:DaySkybarTimedSample):number=>{const value=(sample as {epoch?:unknown}).epoch;return typeof value==='number'||(typeof value==='string'&&value.trim()!=='')?Number(value):NaN};
 
 /** Calendar-day UTC bounds for the forecast location. Handles real 23/25-hour DST dates. */
 export function daySkybarCalendarWindow(date:string,timeZone:string):DaySkybarCalendarWindow|null{
