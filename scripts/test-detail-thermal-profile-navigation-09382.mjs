@@ -19,10 +19,12 @@ const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failu
 
 
 
- // Apparent temperature is not numerically identical to a diagnosed UTCI.
- need('Gefühlte Temperatur kein UTCI',app,'<i className="apparent"/>Gefühlt</button>');
- need('Gefühlte Temperatur kein UTCI',app,'<small>Temperatur / gefühlt</small>');
- if(app.includes('<i className="apparent"/>UTCI</button>')||app.includes('<small>Temperatur / UTCI</small>'))failures.push('Apparent temperature is mislabeled as a calculated UTCI');
+ // UTCI is computed upstream when valid; the Hour model flags provider fallback.
+ need('UTCI/Fallback-Mischserie',app,'<i className="apparent"/>UTCI / gefühlt</button>');
+ need('UTCI/Fallback-Mischserie',app,'<i className="apparent"/>UTCI / gefühlt</span>');
+ need('UTCI/Fallback-Stundentooltip',app,"currentHour.apparentKind==='utci'?'UTCI-Näherung'");
+ need('UTCI/Fallback-Stundentooltip',app,"currentHour.apparentKind==='provider-fallback'?'gefühlt (Anbieter)'");
+ if(app.includes('<small>Temperatur / UTCI</small>')||app.includes('<small>Temperatur / gefühlt</small>'))failures.push('Hourly provenance must be source specific, not a blanket model claim');
  need('Stunden-Hitbereich NoData',app,'${detailDegree(x.temperature)} · Thermisches Empfinden');
  need('Stunden-Hitbereich NoData',app,'Taupunkt ${detailDegree(x.dewPoint)}');
 
@@ -47,22 +49,28 @@ const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failu
   const calc=new Function('clamp','utciCategory','utciStressScore',thermalCode+';return detailThermalFeel;')(
    (x,min,max)=>Math.min(max,Math.max(min,x)),x=>({shortLabel:String(x),label:String(x),color:'test'}),()=>8
   );
-  const baseHour={temperature:26,apparent:26,dewPoint:20,humidity:90,wind:2,isDay:true,sunshineDuration:1800,cloud:10};
+  const baseHour={temperature:26,apparent:26,apparentKind:'utci',dewPoint:20,humidity:90,wind:2,isDay:true,sunshineDuration:1800,cloud:10};
   const missingApparent=calc({...baseHour,apparent:null});
-  if(missingApparent.label!=='26'||missingApparent.delta!==0||missingApparent.sultry!==true)failures.push('Fehlende gefühlte Temperatur muss auf die reale Lufttemperatur zurückfallen, nicht auf 0 °C');
+  if(missingApparent.label!=='–'||missingApparent.score!==null||!Number.isNaN(missingApparent.delta)||missingApparent.sultry!==true)failures.push('Fehlender UTCI ist NoData und kann keine thermische Belastungsklasse erzeugen');
   const missingDew=calc({...baseHour,temperature:29,apparent:29,dewPoint:null,wind:1,sunshineDuration:3600,cloud:0});
-  if(missingDew.sultry!==true)failures.push('Fehlender Taupunkt muss auf bekannte relative Feuchte zurückfallen, statt Taupunkt 0 °C zu erfinden');
+  if(missingDew.score!==8||missingDew.sultry!==true)failures.push('Fehlender Taupunkt muss auf vorhandene relative Feuchte zurückfallen');
   const realZero=calc({...baseHour,temperature:29,apparent:0,dewPoint:0,wind:1,sunshineDuration:3600,cloud:0});
-  if(realZero.label!=='0'||realZero.delta!==-29||realZero.sultry!==false)failures.push('Echte 0 °C für apparent und Taupunkt bleiben unverändert');
+  if(realZero.label!=='0'||realZero.delta!==-29||realZero.score!==8||realZero.sultry!==false)failures.push('Echte UTCI-Null und echter Taupunkt 0°C bleiben unverändert');
+  const providerFallback=calc({...baseHour,apparent:32,apparentKind:'provider-fallback'});
+  if(providerFallback.score!==null||providerFallback.label!=='gefühlt'||!providerFallback.burden.includes('Anbieter-Fallback'))failures.push('Anbieter-gefühlte Temperatur darf keine UTCI-Belastungsklasse erzeugen');
+  const unproven=calc({...baseHour,apparentKind:undefined});
+  if(unproven.score!==null||!unproven.burden.includes('Provenienz'))failures.push('Fehlende UTCI-Provenienz wird nicht als klassifizierter UTCI angenommen');
+  const missingAll=calc({...baseHour,temperature:null,apparent:null});
+  if(missingAll.score!==null||missingAll.label!=='–')failures.push('Unbekannte Luft-/Index-Temperatur bleibt unbekannt, niemals 0°C');
  }
 
 for(const token of [
  'function detailThermalFeel(hour:Hour):DetailThermalFeel',
- 'category=utciCategory(felt)',
- 'score:utciStressScore(felt)',
- 'label:category.shortLabel',
- 'burden:category.label',
- 'color:category.color',
+ "category=hour.apparentKind==='utci'&&Number.isFinite(apparent)?utciCategory(apparent):null",
+ 'score:category?utciStressScore(apparent):null',
+ 'label:category?.shortLabel',
+ 'burden:category?',
+ 'color:category?.color',
  'thermalFeelHeight=narrowChart?10:12',
  'const thermalFeelTop=sectionCursor,thermalFeelBottom=thermalFeelTop+thermalFeelHeight',
  'className="detail-thermal-feel-bg"',
