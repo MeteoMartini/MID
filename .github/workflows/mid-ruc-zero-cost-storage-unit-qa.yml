@@ -10,6 +10,8 @@ on:
       - 'tools/ruc/ruc_r2_range_consumer_qa.mjs'
       - 'tools/ruc/ruc_do_free_capacity_qa.py'
       - 'tools/ruc/test_ruc_do_free_capacity_qa.py'
+      - 'tools/ruc/ruc_do_sqlite_physical_qa.py'
+      - 'tools/ruc/test_ruc_do_sqlite_physical_qa.py'
       - '.github/workflows/mid-ruc-zero-cost-storage-unit-qa.yml'
 permissions:
   contents: read
@@ -35,7 +37,7 @@ jobs:
           test -z "$(git status --porcelain)"
       - name: Check Python source syntax without R2 or DWD access
         run: |
-          python3 -m py_compile tools/ruc/ruc_r2_zero_cost_qa.py tools/ruc/ruc_r2_lossless_pack_qa.py tools/ruc/ruc_do_free_capacity_qa.py
+          python3 -m py_compile tools/ruc/ruc_r2_zero_cost_qa.py tools/ruc/ruc_r2_lossless_pack_qa.py tools/ruc/ruc_do_free_capacity_qa.py tools/ruc/ruc_do_sqlite_physical_qa.py
       - name: 27h/EPS20 capacity, negative traces, simulated SQLite atomicity
         shell: bash
         run: |
@@ -43,4 +45,5 @@ jobs:
           python3 tools/ruc/test_ruc_r2_zero_cost_qa.py
           python3 tools/ruc/test_ruc_r2_lossless_pack_qa.py
           python3 tools/ruc/test_ruc_do_free_capacity_qa.py
+          python3 tools/ruc/test_ruc_do_sqlite_physical_qa.py
           echo 'ONLY simulated/offline QA; actual Cloudflare DO/R2, billing, user usage, worker CPU and live client NOT qualified'

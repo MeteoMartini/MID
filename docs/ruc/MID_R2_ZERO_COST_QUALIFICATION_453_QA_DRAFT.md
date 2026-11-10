@@ -280,3 +280,58 @@ readmission, real Worker/DO request/CPU tests, SQL transient peak and
 client/Widget/Export parity remain prerequisites. `productionApproved=false`
 and `activationAuthorized=false` at every offline exit. Existing Pages
 and Last Good remain production-safe; no deployment or release authorized.
+
+
+## Actual host-SQLite physical-byte surrogate (10 Nov 2026)
+
+This new repeatable QA is **not Cloudflare storage**: it writes synthetic
+content with the **exact 14 object byte sizes** from original-DWD SHA-bound
+GitHub proof artifact `13746075942` (archive SHA-256
+`28ed26fe81a29dc74d0360db1a822446dd29479eed1d07ef21ba9f74e68433c1`).
+The source's true meteorological bytes and sentinel handling were already
+independently verified in Actions [#42780229524](https://github.com/MeteoMartini/MID/actions/runs/42780229524).
+**They are not in this SQLite test DB.**
+
+Locally measured with SQLite 3.46.1, WAL, FULL synchronous writes, 4MB
+segments, WITHOUT ROWID primary key, a commit for each bounded segment
+and WAL auto-checkpoint:
+
+| Surrogate metric | Measured value |
+| --- | ---: |
+| Original compressed object inventory | 672,790,506 B |
+| SQL rows per model run | 177 |
+| Actual host SQLite DB file after checkpoint | **673,902,592 B** |
+| Max host DB+WAL+SHM physical peak | **682,039,432 B** |
+| WAL max observed | 8,104,072 B |
+| Four retained plus one staging (x5 post-checkpoint extrapolation) | **3,369,512,960 B** |
+| Four retained plus one staging (x5 peak extrapolation) | **3,410,197,160 B** |
+| 7 simulated grouped point requests, original range-index geometry | 70 synthetic SQL BLOB segments returned byte-exact |
+
+Measured physical file overhead in this **host** SQLite test is much
+lower than the earlier hypothetical 15% reserve. **The 15% conservative
+capacity planning reserve remains in force**, because this is not real
+Cloudflare storage and WAL may behave differently. A single original 27h
+run, including all EPS20, is below the official Free-DO per-object 1GB
+limit in this surrogate, but not yet qualified for that limit in Cloudflare.
+
+The proposed consumer batch performs one **hypothetical** DO RPC per point
+and ten SQL substr() reads inside the run object, not ten separate DO RPCs.
+The SQL storage engine was genuinely exercised; the network/RPC layer was
+**not**. Database row indexes, account-shared daily quotas and live Worker
+CPU/storage billing remain open, and SQLite index changes may count as
+extra paid-plan rows, so do not equate 177 inserted rows with real platform
+row-write metering. This QA creates no Cloudflare resources.
+
+Reproduction script: `tools/ruc/ruc_do_sqlite_physical_qa.py` with
+`--proof-zip` and `--report`. It rejects a proof ZIP whose exact
+SHA-256, UTC run, source SHA, 27h/EPS20 metadata or indexed data lengths
+differ. The small no-network fixture suite runs under normal GitHub PR
+CI, while the full 673MB offline probe is **not automatically rerun** to
+avoid redundant work. Verified snapshot:
+`docs/ruc/MID_RUC_DO_SQLITE_PHYSICAL_PROOF_453.json`.
+
+**Zero-new-cost policy unchanged:** Durable Objects Free is only an
+OFFLINE candidate; account tier, Cloudflare Free quota fail-closed,
+Worker CPU/RPC and all RUC P1–P5 release gates require real independent
+qualification before any activation. Neither R2 nor Durable Objects
+was subscribed, created, deployed or granted secrets.
