@@ -50,8 +50,8 @@ describe('seasonal WXCharts-inspired cards stay inside the original MID map sele
   try{
    run(['--max-old-space-size=4096','node_modules/vite/bin/vite.js','build','--outDir',output,'--emptyOutDir'],420_000);
    const names=readdirSync(join(output,'assets'));
-   const js=names.filter(name=>/^index-.*\\.js$/.test(name));
-   const css=names.filter(name=>/^index-.*\\.css$/.test(name));
+   const js=names.filter(name=>/^index-.*\.js$/.test(name));
+   const css=names.filter(name=>/^index-.*\.css$/.test(name));
    expect(js).toHaveLength(1);
    expect(css).toHaveLength(1);
    const jsBytes=statSync(join(output,'assets',js[0])).size;
