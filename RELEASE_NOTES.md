@@ -1,5 +1,7 @@
-# MID v0.9.85.451
+# MID v0.9.85.453
 
-- Die Wetter-App startet mit einer kompakteren JavaScript-Ausgabe: Wiederkehrende SVG- und CSS-Klassenattribute verwenden gemeinsame Konstanten. Farben, Muster, Beschriftungen, meteorologische Werte und Bedienung bleiben unverändert.
-- Die Korrektur behebt die beim Installationslauf für v0.9.85.450 erkannte Überschreitung des Haupt-JavaScript-Größenbudgets, ohne dessen Grenzwert zu erhöhen. Die vollständige Bestätigung erfolgt erst mit erfolgreich absolviertem GitHub-Source- und Installer-Gate.
-- Die in .450 integrierten Langfrist-Modellpräferenzen und die Bergwetter-NoData-/UTC-Korrekturen bleiben erhalten.
+- Neue Winter-/Berge-Karte: DWD ICON-D2-Niederschlag der vorangegangenen Stunde zusammen mit 2-m-Temperatur-Isothermen aus demselben Modelllauf und Termin.
+- Neue Sommerkarte: derselbe stündliche DWD-Niederschlag mit Böen-Isolinien; das jeweilige Böenintervall bleibt ausgewiesen.
+- Beide Karten erscheinen im vorhandenen Kartenbereich. Fehlende Originalwerte bleiben transparent und echte Nullwerte erhalten; SVG-/PNG-Export und Favoritenvergleich enthalten beide gemeinsam validierten Originalfelder.
+- Keine erfundene Schneefall-, Glätte- oder Gewitterwahrscheinlichkeit; keine amtliche Warnung. Bestehende Karten und Navigation bleiben unverändert.
+- Produktivfreigabe erst nach vollständigem MID-Source-/Release-/Installer-/Worker-/Pages-/Stable-Gate.
