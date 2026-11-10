@@ -96,9 +96,12 @@ export default function UnifiedWeatherMap(props:Props){
   if(!settings.enabled||!isSeasonal||modelId!=='icon-d2'||!catalog||!ref||!seasonalSelection)return()=>c.abort();
   const pair=catalog.index.products[seasonalSelection.secondary]?.frames.find(f=>f.time===ref.time);
   if(!pair){setSeasonalError('Gemeinsames Originalfeld für diesen Termin fehlt.');return()=>c.abort()}
+  const key=`${catalog.index.run}:${seasonalSelection.secondary}:${pair.sha256}`;
+  const cached=fieldCache.current.get(key);
+  if(cached){setSeasonalCompanion(cached);return()=>c.abort()}
   setSeasonalLoading(true);
   void loadNativeField(catalog.index,catalog.base,pair,seasonalSelection.secondary,c.signal)
-   .then(v=>{if(!c.signal.aborted)setSeasonalCompanion(v)})
+   .then(v=>{if(c.signal.aborted)return;fieldCache.current.set(key,v);while(fieldCache.current.size>8)fieldCache.current.delete(fieldCache.current.keys().next().value!);setSeasonalCompanion(v)})
    .catch(e=>{if(!c.signal.aborted)setSeasonalError('Zweites Originalfeld fehlt: '+String(e instanceof Error?e.message:e))})
    .finally(()=>{if(!c.signal.aborted)setSeasonalLoading(false)});
   return()=>c.abort();
