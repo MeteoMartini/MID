@@ -11,6 +11,7 @@ const MAX_EVENTS_PER_PAGE=30;
 type MidEvent='mid_runtime_ready'|'mid_navigation_attempt'|'mid_client_error';
 type SafeProperties=Record<string,string|number|boolean>;
 let installed=false,distinctId='',emitted=0;
+function freshConsentSessionId(){try{return crypto.randomUUID()}catch{return''}}
 const pending=new Set<AbortController>();
 
 export function isMidPosthogConfigured(){
@@ -74,25 +75,27 @@ function onRuntimeHealthy(){
 }
 export function startMidPosthogTelemetry(){
  if(installed||typeof window==='undefined'||!isMidPosthogConfigured()||!isMidPosthogConsentGranted())return;
+ const id=freshConsentSessionId();if(!id)return; // Missing secure randomness: do not emit diagnostics.
+ distinctId=id;
  installed=true;
- distinctId=crypto.randomUUID();
  document.addEventListener('click',onNavigationClick,{passive:true});
  window.addEventListener('error',onClientError);
  window.addEventListener('unhandledrejection',onUnhandledRejection);
  window.addEventListener('mid:runtime-healthy',onRuntimeHealthy,{once:true});
 }
 export function setMidPosthogConsent(granted:boolean){
+ // Revocation stops this page's event stream even when persistent storage fails.
+ if(!granted){for(const controller of pending)controller.abort();pending.clear();distinctId=''}
  try{
   if(granted)localStorage.setItem(MID_POSTHOG_CONSENT_KEY,'1');
   else localStorage.removeItem(MID_POSTHOG_CONSENT_KEY);
+  if(localStorage.getItem(MID_POSTHOG_CONSENT_KEY)!==(granted?'1':null))return false;
  }catch{return false}
- if(!granted){
-  for(const controller of pending)controller.abort();
-  pending.clear();distinctId='';
- }else{
-  if(installed&&!distinctId)distinctId=crypto.randomUUID();
-  startMidPosthogTelemetry();
+ if(granted){
+  if(installed&&!distinctId)distinctId=freshConsentSessionId();
+  // Consent persistence must not depend on optional telemetry initialization.
+  try{startMidPosthogTelemetry()}catch{}
  }
- window.dispatchEvent(new CustomEvent('mid:posthog-consent-changed',{detail:granted}));
+ try{window.dispatchEvent(new CustomEvent('mid:posthog-consent-changed',{detail:granted}))}catch{}
  return true;
 }
