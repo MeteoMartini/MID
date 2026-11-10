@@ -111,8 +111,18 @@ for(const file of files.keys())assert.ok(!/from ['"]\.\/App['"]|import\(['"]\.\/
 assert.match(read('src/WidgetGenerator.tsx'),/SevenDayCurveOverview/,'Widget must retain the common curve renderer');
 assert.match(read('src/WidgetGenerator.tsx'),/freezeWidgetSvgPaintsForExport/,'PNG export must retain resolved SVG paints');
 assert.match(read('src/MountainWeather.tsx'),/mountainSportsForecast\(loc,config,controller.signal/,'Mountain data acquisition must retain cancellation');
-assert.deepEqual(activeCssSources(root),[...baseline.cssSources,'src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css','src/midC48TabletTimeline.css'],'Established stylesheet precedence changed; only reviewed C21/C23/C26/C27 layers may follow the unchanged .169 eager cascade; C28 is owned by the async development component');
+assert.deepEqual(activeCssSources(root),[...baseline.cssSources.filter(file=>file!=='src/midPollen.css'),'src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css','src/midC48TabletTimeline.css'],'Only reviewed lazy Pollen CSS may leave the original eager cascade; all other source order remains immutable');
 const originalEntries=loadCssCascade(root).filter(entry=>!['src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css','src/midC28MapPhase.css','src/midC48TabletTimeline.css'].includes(entry.file));
+// QA-only reconstruction of the *immutable* .169 stylesheet fingerprint.
+// Production stays split: Pollen CSS remains owned exclusively by its lazy
+// component. The original historic ordering is reconstructed only in memory,
+// never by relaxing or rewriting the approved golden fixture.
+const historicPollenIndex=baseline.cssSources.indexOf('src/midPollen.css');
+assert.equal(historicPollenIndex,9,'Pollen must leave exactly its approved original eager slot');
+const pollenOnlyCss=read('src/midPollen.css');
+assert.ok(read('src/PollenForecast.tsx').startsWith("import './midPollen.css';\n"),'Deferred Pollen component must own the extracted CSS');
+assert.ok(pollenOnlyCss.includes('.pollen-forecast')&&pollenOnlyCss.includes(':root[data-theme="high-contrast"]'),'Pollen content and high-contrast contract must stay unchanged');
+originalEntries.splice(historicPollenIndex,0,{file:'src/midPollen.css',original:pollenOnlyCss,tree:postcss.parse(pollenOnlyCss)});
 const entries=loadCssCascade(root),removed=consolidateCssCascade(entries);
 // C55: ten exact, intentionally reviewed dashboard/common-touch changes.
 // Require each complete current fragment exactly once, then restore ONLY it on
