@@ -30,6 +30,10 @@ test(()=>missing({...proof(),account:{...proof().account,remainingRequests:0}},'
 test(()=>missing({...proof(),pricing:{...proof().pricing,outputUsdPerM:0.01}},'ZERO_PRICE_NOT_VERIFIED'));
 test(()=>missing({...proof(),pricing:{}},'ZERO_PRICE_NOT_VERIFIED'));
 test(()=>missing({...proof(),privacy:{...proof().privacy,noTrainingOrApprovedProcessing:false}},'PRIVACY_NOT_VERIFIED'));
+test(()=>{const x=proof();delete x.privacy.allowed;
+ missing(x,'PRIVACY_NOT_VERIFIED')});
+test(()=>missing({...proof(),privacy:{...proof().privacy,allowed:false}},'PRIVACY_NOT_VERIFIED'));
+test(()=>missing({...proof(),privacy:{...proof().privacy,allowed:'true'}},'PRIVACY_NOT_VERIFIED'));
 test(()=>missing({...proof(),lineage:{...proof().lineage,foundationPublisher:'meta'}},'FOUNDATION_LINEAGE_NOT_VERIFIED'));
 test(()=>missing({...proof(),lineage:{...proof().lineage,checkedAt:'2026-11-09T00:00:00Z'}},'FOUNDATION_LINEAGE_NOT_VERIFIED'));
 test(()=>missing({provider:'openrouter',model:'openrouter/free'},'MODEL_NOT_IN_RESEARCH_CATALOG'));
