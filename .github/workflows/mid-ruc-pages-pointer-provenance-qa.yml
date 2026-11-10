@@ -19,8 +19,8 @@ jobs:
   pointer-provenance-negative:
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.draft == true &&
-      github.head_ref == 'chatgpt/v0.9.85.451-ruc-pages-pointer-readback-diagnostic-qa'
+      (github.head_ref == 'chatgpt/v0.9.85.451-ruc-pages-pointer-readback-diagnostic-qa' ||
+       github.head_ref == 'chatgpt/v0.9.85.454-ruc-pages-pointer-release')
     name: Exact-HEAD Pages/Worker/14h rollback regression (NO PUBLISH)
     runs-on: ubuntu-24.04
     timeout-minutes: 8

@@ -1,4 +1,4 @@
-# MID v0.9.85.454 · RUC Pages-Provenienzdiagose (SHA-gebundener Source-Kandidat)
+# MID v0.9.85.454 · RUC Pages-Provenienzdiagnose (SHA-gebundener Source-Kandidat)
 
 **Quellbasis:** `main=mid-stable=ba4901932c33e584167c31c310fb11601e77b6df` (veröffentlicht `v0.9.85.453` zum Integrationszeitpunkt). Diese Änderung übernimmt die vier exakt verifizierten QA-Originaldateien aus [PR #732](https://github.com/MeteoMartini/MID/pull/732) HEAD `e2fe7d832b1514d29f29b110df6d01f40eb24e38`. Weitere RUC-PRs #727/#738, Karten, AI-Router und sonstige Parallelbereiche bleiben unangetastet.
 
