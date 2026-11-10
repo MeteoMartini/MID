@@ -106,9 +106,9 @@ await test(async()=>{
 });
 await test(async()=>{const t=await signed(task('first-test-001'));
  await bad(()=>executor.execute(t),'DUPLICATE_REQUEST_NO_RETRY');assert.equal(fetchCalls,1)});
-await test(async()=>{const t=await signed(task('private-data1',{dataClass:'private'}));
+await test(async()=>{const t=await signed(task('private-data1'));t.dataClass='private';
  await bad(()=>executor.execute(t),'TASK_SCOPE_INVALID');assert.equal(fetchCalls,1)});
-await test(async()=>{const t=await signed(task('paid-request',{maxAdditionalCashUsd:1}));
+await test(async()=>{const t=await signed(task('paid-request'));t.maxAdditionalCashUsd=1;
  await bad(()=>executor.execute(t),'TASK_SCOPE_INVALID');assert.equal(fetchCalls,1)});
 await test(async()=>{authOverride={scopes:[]};const t=await signed(task('unauth-test1'));
  await bad(()=>executor.execute(t),'AUTHENTICATED_PUBLIC_SCOPE_REQUIRED');authOverride={}});
