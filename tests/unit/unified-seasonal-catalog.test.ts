@@ -39,10 +39,14 @@ describe('seasonal WXCharts-inspired cards stay inside the original MID map sele
   const scratch=mkdtempSync(join(tmpdir(),'mid-seasonal-qa-build-'));
   const checkout=join(scratch,'source');
   let checkedOut=false;
+  // Vitest sets NODE_ENV=test; forwarding it would build React's development
+  // graph and overstate MID's real production main-JS size by hundreds of kB.
+  const buildEnv:NodeJS.ProcessEnv={...process.env,NODE_ENV:'production'};
+  for(const key of ['VITEST','VITEST_WORKER_ID','VITEST_POOL_ID'])delete buildEnv[key];
   const run=(args:string[],timeout:number,cwd=root)=>{
    const result=spawnSync(process.execPath,args,{
     cwd,encoding:'utf8',timeout,maxBuffer:12*1024*1024,
-    env:{...process.env},
+    env:buildEnv,
    });
    if(result.error||result.status!==0&&args[0]!=='scripts/check-build-budget.mjs')
     throw new Error('Nur lokaler QA-Build fehlgeschlagen: '+args.join(' ')+'\\n'+String(result.error||'')+
