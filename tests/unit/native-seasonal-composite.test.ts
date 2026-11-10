@@ -2,6 +2,7 @@ import {describe,expect,it} from 'vitest';
 import {seasonalMapKinds,seasonalMapFrames,seasonalPairValid,seasonalMaskedPrimary,seasonalMaskedSecondary} from '../../src/nativeSeasonalComposite';
 import type {NativeField,NativeIndex,NativeFrameRef} from '../../src/nativeModelFields';
 import {D2_FULL_DOMAIN_LEADS,D2_FULL_DOMAIN_KINDS,validateD2FullDomainIndex} from '../../src/nativeD2FullDomain';
+import {nativeScalarLines,nativeRasterExtremes} from '../../src/nativeScalarAnnotations';
 const time='2026-11-09T07:00:00Z',run='2026-11-09T06:00:00Z';
 const frame=(t=time,intervalHours=1):NativeFrameRef=>({hour:1,time:t,file:'precipitation-001.json',sha256:'a'.repeat(64),bytes:500,intervalHours});
 const makeIndex=():NativeIndex=>({schema:'mid.icon-d2.fields.v1',run,products:{
@@ -79,6 +80,19 @@ describe('DWD ICON-D2 seasonal composites: fail-closed common native fields',()=
   expect(secondary?.values[0]).toBe(-2);
   expect(Number.isNaN(secondary?.values[1])).toBe(true);
   expect(Number.isNaN(secondary?.values[2])).toBe(true);
+ });
+ it('keeps original extremes but never draws companion contours over one-field NoData',()=>{
+  const precip=field('precipitation',[0,5,20,60]),validGust=field('gust',[0,40,80,120]);
+  const complete=seasonalMaskedSecondary('sommer-gewitter',precip,validGust);
+  expect(complete).not.toBeNull();
+  expect(nativeScalarLines(complete!,'kmh').length).toBeGreaterThan(0);
+  const missing=seasonalMaskedSecondary('sommer-gewitter',{...precip,values:[0,NaN,20,60]},validGust);
+  expect(missing).not.toBeNull();
+  expect(Number.isNaN(missing!.values[1])).toBe(true);
+  expect(nativeScalarLines(missing!,'kmh')).toEqual([]); // The only 2x2 quad contains NoData
+  const extremes=nativeRasterExtremes(missing!);
+  expect(extremes.find(p=>p.type==='Max')?.value).toBe(120);
+  expect(extremes.find(p=>p.type==='Min')?.value).toBe(0);
  });
  it('does not manufacture snow, lightning or a synthetic hazard value',()=>{
   const p=field('precipitation',[0,1,4,NaN]),g=field('gust',[10,40,80,90]);
