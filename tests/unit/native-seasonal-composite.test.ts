@@ -100,6 +100,15 @@ describe('DWD ICON-D2 seasonal composites: fail-closed common native fields',()=
   expect(extremes.find(p=>p.type==='Max')?.value).toBe(120);
   expect(extremes.find(p=>p.type==='Min')?.value).toBe(0);
  });
+ it('rejects two individually valid rasters with disjoint NoData masks',()=>{
+  const precip=field('precipitation',[0,NaN,0,NaN]);
+  const temp=field('temperature',[NaN,-2,NaN,3]);
+  expect(seasonalPairValid('winter-berge',precip,temp)).toBe(false);
+  expect(seasonalMaskedPrimary('winter-berge',precip,temp)).toBeNull();
+  expect(seasonalMaskedSecondary('winter-berge',precip,temp)).toBeNull();
+  expect(seasonalPairValid('winter-berge',precip,{...temp,values:[-2,-2,NaN,3]})).toBe(true);
+  expect(seasonalMaskedPrimary('winter-berge',precip,{...temp,values:[-2,-2,NaN,3]})?.values[0]).toBe(0);
+ });
  it('does not manufacture snow, lightning or a synthetic hazard value',()=>{
   const p=field('precipitation',[0,1,4,NaN]),g=field('gust',[10,40,80,90]);
   expect(seasonalMaskedPrimary('sommer-gewitter',p,g)?.kind).toBe('precipitation');
