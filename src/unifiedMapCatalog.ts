@@ -14,7 +14,7 @@ export const UNIFIED_MAP_PARAMETERS:{id:string;label:string;detail:string}[]=[
  {id:'totals',label:'Niederschlagssumme',detail:'6 / 12 / 24 / 48 h ab Modelllaufstart'},
  {id:'observed',label:'Gefallener Niederschlag',detail:'RADOLAN · vollständige Messstunden'},
  {id:'wind',label:'Wind · 10 m',detail:'Mittelwind'},
- {id:'gust',label:'Böen · 10 m',detail:'Maximum im bestätigten Modellintervall'},
+ {id:'gust',label:'Böen · 10 m',detail:'Modelliertes Böenmaximum; das Quellenintervall ist nur bei nachgewiesenen Originalmetadaten anzugeben'},
  {id:'cloud',label:'Gesamtbewölkung',detail:'Bedeckungsgrad'},
  {id:'pressure',label:'Bodendruck · MSL',detail:'Auf Meereshöhe reduzierter Druck'},
  {id:'thetae',label:'ThetaE · 850 hPa',detail:'Luftmassen und barokline Zonen; keine analysierten Fronten'},
