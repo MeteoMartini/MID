@@ -22,6 +22,8 @@ describe('DWD ICON-D2 seasonal composites: fail-closed common native fields',()=
   expect(seasonalMapFrames(makeIndex(),'winter-berge')).toHaveLength(1);
   expect(seasonalMapFrames(makeIndex(),'sommer-gewitter')).toHaveLength(1);
   const native=makeIndex();native.schema='mid.icon-d2.native-fields.v2';
+  expect(seasonalMapFrames(native,'winter-berge')).toEqual([]);
+  native.productionApproved=true;
   expect(seasonalMapFrames(native,'winter-berge')).toHaveLength(1);
   expect(seasonalMapFrames(native,'sommer-gewitter')).toHaveLength(1);
   native.products.temperature!.frames=[frame(time,-1)];
