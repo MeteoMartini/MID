@@ -79,6 +79,11 @@ export async function readMidGithubSourceSnapshot({fetchImpl}={}){
   if(end-start>30000)deny('SOURCE_READBACK_STALE');
   return Object.freeze({
     mainSha,stableSha,version:pkg.version,
+    versionMirrors:Object.freeze({
+      package:pkg.version,
+      baseline:baseline.releaseVersion,
+      registry:contracts.releaseVersion
+    }),
     checkedAt:new Date(end).toISOString()
   });
 }
