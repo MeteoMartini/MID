@@ -52,10 +52,14 @@ describe('seasonal WXCharts-inspired cards stay inside the original MID map sele
    const names=readdirSync(join(output,'assets'));
    const js=names.filter(name=>/^index-.*\.js$/.test(name));
    const css=names.filter(name=>/^index-.*\.css$/.test(name));
-   expect(js).toHaveLength(1);
-   expect(css).toHaveLength(1);
-   const jsBytes=statSync(join(output,'assets',js[0])).size;
-   const cssBytes=statSync(join(output,'assets',css[0])).size;
+   expect(js.length,'Der Haupt-JS-Einstieg muss existieren').toBeGreaterThan(0);
+   expect(css.length,'Das Haupt-CSS muss existieren').toBeGreaterThan(0);
+   // MID's unchanged test-bundle-budget contract SUMS every index-*.js chunk
+   // and uses the largest index-*.css asset; never undercount split output.
+   const jsBytes=js.reduce((sum,name)=>sum+statSync(join(output,'assets',name)).size,0);
+   const cssBytes=Math.max(...css.map(name=>statSync(join(output,'assets',name)).size));
+   console.log('[MID #741 source bundle] JS '+js.map(name=>name+':'+statSync(join(output,'assets',name)).size).join(', ')+
+    '; CSS '+css.map(name=>name+':'+statSync(join(output,'assets',name)).size).join(', '));
    const budgetResult=run(['scripts/check-build-budget.mjs',output],150_000);
    const report=JSON.parse(readFileSync(join(root,'artifacts','build-budget.json'),'utf8')) as {
     schema:number;ok:boolean;totals:Record<string,number>;failures:string[];
