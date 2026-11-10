@@ -63,7 +63,10 @@ import {readForecastDisplaySettingsRaw,persistForecastDisplaySettings} from './f
 import {detailThunderSignalScore,significantHourlyThunderRisk} from './detailThunderRisk';
 import {significantPeriodThunderRisk,type PeriodThunderRisk} from './detailThunderRisk';
 import {ShortTermForecast,shortTermAnchorFromCurrent,buildCurrentHourPrecipitation,type ShortTermAnchor} from './ShortTermForecast';
-import {PollenForecast} from './PollenForecast';
+const LazyPollenForecast=lazy(()=>import('./PollenForecast').then(module=>({default:module.PollenForecast})));
+function PollenForecast(props:Parameters<typeof import('./PollenForecast').PollenForecast>[0]){
+ return props.enabled?<Suspense fallback={<span role="status">Pollenflug wird geladen …</span>}><LazyPollenForecast {...props}/></Suspense>:null;
+}
 import {DataQualityIndicator} from './DataQualityIndicator';
 import {utciFromHour,utciCategory,utciStressScore} from './utci';
 import {analysedCloudOktas,hyperlocalSkyCondition,skyConditionFromOktas} from './currentConditions';
