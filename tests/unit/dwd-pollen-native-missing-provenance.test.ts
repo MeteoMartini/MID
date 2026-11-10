@@ -27,7 +27,8 @@ describe('DWD Pollenflug WFS native numeric NoData stays unknown in all worker m
   for(const [value,expected] of cases)expect(pollenIndex(value),String(value)).toBe(expected);
  });
  it('preserves a numeric native 0 in its textual source instead of manufacturing missingness',()=>{
-  expect(String(0??'')).toBe('0');
-  expect(String(null??'')).toBe('');
+  const nativeText=(value:unknown)=>String(value??'');
+  expect(nativeText(0)).toBe('0');
+  expect(nativeText(null)).toBe('');
  });
 });
