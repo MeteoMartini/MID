@@ -1,3 +1,11 @@
+## MID v0.9.85.453 · 2026-11-10 · WXCharts-inspirierte DWD-Saisonkarten [Source-Kandidat]
+
+- **SHA-genaue Herkunft:** verifizierte Basis `main=mid-stable=d8852f672a40d26348d214dc85e9a3a1b9d79c1f` (v0.9.85.451); Integrationsbranch `chatgpt/v0.9.85.453-spatial-manifest-qualification`, PR #729, Issue #724. Paralleler .452-AI-Router-Draft und RUC-Spezialbranches unangetastet.
+- **Fachumfang:** Im bestehenden Unified-Map-Parameterselektor sind DWD ICON-D2 1-h-Gesamtniederschlag + 2-m-Temperatur sowie 1-h-Gesamtniederschlag + maximales Böenfeld integriert. Paarung nur gleicher Run/ValidTime/Grid/Unit und per bestehenden SHA-Checks nach originalem Modellkatalog; fehlende Werte transparent und gemeinsamer SVG-/PNG-Export mit genau denselben Feldpaaren, Ortswerten und Legenden. Keine künstlichen Schnee-, CAPE-, Blitz- oder amtlichen Warnprodukte.
+- **Lizenzen/Quellen:** DWD Open Data CC BY 4.0; WXCharts/MetDesk-Lizenzen schließen die Übernahme von WXCharts-Karten/automatischem Bild-Embedding aus. Keine fremden WXCharts- oder GPL-Code-/Rasterinhalte. Feldmatrix: `docs/implementation/MID_WXCHARTS_SEASONAL_MAP_MATRIX_2026_11_10.md`.
+- **Draft-Tests vor Version:** exakt auf Karten-Head `852aae7807a37e7666e0279140eb3741ef59197a` Vitest-/Typprüfungs-Run #42766980983 SUCCESS. Diese Prüfung deckt keinen vollständigen Produktionsbuild, Bundle-/CSS-Budgets, alle Core-/Heavy-Regressionen, Browser-/iOS-Shell, Source-Gate, Installer, Worker-/Pages-/Stable-Gates ab. Für den exakten Versions-HEAD neu prüfen.
+- **Ausschließlicher Freigabeweg:** Ready for review nach fachlicher Qualifikation → Source-Gate vollständige Jobmatrix → geschützter SHA-Bot-Merge → Server-ZIP → Installer mit erneuten Vollgates → Stable. Kein manuelles Direkt-Merge/Deploy/Version-Fake.
+
 ## MID v0.9.85.451 · 2026-11-09 · Fail-closed Installer-JS-Budget-Reparatur [Sourcekandidat]
 
 - **Unveränderte Basis/Provenienz:** stable v0.9.85.449 `a7c4f432b3b21c24a876527a585fe423a55dcdbe`; das gesicherte unpromovierte Main .450 von PR #722 ist Bot-Source-Commit `ebca121d88088fbaf5240a8ebb6d795fb9f9be89`, `main` ZIP-Commit `ba4669b5d7b1cd7fdd87648df66e0f68749b1098`. Die fehlgeschlagene Installerprüfung #42570011322 (Core 3/4) meldete Main-JS 1.500.098/1.500.000 B (+98 B), CSS 1.759.965/1.760.000 B. Stable .449 unverändert, kein Rollback oder Force-Push.
