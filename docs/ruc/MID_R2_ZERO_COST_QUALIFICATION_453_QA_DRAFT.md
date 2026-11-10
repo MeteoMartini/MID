@@ -423,3 +423,49 @@ isolated QA only; never weaken the zero-cost or original meteorological gates.
 *No Cloudflare account authorization, real Workers-Free quota billing,
 authenticated original-source admission, production Worker CPU P95, iOS
 device or public forecast-client acceptance is provided by this test.*
+
+
+## SHA-shaped provenance is NOT a signature: Ed25519 admission QA (10 Nov 2026)
+
+The previous local SQL/Workerd prototype checked individual
+`sha256` strings supplied within a manifest. This preserves bytes
+**after receipt** but alone does not authenticate who authored the
+manifest. A malicious submitter could invent a different dataset and
+matching hashes. Treating it as a signed original-DWD claim would be
+a P0 provenance flaw. This QA draft explicitly holds production on
+that condition.
+
+A **second, isolated local-workerd-only** `Ed25519` admission gate
+has now been added without weakening/altering the original tests:
+`tools/ruc/ruc_do_attestation_qa.mjs`,
+`tools/ruc/ruc_do_workerd_signed_entry_qa.mjs`, and
+`tools/ruc/test_ruc_do_workerd_signed_qa.mjs`.
+
+- The offline GitHub runner generates a **temporary Ed25519 private/public
+  keypair**. Only the public key enters the Miniflare/Workerd environment.
+  Private keys are never stored in repository, Cloudflare, secrets,
+  logs or production Worker.
+- Signature is checked over a domain-separated canonical QA message
+  committing to the JSON manifest SHA-256, exact UTC model run, producer
+  commit SHA, independent original artifact proof reference and the
+  complete 27h/20-EPS contract. `crypto.subtle.importKey('raw',
+  publicKey, 'Ed25519', false, ['verify'])` and
+  `crypto.subtle.verify` are officially documented by Cloudflare.
+  No writable run state is permitted before verification.
+- Negative tests must reject **missing signature**, wrong signer,
+  altered manifest (same-size valid SHA syntax), corrupt segment
+  payload despite valid signature, run replay and stale pointer,
+  keeping Last Good readable.
+- This keypair represents a **synthetic trusted QA signer** only.
+  It is *not* a MID verified CI release signer, DWD official
+  signature or authenticated GRIB ingest. Production sign/verify
+  trust roots, SHA-bound CI artifact, origin station/model/bitmap
+  evidence and grant scopes are separate unresolved gates.
+- Again no Cloudflare account touch, subscription, billed R2,
+  Durable Object, production route, native iOS deployment or release.
+  All QA responses remain `productionApproved=false` and
+  `activationAuthorized=false`.
+
+The new workerd test runs on the already provisioned **ephemeral local
+Miniflare** job and must be declared successful only after reading the
+exact new-head GitHub job result. No 763-MB DWD re-download.

@@ -16,6 +16,9 @@ on:
       - 'tools/ruc/test_ruc_do_worker_core_qa.mjs'
       - 'tools/ruc/ruc_do_workerd_entry_qa.mjs'
       - 'tools/ruc/test_ruc_do_workerd_qa.mjs'
+      - 'tools/ruc/ruc_do_attestation_qa.mjs'
+      - 'tools/ruc/ruc_do_workerd_signed_entry_qa.mjs'
+      - 'tools/ruc/test_ruc_do_workerd_signed_qa.mjs'
       - '.github/workflows/mid-ruc-zero-cost-storage-unit-qa.yml'
 permissions:
   contents: read
@@ -82,6 +85,10 @@ jobs:
           node --check tools/ruc/ruc_do_workerd_entry_qa.mjs
           node --check tools/ruc/test_ruc_do_workerd_qa.mjs
           node --no-warnings tools/ruc/test_ruc_do_workerd_qa.mjs
+          node --check tools/ruc/ruc_do_attestation_qa.mjs
+          node --check tools/ruc/ruc_do_workerd_signed_entry_qa.mjs
+          node --check tools/ruc/test_ruc_do_workerd_signed_qa.mjs
+          node --no-warnings tools/ruc/test_ruc_do_workerd_signed_qa.mjs
           echo 'No remote bindings or Cloudflare keys; no subscription, production route, or deploy.'
 
           echo 'Local SQL-API-compatible core only. No Cloudflare runtime, no R2/DO subscription, no Worker routes, no billing or release.'
