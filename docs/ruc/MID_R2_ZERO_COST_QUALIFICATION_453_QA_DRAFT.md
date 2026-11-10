@@ -335,3 +335,54 @@ OFFLINE candidate; account tier, Cloudflare Free quota fail-closed,
 Worker CPU/RPC and all RUC P1–P5 release gates require real independent
 qualification before any activation. Neither R2 nor Durable Objects
 was subscribed, created, deployed or granted secrets.
+
+
+## Local SQL-API-compatible Run-DO + Coordinator-DO core pilot (10 Nov 2026)
+
+The **QA-only** JavaScript modules `tools/ruc/ruc_do_worker_core_qa.mjs` and
+`tools/ruc/test_ruc_do_worker_core_qa.mjs` exercise Cloudflare's documented
+`ctx.storage.sql.exec()` / `ctx.storage.transactionSync()` method contract
+through a **Node 22.16.0 experimental SQLite adapter**, not a deployed
+Cloudflare Durable Object or `workerd` simulation.
+
+- Three separately deflate-compressed native binary fields contain **28
+  hourly values and 20 EPS members**, true zero-byte values and an actual
+  `uint16` Missing sentinel `0xFFFF`, with fixed-width records. QA
+  retains values **exactly** after SQL `substr(BLOB,...)` / boundary
+  crossing and Web `DecompressionStream('deflate')` decoding.
+- Per-run inventory includes exact source run, SHA-shaped metadata,
+  independent zlib chunk hashes and *per-segment* SHA-256. Any missing
+  EPS block, wrong byte length, same-size corruption, duplicate writer,
+  out-of-bound point, overlapping object or stale run prevents admission.
+- The candidate run is immutable after `sealQa()`. The coordinator
+  first **reads the immutable run object's own sealed receipt**, then
+  uses a synchronous single-SQLite-DO transaction to compare
+  `generation`, monotonic UTC run and last-good. Stale writers,
+  spoofed receipts and older runs cannot advance this **local**
+  simulation.
+- Simulated `SQLITE_FULL` fails the inserted segment transaction; the
+  coordinator's last-good pointer remains unchanged. The source upload
+  is bounded to **780 MB** so a conservative 15%-overhead estimate stays
+  below the separate 900-MB-per-DO MID safety margin.
+- The first 8 Node tests require *real Node SQLite*, binary values,
+  WebCrypto, zlib, `DecompressionStream` and transactional rollback.
+  The prior 38 Python tests remain unchanged; only a small GitHub QA is
+  triggered, with no redundant 763-MB DWD artifact download.
+
+**Critical unresolved trust boundary:** SHA-shaped proof references in
+these tiny synthetic fixtures are **not signed CI attestations**.
+The local core therefore exposes **QA-suffixed methods only**, not
+production Worker routes, authenticated ingestion or a deployable
+`cloudflare:workers` DurableObject class. The previous original-DWD
+27h/EPS20 SHA/byte proof is separate; these new fixture bytes are
+synthetic. No claimed live Cloudflare Worker CPU, real DO storage
+metering, cross-DO atomic transaction, Cloudflare account access or
+zero-cost billing cut-off was tested here. All QA output explicitly
+returns `productionApproved=false` and
+`activationAuthorized=false`.
+
+**NEXT gate, not automatically dispatched:** authorize and test
+a restricted local `workerd`/Wrangler *offline* runtime using a
+signed, immutable source manifest and one actual original-byte
+fixture. Only after independent Free-plan/account and budget gates
+can a real production decision be reconsidered. R2 remains OFF.

@@ -12,6 +12,8 @@ on:
       - 'tools/ruc/test_ruc_do_free_capacity_qa.py'
       - 'tools/ruc/ruc_do_sqlite_physical_qa.py'
       - 'tools/ruc/test_ruc_do_sqlite_physical_qa.py'
+      - 'tools/ruc/ruc_do_worker_core_qa.mjs'
+      - 'tools/ruc/test_ruc_do_worker_core_qa.mjs'
       - '.github/workflows/mid-ruc-zero-cost-storage-unit-qa.yml'
 permissions:
   contents: read
@@ -47,3 +49,16 @@ jobs:
           python3 tools/ruc/test_ruc_do_free_capacity_qa.py
           python3 tools/ruc/test_ruc_do_sqlite_physical_qa.py
           echo 'ONLY simulated/offline QA; actual Cloudflare DO/R2, billing, user usage, worker CPU and live client NOT qualified'
+      - name: Node 22 experimental host SQLite (no Cloudflare / no DWD)
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22.16.0'
+      - name: Atomic last-good and real SQL/BLOB/deflate local pilot
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check tools/ruc/ruc_do_worker_core_qa.mjs
+          node --check tools/ruc/test_ruc_do_worker_core_qa.mjs
+          node --no-warnings tools/ruc/test_ruc_do_worker_core_qa.mjs
+          echo 'Local SQL-API-compatible core only. No Cloudflare runtime, no R2/DO subscription, no Worker routes, no billing or release.'
+
