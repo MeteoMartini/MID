@@ -3,7 +3,7 @@ import {resolve} from 'node:path';
 import {describe,expect,it} from 'vitest';
 
 const script=resolve('scripts','mid-pr-review-gate.mjs');
-const cases=resolve('scripts','test-mid-pr-review-gate-0985454.mjs');
+const cases=resolve('scripts','mid-pr-review-gate-qa-cases.mjs');
 
 describe('MID #740 review-evidence pre-merge QA (standalone, not release-active)',()=>{
  it('has valid Node22 ESM source',()=>{
