@@ -18,9 +18,13 @@ assert.deepEqual(c.unifiedSources('observed',index,true,false),[],'Unpublished o
 assert.equal(c.unifiedSources('observed',index,true,true)[0].id,'radolan');
 const pairedTime='2026-10-05T01:00:00Z',goodRef={time:pairedTime,intervalHours:1,sha256:'a'.repeat(64)};
 const seasonalIndex={schema:'mid.icon-d2.fields.v1',run:'2026-10-05T00:00:00Z',products:{
- precipitation:{unit:'mm/1 h',frames:[goodRef]},temperature:{unit:'°C',frames:[goodRef]},gust:{unit:'km/h',frames:[goodRef]}}};
+ precipitation:{unit:'mm/1 h',frames:[goodRef]},temperature:{unit:'°C',frames:[{...goodRef,intervalHours:0}]},gust:{unit:'km/h',frames:[{...goodRef,intervalHours:0}]}}};
 assert.deepEqual(c.unifiedSources('winter-berge',seasonalIndex,false,false).map(s=>s.id),['icon-d2']);
 assert.deepEqual(c.unifiedSources('sommer-gewitter',seasonalIndex,false,false).map(s=>s.id),['icon-d2']);
+const nativeV2SeasonalIndex={...seasonalIndex,schema:'mid.icon-d2.native-fields.v2',modelId:'icon-d2',productionApproved:true};
+assert.deepEqual(c.unifiedSources('winter-berge',nativeV2SeasonalIndex,false,false).map(s=>s.id),['icon-d2'],'Native v2 temperature uses intervalHours=0, not 1');
+assert.deepEqual(c.unifiedSources('sommer-gewitter',nativeV2SeasonalIndex,false,false).map(s=>s.id),['icon-d2'],'Native v2 gust uses intervalHours=0, not 1');
+assert.equal(c.unifiedSources('sommer-gewitter',{...nativeV2SeasonalIndex,products:{...nativeV2SeasonalIndex.products,gust:{unit:'km/h',frames:[{...goodRef,intervalHours:-1}]}}},false,false).length,0,'Invalid negative companion interval cannot be offered');
 assert.equal(c.unifiedSources('winter-berge',{...seasonalIndex,products:{...seasonalIndex.products,temperature:{unit:'°C',frames:[]}}},false,false).length,0,'Unavailable original source pair cannot be offered');
 assert.equal(c.unifiedSources('sommer-gewitter',{...seasonalIndex,products:{...seasonalIndex.products,precipitation:{unit:'mm/1 h',frames:[{...goodRef,intervalHours:3}]}}},false,false).length,0,'3-h accumulation must never masquerade as 1-h composite');
 const terms=[{time:'2026-10-05T00:00:00Z'},{time:'2026-10-05T03:00:00Z'}];
