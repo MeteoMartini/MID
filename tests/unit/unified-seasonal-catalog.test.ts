@@ -25,10 +25,10 @@ describe('seasonal WXCharts-inspired cards stay inside the original MID map sele
  });
  it('only lists an original ICON-D2 source for each real same-run pair',()=>{
   expect(unifiedSources('winter-berge',index(),false,false)).toEqual([
-   {id:'icon-d2',label:'DWD ICON-D2 · Originalraster'},
+   {id:'icon-d2',label:'DWD ICON-D2 · geprüfte Felder'},
   ]);
   expect(unifiedSources('sommer-gewitter',index(),false,false)).toEqual([
-   {id:'icon-d2',label:'DWD ICON-D2 · Originalraster'},
+   {id:'icon-d2',label:'DWD ICON-D2 · geprüfte Felder'},
   ]);
   const v2=index();v2.schema='mid.icon-d2.native-fields.v2';v2.modelId='icon-d2';
   v2.products.temperature!.frames=[makeRef(0)];v2.products.gust!.frames=[makeRef(0)];
