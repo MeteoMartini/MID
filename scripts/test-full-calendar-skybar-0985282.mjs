@@ -74,6 +74,15 @@ try{
  assert.ok(Math.abs(daySkybarTimelinePositions([{epoch:numericLegacyHour}],0,0,100,normal)[0]-14/24*100)<1e-8);
  assert.equal(daySkybarHourEndPositions([{epoch:numericLegacyHour}],normal,0,0,100)[0],15/24*100);
  const cockpitSource=readFileSync('src/ForecastCockpit.tsx','utf8');
+
+ // The 7-day curve must not render an unknown timestamp at its local-time
+ // fallback position, nor concatenate a numeric string with HOUR_MS.
+ assert.ok(cockpitSource.includes('const skyBarHours=hourly;'),'7-day curve source preserved');
+ assert.ok(cockpitSource.includes('const skybarEpochForCurve=(hour:Hour)=>'),'7-day curve validates its own local calendar slot');
+ assert.ok(cockpitSource.includes('const skybarEpochs=skyBarHours.map(skybarEpochForCurve)'),'7-day curve normalizes all source epochs');
+ assert.ok(cockpitSource.includes('Number.isFinite(skybarEpochs[index])?left+hourPosition'),'missing epochs must not receive x positions from local hour labels');
+ assert.ok(cockpitSource.includes('precipitationIntervalEndEpoch:skybarEpochs[index]+HOUR_MS'),'7-day precipitation intervals are numeric, never string concatenation');
+
  assert.ok(cockpitSource.includes('const epochs=dayHours.map(daySkybarEpoch)'), 'Solar input uses the same timestamp parser as the calendar axis');
  assert.ok(cockpitSource.includes('const epoch=daySkybarEpoch(hour);return {...hour,epoch,precipitationIntervalStartEpoch:epoch'), 'Solar and precipitation intervals normalize source epoch before numeric addition');
  assert.ok(cockpitSource.includes('dayHours.filter(hour=>Number.isFinite(daySkybarEpoch(hour)))'), 'Night-band source also accepts truly valid numeric epochs');
