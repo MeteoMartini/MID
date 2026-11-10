@@ -56,14 +56,23 @@ export function seasonalPairValid(id:string,primary:NativeField|null,secondary:N
  // A physically real zero counts as shared valid data, never as missing.
  return primary.values.some((value,i)=>Number.isFinite(value)&&Number.isFinite(secondary.values[i]));
 }
-/** Missing in either field remains NoData, never zero or a fabricated phase. */
+/** Both displays must share one checked pairing and the exact same NoData mask.
+ * The combined pass avoids duplicate native-domain validation and repeated
+ * 542040-cell traversals on a forecast-step change.
+ */
+export function seasonalMaskedPair(id:string,primary:NativeField,secondary:NativeField,expectedTime?:string):{primary:NativeField;secondary:NativeField}|null{
+ if(!seasonalPairValid(id,primary,secondary,expectedTime))return null;
+ const first=new Array<number>(primary.values.length),second=new Array<number>(primary.values.length);
+ for(let i=0;i<first.length;i++){
+  const a=primary.values[i],b=secondary.values[i],valid=Number.isFinite(a)&&Number.isFinite(b);
+  first[i]=valid?a:NaN;second[i]=valid?b:NaN;
+ }
+ return {primary:{...primary,values:first},secondary:{...secondary,values:second}};
+}
+/** Preserve existing single-field clients without relaxing the shared mask. */
 export function seasonalMaskedPrimary(id:string,primary:NativeField,secondary:NativeField):NativeField|null{
- if(!seasonalPairValid(id,primary,secondary))return null;
- return {...primary,values:primary.values.map((value,i)=>
-   Number.isFinite(value)&&Number.isFinite(secondary.values[i])?value:NaN)};
+ return seasonalMaskedPair(id,primary,secondary)?.primary??null;
 }
 export function seasonalMaskedSecondary(id:string,primary:NativeField,secondary:NativeField):NativeField|null{
- if(!seasonalPairValid(id,primary,secondary))return null;
- return {...secondary,values:secondary.values.map((value,i)=>
-   Number.isFinite(value)&&Number.isFinite(primary.values[i])?value:NaN)};
+ return seasonalMaskedPair(id,primary,secondary)?.secondary??null;
 }

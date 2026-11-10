@@ -1,7 +1,7 @@
 import {useDisplayPreference,useRawDisplayPreference,displayBoolean,displayChoice} from './useDisplayPreference';
 import {NativeScalarOverlay,NativeScalarControls} from './NativeScalarMapOverlay';
 import {nativeScalarLines,scalarLineFeatures} from './nativeScalarAnnotations';
-import {seasonalMapKinds,seasonalMapFrames,seasonalPairValid,seasonalMaskedPrimary,seasonalMaskedSecondary} from './nativeSeasonalComposite';
+import {seasonalMapKinds,seasonalMapFrames,seasonalMaskedPair} from './nativeSeasonalComposite';
 import {totalsScalarField} from './totalsScalarField';
 import {modelLeadLabel,modelAvailableLabel} from './modelForecastTime';
 import {loadRucNativeIndex} from './rucNativeMapIndex';
@@ -106,17 +106,16 @@ export default function UnifiedWeatherMap(props:Props){
    .finally(()=>{if(!c.signal.aborted)setSeasonalLoading(false)});
   return()=>c.abort();
  },[settings.enabled,isSeasonal,modelId,catalog,ref?.time,ref?.sha256,seasonalSelection?.secondary,revision]);
- // Pair verification traverses the original grid; never repeat it for unrelated React re-renders.
- const seasonalReady=useMemo(()=>Boolean(isSeasonal&&field&&seasonalCompanion&&modelId==='icon-d2'&&
-  catalog&&field.run===catalog.index.run&&field.time===ref?.time&&
-  seasonalPairValid(parameter,field,seasonalCompanion,ref?.time)),
+ // One immutable, verified pair provides both masked fields. The large original grid
+ // is traversed once on a data/forecast-step change, never on unrelated UI renders.
+ const seasonalPair=useMemo(()=>isSeasonal&&field&&seasonalCompanion&&modelId==='icon-d2'&&
+  catalog&&field.run===catalog.index.run&&field.time===ref?.time?
+  seasonalMaskedPair(parameter,field,seasonalCompanion,ref?.time):null,
   [isSeasonal,field,seasonalCompanion,modelId,catalog,ref?.time,parameter]);
+ const seasonalReady=Boolean(seasonalPair);
  const seasonalPairInvalid=Boolean(isSeasonal&&field&&seasonalCompanion&&field.time===ref?.time&&seasonalCompanion.time===ref?.time&&!seasonalReady&&!loading&&!seasonalLoading);
  const gustFrameHours=parameter==='sommer-gewitter'?catalog?.index.products.gust?.frames.find(f=>f.time===ref?.time)?.intervalHours:undefined;
- const seasonalPrimary=useMemo(()=>seasonalReady&&field&&seasonalCompanion?
-  seasonalMaskedPrimary(parameter,field,seasonalCompanion):null,[seasonalReady,field,seasonalCompanion,parameter]);
- const seasonalSecondary=useMemo(()=>seasonalReady&&field&&seasonalCompanion?
-  seasonalMaskedSecondary(parameter,field,seasonalCompanion):null,[seasonalReady,field,seasonalCompanion,parameter]);
+ const seasonalPrimary=seasonalPair?.primary??null,seasonalSecondary=seasonalPair?.secondary??null;
  const seasonalContours=useMemo(()=>seasonalSecondary?
   scalarLineFeatures(nativeScalarLines(seasonalSecondary,unit)):null,[seasonalSecondary,unit]);
  const fieldForRaster=isSeasonal?seasonalPrimary:field;

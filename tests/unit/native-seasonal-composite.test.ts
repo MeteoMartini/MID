@@ -1,5 +1,5 @@
 import {describe,expect,it} from 'vitest';
-import {seasonalMapKinds,seasonalMapFrames,seasonalPairValid,seasonalMaskedPrimary,seasonalMaskedSecondary} from '../../src/nativeSeasonalComposite';
+import {seasonalMapKinds,seasonalMapFrames,seasonalPairValid,seasonalMaskedPair,seasonalMaskedPrimary,seasonalMaskedSecondary} from '../../src/nativeSeasonalComposite';
 import type {NativeField,NativeIndex,NativeFrameRef} from '../../src/nativeModelFields';
 import {D2_FULL_DOMAIN_LEADS,D2_FULL_DOMAIN_KINDS,validateD2FullDomainIndex} from '../../src/nativeD2FullDomain';
 import {nativeScalarLines,nativeRasterExtremes} from '../../src/nativeScalarAnnotations';
@@ -88,6 +88,18 @@ describe('DWD ICON-D2 seasonal composites: fail-closed common native fields',()=
   expect(secondary?.values[0]).toBe(-2);
   expect(Number.isNaN(secondary?.values[1])).toBe(true);
   expect(Number.isNaN(secondary?.values[2])).toBe(true);
+ });
+ it('builds the primary and companion from one identical lossless NoData mask',()=>{
+  const p=field('precipitation',[0,NaN,4,10]),t=field('temperature',[-1,2,NaN,5]);
+  const pair=seasonalMaskedPair('winter-berge',p,t,time);
+  expect(pair?.primary.values).toEqual([0,NaN,NaN,10]);
+  expect(pair?.secondary.values).toEqual([-1,NaN,NaN,5]);
+  expect(pair?.primary.values).toEqual(seasonalMaskedPrimary('winter-berge',p,t)?.values);
+  expect(pair?.secondary.values).toEqual(seasonalMaskedSecondary('winter-berge',p,t)?.values);
+  expect(p.values).toEqual([0,NaN,4,10]); // Original frames remain immutable
+  expect(t.values).toEqual([-1,2,NaN,5]);
+  expect(seasonalMaskedPair('winter-berge',p,t,'2026-11-09T08:00:00Z')).toBeNull();
+  expect(seasonalMaskedPair('sommer-gewitter',p,t,time)).toBeNull();
  });
  it('keeps original extremes but never draws companion contours over one-field NoData',()=>{
   const precip=field('precipitation',[0,5,20,60]),validGust=field('gust',[0,40,80,120]);
