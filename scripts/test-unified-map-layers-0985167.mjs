@@ -11,6 +11,8 @@ assert.equal(m.unifiedWmsProduct('geopotential','icon').id,'icon-gh');assert.equ
 // Load the REAL seasonal guard into this stripped-import fixture; never stub its logic.
 const seasonal=read('src/nativeSeasonalComposite.ts').replace(/^import .*?;\n/gm,'');
 const catalog=read('src/unifiedMapCatalog.ts').replace(/^import .*?;\n/gm,''),catalogJs=ts.transpileModule(`const readDurableStorageValue=key=>localStorage.getItem(key);const UNIFIED_WMS_PARAMETERS=[];const choices=${JSON.stringify(m.unifiedWmsChoices())};const unifiedWmsChoices=()=>choices;${seasonal}\n${catalog}`,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText,c=await import('data:text/javascript;base64,'+Buffer.from(catalogJs).toString('base64'));
+const nativeUi=read('src/UnifiedWeatherMap.tsx');
+assert.match(nativeUi,/resampling=\{isSeasonal\|\|modelId==='icon-d2-ruc'\?'nearest':'linear'\}/,'Native paired seasonal rasters retain exact NoData cell boundaries, never bilinear bleed');
 const index={products:{temperature:{frames:[{}]},gust:{frames:[{}]}}};
 assert.deepEqual(c.unifiedSources('temperature',index,false,false).map(s=>s.id),['icon-d2','icon']);
 assert.deepEqual(c.unifiedSources('gust',index,false,false).map(s=>s.id),['icon-d2']);
