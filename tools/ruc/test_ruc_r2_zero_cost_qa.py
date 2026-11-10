@@ -100,5 +100,37 @@ class CostQA(unittest.TestCase):
         self.assertIn("R2 metered billing has no verified hard 0-USD cap", report["blockers"])
 
 
+
+    def test_historical_original_dwd_full_raw_storage_hard_block(self):
+        """A historic SHA-labeled DWD proof is not a deployed R2-byte proof."""
+        proof_path = Path(__file__).resolve().parents[2] / 'docs/implementation/MID_C46_RUC27_BUILD_PROOF.json'
+        proof = json.loads(proof_path.read_text(encoding='utf-8'))
+        self.assertEqual(proof['schema'], 'mid.ruc.extended-core-build-proof.v1')
+        self.assertEqual(proof['runId'], 40321851403)
+        self.assertEqual(proof['headSha'], '01563be16d42a476188f048394ef0edf481c8e6d')
+        self.assertFalse(proof['productionApproved'])
+        self.assertEqual((proof['pointCount'], proof['deterministicTimes'],
+                          proof['epsTimes'], proof['epsSummaryTimes'], proof['memberCount']),
+                         (542040, 28, 28, 28, 20))
+        objects = proof['objects']
+        self.assertEqual(len(objects), 12)
+        self.assertEqual(objects['eps-members.bin']['bytes'], 607084800)
+        self.assertEqual(sum(obj['bytes'] for obj in objects.values()), 1999625598)
+        inv = {'schema':'mid.ruc.r2.offline-inventory.v1',
+               'stableSha':proof['headSha'], 'run':proof['run'],
+               'horizonHours':27, 'timeCount':28, 'epsMemberCount':20,
+               'nativeEpsMemberObjectsIncluded':True,
+               'originalSourceProofSha256':proof['artifactSha256'],
+               'objects':[{'key':name, **descriptor} for name,descriptor in objects.items()]}
+        report = evaluate(inv, projected_reads=100000, projected_worker_requests_per_day=1000)
+        self.assertEqual(report['offlineInventoryBytes'], 1999625598)
+        self.assertEqual(report['projectedPeakStorageBytes'], 11997753588)
+        self.assertGreater(report['projectedPeakStorageBytes'], 10000000000)
+        self.assertIn('RUC internal storage planning ceiling exceeded',report['blockers'])
+        self.assertFalse(report['productionApproved'])
+        self.assertFalse(report['activationAuthorized'])
+        # This uses original proof DESCRIPTORS, not local byte verification.
+        # Real R2 pack SHA parity/codec/clients/account-wide cost remain unapproved.
+
 if __name__ == "__main__":
     unittest.main()
