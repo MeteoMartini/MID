@@ -14,8 +14,23 @@ const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failu
   const value=Number(input??NaN);
   if(Number.isNaN(expected)?!Number.isNaN(value):value!==expected)failures.push('Sonnenschein-Koerzierung: '+String(input));
  }
- const knownCloud=20,openSkyShare=1-knownCloud/100,missingSun=Number(null??NaN),actualShare=Number.isFinite(missingSun)?missingSun/3600:openSkyShare;
- if(Math.abs(actualShare-.8)>1e-9)failures.push('Null-Sonnenschein muss bei bekannter Bewölkung die Wolkenlücken-Näherung verwenden');
+ // Exercise the exact production sunShare fallback, not a local formula
+ // that could pass even when the on-screen solar assessment regresses.
+ const shareStart=app.indexOf('sunShare=hour.isDay?'),shareEnd=app.indexOf(',radiationLoad=',shareStart);
+ if(shareStart<0||shareEnd<=shareStart)failures.push('Produktiver Sonnenanteil-Fallback fehlt');
+ else{
+  const expression=app.slice(shareStart+'sunShare='.length,shareEnd);
+  const actualShare=new Function('hour','sunshine','cloud','clamp','return ('+expression+');');
+  const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
+  for(const [isDay,originalSun,cloud,expected] of [
+   [true,null,20,.8],[true,0,20,0],[true,1800,20,.5],
+   [true,undefined,80,.2],[true,Infinity,60,.4],[false,null,20,0]
+  ]){
+   const sunshine=Number(originalSun??NaN),value=actualShare({isDay},sunshine,cloud,clamp);
+   if(!Number.isFinite(value)||Math.abs(value-expected)>1e-9)
+    failures.push('Produktiver Sonnenanteil-Fallback '+String(originalSun)+' / '+String(cloud));
+  }
+ }
 
 
 
