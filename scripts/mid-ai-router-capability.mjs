@@ -80,12 +80,6 @@ export function planMidAiTaskSurface({
     providerProofIsNotIndependentlyAuthenticated:true
   });
   // Source browsing stays useful even during release drift, but reports it.
-  if(intent==='repo-readback'){
-    if(!toolReady(t,'github'))return make(null,'BLOCKED','GITHUB_CONNECTOR_UNAVAILABLE',{sourceAligned});
-    return make('github','CONNECTED_TOOL_PLAN','READ_ONLY_GITHUB_READBACK',{
-      requiredTools:toolsUsed(t,['github']),...evidence()
-    });
-  }
   // Copilot cloud agent is reached through the existing GitHub Issue assignee
   // action, NOT through an independently connected Copilot tool or API token.
   // This is a pure plan; host must verify the *real* signed-in quota, ensure a
@@ -115,6 +109,12 @@ export function planMidAiTaskSurface({
         requestedAssignee:'copilot-swe-agent[bot]',
         noReleaseAuthority:true
       });
+  }
+  if(intent==='repo-readback'){
+    if(!toolReady(t,'github'))return make(null,'BLOCKED','GITHUB_CONNECTOR_UNAVAILABLE',{sourceAligned});
+    return make('github','CONNECTED_TOOL_PLAN','READ_ONLY_GITHUB_READBACK',{
+      requiredTools:toolsUsed(t,['github']),...evidence()
+    });
   }
   if(intent==='source-code-change'){
     if(!sourceAligned)return make(null,'BLOCKED','SOURCE_DRIFT');
