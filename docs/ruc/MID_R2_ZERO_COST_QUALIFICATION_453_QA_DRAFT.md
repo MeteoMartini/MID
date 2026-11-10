@@ -154,3 +154,54 @@ Worker traffic nor complete Pages map/synoptic sidecars have been measured.
 No durable hard `$0` R2 invoice cap has been shown. Therefore all code remains
 QA-only and `productionApproved=false`, `r2ActivationAuthorized=false`.
 Do not activate R2 or change Pages/Worker/Secrets/DNS/Rulesets/MID release.
+
+
+## Class-B 31-day no-cache cost readback (10 Nov 2026; QA-only)
+
+The authentic `2026-11-09T14:00` offline consumer trace from
+[original range QA #42780229524](https://github.com/MeteoMartini/MID/actions/runs/42780229524)
+contains 7 native-grid cells × 10 separate product range reads,
+`checkedNativeProductRecords=70`, `maxR2ReadsForOneCell=10`,
+`allPointBytesMatchOriginal=true`, and full source SHA
+`d8852f672a40d26348d214dc85e9a3a1b9d79c1f`.
+It remains a **mock R2 read trace, not real user/Worker metering**.
+
+A new standalone `project_class_b_from_consumer` QA function only accepts
+the exact run/SHA-matching byte-parity trace and forecasts a conservative
+**10 native-range GETs + 2 uncached metadata GETs** per complete point request,
+**31 calendar days** per month, and **no speculative cache hits**.
+Its result is fed through the existing fail-closed Class-B and Workers
+planning ceilings; request demand MUST be supplied externally, and
+unknown real account usage and billable R2 activation stay blocked.
+
+| Hypothetical full-point forecasts/day | Class B operations / 31 days | MID 2M internal ceiling |
+|---:|---:|---|
+| 1,000 | 372,000 | within (not production approval) |
+| 5,000 | 1,860,000 | within (not production approval) |
+| 5,376 | 1,999,872 | upper mathematical limit, **no headroom** |
+| 6,000 | 2,232,000 | **BLOCKED** |
+| 10,000 | 3,720,000 | **BLOCKED** |
+| 50,000 | 18,600,000 | **BLOCKED**, also >10M official R2 free Class B |
+
+Even under Cloudflare's published 10M/month Class-B free allowance, the
+above no-cache mix would reach that threshold at about 26,881 full-point
+requests/day, **before** all other Cloudflare account usage. The 50k/day
+Worker Free planning ceiling is NOT a safe R2 Class-B load allowance.
+[Cloudflare R2 pricing](https://developers.cloudflare.com/r2/pricing/),
+[Workers Free limits](https://developers.cloudflare.com/workers/platform/limits/).
+
+Exact prior source bytes, original ZIP, range-index and consumer reports
+were read from the SHA-identified GitHub QA artifact; no new DWD download,
+Worker deployment, R2 setup, cache assumption or Cloudflare billing
+operation was made during this cost-only follow-up.
+Four new negative/threshold Python unit cases also cover source-run drift,
+false parity, malformed samples, negative demand and forbidding assumed
+metadata-cache savings. They are committed to the existing PR and require
+the normal exact-head CI/review; no extra 763-MB workflow is dispatched.
+
+**FAIL-CLOSED:** This is a sizing/rejection preflight, never a metered-service
+authorization. `productionApproved=false`,
+`r2ActivationAuthorized=false`, and `MID_RUC_COST_APPROVED` remains
+unmodified. Neither a cache or 50k/day Worker request ceiling nor
+Cloudflare billing alerts can guarantee a hard `$0` invoice. Thus R2
+remains OFF; existing Pages-based RUC and model fallback remain untouched.
