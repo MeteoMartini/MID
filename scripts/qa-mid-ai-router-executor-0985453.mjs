@@ -64,6 +64,11 @@ const response=(provider,model)=>{
   if(provider==='gemini')data.usageMetadata.tokenDump='malicious untrusted usage data';
   else data.usage.tokenDump='malicious untrusted usage data';
  }
+ if(mode==='inconsistentUsage'){
+  // Both models report input 10 + output 5, but an impossible total of 10.
+  if(provider==='gemini')data.usageMetadata.totalTokenCount=10;
+  else data.usage.total_tokens=10;
+ }
  if(mode==='truncated'){
   if(provider==='gemini')data.candidates[0].finishReason='MAX_TOKENS';
   else data.choices[0].finish_reason='length';
@@ -186,6 +191,28 @@ await test(async()=>{mode='injectedUsage';const t=await signed(task('injection-0
  const r=await executor.execute(t);assert.equal(r.usageStatus,'UPSTREAM_REPORTED_UNVERIFIED');
  assert.deepEqual(r.usage,{prompt_tokens:10,completion_tokens:5});
  assert.equal(JSON.stringify(r).includes('malicious untrusted usage data'),false);mode='ok'});
+await test(async()=>{
+ mode='inconsistentUsage';
+ try{
+  const t=await signed(task('openrouter-usage-integrity'),'openrouter','cohere/north-mini-code:free');
+  const r=await executor.execute(t);
+  assert.equal(r.status,'UNTRUSTED_REVIEW_ONLY');
+  assert.equal(r.usage,null);
+  assert.equal(r.usageStatus,'INVALID_UPSTREAM_USAGE');
+  assert.equal(r.costStatus,'NOT_VERIFIED');
+ }finally{mode='ok'}
+});
+await test(async()=>{
+ mode='inconsistentUsage';
+ try{
+  const t=await signed(task('gemini-usage-integrity'),'gemini','gemini-3.8-flash');
+  const r=await executor.execute(t);
+  assert.equal(r.status,'UNTRUSTED_REVIEW_ONLY');
+  assert.equal(r.usage,null);
+  assert.equal(r.usageStatus,'INVALID_UPSTREAM_USAGE');
+  assert.equal(r.costStatus,'NOT_VERIFIED');
+ }finally{mode='ok'}
+});
 await test(async()=>{const t=await signed(task('openrouter-ok'),'openrouter','cohere/north-mini-code:free');
  const r=await executor.execute(t);assert.equal(r.provider,'openrouter');
  const p=requests.at(-1).body.provider;
