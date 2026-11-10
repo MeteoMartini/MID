@@ -189,6 +189,10 @@ export function createMidAiOneShotExecutor({
       candidate?.message?.content;
    if(typeof answer!=='string'||!answer.trim())deny('EMPTY_PROVIDER_RESPONSE');
    const reportedUsage=sanitizeProviderUsage(provider,json);
+   // An in-flight model response may finish after a new MID stable promotion.
+   // Fail closed again before disclosing the untrusted provider output.
+   // The durable quota claim stays consumed and the provider call is NOT retried.
+   await verifySource(readback,task,now);
    return Object.freeze({
     status:'UNTRUSTED_REVIEW_ONLY',provider,model,actualModel:actual,
     requestId:task.requestId,stableSha:task.expectedStableSha,
