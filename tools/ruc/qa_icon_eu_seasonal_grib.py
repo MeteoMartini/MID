@@ -51,16 +51,39 @@ def enumerate_leads(html: str, run: str, field: str) -> dict[int, str]:
         raise ContractError('invalid requested run or field')
     parser = AnchorParser(); parser.feed(html)
     found = {}
+    source_dir = f'{BASE}/{run[-2:]}/{field}/'
     for href in parser.hrefs:
-        if '/' in href or '?' in href or '#' in href:
+        parsed = urlparse(href)
+        if parsed.query or parsed.fragment:
             continue
-        match = FILE_RE.fullmatch(href)
+        if parsed.scheme or parsed.netloc:
+            # DWD's real Apache indexes expose absolute URLs, not only basenames.
+            # Accept precisely this HTTPS directory, never a lookalike host,
+            # credentials, another cycle/field, or an off-origin redirect.
+            if (parsed.scheme != 'https' or parsed.hostname != 'opendata.dwd.de'
+                or parsed.username is not None or parsed.password is not None):
+                continue
+            try:
+                if parsed.port not in (None, 443):
+                    continue
+            except ValueError:
+                continue
+            if not parsed.path.startswith(urlparse(source_dir).path):
+                continue
+            basename = parsed.path.rsplit('/', 1)[-1]
+            if parsed.path != urlparse(source_dir + basename).path:
+                continue
+        else:
+            if '/' in href or not href:
+                continue
+            basename = href
+        match = FILE_RE.fullmatch(basename)
         if not match or match.group(1) != run or match.group(3) != FIELDS[field]:
             continue
         lead = int(match.group(2))
         if lead in found:
             raise ContractError(f'duplicate original {field} lead {lead}')
-        found[lead] = href
+        found[lead] = basename
     return found
 
 
