@@ -9,6 +9,7 @@ const sonarSelectorRunner = fileURLToPath(new URL('../../scripts/qa-mid-ai-route
 const sonarRunner = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-sonar-0985452.mjs', import.meta.url));
 const vercelPolicyRunner = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-vercel-policy-0985452.mjs', import.meta.url));
 const githubReadbackRunner = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-github-readback-0985452.mjs', import.meta.url));
+const profileRunner = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-model-profiles-0985454.mjs', import.meta.url));
 const blendRunner = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-blend-0985452.mjs', import.meta.url));
 
 describe('MID AI Router: separate direct Free-provider safety QA (issue #725)', () => {
@@ -83,6 +84,17 @@ describe('MID AI Router: separate direct Free-provider safety QA (issue #725)', 
     expect(r.error).toBeUndefined();
     expect(r.status, r.stderr || r.stdout).toBe(0);
     expect(r.stdout).toMatch(/MID AI Router research selection offline QA OK; scenarios=13; no live API used\./);
+    expect(r.stderr).toBe('');
+  });
+
+  it('audits exact public model identities, independence and Free evidence without authorizing calls', () => {
+    const r = spawnSync(process.execPath, [profileRunner], {
+      cwd: root, timeout: 20_000, encoding: 'utf8', maxBuffer: 128 * 1024,
+      env: { PATH: process.env.PATH || '' }, stdio: ['ignore', 'pipe', 'pipe']
+    });
+    expect(r.error).toBeUndefined();
+    expect(r.status, r.stderr || r.stdout).toBe(0);
+    expect(r.stdout).toMatch(/MID AI Router model profile QA OK; scenarios=20; no account\/API network used\./);
     expect(r.stderr).toBe('');
   });
 
