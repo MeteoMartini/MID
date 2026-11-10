@@ -1,0 +1,46 @@
+name: MID RUC zero-cost storage lightweight QA (no deploy)
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'tools/ruc/ruc_r2_zero_cost_qa.py'
+      - 'tools/ruc/test_ruc_r2_zero_cost_qa.py'
+      - 'tools/ruc/ruc_r2_lossless_pack_qa.py'
+      - 'tools/ruc/test_ruc_r2_lossless_pack_qa.py'
+      - 'tools/ruc/ruc_r2_range_consumer_qa.mjs'
+      - 'tools/ruc/ruc_do_free_capacity_qa.py'
+      - 'tools/ruc/test_ruc_do_free_capacity_qa.py'
+      - '.github/workflows/mid-ruc-zero-cost-storage-unit-qa.yml'
+permissions:
+  contents: read
+concurrency:
+  group: mid-ruc-zero-cost-storage-unit-qa-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  standalone_no_cloudflare_qa:
+    if: ${{ github.event.pull_request.number == 738 && github.event.pull_request.head.repo.full_name == 'MeteoMartini/MID' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Checkout exact SHA; credentials not persisted
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Require identical canonical workflow mirror
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmp ci/github/workflows/mid-ruc-zero-cost-storage-unit-qa.yml .github/workflows/mid-ruc-zero-cost-storage-unit-qa.yml
+          test -z "$(git status --porcelain)"
+      - name: Check Python source syntax without R2 or DWD access
+        run: |
+          python3 -m py_compile tools/ruc/ruc_r2_zero_cost_qa.py tools/ruc/ruc_r2_lossless_pack_qa.py tools/ruc/ruc_do_free_capacity_qa.py
+      - name: 27h/EPS20 capacity, negative traces, simulated SQLite atomicity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/ruc/test_ruc_r2_zero_cost_qa.py
+          python3 tools/ruc/test_ruc_r2_lossless_pack_qa.py
+          python3 tools/ruc/test_ruc_do_free_capacity_qa.py
+          echo 'ONLY simulated/offline QA; actual Cloudflare DO/R2, billing, user usage, worker CPU and live client NOT qualified'
