@@ -39,7 +39,7 @@ const baseCellFill=(visual:NonNullable<SkyBarHourCell['base']>)=>visual.color.to
 
 export function SkyBarHourCellsSvg({cells,left,right,chartW,centerY,selectedIndex=-1,keyPrefix='sky-cell',xPositions,xEndPositions,interactive=false,onSelectIndex,ariaLabelForIndex}:HourCellsProps){
  if(!cells.length||chartW<=0)return null;
- const rightEdge=Math.max(left,chartW-right),plotWidth=Math.max(1,rightEdge-left),fallbackSlot=plotWidth/cells.length,hasPositions=Array.isArray(xPositions)&&xPositions.length>=cells.length;
+ const rightEdge=Math.max(left,chartW-right),plotWidth=Math.max(1,rightEdge-left),fallbackSlot=plotWidth/cells.length,hasPositions=Array.isArray(xPositions);
  const bounds=(index:number)=>{if(!hasPositions)return{start:left+index*fallbackSlot,end:index===cells.length-1?rightEdge:left+(index+1)*fallbackSlot};const rawStart=Number(xPositions?.[index]),rawNext=Number(xPositions?.[index+1]),explicitEnd=Number(xEndPositions?.[index]),rawPrev=Number(xPositions?.[index-1]),start=Math.max(left,Math.min(rightEdge,Number.isFinite(rawStart)?rawStart:left+index*fallbackSlot)),fallback=Number.isFinite(rawPrev)&&Number.isFinite(rawStart)&&rawStart>rawPrev?rawStart-rawPrev:fallbackSlot,end=Math.max(start,Math.min(rightEdge,Array.isArray(xEndPositions)&&Number.isFinite(explicitEnd)&&explicitEnd>rawStart?explicitEnd:Number.isFinite(rawNext)&&rawNext>rawStart?rawNext:start+fallback));return{start,end}};
  return <g data-mid-skybar-cells="24h" data-mid-skybar-axis={hasPositions?'shared':'uniform'} data-skybar-interactive={interactive?'true':'false'}>{cells.map((cell,index)=>{
   // Unknown source time cannot become a clickable/painted fallback cell.
