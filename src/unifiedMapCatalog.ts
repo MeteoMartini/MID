@@ -1,4 +1,5 @@
 import {readDurableStorageValue} from './storageSafety';
+import {seasonalMapFrames,seasonalMapKinds} from './nativeSeasonalComposite';
 import type {NativeFieldKind,NativeIndex,NativeFrameRef} from './nativeModelFields';
 import {UNIFIED_WMS_PARAMETERS,unifiedWmsChoices} from './unifiedWmsCatalog';
 import {alphabeticalMapOptions} from './mapOptionOrdering';
@@ -6,6 +7,8 @@ import type {WeatherMapCatalog} from './WeatherMapsData';
 
 export const UNIFIED_MAP_PARAMETERS:{id:string;label:string;detail:string}[]=[
  {id:'synoptic',label:'Synoptik-Komposit',detail:'Theta-E 850 hPa · Höhenlinien 500 hPa · MSL · Feuchte 700 hPa · Strömung 300 hPa'},
+ {id:'winter-berge',label:'Winter & Berge · Niederschlag / Temperatur',detail:'DWD ICON-D2 · stündlicher Niederschlag plus 2-m-Isothermen desselben Laufs und Termins; keine Schneefall- oder Glätteprognose'},
+ {id:'sommer-gewitter',label:'Sommer · Niederschlag / Böen',detail:'DWD ICON-D2 · stündlicher Niederschlag plus Böen-Isolinien desselben Laufs und Termins; keine Gewitterdiagnose oder amtliche Warnung'},
  {id:'temperature',label:'Temperatur · 2 m',detail:'Momentanwert'},
  {id:'precipitation',label:'Niederschlag · 1 h',detail:'Stundensumme bis zum Rastertermin'},
  {id:'totals',label:'Niederschlagssumme',detail:'6 / 12 / 24 / 48 h ab Modelllaufstart'},
@@ -21,10 +24,11 @@ export const UNIFIED_MAP_PARAMETERS:{id:string;label:string;detail:string}[]=[
 export type UnifiedParameter=typeof UNIFIED_MAP_PARAMETERS[number]['id'];
 export function unifiedModelForParameter(parameter:UnifiedParameter){return parameter==='observed'?'radolan':'icon-d2'}
 export function availableUnifiedParameters(index:NativeIndex|null,hasTotals:boolean,hasObserved:boolean,rucIndex:NativeIndex|null=null,catalog:WeatherMapCatalog|null=null){
- return UNIFIED_MAP_PARAMETERS.filter(p=>['synoptic','thetae','geopotential','sigwx'].includes(p.id)?true:p.id==='totals'?hasTotals:p.id==='observed'?hasObserved:Boolean(index?.products[p.id as NativeFieldKind]?.frames.length||rucIndex?.products[p.id as NativeFieldKind]?.frames.length)||unifiedWmsChoices(catalog).some(c=>c.parameter===p.id));
+ return UNIFIED_MAP_PARAMETERS.filter(p=>seasonalMapKinds(p.id)?seasonalMapFrames(index,p.id).length>0:['synoptic','thetae','geopotential','sigwx'].includes(p.id)?true:p.id==='totals'?hasTotals:p.id==='observed'?hasObserved:Boolean(index?.products[p.id as NativeFieldKind]?.frames.length||rucIndex?.products[p.id as NativeFieldKind]?.frames.length)||unifiedWmsChoices(catalog).some(c=>c.parameter===p.id));
 }
 /** Both selectors use this single verified capability matrix. */
 export function unifiedSources(parameter:string,index:NativeIndex|null,hasTotals:boolean,hasObserved:boolean,rucIndex:NativeIndex|null=null,catalog:WeatherMapCatalog|null=null):{id:string;label:string}[]{
+ if(seasonalMapKinds(parameter))return seasonalMapFrames(index,parameter).length?[{id:'icon-d2',label:'DWD ICON-D2 · Originalraster'}]:[];
  if(['synoptic','thetae','geopotential'].includes(parameter))return [];
  const native=parameter==='observed'?hasObserved?{id:'radolan',label:'DWD RADOLAN · Messanalyse'}:null:parameter==='totals'?hasTotals?{id:'icon-d2',label:'DWD ICON-D2'}:null:index?.products[parameter as NativeFieldKind]?.frames.length?{id:'icon-d2',label:'DWD ICON-D2'}:null;
  return [...new Map([...(native?[native]:[]),...(rucIndex?.schema==='mid.ruc.map-fields.v1'&&rucIndex.products[parameter as NativeFieldKind]?.frames.length?[{id:'icon-d2-ruc',label:'DWD ICON-D2-RUC'}]:[]),...unifiedWmsChoices(catalog).filter(c=>c.parameter===parameter).map(c=>({id:c.model.id,label:c.model.label}))].map(c=>[c.id,c])).values()];
@@ -48,7 +52,7 @@ export function readUnifiedMapSettings():UnifiedMapSettings{
 }
 
 export const UNIFIED_PARAMETER_GROUPS=[
- {label:'Komposit & Synoptik',ids:['synoptic','pressure','thetae','geopotential','omega']},
+ {label:'Komposit & Synoptik',ids:['synoptic','winter-berge','sommer-gewitter','pressure','thetae','geopotential','omega']},
  {label:'Temperatur & Feuchte',ids:['temperature','height-temperature','temperature-level','humidity']},
  {label:'Niederschlag',ids:['precipitation','rain-3h','rain-6h','rain-12h','rain-24h','total-precip','totals','observed']},
  {label:'Wind & Böen',ids:['wind','gust','upper-wind']},
