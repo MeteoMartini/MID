@@ -19,6 +19,13 @@ const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failu
 
 
 
+ // Apparent temperature is not numerically identical to a diagnosed UTCI.
+ need('Gefühlte Temperatur kein UTCI',app,'<i className="apparent"/>Gefühlt</button>');
+ need('Gefühlte Temperatur kein UTCI',app,'<small>Temperatur / gefühlt</small>');
+ if(app.includes('<i className="apparent"/>UTCI</button>')||app.includes('<small>Temperatur / UTCI</small>'))failures.push('Apparent temperature is mislabeled as a calculated UTCI');
+ need('Stunden-Hitbereich NoData',app,'${detailDegree(x.temperature)} · Thermisches Empfinden');
+ need('Stunden-Hitbereich NoData',app,'Taupunkt ${detailDegree(x.dewPoint)}');
+
  // Nicht vorhandene Tooltip-Werte sind unbekannt (–), keine erfundenen 0 °C.
  need('Stundentooltip NoData',app,"detailDegree(currentHour.temperature)} / {detailDegree(currentHour.apparent)");
  need('Stundentooltip NoData',app,"detailDegree(currentHour.dewPoint)} · {Number.isFinite(currentHour.humidity)");
