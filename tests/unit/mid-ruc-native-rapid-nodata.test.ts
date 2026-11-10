@@ -10,7 +10,7 @@ const nativeRows=new Function(originalNumber+'\n'+originalRapid+'\nreturn rucRap
 
 const run='2026-11-10T14:00:00',time='2026-11-10T14:15:00',epoch=Date.parse(time+'Z');
 const minute5=['2026-11-10T14:05:00','2026-11-10T14:10:00','2026-11-10T14:15:00'];
-function workerRapid(nativeQuarter:unknown,precip5:unknown[],rain:unknown=0,snow:unknown=0){
+function workerRapid(nativeQuarter:unknown,precip5:unknown[],rain?:unknown,snow?:unknown){
  return nativeRows([{id:'icon_d2_ruc',successful:true,initialisationTime:run+'.000Z',rapid:{
   convection15:{time:[run,time],precipitation:[0,nativeQuarter],cape:[0,null],convective_inhibition:[0,null]},
   precip5:{time:minute5,precipitation:precip5},
@@ -48,6 +48,9 @@ describe('MID ICON-D2-RUC original rapid precipitation/phase missing provenance'
   expect(dry.precipitation).toBe(0);
   expect(dry.peakRateMmh).toBe(0);
   expect(dry.nativePrecipitationSeconds).toBe(300);
+  const validZeroPhases=workerRapid(0,[0,0,0],0,0)[1];
+  expect(validZeroPhases.rain).toBe(0);
+  expect(validZeroPhases.snowfallWaterEquivalent).toBe(0);
   const wet=workerRapid(.6,[.1,.2,.3])[1];
   expect(wet.precipitation).toBeCloseTo(.6);
   expect(wet.peakRateMmh).toBeCloseTo(3.6);
