@@ -82,6 +82,7 @@ function bindHistoricalMetadataOnly(manifest){
   manifest.historicalOriginalPayloadNotInWorkerdQa=true;
 }
 async function sign(manifest,key=signer.privateKey){
+  assert.equal(manifest.run,pinnedReceipt.originalModelRun,"source run must equal pinned original proof");
   assert.equal(manifest.sourceSha,pinnedReceipt.originalProducerSha,"untrusted producer SHA claim");
   assert.equal(manifest.sourceProofSha256,pinnedReceipt.originalSourceArtifactSha256,"untrusted source artifact claim");
   assert.equal(manifest.historicalProofArchiveSha256,pinnedReceipt.proofArchiveSha256,"wrong pinned original proof");
@@ -127,13 +128,8 @@ try{
   assert.equal(replay.status,422,"sealed run overwritten");
   const later=await makeDataset("2026-11-09T15:00");
   bindHistoricalMetadataOnly(later.manifest);
-  const laterSig=await sign(later.manifest);
-  const poisoned=structuredClone(later.segments);
-  const poisonedBuffer=Buffer.from(poisoned[0].data,"base64");
-  poisonedBuffer[0]^=1;
-  poisoned[0].data=base64(poisonedBuffer);
-  const tamper=await post({manifest:later.manifest,segments:poisoned,signature:laterSig});
-  assert.equal(tamper.status,422,"signed manifest accepted corrupted compressed bytes");
+  await assert.rejects(sign(later.manifest),/source run must equal pinned original proof/,
+    "one historical 14Z receipt was incorrectly reused to authorize 15Z");
   const after=await mf.dispatchFetch("http://localhost/qa/status");
   assert.equal((await after.json()).active.generation,1,"broken newer run displaced last-good");
   const old=await mf.dispatchFetch("http://localhost/qa/cell?cell=7");
@@ -143,7 +139,7 @@ try{
     workerdLocal:true,realEd25519:true,privateKeyInsideWorker:false,
     invalidSignatureRejected:true,untrustedSignerRejected:true,alteredManifestRejected:true,
     correctManifestAdmitted:true,missingDataAsZero:false,allPointBytesExact:true,
-    immutableReplayRejected:true,corruptedNextRunRejected:true,lastGoodKept:true,
+    immutableReplayRejected:true,crossRunProofReplaySignerDenied:true,lastGoodKept:true,
     sourceSynthetic:true,originalDwdIssuerVerified:false,
     originalProofMetadataPinnedInCi:true,originalDwdBytesNotSignedHere:true,
     productionApproved:false,activationAuthorized:false,cloudflareAccountTouched:false};

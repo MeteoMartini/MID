@@ -529,3 +529,20 @@ the evidence with an invented fixture. After successful validation,
 store the minimal immutable evidence receipt and its independent SHA
 in the repository for sustainable follow-up tests; *never* convert
 this historical QA receipt to a production origin-signing authority.
+
+### Fail-closed revalidation of original-proof bridge tests
+
+The initial pinned-artifact negative test failed because JSON reserialization
+changed the file length, correctly triggering the earlier **size gate**
+rather than the intended SHA gate. The test now flips the **40-character
+producer SHA in-place**, retaining its original JSON file length and
+requiring the pinned SHA to reject the corruption. Also, the ephemeral
+metadata-only QA signer is strictly restricted to the **exact historical
+14Z model run** from the independently verified proof receipt. It no
+longer signs a synthetic 15Z run using a 14Z source proof; that scenario
+is instead explicitly rejected by the signing step before any DO write.
+This preserves the policy that *each run needs its own independent source
+admission proof*, even for a local synthetic QA. A previous separate
+local DO core test still checks corrupted payload and last-good safety.
+The failing first GitHub run is retained as diagnostic evidence, not
+misreported as green.

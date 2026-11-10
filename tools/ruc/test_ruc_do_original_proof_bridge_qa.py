@@ -7,7 +7,7 @@ import shutil
 import tempfile
 import unittest
 from pathlib import Path
-from ruc_do_original_proof_bridge_qa import EXPECTED, read_proof
+from ruc_do_original_proof_bridge_qa import EXPECTED, PRODUCER_SHA, read_proof
 
 
 class PinnedProofBridgeTest(unittest.TestCase):
@@ -49,10 +49,11 @@ class PinnedProofBridgeTest(unittest.TestCase):
     def test_forged_run_or_source_sha_rejected(self):
         directory = self.copy()
         path = directory / "inventory.json"
-        orig = path.read_text(encoding="utf-8")
-        obj = json.loads(orig)
-        obj["stableSha"] = "f" * 40
-        path.write_text(json.dumps(obj), encoding="utf-8")
+        orig = path.read_bytes()
+        canonical = PRODUCER_SHA.encode("ascii")
+        self.assertGreaterEqual(orig.count(canonical), 1)
+        path.write_bytes(orig.replace(canonical, b"f" * 40, 1))
+        self.assertEqual(path.stat().st_size, len(orig))  # genuine same-size tamper
         with self.assertRaisesRegex(ValueError, "pinned SHA mismatch"):
             read_proof(directory)
 
