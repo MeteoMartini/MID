@@ -14,7 +14,7 @@ for(const token of [
  'sunshine/3600',
  '1-cloud/100',
  'windMs=Number.isFinite(point.wind)?Math.max(0,point.wind)*0.514444:NaN',
- 'windRelief=clamp((windMs-1.5)/6.5,0,1)',
+ 'windRelief=Number.isFinite(windMs)?clamp((windMs-1.5)/6.5,0,1):NaN',
  'felt=Number.isFinite(apparent)?apparent:air',
  'borderlineMoisture=vaporPressure>=17.8',
  'windSuppressed=!strongMoisture&&windMs>=7',
