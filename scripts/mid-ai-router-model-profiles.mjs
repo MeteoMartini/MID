@@ -54,7 +54,7 @@ export function assessMidAiModelCandidate({
    p.currency!=='USD'||!isFresh(p.checkedAt,now))
    no('ZERO_PRICE_NOT_VERIFIED');
  if(v.provider!==provider||v.model!==model||
-    v.publicRedactedOnly!==true||v.allowed===false||
+    v.publicRedactedOnly!==true||v.allowed!==true||
     v.noTrainingOrApprovedProcessing!==true||
     !isFresh(v.checkedAt,now))no('PRIVACY_NOT_VERIFIED');
  if(!candidate||l.provider!==provider||l.model!==model||
