@@ -6,6 +6,7 @@
  * Every actual call consumes one global, unrecoverable reservation. No retry,
  * paid route, hidden model switch, tool execution or arbitrary HTTP endpoint.
  */
+import {isMidAiPinnedCandidateModel} from './mid-ai-router-signed-quota.mjs';
 const SHA=/^[a-f0-9]{40}$/, HASH=/^[a-f0-9]{64}$/;
 const ID=/^[A-Za-z0-9][A-Za-z0-9_-]{7,79}$/;
 const VERSION=/^0\.\d+\.\d+\.\d+$/;
@@ -56,11 +57,8 @@ function envelope(provider,model,prompt,credential){
  if(typeof credential!=='string'||credential.length<12||
     credential.length>2048)deny('SERVER_CREDENTIAL_MISSING');
  if(!Object.hasOwn(ENDPOINTS,provider))deny('PROVIDER_NOT_ALLOWED');
- if(typeof model!=='string'||model.length>130 ||
-    (provider==='openrouter'&&!/^[a-z0-9][a-z0-9/_.-]{3,120}:free$/.test(model))||
-    (provider==='gemini'&&!/^gemini-[a-z0-9.-]{3,100}$/.test(model))||
-    (provider==='groq'&&!/^[a-z0-9][a-z0-9/_.-]{3,120}$/.test(model)))
-   deny('MODEL_NOT_ALLOWED');
+ // Independent defense in depth even if the admission boundary is miswired.
+ if(!isMidAiPinnedCandidateModel(provider,model))deny('MODEL_NOT_ALLOWED');
  if(provider==='gemini')return {
   url:ENDPOINTS.gemini+encodeURIComponent(model)+':generateContent',
   headers:{'content-type':'application/json','x-goog-api-key':credential},
