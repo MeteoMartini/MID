@@ -33,6 +33,7 @@ describe('native paired DWD seasonal export',()=>{
   expect(()=>nativeSeasonalSvg('winter-berge',{...precip,values:[0,1,NaN,3]},temperature,raster,place)).toThrow('kein gemeinsamer');
   expect(()=>nativeSeasonalSvg('winter-berge',precip,{...temperature,values:[-2,2,NaN,3]},raster,place)).toThrow('kein gemeinsamer');
   expect(()=>nativeSeasonalSvg('sommer-gewitter',precip,mk('gust',[20,40,60,80]),raster,place,'kn',undefined,[],-1)).toThrow();
+  expect(()=>nativeSeasonalSvg('winter-berge',{...precip,values:[0,NaN,0,NaN]},{...temperature,values:[NaN,-2,NaN,3]},raster,place)).toThrow('kein gemeinsamer');
  });
  it('labels gust maximum interval without claiming lightning or warnings',()=>{
   const src=nativeSeasonalSvg('sommer-gewitter',precip,mk('gust',[20,40,60,80]),raster,place,'kn',undefined,[],3);
