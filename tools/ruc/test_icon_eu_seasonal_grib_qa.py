@@ -64,6 +64,32 @@ class SourceContract(unittest.TestCase):
         with self.assertRaises(qa.ContractError):
             qa.enumerate_leads(a+b,RUN,'tot_prec')
 
+    def test_original_grid_rectangular_geometry(self):
+        import numpy as np
+        lat=np.repeat([51.,50.,49.],4)
+        lon=np.tile([7.,8.,9.,10.],3)
+        a=qa.validate_regular_grid(lat,lon,4,3)
+        self.assertEqual(a,qa.validate_regular_grid(lat.copy(),lon.copy(),4,3))
+        self.assertNotEqual(a,qa.validate_regular_grid(lat,lon+.1,4,3))
+        for x,y in ((lat[:-1],lon[:-1]),(lat,np.tile([7.,9.,8.,10.],3)),(np.full(12,np.nan),lon),
+                    (np.tile([51.,50.,49.,48.],3),lon)):
+            with self.subTest(),self.assertRaises(qa.ContractError):
+                qa.validate_regular_grid(x,y,4,3)
+        with self.assertRaises(qa.ContractError):
+            qa.validate_regular_grid(lat,lon,1,12)
+
+    def test_original_field_plausibility_cannot_clamp_extreme(self):
+        import numpy as np
+        qa.validate_original_range('tot_prec',np.array([0.,.01,99.,float('nan')]))
+        qa.validate_original_range('t_2m',np.array([200.,273.15,330.]))
+        qa.validate_original_range('vmax_10m',np.array([0.,20.,150.]))
+        for field,values in [('tot_prec',[-1.,0.]),('tot_prec',[6501.]),
+                             ('t_2m',[169.99]),('t_2m',[340.01]),
+                             ('vmax_10m',[-.1]),('vmax_10m',[201.]),
+                             ('t_2m',[float('nan')])]:
+            with self.subTest(field=field,values=values),self.assertRaises(qa.ContractError):
+                qa.validate_original_range(field,values)
+
     def test_duplicate_lead_rejected(self):
         with self.assertRaises(qa.ContractError): qa.enumerate_leads(listing('t_2m',(1,1)),RUN,'t_2m')
     def test_valid_hourly_and_three_hour_windows(self):
