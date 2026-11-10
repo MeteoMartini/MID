@@ -79,7 +79,7 @@ export async function readMidReviewEvidence({repo,number,token}){
   throw new Error('Invalid review gate configuration');
  const [owner,name]=repo.split('/');
  const reviews=[],threads=[];
- let rCursor=null,tCursor=null,prMeta=null;
+ let rCursor=null,tCursor=null,prMeta=null,reviewPagesComplete=false,threadPagesComplete=false;
  for(let page=0;page<MAX_PAGES;page++){
   const pr=await graphql(token,QUERY,{owner,name,number,rCursor,tCursor});
   if(!prMeta)prMeta={id:pr.id,state:pr.state,isDraft:pr.isDraft,headRefOid:pr.headRefOid,baseRefName:pr.baseRefName};
@@ -88,8 +88,10 @@ export async function readMidReviewEvidence({repo,number,token}){
   const rp=pr.reviews?.pageInfo,tp=pr.reviewThreads?.pageInfo;
   if(!rp||!tp||!Array.isArray(pr.reviews.nodes)||!Array.isArray(pr.reviewThreads.nodes))
    throw new Error('Review page missing');
-  reviews.push(...pr.reviews.nodes);threads.push(...pr.reviewThreads.nodes);
-  if(!rp.hasNextPage&&!tp.hasNextPage)return {pr:prMeta,reviews,threads};
+  if(!reviewPagesComplete)reviews.push(...pr.reviews.nodes);
+  if(!threadPagesComplete)threads.push(...pr.reviewThreads.nodes);
+  reviewPagesComplete=!rp.hasNextPage;threadPagesComplete=!tp.hasNextPage;
+  if(reviewPagesComplete&&threadPagesComplete)return {pr:prMeta,reviews,threads};
   if((rp.hasNextPage&&!rp.endCursor)||(tp.hasNextPage&&!tp.endCursor))
    throw new Error('Review pagination cursor missing');
   rCursor=rp.hasNextPage?rp.endCursor:rCursor;
