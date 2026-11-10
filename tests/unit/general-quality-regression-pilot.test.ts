@@ -1,4 +1,5 @@
 import {spawnSync} from 'node:child_process';
+import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {resolve} from 'node:path';
 import {describe,expect,it} from 'vitest';
@@ -27,4 +28,19 @@ describe('General MID QA: original Node22 regressions on combined 12-path source
    expect(result.status,script+' failed: '+diagnosis).toBe(0);
   },95_000);
  }
+});
+
+describe('Optional DWD pollen chunk: keep responsive/offline contract',()=>{
+ it('loads only when enabled and is explicitly included in the checked offline shell',()=>{
+  const app=readFileSync(resolve(root,'src/App.tsx'),'utf8');
+  const vite=readFileSync(resolve(root,'vite.config.ts'),'utf8');
+  const pollen=readFileSync(resolve(root,'src/PollenForecast.tsx'),'utf8');
+  expect(app).toContain("const LazyPollenForecast=lazy(()=>import('./PollenForecast')");
+  expect(app).toContain("return props.enabled?<Suspense fallback=");
+  expect(app).toContain("pollenDisplaySettings.showPollenForecast");
+  expect(vite).toContain("chunk.facadeModuleId?.endsWith('/src/PollenForecast.tsx')");
+  expect(vite).toContain("if(pollenRoots.length!==1)throw new Error");
+  expect(vite).toContain("visit(pollenRoots[0].fileName)");
+  expect(pollen).toContain('export function PollenForecast(');
+ },20_000);
 });
