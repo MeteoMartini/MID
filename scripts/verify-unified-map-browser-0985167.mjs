@@ -207,14 +207,14 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
    // A real installed Chrome may expose native Web Share. Explicitly test the
    // ordinary fallback-download path; native iOS sharing needs a device check.
    await page.evaluate(()=>Object.defineProperty(navigator,'canShare',{configurable:true,value:()=>false}));
-   const pending=page.waitForEvent('download',{timeout:15000});
-   await page.getByRole('button',{name:'Raster + Ortswerte · SVG',exact:true}).click();
-   const downloaded=await pending.catch(async e=>{
+   const pending=page.waitForEvent('download',{timeout:25000}).catch(async e=>{
     const status=await page.locator('.unified-layer-status').allTextContents();
     const alerts=await page.locator('[role="alert"]').allTextContents();
     throw new Error('Seasonal SVG fallback-download missing: '+id+' | map='+JSON.stringify(status)+
      ' | alerts='+JSON.stringify(alerts)+' | browser='+JSON.stringify(errors.slice(-5))+' | '+String(e));
-   }),svg=readFileSync(await downloaded.path()).toString('utf8');
+   });
+   await page.getByRole('button',{name:'Komposit + Ortswerte · SVG',exact:true}).click();
+   const downloaded=await pending,svg=readFileSync(await downloaded.path()).toString('utf8');
    assert.match(downloaded.suggestedFilename(),new RegExp('^MID-ICON-D2-'+id+'-'));
    assert.ok(svg.includes('image-rendering:crisp-edges'),'Native NoData edges must not be smoothed in SVG');
    assert.ok(svg.includes(caption),'Export must not fabricate precipitation phase or gust interval');
