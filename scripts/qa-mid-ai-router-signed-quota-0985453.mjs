@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import {webcrypto} from 'node:crypto';
 import {DatabaseSync} from 'node:sqlite';
-import {createMidAiSignedQuotaVerifier,midAiQuotaGrantBytes}
+import {createMidAiSignedQuotaVerifier,midAiQuotaGrantBytes,isMidAiPinnedCandidateModel}
  from './mid-ai-router-signed-quota.mjs';
 import {createMidAiGlobalAdmission}
  from './mid-ai-router-durable-admission.mjs';
@@ -70,6 +70,43 @@ await ok(async()=>{const invalid={...good,grant:{...good.grant,freePlanVerified:
 await ok(async()=>{const invalid={...good,grant:{...good.grant,maxAdditionalCashUsd:0.01}};await denied(()=>verifier(invalid),'INVALID_GRANT_POLICY')});
 await ok(async()=>{const invalid={...good,grant:{...good.grant,dataClass:'private'}};await denied(()=>verifier(invalid),'INVALID_GRANT_POLICY')});
 await ok(async()=>{const invalid={...good,grant:{...good.grant,provider:'vercel-ai-gateway'}};await denied(()=>verifier(invalid),'INVALID_GRANT_POLICY')});
+await ok(()=>{
+ const candidates=[
+  ['groq','openai/gpt-oss-20b'],['groq','openai/gpt-oss-120b'],
+  ['openrouter','cohere/north-mini-code:free'],
+  ['openrouter','google/gemma-4-26b-a4b-it:free'],
+  ['gemini','gemini-3.8-flash']
+ ];
+ for(const [provider,model] of candidates){
+  assert.equal(isMidAiPinnedCandidateModel(provider,model),true);
+  assert.doesNotThrow(()=>midAiQuotaGrantBytes(
+   base('mid-pinned-candidate-01',{provider,model})));
+ }
+});
+await ok(()=>{
+ const model='llama-3.3-70b-versatile';
+ assert.equal(isMidAiPinnedCandidateModel('groq',model),false);
+ assert.throws(()=>midAiQuotaGrantBytes(base('mid-unpinned-groq-01',{provider:'groq',model})),
+  e=>e?.reason==='INVALID_GRANT_POLICY');
+});
+await ok(()=>{
+ const model='meta-llama/llama-3.3-70b-instruct:free';
+ assert.equal(isMidAiPinnedCandidateModel('openrouter',model),false);
+ assert.throws(()=>midAiQuotaGrantBytes(base('mid-unpinned-openrouter-01',{provider:'openrouter',model})),
+  e=>e?.reason==='INVALID_GRANT_POLICY');
+});
+await ok(()=>{
+ const model='openrouter/free';
+ assert.equal(isMidAiPinnedCandidateModel('openrouter',model),false);
+ assert.throws(()=>midAiQuotaGrantBytes(base('mid-random-model-01',{provider:'openrouter',model})),
+  e=>e?.reason==='INVALID_GRANT_POLICY');
+});
+await ok(()=>{
+ const model='gemini-2.5-pro';
+ assert.equal(isMidAiPinnedCandidateModel('gemini',model),false);
+ assert.throws(()=>midAiQuotaGrantBytes(base('mid-unpinned-gemini-01',{provider:'gemini',model})),
+  e=>e?.reason==='INVALID_GRANT_POLICY');
+});
 await ok(async()=>{const invalid={...good,signature:'bad%signature'};await denied(()=>verifier(invalid),'INVALID_BASE64URL')});
 await ok(async()=>{instant+=120000;await denied(()=>verifier(good),'GRANT_EXPIRED_OR_CLOCK_INVALID');instant-=120000});
 await ok(async()=>{sourceOverride={mainSha:'d'.repeat(40)};
