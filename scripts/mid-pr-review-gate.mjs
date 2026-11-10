@@ -31,8 +31,11 @@ export function assessMidReviewEvidence({pr,reviews,threads,expectedHead}){
    blockers.push(failure('RESOLUTION_EVIDENCE_MISSING:'+thread.id));
  }
  let reportedIssues=0,submittedReviews=0;
+ const reviewIds=new Set();
  for(const review of reviews){
   if(!review||!review.id){blockers.push(failure('REVIEW_ID_MISSING'));continue}
+  if(reviewIds.has(review.id)){blockers.push(failure('REVIEW_ID_DUPLICATED:'+review.id));continue}
+  reviewIds.add(review.id);
   if(review.state==='PENDING'||review.state==='DISMISSED')continue;
   submittedReviews++;
   if(!review.submittedAt||!review.commit?.oid)blockers.push(failure('REVIEW_PROVENANCE_MISSING:'+review.id));
@@ -45,6 +48,12 @@ export function assessMidReviewEvidence({pr,reviews,threads,expectedHead}){
   }
  }
  if(reportedIssues>threads.length)blockers.push(failure('ISSUE_SUMMARY_THREADS_INCOMPLETE'));
+ // Thread resolution plus a written response is only a provenance signal, NOT
+ // independent code-level verification or a release-grade triage attestation.
+ // Until a protected, SHA-bound independent disposition exists, all actual
+ // findings stay blocked, even with a maintainer's discussion response.
+ if(reportedIssues>0||threads.length>0)
+  blockers.push(failure('INDEPENDENT_TRIAGE_ATTESTATION_REQUIRED'));
  // An approval never replaces thread evidence or formal GitHub branch protection.
  return {ok:blockers.length===0,blockers,reviewCount:submittedReviews,threadCount:threads.length,reportedIssues};
 }
@@ -103,6 +112,12 @@ async function main(){
  const [numberString,expectedHead]=process.argv.slice(2),number=Number(numberString);
  const {GITHUB_REPOSITORY:repo,GH_TOKEN:token}=process.env;
  const evidence=await readMidReviewEvidence({repo,number,token});
+ const confirm=await readMidReviewEvidence({repo,number,token});
+ // Separate complete readbacks expose review updates racing with pagination.
+ // This is NOT atomic with GitHub's merge API; source-gate integration still
+ // requires its own native merge-time protections and review policy.
+ if(JSON.stringify(evidence)!==JSON.stringify(confirm))
+  throw new Error('Review evidence changed during readback; retry only on a separately authorized run');
  const result=assessMidReviewEvidence({...evidence,expectedHead});
  console.log('MID review gate: '+(result.ok?'PASS':'BLOCKED')+
   ' · reviews='+result.reviewCount+' · threads='+result.threadCount+
