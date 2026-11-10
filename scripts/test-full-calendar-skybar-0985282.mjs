@@ -65,6 +65,19 @@ try{
   assert.ok(Math.abs(ends[1]-15/24*100)<1e-8);
   assert.deepEqual(daySkybarUnavailableRanges(sample,normal),daySkybarUnavailableRanges(sample.slice(1),normal),'Missing time cannot close a genuine data gap');
  }
+
+ // Numeric legacy epoch strings are valid only after normalization to milliseconds:
+ // string + HOUR_MS would otherwise concatenate and fabricate a huge interval.
+ const numericLegacyHour=String(normal.startEpoch+14*m);
+ assert.equal(daySkybarEpoch({epoch:numericLegacyHour}),normal.startEpoch+14*m,'Numeric provider epochs normalize to physical milliseconds');
+ assert.equal(daySkybarEpoch({epoch:null}),NaN,'Missing timestamp stays unknown');
+ assert.ok(Math.abs(daySkybarTimelinePositions([{epoch:numericLegacyHour}],0,0,100,normal)[0]-14/24*100)<1e-8);
+ assert.equal(daySkybarHourEndPositions([{epoch:numericLegacyHour}],normal,0,0,100)[0],15/24*100);
+ const cockpitSource=readFileSync('src/ForecastCockpit.tsx','utf8');
+ assert.ok(cockpitSource.includes('const epochs=dayHours.map(daySkybarEpoch)'), 'Solar input uses the same timestamp parser as the calendar axis');
+ assert.ok(cockpitSource.includes('const epoch=daySkybarEpoch(hour);return {...hour,epoch,precipitationIntervalStartEpoch:epoch'), 'Solar and precipitation intervals normalize source epoch before numeric addition');
+ assert.ok(cockpitSource.includes('dayHours.filter(hour=>Number.isFinite(daySkybarEpoch(hour)))'), 'Night-band source also accepts truly valid numeric epochs');
+
  const validEpochZero={startEpoch:0,endEpoch:24*m};
  assert.equal(daySkybarTimelinePositions([{epoch:0}],0,0,100,validEpochZero)[0],0,'A true numeric Unix 0 remains valid for its own calendar day');
  assert.equal(daySkybarHourEndPositions([{epoch:0}],validEpochZero,0,0,100)[0],100/24,'A real Unix 0 is not missing');
