@@ -76,6 +76,16 @@ await check(async()=>{
  assert.equal(claims.filter(x=>x.status==='rejected'&&
    x.reason.reason==='DUPLICATE_REQUEST_NO_RETRY').length,15);
 });
+await check(async()=>{forged={maxDailyRequests:3};
+ await blocked(()=>agent.reserve(request('raised-cap1')),'QUOTA_CAP_DRIFT');forged={}});
+await check(async()=>{forged={maxDailyRequests:1};
+ await blocked(()=>agent.reserve(request('lower-cap1')),'QUOTA_CAP_DRIFT');forged={}});
+await check(async()=>{forged={provider:'openrouter',
+ model:'cohere/north-mini-code:free',maxDailyRequests:51};
+ await blocked(()=>agent.reserve(request('openrouter1')),'INDEPENDENT_ZERO_CASH_APPROVAL_MISSING');forged={}});
+await check(async()=>{const rows=sql.exec('SELECT consumed,daily_cap FROM mid_ai_daily_quota').toArray();
+ assert.equal(rows.length,2);assert.ok(rows.every(x=>x.daily_cap===2));
+ assert.ok(rows.every(x=>x.consumed<=x.daily_cap))});
 await check(async()=>{
  const second=createMidAiGlobalAdmission({storage,verifyIndependentGrant:async r=>
   proof(r,{provider:'openrouter',model:'cohere/north-mini-code:free'}),now:()=>timestamp});

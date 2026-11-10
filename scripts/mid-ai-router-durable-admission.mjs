@@ -13,6 +13,10 @@ const REQ=/^[A-Za-z0-9][A-Za-z0-9_-]{7,79}$/;
 const SHA40=/^[a-f0-9]{40}$/;
 const DIGEST=/^[a-f0-9]{64}$/;
 const PROVIDER=new Set(['groq','openrouter','gemini']);
+// Independent upper bound for unfunded OpenRouter Free: 50 RPD. The signed
+// approver must still attest the REAL provider/account/model limit, which
+// may be lower. These caps never grant quota by themselves.
+const FREE_RPD_HARD_MAX=Object.freeze({groq:1000,openrouter:50,gemini:1000});
 const error=(reason)=>{const e=new Error('MID global admission blocked: '+reason);
  e.name='MidAiGlobalAdmissionBlocked';e.reason=reason;throw e;};
 const sqlRows=(storage,query,...params)=>storage.sql.exec(query,...params).toArray();
@@ -33,7 +37,9 @@ export function createMidAiGlobalAdmission({
    )`);
    storage.sql.exec(`CREATE TABLE IF NOT EXISTS mid_ai_daily_quota (
     quota_subject TEXT NOT NULL, utc_day TEXT NOT NULL,
-    consumed INTEGER NOT NULL, PRIMARY KEY(quota_subject,utc_day)
+    consumed INTEGER NOT NULL CHECK(consumed>=0),
+    daily_cap INTEGER NOT NULL CHECK(daily_cap BETWEEN 1 AND 1000),
+    PRIMARY KEY(quota_subject,utc_day)
    )`);
  }catch{error('SQLITE_SCHEMA_UNAVAILABLE');}
  return Object.freeze({
@@ -64,7 +70,8 @@ export function createMidAiGlobalAdmission({
       typeof proof?.quotaSubject!=='string' ||
       !/^[a-f0-9]{64}$/.test(proof.quotaSubject) ||
       !Number.isSafeInteger(proof?.maxDailyRequests) ||
-      proof.maxDailyRequests<1 || proof.maxDailyRequests>1000)
+      proof.maxDailyRequests<1 || proof.maxDailyRequests>1000 ||
+      proof.maxDailyRequests>FREE_RPD_HARD_MAX[proof.provider])
      error('INDEPENDENT_ZERO_CASH_APPROVAL_MISSING');
    const stamp=now();
    if(!Number.isSafeInteger(stamp) || stamp<0)error('TRUSTED_CLOCK_INVALID');
@@ -79,10 +86,15 @@ export function createMidAiGlobalAdmission({
          request.requestId);
        if(existing.length)error('DUPLICATE_REQUEST_NO_RETRY');
        const rows=sqlRows(storage,
-         'SELECT consumed FROM mid_ai_daily_quota WHERE quota_subject=? AND utc_day=?',
+         'SELECT consumed,daily_cap FROM mid_ai_daily_quota WHERE quota_subject=? AND utc_day=?',
          proof.quotaSubject,utcDay);
        const used=rows.length?rows[0].consumed:0;
        if(!Number.isSafeInteger(used)||used<0)error('QUOTA_INTEGRITY_ERROR');
+       // First valid claim pins the quota subject's cap for the UTC day.
+       // Subsequent grants cannot silently increase or lower it.
+       if(rows.length && (!Number.isSafeInteger(rows[0].daily_cap) ||
+          rows[0].daily_cap!==proof.maxDailyRequests))
+         error('QUOTA_CAP_DRIFT');
        if(used>=proof.maxDailyRequests)error('VERIFIED_FREE_QUOTA_EXHAUSTED');
        storage.sql.exec(`INSERT INTO mid_ai_claims
         (request_id,grant_digest,task_digest,model_id,provider,stable_sha,
@@ -91,9 +103,10 @@ export function createMidAiGlobalAdmission({
         proof.model,proof.provider,request.expectedStableSha,
         proof.quotaSubject,utcDay,stamp);
        storage.sql.exec(`INSERT INTO mid_ai_daily_quota
-        (quota_subject,utc_day,consumed) VALUES (?,?,1)
+        (quota_subject,utc_day,consumed,daily_cap) VALUES (?,?,1,?)
         ON CONFLICT(quota_subject,utc_day)
-        DO UPDATE SET consumed=consumed+1`,proof.quotaSubject,utcDay);
+        DO UPDATE SET consumed=consumed+1`,
+        proof.quotaSubject,utcDay,proof.maxDailyRequests);
        // No prompt/key/response stored. Claim remains spent on any timeout.
        return Object.freeze({status:'RESERVED_NO_DISPATCH',
          requestId:request.requestId,stableSha:request.expectedStableSha,

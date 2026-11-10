@@ -135,7 +135,7 @@ describe('MID AI Router: durable SQLite one-shot admission is fail-closed', () =
     });
     expect(r.error).toBeUndefined();
     expect(r.status, r.stderr || r.stdout).toBe(0);
-    expect(r.stdout).toMatch(/MID AI Router SQLite durable admission QA OK; scenarios=19; no external model, credentials, deployment or network\./);
+    expect(r.stdout).toMatch(/MID AI Router SQLite durable admission QA OK; scenarios=23; no external model, credentials, deployment or network\./);
     expect(r.stderr).toBe('');
   });
 });
