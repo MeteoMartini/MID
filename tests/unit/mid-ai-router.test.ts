@@ -111,3 +111,17 @@ describe('MID AI Router: separate direct Free-provider safety QA (issue #725)', 
   });
 
 });
+
+describe('MID AI Router: adaptive capability / Work / Codex selection is non-executable', () => {
+  it('tests source, privacy, consent, quota, mode-switch and measured model ranking in Node without API calls', () => {
+    const script = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-capability-0985453.mjs', import.meta.url));
+    const r = spawnSync(process.execPath, [script], {
+      cwd: root, timeout: 20_000, encoding: 'utf8', maxBuffer: 128 * 1024,
+      env: { PATH: process.env.PATH || '' }, stdio: ['ignore', 'pipe', 'pipe']
+    });
+    expect(r.error).toBeUndefined();
+    expect(r.status, r.stderr || r.stdout).toBe(0);
+    expect(r.stdout).toMatch(/MID AI Router capability QA OK; scenarios=\d+; no network, paid AI calls or mode switch\./);
+    expect(r.stderr).toBe('');
+  });
+});
