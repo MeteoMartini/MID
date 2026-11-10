@@ -35,7 +35,7 @@ import {dayPeriodHoursForDate,followingNightHoursForDate} from './forecastPeriod
 import {detailSkyBarHourCells,detailSkyBarSegments,detailSkyBarSolarSegments} from './detailSkyBar';
 import {detailSkyBarTimedSegments} from './detailSkyBar';
 import {SkyBarHourCellsSvg,SkyBarSegmentsSvg,SkyBarCoverageGapsSvg} from './SkyBarSegments';
-import {daySkybarTimelinePositions,daySkybarCalendarWindow,daySkybarHourEndPositions,daySkybarUnavailableRanges} from './daySkybarTimeline';
+import {daySkybarTimelinePositions,daySkybarCalendarWindow,daySkybarHourEndPositions,daySkybarUnavailableRanges,daySkybarEpoch} from './daySkybarTimeline';
 import {formatDisplayDateTime,localTimeDisambiguationSuffix} from './timeDisplay';
 import {AppPortalPopover} from './AppPortalPopover';
 import {useDismissibleLayer} from './useDismissibleLayer';
@@ -549,8 +549,8 @@ function curveRainBarStyle(hour:Hour,amount:number):CSSProperties{
 function cockpitDaySkyBarSegments(dayHours:Hour[],location:Location,timezone:string,date:string){
  if(!dayHours.length)return [];
  const left=1.5,right=1.5,width=100,centerY=8,calendarWindow=daySkybarCalendarWindow(date,timezone),positions=daySkybarTimelinePositions(dayHours,left,right,width,calendarWindow),ends=calendarWindow?daySkybarHourEndPositions(dayHours,calendarWindow,left,right,width):undefined;
- const epochs=dayHours.map(hour=>Number.isFinite(hour.epoch)?hour.epoch:NaN),knownEpochs=epochs.filter(Number.isFinite),valid=knownEpochs.length>0&&knownEpochs.every((epoch,index)=>index===0||epoch>knownEpochs[index-1]);
- const samples=dayHours.map(hour=>({...hour,precipitationIntervalStartEpoch:hour.epoch,precipitationIntervalEndEpoch:Math.min(calendarWindow?.endEpoch??Number.POSITIVE_INFINITY,hour.epoch+HOUR_MS)}));
+ const epochs=dayHours.map(daySkybarEpoch),knownEpochs=epochs.filter(Number.isFinite),valid=knownEpochs.length>0&&knownEpochs.every((epoch,index)=>index===0||epoch>knownEpochs[index-1]);
+ const samples=dayHours.map(hour=>{const epoch=daySkybarEpoch(hour);return {...hour,epoch,precipitationIntervalStartEpoch:epoch,precipitationIntervalEndEpoch:Math.min(calendarWindow?.endEpoch??Number.POSITIVE_INFINITY,epoch+HOUR_MS)}});
  if(!valid)return detailSkyBarSegments(samples,left,right,width,centerY,positions,ends);
  const gaps=knownEpochs.slice(1).map((epoch,index)=>epoch-knownEpochs[index]).filter(gap=>gap>=15*60000&&gap<=3*3600000).sort((a,b)=>a-b),interval=gaps.length?gaps[Math.floor(gaps.length/2)]:HOUR_MS;
  const start=calendarWindow?.startEpoch??knownEpochs[0],end=calendarWindow?.endEpoch??knownEpochs.at(-1)!+interval;
@@ -560,7 +560,7 @@ function cockpitDaySkyBarSegments(dayHours:Hour[],location:Location,timezone:str
 
 type CockpitSkybarNightBand={key:string;gradientId:string;x:number;width:number;fadeIn:boolean;fadeOut:boolean};
 function cockpitDaySkybarNightBands(dayHours:Hour[],location:Location,timezone:string,keyPrefix:string,left=1,right=1,width=100,date?:string){
- const timed=dayHours.filter(hour=>Number.isFinite(hour.epoch)).sort((a,b)=>Number(a.epoch)-Number(b.epoch));
+ const timed=dayHours.filter(hour=>Number.isFinite(daySkybarEpoch(hour))).sort((a,b)=>daySkybarEpoch(a)-daySkybarEpoch(b));
  const calendarWindow=date?daySkybarCalendarWindow(date,timezone):null;
  if(!timed.length&&!calendarWindow)return[] as CockpitSkybarNightBand[];
  const epochs=timed.map(hour=>Number(hour.epoch)),gaps=epochs.slice(1).map((epoch,index)=>epoch-epochs[index]).filter(gap=>gap>=15*60000&&gap<=3*3600000).sort((a,b)=>a-b),interval=gaps.length?gaps[Math.floor(gaps.length/2)]:HOUR_MS,start=calendarWindow?.startEpoch??epochs[0],end=calendarWindow?.endEpoch??epochs.at(-1)!+interval,span=Math.max(1,end-start),trackWidth=width-left-right;
