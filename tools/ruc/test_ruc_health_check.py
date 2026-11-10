@@ -623,5 +623,54 @@ class SafeDiagnosticsTests(unittest.TestCase):
    self.assertNotIn('codec_defect_proven',stderr.getvalue())
 
 
+ def test_raw_rollback_admission_is_bound_to_proven_post_pages_codec_defect(self):
+  # Synthetic replay of the 16Z failure class; not an actual codec proof.
+  active=copy.deepcopy(sealed)
+  active['storageProfile']='pages-lossless-v1'
+  active['migration']={'schema':'mid.ruc.migration-active.v1','productionEnabled':True}
+  active['pages']={'profile':'pages-lossless-v1','losslessTransport':{
+   'profile':'mid.ruc.compressed-pages.v1','mode':'replacement','rawRetained':False}}
+  self.assertTrue(mod.active_profile_valid(active))
+  with tempfile.TemporaryDirectory() as directory:
+   metadata=Path(directory)/'latest.json'
+   metadata.write_text(json.dumps(active),encoding='utf-8')
+   output=Path(directory)/'github-output'
+   argv=['--url','https://host.invalid/','--pages-base',
+         'https://host.invalid/ruc/','--meta',str(metadata)]
+   for failed,pages_ok,expected in (
+    (mod.PagesConvergenceError('16Z not visible; old 15Z only',
+       code='pages_convergence_timeout',attempts=12),False,'false'),
+    (mod.WorkerAdoptionError('not ready',
+       code='codec_evidence_unclassified'),True,'false'),
+    (mod.WorkerAdoptionError('spoofed defect',
+       code='codec_defect_proven'),True,'false'),
+    (mod.CodecDefectError('independently proved codec defect',
+       code='codec_defect_proven'),False,'false'),
+    (mod.CodecDefectError('independently proved codec defect',
+       code='codec_defect_proven'),True,'true'),
+   ):
+    with self.subTest(code=failed.code,pages_verified=pages_ok):
+     output.write_text('',encoding='utf-8')
+     with mock.patch.dict(mod.os.environ,{'GITHUB_OUTPUT':str(output)}),\
+          contextlib.redirect_stderr(io.StringIO()),\
+          mock.patch.object(mod,'probe_pages',
+            side_effect=None if pages_ok else failed,
+            return_value=1),\
+          mock.patch.object(mod,'probe_until_ready',side_effect=failed):
+      self.assertEqual(mod.main(argv),2)
+     lines=output.read_text(encoding='utf-8').splitlines()
+     self.assertEqual(lines,['health_failure_code='+failed.code,
+                             'rollback_admitted='+expected])
+     self.assertNotIn('old 15Z',output.read_text(encoding='utf-8'))
+   output.write_text('',encoding='utf-8')
+   with mock.patch.dict(mod.os.environ,{'GITHUB_OUTPUT':str(output)}),\
+        contextlib.redirect_stderr(io.StringIO()),\
+        mock.patch.object(mod,'probe_until_ready',
+          side_effect=mod.CodecDefectError('fake proof')):
+    self.assertEqual(mod.main(['--url','https://host.invalid/',
+                               '--meta',str(metadata)]),2)
+   self.assertIn('rollback_admitted=false',output.read_text(encoding='utf-8'))
+
+
 if __name__=='__main__':
  unittest.main()

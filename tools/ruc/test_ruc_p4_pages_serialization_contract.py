@@ -67,6 +67,9 @@ def check_contract(install: str, ruc: str, watchdog: str) -> dict:
     assert_serialized_pages(publisher, "RUC publish")
     if publisher.count("actions/deploy-pages@") != 2:
         raise ValueError("RUC normal and rollback publishers must stay under same lock")
+    cause_guard = "steps.worker_health.outputs.rollback_admitted == 'true'"
+    if publisher.count(cause_guard) != 1:
+        raise ValueError("RUC raw rollback is not bounded to verified codec-cause admission")
     if publisher.count("digest-mismatch: error") != 2:
         raise ValueError("RUC immutable data and rollback artifact digest gates absent")
     admission = publisher.find("prepared_snapshot.py admit --snapshot")
@@ -96,6 +99,7 @@ def check_contract(install: str, ruc: str, watchdog: str) -> dict:
         "schema": "mid.ruc.p4-shared-pages-serialization-qa.v1",
         "sharedGitHubPagesLease": True,
         "immutableReAdmission": True,
+        "verifiedRollbackCauseGuard": True,
         "staleRunAndSourceGuards": True,
         "watchdogDispatchesThroughSameRucWorkflow": True,
         "globalCrossProviderCasFencingVerified": False,
@@ -151,6 +155,13 @@ class P4PagesSerialization(unittest.TestCase):
     def test_unverified_direct_watchdog_pages_writer_fails(self):
         with self.assertRaisesRegex(ValueError, "uncoordinated direct publication"):
             check_contract(self.install, self.ruc, self.watchdog + "\n# actions/deploy-pages@unsafe\n")
+
+    def test_ruc_raw_rollback_cause_guard_and_workflow_mirror(self):
+        self.assertEqual(self.ruc, (ROOT / ".github/workflows/mid-ruc-preprocess.yml").read_text(encoding="utf-8"))
+        self.assertTrue(check_contract(self.install, self.ruc, self.watchdog)["verifiedRollbackCauseGuard"])
+        unguarded = self.ruc.replace(" && steps.worker_health.outputs.rollback_admitted == 'true'", "", 1)
+        with self.assertRaisesRegex(ValueError, "verified codec-cause"):
+            check_contract(self.install, unguarded, self.watchdog)
 
     def test_bad_workflow_structure_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "missing jobs map"):

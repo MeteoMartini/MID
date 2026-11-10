@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 import json
+import os
 import re
 import socket
 import sys
@@ -112,6 +113,28 @@ class WorkerAdoptionError(RucHealthError):
 
 class CodecDefectError(RucHealthError):
     default_code = 'codec_defect_proven'
+
+
+def _emit_rollback_admission(error: RucHealthError | None, *,
+                             pages_verified: bool, full_profile: bool) -> None:
+    """Fail-closed, runner-local verdict. Never infer codec failure from a stale URL."""
+    target = os.environ.get('GITHUB_OUTPUT')
+    if not target:
+        return
+    code = (error.code if isinstance(error, RucHealthError) and
+            error.code in SAFE_DIAGNOSTIC_CODES else 'unclassified_probe_error')
+    # Only an independently raised, typed and proven codec defect *after*
+    # strict public same-run Pages convergence may admit legacy raw recovery.
+    # No current probe raises this class merely from worker non-readiness.
+    allowed = (pages_verified is True and full_profile is True and
+               type(error) is CodecDefectError and code == 'codec_defect_proven')
+    try:
+        with open(target, 'a', encoding='utf-8') as out:
+            out.write('health_failure_code=' + code + '\n')
+            out.write('rollback_admitted=' + ('true' if allowed else 'false') + '\n')
+    except OSError:
+        # Missing output itself prevents rollback. Preserve the health exit 2.
+        pass
 
 
 class _HTTPProbeFailure(Exception):
@@ -666,6 +689,8 @@ def main(argv=None) -> int:
     if not 1 <= a.attempts <= MAX_WORKER_PROBE_ATTEMPTS:
         p.error(f'--attempts must be between 1 and {MAX_WORKER_PROBE_ATTEMPTS}')
     journal = ProbeJournal()
+    pages_verified = False
+    full_profile = False
     try:
         run = expected_run(a.meta)
         try:
@@ -673,6 +698,7 @@ def main(argv=None) -> int:
         except (OSError, UnicodeDecodeError, json.JSONDecodeError):
             raise SnapshotContractError('Local RUC metadata is unavailable or invalid') from None
         expected_contract = verified_snapshot_contract(meta, allow_legacy_rollback=a.legacy_rollback)
+        full_profile = (meta.get('storageProfile') == 'pages-lossless-v1' and active_profile_valid(meta))
         if meta.get('storageProfile') == 'pages-lossless-v1' and not active_profile_valid(meta):
             raise SnapshotContractError('Full RUC profile has not been explicitly activated',
                                         code='snapshot_profile_inactive')
@@ -684,6 +710,7 @@ def main(argv=None) -> int:
                 expected_contract=expected_contract,
                 allow_legacy_rollback=a.legacy_rollback, journal=journal,
             )
+            pages_verified = True
             print(f'MID RUC Pages publication OK: run={run}, probe={page_attempt}')
         payload, attempt = probe_until_ready(
             url,
@@ -717,11 +744,13 @@ def main(argv=None) -> int:
         print('MID RUC probe journal: ' + json.dumps(journal.as_dict(), sort_keys=True))
         return 0
     except RucHealthError as error:
+        _emit_rollback_admission(error, pages_verified=pages_verified, full_profile=full_profile)
         print('MID RUC probe journal: ' + json.dumps(journal.as_dict(), sort_keys=True),
               file=sys.stderr)
         print(f'MID RUC health FAILED: {error.code}', file=sys.stderr)
         return 2
     except Exception:
+        _emit_rollback_admission(None, pages_verified=pages_verified, full_profile=full_profile)
         print('MID RUC probe journal: ' + json.dumps(journal.as_dict(), sort_keys=True),
               file=sys.stderr)
         print('MID RUC health FAILED: unclassified', file=sys.stderr)
