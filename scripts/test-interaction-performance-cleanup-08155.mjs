@@ -69,7 +69,8 @@ for(const token of [
 
 const srcDir=resolve(dirname(fileURLToPath(import.meta.url)),'../src'),sourceNames=(await readdir(srcDir)).filter(name=>['.ts','.tsx'].includes(extname(name))&&!name.endsWith('.d.ts')),sourcePaths=new Set(sourceNames.map(name=>join(srcDir,name))),reachable=new Set(),pending=[join(srcDir,'main.tsx')],importPattern=/(?:import|export)\s+(?:[^'"]*?\s+from\s+)?['"](\.[^'"]+)['"]|import\(\s*['"](\.[^'"]+)['"]\s*\)/g;
 while(pending.length){const file=pending.pop();if(!file||reachable.has(file)||!sourcePaths.has(file))continue;reachable.add(file);const text=await readFile(file,'utf8');for(const match of text.matchAll(importPattern)){const spec=match[1]||match[2],base=resolve(dirname(file),spec),candidates=[base,`${base}.ts`,`${base}.tsx`,join(base,'index.ts'),join(base,'index.tsx')],target=candidates.find(candidate=>sourcePaths.has(candidate));if(target&&!reachable.has(target))pending.push(target)}}
-const expectedDormant=new Set(['RouteWeatherPanel.tsx','routeWeather.ts','SynopticPanel.tsx','DwdPrecipitationMap.tsx','HymecNgOverlay.tsx','HymecNgSource.ts','NativeModelMap.tsx','WeatherMapGridOverlay.tsx','WeatherMapsPanel.tsx','WmsWindUnitGuide.tsx']),unexpectedDormant=sourceNames.filter(name=>!reachable.has(join(srcDir,name))&&!expectedDormant.has(name)),unexpectedActive=[...expectedDormant].filter(name=>reachable.has(join(srcDir,name)));
+const expectedDormant=new Set(['openMeteoSpatialByteRange.ts','openMeteoSpatialCellIntegrity.ts','openMeteoSpatialEvidenceCapture.ts','openMeteoSpatialManifest.ts','openMeteoSpatialRangeProof.ts',
+ 'RouteWeatherPanel.tsx','routeWeather.ts','SynopticPanel.tsx','DwdPrecipitationMap.tsx','HymecNgOverlay.tsx','HymecNgSource.ts','NativeModelMap.tsx','WeatherMapGridOverlay.tsx','WeatherMapsPanel.tsx','WmsWindUnitGuide.tsx']),unexpectedDormant=sourceNames.filter(name=>!reachable.has(join(srcDir,name))&&!expectedDormant.has(name)),unexpectedActive=[...expectedDormant].filter(name=>reachable.has(join(srcDir,name)));
 
 if(!reachable.has(join(srcDir,'CrossSectionPanel.tsx')))failures.push('Das reaktivierte Flug-Streckenbriefing CrossSectionPanel.tsx ist nicht im aktiven Flugmeteorologiepfad erreichbar.');
 if(!app.includes("lazy(()=>import('./FlightMeteorologyPanel'))"))failures.push('Flugmeteorologie wird nicht mehr über die vorgesehene Lazy-Grenze geladen.');
@@ -77,6 +78,8 @@ if(!mapWorkspace.includes("const LazyUnifiedWeatherMap=lazy(()=>import('./Unifie
 if(!radarPanel.includes("from './synoptic'"))failures.push('Die reaktivierte Synoptik ist nicht mehr ausschließlich über den lazy geladenen Radar-/Kompositpfad verdrahtet.');
 if(!reachable.has(join(srcDir,'synoptic.ts')))failures.push('Die bewusst reaktivierte Komposit-Synoptik ist im Lazy-Radar-Pfad nicht erreichbar.');
 if(reachable.has(join(srcDir,'SynopticPanel.tsx')))failures.push('Das separate alte SynopticPanel.tsx darf trotz reaktiviertem synoptic.ts nicht in den aktiven Bundlepfad zurückkehren.');
+// Retain a positive guard: OM research-only readers must stay outside the application bundle.
+for(const name of ['openMeteoSpatialByteRange.ts','openMeteoSpatialCellIntegrity.ts','openMeteoSpatialEvidenceCapture.ts','openMeteoSpatialManifest.ts','openMeteoSpatialRangeProof.ts'])if(reachable.has(join(srcDir,name)))failures.push(`Ungeprüftes Spatial-Research-Modul wurde produktiv erreichbar: ${name}`);
 if(unexpectedDormant.length)failures.push(`Unerwartete, nicht erreichbare Laufzeitmodule gefunden: ${unexpectedDormant.join(', ')}`);
 if(unexpectedActive.length)failures.push(`Bewusst deaktivierte Module sind wieder im aktiven Bundlepfad: ${unexpectedActive.join(', ')}`);
 

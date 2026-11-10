@@ -19,7 +19,7 @@ export const REGRESSION_CORE_SUBSHARDS=Object.freeze(['core-1/4','core-2/4','cor
 // Never omit, duplicate, shorten, mock or downgrade any regression.
 export const REGRESSION_CORE_BALANCE_SWAPS=Object.freeze([
  Object.freeze({slow:'test-compact-profile-location-0985235.mjs',destination:'core-1/4',light:'test-mid-original-dwd-weather-profile-09310.mjs'}),
- Object.freeze({slow:'test-favorites-profile-0985242.mjs',destination:'core-3/4',light:'test-pollen-compact-dwd-levels-0985129.mjs'}),
+ Object.freeze({slow:'test-favorites-profile-0985242.mjs',destination:'core-1/4',light:'test-pollen-compact-dwd-levels-0985129.mjs'}),
  Object.freeze({slow:'test-module-css-consolidation-0985170.mjs',destination:'core-4/4',light:'test-mid-weather-profile-axes-09322.mjs'}),
 ]);
 
