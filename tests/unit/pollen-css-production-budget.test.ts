@@ -36,9 +36,11 @@ describe('MID #344 CSS pilot: isolated genuine Vite production build, NO release
    expect(pollenJs).toHaveLength(1);
    const css=readFileSync(path.join(assets,mainCss[0]));
    const pollen=readFileSync(path.join(assets,pollenCss[0]));
+   // Vite may emit multiple index-named chunks: match the established
+   // script's budget semantics by measuring the LARGEST index JS file.
    const js=select(/^index-.*\.js$/);
-   expect(js).toHaveLength(1);
-   const jsSize=statSync(path.join(assets,js[0])).size;
+   expect(js.length).toBeGreaterThanOrEqual(1);
+   const jsSize=Math.max(...js.map(name=>statSync(path.join(assets,name)).size));
    const html=readFileSync(path.join(work,'dist','index.html'),'utf8');
    expect(html).toContain('rel="mid-offline"');
    expect(html).toContain(pollenCss[0]);
