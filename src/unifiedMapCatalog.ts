@@ -7,7 +7,7 @@ import type {WeatherMapCatalog} from './WeatherMapsData';
 
 export const UNIFIED_MAP_PARAMETERS:{id:string;label:string;detail:string}[]=[
  {id:'synoptic',label:'Synoptik-Komposit',detail:'Theta-E 850 hPa · Höhenlinien 500 hPa · MSL · Feuchte 700 hPa · Strömung 300 hPa'},
- {id:'winter-berge',label:'Winter & Berge · Niederschlag / Frost',detail:'DWD ICON-D2 · stündlicher Niederschlag plus 2-m-Isothermen desselben Laufs und Termins; keine Schneefall- oder Glätteprognose'},
+ {id:'winter-berge',label:'Winter & Berge · Niederschlag / 2-m-Temperatur',detail:'DWD ICON-D2 · stündlicher Niederschlag plus 2-m-Isothermen desselben Laufs und Termins; keine Schneefall- oder Glätteprognose'},
  {id:'sommer-gewitter',label:'Sommer · Niederschlag / Böen',detail:'DWD ICON-D2 · stündlicher Niederschlag plus Böen-Isolinien desselben Laufs und Termins; keine Gewitterdiagnose oder amtliche Warnung'},
  {id:'temperature',label:'Temperatur · 2 m',detail:'Momentanwert'},
  {id:'precipitation',label:'Niederschlag · 1 h',detail:'Stundensumme bis zum Rastertermin'},

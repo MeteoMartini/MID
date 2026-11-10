@@ -24,9 +24,10 @@ export function nativeSeasonalSvg(
 ):string{
  if(!seasonalPairValid(id,precip,companion)||!Number.isFinite(gustIntervalHours)||
    gustIntervalHours<=0||gustIntervalHours>48||
-   typeof raster!=='string'||!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(raster))
+   typeof raster!=='string'||!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(raster)||
+   precip.values.some((value,i)=>Number.isFinite(value)!==Number.isFinite(companion.values[i])))
   throw new Error('Saisonkartenexport: kein gemeinsamer, geprüfter Originaldatenstand.');
- const label=id==='winter-berge'?'Winter & Berge · Regen / 2-m-Isothermen':'Sommer · Regen / Böen-Isolinien';
+ const label=id==='winter-berge'?'Winter & Berge · Niederschlag / 2-m-Isothermen':'Sommer · Niederschlag / Böen-Isolinien';
  const base=nativeFieldSvg(precip,label,raster,places,1,unit,scale,states,
   {fill:true,lines:false,extremes:false});
  const west=precip.lons[0],east=precip.lons.at(-1)!;

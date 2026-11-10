@@ -13,6 +13,8 @@ describe('native paired DWD seasonal export',()=>{
  it('exports both variables with the run/term, zero-preserving favorite and explicit provenance',()=>{
   const src=nativeSeasonalSvg('winter-berge',precip,temperature,raster,place,'kn',nativeMapScale(precip,'absolute'));
   expect(src).toContain('Winter &amp; Berge');
+  expect(src).toContain('Niederschlag / 2-m-Isothermen');
+  expect(src).not.toContain('Regen /');
   expect(src).toContain('Testort &amp; Tal');
   expect(src).toContain('2 m: -2');
   expect(src).toContain('keine Aussage zur Niederschlagsphase');
@@ -23,6 +25,8 @@ describe('native paired DWD seasonal export',()=>{
   expect(()=>nativeSeasonalSvg('winter-berge',precip,{...temperature,time:'2026-11-09T08:00:00Z'},raster,place)).toThrow();
   expect(()=>nativeSeasonalSvg('winter-berge',precip,{...temperature,lons:[7,7.2]},raster,place)).toThrow();
   expect(()=>nativeSeasonalSvg('winter-berge',precip,temperature,'javascript:alert(1)',place)).toThrow();
+  expect(()=>nativeSeasonalSvg('winter-berge',{...precip,values:[0,1,NaN,3]},temperature,raster,place)).toThrow('kein gemeinsamer');
+  expect(()=>nativeSeasonalSvg('winter-berge',precip,{...temperature,values:[-2,2,NaN,3]},raster,place)).toThrow('kein gemeinsamer');
   expect(()=>nativeSeasonalSvg('sommer-gewitter',precip,mk('gust',[20,40,60,80]),raster,place,'kn',undefined,[],0)).toThrow();
  });
  it('labels gust maximum interval without claiming lightning or warnings',()=>{
