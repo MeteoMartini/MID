@@ -24,7 +24,9 @@ assert.equal(qualified.ok, true);
 const m = qualified.manifest;
 assert.equal(m.status, 'manifest-only');
 assert.deepEqual(spatialCompositeCoverage(m, 'winter-berge').declared,
-  ['precipitation', 'snowfall_height', 'freezing_level_height']);
+  ['precipitation', 'snowfall_height', 'freezing_level_height', 'geopotential_height_500hPa']);
+assert.deepEqual(spatialCompositeCoverage(m, 'winter-berge').absent,
+  ['rain', 'showers', 'snow_depth', 'snowfall_water_equivalent', 'weather_code', 'cloud_cover', 'pressure_msl']);
 assert.equal(spatialCompositeCoverage(m, 'winter-berge').pixelValidated, false);
 assert.ok(spatialCompositeCoverage(m, 'sommer-gewitter').absent.includes('showers'));
 assert.equal(spatialFrameCandidate(m, 'precipitation', t0).status, 'unavailable');
