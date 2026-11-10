@@ -57,8 +57,8 @@ export function seasonalPairValid(id:string,primary:NativeField|null,secondary:N
  return primary.values.some((value,i)=>Number.isFinite(value)&&Number.isFinite(secondary.values[i]));
 }
 /** Both displays must share one checked pairing and the exact same NoData mask.
- * The combined pass avoids duplicate native-domain validation and repeated
- * 542040-cell traversals on a forecast-step change.
+ * A single masked output pass avoids duplicate coordinate checks and repeated
+ * traversals of the published raster when the forecast step changes.
  */
 export function seasonalMaskedPair(id:string,primary:NativeField,secondary:NativeField,expectedTime?:string):{primary:NativeField;secondary:NativeField}|null{
  if(!seasonalPairValid(id,primary,secondary,expectedTime))return null;
