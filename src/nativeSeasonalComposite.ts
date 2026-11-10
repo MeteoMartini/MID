@@ -35,6 +35,7 @@ export function seasonalMapFrames(index:NativeIndex|null,id:string):NativeFrameR
 export function seasonalPairValid(id:string,primary:NativeField|null,secondary:NativeField|null,expectedTime?:string):boolean{
  const c=seasonalMapKinds(id);
  if(!c||!primary||!secondary||primary.kind!==c.primary||secondary.kind!==c.secondary||
+   primary.unit!=='mm/1 h'||secondary.unit!==(c.secondary==='temperature'?'°C':'km/h')||
    primary.run!==secondary.run||primary.time!==secondary.time||
    (expectedTime!==undefined&&primary.time!==expectedTime)||
    (primary.modelId!==undefined&&primary.modelId!=='icon-d2')||
