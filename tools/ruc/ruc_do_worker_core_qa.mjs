@@ -94,6 +94,11 @@ export class RucRunCoreQa{
     for(const o of m.objects)for(let i=0;i<o.segments.length;i++){
       const item=actual.find(x=>x.name===o.key&&x.part===i);
       check(item?.bytes===o.segments[i].bytes,"altered/missing segment");
+      // Size parity is NOT content parity: re-read every stored SQL BLOB
+      // against the signed segment SHA before advancing seal/pointer.
+      const stored=rows(this.sql,"SELECT payload AS data FROM segments WHERE name=? AND part=?",o.key,i)[0]?.data;
+      check(stored?.byteLength===o.segments[i].bytes,"sealed SQL segment missing/changed");
+      check(await sha256(stored)===o.segments[i].sha256,"sealed segment SHA mismatch");
     }
     const digest=await sha256(new TextEncoder().encode(JSON.stringify(m)));
     return this.ctx.storage.transactionSync(()=>{

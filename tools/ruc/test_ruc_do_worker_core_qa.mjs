@@ -107,6 +107,18 @@ test("tampered post-seal compressed SQL BLOB denied by digest",async()=>{
   s.ctx.db.prepare("UPDATE segments SET payload=? WHERE name=? AND part=0").run(poison,name);
   await assert.rejects(s.store.readCellsQa(0,[name]),/compressed chunk SHA mismatch/);
 });
+test("preseal same-size SQL corruption cannot certify a run or advance last-good",async()=>{
+  const s=await build();s.store.beginQa(s.manifest);
+  for(const p of s.products)for(let i=0;i<p.parts.length;i++)
+    await s.store.putSegmentQa(p.key,i,p.parts[i].data);
+  const target=s.products[0].key;
+  const actual=s.ctx.db.prepare("SELECT payload FROM segments WHERE name=? AND part=0").get(target).payload;
+  const bad=actual.slice();bad[0]^=1;
+  s.ctx.db.prepare("UPDATE segments SET payload=? WHERE name=? AND part=0").run(bad,target);
+  await assert.rejects(s.store.sealQa(),/sealed segment SHA mismatch/);
+  assert.equal(s.store.getSealReceiptQa(),null);
+  assert.equal(s.store.state().sealed,0);
+});
 test("coordinator confirms read-only sealed remote receipt and fences stale writers",async()=>{
   const ctx=makeSql(),runs=new Map(),ns={idFromName:r=>r,get:r=>runs.get(r)};
   const coord=new RucCoordinatorCoreQa(ctx,{RUNS:ns});

@@ -469,3 +469,25 @@ has now been added without weakening/altering the original tests:
 The new workerd test runs on the already provisioned **ephemeral local
 Miniflare** job and must be declared successful only after reading the
 exact new-head GitHub job result. No 763-MB DWD re-download.
+
+
+## Additional P0 seal integrity gate (2026-11-10, QA-only)
+
+The source-authoritative trust chain is still incomplete: a test Ed25519
+signature alone does not establish DWD data origin. In addition, an in-DO
+SQL BLOB could be corrupted *after* its upload SHA passed but *before*
+`sealQa`. The old QA-only `sealQa` checked physical bytes and row counts
+without re-hashing stored payloads. The new fail-closed QA now reads **each
+stored SQL segment** and recomputes its SHA-256, against the signed-manifest
+segment digest, before issuing any sealed receipt. It also keeps
+`productionApproved=false`, `activationAuthorized=false`, and never
+publishes any data. A new same-size SQL mutation test confirms the
+candidate cannot be sealed and cannot advance the last-good pointer.
+
+Important: Rehashing a real ~673MB dataset may violate Cloudflare Durable
+Object CPU/throughput quotas if done in **one** invocation. Therefore
+this is proof of *integrity logic only*, not a deployable sealing design.
+A future production-candidate protocol needs bounded incremental
+verification, a verified manifest commitment/bitmap persisted in SQL
+and a short final atomic state change. Do not remove this validation
+to meet CPU budgets; design a bounded chunk-check protocol instead.
