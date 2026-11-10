@@ -1,4 +1,6 @@
 import {describe,it,expect} from 'vitest';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import {availableUnifiedParameters,groupedUnifiedParameters,unifiedSources,UNIFIED_MAP_PARAMETERS} from '../../src/unifiedMapCatalog';
 import type {NativeIndex,NativeFrameRef} from '../../src/nativeModelFields';
 
@@ -13,6 +15,17 @@ const index=():NativeIndex=>({schema:'mid.icon-d2.fields.v1',run,products:{
 }});
 
 describe('seasonal WXCharts-inspired cards stay inside the original MID map selector',()=>{
+ it('executes the actual C17 map source/parameter regressions on this PR head',()=>{
+  // Run the existing source/selector/WMS/provenance contract as a real Node process.
+  // Browser viewports run only in the separate mandatory Source-Gate browser matrix.
+  // No weakening or removal of the existing GITHUB_ACTIONS=true browser branches.
+  const repoRoot=fileURLToPath(new URL('../../',import.meta.url));
+  const output=execFileSync(process.execPath,['scripts/test-unified-map-layers-0985167.mjs'],{
+   cwd:repoRoot,encoding:'utf8',timeout:120_000,maxBuffer:4*1024*1024,
+   env:{...process.env,GITHUB_ACTIONS:'false'},
+  });
+  expect(output).toContain('MID-C17 unified map: scientific model/parameter matrix');
+ },120_000);
  it('offers both exact-source seasonal products in the existing grouped parameter picker',()=>{
   const available=availableUnifiedParameters(index(),false,false);
   expect(available.filter(x=>['winter-berge','sommer-gewitter'].includes(x.id)).map(x=>x.id))
