@@ -1,5 +1,6 @@
 // Pure regression for issue #740; no credentials, network or workflow writes.
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {assessMidReviewEvidence} from './mid-pr-review-gate.mjs';
 const HEAD='a'.repeat(40);
 const ready={headRefOid:HEAD,state:'OPEN',isDraft:false,baseRefName:'main'};
@@ -40,4 +41,39 @@ assert.equal(historic.reportedIssues,21);
 assert.equal(historic.threadCount,21);
 assert.ok(historic.blockers.includes('UNRESOLVED_REVIEW_THREAD:review729-t0'));
 assert.ok(historic.blockers.includes('INDEPENDENT_TRIAGE_ATTESTATION_REQUIRED'));
-console.log('MID review evidence fail-closed QA: SHA/duplicate/zero-finding/review729 negatives PASS; NO workflow attached.');
+// Metadata below was captured from the actual PR #729 GitHub review record.
+// Historical GitHub state is MERGED; the OPEN state here models the instant
+// before the original merge. The review's commit OID is simulated because the
+// normalized public review record does not expose its original review commit.
+const captured729=JSON.parse(readFileSync(new URL('../tests/fixtures/mid-pr729-cubic-reviewed-record-20261110.json',import.meta.url),'utf8'));
+assert.equal(captured729.schema,1);
+assert.equal(captured729.pr,729);
+assert.match(captured729.prHeadSha,/^[a-f0-9]{40}$/);
+assert.equal(captured729.reviewSummaries.length,2);
+assert.equal(captured729.threads.length,21);
+assert.deepEqual(captured729.reviewSummaries.map(x=>x.issueCount),[15,6]);
+assert.ok(captured729.reviewSummaries.every(x=>Date.parse(x.submittedAt)<Date.parse(captured729.mergedAt)),
+ 'All 21 Cubic findings were submitted before the actual merge');
+assert.ok(captured729.threads.every(x=>x.resolved===false),'Historical unresolved review threads must not be silently considered fixed');
+assert.equal(captured729.threads.filter(x=>x.priority==='P1').length,1);
+const realFormatReviews=captured729.reviewSummaries.map(x=>({
+ id:x.id,state:x.state,submittedAt:x.submittedAt,
+ bodyText:x.issueCount+' issues found',commit:{oid:captured729.prHeadSha}
+}));
+const realFormatThreads=captured729.threads.map(x=>({
+ id:x.id,isResolved:x.resolved,isOutdated:x.outdated,
+ comments:{nodes:[{bodyText:'Historic public Cubic review, see '+x.path,
+  authorAssociation:'NONE',author:{__typename:'Bot',login:x.firstCommentAuthor}}]}
+}));
+const realPrReady={...ready,headRefOid:captured729.prHeadSha};
+const realPreMerge=assessMidReviewEvidence({pr:realPrReady,reviews:realFormatReviews,
+ threads:realFormatThreads,expectedHead:captured729.prHeadSha});
+assert.equal(realPreMerge.ok,false);
+assert.equal(realPreMerge.threadCount,21);
+assert.equal(realPreMerge.reportedIssues,21);
+assert.equal(realPreMerge.blockers.filter(x=>x.startsWith('UNRESOLVED_REVIEW_THREAD:')).length,21);
+assert.ok(realPreMerge.blockers.includes('INDEPENDENT_TRIAGE_ATTESTATION_REQUIRED'));
+assert.ok(assessMidReviewEvidence({pr:{...realPrReady,state:'MERGED'},
+ reviews:realFormatReviews,threads:realFormatThreads,
+ expectedHead:captured729.prHeadSha}).blockers.includes('PR_NOT_READY'));
+console.log('MID review evidence fail-closed QA: authentic GitHub #729 review/thread metadata and synthetic negatives PASS; NO workflow attached.');
