@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import ts from 'typescript';
 import {readFile} from 'node:fs/promises';
 const versionAtLeast=(value,target)=>{const a=String(value).split('.').map(Number),b=String(target).split('.').map(Number);for(let i=0;i<Math.max(a.length,b.length);i++){if((a[i]||0)!==(b[i]||0))return(a[i]||0)>(b[i]||0)}return true};
 
@@ -34,7 +33,10 @@ assert.ok(css.includes('scroll-margin-bottom:calc(5.5rem + env(safe-area-inset-b
 // Run the actual TypeScript severity and coverage helpers against DWD boundary codes.
 const start=pollen.indexOf('function pollenSeverity('),end=pollen.indexOf('function pollenLabel(');
 assert.ok(start>=0&&end>start,'Original pollen functions not found');
-const compiled=ts.transpileModule(pollen.slice(start,end),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None}}).outputText;
+const compiled=pollen.slice(start,end)
+ .replace('function pollenSeverity(entry:PollenForecastEntry|undefined):number','function pollenSeverity(entry)')
+ .replace('function pollenHasMissing(date:string,types:string[],byType:Map<string,PollenForecastEntry[]>):boolean','function pollenHasMissing(date,types,byType)');
+assert.ok(!compiled.includes('PollenForecastEntry')&&!compiled.includes('Map<string'),'QA must remove only the two original TypeScript signatures');
 const {pollenSeverity,pollenHasMissing}=new Function(compiled+';return {pollenSeverity,pollenHasMissing}')();
 const item=(value,integer,date='2026-11-10')=>({pollenValue:value,pollenInt:integer,forecastDate:date});
 for(const [value,integer,expected] of [['0',-1,0],['0-1',0,0.5],['1-2',0,1.5],['2-3',0,2.5],['3',3,3],['-1',0,-1],['',undefined,-1],['',null,-1],['unbekannt',undefined,-1],['',0,0]])
