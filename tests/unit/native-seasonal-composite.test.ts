@@ -5,8 +5,8 @@ const time='2026-11-09T07:00:00Z',run='2026-11-09T06:00:00Z';
 const frame=(t=time,intervalHours=1):NativeFrameRef=>({hour:1,time:t,file:'precipitation-001.json',sha256:'a'.repeat(64),bytes:500,intervalHours});
 const makeIndex=():NativeIndex=>({schema:'mid.icon-d2.fields.v1',run,products:{
  precipitation:{unit:'mm/1 h',frames:[frame()]},
- temperature:{unit:'°C',frames:[frame()]},
- gust:{unit:'km/h',frames:[frame()]},
+ temperature:{unit:'°C',frames:[frame(time,0)]},
+ gust:{unit:'km/h',frames:[frame(time,0)]},
 }});
 const field=(kind:NativeField['kind'],values:number[]=[0,1,NaN,2]):NativeField=>({
  schema:'mid.icon-d2.field.v1',run,time,kind,unit:kind==='temperature'?'°C':kind==='gust'?'km/h':'mm/1 h',
@@ -19,6 +19,11 @@ describe('DWD ICON-D2 seasonal composites: fail-closed common native fields',()=
   expect(seasonalMapKinds('unknown')).toBeNull();
   expect(seasonalMapFrames(makeIndex(),'winter-berge')).toHaveLength(1);
   expect(seasonalMapFrames(makeIndex(),'sommer-gewitter')).toHaveLength(1);
+  const native=makeIndex();native.schema='mid.icon-d2.native-fields.v2';
+  expect(seasonalMapFrames(native,'winter-berge')).toHaveLength(1);
+  expect(seasonalMapFrames(native,'sommer-gewitter')).toHaveLength(1);
+  native.products.temperature!.frames=[frame(time,-1)];
+  expect(seasonalMapFrames(native,'winter-berge')).toHaveLength(0);
   const i=makeIndex();i.products.precipitation!.frames=[frame(time,3)];
   expect(seasonalMapFrames(i,'winter-berge')).toHaveLength(0);
  });
@@ -49,6 +54,7 @@ describe('DWD ICON-D2 seasonal composites: fail-closed common native fields',()=
   expect(Number.isNaN(primary?.values[3])).toBe(true);
   expect(secondary?.values[0]).toBe(-2);
   expect(Number.isNaN(secondary?.values[1])).toBe(true);
+  expect(Number.isNaN(secondary?.values[2])).toBe(true);
  });
  it('does not manufacture snow, lightning or a synthetic hazard value',()=>{
   const p=field('precipitation',[0,1,4,NaN]),g=field('gust',[10,40,80,90]);
