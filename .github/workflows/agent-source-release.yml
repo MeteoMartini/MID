@@ -189,9 +189,13 @@ jobs:
                   raise ValueError("Submitted review provenance missing")
                 if review_sha!=head:raise ValueError("Submitted review on stale SHA")
                 if state=="CHANGES_REQUESTED":raise ValueError("Changes requested")
-                if state=="APPROVED":continue
-                if state!="COMMENTED":raise ValueError("Unexpected submitted review state")
                 body=(review.get("bodyText") or "").strip()
+                if state=="APPROVED":
+                  # Even an approval may explicitly report real defects.
+                  if any(int(value)!=0 for value in re.findall(r"\b(\d+)\s+issues?\s+found\b",body,re.I)):
+                    raise ValueError("Approved review still reports substantive issues")
+                  continue
+                if state!="COMMENTED":raise ValueError("Unexpected submitted review state")
                 if not body:continue
                 counts=re.findall(r"\b(\d+)\s+issues?\s+found\b",body,re.I)
                 if not counts or any(int(value)!=0 for value in counts):

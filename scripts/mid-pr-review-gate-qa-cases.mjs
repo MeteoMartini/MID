@@ -11,6 +11,8 @@ const thread=(id,resolved=true,comments=[bot,human],outdated=false)=>({id,isReso
 const check=(pr=ready,reviews=[],threads=[])=>assessMidReviewEvidence({pr,reviews,threads,expectedHead:HEAD});
 assert.equal(check().ok,true,'No incoming reviews must not create artificial approval gate');
 assert.equal(check(ready,[review('approved','APPROVED','')]).ok,true,'Approval on exact head is permitted, but not required');
+assert.equal(check(ready,[review('approved-lgtm','APPROVED','LGTM')]).ok,true,'An unstructured approval with no issues is not a finding');
+assert.ok(check(ready,[review('approved-findings','APPROVED','1 issue found')]).blockers.includes('ISSUE_SUMMARY_THREADS_INCOMPLETE'),'Even an explicit approved review finding must not be ignored');
 assert.ok(check(ready,[{...review('stale','APPROVED',''),commit:{oid:'b'.repeat(40)}}]).blockers.includes('REVIEW_HEAD_SHA_STALE:stale'),'An old-head approval never authorizes new changes');
 assert.ok(check(ready,[review('mixed','COMMENTED','0 issues found; 2 issues found')]).blockers.includes('REVIEW_ISSUE_COUNT_CONFLICT:mixed'),'Contradictory zero/nonzero finding summaries must fail closed');
 assert.ok(check({...ready,headRefOid:'b'.repeat(40)}).blockers.includes('HEAD_CHANGED'));

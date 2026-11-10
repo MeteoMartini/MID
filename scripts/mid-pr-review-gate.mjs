@@ -42,7 +42,7 @@ export function assessMidReviewEvidence({pr,reviews,threads,expectedHead}){
   if(review.commit?.oid&&review.commit.oid!==expectedHead)blockers.push(failure('REVIEW_HEAD_SHA_STALE:'+review.id));
   if(review.state==='CHANGES_REQUESTED')blockers.push(failure('CHANGES_REQUESTED:'+review.id));
   const body=String(review.bodyText||'').trim();
-  if(review.state!=='APPROVED'&&body){
+  if(body){
    const matches=[...body.matchAll(ISSUE_SUMMARY)],counts=matches.map(match=>Number(match[1]));
    if(counts.length){
     if(counts.some(count=>!Number.isSafeInteger(count)||count>2000))blockers.push(failure('ISSUE_COUNT_UNTRUSTED:'+review.id));
@@ -50,7 +50,7 @@ export function assessMidReviewEvidence({pr,reviews,threads,expectedHead}){
      reportedIssues+=Math.max(...counts);
      if(counts.some(count=>count!==counts[0]))blockers.push(failure('REVIEW_ISSUE_COUNT_CONFLICT:'+review.id));
     }
-   }else if(!threads.length)blockers.push(failure('REVIEW_SUMMARY_WITHOUT_THREADS:'+review.id));
+   }else if(review.state!=='APPROVED'&&!threads.length)blockers.push(failure('REVIEW_SUMMARY_WITHOUT_THREADS:'+review.id));
   }
  }
  if(reportedIssues>threads.length)blockers.push(failure('ISSUE_SUMMARY_THREADS_INCOMPLETE'));

@@ -35,7 +35,7 @@ describe('MID #740 trusted workflow review premerge and #697 branch boundary',()
    env:{...process.env,GH_TOKEN:'',MID_RELEASE_APP_PRIVATE_KEY:''}
   });
   expect(result.status,[result.stdout,result.stderr,result.error?.message].filter(Boolean).join('\n')).toBe(0);
-  expect(result.stdout).toContain('19 mocked allow/deny/TOCTOU tests PASS');
+  expect(result.stdout).toContain('20 mocked allow/deny/TOCTOU tests PASS');
   expect(result.stdout).toContain('ZERO network requests');
  });
 });

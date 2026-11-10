@@ -38,6 +38,7 @@ case_map={
  "no-reviews":([valid,valid],True,"PASS"),
  "zero-issues":([zero,zero],True,"PASS"),
  "approved-current-head":([page(reviews=connection([review("r-approved","",state="APPROVED")]))]*2,True,"PASS"),
+ "approved-reports-defects":([page(reviews=connection([review("r-approved-bad","1 issue found",state="APPROVED")]))]*2,False,"Approved review still reports"),
  "approved-stale-head":([page(reviews=connection([{**review("r-stale","",state="APPROVED"),"commit":{"oid":"b"*40}}]))]*2,False,"stale SHA"),
  "contradictory-review-summary":([page(reviews=connection([review("r-mixed","0 issues found; 2 issues found")]))]*2,False,"Substantive review"),
  "review-findings":([issues,issues],False,"Substantive review"),
@@ -97,4 +98,4 @@ for name,(pages,allowed,needle) in case_map.items():
  assert (code==0)==allowed,(name,code,output)
  assert needle.lower() in output.lower(),(name,output)
  if allowed:assert calls[0]==len(pages),(name,"Missing complete double readback")
-print("MID trusted premerge Python: 19 mocked allow/deny/TOCTOU tests PASS; ZERO network requests.")
+print("MID trusted premerge Python: 20 mocked allow/deny/TOCTOU tests PASS; ZERO network requests.")
