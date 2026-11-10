@@ -41,6 +41,24 @@ await verify(async()=>{payload={data:[model('openai/gpt-oss-20b')]};
 await verify(async()=>{payload={data:[model('openai/gpt-oss-20b'),model('openai/gpt-oss-120b',false)]};
  const r=await run();assert.equal(r.status,'MODEL_CATALOG_PARTIAL');
  assert.equal(r.models[1].active,false);payload=both()});
+await verify(async()=>{payload={data:[
+ {id:'openai/gpt-oss-20b',object:'model'},
+ {id:'openai/gpt-oss-120b',object:'model'}]};
+ const r=await run();assert.equal(r.status,'MODEL_CATALOG_CONFIRMED');
+ assert.equal(r.models.every(x=>x.listed&&x.active),true);
+ assert.equal(r.freeTierVerified,false);assert.equal(r.zeroCashVerified,false);
+ payload=both()});
+await verify(async()=>{payload={data:[model('openai/gpt-oss-20b'),
+ {id:'openai/gpt-oss-120b',object:'model',active:null}]};
+ const r=await run();assert.equal(r.status,'MODEL_CATALOG_PARTIAL');
+ assert.equal(r.models[1].active,false);payload=both()});
+await verify(async()=>{payload={data:[model('openai/gpt-oss-20b'),
+ {id:'openai/gpt-oss-120b',object:'unexpected'}]};
+ const r=await run();assert.equal(r.status,'MODEL_CATALOG_PARTIAL');
+ assert.equal(r.models[1].active,false);payload=both()});
+await verify(async()=>{payload={data:[...both().data,
+ model('openai/gpt-oss-120b')]};
+ await blocked(()=>run(),'GROQ_CATALOG_DUPLICATE_MODEL');payload=both()});
 await verify(async()=>{status=401;await blocked(()=>run(),'GROQ_KEY_UNAUTHORIZED');status=200});
 await verify(async()=>{status=403;await blocked(()=>run(),'GROQ_MODEL_ACCESS_DENIED');status=200});
 await verify(async()=>{status=429;await blocked(()=>run(),'GROQ_CATALOG_RATE_LIMITED');status=200});
