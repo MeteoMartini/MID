@@ -165,20 +165,27 @@ export async function executeMidAiRoute({
   // The runner is responsible for making this callback authoritative; the
   // callback alone is not a cryptographic attestation of GitHub API origin.
   if (typeof trustedSourceReadback !== 'function') block('SOURCE_READBACK_REQUIRED');
-  let current;
-  try { current = await trustedSourceReadback(); }
-  catch { block('SOURCE_READBACK_UNAVAILABLE'); }
-  const readbackNow = Date.now(); // clock sampled AFTER the awaited GitHub read
-  const checked = Date.parse(current?.checkedAt);
-  if (!Number.isFinite(checked) || checked > readbackNow || readbackNow-checked > 30000)
-    block('SOURCE_READBACK_STALE');
-  if (!SHA.test(current?.mainSha || '') || !SHA.test(current?.stableSha || '') ||
-      current.mainSha !== current.stableSha ||
-      current.mainSha !== snapshot?.mainSha ||
-      current.stableSha !== snapshot?.stableSha ||
-      current.stableSha !== task?.expectedStableSha ||
-      current.version !== snapshot?.version)
-    block('SOURCE_DRIFT');
+  // Check source twice: before approval/admission and immediately before
+  // network send. An awaited durable ledger write can outlive the original
+  // readback or a just-issued grant. Both cases fail closed.
+  const readbackSource = async () => {
+    let current;
+    try { current = await trustedSourceReadback(); }
+    catch { block('SOURCE_READBACK_UNAVAILABLE'); }
+    const checkedAt = Date.parse(current?.checkedAt);
+    const checkedNow = Date.now(); // never sample before awaiting
+    if (!Number.isFinite(checkedAt) || checkedAt > checkedNow ||
+        checkedNow - checkedAt > 30000)
+      block('SOURCE_READBACK_STALE');
+    if (!SHA.test(current?.mainSha || '') || !SHA.test(current?.stableSha || '') ||
+        current.mainSha !== current.stableSha ||
+        current.mainSha !== snapshot?.mainSha ||
+        current.stableSha !== snapshot?.stableSha ||
+        current.stableSha !== task?.expectedStableSha ||
+        current.version !== snapshot?.version)
+      block('SOURCE_DRIFT');
+  };
+  await readbackSource();
   const renewed = planMidAiRoute({ task, snapshot, providers, now });
   if (renewed.provider === 'github-native') block('GITHUB_NATIVE_IS_NOT_HTTP');
   if (!plan || plan.provider !== renewed.provider || plan.model !== renewed.model ||
@@ -197,6 +204,13 @@ export async function executeMidAiRoute({
   const req = buildMidAiRequest({ plan: renewed, prompt: task.prompt, credential });
   if (!await durableClaim(task.requestId, plan.provider, plan.model))
     block('DUPLICATE_REQUEST');
+  // No retry if this claim has been consumed but admission is no longer valid.
+  const expiresAt = Date.parse(approvalGrant?.expiresAt);
+  if (!Number.isFinite(expiresAt) || expiresAt <= Date.now())
+    block('GRANT_EXPIRED_BEFORE_DISPATCH');
+  await readbackSource();
+  // Also guard a source-readback request that itself outlasts the grant.
+  if (expiresAt <= Date.now()) block('GRANT_EXPIRED_BEFORE_DISPATCH');
   const response = await fetchImpl(req.url, {
     method: 'POST', headers: req.headers, body: req.body,
     signal: AbortSignal.timeout(15000), redirect: 'error'

@@ -304,6 +304,47 @@ await rejected('changed privacy proof after planning', {
   },'GRANT_SIGNATURE_REJECTED');
   assert.equal(claims,0);assert.equal(requests,0);
 }
+{
+  let sourceReads=0,claims=0,requests=0;
+  await rejected('stable advances after durable reservation; do not send', {
+    ...args,
+    trustedSourceReadback:async()=>{
+      sourceReads++;
+      return {...snapshot,checkedAt:new Date().toISOString(),
+        stableSha:sourceReads===1?sha:'b'.repeat(40)};
+    },
+    durableClaim:async()=>{claims++;return true;},
+    fetchImpl:async()=>{requests++;return goodResponse({});}
+  },'SOURCE_DRIFT');
+  assert.equal(sourceReads,2);assert.equal(claims,1);assert.equal(requests,0);
+}
+{
+  let sourceReads=0,requests=0;
+  await rejected('second independent source-readback outage blocks dispatch', {
+    ...args,
+    trustedSourceReadback:async()=>{
+      if (++sourceReads===2)throw new Error('readback unavailable');
+      return {...snapshot,checkedAt:new Date().toISOString()};
+    },
+    fetchImpl:async()=>{requests++;return goodResponse({});}
+  },'SOURCE_READBACK_UNAVAILABLE');
+  assert.equal(sourceReads,2);assert.equal(requests,0);
+}
+{
+  let calls=0;
+  const realNow=Date.now;
+  try {
+    await rejected('signed grant expires while claim waits; do not send', {
+      ...args,
+      durableClaim:async()=>{
+        Date.now=()=>realNow()+120000;
+        return true;
+      },
+      fetchImpl:async()=>{calls++;return goodResponse({});}
+    },'GRANT_EXPIRED_BEFORE_DISPATCH');
+    assert.equal(calls,0);
+  } finally { Date.now=realNow; }
+}
 await rejected('429 no paid retries', { ...args, fetchImpl: async () => ({ ok: false, status: 429 }) },
   'PROVIDER_HTTP_ERROR_429');
 await rejected('malformed JSON', {
