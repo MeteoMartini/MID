@@ -1,5 +1,5 @@
 import {spawnSync} from 'node:child_process';
-import {readdirSync,statSync,mkdtempSync,symlinkSync,rmSync,existsSync} from 'node:fs';
+import {readdirSync,readFileSync,statSync,mkdtempSync,symlinkSync,rmSync,existsSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
@@ -40,8 +40,12 @@ function build(dir:string,env:NodeJS.ProcessEnv){
  const indexCss=names.filter(n=>/^index-.*\.css$/.test(n)).map(name=>({name,bytes:statSync(join(assets,name)).size}));
  expect(indexJs.length).toBeGreaterThan(0);expect(indexCss.length).toBeGreaterThan(0);
  const sizes={js:indexJs.reduce((n,a)=>n+a.bytes,0),css:Math.max(...indexCss.map(x=>x.bytes))};
+ const pollenChunk=names.filter(name=>/^PollenForecast-.*\.js$/.test(name));
+ const html=readFileSync(join(dir,'dist','index.html'),'utf8');
+ const pollenOfflineLink=(html.match(/<link\b[^>]*>/g)||[]).some(tag=>tag.includes('mid-offline')&&tag.includes('PollenForecast-'));
+
  const gate=run(process.execPath,['scripts/test-bundle-budget-098594.mjs'],dir,env);
- return{...sizes,indexJs,indexCss,gatePassed:gate.status===0,gateMessage:gate.output.trim().slice(0,300)};
+ return{...sizes,indexJs,indexCss,pollenChunk,pollenOfflineLink,gatePassed:gate.status===0,gateMessage:gate.output.trim().slice(0,300)};
 }
 describe('MID 18.2.84 temporary production-mode Stable-vs-Draft build A/B',()=>{
  it('isolates both actual production Vite builds without touching CI checkout',()=>{
@@ -61,6 +65,12 @@ describe('MID 18.2.84 temporary production-mode Stable-vs-Draft build A/B',()=>{
      plain:{stable:stablePlain,candidate:candidatePlain,deltaJS:candidatePlain.js-stablePlain.js},
      synthetic:{stable:stableSynthetic,candidate:candidateSynthetic,deltaJS:candidateSynthetic.js-stableSynthetic.js},
    }));
+   // A previously eager DWD Pollen module remains part of the verified
+   // service-worker shell: its new on-demand chunk is explicitly mid-offline.
+   expect(candidatePlain.pollenChunk.length).toBe(1);
+   expect(candidatePlain.pollenOfflineLink).toBe(true);
+   expect(candidateSynthetic.pollenChunk.length).toBe(1);
+   expect(candidateSynthetic.pollenOfflineLink).toBe(true);
    // Diagnostic rule only; successful synthetic build is NOT an Installer gate.
    expect(candidatePlain.js).toBeLessThanOrEqual(1_500_000);
    expect(candidatePlain.css).toBeLessThanOrEqual(1_760_000);
