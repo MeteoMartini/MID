@@ -8,6 +8,7 @@ const cases=[
  'scripts/test-security-pollen-maintenance-0985128.mjs',
  'scripts/test-skybar-week-solar-0985342.mjs',
  'scripts/test-skybar-sunshine-time-alignment-097881.mjs',
+ 'scripts/test-full-calendar-skybar-0985282.mjs',
 ];
 describe('MID bundled original NoData / DST / Skybar core contract probes',()=>{
  for(const path of cases)it('executes '+path,()=>{

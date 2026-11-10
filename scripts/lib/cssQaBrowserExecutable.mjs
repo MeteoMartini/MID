@@ -1,4 +1,4 @@
-import {accessSync,constants} from 'node:fs';
+import {accessSync,constants,statSync} from 'node:fs';
 
 export const MID_CSS_QA_SYSTEM_CHROMIUM_CANDIDATES=Object.freeze([
  '/usr/bin/chromium',
@@ -7,7 +7,7 @@ export const MID_CSS_QA_SYSTEM_CHROMIUM_CANDIDATES=Object.freeze([
  '/usr/bin/google-chrome-stable'
 ]);
 function canExecute(path){
- try{accessSync(path,constants.X_OK);return true}catch{return false}
+ try{if(!statSync(path).isFile())return false;accessSync(path,constants.X_OK);return true}catch{return false}
 }
 /**
  * Choose an existing executable for real CSS pixel tests, never a mock browser.

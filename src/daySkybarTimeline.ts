@@ -51,7 +51,7 @@ export function daySkybarTimelinePositions(
   const strictlyIncreasing=known.every((epoch,index)=>index===0||epoch>known[index-1]);
   if(calendarWindow&&calendarWindow.endEpoch>calendarWindow.startEpoch){
     const span=calendarWindow.endEpoch-calendarWindow.startEpoch;
-    return epochs.map(epoch=>strictlyIncreasing&&Number.isFinite(epoch)&&epoch>=calendarWindow.startEpoch&&epoch<calendarWindow.endEpoch?left+clamp((epoch-calendarWindow.startEpoch)/span,0,1)*trackWidth:NaN);
+    return epochs.map(epoch=>Number.isFinite(epoch)&&epoch>=calendarWindow.startEpoch&&epoch<calendarWindow.endEpoch?left+clamp((epoch-calendarWindow.startEpoch)/span,0,1)*trackWidth:NaN);
   }
   if(strictlyIncreasing&&known.length>1){
     const gaps=known.slice(1).map((epoch,index)=>epoch-known[index]).filter(gap=>gap>=15*60_000&&gap<=3*60*60_000).sort((a,b)=>a-b);

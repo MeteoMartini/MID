@@ -1,4 +1,6 @@
-import {readFileSync} from 'node:fs';
+import {mkdtempSync,readFileSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {describe,it,expect} from 'vitest';
 import {midCssQaBrowserExecutable,MID_CSS_QA_SYSTEM_CHROMIUM_CANDIDATES} from '../../scripts/lib/cssQaBrowserExecutable.mjs';
 
@@ -10,6 +12,9 @@ describe('MID CSS browser QA: use real system Chrome, NEVER skip pixel checks',(
   expect(midCssQaBrowserExecutable({env:{MID_BROWSER_EXECUTABLE:'/tmp/reviewed-browser'},probe:path=>path==='/tmp/reviewed-browser'})).toBe('/tmp/reviewed-browser');
   expect(()=>midCssQaBrowserExecutable({env:{MID_BROWSER_EXECUTABLE:'/tmp/not-executable'},probe:()=>false})).toThrow(/not executable/);
   expect(MID_CSS_QA_SYSTEM_CHROMIUM_CANDIDATES).toContain('/usr/bin/chromium');
+  const directory=mkdtempSync(join(tmpdir(),'mid-css-chrome-dir-'));
+  try{expect(()=>midCssQaBrowserExecutable({env:{MID_BROWSER_EXECUTABLE:directory}})).toThrow(/not executable/)}
+  finally{rmSync(directory,{recursive:true,force:true})}
  });
  it('retains all real browser pixel, CSS coverage and parity assertions in the unchanged QA journey',()=>{
   const text=readFileSync('scripts/verify-module-css-browser-0985170.mjs','utf8');

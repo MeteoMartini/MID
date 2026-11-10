@@ -65,6 +65,12 @@ try{
   assert.ok(Math.abs(ends[1]-15/24*100)<1e-8);
   assert.deepEqual(daySkybarUnavailableRanges(sample,normal),daySkybarUnavailableRanges(sample.slice(1),normal),'Missing time cannot close a genuine data gap');
  }
+ // One out-of-calendar, out-of-order epoch does not hide valid neighboring hours.
+ const invalidNeighbor=[{epoch:normal.startEpoch+14*m},{epoch:normal.endEpoch+5*m},{epoch:normal.startEpoch+15*m}];
+ const isolated=daySkybarTimelinePositions(invalidNeighbor,0,0,100,normal);
+ assert.ok(Math.abs(isolated[0]-14/24*100)<1e-8,'Valid preceding hour survives');
+ assert.ok(Number.isNaN(isolated[1]),'Out-of-calendar timestamp must not draw a skybar cell');
+ assert.ok(Math.abs(isolated[2]-15/24*100)<1e-8,'Valid succeeding hour survives');
 
  // Numeric legacy epoch strings are valid only after normalization to milliseconds:
  // string + HOUR_MS would otherwise concatenate and fabricate a huge interval.
@@ -99,7 +105,8 @@ try{
  // Use the actual SVG renderer and actual meteorological band renderer, not
  // a reimplemented approximation, to check no index fallback paints NoData.
  await build({stdin:{contents:"export{SkyBarHourCellsSvg}from'./src/SkyBarSegments';export{detailSkyBarSegments,detailSkyBarSolarSegments}from'./src/detailSkyBar';export{renderToStaticMarkup}from'react-dom/server';export{createElement}from'react';",resolveDir:process.cwd()},bundle:true,platform:'node',format:'cjs',outfile:join(dir,'skybar-render.cjs'),jsx:'automatic',logLevel:'silent'});
- const {SkyBarHourCellsSvg,detailSkyBarSegments,detailSkyBarSolarSegments,renderToStaticMarkup,createElement}=await import(pathToFileURL(join(dir,'skybar-render.cjs')));
+ const runtime=await import(pathToFileURL(join(dir,'skybar-render.cjs')));
+ const {SkyBarHourCellsSvg,detailSkyBarSegments,detailSkyBarSolarSegments,renderToStaticMarkup,createElement}=runtime.default??runtime;
  const originalDayHour=normal.startEpoch+14*m;
  const makeHour=(epoch)=>({epoch,isDay:true,cloud:70,sunshineDuration:null,precipitation:1,rain:1,showers:0,snowfall:0,code:61,precipitationIntervalStartEpoch:epoch,precipitationIntervalEndEpoch:epoch+m});
  const rows=[makeHour(null),makeHour(originalDayHour)],points=daySkybarTimelinePositions(rows,0,0,100,normal),endPoints=daySkybarHourEndPositions(rows,normal,0,0,100);
