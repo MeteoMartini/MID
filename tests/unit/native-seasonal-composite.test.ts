@@ -66,6 +66,8 @@ describe('DWD ICON-D2 seasonal composites: fail-closed common native fields',()=
  it('never pairs different model runs, times, model IDs, shapes or geolocation',()=>{
   const p=field('precipitation'),t=field('temperature');
   expect(seasonalPairValid('winter-berge',p,t,time)).toBe(true);
+  expect(seasonalPairValid('winter-berge',{...p,unit:'mm'},t)).toBe(false);
+  expect(seasonalPairValid('winter-berge',p,{...t,unit:'K'})).toBe(false);
   expect(seasonalPairValid('winter-berge',p,{...t,run:'2026-11-09T03:00:00Z'})).toBe(false);
   expect(seasonalPairValid('winter-berge',p,{...t,time:'2026-11-09T08:00:00Z'})).toBe(false);
   expect(seasonalPairValid('winter-berge',p,{...t,modelId:'icon-d2-ruc'})).toBe(false);
