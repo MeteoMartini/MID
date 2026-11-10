@@ -102,6 +102,25 @@ class SourceContract(unittest.TestCase):
         with self.assertRaises(qa.ContractError):
             qa.mask_only_documented_missing([0.,float('inf')],9999.)
 
+    def test_vectorized_precipitation_matches_strict_cell_contract(self):
+        import numpy as np
+        old=np.array([0.,0.,3.,4.,np.nan,5.,1.])
+        new=np.array([0.,2.,5.,3.9999999999,3.,np.nan,-1.])
+        got=qa.cumulative_difference_array(old,new)
+        scalar=qa.cumulative_difference(old.tolist(),new.tolist())
+        self.assertEqual(got[0],0.)
+        self.assertEqual(got[1],2.)
+        self.assertEqual(got[2],2.)
+        for i in range(len(got)):
+            if scalar[i] is None:
+                self.assertTrue(np.isnan(got[i]))
+            else:
+                self.assertAlmostEqual(got[i],scalar[i])
+        for first,second in ((np.array([]),np.array([])),(old,old[:-1]),
+                             (old.reshape((1,-1)),new)):
+            with self.assertRaises(qa.ContractError):
+                qa.cumulative_difference_array(first,second)
+
     def test_duplicate_lead_rejected(self):
         with self.assertRaises(qa.ContractError): qa.enumerate_leads(listing('t_2m',(1,1)),RUN,'t_2m')
     def test_valid_hourly_and_three_hour_windows(self):
