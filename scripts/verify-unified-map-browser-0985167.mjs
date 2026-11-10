@@ -13,7 +13,8 @@ import {profileMapCycles} from './lib/mapMemoryProfile.mjs';
 import {createHash} from 'node:crypto';
 import {createServer} from 'vite';
 const require=createRequire(import.meta.url),cli=realpathSync(execFileSync('npm',['exec','--yes','--package=playwright@1.56.1','--','which','playwright'],{encoding:'utf8'}).trim()),pw=require(join(dirname(dirname(cli)),'playwright'));
-if(process.env.GITHUB_ACTIONS==='true')execFileSync('node',[cli,'install','chromium'],{stdio:'inherit',timeout:240000});
+const seasonalDraftPilot=process.env.GITHUB_ACTIONS!=='true'&&process.env.MID_MAP_QA_PILOT_CASE==='390/light/next';
+if(process.env.GITHUB_ACTIONS==='true'||seasonalDraftPilot)execFileSync('node',[cli,'install','chromium'],{stdio:'inherit',timeout:240000});
 process.env.VITE_WORKER_SAME_ORIGIN_PATH='/__qa-worker';
 const server=await createServer({cacheDir:join(process.cwd(),'node_modules/.vite-mid-map-qa'),server:{host:'127.0.0.1',port:0,watch:null,hmr:false},plugins:[{name:'mid-real-map-qa',configureServer(vite){vite.middlewares.use('/__map-qa',async(req,res)=>{res.setHeader('Content-Type','text/html');res.end(await vite.transformIndexHtml('/__map-qa',`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;padding:12px;font:14px system-ui;background:#edf2f5;color:#152b40}button,select,input{font:inherit}*{box-sizing:border-box}#root{max-width:1400px;margin:auto}</style></head><body><div id="root"></div><script type="module" src="/scripts/fixtures/unified-map-browser.tsx"></script></body></html>`))})}}]});await server.listen();
 const address=server.httpServer.address(),base=`http://127.0.0.1:${address.port}`,browser=await pw.chromium.launch({...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),headless:true,args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
@@ -188,6 +189,28 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  if(width===844||width===1024)await page.setViewportSize({width,height:920});
  await page.getByLabel('Modell für Parameter').selectOption('icon-d2');await page.getByRole('button',{name:'Parameter zuerst',exact:true}).click();await page.getByLabel('Parameter-Layer').selectOption('temperature');
  await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('Rastertermin'));
+ // The two new seasonal products must be actually selectable and exportable in
+ // real MapLibre Chromium. Existing 24-case browser coverage stays mandatory.
+ if(width===390&&theme==='light'&&design==='next'){
+  const initialMaps=await page.locator('.maplibregl-map').count();
+  for(const [id,secondary,caption] of [['winter-berge','Temperatur · 2 m','keine Aussage zur Niederschlagsphase'],['sommer-gewitter','Böen · 10 m','Quellintervall nicht ausgewiesen']]){
+   await page.getByLabel('Parameter-Layer').selectOption(id);
+   await page.waitForFunction(()=>{const text=document.querySelector('.unified-layer-status')?.textContent||'';return text.includes('Rastertermin')&&text.includes('ICON-D2')&&!text.includes('lädt')});
+   await page.waitForFunction(()=>Boolean(window.__qaMap?.getStyle()?.layers?.some(l=>l.id.startsWith('unified-model-field')&&l.type==='raster'&&window.__qaMap.getPaintProperty(l.id,'raster-resampling')==='nearest')));
+   const fav=page.locator('.unified-favorites');if(await fav.getAttribute('open')===null)await fav.locator(':scope > summary').click();
+   assert.ok((await fav.locator('thead').innerText()).includes(secondary),'Original companion appears as second numeric field');
+   assert.equal(await fav.locator('thead th').count(),3,'Seasonal native pair has both variable columns');
+   const pending=page.waitForEvent('download');await page.getByRole('button',{name:'Raster + Ortswerte · SVG',exact:true}).click();
+   const downloaded=await pending,svg=readFileSync(await downloaded.path()).toString('utf8');
+   assert.match(downloaded.suggestedFilename(),new RegExp('^MID-ICON-D2-'+id+'-'));
+   assert.ok(svg.includes('image-rendering:crisp-edges'),'Native NoData edges must not be smoothed in SVG');
+   assert.ok(svg.includes(caption),'Export must not fabricate precipitation phase or gust interval');
+   assert.equal(await page.locator('.maplibregl-map').count(),initialMaps,'One retained MapLibre instance');
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'390px seasonal map fits mobile viewport');
+  }
+  await page.getByLabel('Parameter-Layer').selectOption('temperature');
+  await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('Rastertermin'));
+ }
  await verifyAlphabeticalSelectors(page);
  const mapIdentity=await page.locator('.maplibregl-map').evaluate(el=>{el.dataset.qaIdentity='original';return true});assert.ok(mapIdentity);
  if(width===390&&theme==='light')await page.screenshot({path:'/tmp/mid-unified-model-390.png',fullPage:true});
@@ -293,7 +316,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
   }cases++;console.log(`Map case ${cases}: ${width}px ${theme} ${design} passed · ${((performance.now()-caseStarted)/1000).toFixed(1)} s`);await context.close();
 }
 const focusedCases=process.env.GITHUB_ACTIONS!=='true'&&process.env.MID_MAP_QA_FOCUSED==='1'?[320,390,430,1024,1440].flatMap(width=>['light','dark'].map(theme=>({width,theme,design:'next'}))):null;
-const assignedCases=focusedCases??mapBrowserCases(process.env.MID_MAP_QA_SHARD);
+const assignedCases=seasonalDraftPilot?[{width:390,theme:'light',design:'next'}]:focusedCases??mapBrowserCases(process.env.MID_MAP_QA_SHARD);
 try{for(const width of [...new Set(assignedCases.map(row=>row.width))]){const variants=assignedCases.filter(row=>row.width===width),concurrency=mapBrowserCaseConcurrency(width);/* Bound synthetic MapLibre software-GPU contention; all cases and all assertions remain mandatory. */for(let offset=0;offset<variants.length;offset+=concurrency){const results=await Promise.allSettled(variants.slice(offset,offset+concurrency).map(({theme,design})=>verifyCase(width,theme,design)));for(const result of results)if(result.status==='rejected')throw result.reason;}}assert.equal(cases,assignedCases.length,'Complete assigned viewport/theme/design coverage');if(perfEnabled&&mapBrowserMemoryProbe(process.env.MID_MAP_QA_SHARD))await verifyCase(390,'light','next',true);if(perfRows.length){
  const rows=perfRows.sort((a,b)=>a.width-b.width||a.theme.localeCompare(b.theme)||a.design.localeCompare(b.design));
  const report={schema:'mid.map.runtime.fixture.v2',version:JSON.parse(readFileSync(new URL('../package.json',import.meta.url))).version,commit:process.env.GITHUB_SHA||null,shard:process.env.MID_MAP_QA_SHARD||'all',kind:'synthetic-Vite-MapLibre-fixture-not-user-CWV',cases:rows};
