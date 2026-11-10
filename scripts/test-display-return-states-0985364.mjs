@@ -131,5 +131,56 @@ try{
  const modelComparison=await readFile('src/LongRangeModelComparison.tsx','utf8');
  assert.ok(modelComparison.includes("item.model.ensembleMembers===1?'1 Member':'Memberzahl nicht ausgewiesen'"),'unknown single-model member count must not claim a mean');
 
+
+ // MID-C51: Meteogramm must retain the preferred model across temporary changes in
+ // geographical availability; 0/false must not be confused with missing data.
+ const metSource=await readFile('src/MeteogramPanel.tsx','utf8');
+ assert.ok(metSource.includes("useRawDisplayPreference(MODEL_KEY,'best_match',parseMeteogramModel"),'Meteogram keeps the existing model preference key and writes immediately');
+ assert.ok(metSource.includes('useRawDisplayPreference(ICING_KEY,false,parseMeteogramBoolean,serializeMeteogramBoolean)'));
+ assert.ok(metSource.includes('useRawDisplayPreference(TURBULENCE_KEY,false,parseMeteogramBoolean,serializeMeteogramBoolean)'));
+ assert.ok(!metSource.includes('setModel(availableModels[0]'),'geographical fallback cannot overwrite preferred model');
+ assert.ok(!metSource.includes('localStorage.setItem(MODEL_KEY,model)'),'mount effects cannot persist geographical fallback');
+ assert.ok(metSource.includes('loadMeteogram(lat,lon,elevation,effectiveModel,controller.signal,force)'),'requests use only an available model');
+ assert.ok(metSource.includes('<select value={effectiveModel}'),'visible option must exist for the current location');
+ assert.ok(metSource.includes('response=visibleMeteogramResponse(responseRecord,requestKey)'),'old forecasts must be hidden for an unrelated place or model');
+ assert.ok(metSource.includes('setResponseRecord({key:requestKey,value:result})'),'only the successful request identity can be displayed');
+ assert.ok(metSource.includes('model!==effectiveModel&&<small role="status">'),'temporary model fallback must be communicated accessibly');
+ const modelStart=metSource.indexOf('type ModelOption='),modelEnd=metSource.indexOf('const SURFACE_VARS=',modelStart);
+ const helperStart=metSource.indexOf('function parseMeteogramBoolean('),helperEnd=metSource.indexOf('function directEndpoint(',helperStart);
+ assert.ok(modelStart>=0&&modelEnd>modelStart&&helperStart>=0&&helperEnd>helperStart,'actual Meteogram preference helpers located');
+ const metExtract=metSource.slice(modelStart,modelEnd)+'\n'+metSource.slice(helperStart,helperEnd)+'\nexport {MODELS,modelApplies,parseMeteogramBoolean,serializeMeteogramBoolean,parseMeteogramModel,effectiveMeteogramSelection,visibleMeteogramResponse};';
+ await build({stdin:{contents:metExtract,loader:'ts'},outfile:join(dir,'meteogram-preferences.mjs'),format:'esm',platform:'node'});
+ const met=await import(pathToFileURL(join(dir,'meteogram-preferences.mjs')));
+ for(const raw of ['unknown-model','','0',null])assert.equal(met.parseMeteogramModel(raw),null,'invalid legacy models require an in-memory fallback');
+ for(const [raw,expected] of [['dwd_icon_d2','dwd_icon_d2'],['best_match','best_match'],['ecmwf_ifs','ecmwf_ifs']])assert.equal(met.parseMeteogramModel(raw),expected);
+ for(const [raw,expected] of [[null,null],['',null],['1',true],['0',false],['false',null]])assert.equal(met.parseMeteogramBoolean(raw),expected);
+ assert.equal(met.serializeMeteogramBoolean(true),'1');assert.equal(met.serializeMeteogramBoolean(false),'0');
+ const oldData={requestedModel:'dwd_icon_d2'},oldRecord={key:'50.800:7.100:150:dwd_icon_d2',value:oldData};
+ assert.strictEqual(met.visibleMeteogramResponse(oldRecord,oldRecord.key),oldData,'matching location+model may show the original response');
+ assert.equal(met.visibleMeteogramResponse(oldRecord,'35.700:139.700:150:best_match'),undefined,'a new location may not display previous forecast');
+ assert.equal(met.visibleMeteogramResponse(oldRecord,'50.800:7.100:150:best_match'),undefined,'a new model may not display the previous model');
+ assert.strictEqual(met.visibleMeteogramResponse(oldRecord,oldRecord.key),oldData,'returning to same request may reuse its own cached response');
+ assert.equal(met.visibleMeteogramResponse(undefined,oldRecord.key),undefined,'initially absent response stays missing');
+ const germany=met.MODELS.filter(option=>met.modelApplies(option,50.8,7.1));
+ const japan=met.MODELS.filter(option=>met.modelApplies(option,35.7,139.7));
+ assert.ok(germany.some(option=>option.id==='dwd_icon_d2')&&!japan.some(option=>option.id==='dwd_icon_d2'));
+ const prefKey='mid:meteogram:model';
+ const [,setPreferred]=store.useRawDisplayPreference(prefKey,'best_match',met.parseMeteogramModel,value=>value);
+ setPreferred('dwd_icon_d2');
+ assert.equal(globalThis.__midReturnMemory.get(prefKey),'dwd_icon_d2','explicit selection persists instantly');
+ assert.equal(met.effectiveMeteogramSelection(store.readRawDisplayPreference(prefKey,'best_match',met.parseMeteogramModel),germany),'dwd_icon_d2');
+ assert.equal(met.effectiveMeteogramSelection(store.readRawDisplayPreference(prefKey,'best_match',met.parseMeteogramModel),japan),'best_match','foreign location displays a valid temporary model');
+ assert.equal(globalThis.__midReturnMemory.get(prefKey),'dwd_icon_d2','temporary geographical fallback must not change the saved choice');
+ assert.equal(met.effectiveMeteogramSelection(store.readRawDisplayPreference(prefKey,'best_match',met.parseMeteogramModel),germany),'dwd_icon_d2','returning home restores the original model');
+ setPreferred('bogus');assert.equal(globalThis.__midReturnMemory.get(prefKey),'dwd_icon_d2','invalid user choice rejected without clobbering stored model');
+ const [,setElsewhere]=store.useRawDisplayPreference(prefKey,'best_match',met.parseMeteogramModel,value=>value);
+ setElsewhere('ecmwf_ifs');setPreferred(value=>value==='ecmwf_ifs'?'dwd_icon_d2':'best_match');
+ assert.equal(globalThis.__midReturnMemory.get(prefKey),'dwd_icon_d2','parallel mounted panels write from latest stored choice');
+ const [,setIcing]=store.useRawDisplayPreference('mid:meteogram:icing',false,met.parseMeteogramBoolean,met.serializeMeteogramBoolean);
+ const [,setTurbulence]=store.useRawDisplayPreference('mid:meteogram:turbulence',false,met.parseMeteogramBoolean,met.serializeMeteogramBoolean);
+ setIcing(true);setTurbulence(true);setIcing(false);
+ assert.equal(globalThis.__midReturnMemory.get('mid:meteogram:icing'),'0','real false persists without becoming missing');
+ assert.equal(globalThis.__midReturnMemory.get('mid:meteogram:turbulence'),'1','separate toggle remains untouched');
+ assert.equal(store.readRawDisplayPreference('mid:meteogram:icing',true,met.parseMeteogramBoolean),false,'remount restores explicit false');
  console.log('PASS return-state contracts: raw legacy keys, climate location swaps, concurrent model metrics, invalid input, blocked storage bridge, keyboard semantics, legacy migration, exact booleans, precipitation types, stable object snapshots, concurrent panels, scoped legends/resolution, event cleanup and non-destructive availability fallback');
 }finally{globalThis.localStorage=oldStorage;globalThis.window=oldWindow;delete globalThis.__midReturnMemory;await rm(dir,{recursive:true,force:true})}
