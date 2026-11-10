@@ -29,13 +29,13 @@ describe('MID #740 trusted workflow review premerge and #697 branch boundary',()
   expect(workflow).not.toContain('persist-credentials: true');
   expect(workflow).toContain("python3 - <<'PY'");
  });
- it('executes the embedded Python using 19 independent mock GitHub scenarios',()=>{
+ it('executes the embedded Python using 23 independent mock GitHub scenarios',()=>{
   const result=spawnSync('python3',['tests/fixtures/mid-source-release-premerge-qa.py'],{
    encoding:'utf8',timeout:25000,
    env:{...process.env,GH_TOKEN:'',MID_RELEASE_APP_PRIVATE_KEY:''}
   });
   expect(result.status,[result.stdout,result.stderr,result.error?.message].filter(Boolean).join('\n')).toBe(0);
-  expect(result.stdout).toContain('20 mocked allow/deny/TOCTOU tests PASS');
+  expect(result.stdout).toContain('23 mocked allow/deny/TOCTOU tests PASS');
   expect(result.stdout).toContain('ZERO network requests');
  });
 });

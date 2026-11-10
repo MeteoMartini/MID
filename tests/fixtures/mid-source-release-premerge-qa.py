@@ -45,7 +45,10 @@ case_map={
  "changes-requested":([changes,changes],False,"Changes requested"),
  "unstructured-review":([page(reviews=connection([review("r1","Check this")]))]*2,False,"Substantive review"),
  "unresolved-thread":([page(reviewThreads=connection([thread]))]*2,False,"Independent triage"),
- "resolved-thread":([resolved,resolved],False,"Independent triage"),
+ "resolved-thread":([resolved,resolved],True,"PASS"),
+ "mixed-resolved-unresolved":([page(reviewThreads=connection([{**thread,"isResolved":True},{**thread,"id":"PRRT_active"}]))]*2,False,"Independent triage"),
+ "missing-thread-resolution":([page(reviewThreads=connection([{"id":"PRRT_unknown"}]))]*2,False,"Independent triage"),
+ "duplicate-resolved-thread":([page(reviewThreads=connection([{**thread,"isResolved":True},{**thread,"isResolved":True}]))]*2,False,"Review thread ID missing or duplicated"),
  "draft":([page(isDraft=True)]*2,False,"PR not ready"),
  "changed-head":([page(headRefOid="b"*40)]*2,False,"PR not ready"),
  "snapshot-race":([valid,zero],False,"review evidence changed"),
@@ -99,4 +102,4 @@ for name,(pages,allowed,needle) in case_map.items():
  assert needle.lower() in output.lower(),(name,output)
  if allowed or name=="thread-pagination":
   assert calls[0]==len(pages),(name,"Second review-thread page and complete double readback are required")
-print("MID trusted premerge Python: 20 mocked allow/deny/TOCTOU tests PASS; ZERO network requests.")
+print("MID trusted premerge Python: 23 mocked allow/deny/TOCTOU tests PASS; ZERO network requests.")
