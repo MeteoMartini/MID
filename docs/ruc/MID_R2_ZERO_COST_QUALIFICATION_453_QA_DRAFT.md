@@ -50,3 +50,59 @@ Internal conservative planning envelopes: 5,000,000,000 B peak storage, 250,000 
 ## Next unblocked work
 
 Prepare a modern lossless, SHA-checked **offline** full-27h/EPS20 object pack from one authenticated DWD original artifact. Run this probe on actual bytes, check Worker lookup/ranges/time/missing parity with existing Pages and current RUC QA. Do not merge or enable R2 before separate release/QA and **explicit cost-risk decision**. Do not duplicate the existing 168h watcher (which is not a blanket release wait).
+
+
+## Authentic DWD 27h/EPS20 lossless offline byte proof (10.11.2026)
+
+This is **not** a deployed R2 transport, and not a current-.453 producer re-run. It is a byte-verified,
+source-SHA-pinned original artifact from the successful previous Stable .451 model-cycle.
+The existing 0-USD and meteorological/release gates remain fully binding.
+
+- Exact previous Stable producer: `d8852f672a40d26348d214dc85e9a3a1b9d79c1f`,
+  DWD `2026-11-09T14:00`, historical producer
+  [#42641878671](https://github.com/MeteoMartini/MID/actions/runs/42641878671),
+  GitHub artifact ID `13686254117`, authenticated archive SHA256
+  `5a2275e4d75497c08e400b6e6b899254def2330a1b22472fe676d2cf112efe43`.
+- Independent pinned offline QA
+  [#42778833523](https://github.com/MeteoMartini/MID/actions/runs/42778833523)
+  `completed/success` on PR #738 head `5ce76a0f140f4cd7f8e5d1d8173b3bbf69ef944d`.
+  GitHub-native artifact download (digest mismatch => error), original model
+  and source-GRIB/EPS20 metadata, 12/12 original SHA checks,
+  27+1 hourly frames, 542,040 native cells, 20 EPS members.
+- Measured **12 source objects 1,999,624,596 bytes**; same objects losslessly
+  compressed into independently range-decodable zlib chunks under **12 immutable
+  compressed files**, plus the exact original metadata and a verified range index:
+  **14 physical offline objects = 667,095,029 bytes** (ratio **0.333610**,
+  **66.639% storage reduction**). All original uint16 NoData sentinel bytes,
+  real zero, values and original native time/member layout remain byte-exact
+  by full independent decompression of every chunk and whole-object SHA equality.
+- The range index has **1,913 independently decompressible chunks** (normally ~1 MiB
+  aligned to native point-record size); they are packed within 12 objects, **not**
+  1,913 individually billed R2 objects. Range metadata is verified but a real Worker
+  `bucket.get(range)` / `DecompressionStream('deflate')` integration remains **untested**.
+- Conservative storage peak 4 retained + 2 staging = **4,002,570,174 B**,
+  below internal 5,000,000,000-B ceiling (not an R2 billing guarantee).
+  Multipart planning at 744 runs/month, two upload attempts and ten other
+  Class-A operations/run: **174,096 Class-A/month**, below internal 250,000.
+  This is a projected worst-case formula, **not** a metered R2 observation.
+- Small proof artifact only (no weather payloads uploaded by this QA):
+  `mid-ruc-r2-offline-byte-qa-42778833523-1`, ID `13745730614`,
+  archive digest `sha256:9a296fb20d1e8fa305049a5b621e3717393e853df1719388d65bd1c434793f99`.
+  Read-only proof files: `report.json`, `inventory.json`, `range-index.json`.
+- GitHub fixture tests: prior cost preflight **12/12 PASS**, new range-pack /
+  same-size tampering / native 28h EPS20 / original bytes / NoData / UTC /
+  symlink / output-clobber **12/12 PASS** in original workflow.
+
+**Still BLOCKED:** Original GitHub artifact was from .451 rather than current .453;
+the complete current Pages maps/optional sidecars, Worker CPU/memory/range
+and point-read parity, Class-B and full account-wide Worker request usage remain
+unmeasured. Also, Cloudflare R2 has no independently verified hard `$0`
+invoice cap: budget alerts cannot prevent metered charges. Even under every
+measured technical budget, `productionApproved=false` and
+`r2ActivationAuthorized=false`. No subscription, credentials, bucket,
+binding, public domain, publisher, dispatch, merge, release or Stable promotion.
+
+**Next meaningful QA:** a purely in-process Node/Python consumer for range
+retrieval and decoding, then real Cloudflare Worker Free CPU/subrequest
+benchmarks **only if they can be done without activating metered R2**.
+No compromise to MID/P2–P5 scientific or release contracts.
