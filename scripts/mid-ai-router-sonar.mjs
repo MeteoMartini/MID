@@ -111,14 +111,14 @@ export function parseMidAiSonarResponse({plan,raw}={}){
  if(Array.isArray(data?.search_results))for(const item of data.search_results)add(item?.url);
  if(!sources.length)block('CITATIONS_MISSING');
  const usage=data.usage&&typeof data.usage==='object'&&!Array.isArray(data.usage)?
-   {promptTokens:Number.isSafeInteger(data.usage.prompt_tokens)?data.usage.prompt_tokens:null,
-    completionTokens:Number.isSafeInteger(data.usage.completion_tokens)?data.usage.completion_tokens:null}:null;
+   {promptTokens:Number.isSafeInteger(data.usage.prompt_tokens)&&data.usage.prompt_tokens>=0?data.usage.prompt_tokens:null,
+    completionTokens:Number.isSafeInteger(data.usage.completion_tokens)&&data.usage.completion_tokens>=0?data.usage.completion_tokens:null}:null;
  return Object.freeze({
    status:'UNTRUSTED_CITATION_REVIEW_ONLY',model:data.model,
    requestId:plan.requestId,expectedStableSha:plan.expectedStableSha,
    text:text.slice(0,16000),citations:Object.freeze(sources),
    providerReportedUsage:usage,
-   usageStatus:'UPSTREAM_REPORTED_UNVERIFIED',
+   usageStatus:usage?'UPSTREAM_REPORTED_UNVERIFIED':'NOT_VERIFIED',
    costStatus:'NOT_VERIFIED',cashSpendStatus:'NOT_VERIFIED',
    generationId:typeof data.id==='string'?data.id.slice(0,128):null
  });

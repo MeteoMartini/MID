@@ -108,6 +108,16 @@ ok('response citations and cost are unverified',()=>{
  assert.equal(result.cashSpendStatus,'NOT_VERIFIED');
  assert.equal(result.providerReportedUsage.promptTokens,100);
 });
+ok('omitted or invalid upstream usage is never inferred as zero',()=>{
+ const empty=parseMidAiSonarResponse({plan,raw:JSON.stringify({...response,usage:undefined})});
+ assert.equal(empty.providerReportedUsage,null);
+ assert.equal(empty.usageStatus,'NOT_VERIFIED');
+ assert.equal(empty.costStatus,'NOT_VERIFIED');
+ const invalid=parseMidAiSonarResponse({plan,raw:JSON.stringify({...response,
+  usage:{prompt_tokens:-1,completion_tokens:-20}})});
+ assert.equal(invalid.providerReportedUsage.promptTokens,null);
+ assert.equal(invalid.providerReportedUsage.completionTokens,null);
+});
 ok('provider model substitution denied',()=>denied(
  ()=>parseMidAiSonarResponse({plan,raw:JSON.stringify({...response,model:'perplexity/sonar-pro'})}),
  'RESPONSE_MODEL_MISMATCH'));
