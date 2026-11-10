@@ -7,7 +7,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from ruc_r2_zero_cost_qa import load_inventory, verify_local_bytes, evaluate, projected_class_a_for_object
+from ruc_r2_zero_cost_qa import load_inventory, verify_local_bytes, evaluate, projected_class_a_for_object, project_class_b_from_consumer
 
 
 class CostQA(unittest.TestCase):
@@ -131,6 +131,68 @@ class CostQA(unittest.TestCase):
         self.assertFalse(report['activationAuthorized'])
         # This uses original proof DESCRIPTORS, not local byte verification.
         # Real R2 pack SHA parity/codec/clients/account-wide cost remain unapproved.
+
+
+    def offline_consumer_trace(self):
+        return {
+            "schema": "mid.ruc.r2.offline-consumer-parity.v1",
+            "run": self.inv["run"],
+            "sourceSha": self.inv["stableSha"],
+            "sampledNativeCells": [0, 1, 7, 47, 1704, 271020, 542039],
+            "checkedNativeProductRecords": 70,
+            "simulatedR2RangeReads": 70,
+            "maxR2ReadsForOneCell": 10,
+            "allPointBytesMatchOriginal": True,
+            "productionApproved": False,
+            "r2ActivationAuthorized": False,
+        }
+
+    def test_measured_consumer_class_b_exhaustion(self):
+        """Uncached ten-product point reads must not pass the 0-USD margin."""
+        inv = self.inventory()
+        trace = self.offline_consumer_trace()
+        low = project_class_b_from_consumer(inv, trace, forecast_requests_per_day=5000)
+        high = project_class_b_from_consumer(inv, trace, forecast_requests_per_day=6000)
+        self.assertEqual(low["projectedClassBPerMonth"], 1860000)
+        self.assertEqual(high["projectedClassBPerMonth"], 2232000)
+        self.assertEqual(low["totalClassBReadsPerFullPoint"], 12)
+        self.assertEqual(low["maxFullPointRequestsPerDayWithinInternalClassBBudget"], 5376)
+        self.assertFalse(low["productionApproved"])
+        self.assertFalse(high["r2ActivationAuthorized"])
+        report = evaluate(inv, projected_reads=high["projectedClassBPerMonth"],
+                          projected_worker_requests_per_day=6000)
+        self.assertIn("RUC internal Class B planning ceiling exceeded", report["blockers"])
+
+    def test_consumer_projection_rejects_cross_run_trace(self):
+        inv = self.inventory()
+        trace = self.offline_consumer_trace()
+        trace["run"] = "2026-11-10T03:00"
+        with self.assertRaisesRegex(ValueError, "source/run/byte proof mismatch"):
+            project_class_b_from_consumer(inv, trace, forecast_requests_per_day=1000)
+
+    def test_consumer_projection_rejects_false_or_missing_original_parity(self):
+        inv = self.inventory()
+        trace = self.offline_consumer_trace()
+        trace["allPointBytesMatchOriginal"] = False
+        with self.assertRaisesRegex(ValueError, "source/run/byte proof mismatch"):
+            project_class_b_from_consumer(inv, trace, forecast_requests_per_day=1000)
+        trace = self.offline_consumer_trace()
+        trace["sampledNativeCells"] = [0]
+        with self.assertRaisesRegex(ValueError, "incomplete/untrusted"):
+            project_class_b_from_consumer(inv, trace, forecast_requests_per_day=1000)
+
+    def test_consumer_projection_refuses_unmeasured_cache_savings(self):
+        inv = self.inventory()
+        trace = self.offline_consumer_trace()
+        with self.assertRaisesRegex(ValueError, "noncanonical conservative"):
+            project_class_b_from_consumer(inv, trace, forecast_requests_per_day=1000,
+                                          uncached_metadata_reads=0)
+        with self.assertRaisesRegex(ValueError, "invalid forecast demand"):
+            project_class_b_from_consumer(inv, trace, forecast_requests_per_day=-1)
+        measured = project_class_b_from_consumer(inv, trace, forecast_requests_per_day=0)
+        self.assertTrue(measured["assumedNoCache"])
+        self.assertFalse(measured["productionApproved"])
+
 
 if __name__ == "__main__":
     unittest.main()
