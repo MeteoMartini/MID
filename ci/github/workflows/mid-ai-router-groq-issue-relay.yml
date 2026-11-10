@@ -8,6 +8,7 @@ permissions:
 concurrency:
   group: mid-ai-router-groq-catalog-owner-relay
   cancel-in-progress: false
+  queue: max
 jobs:
   verify-and-dispatch:
     if: ${{ github.actor == 'MeteoMartini' && github.event.issue.user.login == 'MeteoMartini' && startsWith(github.event.issue.title, '[MID-AI-GROQ-CATALOG] ') }}

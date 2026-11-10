@@ -9,6 +9,7 @@ import {validateGroqCatalogDispatch} from './mid-ai-router-groq-issue-bridge.mjs
 import {readFileSync} from 'node:fs';
 try{
  if(process.env.GITHUB_ACTIONS!=='true'||
+    process.env.GITHUB_RUN_ATTEMPT!=='1'||
     process.env.GITHUB_EVENT_NAME!=='workflow_dispatch'||
     process.env.GITHUB_REPOSITORY!=='MeteoMartini/MID'||
     process.env.GITHUB_REF!=='refs/heads/mid-stable'||

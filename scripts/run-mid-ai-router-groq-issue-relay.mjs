@@ -5,7 +5,8 @@ import {readMidGithubSourceSnapshot} from './mid-ai-router-github-readback.mjs';
 import {relayGroqCatalogIssue} from './mid-ai-router-groq-issue-bridge.mjs';
 try{
  const p=process.env;
- if(p.GITHUB_ACTIONS!=='true'||p.GITHUB_EVENT_NAME!=='issues'||
+ if(p.GITHUB_ACTIONS!=='true'||p.GITHUB_RUN_ATTEMPT!=='1'||
+    p.GITHUB_EVENT_NAME!=='issues'||
     p.GITHUB_REPOSITORY!=='MeteoMartini/MID'||
     p.GITHUB_ACTOR!=='MeteoMartini'||p.GITHUB_REF!=='refs/heads/main'||
     !/^[a-f0-9]{40}$/.test(p.GITHUB_SHA||'')||

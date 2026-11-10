@@ -19,6 +19,7 @@ permissions:
 concurrency:
   group: mid-ai-router-groq-free-preflight
   cancel-in-progress: false
+  queue: max
 jobs:
   catalog:
     if: ${{ (github.actor == 'MeteoMartini' || github.actor == 'github-actions[bot]') && github.ref == 'refs/heads/mid-stable' }}

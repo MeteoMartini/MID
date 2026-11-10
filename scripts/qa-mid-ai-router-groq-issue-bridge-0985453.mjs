@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {makeGroqCatalogIssue,validateGroqCatalogIssue,relayGroqCatalogIssue,
  validateGroqCatalogDispatch} from './mid-ai-router-groq-issue-bridge.mjs';
 const sha='a'.repeat(40),version='0.9.85.453',now=Date.parse('2026-11-10T11:00:00Z');
@@ -50,5 +51,27 @@ await test(()=>denied(()=>validateGroqCatalogDispatch({...dest,inputs:{}}),'BOT_
 await test(()=>denied(()=>validateGroqCatalogDispatch({...dest,ref:'refs/heads/main'}),'INVALID_DESTINATION_CONTEXT'));
 await test(()=>denied(()=>validateGroqCatalogDispatch({...dest,readIssue:async()=>({...issue,user:{login:'bad',id:1}})}),'RELAY_ORIGIN_ISSUE_REJECTED'));
 await test(()=>denied(()=>validateGroqCatalogDispatch({...dest,inputs:{...dest.inputs,request_id:'mid-groq-wrong-000'}}),'RELAY_REQUEST_MISMATCH'));
+await test(()=>{
+ // GitHub Actions cancel-in-progress:false does not preserve old PENDING
+ // entries; queue:max explicitly preserves a bounded FIFO up to 100.
+ const pairs=[
+  ['mid-ai-router-groq-free-preflight.yml'],
+  ['mid-ai-router-groq-issue-relay.yml']
+ ];
+ for(const [name] of pairs){
+  const primary=readFileSync(new URL('../.github/workflows/'+name,import.meta.url),'utf8');
+  const mirror=readFileSync(new URL('../ci/github/workflows/'+name,import.meta.url),'utf8');
+  assert.equal(primary,mirror,'workflow mirror mismatch: '+name);
+  assert.match(primary,/concurrency:\n  group: [^\n]+\n  cancel-in-progress: false\n  queue: max\n/);
+ }
+});
+await test(()=>{
+ // A manually re-run job must never re-dispatch, nor re-read a provider
+ // catalog as if it were the original owner-approved event.
+ const catalog=readFileSync(new URL('./run-mid-ai-router-groq-connectivity.mjs',import.meta.url),'utf8');
+ const relay=readFileSync(new URL('./run-mid-ai-router-groq-issue-relay.mjs',import.meta.url),'utf8');
+ assert.match(catalog,/process\.env\.GITHUB_RUN_ATTEMPT!=='1'/);
+ assert.match(relay,/p\.GITHUB_RUN_ATTEMPT!=='1'/);
+});
 console.log('MID Groq ChatGPT Issue bridge QA OK; scenarios='+n+
  '; no GitHub actions, secrets, provider calls or network.');
