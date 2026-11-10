@@ -125,3 +125,17 @@ describe('MID AI Router: adaptive capability / Work / Codex selection is non-exe
     expect(r.stderr).toBe('');
   });
 });
+
+describe('MID AI Router: durable SQLite one-shot admission is fail-closed', () => {
+  it('reserves globally unique request IDs and free quotas atomically, without provider API calls', () => {
+    const script = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-durable-admission-0985453.mjs', import.meta.url));
+    const r = spawnSync(process.execPath, ['--disable-warning=ExperimentalWarning', script], {
+      cwd: root, timeout: 20_000, encoding: 'utf8', maxBuffer: 128 * 1024,
+      env: { PATH: process.env.PATH || '' }, stdio: ['ignore', 'pipe', 'pipe']
+    });
+    expect(r.error).toBeUndefined();
+    expect(r.status, r.stderr || r.stdout).toBe(0);
+    expect(r.stdout).toMatch(/MID AI Router SQLite durable admission QA OK; scenarios=19; no external model, credentials, deployment or network\./);
+    expect(r.stderr).toBe('');
+  });
+});
