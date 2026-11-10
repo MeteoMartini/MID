@@ -6,7 +6,7 @@
 
 **Nachweise:** [13/13 explizite negative Diagnose-Tests](https://github.com/MeteoMartini/MID/actions/runs/42808191010) PASS und [vollständige MID-Revision](https://github.com/MeteoMartini/MID/actions/runs/42808190991) nach einem unveränderten Runner-Setup-Retry `completed/success` auf exakt `e2fe7d832b1514d29f29b110df6d01f40eb24e38`. Diese historischen Tests sind keine Source-Gate-/Installer-Freigabe für die neue Versions-HEAD.
 
-**Veröffentlichung:** Einmaliges versioniertes Source-Ziel `0.9.85.453 → 0.9.85.454` über den vorhandenen Release-Vertrag, `docs/releases/MID_RELEASE_NOTES_0.9.85.454.json` und synchronisierte Versionenspiegel beim echten Build. *Kein* Direktmerge oder vorweggenommener Produktivstatus: nur Quell-PR-Gate → SHA-Bot-Merge → serverseitiges ZIP → `install-mid.yml` → betroffene Worker-/Pages-Gates → erfolgreiche `mid-stable`-Promotion.
+**Veröffentlichung:** SHA-exakt synchronisierte Versionsspiegel von `0.9.85.453` auf `0.9.85.454` bereits im Source-Commit, plus `docs/releases/MID_RELEASE_NOTES_0.9.85.454.json`; `npm run sync-version` muss auf unverändertem Checkout idempotent sein. *Kein* Direktmerge oder vorweggenommener Produktivstatus: nur Quell-PR-Gate → SHA-Bot-Merge → serverseitiges ZIP → `install-mid.yml` → betroffene Worker-/Pages-Gates → erfolgreiche `mid-stable`-Promotion.
 
 # MID v0.9.85.453 · unabhängige DWD-Saisonkarten nach WXCharts-Parametervergleich [Integrationskandidat]
 
