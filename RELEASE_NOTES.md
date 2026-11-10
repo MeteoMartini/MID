@@ -1,5 +1,6 @@
-# MID v0.9.85.451
+# MID v0.9.85.453
 
-- Die Wetter-App startet mit einer kompakteren JavaScript-Ausgabe: Wiederkehrende SVG- und CSS-Klassenattribute verwenden gemeinsame Konstanten. Farben, Muster, Beschriftungen, meteorologische Werte und Bedienung bleiben unverändert.
-- Die Korrektur behebt die beim Installationslauf für v0.9.85.450 erkannte Überschreitung des Haupt-JavaScript-Größenbudgets, ohne dessen Grenzwert zu erhöhen. Die vollständige Bestätigung erfolgt erst mit erfolgreich absolviertem GitHub-Source- und Installer-Gate.
-- Die in .450 integrierten Langfrist-Modellpräferenzen und die Bergwetter-NoData-/UTC-Korrekturen bleiben erhalten.
+- Zwei eigenständige Saisonkarten ergänzen den bestehenden Karten-Parameterselektor ohne zusätzliche Navigation: **Winter & Berge** kombiniert stündlichen DWD-ICON-D2-Gesamtniederschlag mit 2-m-Temperatur-Isothermen, **Sommer** denselben Niederschlag mit 10-m-Böen-Isolinien.
+- Beide Originalfelder werden per SHA-256, Modelllauf, Gültigkeitszeit, Raster und Einheit geprüft. Fehlende Rasterzellen bleiben fehlend, auch in der Karte, den Ortswerten und dem gemeinsamen PNG-/SVG-Export.
+- Die Darstellungen sind keine Schneehöhen-, Schnee-/Eisregen-, Glätte-, CAPE-, Windscherungs-, Blitz- oder amtliche Gewitterwarnkarten. Solche Parameter sind erst nach eigenständiger DWD-Originaldatenprüfung verfügbar.
+- Der WXCharts-Vergleich diente ausschließlich als fachliche Orientierung: Es werden keinerlei MetDesk-/WXCharts-Inhalte, APIs oder Karten übernommen. DWD Open Data · CC BY 4.0; bestehende Radar-, Satelliten-, Karten-, Light-/Dark- und Mobilfunktionen bleiben erhalten.

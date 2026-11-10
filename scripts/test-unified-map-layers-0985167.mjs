@@ -8,12 +8,21 @@ const wms=read('src/unifiedWmsCatalog.ts').replace(/^import .*?;\n/m,''),models=
 const js=ts.transpileModule(`const WEATHER_MAP_MODELS=${JSON.stringify(models)};const products=${JSON.stringify(products)};const weatherMapProductsForModel=id=>products[id];const weatherMapCatalogExcludes=()=>false;${wms}`,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText,m=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
 assert.equal(m.unifiedWmsProduct('temperature','icon').id,'icon-t2m');assert.equal(m.unifiedWmsProduct('temperature','icon-eps'),undefined);assert.equal(m.unifiedWmsProduct('gust-probability','icon-eps').id,'icon-eps-gust-12h');assert.equal(m.unifiedWmsProduct('gust','icon-eps'),undefined,'A probability is never a speed');
 assert.equal(m.unifiedWmsProduct('geopotential','icon').id,'icon-gh');assert.equal(m.unifiedWmsProduct('thetae','icon'),undefined);
-const catalog=read('src/unifiedMapCatalog.ts').replace(/^import .*?;\n/gm,''),catalogJs=ts.transpileModule(`const readDurableStorageValue=key=>localStorage.getItem(key);const UNIFIED_WMS_PARAMETERS=[];const choices=${JSON.stringify(m.unifiedWmsChoices())};const unifiedWmsChoices=()=>choices;${catalog}`,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText,c=await import('data:text/javascript;base64,'+Buffer.from(catalogJs).toString('base64'));
+// Load the REAL seasonal guard into this stripped-import fixture; never stub its logic.
+const seasonal=read('src/nativeSeasonalComposite.ts').replace(/^import .*?;\n/gm,'');
+const catalog=read('src/unifiedMapCatalog.ts').replace(/^import .*?;\n/gm,''),catalogJs=ts.transpileModule(`const readDurableStorageValue=key=>localStorage.getItem(key);const UNIFIED_WMS_PARAMETERS=[];const choices=${JSON.stringify(m.unifiedWmsChoices())};const unifiedWmsChoices=()=>choices;${seasonal}\n${catalog}`,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText,c=await import('data:text/javascript;base64,'+Buffer.from(catalogJs).toString('base64'));
 const index={products:{temperature:{frames:[{}]},gust:{frames:[{}]}}};
 assert.deepEqual(c.unifiedSources('temperature',index,false,false).map(s=>s.id),['icon-d2','icon']);
 assert.deepEqual(c.unifiedSources('gust',index,false,false).map(s=>s.id),['icon-d2']);
 assert.deepEqual(c.unifiedSources('observed',index,true,false),[],'Unpublished observations are not offered');
 assert.equal(c.unifiedSources('observed',index,true,true)[0].id,'radolan');
+const pairedTime='2026-10-05T01:00:00Z',goodRef={time:pairedTime,intervalHours:1,sha256:'a'.repeat(64)};
+const seasonalIndex={schema:'mid.icon-d2.fields.v1',run:'2026-10-05T00:00:00Z',products:{
+ precipitation:{unit:'mm/1 h',frames:[goodRef]},temperature:{unit:'°C',frames:[goodRef]},gust:{unit:'km/h',frames:[goodRef]}}};
+assert.deepEqual(c.unifiedSources('winter-berge',seasonalIndex,false,false).map(s=>s.id),['icon-d2']);
+assert.deepEqual(c.unifiedSources('sommer-gewitter',seasonalIndex,false,false).map(s=>s.id),['icon-d2']);
+assert.equal(c.unifiedSources('winter-berge',{...seasonalIndex,products:{...seasonalIndex.products,temperature:{unit:'°C',frames:[]}}},false,false).length,0,'Unavailable original source pair cannot be offered');
+assert.equal(c.unifiedSources('sommer-gewitter',{...seasonalIndex,products:{...seasonalIndex.products,precipitation:{unit:'mm/1 h',frames:[{...goodRef,intervalHours:3}]}}},false,false).length,0,'3-h accumulation must never masquerade as 1-h composite');
 const terms=[{time:'2026-10-05T00:00:00Z'},{time:'2026-10-05T03:00:00Z'}];
 assert.equal(c.nearestUnifiedFrame(terms,Date.parse('2026-10-05T04:30:00Z')),terms[1]);
 assert.equal(c.nearestUnifiedFrame(terms,Date.parse('2026-10-05T04:31:00Z')),undefined,'No model frame beyond its permitted nearest-term tolerance');
