@@ -9,6 +9,10 @@
 const SHA=/^[a-f0-9]{40}$/, HASH=/^[a-f0-9]{64}$/;
 const ID=/^[A-Za-z0-9][A-Za-z0-9_-]{7,79}$/;
 const VERSION=/^0\.\d+\.\d+\.\d+$/;
+// Defense in depth: public-redacted is not permission to forward PII or keys.
+// The independent issuer must also approve actual data classification.
+const SECRET=/(?:api[_-]?key|bearer|password|secret|private[_-]?key)\s*[:=]\s*['"]?[A-Za-z0-9_./+-]{12,}|\b(?:gh[upso]_[A-Za-z0-9]{12,}|github_pat_[A-Za-z0-9_]{18,}|sk-[A-Za-z0-9_-]{16,}|gsk_[A-Za-z0-9_-]{12,})\b|[?&](?:token|key|apikey|api_key)=[^\s&]+/i;
+const EMAIL=/\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}\b/i;
 const INTENTS=new Set(['independent-review','external-research','weather-science','bounded-code-review']);
 const ENDPOINTS=Object.freeze({
  groq:'https://api.groq.com/openai/v1/chat/completions',
@@ -25,7 +29,7 @@ const isSafeTask=t=>t?.userInitiated===true && t?.allowExternalInference===true 
  VERSION.test(t?.expectedVersion||'') &&
  typeof t?.prompt==='string' && t.prompt.trim().length>0 &&
  t.prompt.length<=2000 &&
- !/(?:api[_-]?key|bearer|password|secret|private[_-]?key)\s*[:=]\s*['"]?[A-Za-z0-9_./+-]{12,}/i.test(t.prompt);
+ !SECRET.test(t.prompt) && !EMAIL.test(t.prompt);
 export async function midAiOneShotTaskDigest(task,principalSha256,cryptoImpl=globalThis.crypto){
  if(!isSafeTask(task)||!HASH.test(principalSha256||'')||!cryptoImpl?.subtle)
    deny('TASK_SCOPE_INVALID');
