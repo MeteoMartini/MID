@@ -19,7 +19,7 @@ const MODELS=Object.freeze({
  gemini:/^gemini-[a-z0-9.-]{3,100}$/
 });
 const FIELDS=Object.freeze([
- 'schema','audience','keyId','requestId','taskDigest',
+ 'schema','audience','keyId','requestId','principalSha256','taskDigest',
  'expectedStableSha','provider','model','quotaSubject',
  'maxDailyRequests','freePlanVerified','modelAvailable',
  'zeroPriceVerified','hardStopVerified','noPaidFallbackVerified',
@@ -49,7 +49,7 @@ export function midAiQuotaGrantBytes(grant){
  if(grant.schema!=='mid.ai-router.quota-grant.v1'||
     grant.audience!=='mid-ai-router-global-admission-v1'||
     !KEYID.test(grant.keyId)||!ID.test(grant.requestId)||
-    !HASH64.test(grant.taskDigest)||!HASH40.test(grant.expectedStableSha)||
+    !HASH64.test(grant.principalSha256)||!HASH64.test(grant.taskDigest)||!HASH40.test(grant.expectedStableSha)||
     !Object.hasOwn(MODELS,grant.provider)||
     typeof grant.model!=='string'||!MODELS[grant.provider].test(grant.model)||
     !HASH64.test(grant.quotaSubject)||
@@ -89,6 +89,7 @@ export async function createMidAiSignedQuotaVerifier({
  return async request=>{
   if(!plain(request)||!ID.test(request.requestId||'')||
      !HASH40.test(request.expectedStableSha||'')||
+     !HASH64.test(request.principalSha256||'')||
      !HASH64.test(request.taskDigest||''))
    fail('INVALID_BOUND_REQUEST');
   const grant=request.grant;
@@ -96,6 +97,7 @@ export async function createMidAiSignedQuotaVerifier({
   if(grant.keyId!==pinnedKeyId)fail('GRANT_KEY_ID_MISMATCH');
   if(request.requestId!==grant.requestId||
      request.expectedStableSha!==grant.expectedStableSha||
+     request.principalSha256!==grant.principalSha256||
      request.taskDigest!==grant.taskDigest)
    fail('GRANT_BINDING_MISMATCH');
   const instant=now();
@@ -125,7 +127,8 @@ export async function createMidAiSignedQuotaVerifier({
   const hashed=await cryptoImpl.subtle.digest('SHA-256',payload);
   const digest=Array.from(new Uint8Array(hashed),x=>x.toString(16).padStart(2,'0')).join('');
   return Object.freeze({
-    verified:true,requestId:grant.requestId,taskDigest:grant.taskDigest,
+    verified:true,requestId:grant.requestId,principalSha256:grant.principalSha256,
+    taskDigest:grant.taskDigest,
     expectedStableSha:grant.expectedStableSha,provider:grant.provider,
     model:grant.model,quotaSubject:grant.quotaSubject,
     maxDailyRequests:grant.maxDailyRequests,expiresAtMs:grant.expiresAtMs,

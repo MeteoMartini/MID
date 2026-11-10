@@ -40,7 +40,8 @@ export function createMidAiGlobalAdmission({
   async reserve(request){
    if(!REQ.test(request?.requestId||'') ||
       !SHA40.test(request?.expectedStableSha||'') ||
-      !DIGEST.test(request?.taskDigest||''))
+      !DIGEST.test(request?.taskDigest||'') ||
+      !DIGEST.test(request?.principalSha256||''))
      error('INVALID_BOUND_REQUEST');
    let proof;
    try{proof=await verifyIndependentGrant(request);}
@@ -55,6 +56,7 @@ export function createMidAiGlobalAdmission({
       proof?.requestId!==request.requestId ||
       proof?.expectedStableSha!==request.expectedStableSha ||
       proof?.taskDigest!==request.taskDigest ||
+      proof?.principalSha256!==request.principalSha256 ||
       !DIGEST.test(proof?.grantDigest||'') ||
       !PROVIDER.has(proof?.provider) ||
       typeof proof?.model!=='string'||proof.model.length<4||

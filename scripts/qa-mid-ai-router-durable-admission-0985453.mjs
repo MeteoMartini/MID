@@ -20,16 +20,16 @@ const storage={sql,transactionSync:(fn)=>{
  catch(e){db.exec('ROLLBACK');throw e}
 }};
 const sha='a'.repeat(40),taskDigest='b'.repeat(64),
- grantDigest='c'.repeat(64),quotaSubject='d'.repeat(64);
+ grantDigest='c'.repeat(64),quotaSubject='d'.repeat(64),principalSha256='e'.repeat(64);
 const request=(id,extra={})=>({
- requestId:'mid-'+id,expectedStableSha:sha,taskDigest,...extra
+ requestId:'mid-'+id,expectedStableSha:sha,taskDigest,principalSha256,...extra
 });
 const proof=(r,extra={})=>({
  verified:true,userAuthorized:true,sourceAligned:true,
  freePlanVerified:true,modelAvailable:true,zeroPriceVerified:true,
  hardStopVerified:true,noPaidFallbackVerified:true,privacyApproved:true,
  globalSubjectVerified:true,requestId:r.requestId,expectedStableSha:sha,
- taskDigest,grantDigest,provider:'groq',model:'openai/gpt-oss-120b',
+ taskDigest,principalSha256,grantDigest,provider:'groq',model:'openai/gpt-oss-120b',
  quotaSubject,maxDailyRequests:2,expiresAtMs:timestamp+60_000,...extra
 });
 let forged={};

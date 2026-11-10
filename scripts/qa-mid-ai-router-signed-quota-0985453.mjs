@@ -14,7 +14,7 @@ const kp=await webcrypto.subtle.generateKey('Ed25519',true,['sign','verify']);
 const raw=new Uint8Array(await webcrypto.subtle.exportKey('raw',kp.publicKey));
 const base64url=buf=>Buffer.from(buf).toString('base64url');
 const sha='a'.repeat(40),taskDigest='b'.repeat(64),
- quotaSubject='c'.repeat(64);
+ quotaSubject='c'.repeat(64),principalSha256='d'.repeat(64);
 let sourceOverride={};
 const sourceReadback=async()=>({
  mainSha:sha,stableSha:sha,checkedAt:new Date(instant).toISOString(),...sourceOverride
@@ -23,7 +23,7 @@ const base=(id,update={})=>({
  schema:'mid.ai-router.quota-grant.v1',
  audience:'mid-ai-router-global-admission-v1',
  keyId:'mid-free-issuer-1',
- requestId:id,taskDigest,expectedStableSha:sha,
+ requestId:id,principalSha256,taskDigest,expectedStableSha:sha,
  provider:'groq',model:'openai/gpt-oss-120b',
  quotaSubject,maxDailyRequests:2,
  freePlanVerified:true,modelAvailable:true,zeroPriceVerified:true,
@@ -36,7 +36,7 @@ const sign=async grant=>base64url(await webcrypto.subtle.sign(
  'Ed25519',kp.privateKey,midAiQuotaGrantBytes(grant)));
 const req=async(id,update={})=>{
  const grant=base(id,update);
- return {requestId:id,expectedStableSha:sha,taskDigest,
+ return {requestId:id,expectedStableSha:sha,principalSha256,taskDigest,
   grant,signature:await sign(grant)};
 };
 const verifier=await createMidAiSignedQuotaVerifier({
@@ -63,6 +63,8 @@ await ok(async()=>{const p=await req('mid-invalidkey-01');
  await denied(()=>verifyOther(p),'INVALID_ED25519_SIGNATURE');
 });
 await ok(async()=>{const invalid={...good,requestId:'mid-request-other'};await denied(()=>verifier(invalid),'GRANT_BINDING_MISMATCH')});
+await ok(async()=>{const stolen={...good,principalSha256:'e'.repeat(64)};
+ await denied(()=>verifier(stolen),'GRANT_BINDING_MISMATCH')});
 await ok(async()=>{const invalid={...good,grant:{...good.grant,extraFlag:true}};await denied(()=>verifier(invalid),'INVALID_GRANT_SCHEMA')});
 await ok(async()=>{const invalid={...good,grant:{...good.grant,freePlanVerified:false}};await denied(()=>verifier(invalid),'INVALID_GRANT_POLICY')});
 await ok(async()=>{const invalid={...good,grant:{...good.grant,maxAdditionalCashUsd:0.01}};await denied(()=>verifier(invalid),'INVALID_GRANT_POLICY')});

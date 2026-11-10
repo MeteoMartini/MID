@@ -149,7 +149,7 @@ describe('MID AI Router: signed quota/source proof binds atomic SQLite admission
     });
     expect(r.error).toBeUndefined();
     expect(r.status, r.stderr || r.stdout).toBe(0);
-    expect(r.stdout).toMatch(/MID AI Router signed Ed25519\/SQLite QA OK; scenarios=24; no provider inference, auth bypass, billing or network\./);
+    expect(r.stdout).toMatch(/MID AI Router signed Ed25519\/SQLite QA OK; scenarios=25; no provider inference, auth bypass, billing or network\./);
     expect(r.stderr).toBe('');
   });
 });
