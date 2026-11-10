@@ -22,9 +22,7 @@ function pollenSeverity(entry:PollenForecastEntry|undefined):number{
   if(raw==='2'||raw==='mäßig'||raw==='maessig'||raw==='mittel'||raw==='mittlere belastung')return 2;
   if(raw==='2-3'||raw.includes('mittel bis hoch')||raw.includes('mittlere bis hohe'))return 2.5;
   if(raw==='3'||raw==='stark'||raw==='hoch'||raw==='hohe belastung')return 3;
-  // A missing or invalid native DWD value must never become 0 via Number(null).
-  const numeric=entry.pollenInt;
-  return typeof numeric==='number'&&Number.isFinite(numeric)&&numeric>=0&&numeric<=3?numeric:-1;
+  return-1; // Unknown native DWD strings must remain missing, never accept a worker sentinel 0.
 }
 function pollenHasMissing(date:string,types:string[],byType:Map<string,PollenForecastEntry[]>):boolean{
   return types.length===0||types.some(type=>pollenSeverity(byType.get(type)?.find(entry=>entry.forecastDate===date))<0);
