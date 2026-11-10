@@ -195,3 +195,17 @@ describe('MID AI Router: Groq connection qualification with no inference', () =>
     expect(r.stderr).toBe('');
   });
 });
+
+describe('MID AI Router: ChatGPT GitHub issue to stable-only Groq catalog relay', () => {
+  it('blocks untrusted issues and admits only the source-bound owner issue', () => {
+    const p=fileURLToPath(new URL('../../scripts/qa-mid-ai-router-groq-issue-bridge-0985453.mjs',import.meta.url));
+    const r=spawnSync(process.execPath,[p],{
+      cwd:root,timeout:20_000,encoding:'utf8',maxBuffer:128*1024,
+      env:{PATH:process.env.PATH||''},stdio:['ignore','pipe','pipe']
+    });
+    expect(r.error).toBeUndefined();
+    expect(r.status,r.stderr||r.stdout).toBe(0);
+    expect(r.stdout).toMatch(/MID Groq ChatGPT Issue bridge QA OK; scenarios=19; no GitHub actions, secrets, provider calls or network\./);
+    expect(r.stderr).toBe('');
+  });
+});
