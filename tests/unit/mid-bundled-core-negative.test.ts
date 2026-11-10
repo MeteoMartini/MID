@@ -4,6 +4,7 @@ import {spawnSync} from 'node:child_process';
 // for the full mandatory core/heavy Source-Gate matrix.
 const cases=[
  'scripts/test-c23-cloud-missing-0985206.mjs',
+ 'scripts/test-detail-thermal-profile-navigation-09382.mjs',
  'scripts/test-cloud-layer-day-night-details-09130.mjs',
  'scripts/test-security-pollen-maintenance-0985128.mjs',
  'scripts/test-skybar-week-solar-0985342.mjs',
