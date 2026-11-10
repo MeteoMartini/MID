@@ -149,7 +149,7 @@ describe('MID AI Router: signed quota/source proof binds atomic SQLite admission
     });
     expect(r.error).toBeUndefined();
     expect(r.status, r.stderr || r.stdout).toBe(0);
-    expect(r.stdout).toMatch(/MID AI Router signed Ed25519\/SQLite QA OK; scenarios=25; no provider inference, auth bypass, billing or network\./);
+    expect(r.stdout).toMatch(/MID AI Router signed Ed25519\/SQLite QA OK; scenarios=30; no provider inference, auth bypass, billing or network\./);
     expect(r.stderr).toBe('');
   });
 });
@@ -163,7 +163,7 @@ describe('MID AI Router: one-shot external executor with signed OAuth/SQLite gat
     });
     expect(r.error).toBeUndefined();
     expect(r.status, r.stderr || r.stdout).toBe(0);
-    expect(r.stdout).toMatch(/MID AI Router Worker one-shot end-to-end mock QA OK; scenarios=22; provider HTTP calls simulated, no external inference, credentials or billing\./);
+    expect(r.stdout).toMatch(/MID AI Router Worker one-shot end-to-end mock QA OK; scenarios=23; provider HTTP calls simulated, no external inference, credentials or billing\./);
     expect(r.stderr).toBe('');
   });
 });
