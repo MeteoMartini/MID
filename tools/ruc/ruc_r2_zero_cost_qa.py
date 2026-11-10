@@ -87,6 +87,54 @@ def projected_class_a_for_object(size: int) -> int:
     return 1 if size <= PART else 2 + math.ceil(size / PART)
 
 
+def project_class_b_from_consumer(
+    inventory: dict, trace: dict, *, forecast_requests_per_day: int,
+    billing_days: int = 31, uncached_metadata_reads: int = 2,
+) -> dict:
+    """Conservative NO-CACHE full-point demand from an offline native-cell trace.
+
+    Does not prove actual traffic/Worker CPU. Never authorizes R2 billing.
+    """
+    if type(forecast_requests_per_day) is not int or forecast_requests_per_day < 0:
+        raise ValueError("invalid forecast demand")
+    if billing_days != 31 or uncached_metadata_reads != 2:
+        raise ValueError("noncanonical conservative Class B assumptions")
+    if trace.get("schema") != "mid.ruc.r2.offline-consumer-parity.v1":
+        raise ValueError("unrecognized consumer evidence schema")
+    if (trace.get("run") != inventory.get("run") or
+        trace.get("sourceSha") != inventory.get("stableSha") or
+        trace.get("allPointBytesMatchOriginal") is not True):
+        raise ValueError("consumer evidence source/run/byte proof mismatch")
+    cells = trace.get("sampledNativeCells")
+    records = trace.get("checkedNativeProductRecords")
+    calls = trace.get("simulatedR2RangeReads")
+    maximum = trace.get("maxR2ReadsForOneCell")
+    if (not isinstance(cells, list) or len(cells) < 7 or
+        type(records) is not int or type(calls) is not int or
+        type(maximum) is not int or records < len(cells) or
+        calls < records or maximum <= 0 or maximum > 50 or
+        calls > maximum * len(cells) or
+        trace.get("productionApproved") is not False or
+        trace.get("r2ActivationAuthorized") is not False):
+        raise ValueError("incomplete/untrusted offline consumer trace")
+    reads_per_request = maximum + uncached_metadata_reads
+    return {
+        "assumedNoCache": True,
+        "billingDays": billing_days,
+        "rangeReadsPerFullPoint": maximum,
+        "uncachedMetadataReadsPerRequest": uncached_metadata_reads,
+        "totalClassBReadsPerFullPoint": reads_per_request,
+        "requestedFullPointForecastsPerDay": forecast_requests_per_day,
+        "projectedClassBPerMonth": forecast_requests_per_day * billing_days * reads_per_request,
+        "maxFullPointRequestsPerDayWithinInternalClassBBudget":
+            MAX_RUC_CLASS_B_MONTH // (billing_days * reads_per_request),
+        "accountWideUsageVerified": False,
+        "liveCloudflareCpuVerified": False,
+        "productionApproved": False,
+        "r2ActivationAuthorized": False,
+    }
+
+
 def evaluate(inventory: dict, *, runs_per_month=744, retries=2,
              retained=4, simultaneous_staging=2, projected_reads=None,
              projected_worker_requests_per_day=None, account_usage_verified=False) -> dict:
@@ -150,13 +198,29 @@ def main() -> int:
     parser.add_argument("--object-root", required=True, type=Path)
     parser.add_argument("--projected-monthly-reads", type=int)
     parser.add_argument("--projected-worker-requests-day", type=int)
+    parser.add_argument("--offline-consumer-report", type=Path)
+    parser.add_argument("--forecast-requests-per-day", type=int)
     opts = parser.parse_args()
     try:
         inventory = load_inventory(opts.inventory)
         verify_local_bytes(inventory, opts.object_root)
+        consumer_demand = None
+        if opts.offline_consumer_report is not None or opts.forecast_requests_per_day is not None:
+            if opts.offline_consumer_report is None or opts.forecast_requests_per_day is None:
+                raise ValueError("both consumer trace and forecast demand required")
+            offline_trace = json.loads(opts.offline_consumer_report.read_text(encoding="utf-8"))
+            consumer_demand = project_class_b_from_consumer(
+                inventory, offline_trace, forecast_requests_per_day=opts.forecast_requests_per_day)
+        class_b = opts.projected_monthly_reads
+        worker_day = opts.projected_worker_requests_day
+        if consumer_demand is not None:
+            class_b = max(class_b or 0, consumer_demand["projectedClassBPerMonth"])
+            worker_day = max(worker_day or 0, opts.forecast_requests_per_day)
         result = evaluate(inventory,
-                          projected_reads=opts.projected_monthly_reads,
-                          projected_worker_requests_per_day=opts.projected_worker_requests_day)
+                          projected_reads=class_b,
+                          projected_worker_requests_per_day=worker_day)
+        if consumer_demand is not None:
+            result["conservativeConsumerDemand"] = consumer_demand
     except (ValueError, OSError, json.JSONDecodeError) as exc:
         print(json.dumps({"productionApproved": False, "activationAuthorized": False,
                           "errorClass": type(exc).__name__, "reason": str(exc)}, ensure_ascii=False))
