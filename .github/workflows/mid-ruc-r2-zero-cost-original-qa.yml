@@ -62,6 +62,7 @@ jobs:
             --run '2026-11-09T14:00' \
             --producer-sha 'd8852f672a40d26348d214dc85e9a3a1b9d79c1f' \
             --artifact-sha256 '5a2275e4d75497c08e400b6e6b899254def2330a1b22472fe676d2cf112efe43' \
+            --chunk-bytes 131072 \
             > .ruc-r2-qa-output.json
           python3 - <<'PY'
           import json
