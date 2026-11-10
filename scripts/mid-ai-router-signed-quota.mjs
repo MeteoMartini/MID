@@ -13,11 +13,20 @@ const HASH64=/^[a-f0-9]{64}$/;
 const ID=/^[A-Za-z0-9][A-Za-z0-9_-]{7,79}$/;
 const KEYID=/^[a-z0-9][a-z0-9._-]{3,63}$/;
 const B64URL=/^[A-Za-z0-9_-]+$/;
+// Exact candidates, not evidence of account availability, zero cost or ZDR.
+// A trusted signer must independently verify all of those before each call.
+// Never let a syntactically valid newly listed or priced model slip through.
 const MODELS=Object.freeze({
- groq:/^[a-z0-9][a-z0-9/_.-]{3,120}$/,
- openrouter:/^[a-z0-9][a-z0-9/_.-]{3,120}:free$/,
- gemini:/^gemini-[a-z0-9.-]{3,100}$/
+ groq:Object.freeze(['openai/gpt-oss-20b','openai/gpt-oss-120b']),
+ openrouter:Object.freeze([
+  'cohere/north-mini-code:free','google/gemma-4-26b-a4b-it:free'
+ ]),
+ gemini:Object.freeze(['gemini-3.8-flash'])
 });
+export function isMidAiPinnedCandidateModel(provider,model){
+ return typeof provider==='string'&&Object.hasOwn(MODELS,provider)&&
+   typeof model==='string'&&MODELS[provider].includes(model);
+}
 const FIELDS=Object.freeze([
  'schema','audience','keyId','requestId','principalSha256','taskDigest',
  'expectedStableSha','provider','model','quotaSubject',
@@ -50,8 +59,7 @@ export function midAiQuotaGrantBytes(grant){
     grant.audience!=='mid-ai-router-global-admission-v1'||
     !KEYID.test(grant.keyId)||!ID.test(grant.requestId)||
     !HASH64.test(grant.principalSha256)||!HASH64.test(grant.taskDigest)||!HASH40.test(grant.expectedStableSha)||
-    !Object.hasOwn(MODELS,grant.provider)||
-    typeof grant.model!=='string'||!MODELS[grant.provider].test(grant.model)||
+    !isMidAiPinnedCandidateModel(grant.provider,grant.model)||
     !HASH64.test(grant.quotaSubject)||
     !Number.isSafeInteger(grant.maxDailyRequests)||
     grant.maxDailyRequests<1||grant.maxDailyRequests>1000||
