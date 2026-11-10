@@ -205,3 +205,78 @@ authorization. `productionApproved=false`,
 unmodified. Neither a cache or 50k/day Worker request ceiling nor
 Cloudflare billing alerts can guarantee a hard `$0` invoice. Thus R2
 remains OFF; existing Pages-based RUC and model fallback remain untouched.
+
+
+## Alternative: Workers Free SQLite Durable Objects (fail-on-limit, no R2)
+
+**Official 2026 docs and distinctions (read-only, no account activation):**
+- [Durable Objects pricing](https://developers.cloudflare.com/durable-objects/platform/pricing/):
+  **Workers Free** allows SQLite-backed DOs; if a free-tier quota is exhausted,
+  subsequent operations of that type **fail** instead of automatically
+  consuming billable paid resources. This differs materially from metered R2.
+- [DO limits](https://developers.cloudflare.com/durable-objects/platform/limits/)
+  and [DO FAQ](https://developers.cloudflare.com/durable-objects/reference/faq/):
+  account-wide SQLite DO storage **5 GB**, *per Free durable object* **1 GB**
+  (`SQLITE_FULL` on exceeding; reads and deletes remain available),
+  maximum BLOB **8 MB** in current docs, up to 100,000 DO requests/day,
+  100,000 rows written/day and 5 million rows read/day. Workers Free still
+  has a 100k/day request quota and an outer Worker 10-ms CPU limit.
+  These are **account-shared Free-plan restrictions**, not reservations.
+- [SQLite-backed DO Storage](https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/):
+  transactionSync() is available for a single SQLite-backed DO; this does
+  **not** create a transaction spanning several independent Durable Objects.
+
+**Proposed, NOT deployed layout:**
+- One *immutable run object* per native DWD run, to keep each ~673 MB source
+  below the Free 1GB per-DO limit. Each independent zlib chunk is preserved;
+  pack contiguous compressed chunks into SQL BLOB segments **up to 4,000,000
+  bytes** to stay comfortably below 8 MB per BLOB, without recompression.
+- One tiny *coordinator DO* holds monotonic last-good `run + generation`.
+  Stage only **one** candidate at a time via authenticated GitHub source
+  grant and shared writer lease. Verify **all** immutable payload bytes,
+  native UTC/time, EPS20, SHA and Worker readback before an authorized
+  transaction switches the coordinator pointer. Stale writers lose.
+  Cleanup must never delete an active or referenced last-good run.
+- On `SQLITE_FULL`, a free-quota denial or any dependency failure:
+  **do not advance the pointer**; keep the old 27h source/fallback. This
+  must be verified in a real Cloudflare Free runtime before adoption.
+- No 168-hour release wait is required; the separate P1–P5 core,
+  origin-to-client, Fast Lane and native device gates remain open.
+
+**Actual byte-inventory arithmetic** using the original 09 Nov 14Z
+27h/EPS20 lossless **672,790,506 B** dataset:
+| Conservative offline parameter | Result |
+| --- | ---: |
+| 14 packed immutable source/metadata objects | 672,790,506 B |
+| 4-MB SQL BLOB segments per complete run | **177 rows** |
+| 24 runs/day × 2 upload attempts | **8,496 projected rows/day** |
+| 1 run with illustrative 15% SQLite/index/WAL allowance | **773,709,082 B** (<1GB/DO) |
+| 4 retained + **one strictly serialized staging** | **3,868,545,410 B** (<4.5GB internal limit) |
+| 4 retained + 2 overlapping staging (NOT allowed in this design) | **4,642,254,492 B** (>4.5GB internal limit) |
+| Real SQLite storage, WAL/compaction and transient peak | **NOT MEASURED** |
+
+These numbers are estimates calculated from actual original-byte inventory,
+**not** empirical SQLite disk consumption. In particular, row-size/header
+overhead, transient SQLite WAL files, global account quota and read throughput
+must be measured before any 0-USD deployment claim.
+
+**Independent small QA:** `tools/ruc/ruc_do_free_capacity_qa.py` plus
+`tools/ruc/test_ruc_do_free_capacity_qa.py` establish a planning preflight
+and simulate SQLite generation-fenced Last-Good swaps, stale-writer rejection,
+incomplete-source rejection and rollback after quota/full-disk failure.
+[GitHub #42783187169](https://github.com/MeteoMartini/MID/actions/runs/42783187169):
+exact head `38abf3af2e7213dd64e5c80800c17a4f76ee075e`,
+all **16 R2 budget + 12 lossless synthetic + 6 DO capacity/SQLite tests =
+34/34 PASS**, with matching canonical and active workflow blob
+`6999031a9d435b6db8f2d846ac80bca7bc9cb48c`.
+No DWD redownload, no Cloudflare API, no subscription, no deployment, no
+production code or worker binding modified.
+
+**Architectural decision:** With an absolute **0 USD new-cost** constraint,
+prioritize **Workers Free SQLite Durable Objects** over metered R2 for the
+NEXT OFFLINE candidate. Do not conflate an SQLite transaction fixture with
+a globally published multi-DO system: authenticated immutable run
+readmission, real Worker/DO request/CPU tests, SQL transient peak and
+client/Widget/Export parity remain prerequisites. `productionApproved=false`
+and `activationAuthorized=false` at every offline exit. Existing Pages
+and Last Good remain production-safe; no deployment or release authorized.
