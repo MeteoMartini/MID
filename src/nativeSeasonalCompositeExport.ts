@@ -22,8 +22,8 @@ export function nativeSeasonalSvg(
  states:Awaited<ReturnType<typeof loadModelMapGeography>>['states']=[],
  gustIntervalHours:number=1,
 ):string{
- if(!seasonalPairValid(id,precip,companion)||!Number.isFinite(gustIntervalHours)||
-   gustIntervalHours<=0||gustIntervalHours>48||
+ if(!seasonalPairValid(id,precip,companion)||!Number.isInteger(gustIntervalHours)||
+   gustIntervalHours<0||gustIntervalHours>48||
    typeof raster!=='string'||!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(raster)||
    precip.values.some((value,i)=>Number.isFinite(value)!==Number.isFinite(companion.values[i])))
   throw new Error('Saisonkartenexport: kein gemeinsamer, geprüfter Originaldatenstand.');
@@ -38,7 +38,9 @@ export function nativeSeasonalSvg(
  const secondUnit=modelMapUnit(companion.kind,companion.unit,unit);
  const caption=id==='winter-berge'
   ?'Niederschlag: letzte Stunde · Linien: 2-m-Temperatur · keine Aussage zur Niederschlagsphase'
-  :`Niederschlag: letzte Stunde · Linien: Böenmaximum im ${gustIntervalHours}-h-Intervall · keine Gewitterwarnung`;
+  :gustIntervalHours>0
+    ?`Niederschlag: letzte Stunde · Linien: Böenmaximum im ${gustIntervalHours}-h-Intervall · keine Gewitterwarnung`
+    :'Niederschlag: letzte Stunde · Linien: Böenwert, Quellintervall nicht ausgewiesen · keine Gewitterwarnung';
  const details=places.map((p,i)=>{
   const val=nativeAt(companion,p.latitude,p.longitude),v=val===null?'–':modelMapValue(companion.kind,val,companion.unit,unit)+' '+secondUnit;
   return `<text x="720" y="${245+i*30}" font-family="Arial,sans-serif" font-size="11" fill="#dce9f4">${xml(companion.kind==='temperature'?'2 m: ':'Böen: ')}${xml(v)}</text>`;
