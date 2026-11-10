@@ -36,6 +36,9 @@ await test(async()=>{
   const a=fixture(),s=await readMidGithubSourceSnapshot(a);
   assert.deepEqual({mainSha:s.mainSha,stableSha:s.stableSha,version:s.version},
     {mainSha:sha,stableSha:sha,version});
+  assert.deepEqual(s.versionMirrors,{
+    package:version,baseline:version,registry:version
+  });
   assert.ok(Date.now()-Date.parse(s.checkedAt)<30000);
   assert.equal(a.calls.length,5);
 });
