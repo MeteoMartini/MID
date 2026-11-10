@@ -17,7 +17,8 @@ export function seasonalMapKinds(id:string):{primary:NativeFieldKind;secondary:N
 export function seasonalMapFrames(index:NativeIndex|null,id:string):NativeFrameRef[]{
  const c=seasonalMapKinds(id);
  if(!c||!index||!['mid.icon-d2.fields.v1','mid.icon-d2.native-fields.v2'].includes(index.schema)||
-   (index.modelId!==undefined&&index.modelId!=='icon-d2'))return [];
+   (index.modelId!==undefined&&index.modelId!=='icon-d2')||
+   (index.schema==='mid.icon-d2.native-fields.v2'&&index.productionApproved!==true))return [];
  const first=index.products[c.primary],second=index.products[c.secondary];
  if(!first?.frames?.length||!second?.frames?.length||
    first.unit!=='mm/1 h'||second.unit!==(c.secondary==='temperature'?'°C':'km/h'))return [];
