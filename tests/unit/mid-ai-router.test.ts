@@ -167,3 +167,17 @@ describe('MID AI Router: one-shot external executor with signed OAuth/SQLite gat
     expect(r.stderr).toBe('');
   });
 });
+
+describe('MID AI Router: public GitHub IssueOps handoff only', () => {
+  it('creates a safe non-executable draft with verified SHA and explicit consent', () => {
+    const file=fileURLToPath(new URL('../../scripts/qa-mid-ai-router-github-issueops-0985453.mjs', import.meta.url));
+    const r=spawnSync(process.execPath,[file],{
+      cwd:root,timeout:20_000,encoding:'utf8',maxBuffer:128*1024,
+      env:{PATH:process.env.PATH||''},stdio:['ignore','pipe','pipe']
+    });
+    expect(r.error).toBeUndefined();
+    expect(r.status,r.stderr||r.stdout).toBe(0);
+    expect(r.stdout).toMatch(/MID AI Router public GitHub IssueOps packet QA OK; scenarios=16; no issue, label, workflow, model call or network\./);
+    expect(r.stderr).toBe('');
+  });
+});
