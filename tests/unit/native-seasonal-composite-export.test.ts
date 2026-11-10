@@ -17,7 +17,9 @@ describe('native paired DWD seasonal export',()=>{
   expect(src).not.toContain('Regen /');
   expect(src).toContain('Testort &amp; Tal');
   expect(src).toContain('2 m: -2');
-  expect(src).toMatch(/>0(?:[,.]0)? mm<\/text>/);
+  expect(src).toContain('Lauf 2026-11-09 06:00 UTC');
+  expect(src).toContain('gültig 2026-11-09 07:00 UTC');
+  expect(src).toMatch(/>0 mm\/1 h<\/text>/);
   expect(src).toContain('keine Aussage zur Niederschlagsphase');
   expect(src).toContain('letzte Stunde');
   expect(src).toContain('DWD Open Data');
