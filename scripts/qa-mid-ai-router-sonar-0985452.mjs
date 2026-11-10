@@ -9,6 +9,8 @@ const now=Date.parse('2026-11-10T05:00:00.000Z'),date=new Date(now).toISOString(
 const sha='a'.repeat(40),teamId='team_WdBAGpkorvKDeFeqvBj9Eysv';
 const task={requestId:'mid-sonar-QA01',expectedStableSha:sha,userInitiated:true,
  kind:'external-research',dataClass:'public-redacted',
+ preferredProvider:'sonar-included-credit',allowIncludedCreditUse:true,
+ maxAdditionalCashUsd:0,maxExternalCalls:1,
  prompt:'Summarize public WMO guidelines with source URLs.'};
 const snapshot={mainSha:sha,stableSha:sha,version:'0.9.85.451'};
 const setup=()=>({task:{...task},snapshot:{...snapshot},teamId,now,
@@ -35,6 +37,14 @@ ok('safe plan only',()=>{
 });
 ok('no live dispatcher',()=>{assert.equal(MID_SONAR_LIVE_DISPATCH_ALLOWED,false);
  denied(()=>dispatchMidAiSonar(),'SONAR_LIVE_RUNNER_NOT_RELEASED')});
+ok('direct Sonar planner cannot bypass explicit user credit authorization',()=>{
+ const s=setup();s.task.allowIncludedCreditUse=false;
+ denied(()=>planMidAiSonar(s),'EXPLICIT_SONAR_CREDIT_AUTHORIZATION_REQUIRED');
+});
+ok('direct Sonar planner cannot authorize additional cash spending',()=>{
+ const s=setup();s.task.maxAdditionalCashUsd=1;
+ denied(()=>planMidAiSonar(s),'EXPLICIT_SONAR_CREDIT_AUTHORIZATION_REQUIRED');
+});
 ok('no unverified free credit',()=>{
  const s=setup();s.model.freeTierEligible=false;
  denied(()=>planMidAiSonar(s),'VERCEL_EVIDENCE_BLOCKED');

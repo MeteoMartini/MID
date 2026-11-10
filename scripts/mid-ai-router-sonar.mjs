@@ -20,10 +20,17 @@ const MAX_RESPONSE_BYTES=65536;
 const MAX_OUTPUT_TOKENS=256;
 const block=(reason)=>{const e=new Error('MID Sonar blocked: '+reason);e.name='MidAiSonarBlocked';e.reason=reason;throw e;};
 const fingerprint=(task)=>createHash('sha256').update(JSON.stringify([
-  task.requestId,task.kind,task.dataClass,task.expectedStableSha,task.prompt
+  task.requestId,task.kind,task.dataClass,task.expectedStableSha,task.prompt,
+  task.preferredProvider,task.allowIncludedCreditUse,
+  task.maxAdditionalCashUsd,task.maxExternalCalls
 ])).digest('hex');
 function validTask(task,snapshot){
  if(!task||task.userInitiated!==true)block('USER_AUTHORIZATION_REQUIRED');
+ if(task.preferredProvider!=='sonar-included-credit' ||
+    task.allowIncludedCreditUse!==true ||
+    task.maxAdditionalCashUsd!==0 ||
+    task.maxExternalCalls!==1)
+   block('EXPLICIT_SONAR_CREDIT_AUTHORIZATION_REQUIRED');
  if(!ID.test(task.requestId||''))block('INVALID_REQUEST_ID');
  if(task.kind!=='external-research'||task.dataClass!=='public-redacted')
    block('ONLY_PUBLIC_REDACTED_RESEARCH');
