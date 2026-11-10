@@ -10,6 +10,9 @@ const human={author:{__typename:'User',login:'reviewer'},authorAssociation:'COLL
 const thread=(id,resolved=true,comments=[bot,human],outdated=false)=>({id,isResolved:resolved,isOutdated:outdated,comments:{nodes:comments}});
 const check=(pr=ready,reviews=[],threads=[])=>assessMidReviewEvidence({pr,reviews,threads,expectedHead:HEAD});
 assert.equal(check().ok,true,'No incoming reviews must not create artificial approval gate');
+assert.equal(check(ready,[review('approved','APPROVED','')]).ok,true,'Approval on exact head is permitted, but not required');
+assert.ok(check(ready,[{...review('stale','APPROVED',''),commit:{oid:'b'.repeat(40)}}]).blockers.includes('REVIEW_HEAD_SHA_STALE:stale'),'An old-head approval never authorizes new changes');
+assert.ok(check(ready,[review('mixed','COMMENTED','0 issues found; 2 issues found')]).blockers.includes('REVIEW_ISSUE_COUNT_CONFLICT:mixed'),'Contradictory zero/nonzero finding summaries must fail closed');
 assert.ok(check({...ready,headRefOid:'b'.repeat(40)}).blockers.includes('HEAD_CHANGED'));
 assert.ok(check({...ready,isDraft:true}).blockers.includes('PR_NOT_READY'));
 assert.ok(check({...ready,state:'MERGED'}).blockers.includes('PR_NOT_READY'));

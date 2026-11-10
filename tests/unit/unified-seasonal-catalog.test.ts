@@ -31,7 +31,9 @@ describe('seasonal WXCharts-inspired cards stay inside the original MID map sele
  },120_000);
  const isMapAudit=process.env.GITHUB_ACTIONS==='true'&&
   process.env.GITHUB_EVENT_NAME==='pull_request'&&
-  process.env.GITHUB_HEAD_REF==='chatgpt/v0.9.85.454-seasonal-interval-qa';
+  new Set(['chatgpt/v0.9.85.454-seasonal-interval-qa',
+   'chatgpt/v0.9.85.455-general-integrity-review-integration'])
+   .has(process.env.GITHUB_HEAD_REF);
  (isMapAudit?it:it.skip)('runs four real Chrome MapLibre viewport/theme/design probes with both seasonal PNG and SVG exports',()=>{
   const repoRoot=fileURLToPath(new URL('../../',import.meta.url));
   const result=spawnSync(process.execPath,['scripts/verify-unified-map-browser-0985167.mjs'],{
@@ -43,7 +45,7 @@ describe('seasonal WXCharts-inspired cards stay inside the original MID map sele
   expect(result.stdout).toContain('4 real-map viewport/theme cases passed');
  },560_000);
 
- (isMapAudit?it:it.skip)('probes the real production Vite bundle and the unchanged size budgets, draft #741 only',()=>{
+ (isMapAudit?it:it.skip)('probes the real production Vite bundle and unchanged size budgets on map or bundled PR',()=>{
   // Explicit non-release QA: all generated files stay outside the repository.
   // Never run this additional resource-intensive probe on unrelated PRs or local tests.
   const root=fileURLToPath(new URL('../../',import.meta.url));

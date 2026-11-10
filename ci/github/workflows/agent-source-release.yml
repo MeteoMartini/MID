@@ -184,16 +184,17 @@ jobs:
                 seen.add(identifier)
                 state=review.get("state")
                 if state in ("PENDING","DISMISSED"):continue
-                if not review.get("submittedAt") or not re.fullmatch(r"[a-f0-9]{40}",
-                    (review.get("commit") or {}).get("oid","")):
+                review_sha=(review.get("commit") or {}).get("oid","")
+                if not review.get("submittedAt") or not re.fullmatch(r"[a-f0-9]{40}",review_sha):
                   raise ValueError("Submitted review provenance missing")
+                if review_sha!=head:raise ValueError("Submitted review on stale SHA")
                 if state=="CHANGES_REQUESTED":raise ValueError("Changes requested")
                 if state=="APPROVED":continue
                 if state!="COMMENTED":raise ValueError("Unexpected submitted review state")
                 body=(review.get("bodyText") or "").strip()
                 if not body:continue
-                count=re.search(r"\b(\d+)\s+issues?\s+found\b",body,re.I)
-                if not count or int(count.group(1))!=0:
+                counts=re.findall(r"\b(\d+)\s+issues?\s+found\b",body,re.I)
+                if not counts or any(int(value)!=0 for value in counts):
                   raise ValueError("Substantive review needs independent disposition")
               print("MID pre-merge review evidence: PASS (no unresolved or untriaged findings)")
           except Exception as error:
