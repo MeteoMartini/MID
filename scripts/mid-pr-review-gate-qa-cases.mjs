@@ -1,7 +1,7 @@
 // Pure regression for issue #740; no credentials, network or workflow writes.
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {assessMidReviewEvidence} from './mid-pr-review-gate.mjs';
+import {assessMidReviewEvidence,readMidReviewEvidence} from './mid-pr-review-gate.mjs';
 const HEAD='a'.repeat(40);
 const ready={headRefOid:HEAD,state:'OPEN',isDraft:false,baseRefName:'main'};
 const review=(id,state='COMMENTED',bodyText='15 issues found')=>({id,state,bodyText,submittedAt:'2026-11-10T06:31:56Z',commit:{oid:HEAD}});
@@ -76,4 +76,76 @@ assert.ok(realPreMerge.blockers.includes('INDEPENDENT_TRIAGE_ATTESTATION_REQUIRE
 assert.ok(assessMidReviewEvidence({pr:{...realPrReady,state:'MERGED'},
  reviews:realFormatReviews,threads:realFormatThreads,
  expectedHead:captured729.prHeadSha}).blockers.includes('PR_NOT_READY'));
-console.log('MID review evidence fail-closed QA: authentic GitHub #729 review/thread metadata and synthetic negatives PASS; NO workflow attached.');
+// GitHub GraphQL pagination and failure-mode proof. global.fetch is replaced
+// inside this isolated Node test process ONLY, with no real HTTP calls/token.
+const originalFetch=globalThis.fetch;
+function fakePr(oid=HEAD){
+ return {id:'PR-test',state:'OPEN',isDraft:false,headRefOid:oid,baseRefName:'main'};
+}
+function apiPage({meta=fakePr(),reviewNodes=[],threadNodes=[],reviewNext=false,threadNext=false,
+ reviewCursor=null,threadCursor=null}={}){
+ return {...meta,
+  reviews:{nodes:reviewNodes,pageInfo:{hasNextPage:reviewNext,endCursor:reviewCursor}},
+  reviewThreads:{nodes:threadNodes,pageInfo:{hasNextPage:threadNext,endCursor:threadCursor}}};
+}
+async function mockGraphql(pages,fn){
+ const requests=[];
+ let index=0;
+ globalThis.fetch=async (url,options)=>{
+  assert.equal(url,'https://api.github.com/graphql');
+  assert.equal(options.method,'POST');
+  const request=JSON.parse(options.body);
+  requests.push(request.variables);
+  const next=pages[index++];
+  if(next instanceof Error)throw next;
+  if(next===403)return {ok:false,status:403};
+  if(!next)throw new Error('Unmocked request was attempted');
+  return {ok:true,status:200,json:async()=>next.errors?next:{data:{repository:{pullRequest:next}}}};
+ };
+ try{return await fn(requests)}finally{globalThis.fetch=originalFetch}
+}
+const pgReview={id:'review-1',state:'COMMENTED',bodyText:'0 issues found',
+ submittedAt:'2026-11-10T06:00:00Z',commit:{oid:HEAD}};
+const pgThreadA=thread('thread-A',false);
+const pgThreadB=thread('thread-B',false);
+await mockGraphql([
+ apiPage({reviewNodes:[pgReview],threadNodes:[pgThreadA],threadNext:true,threadCursor:'cursor-B'}),
+ apiPage({reviewNodes:[pgReview],threadNodes:[pgThreadB]})
+],async requests=>{
+ const read=await readMidReviewEvidence({repo:'MeteoMartini/MID',number:729,token:'synthetic-read-only'});
+ assert.equal(read.reviews.length,1,'Completed review page must not be counted twice when thread pages continue');
+ assert.deepEqual(read.threads.map(t=>t.id),['thread-A','thread-B']);
+ assert.equal(requests.length,2);
+ assert.equal(requests[0].tCursor,null);
+ assert.equal(requests[1].tCursor,'cursor-B');
+ assert.equal(requests[1].rCursor,null);
+});
+await mockGraphql([
+ apiPage({threadNodes:[pgThreadA],threadNext:true,threadCursor:null})
+],async()=>assert.rejects(
+ ()=>readMidReviewEvidence({repo:'MeteoMartini/MID',number:729,token:'synthetic-read-only'}),
+ /Review pagination cursor missing/
+));
+await mockGraphql([
+ apiPage({reviewNext:true,reviewCursor:'reviews-page2',threadNodes:[pgThreadA]}),
+ apiPage({meta:fakePr('b'.repeat(40)),reviewNodes:[pgReview]})
+],async()=>assert.rejects(
+ ()=>readMidReviewEvidence({repo:'MeteoMartini/MID',number:729,token:'synthetic-read-only'}),
+ /PR head\/state moved during review pagination/
+));
+await mockGraphql([403],async()=>assert.rejects(
+ ()=>readMidReviewEvidence({repo:'MeteoMartini/MID',number:729,token:'synthetic-read-only'}),
+ /GitHub GraphQL HTTP 403/
+));
+await mockGraphql([{errors:[{message:'Access denied'}]}],async()=>assert.rejects(
+ ()=>readMidReviewEvidence({repo:'MeteoMartini/MID',number:729,token:'synthetic-read-only'}),
+ /GitHub review readback incomplete/
+));
+await mockGraphql([apiPage({threadNext:true,threadCursor:'x'})],async()=>assert.rejects(
+ ()=>readMidReviewEvidence({repo:'MeteoMartini/MID',number:729,token:''}),
+ /Invalid review gate configuration/
+));
+assert.equal(globalThis.fetch,originalFetch,'Global fetch must be restored after isolated mock');
+console.log('MID review GraphQL mock: two-page readback, stale HEAD, missing cursor, HTTP 403 and API errors PASS; no network.');
+console.log('MID review evidence fail-closed QA: real GitHub #729 review metadata plus synthetic negatives PASS; NO workflow attached.');
+
