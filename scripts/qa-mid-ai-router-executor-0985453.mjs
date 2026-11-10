@@ -221,6 +221,34 @@ await test(async()=>{
  }
  assert.equal(fetchCalls,before);
 });
+await test(async()=>{
+ // An untrusted host module mutates the original JS task while the protected
+ // admission awaits. The HTTP envelope must retain the previously signed
+ // prompt/model/source; never forward the injected secret or changed model.
+ const t=await signed(task('task-mutation-001'));
+ const originalPrompt=t.prompt,originalModel=t.grant.model;
+ const before=fetchCalls;
+ const isolated=createMidAiOneShotExecutor({
+  authenticate:async()=>({authenticated:true,audience:'mid-ai-router',
+   scopes:['mid-ai:infer-public'],principalSha256:principal}),
+  admission:{reserve:async ({requestId,expectedStableSha})=>{
+   t.prompt='gsk_DO_NOT_SEND_MUTATED_FAKE_SECRET_123456';
+   t.grant.model='openai/gpt-oss-20b';
+   t.expectedStableSha='f'.repeat(40);
+   t.expectedVersion='0.9.0.0';
+   return {status:'RESERVED_NO_DISPATCH',requestId,stableSha:expectedStableSha};
+  }},
+  readback:source,credentialFor:async()=> 'FAKE_PROVIDER_KEY_123456',
+  fetchImpl:remote,now:()=>clock,cryptoImpl
+ });
+ const result=await isolated.execute(t);
+ assert.equal(fetchCalls,before+1);
+ assert.equal(result.model,originalModel);
+ assert.equal(result.stableSha,sha);
+ assert.equal(requests.at(-1).body.model,originalModel);
+ assert.equal(requests.at(-1).body.messages[0].content,originalPrompt);
+ assert.equal(JSON.stringify(requests.at(-1).body).includes('DO_NOT_SEND_MUTATED'),false);
+});
 db.close();
 console.log('MID AI Router Worker one-shot end-to-end mock QA OK; scenarios='+scenarios+
  '; provider HTTP calls simulated, no external inference, credentials or billing.');
