@@ -1420,11 +1420,17 @@ async function xweatherRows(lat,lon,radiusKm,clientId,clientSecret){
  return list.map(st=>{const ob=st?.ob??{},slat=number(st?.loc?.lat),slon=number(st?.loc?.long);if(slat===undefined||slon===undefined)return null;const dist=number(st?.relativeTo?.distanceKM)!==undefined?number(st.relativeTo.distanceKM)*1000:distance(lat,lon,slat,slon),trust=number(ob?.trustFactor),qc=number(ob?.QCcode);if(dist>Math.min(60,radiusKm)*1000||qc===0||(trust!==undefined&&trust<65))return null;return{stationId:st?.id,name:st?.place?.name||st?.id,lat:slat,lon:slon,elevation:number(st?.profile?.elevM),reportTime:ob?.dateTimeISO||st?.obDateTime,temp:number(ob?.tempC),dewp:number(ob?.dewpointC),relativeHumidity:number(ob?.humidity),pressure:number(ob?.pressureMB),windSpeed:number(ob?.windSpeedKTS),windDirection:number(ob?.windDirDEG),windGust:number(ob?.windGustKTS),cloudCover:number(ob?.sky),precipitation:number(ob?.precipMM),provider:`Xweather Observations${st?.dataSource?` / ${st.dataSource}`:''} (lizenzierter API-Zugang)`,distance:dist,windUnit:'kt',qcStatus:qc===undefined?1:qc>0?2:0,trustFactor:trust}}).filter(x=>x&&number(x.temp)!==undefined);
 }
 
+function dwdPollenNativeIndex(value){
+ const valid=typeof value==='number'||(typeof value==='string'&&value.trim()!=='');
+ const index=valid?Number(value):NaN;
+ return Number.isFinite(index)&&index>=-1&&index<=3?index:-1;
+}
+
 async function dwdPollenForecast(){const params=new URLSearchParams({service:'WFS',version:'2.0.0',request:'GetFeature',typeName:'dwd:Pollenflug',outputFormat:'application/json',count:'1296'});const url=`${DWD_POLLEN_WFS}?${params.toString()}`;const response=await fetchWithDeadline(url,{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION} https://midwx.app/`}},20000);if(!response.ok)throw new Error(`DWD Pollenflug WFS HTTP ${response.status}`);const text=await response.text();let payload;try{payload=JSON.parse(text)}catch{throw new Error('DWD Pollenflug WFS: ungültige JSON-Antwort')}
 const features=payload?.features||[];
 const regionsMap=new Map(),forecasts=[];
 for(const feature of features){const props=feature?.properties||{};
-const cellId=Number(props.CELL_ID),regionName=String(props.GEN||''),pollenType=String(props.PARAMETER_NAME||''),pollenValue=String(props.PARAMETER_VALUE||''),pollenInt=Number(props.POLLENINT||0),forecastDate=String(props.FORECAST_DATE||''),expires=String(props.EXPIRES||''),effective=String(props.EFFECTIVE||'');
+const cellId=Number(props.CELL_ID),regionName=String(props.GEN||''),pollenType=String(props.PARAMETER_NAME||''),pollenValue=String(props.PARAMETER_VALUE??''),pollenInt=dwdPollenNativeIndex(props.POLLENINT),forecastDate=String(props.FORECAST_DATE||''),expires=String(props.EXPIRES||''),effective=String(props.EFFECTIVE||'');
 if(!regionsMap.has(cellId))regionsMap.set(cellId,{id:cellId,name:regionName,geometry:feature?.geometry||null});
 forecasts.push({regionId:cellId,regionName,pollenType,pollenValue,pollenInt,forecastDate,expires,effective});}
 const regions=[...regionsMap.values()].sort((a,b)=>a.id-b.id),effectiveTimes=forecasts.map(row=>Date.parse(row.effective)).filter(Number.isFinite),expiresTimes=forecasts.map(row=>Date.parse(row.expires)).filter(Number.isFinite),productUpdatedAt=effectiveTimes.length?new Date(Math.max(...effectiveTimes)).toISOString():undefined,productExpiresAt=expiresTimes.length?new Date(Math.max(...expiresTimes)).toISOString():undefined;
