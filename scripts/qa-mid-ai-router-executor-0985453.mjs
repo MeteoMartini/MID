@@ -100,7 +100,9 @@ const signed=async(t,provider='groq',model='openai/gpt-oss-120b')=>{
   keyId:'mid-free-issuer-1',requestId:t.requestId,principalSha256:principal,
   taskDigest:digest,expectedStableSha:sha,provider,model,
   quotaSubject:(provider==='groq'?'d':provider==='openrouter'?'e':'f').repeat(64),
-  maxDailyRequests:10,freePlanVerified:true,modelAvailable:true,
+  // Fixture-only quota covers all independent negative tests; it is NOT
+  // provider Free-tier evidence. Production caps still come from the issuer.
+  maxDailyRequests:12,freePlanVerified:true,modelAvailable:true,
   zeroPriceVerified:true,hardStopVerified:true,noPaidFallbackVerified:true,
   privacyApproved:true,globalSubjectVerified:true,sourceAligned:true,
   userAuthorized:true,dataClass:'public-redacted',maxAdditionalCashUsd:0,
