@@ -31,6 +31,30 @@ const isSafeTask=t=>t?.userInitiated===true && t?.allowExternalInference===true 
  typeof t?.prompt==='string' && t.prompt.trim().length>0 &&
  t.prompt.length<=2000 &&
  !SECRET.test(t.prompt) && !EMAIL.test(t.prompt);
+// Freeze the security-relevant request before the first async boundary.
+// A mutable caller object must not change the signed digest, approved model,
+// source SHA or transmitted prompt while authentication/admission is awaited.
+// This is a shallow snapshot by design: grant verification requires every
+// remaining grant field to be a primitive of the exact signed schema.
+const plainRecord=x=>x!==null&&typeof x==='object'&&!Array.isArray(x)&&
+ Object.getPrototypeOf(x)===Object.prototype;
+function snapshotOneShotTask(input){
+ if(!plainRecord(input))deny('TASK_SCOPE_INVALID');
+ const copy={
+  requestId:input.requestId,userInitiated:input.userInitiated,
+  allowExternalInference:input.allowExternalInference,
+  maxExternalCalls:input.maxExternalCalls,
+  maxAdditionalCashUsd:input.maxAdditionalCashUsd,
+  kind:input.kind,dataClass:input.dataClass,
+  expectedStableSha:input.expectedStableSha,
+  expectedVersion:input.expectedVersion,prompt:input.prompt
+ };
+ if(!isSafeTask(copy))deny('TASK_SCOPE_INVALID');
+ if(!plainRecord(input.grant)||!input.signature)deny('SIGNED_GRANT_REQUIRED');
+ return Object.freeze({
+  ...copy,grant:Object.freeze({...input.grant}),signature:input.signature
+ });
+}
 export async function midAiOneShotTaskDigest(task,principalSha256,cryptoImpl=globalThis.crypto){
  if(!isSafeTask(task)||!HASH.test(principalSha256||'')||!cryptoImpl?.subtle)
    deny('TASK_SCOPE_INVALID');
@@ -141,8 +165,8 @@ export function createMidAiOneShotExecutor({
     typeof fetchImpl!=='function'||typeof now!=='function'||!cryptoImpl?.subtle)
    deny('PROTECTED_RUNTIME_NOT_CONFIGURED');
  return Object.freeze({
-  async execute(task){
-   if(!isSafeTask(task))deny('TASK_SCOPE_INVALID');
+  async execute(inputTask){
+   const task=snapshotOneShotTask(inputTask);
    let user;
    try{user=await authenticate()}catch{deny('AUTHENTICATION_UNAVAILABLE')}
    if(user?.authenticated!==true||user?.audience!=='mid-ai-router'||
