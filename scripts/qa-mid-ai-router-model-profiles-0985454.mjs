@@ -20,7 +20,7 @@ const proof=()=>({
 const missing=(obj,code)=>{const a=assess(obj);
  assert.equal(a.dispatchAuthorized,false);
  assert.ok(a.blockers.includes(code),code);};
-test(()=>assert.equal(C.length,7));
+test(()=>assert.equal(C.length,8));
 test(()=>assert.equal(new Set(C.map(x=>x.provider+':'+x.model)).size,C.length));
 test(()=>assert.ok(C.every(x=>x.dispatchAuthorized===false&&x.stage==='PUBLIC_CANDIDATE_ONLY')));
 test(()=>assert.ok(C.filter(x=>x.provider==='openrouter').every(x=>x.model.endsWith(':free'))));
@@ -46,6 +46,9 @@ test(()=>assert.equal(independent(
 test(()=>assert.equal(independent(
  {provider:'openrouter',model:'google/gemma-4-26b-a4b-it:free'},
  {provider:'gemini',model:'gemini-3.6-flash'}),false));
+test(()=>assert.equal(independent(
+ {provider:'openrouter',model:'google/gemma-4-26b-a4b-it:free'},
+ {provider:'gemini',model:'gemini-3.8-flash'}),false));
 test(()=>assert.equal(independent(
  {provider:'groq',model:'openai/gpt-oss-120b'},
  {provider:'openrouter',model:'openrouter/free'}),false));

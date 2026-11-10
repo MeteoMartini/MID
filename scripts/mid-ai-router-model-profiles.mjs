@@ -18,6 +18,8 @@ export const MID_AI_MODEL_CANDIDATES=Object.freeze([
   'https://openrouter.ai/google/gemma-4-26b-a4b-it%3Afree'),
  spec('openrouter','nvidia/nemotron-3.5-super-vl:free','nvidia','nemotron-3.5-super',
   'https://openrouter.ai/collections/free-models','image-and-text'),
+ spec('gemini','gemini-3.8-flash','google','gemini-3.8',
+  'https://ai.google.dev/gemini-api/docs/pricing'),
  spec('gemini','gemini-3.6-flash','google','gemini-3.6',
   'https://ai.google.dev/gemini-api/docs/pricing'),
  spec('vercel-ai-gateway','perplexity/sonar','perplexity','sonar',
