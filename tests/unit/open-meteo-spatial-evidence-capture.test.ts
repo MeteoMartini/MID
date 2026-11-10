@@ -8,7 +8,9 @@ const frame:FrameResult={status:'manifest-only',model:'dwd_icon_eu',
  variable:'temperature_2m',accumulationHours:null};
 const payload=Uint8Array.from(Array.from({length:64},(_,i)=>i));
 payload.set([0x4f,0x4d,0x03],0);
+const expectedUrl='https://openmeteo.s3.amazonaws.com/data_spatial/dwd_icon_eu/2026/11/09/0300Z/2026-11-09T0400.om';
 const response=(data=payload,status=206,range='bytes 0-63/300000')=>({
+ url:expectedUrl,
  status,headers:new Headers({'content-range':range,'content-length':String(data.length),
   'content-type':'application/octet-stream'}),
  arrayBuffer:async()=>Uint8Array.from(data).buffer,
@@ -23,6 +25,17 @@ describe('MID spatial research HTTP range capture',()=>{
    expect(result.receipt.file).toBe('dwd_icon_eu/2026/11/09/0300Z/2026-11-09T0400.om');
    expect(result.publicationApproved).toBe(false);
    expect((await verifySpatialRangeReceipt(frame,result.receipt,result.bytes)).ok).toBe(true);
+  }
+ });
+ it('rejects wrong, missing or redirected origin before touching the body',async()=>{
+  for(const url of ['', 'https://example.org/forged.om',
+    'https://openmeteo.s3.amazonaws.com.evil.invalid/data_spatial/dwd_icon_eu/2026/11/09/0300Z/2026-11-09T0400.om',
+    expectedUrl+'?override=1']){
+   let reads=0;
+   const r={...response(),url,arrayBuffer:async()=>{reads++;return payload.buffer}};
+   expect(await captureSpatialEvidence(frame,'header',r,'2026-11-09T05:00:00Z'))
+    .toEqual({ok:false,reason:'unexpected-response-origin'});
+   expect(reads).toBe(0);
   }
  });
  it('rejects HTTP-200 fallback before reading an unbounded body',async()=>{

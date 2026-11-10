@@ -15,11 +15,14 @@ export type SpatialCaptureResult =
 
 export async function captureSpatialEvidence(
  frame:FrameResult, kind:'header'|'trailer',
- response:Pick<Response,'status'|'headers'|'arrayBuffer'>,
+ response:Pick<Response,'url'|'status'|'headers'|'arrayBuffer'>,
  capturedUtc:string,
 ):Promise<SpatialCaptureResult>{
  const plan=planOmHeaderProbe(frame);
  if(!plan.ok||frame.status!=='manifest-only')return{ok:false,reason:'frame-unqualified'};
+ // Reject origin substitutions and redirects before reading a single byte.
+ // URL matching is necessary evidence, not a cryptographic origin attestation.
+ if(response.url!==plan.probe.url)return{ok:false,reason:'unexpected-response-origin'};
  if(response.status!==206)return{ok:false,reason:'range-not-honored'};
  const rawRange=response.headers.get('content-range');
  const match=/^bytes (\d+)-(\d+)\/([1-9]\d*)$/.exec(rawRange||'');
