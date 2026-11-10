@@ -26,6 +26,8 @@ describe('native paired DWD seasonal export',()=>{
  });
  it('denies time drift, grid drift, invalid raster and inconsistent intervals',()=>{
   expect(()=>nativeSeasonalSvg('winter-berge',precip,{...temperature,time:'2026-11-09T08:00:00Z'},raster,place)).toThrow();
+  expect(()=>nativeSeasonalSvg('winter-berge',{...precip,unit:'mm'},temperature,raster,place)).toThrow('kein gemeinsamer');
+  expect(()=>nativeSeasonalSvg('sommer-gewitter',precip,{...mk('gust',[20,40,60,80]),unit:'m/s'},raster,place)).toThrow('kein gemeinsamer');
   expect(()=>nativeSeasonalSvg('winter-berge',precip,{...temperature,lons:[7,7.2]},raster,place)).toThrow();
   expect(()=>nativeSeasonalSvg('winter-berge',precip,temperature,'javascript:alert(1)',place)).toThrow();
   expect(()=>nativeSeasonalSvg('winter-berge',{...precip,values:[0,1,NaN,3]},temperature,raster,place)).toThrow('kein gemeinsamer');
