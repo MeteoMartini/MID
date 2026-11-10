@@ -86,6 +86,36 @@ export function planMidAiTaskSurface({
       requiredTools:toolsUsed(t,['github']),...evidence()
     });
   }
+  // Copilot cloud agent is reached through the existing GitHub Issue assignee
+  // action, NOT through an independently connected Copilot tool or API token.
+  // This is a pure plan; host must verify the *real* signed-in quota, ensure a
+  // single already-authorized issue request, and read back a Copilot draft.
+  // The user's explicit preferredMode prevents an unrequested agent dispatch.
+  if(task.preferredMode==='copilot'){
+    const copy={...evidence(),retryAllowed:false,
+      sessionStarted:false,dispatchPerformed:false,dispatchAuthorized:false};
+    if(!['source-code-change','independent-review'].includes(intent))
+      return make('copilot-issue','BLOCKED','COPILOT_TASK_KIND_NOT_ALLOWED',copy);
+    if(!sourceAligned)return make('copilot-issue','BLOCKED','SOURCE_DRIFT',copy);
+    if(sensitive)return make('copilot-issue','BLOCKED','PUBLIC_REDACTED_ONLY',copy);
+    if(host.mode!=='chat')return make('copilot-issue','BLOCKED','COPILOT_REQUIRES_CHAT_COORDINATOR',copy);
+    if(task.copilotIssueAlreadyCreated===true)
+      return make('copilot-issue','BLOCKED','COPILOT_REQUEST_ALREADY_SUBMITTED',copy);
+    if(!toolReady(t,'github','write')||t.github?.copilotIssueAssignSupported!==true)
+      return make('copilot-issue','BLOCKED','GITHUB_COPILOT_ASSIGNMENT_NOT_VERIFIED',copy);
+    if(t.github?.copilotCreditState==='exhausted')
+      return make('copilot-issue','BLOCKED','COPILOT_AI_CREDITS_EXHAUSTED',copy);
+    if(t.github?.copilotCreditState!=='verified-available'||
+       t.github?.copilotPaidOverageDisabled!==true)
+      return make('copilot-issue','BLOCKED','COPILOT_CREDIT_LIMITS_UNVERIFIED',copy);
+    return make('copilot-issue','CONNECTED_TOOL_PLAN',
+      'GITHUB_ISSUE_ASSIGNMENT_UNTRUSTED_DRAFT_ONLY',{
+        ...copy,requiredTools:toolsUsed(t,['github']),
+        issueAssignmentTool:'github.add_issue_assignees',
+        requestedAssignee:'copilot-swe-agent[bot]',
+        noReleaseAuthority:true
+      });
+  }
   if(intent==='source-code-change'){
     if(!sourceAligned)return make(null,'BLOCKED','SOURCE_DRIFT');
     if(host.mode==='codex' && toolReady(t,'codex','write') &&
@@ -100,12 +130,6 @@ export function planMidAiTaskSurface({
     if(toolReady(t,'github','write'))
       return make('chatgpt-github','CONNECTED_TOOL_PLAN','AUTHORIZED_INTEGRATION_BRANCH_ONLY',{
         requiredTools:toolsUsed(t,['github']),...evidence()
-      });
-    if(toolReady(t,'copilot','write') && toolReady(t,'github') &&
-       t.copilot?.includedQuotaVerified===true &&
-       t.copilot?.paidOverageDisabled===true)
-      return make('copilot-issue','CONNECTED_TOOL_PLAN','ISSUE_TO_UNTRUSTED_COPILOT_DRAFT_ONLY',{
-        requiredTools:toolsUsed(t,['github','copilot']),...evidence()
       });
     return make('codex','MODE_SWITCH_REQUIRED','CODEX_OR_CONNECTED_GITHUB_REQUIRED');
   }
