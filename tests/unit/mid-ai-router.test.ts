@@ -95,7 +95,7 @@ describe('MID AI Router: separate direct Free-provider safety QA (issue #725)', 
     });
     expect(r.error).toBeUndefined();
     expect(r.status, r.stderr || r.stdout).toBe(0);
-    expect(r.stdout).toMatch(/MID AI Router model profile QA OK; scenarios=21; no account\/API network used\./);
+    expect(r.stdout).toMatch(/MID AI Router model profile QA OK; scenarios=24; no account\/API network used\./);
     expect(r.stderr).toBe('');
   });
 
