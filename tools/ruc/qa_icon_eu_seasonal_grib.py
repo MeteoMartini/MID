@@ -166,6 +166,21 @@ def cumulative_difference(previous, current, *, tolerance: float = 1e-10):
     return values
 
 
+def cumulative_difference_array(previous, current):
+    """Vectorized same-run cumulative delta, with explicit per-cell NaN gaps.
+
+    No array-to-Python-list conversion at full ICON-EU grid resolution.
+    Negative changes (including tiny negative resets) are unresolved, not zero.
+    """
+    import numpy as np
+    start=np.asarray(previous,dtype=np.float64)
+    end=np.asarray(current,dtype=np.float64)
+    if start.ndim!=1 or end.shape!=start.shape or start.size==0:
+        raise ContractError('cumulative grid shape/size mismatch')
+    valid=(np.isfinite(start)&np.isfinite(end)&(start>=0)&(end>=0)&(end>=start))
+    return np.where(valid,end-start,np.nan)
+
+
 def _request_bytes(session, url: str) -> bytes:
     """Bounded read-only original fetch; do not follow off-domain redirects."""
     if urlparse(url).scheme != 'https' or urlparse(url).hostname != 'opendata.dwd.de':
@@ -316,10 +331,10 @@ def run_qualification(run: str, leads: list[int]) -> dict:
         width = target_interval(lead)
         old = fetched[f'tot_prec:{lead-width}'][1]
         new = fetched[f'tot_prec:{lead}'][1]
-        precip = cumulative_difference(old.tolist(),new.tolist())
+        # Avoid 3 gigantic Python lists for one whole-grid frame.
+        values = cumulative_difference_array(old,new)
         gust = fetched[f'vmax_10m:{lead}'][1]
         temp = fetched[f't_2m:{lead}'][1]
-        values = np.array([x if x is not None else np.nan for x in precip],dtype=float)
         valid_winter = np.isfinite(values) & np.isfinite(temp)
         valid_summer = np.isfinite(values) & np.isfinite(gust)
         if not valid_winter.any() or not valid_summer.any():
