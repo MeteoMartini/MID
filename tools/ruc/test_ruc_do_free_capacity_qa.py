@@ -49,6 +49,19 @@ class DOFreeQATest(unittest.TestCase):
         self.assertFalse(report["activationAuthorized"])
         self.assertFalse(report["zeroExtraCostActivated"])
 
+    def test_active_duration_missing_is_not_silently_zero_or_free_approved(self):
+        # Even a caller-supplied zero is not authenticated Cloudflare account metering.
+        self.inv["accountDurationGbSecondsDay"] = 0
+        self.inv["claimedFreePlan"] = True
+        report = capacity(self.inv)
+        self.assertEqual(report["officialFreeActiveDurationGbSecondsDay"], 13_000)
+        self.assertEqual(report["midInternalActiveDurationGbSecondsDay"], 6_500)
+        self.assertIsNone(report["measuredAccountActiveDurationGbSecondsDay"])
+        self.assertFalse(report["activeDurationQuotaQualified"])
+        self.assertFalse(report["activationAuthorized"])
+        self.assertFalse(report["productionApproved"])
+        self.assertTrue(any("active duration" in reason for reason in report["blockers"]))
+
     def test_two_concurrent_staging_runs_would_exceed_internal_buffer(self):
         r = capacity(self.inv)
         self.assertGreater(r["estimatedPhysicalBytesPerRunIncluding15PctReserve"]*6, 4500000000)

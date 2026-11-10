@@ -20,6 +20,8 @@ FREE_ONE_OBJECT_STORAGE = 1_000_000_000
 FREE_ROWS_WRITTEN_DAY = 100_000
 FREE_ROWS_READ_DAY = 5_000_000
 FREE_DO_REQUESTS_DAY = 100_000
+FREE_DO_ACTIVE_DURATION_GB_SECONDS_DAY = 13_000  # official Workers Free DO compute quota
+MID_DO_ACTIVE_DURATION_GB_SECONDS_BUDGET = 6_500  # internal headroom; not an account quota
 # Conservative internal safety margins, NOT guaranteed actual SQLite overhead.
 MID_ACCOUNT_BUDGET = 4_500_000_000
 MID_RUN_OBJECT_BUDGET = 900_000_000
@@ -66,6 +68,7 @@ def capacity(inventory: dict) -> dict:
     blockers.extend([
         "actual SQLite page/WAL/index/compaction peaks not measured",
         "actual Free account/other DO/Worker usage not verified",
+        "actual account-wide DO active duration (GB-s/day) and hibernation not measured",
         "native producer ingestion, network and workload not verified",
         "cross-DO immutable run read/admission and single-writer fencing not qualified",
         "real Workers CPU/point APIs and end-client parity not qualified",
@@ -83,6 +86,10 @@ def capacity(inventory: dict) -> dict:
         "estimatedAccountPeakBytesIncluding15PctReserve": all_db_physical_estimate,
         "officialFreeAccountStorageBytes": FREE_ACCOUNT_STORAGE,
         "officialFreePerDurableObjectBytes": FREE_ONE_OBJECT_STORAGE,
+        "officialFreeActiveDurationGbSecondsDay": FREE_DO_ACTIVE_DURATION_GB_SECONDS_DAY,
+        "midInternalActiveDurationGbSecondsDay": MID_DO_ACTIVE_DURATION_GB_SECONDS_BUDGET,
+        "measuredAccountActiveDurationGbSecondsDay": None,
+        "activeDurationQuotaQualified": False,
         "estimatedWithinInternalPlanningEnvelope":
             not any("exceeds safety capacity" in reason or "quota margin" in reason for reason in blockers),
         "zeroExtraCostActivated": False,

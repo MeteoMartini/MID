@@ -585,3 +585,10 @@ DWD bytes were rehashed today by this recurring unit gate; no current
 DWD signer, official DWD cryptographic signature, new source model-run
 attestation, Cloudflare Worker CPU/quota acceptance or deployment was
 established. Production approval and activation remain false.
+
+
+## WE RUC 1.10 — missing DO Free active-duration quota is a hard blocker (QA-only)
+
+Cloudflare's official [Durable Objects Free pricing](https://developers.cloudflare.com/durable-objects/platform/pricing/) publishes **13,000 GB-s/day** of included active duration and 100,000 requests/day; exceedance on a confirmed Workers Free account fails requests, rather than authorizing spend. Daily limits reset at 00:00 UTC. Durable Objects remaining active or unable to hibernate consume duration even without a corresponding data-read burst. Account-wide usage and runtime plan must be authenticated separately before any activation; neither a local SQLite file nor a synthetic workerd run measures it.
+
+The offline report now explicitly records `officialFreeActiveDurationGbSecondsDay=13000`, a **separate MID internal planning headroom** of 6,500 GB-s/day, `measuredAccountActiveDurationGbSecondsDay=null` (never zero), and `activeDurationQuotaQualified=false`. Even a forged caller-declared zero or free-plan claim cannot mark this gate passed. A dedicated negative regression exercises the fail-closed path. **No Cloudflare connection, activation, spend, production authorization, model release, Worker/Pages change or new automatic polling.** The existing `productionApproved=false` and `activationAuthorized=false` remain in force, irrespective of the other offline test results.
