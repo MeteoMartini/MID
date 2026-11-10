@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {execFileSync,spawnSync} from 'node:child_process';
-import {mkdtempSync,readFileSync,readdirSync,rmSync,statSync} from 'node:fs';
+import {mkdtempSync,readFileSync,readdirSync,rmSync,statSync,symlinkSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -36,10 +36,12 @@ describe('seasonal WXCharts-inspired cards stay inside the original MID map sele
   // Explicit non-release QA: all generated files stay outside the repository.
   // Never run this additional resource-intensive probe on unrelated PRs or local tests.
   const root=fileURLToPath(new URL('../../',import.meta.url));
-  const output=mkdtempSync(join(tmpdir(),'mid-seasonal-qa-build-'));
-  const run=(args:string[],timeout:number)=>{
+  const scratch=mkdtempSync(join(tmpdir(),'mid-seasonal-qa-build-'));
+  const checkout=join(scratch,'source');
+  let checkedOut=false;
+  const run=(args:string[],timeout:number,cwd=root)=>{
    const result=spawnSync(process.execPath,args,{
-    cwd:root,encoding:'utf8',timeout,maxBuffer:12*1024*1024,
+    cwd,encoding:'utf8',timeout,maxBuffer:12*1024*1024,
     env:{...process.env},
    });
    if(result.error||result.status!==0&&args[0]!=='scripts/check-build-budget.mjs')
@@ -48,7 +50,16 @@ describe('seasonal WXCharts-inspired cards stay inside the original MID map sele
    return result;
   };
   try{
-   run(['--max-old-space-size=4096','node_modules/vite/bin/vite.js','build','--outDir',output,'--emptyOutDir'],420_000);
+   // Detached scratch checkout preserves Vite's canonical dist/ path while
+   // leaving the PR worktree, protected branches and tracked assets untouched.
+   const added=spawnSync('git',['worktree','add','--detach',checkout,'HEAD'],{
+    cwd:root,encoding:'utf8',timeout:45_000,maxBuffer:2*1024*1024,
+   });
+   if(added.status!==0||added.error)throw new Error('QA worktree checkout failed: '+String(added.stderr||added.error));
+   checkedOut=true;
+   symlinkSync(join(root,'node_modules'),join(checkout,'node_modules'),'dir');
+   run([join(root,'node_modules/vite/bin/vite.js'),'build'],420_000,checkout);
+   const output=join(checkout,'dist');
    const names=readdirSync(join(output,'assets'));
    const js=names.filter(name=>/^index-.*\.js$/.test(name));
    const css=names.filter(name=>/^index-.*\.css$/.test(name));
@@ -60,8 +71,8 @@ describe('seasonal WXCharts-inspired cards stay inside the original MID map sele
    const cssBytes=Math.max(...css.map(name=>statSync(join(output,'assets',name)).size));
    console.log('[MID #741 source bundle] JS '+js.map(name=>name+':'+statSync(join(output,'assets',name)).size).join(', ')+
     '; CSS '+css.map(name=>name+':'+statSync(join(output,'assets',name)).size).join(', '));
-   const budgetResult=run(['scripts/check-build-budget.mjs',output],150_000);
-   const report=JSON.parse(readFileSync(join(root,'artifacts','build-budget.json'),'utf8')) as {
+   const budgetResult=run(['scripts/check-build-budget.mjs',output],150_000,checkout);
+   const report=JSON.parse(readFileSync(join(checkout,'artifacts','build-budget.json'),'utf8')) as {
     schema:number;ok:boolean;totals:Record<string,number>;failures:string[];
    };
    console.log('[MID #741 isolation only] Vite candidate main JS '+jsBytes+
@@ -72,7 +83,16 @@ describe('seasonal WXCharts-inspired cards stay inside the original MID map sele
    expect(report.schema).toBe(2);
    expect(budgetResult.status===0).toBe(report.ok);
    expect(report.failures,'Kein bestehendes hartes Budget wird für die Kartenfreigabe ignoriert').toEqual([]);
-  }finally{rmSync(output,{recursive:true,force:true})}
+  }finally{
+   if(checkedOut){
+    rmSync(join(checkout,'node_modules'),{force:true});
+    const removed=spawnSync('git',['worktree','remove','--force',checkout],{
+     cwd:root,encoding:'utf8',timeout:45_000,maxBuffer:2*1024*1024,
+    });
+    if(removed.status!==0)console.warn('Temporären QA-Worktree nicht sauber entfernt: '+String(removed.stderr).slice(-400));
+   }
+   rmSync(scratch,{recursive:true,force:true});
+  }
  },570_000);
  it('offers both exact-source seasonal products in the existing grouped parameter picker',()=>{
   const available=availableUnifiedParameters(index(),false,false);
