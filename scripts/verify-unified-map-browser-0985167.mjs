@@ -13,10 +13,22 @@ import {profileMapCycles} from './lib/mapMemoryProfile.mjs';
 import {createHash} from 'node:crypto';
 import {createServer} from 'vite';
 const require=createRequire(import.meta.url),cli=realpathSync(execFileSync('npm',['exec','--yes','--package=playwright@1.56.1','--','which','playwright'],{encoding:'utf8'}).trim()),pw=require(join(dirname(dirname(cli)),'playwright'));
+const seasonalDraftPilot=process.env.GITHUB_ACTIONS!=='true'&&Boolean(process.env.MID_MAP_QA_PILOT_CASE);
+const seasonalDraftKeys=seasonalDraftPilot?process.env.MID_MAP_QA_PILOT_CASE.split(','):[];
+const seasonalDraftAllowed=new Map(mapBrowserCases().map(row=>[`${row.width}/${row.theme}/${row.design}`,row]));
+if(seasonalDraftPilot&&(seasonalDraftKeys.length<1||seasonalDraftKeys.length>4||
+  new Set(seasonalDraftKeys).size!==seasonalDraftKeys.length||
+  !seasonalDraftKeys.includes('390/light/next')||
+  seasonalDraftKeys.some(key=>!seasonalDraftAllowed.has(key))))
+ throw Error('Seasonal read-only Chrome pilot requires 1-4 distinct canonical map cases including 390/light/next');
+// The Draft-only browser probe runs on ubuntu-latest (currently Ubuntu 26.04):
+// pinned Playwright 1.56.1 cannot install its bundled Chromium there.
+// Use the GitHub runner's already-installed stable Chrome for this narrow probe.
+// The mandatory Source-Gate retains its pinned Chromium installation on ubuntu-24.04.
 if(process.env.GITHUB_ACTIONS==='true')execFileSync('node',[cli,'install','chromium'],{stdio:'inherit',timeout:240000});
 process.env.VITE_WORKER_SAME_ORIGIN_PATH='/__qa-worker';
 const server=await createServer({cacheDir:join(process.cwd(),'node_modules/.vite-mid-map-qa'),server:{host:'127.0.0.1',port:0,watch:null,hmr:false},plugins:[{name:'mid-real-map-qa',configureServer(vite){vite.middlewares.use('/__map-qa',async(req,res)=>{res.setHeader('Content-Type','text/html');res.end(await vite.transformIndexHtml('/__map-qa',`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;padding:12px;font:14px system-ui;background:#edf2f5;color:#152b40}button,select,input{font:inherit}*{box-sizing:border-box}#root{max-width:1400px;margin:auto}</style></head><body><div id="root"></div><script type="module" src="/scripts/fixtures/unified-map-browser.tsx"></script></body></html>`))})}}]});await server.listen();
-const address=server.httpServer.address(),base=`http://127.0.0.1:${address.port}`,browser=await pw.chromium.launch({...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),headless:true,args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+const address=server.httpServer.address(),base=`http://127.0.0.1:${address.port}`,browser=await pw.chromium.launch({...(seasonalDraftPilot?{channel:'chrome'}:process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),headless:true,args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 const hour=3600000,runMs=Math.floor(Date.now()/hour)*hour-hour,run=new Date(runMs).toISOString(),observedTime=new Date(runMs+hour-17*60000).toISOString(),lats=[47,49.05,51.1,53.15,55.2],lons=[5.5,8.025,10.55,13.075,15.6],products={},objects=new Map(),units={temperature:'°C',pressure:'hPa',wind:'km/h',gust:'km/h',cloud:'%',thetae:'K',sigwx:'WMO',precipitation:'mm/1 h'};
 for(const [kind,unit]of Object.entries(units)){products[kind]={unit,frames:[]};for(const h of [1,2,3,4,5,6,12,24,48]){const value=kind==='pressure'?10150:kind==='thetae'?3100:kind==='sigwx'?610:kind==='precipitation'?10:150,payload=JSON.stringify({schema:'mid.icon-d2.field.v1',run,time:new Date(runMs+h*hour).toISOString(),kind,unit,scale:.1,lats,lons,values:Array(25).fill(value),centers:kind==='pressure'?[{type:'H',lat:51,lon:10,value:1024,prominence:4}]:[],isobars:kind==='pressure'?[{level:1016,paths:[[[49,6],[51,10]],[[51,10],[53,15]]]}]:[]}),file=`${kind}-${String(h).padStart(3,'0')}.json`;objects.set(file,payload);products[kind].frames.push({hour:h,time:new Date(runMs+h*hour).toISOString(),file,bytes:Buffer.byteLength(payload),sha256:createHash('sha256').update(payload).digest('hex'),intervalHours:kind==='gust'||kind==='precipitation'?1:0})}}
 const rucProducts={},rucObjects=new Map();
@@ -188,6 +200,78 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  if(width===844||width===1024)await page.setViewportSize({width,height:920});
  await page.getByLabel('Modell für Parameter').selectOption('icon-d2');await page.getByRole('button',{name:'Parameter zuerst',exact:true}).click();await page.getByLabel('Parameter-Layer').selectOption('temperature');
  await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('Rastertermin'));
+ // The established 24-case MapLibre matrix checks both seasonal products for
+ // exact pairing, nearest resampling, two point values and no mobile overflow.
+ // File downloads remain in the bounded single-view Chrome pilot.
+ {
+  const seasonalExportPilot=width===390&&theme==='light'&&design==='next';
+  const initialMaps=await page.locator('.maplibregl-map').count();
+  for(const [id,secondary,caption] of [['winter-berge','Temperatur · 2 m','keine Aussage zur Niederschlagsphase'],['sommer-gewitter','Böen · 10 m','1-h-Intervall']]){
+   await page.getByLabel('Parameter-Layer').selectOption(id);
+   await page.waitForFunction(()=>{const text=document.querySelector('.unified-layer-status')?.textContent||'';return text.includes('Rastertermin')&&text.includes('ICON-D2')&&!text.includes('lädt')});
+   await page.waitForFunction(()=>Boolean(window.__qaMap?.getStyle()?.layers?.some(l=>l.id.startsWith('unified-model-field')&&l.type==='raster'&&window.__qaMap.getPaintProperty(l.id,'raster-resampling')==='nearest')));
+   const fav=page.locator('.unified-favorites');
+   if(seasonalExportPilot&&await fav.getAttribute('open')===null)await fav.locator(':scope > summary').click();
+   assert.ok((await fav.locator('thead').textContent()||'').includes(secondary),'Original companion appears as second numeric field');
+   assert.equal(await fav.locator('thead th').count(),3,'Seasonal native pair has both variable columns');
+   if(seasonalExportPilot){
+   // A real installed Chrome may expose native Web Share. Explicitly test the
+   // ordinary fallback-download path; native iOS sharing needs a device check.
+   await page.evaluate(()=>Object.defineProperty(navigator,'canShare',{configurable:true,value:()=>false}));
+   // Exercise both downloadable export formats in a real browser. SVG alone
+   // does not prove the SVG-to-Canvas PNG route or PNG decoding.
+   for(const format of ['SVG','PNG']){
+    const pending=page.waitForEvent('download',{timeout:25000}).catch(async e=>{
+     const status=await page.locator('.unified-layer-status').allTextContents();
+     const alerts=await page.locator('[role="alert"]').allTextContents();
+     throw new Error('Seasonal '+format+' fallback-download missing: '+id+' | map='+JSON.stringify(status)+
+      ' | alerts='+JSON.stringify(alerts)+' | browser='+JSON.stringify(errors.slice(-5))+' | '+String(e));
+    });
+    await page.getByRole('button',{name:'Komposit + Ortswerte · '+format,exact:true}).click();
+    const downloaded=await pending,bytes=readFileSync(await downloaded.path());
+    assert.match(downloaded.suggestedFilename(),new RegExp('^MID-ICON-D2-'+id+'-.*\\.'+format.toLowerCase()+'$'));
+    if(format==='SVG'){
+     const svg=bytes.toString('utf8');
+     assert.ok(svg.includes('image-rendering:crisp-edges'),'Native NoData edges must not be smoothed in SVG');
+     assert.ok(svg.includes('data:image/png;base64,'),'SVG retains the native raster data URI');
+     assert.ok(svg.includes(caption),'Export must not fabricate precipitation phase or gust interval');
+    }else{
+     assert.deepEqual([...bytes.subarray(0,8)],[137,80,78,71,13,10,26,10],'Real PNG signature');
+     assert.equal(bytes.subarray(12,16).toString('ascii'),'IHDR','PNG image header');
+     assert.equal(bytes.readUInt32BE(16),1200,'Native export PNG width');
+     assert.ok(bytes.readUInt32BE(20)>=1130,'Native export PNG height');
+     assert.ok(bytes.length>10000,'PNG contains a nontrivial rendered payload');
+     // Decode the downloaded PNG with Chrome itself. This synthetic data
+     // test is not a claim of Safari or native iOS pixel parity.
+     const png=await page.evaluate(async encoded=>{
+      const data=Uint8Array.from(atob(encoded),ch=>ch.charCodeAt(0));
+      const bitmap=await createImageBitmap(new Blob([data],{type:'image/png'}));
+      try{
+       const canvas=document.createElement('canvas');canvas.width=bitmap.width;canvas.height=bitmap.height;
+       const context=canvas.getContext('2d',{willReadFrequently:true});
+       if(!context)throw new Error('Downloaded PNG cannot be painted to browser canvas');
+       context.drawImage(bitmap,0,0);
+       const pixels=context.getImageData(0,0,bitmap.width,bitmap.height).data;
+       const colors=new Set();
+       for(let y=180;y<Math.min(bitmap.height,900);y+=30)for(let x=60;x<Math.min(bitmap.width,690);x+=30){
+        const offset=(y*bitmap.width+x)*4;
+        if(pixels[offset+3]>0)colors.add(pixels[offset]+','+pixels[offset+1]+','+pixels[offset+2]);
+       }
+       return {width:bitmap.width,height:bitmap.height,colorCount:colors.size};
+      }finally{bitmap.close()}
+     },bytes.toString('base64'));
+     assert.equal(png.width,1200,'Browser-decoded PNG retains SVG canvas width');
+     assert.ok(png.height>=1130,'Browser-decoded PNG retains SVG canvas height');
+     assert.ok(png.colorCount>=2,'Downloaded PNG contains visible pixels, not a blank image');
+    }
+   }
+   }
+   assert.equal(await page.locator('.maplibregl-map').count(),initialMaps,'One retained MapLibre instance');
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Seasonal map fits viewport without horizontal page overflow');
+  }
+  await page.getByLabel('Parameter-Layer').selectOption('temperature');
+  await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('Rastertermin'));
+ }
  await verifyAlphabeticalSelectors(page);
  const mapIdentity=await page.locator('.maplibregl-map').evaluate(el=>{el.dataset.qaIdentity='original';return true});assert.ok(mapIdentity);
  if(width===390&&theme==='light')await page.screenshot({path:'/tmp/mid-unified-model-390.png',fullPage:true});
@@ -293,7 +377,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
   }cases++;console.log(`Map case ${cases}: ${width}px ${theme} ${design} passed · ${((performance.now()-caseStarted)/1000).toFixed(1)} s`);await context.close();
 }
 const focusedCases=process.env.GITHUB_ACTIONS!=='true'&&process.env.MID_MAP_QA_FOCUSED==='1'?[320,390,430,1024,1440].flatMap(width=>['light','dark'].map(theme=>({width,theme,design:'next'}))):null;
-const assignedCases=focusedCases??mapBrowserCases(process.env.MID_MAP_QA_SHARD);
+const assignedCases=seasonalDraftPilot?seasonalDraftKeys.map(key=>seasonalDraftAllowed.get(key)):focusedCases??mapBrowserCases(process.env.MID_MAP_QA_SHARD);
 try{for(const width of [...new Set(assignedCases.map(row=>row.width))]){const variants=assignedCases.filter(row=>row.width===width),concurrency=mapBrowserCaseConcurrency(width);/* Bound synthetic MapLibre software-GPU contention; all cases and all assertions remain mandatory. */for(let offset=0;offset<variants.length;offset+=concurrency){const results=await Promise.allSettled(variants.slice(offset,offset+concurrency).map(({theme,design})=>verifyCase(width,theme,design)));for(const result of results)if(result.status==='rejected')throw result.reason;}}assert.equal(cases,assignedCases.length,'Complete assigned viewport/theme/design coverage');if(perfEnabled&&mapBrowserMemoryProbe(process.env.MID_MAP_QA_SHARD))await verifyCase(390,'light','next',true);if(perfRows.length){
  const rows=perfRows.sort((a,b)=>a.width-b.width||a.theme.localeCompare(b.theme)||a.design.localeCompare(b.design));
  const report={schema:'mid.map.runtime.fixture.v2',version:JSON.parse(readFileSync(new URL('../package.json',import.meta.url))).version,commit:process.env.GITHUB_SHA||null,shard:process.env.MID_MAP_QA_SHARD||'all',kind:'synthetic-Vite-MapLibre-fixture-not-user-CWV',cases:rows};

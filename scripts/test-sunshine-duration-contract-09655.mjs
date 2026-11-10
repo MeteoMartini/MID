@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {createRequire} from 'node:module';
+import {build} from 'esbuild';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
@@ -61,5 +62,60 @@ const contracts=[
  ['worker-src/00-core-observations.js',['widgetSunshineSeconds','sunshineDurationSeconds','sunshineDuration:\'s\'']]
 ];
 for(const [file,tokens] of contracts){const text=fs.readFileSync(path.join(root,file),'utf8');for(const token of tokens)assert.ok(text.includes(token),`${file}: Sunshine-Contract fehlt: ${token}`)}
+
+ // Tested expression is extracted from production 3-h detail grouping rather
+ // than duplicated: partial coverage must never appear as a complete sum.
+ const detailSource=fs.readFileSync(path.join(root,'src','App.tsx'),'utf8');
+ const marker='sunshineValues=group.map(hour=>hour.sunshineDuration)';
+ const begin=detailSource.indexOf(marker),finish=detailSource.indexOf(',cloud=meanCloudLayer(group',begin);
+ assert.ok(begin>=0&&finish>begin,'3-h-Sonnenscheindauer muss aus dem produktiven Stundenaggregat stammen');
+ const fragment=detailSource.slice(begin,finish);
+ assert.match(fragment,/sunshineValues\.length===group\.length/,'Nur vollständig vorhandene 3-h-Stundenwerte dürfen aufsummiert werden');
+ const dailySrc='export function sumDetailSunshine(group:{sunshineDuration?:number|null}[],completeCoverage:boolean){const '+fragment+';return sunshineDuration;}';
+ const detailJs=ts.transpileModule(dailySrc,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022},fileName:'detailSunshineProbe.ts',reportDiagnostics:true});
+ assert.equal((detailJs.diagnostics??[]).filter(item=>item.category===ts.DiagnosticCategory.Error).length,0,'Aggregat-Ausdruck muss TypeScript-kompilierbar sein');
+ const detailDir=fs.mkdtempSync(path.join(os.tmpdir(),'mid-daily-sunshine-detail-'));
+ try{
+ const detailFile=path.join(detailDir,'detailSunshineProbe.mjs');fs.writeFileSync(detailFile,detailJs.outputText);
+ const {sumDetailSunshine}=await import(pathToFileURL(detailFile).href);
+ const sum=(values,completeCoverage=true)=>sumDetailSunshine(values.map(sunshineDuration=>({sunshineDuration})),completeCoverage);
+ assert.equal(sum([0,3600,0]),3600,'Gültige Stunden inklusive echter Null bleiben exakt erhalten');
+ assert.equal(sum([0,0,0]),0,'Drei nachgewiesene Nullen sind eine echte 0');
+ assert.equal(sum([null,1800,null]),null,'Lücken nicht als vollständige 3-h-Summe anzeigen');
+ assert.equal(sum([0,null,0]),null,'Eine einzige fehlende Stunde macht die 3-h-Summe unbekannt');
+ assert.equal(sum([undefined,1800,900]),null,'Undefined darf keine Teil-Summe erzeugen');
+ assert.equal(sum([0,NaN,0]),null,'NaN darf keine Teil-Summe erzeugen');
+ assert.equal(sum([0,-1,0]),null,'Unphysikalisch negative Sonne ist nicht 0');
+ assert.equal(sum([0,3601,0]),null,'Mehr als 3600 s/h ist kein valider Stundenwert');
+ assert.equal(sum([1800],false),null,'Eine einzelne Stunde darf nicht als voller 3h-Block gelten');
+ assert.equal(sum([1800,0],false),null,'Zwei gelieferte Stunden beweisen keinen vollen 3h-Block');
+ assert.equal(sum([0,3600],true),3600,'Ein vollständiger zweistündiger DST-Frühlingsblock darf gültig sein');
+ }finally{fs.rmSync(detailDir,{recursive:true,force:true})}
+
+
+ // Execute the actual production local-calendar helper and existing window-coverage helper,
+ // bundled from exact application source with the project's real timezone conversion.
+ const winStart=detailSource.indexOf('function detailThreeHourWindow('),winEnd=detailSource.indexOf('function detailHoursByResolution(',winStart);
+ assert.ok(winStart>=0&&winEnd>winStart,'3h-Kalenderfenster-Helfer muss vorhanden sein');
+ assert.match(detailSource,/completeCoverage=completePrecipitationWindowCoverage\(group\.map/);
+ assert.ok(detailSource.includes('detailHoursByResolution(allDayHours,detailResolution,calendarTimezone??timezone)'));
+ assert.ok(detailSource.includes('sunshineDuration=completeCoverage&&sunshineValues.length===group.length'));
+ const winDir=fs.mkdtempSync(path.join(os.tmpdir(),'mid-3h-local-window-'));
+ try{
+  const winFile=path.join(winDir,'threeHourWindow.mjs');
+  await build({stdin:{contents:"import {localIsoToEpoch} from './src/timeDisplay';import {completePrecipitationWindowCoverage} from './src/precipitationAvailability';"+detailSource.slice(winStart,winEnd)+"\nexport{detailThreeHourWindow,completePrecipitationWindowCoverage};",resolveDir:root,sourcefile:'threeHourWindow.ts',loader:'ts'},outfile:winFile,bundle:true,platform:'node',format:'esm',logLevel:'silent'});
+  const {detailThreeHourWindow,completePrecipitationWindowCoverage}=await import(pathToFileURL(winFile).href);
+  const H=3600000, cases=[['2026-03-28T00:00',3],['2026-03-29T00:00',2],['2026-10-25T00:00',4],['2026-11-10T21:00',3]];
+  for(const [time,realHours] of cases){
+   const window=detailThreeHourWindow({time},'Europe/Berlin');
+   assert.equal((window.end-window.start)/H,realHours,'Tatsächliche lokale 3h-Kalenderdauer: '+time);
+   const slots=Array.from({length:realHours},(_,i)=>({start:window.start+i*H,end:window.start+(i+1)*H}));
+   assert.equal(completePrecipitationWindowCoverage(slots,window.start,window.end),true,'Vollständiger realer 3h-Block: '+time);
+   assert.equal(completePrecipitationWindowCoverage(slots.slice(0,-1),window.start,window.end),false,'Letzte Quellstunde fehlt: '+time);
+   assert.equal(completePrecipitationWindowCoverage(slots.slice(1),window.start,window.end),false,'Erste Quellstunde fehlt: '+time);
+  }
+  const invalid=detailThreeHourWindow({time:'2026-02-30T00:00'},'Europe/Berlin');
+  assert.equal(Number.isFinite(invalid.start),false,'Ungültiges Quelldatum ist keine valide Zeitachse');
+ }finally{fs.rmSync(winDir,{recursive:true,force:true})}
 
 console.log('0.9.65.5: appweiter Sunshine-Duration-Contract von 15 min über Stunde/Tag bis Ensemble, Events und Widgets geprüft.');

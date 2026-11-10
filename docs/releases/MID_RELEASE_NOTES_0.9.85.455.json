@@ -1,0 +1,23 @@
+{
+  "schema": "mid.release-notes.v1",
+  "version": "0.9.85.455",
+  "date": "2026-11-10",
+  "title": "Datenintegrität, Pollenflug, Meteogramm und Review-Sicherheit und DWD-Saisonkarten",
+  "external": [
+    "Fehlende Wetter- und Pollenangaben werden in Tagesdetails und Skybar nachvollziehbarer gekennzeichnet; lokale 3-Stunden-Fenster berücksichtigen Sommerzeitwechsel.",
+    "Das Meteogramm bewahrt die Modellwahl beim Ortswechsel; das optionale Pollenmodul lädt seine Darstellung schlanker, auch mit gesichertem Offline-Paket.",
+    "Die freiwillige Diagnostik gibt verständlichere Hinweise bei Speicherproblemen. Wetterwarnungen und Originalmodellwerte bleiben unverändert.",
+    "Die eigenständigen DWD-ICON-D2-Saisonkarten „Winter & Berge“ und „Sommer“ stellen den 1-h-Gesamtniederschlag mit 2-m-Temperatur-Isothermen beziehungsweise 10-m-Böen desselben Modelllaufs und Gültigkeitstermins zusammen.",
+    "NoData in einem der beiden Originalfelder bleibt in der gemeinsamen Karte und beim SVG-/PNG-Export transparent; wirkliche Nullwerte werden erhalten, Böenintervalle nur mit nachgewiesener Quelleninformation bezeichnet. Keine eigenständigen Schnee-/Glätte-, Gewitter- oder amtlichen Warnprodukte."
+  ],
+  "internal": [
+    "Verified Stable base v0.9.85.454 ee7a55b5ece4d3d3687202a95caeb6c5ff615055; 25 blob-identical files from Draft #742 HEAD da7c4509a6c6c6e604bb528051dbdb937ff1d8da and 8 blob-identical files from Review Draft #743 HEAD f782f4585ec631836e57728ee4ea0fc49fa3ea9b; initial integrated commit 1f0f0511d8ec83fa19e048fa816749e85ff43036.",
+    "No conflicting files with RUC v0.9.85.454. Existing mandatory meteorological regressions, Source-/Installer-/Worker-/Pages-/Stable gates are not changed or bypassed.",
+    "Isolated previous Draft Vitest and real CSS production pilot were successful; full current combined Source/Installer and browser/device tests are separately mandatory, not inferred from old candidates.",
+    "Added SHA-bound review evidence premerge checks in both exact workflow mirrors; independent full review triage and authenticated GitHub readback remain required for gate claims.",
+    "User release notes/technical history and all version mirrors must remain complete. No pricing, model providers, Cloudflare plan, permissions or branch-rule changes.",
+    "Die zehn fachlichen Karten-/QA-/Dokublobs wurden unverändert aus dem geprüften Karten-Draft #741 HEAD aee8204e5703a71a7fc77c2f8e4314a0ed8388e7 in den allgemeinen v0.9.85.455-Integrations-PR #745 übernommen. Jedes der zehn Originalblobs war gegenüber Stable ee7a55b5ece4d3d3687202a95caeb6c5ff615055 und dem bisherigen #745-Tree konfliktfrei; #741 bleibt als unveränderte Originalquelle gesichert.",
+    "Isolierte Karten-QA #42829498836 PASS: 111 Vitest PASS/1 SKIP, vier echte Chrome/MapLibre-Geräte-/Theme-Piloten PASS, SVG/PNG-Download und Decode PASS, 194/194 CI-Subtests PASS. Diese isolierte QA ersetzt nicht die neue vollständige Source-/Heavy-/Core-/DWD-/Browser-/iOS- und Installerqualifikation.",
+    "Der allgemeine Source-Gate-Lauf #42831676020 ist auf älterem #745-HEAD wegen Core-Regressionen fehlgeschlagen; 21 Cubic-Threads einschließlich P1-Merge-Evidenz sind nicht fachlich abgeschlossen. Bis zur unabhängigen Review-Triage bleibt das Bündel Draft/NO RELEASE; niemals nach einem nur synthetisch grünen Review-Gate veröffentlichen."
+  ]
+}
