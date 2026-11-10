@@ -90,6 +90,18 @@ class SourceContract(unittest.TestCase):
             with self.subTest(field=field,values=values),self.assertRaises(qa.ContractError):
                 qa.validate_original_range(field,values)
 
+    def test_missing_bitmap_sentinel_is_not_an_extreme_filter(self):
+        import numpy as np
+        a=qa.mask_only_documented_missing([0.,1.e20,9999.,float('nan')],9999.)
+        self.assertEqual(a[0],0.)
+        self.assertEqual(a[1],1.e20)
+        self.assertTrue(np.isnan(a[2]))
+        self.assertTrue(np.isnan(a[3]))
+        with self.assertRaises(qa.ContractError):
+            qa.validate_original_range('tot_prec',a)
+        with self.assertRaises(qa.ContractError):
+            qa.mask_only_documented_missing([0.,float('inf')],9999.)
+
     def test_duplicate_lead_rejected(self):
         with self.assertRaises(qa.ContractError): qa.enumerate_leads(listing('t_2m',(1,1)),RUN,'t_2m')
     def test_valid_hourly_and_three_hour_windows(self):
