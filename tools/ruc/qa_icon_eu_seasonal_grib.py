@@ -212,6 +212,22 @@ def validate_regular_grid(latitudes, longitudes, ni: int, nj: int) -> str:
     return hashlib.sha256(shape + np.stack((lats,lons)).tobytes()).hexdigest()
 
 
+def mask_only_documented_missing(values, missing_value):
+    """A huge/corrupt finite extreme is NOT a missing bitmap cell."""
+    import numpy as np
+    values = np.asarray(values, dtype=np.float64)
+    if np.isinf(values).any():
+        raise ContractError('infinite original GRIB value is not valid NoData')
+    missing = ~np.isfinite(values)
+    try:
+        sentinel = float(missing_value)
+    except (TypeError,ValueError,OverflowError) as exc:
+        raise ContractError('invalid original missingValue sentinel') from exc
+    if np.isfinite(sentinel):
+        missing |= values == sentinel
+    return np.where(missing, np.nan, values)
+
+
 def validate_original_range(field: str, values) -> None:
     """Reject physically impossible decoded extremes; never clamp or smooth."""
     import numpy as np
@@ -256,8 +272,9 @@ def decode_original(payload: bytes) -> tuple[dict, object, str]:
             if raw_vals.size != meta['Ni']*meta['Nj'] or lats.size != raw_vals.size or lons.size != raw_vals.size:
                 raise ContractError('original grid dimensions inconsistent')
             missing = float(codes_get(gid,'missingValue'))
-            mask = np.isfinite(raw_vals) & np.isfinite(lats) & np.isfinite(lons) & (raw_vals != missing) & (np.abs(raw_vals) < 1e15)
-            values = np.where(mask,raw_vals,np.nan)
+            # Preserve genuine missing/bitmap cells, but never hide a corrupt
+            # finite extreme behind an arbitrary magnitude threshold.
+            values = mask_only_documented_missing(raw_vals,missing)
             grid_signature = validate_regular_grid(lats,lons,meta['Ni'],meta['Nj'])
             extra = codes_grib_new_from_file(file)
             if extra is not None:
