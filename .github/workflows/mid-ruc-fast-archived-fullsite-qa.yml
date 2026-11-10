@@ -263,7 +263,7 @@ jobs:
       - name: Admit newest original 14Z full 27h/EPS20 archive and exact SHA (NO DEPLOY)
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           artifact="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/13786745090")"
@@ -283,7 +283,7 @@ jobs:
         with:
           artifact-ids: 13786745090
           run-id: 42855140112
-          github-token: ${{ github.token }
+          github-token: ${{ github.token }}
           digest-mismatch: error
           path: genuine-full-pages-14Z
       - name: Materialize and hash-check matching original 14Z full 27h/EPS20 + Fast site
