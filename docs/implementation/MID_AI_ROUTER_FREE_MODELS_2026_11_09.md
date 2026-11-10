@@ -2,6 +2,10 @@
 
 **Status:** Research + non-production QA candidate for [#725](https://github.com/MeteoMartini/MID/issues/725) / [Draft #728](https://github.com/MeteoMartini/MID/pull/728). **No live provider integration or account credentials approved.** Stable source remained v0.9.85.451 at the start of this work. This file is research, NOT a provider attestation and NOT a release contract override.
 
+## Correction, 10.11.2026: Sonar/Hobby ZDR eligibility
+
+Vercel's [Zero Data Retention policy](https://vercel.com/docs/ai-gateway/security-and-compliance/zdr) clarifies that **per-request provider ZDR requires Pro/Enterprise or purchased credits** (with a separate paid Token Pass exception); the $5 monthly Hobby AI Gateway credit does not confer ZDR eligibility. The fixed Sonar adapter requires `zeroDataRetention: true`, so **Hobby + no purchased credits must fail closed** with `ZDR_ACCOUNT_INELIGIBLE`, not `REVIEW_ONLY`, even if the free-credit balance and $1 soft budget look healthy. A Hobby upgrade/credit purchase would violate current MID cost authorization and is **not proposed or performed**. This correction supersedes any older suggestion that free Gateway credits alone can make Sonar routable. Alternatives remain ChatGPT-native GitHub tools, and independently attestable direct truly zero-priced provider APIs if a protected runtime, hard-stop quota and allowed privacy scope become available.
+
 ## Decision: avoid buying credits, not merely cheap tokens
 
 Free has three materially different meanings:

@@ -8,6 +8,12 @@ This document supplements (never supersedes) `AGENTS.md`,
 `MID_CHATGPT_GITHUB_CONTRACT.md` and
 `docs/implementation/MID_AGENT_PLUGIN_ROUTING_2026_11_07.md`.
 
+## 10.11.2026 — Vercel Hobby / ZDR negative gate (QA continuation)
+
+Official [Vercel ZDR documentation](https://vercel.com/docs/ai-gateway/security-and-compliance/zdr) requires Pro/Enterprise or purchased Gateway credits (Token Pass is a separately paid Pro feature) for request-level ZDR. Vercel Hobby's monthly $5 free credits do not qualify. The existing Sonar request envelope deliberately requires `providerOptions.gateway.zeroDataRetention=true`; therefore the zero-purchase Hobby route must return `ZDR_ACCOUNT_INELIGIBLE` in the Vercel preflight. The Sonar planner and research selector must reject the route even if a caller forges `zdrEligible=true` metadata. Do not silently remove the ZDR flag, purchase credits, or switch to an unreviewed provider.
+
+The Sonar QA serializer and parser remain tested using an **explicitly synthetic, non-dispatchable plan fixture**, not by asserting that a Hobby plan was issued. No live request, spend, credential access, deployment or release is authorized. Other free direct-model candidates remain separately subject to real account/privacy/price/identity proof and protected execution.
+
 ## Scope and purpose
 
 The independent router is **not** a MID weather-data endpoint, new user interface,

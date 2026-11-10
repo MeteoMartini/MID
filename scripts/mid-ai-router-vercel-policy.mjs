@@ -27,6 +27,13 @@ export function assessMidVercelFreeCreditPreflight({
    deny('TEAM_IDENTITY_NOT_PROVEN');
  if(account.tier!=='free'||account.purchasedCreditsUsd!==0)
    deny('FREE_ONLY_ACCOUNT_NOT_VERIFIED');
+ // Per-request provider ZDR is required by the fixed Sonar envelope.
+ // Vercel Hobby / $5 monthly free credits alone are NOT eligible for ZDR.
+ // Pro/Enterprise or purchased AI Gateway credits are required; neither
+ // meets this route's strictly free-account, zero-purchase policy.
+ // https://vercel.com/docs/ai-gateway/security-and-compliance/zdr
+ if(account.tier==='free'&&account.purchasedCreditsUsd===0)
+   deny('ZDR_ACCOUNT_INELIGIBLE');
  if(account.autoTopUpEnabled!==false)
    deny('AUTO_TOP_UP_NOT_VERIFIED_DISABLED');
  if(account.byokEnabled!==false)

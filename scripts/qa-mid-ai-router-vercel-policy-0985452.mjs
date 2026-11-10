@@ -26,7 +26,12 @@ const must=(data,reason)=>{
 };
 test(()=>{const r=assess();assert.equal(r.status,'EVIDENCE_BLOCKED');assert.equal(r.dispatchAuthorized,false)});
 test(()=>{const r=assess({budget:{limitUsd:1}});assert.equal(r.status,'EVIDENCE_BLOCKED');assert.equal(r.userReportedDollarLimitIsSoft,true)});
-test(()=>{const r=assess(fixture());assert.equal(r.status,'REVIEW_ONLY');assert.equal(r.dispatchAuthorized,false);assert.equal(r.isHardCashCap,false)});
+test(()=>{
+ const r=must(fixture(),'ZDR_ACCOUNT_INELIGIBLE');
+ assert.equal(r.status,'EVIDENCE_BLOCKED');assert.equal(r.isHardCashCap,false);
+ const forged=fixture();forged.account.zdrEligible=true;forged.evidence.zdrEntitled=true;
+ must(forged,'ZDR_ACCOUNT_INELIGIBLE');
+});
 test(()=>{const f=fixture();f.account.tier='paid';must(f,'FREE_ONLY_ACCOUNT_NOT_VERIFIED')});
 test(()=>{const f=fixture();f.account.purchasedCreditsUsd=1;must(f,'FREE_ONLY_ACCOUNT_NOT_VERIFIED')});
 test(()=>{const f=fixture();delete f.account.autoTopUpEnabled;must(f,'AUTO_TOP_UP_NOT_VERIFIED_DISABLED')});

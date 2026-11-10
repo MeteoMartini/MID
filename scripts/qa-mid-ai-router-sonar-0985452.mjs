@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** MID AI Router Sonar fixed-model/prepaid-credit offline negative QA. */
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {
  MID_SONAR_MODEL,MID_SONAR_ENDPOINT,MID_SONAR_LIVE_DISPATCH_ALLOWED,
  planMidAiSonar,buildMidAiSonarRequest,parseMidAiSonarResponse,dispatchMidAiSonar
@@ -23,13 +24,27 @@ const setup=()=>({task:{...task},snapshot:{...snapshot},teamId,now,
 });
 let count=0;const ok=(description,fn)=>{fn();count++};
 const denied=(fn,reason)=>assert.throws(fn,e=>e?.name==='MidAiSonarBlocked'&&e?.reason===reason,reason);
-const plan=planMidAiSonar(setup());
+// Isolated serializer/parser fixture only. This is NOT issued by the
+// Sonar planner, not a signed grant, and can never enable network dispatch.
+const plan=Object.freeze({
+ status:'PLAN_ONLY',provider:'vercel-ai-gateway',model:MID_SONAR_MODEL,
+ requestId:task.requestId,expectedStableSha:sha,version:snapshot.version,
+ taskFingerprint:createHash('sha256').update(JSON.stringify([
+  task.requestId,task.kind,task.dataClass,task.expectedStableSha,task.prompt,
+  task.preferredProvider,task.allowIncludedCreditUse,
+  task.maxAdditionalCashUsd,task.maxExternalCalls
+ ])).digest('hex'),
+ maxOutputTokens:256,maxAdditionalCashUsd:0,
+ costClass:'PRICED_INCLUDED_CREDIT_ONLY',dispatchAuthorized:false,
+ requiresIndependentSignedGrant:true
+});
 const response={id:'gen_test_only_123',model:MID_SONAR_MODEL,
  choices:[{message:{content:'Public information [1]'},finish_reason:'stop'}],
  citations:['https://wmo.int/'],search_results:[{url:'https://www.dwd.de/'}],
  usage:{prompt_tokens:100,completion_tokens:50}};
 const encoded=()=>JSON.stringify(response);
-ok('safe plan only',()=>{
+ok('Hobby free credit ZDR refusal, with isolated non-dispatchable mock envelope',()=>{
+ denied(()=>planMidAiSonar(setup()),'VERCEL_EVIDENCE_BLOCKED');
  assert.equal(plan.status,'PLAN_ONLY');
  assert.equal(plan.dispatchAuthorized,false);
  assert.equal(plan.maxAdditionalCashUsd,0);
@@ -151,7 +166,7 @@ ok('model identity required',()=>denied(
  'RESPONSE_MODEL_MISMATCH'));
 ok('evidence never included in plan or request body',()=>{
  const s=setup();s.credential='FAKE_SUPER_SECRET_KEY';
- const p=planMidAiSonar(s),r=buildMidAiSonarRequest({plan:p,task,credential:'FAKE_TEST_KEY_123456'});
+ const p=plan,r=buildMidAiSonarRequest({plan:p,task,credential:'FAKE_TEST_KEY_123456'});
  assert.equal(JSON.stringify(p).includes('FAKE_SUPER_SECRET'),false);
  assert.equal(r.body.includes('FAKE_SUPER_SECRET'),false);
 });

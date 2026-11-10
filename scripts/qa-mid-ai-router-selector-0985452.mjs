@@ -39,10 +39,8 @@ ok('explicit sonar not chosen by priority',()=>{
 ok('no silent sonar fallback when direct free unavailable',()=>{
  denial({task,snapshot,providers:[],sonarProof,now},'NO_VERIFIED_ZERO_COST_PROVIDER');
 });
-ok('explicit credit authorization selects sonar',()=>{
- const p=planMidAiResearchRoute({task:sonarTask,snapshot,providers,sonarProof,now});
- assert.equal(p.model,MID_SONAR_MODEL);assert.equal(p.selection,'EXPLICIT_SONAR_CREDIT_ONLY');
- assert.equal(p.dispatchAuthorized,false);assert.equal(p.maxAdditionalCashUsd,0);
+ok('explicit credit authorization cannot bypass Hobby ZDR ineligibility',()=>{
+ denial({task:sonarTask,snapshot,providers,sonarProof,now},'VERCEL_EVIDENCE_BLOCKED');
 });
 ok('unknown preference denied',()=>denial({
  task:{...task,preferredProvider:'auto'},snapshot,providers,now
@@ -69,9 +67,9 @@ ok('unverified model free tier cannot be routed',()=>{
  const p={...sonarProof,model:{...sonarProof.model,freeTierEligible:false}};
  denial({task:sonarTask,snapshot,sonarProof:p,now},'VERCEL_EVIDENCE_BLOCKED');
 });
-ok('never claim a planned Sonar route was dispatched',()=>{
- const p=planMidAiResearchRoute({task:sonarTask,snapshot,sonarProof,now});
- assert.equal(p.status,'PLAN_ONLY');
- assert.ok(!JSON.stringify(p).includes('FAKE_TEST_KEY'));
+ok('self-asserted ZDR permission cannot produce a Sonar plan',()=>{
+ const claimed={...sonarProof,account:{...sonarProof.account,zdrEligible:true},
+  evidence:{...sonarProof.evidence,zdrEntitled:true}};
+ denial({task:sonarTask,snapshot,sonarProof:claimed,now},'VERCEL_EVIDENCE_BLOCKED');
 });
 console.log('MID AI Router research selection offline QA OK; scenarios='+count+'; no live API used.');
