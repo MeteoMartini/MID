@@ -73,6 +73,26 @@ jobs:
           print('RUC offline pack: originalBytes='+str(r['originalBytes'])+', packedBytes='+str(r['packedBytes'])+', ratio='+str(r['compressionRatio']))
           print('R2 ACTIVATION: BLOCKED; no Cloudflare writes/credentials')
           PY
+      - name: Set up Node 22 to emulate Worker DecompressionStream without R2
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+      - name: Independent pointwise R2-range/Worker-style decoder parity
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check tools/ruc/ruc_r2_range_consumer_qa.mjs
+          node tools/ruc/ruc_r2_range_consumer_qa.mjs \
+            --source .ruc-out \
+            --pack .ruc-r2-offline-qa \
+            --report .ruc-r2-offline-qa/consumer-parity.json
+          python3 - <<'PY'
+          import json
+          r=json.load(open('.ruc-r2-offline-qa/consumer-parity.json'))
+          assert r['allPointBytesMatchOriginal'] is True
+          assert r['productionApproved'] is False and r['r2ActivationAuthorized'] is False
+          print('Only local Node Worker-stream parity passed; live Cloudflare CPU, billing and range not tested')
+          PY
       - name: Upload small SHA proof ONLY, never RUC data or R2 packed objects
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -81,6 +101,7 @@ jobs:
             .ruc-r2-offline-qa/report.json
             .ruc-r2-offline-qa/inventory.json
             .ruc-r2-offline-qa/range-index.json
+            .ruc-r2-offline-qa/consumer-parity.json
           if-no-files-found: error
           retention-days: 2
           compression-level: 6
