@@ -5,11 +5,39 @@
  */
 import {checkMidGroqModelConnectivity} from './mid-ai-router-groq-connectivity.mjs';
 import {readMidGithubSourceSnapshot} from './mid-ai-router-github-readback.mjs';
+import {validateGroqCatalogDispatch} from './mid-ai-router-groq-issue-bridge.mjs';
+import {readFileSync} from 'node:fs';
 try{
  if(process.env.GITHUB_ACTIONS!=='true'||
-    process.env.GITHUB_ACTOR!=='MeteoMartini'||
-    process.env.GITHUB_REF!=='refs/heads/mid-stable')
+    process.env.GITHUB_EVENT_NAME!=='workflow_dispatch'||
+    process.env.GITHUB_REPOSITORY!=='MeteoMartini/MID'||
+    process.env.GITHUB_REF!=='refs/heads/mid-stable'||
+    typeof process.env.GITHUB_EVENT_PATH!=='string')
    throw Object.assign(new Error('Context denied'),{reason:'TRUSTED_WORKFLOW_ONLY'});
+ const raw=readFileSync(process.env.GITHUB_EVENT_PATH,'utf8');
+ if(raw.length>16384)
+   throw Object.assign(new Error('Excessive'),{reason:'INVALID_WORKFLOW_INPUTS'});
+ const event=JSON.parse(raw);
+ const attested=await validateGroqCatalogDispatch({
+  actor:process.env.GITHUB_ACTOR,
+  repository:process.env.GITHUB_REPOSITORY,
+  ref:process.env.GITHUB_REF,
+  eventName:process.env.GITHUB_EVENT_NAME,
+  eventSha:process.env.GITHUB_SHA,
+  inputs:event.inputs,
+  readSource:()=>readMidGithubSourceSnapshot({fetchImpl:fetch}),
+  readIssue:async issueNo=>{
+   const url='https://api.github.com/repos/MeteoMartini/MID/issues/'+issueNo;
+   const response=await fetch(url,{method:'GET',redirect:'error',
+    cache:'no-store',credentials:'omit',headers:{accept:'application/vnd.github+json'},
+    signal:AbortSignal.timeout(8000)});
+   if(!response.ok)throw new Error('Issue unavailable');
+   const item=await response.json();
+   return item;
+  }
+ });
+ if(attested.sourceSha!==process.env.GITHUB_SHA)
+   throw Object.assign(new Error('Drift'),{reason:'LIVE_SOURCE_DRIFT'});
  const result=await checkMidGroqModelConnectivity({
   apiKey:process.env.GROQ_API_KEY,
   expectedStableSha:process.env.GITHUB_SHA,

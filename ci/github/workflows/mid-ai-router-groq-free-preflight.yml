@@ -1,6 +1,19 @@
 name: MID AI Router Groq Free model qualification (READ ONLY)
 on:
   workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Public owner-created Issue ID, optional for manual owner dispatch"
+        required: false
+        type: string
+      request_id:
+        description: "Public QA correlation ID"
+        required: false
+        type: string
+      expected_stable_sha:
+        description: "Stable SHA when issue was created"
+        required: false
+        type: string
 permissions:
   contents: read
 concurrency:
@@ -8,7 +21,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   catalog:
-    if: ${{ github.actor == 'MeteoMartini' && github.ref == 'refs/heads/mid-stable' }}
+    if: ${{ (github.actor == 'MeteoMartini' || github.actor == 'github-actions[bot]') && github.ref == 'refs/heads/mid-stable' }}
     runs-on: ubuntu-24.04
     environment: mid-ai-router-free-qa
     timeout-minutes: 5
