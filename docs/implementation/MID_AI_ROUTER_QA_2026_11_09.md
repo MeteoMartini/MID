@@ -319,3 +319,10 @@ Originalreferenzen: https://vercel.com/ai-gateway/models/sonar ; https://vercel.
 
 
 **QA-Härtung:** Fehlende Upstream-`usage`-Daten liefern `usageStatus=NOT_VERIFIED`; negative Tokenanzahlen werden nicht als Messwerte interpretiert. Ein zusätzlicher Offline-Negativtest, nun 27 Sonar-Prüffälle. Vercel hat am 24.08.2026 die UI-Auswahl „Sensitive“ zu **„Secret“** umbenannt; dies ändert nicht den empfohlenen geschützten Typ der API-Variable. Quelle: https://vercel.com/changelog/environment-variables-now-use-config-and-secret-types .
+
+
+### MID AI Router 1.1 – Sonar in Router-Auswahl integriert (10.11.2026)
+
+`scripts/mid-ai-router-selector.mjs` verbindet den vorhandenen unverändert sicheren Direkt-Free-Planer und den Vercel-Sonar-Planer ausschließlich **auf PLAN_ONLY-Ebene**. **Default** `direct-free` wählt nur echte unabhängige 0-Preis-Kandidaten und darf Sonar niemals als bezahlten Fallback hinzunehmen. `sonar-included-credit` verlangt ausdrückliches `allowIncludedCreditUse=true`, `maxAdditionalCashUsd=0`, `maxExternalCalls=1`, ausschließlich `external-research` mit `public-redacted` sowie die vollständige im Vercel-Preflight geprüfte separate Konto-/Modell-/Quota-Evidenz. Unbekannte Providerpräferenzen, fehlende Signaturinfrastruktur oder Modelle ohne Gratiscredit-Berechtigung bleiben blockiert; keine selbständige Ausführung oder zweite Abfrage.
+
+`scripts/qa-mid-ai-router-selector-0985452.mjs` enthält 13 rein offline ausgeführte Auswahl-/Negativfälle. Dadurch ist Sonar als **bewusst auswählbarer, aber nicht live aufrufbarer Bestandteil** der MID-AI-Router-Planung integriert. Die Signed-Grant- und Exactly-once-Runtime sind unverändert nachweispflichtige externe Release-Blocker.
