@@ -1,5 +1,7 @@
 import {useDisplayPreference,useRawDisplayPreference,displayBoolean,displayChoice} from './useDisplayPreference';
 import {NativeScalarOverlay,NativeScalarControls} from './NativeScalarMapOverlay';
+import {nativeScalarLines,scalarLineFeatures} from './nativeScalarAnnotations';
+import {seasonalMapKinds,seasonalMapFrames,seasonalPairValid,seasonalMaskedPrimary,seasonalMaskedSecondary} from './nativeSeasonalComposite';
 import {totalsScalarField} from './totalsScalarField';
 import {modelLeadLabel,modelAvailableLabel} from './modelForecastTime';
 import {loadRucNativeIndex} from './rucNativeMapIndex';
@@ -67,7 +69,8 @@ export default function UnifiedWeatherMap(props:Props){
  const onTimeChange=useCallback((value:number)=>setTarget(value),[]);
  const [observationLayers,setObservationLayers]=useDisplayPreference('UnifiedWeatherMap.observationLayers',true,displayBoolean);
  const onObservationLayersChange=useCallback((active:boolean)=>setObservationLayers(active),[]);
- const presentation=settings.parameter==='geopotential'?'lines':['thetae','sigwx'].includes(settings.parameter)?'fill':unifiedMapPresentation(settings,observationLayers),showFill=presentation==='fill';
+ const seasonalSelection=seasonalMapKinds(settings.parameter),isSeasonal=Boolean(seasonalSelection);
+ const presentation=isSeasonal?'fill':settings.parameter==='geopotential'?'lines':['thetae','sigwx'].includes(settings.parameter)?'fill':unifiedMapPresentation(settings,observationLayers),showFill=presentation==='fill';
  useEffect(()=>{const c=new AbortController();setCatalogErrors([]);setCatalog(null);setRucCatalog(null);setTotals(null);setObserved(null);fieldCache.current.clear();
   const failure=(label:string,e:unknown)=>{if(!c.signal.aborted)setCatalogErrors(current=>[...current,`${label}: ${e instanceof Error?e.message:String(e)}`])};
   void loadNativeIndex(c.signal).then(d=>{if(!c.signal.aborted)setCatalog(d)}).catch(e=>failure('Modellfelder',e));
@@ -78,7 +81,7 @@ export default function UnifiedWeatherMap(props:Props){
  useEffect(()=>{if(props.requestedProductId?.startsWith('icon-d2-precipitation-totals'))update({enabled:true,parameter:'totals',modelId:'icon-d2'})},[props.requestedProductId]);
  const synopticCatalog=useSynopticCatalog(revision);
  const available=useMemo(()=>availableUnifiedParameters(d2Catalog?.index??null,availability.forecast,availability.observed,rucCatalog?.index??null,wmsCatalog).filter(p=>['synoptic','thetae','geopotential'].includes(p.id)?Object.values(synopticCatalog.catalog?.index.models??{}).some(m=>m.frames.length>0):p.id==='sigwx'?cloudWeatherSources(d2Catalog?.index??null,synopticCatalog.catalog?.index??null).length>0:true),[d2Catalog,rucCatalog,availability,wmsCatalog,synopticCatalog.catalog]);
- const parameter=settings.parameter,isCloudWeather=parameter==='sigwx',isTotals=parameter==='totals'||parameter==='observed',kind=parameter as NativeFieldKind,product=UNIFIED_MAP_PARAMETERS.find(p=>p.id===parameter)!,modelId=settings.modelId,modelLabel=synopticCatalog.catalog?.index.models[modelId]?.label||(modelId==='icon-d2-ruc'?'DWD ICON-D2-RUC':modelId==='radolan'?'DWD RADOLAN · Messanalyse':modelId==='icon-d2'?'DWD ICON-D2':unifiedWmsChoices().find(c=>c.model.id===modelId)?.model.label||'DWD'),frames=(!isTotals?catalog?.index.products[kind]?.frames:undefined)??[],ref=isNativeModel?nearestUnifiedFrame(frames,target):undefined,data=parameter==='observed'?observed:totals,frame=data?.frames.find(f=>f.hours===settings.hours),fieldKey=ref&&catalog?`${catalog.index.run}:${kind}:${ref.sha256}`:'',unit=props.unit??'kn';
+ const parameter=settings.parameter,isCloudWeather=parameter==='sigwx',isTotals=parameter==='totals'||parameter==='observed',kind=(seasonalSelection?.primary??parameter) as NativeFieldKind,product=UNIFIED_MAP_PARAMETERS.find(p=>p.id===parameter)!,modelId=settings.modelId,modelLabel=synopticCatalog.catalog?.index.models[modelId]?.label||(modelId==='icon-d2-ruc'?'DWD ICON-D2-RUC':modelId==='radolan'?'DWD RADOLAN · Messanalyse':modelId==='icon-d2'?'DWD ICON-D2':unifiedWmsChoices().find(c=>c.model.id===modelId)?.model.label||'DWD'),frames=(isSeasonal?seasonalMapFrames(catalog?.index??null,parameter):!isTotals?catalog?.index.products[kind]?.frames:undefined)??[],ref=isNativeModel?nearestUnifiedFrame(frames,target):undefined,data=parameter==='observed'?observed:totals,frame=data?.frames.find(f=>f.hours===settings.hours),fieldKey=ref&&catalog?`${catalog.index.run}:${kind}:${ref.sha256}`:'',unit=props.unit??'kn';
  useEffect(()=>{if(!settings.enabled||!isTotals||data)return;const c=new AbortController();setLoading(true);setError('');void loadTotals(c.signal,parameter==='observed'?'observed':'forecast').then(d=>{if(!c.signal.aborted){if(parameter==='observed')setObserved(d);else setTotals(d)}}).catch(e=>{if(!c.signal.aborted)setError(String(e.message||e))}).finally(()=>{if(!c.signal.aborted)setLoading(false)});return()=>c.abort()},[settings.enabled,parameter,isTotals,data,revision]);
  useEffect(()=>{const c=new AbortController();setField(previous=>previous?.kind===kind&&nativeFieldModel(previous)===modelId?previous:null);if(isTotals||isCloudWeather)return()=>c.abort();setError('');setLoading(false);if(!settings.enabled||!catalog||!ref)return()=>c.abort();
   const cached=fieldCache.current.get(fieldKey);if(cached){setField(cached);return()=>c.abort()}
@@ -86,13 +89,36 @@ export default function UnifiedWeatherMap(props:Props){
  },[settings.enabled,isTotals,isCloudWeather,catalog,fieldKey,kind]);
  // One adjacent immutable frame is prefetched, with the same integrity validation.
  useEffect(()=>{if(isCloudWeather||!field||!catalog||!ref)return;const next=frames[frames.indexOf(ref)+1];if(!next)return;const key=`${catalog.index.run}:${kind}:${next.sha256}`;if(fieldCache.current.has(key))return;const c=new AbortController();void loadNativeField(catalog.index,catalog.base,next,kind,c.signal).then(d=>{if(!c.signal.aborted){fieldCache.current.set(key,d);while(fieldCache.current.size>8)fieldCache.current.delete(fieldCache.current.keys().next().value!)}}).catch(()=>{});return()=>c.abort()},[isCloudWeather,field,catalog,fieldKey]);
- const range=useMemo(()=>isTotals?data&&frame?totalsMapScale(data,frame,'field'):null:field?nativeMapScale(field,'field',unit):null,[isTotals,data,frame,field,unit]),fixed=useMemo(()=>isTotals?data&&frame?totalsMapScale(data,frame,'absolute'):null:field?nativeMapScale(field,'absolute',unit):null,[isTotals,data,frame,field,unit]),scale=colorMode==='field'?range:fixed;
- const raster=useMemo(()=>showFill&&scale?(isTotals?data&&frame?totalsRaster(data,frame,scale):'':field?nativeRaster(field,scale):''):'',[showFill,scale,isTotals,data,frame,field]),displayUnit=isTotals?'mm':modelMapUnit(kind,field?.unit||catalog?.index.products[kind]?.unit||'',unit),format=(value:number|null)=>isTotals?value===null?'–':compactPrecipitationAmount(value):modelMapValue(kind,value,field?.unit||catalog?.index.products[kind]?.unit||'',unit);
+ const [seasonalCompanion,setSeasonalCompanion]=useState<NativeField|null>(null),[seasonalLoading,setSeasonalLoading]=useState(false),[seasonalError,setSeasonalError]=useState('');
+ useEffect(()=>{
+  const c=new AbortController();setSeasonalCompanion(null);setSeasonalError('');setSeasonalLoading(false);
+  if(!settings.enabled||!isSeasonal||modelId!=='icon-d2'||!catalog||!ref||!seasonalSelection)return()=>c.abort();
+  const pair=catalog.index.products[seasonalSelection.secondary]?.frames.find(f=>f.time===ref.time);
+  if(!pair){setSeasonalError('Gemeinsames Originalfeld für diesen Termin fehlt.');return()=>c.abort()}
+  setSeasonalLoading(true);
+  void loadNativeField(catalog.index,catalog.base,pair,seasonalSelection.secondary,c.signal)
+   .then(v=>{if(!c.signal.aborted)setSeasonalCompanion(v)})
+   .catch(e=>{if(!c.signal.aborted)setSeasonalError('Zweites Originalfeld fehlt: '+String(e instanceof Error?e.message:e))})
+   .finally(()=>{if(!c.signal.aborted)setSeasonalLoading(false)});
+  return()=>c.abort();
+ },[settings.enabled,isSeasonal,modelId,catalog,ref?.time,ref?.sha256,seasonalSelection?.secondary,revision]);
+ const seasonalReady=Boolean(isSeasonal&&field&&seasonalCompanion&&modelId==='icon-d2'&&
+  catalog&&field.run===catalog.index.run&&field.time===ref?.time&&
+  seasonalPairValid(parameter,field,seasonalCompanion,ref?.time));
+ const seasonalPrimary=useMemo(()=>seasonalReady&&field&&seasonalCompanion?
+  seasonalMaskedPrimary(parameter,field,seasonalCompanion):null,[seasonalReady,field,seasonalCompanion,parameter]);
+ const seasonalSecondary=useMemo(()=>seasonalReady&&field&&seasonalCompanion?
+  seasonalMaskedSecondary(parameter,field,seasonalCompanion):null,[seasonalReady,field,seasonalCompanion,parameter]);
+ const seasonalContours=useMemo(()=>seasonalSecondary?
+  scalarLineFeatures(nativeScalarLines(seasonalSecondary,unit)):null,[seasonalSecondary,unit]);
+ const fieldForRaster=isSeasonal?seasonalPrimary:field;
+ const range=useMemo(()=>isTotals?data&&frame?totalsMapScale(data,frame,'field'):null:fieldForRaster?nativeMapScale(fieldForRaster,'field',unit):null,[isTotals,data,frame,fieldForRaster,unit]),fixed=useMemo(()=>isTotals?data&&frame?totalsMapScale(data,frame,'absolute'):null:fieldForRaster?nativeMapScale(fieldForRaster,'absolute',unit):null,[isTotals,data,frame,fieldForRaster,unit]),scale=colorMode==='field'?range:fixed;
+ const raster=useMemo(()=>showFill&&scale?(isTotals?data&&frame?totalsRaster(data,frame,scale):'':fieldForRaster?nativeRaster(fieldForRaster,scale):''):'',[showFill,scale,isTotals,data,frame,fieldForRaster]),displayUnit=isTotals?'mm':modelMapUnit(kind,field?.unit||catalog?.index.products[kind]?.unit||'',unit),format=(value:number|null)=>isTotals?value===null?'–':compactPrecipitationAmount(value):modelMapValue(kind,value,field?.unit||catalog?.index.products[kind]?.unit||'',unit);
  const isSynoptic=parameter==='synoptic',rawTheta=parameter==='thetae',rawHeight=parameter==='geopotential',rawSynoptic=isSynoptic||rawTheta||rawHeight,synoptic=useSynopticComposite(settings.enabled&&(rawSynoptic||(parameter==='pressure'&&!isNativeModel)),target,revision,showFill,modelId,synopticCatalog);
- const wmsProduct=rawSynoptic||isCloudWeather?undefined:unifiedWmsProduct(parameter,modelId as WeatherMapModelId),wmsTimes=wmsProduct?weatherMapAvailableTimes(wmsProduct,metadata):[],wmsTime=nearestUnifiedTime(wmsTimes,target),wmsRun=metadata?.referenceTimes?.at(-1),levels=wmsProduct?.id==='icon-eu-temperature-2m'?[2]:metadata?.elevations?.length?metadata.elevations:wmsProduct?.levels??[],level=levels.includes(settings.level)?settings.level:levels.includes(wmsProduct?.defaultLevel??NaN)?wmsProduct?.defaultLevel:levels[0],wmsUrl=weatherMapWmsProxy(wmsProduct?.provider);
+ const wmsProduct=rawSynoptic||isCloudWeather||isSeasonal?undefined:unifiedWmsProduct(parameter,modelId as WeatherMapModelId),wmsTimes=wmsProduct?weatherMapAvailableTimes(wmsProduct,metadata):[],wmsTime=nearestUnifiedTime(wmsTimes,target),wmsRun=metadata?.referenceTimes?.at(-1),levels=wmsProduct?.id==='icon-eu-temperature-2m'?[2]:metadata?.elevations?.length?metadata.elevations:wmsProduct?.levels??[],level=levels.includes(settings.level)?settings.level:levels.includes(wmsProduct?.defaultLevel??NaN)?wmsProduct?.defaultLevel:levels[0],wmsUrl=weatherMapWmsProxy(wmsProduct?.provider);
  useEffect(()=>{const c=new AbortController();setMetadata(null);setWmsError('');if(!settings.enabled||!wmsProduct)return()=>c.abort();void loadWeatherMapMetadata(wmsProduct.layer,c.signal).then(d=>{if(!c.signal.aborted)setMetadata(d)}).catch(e=>{if(!c.signal.aborted)setWmsError(String(e.message||e))});return()=>c.abort()},[settings.enabled,wmsProduct?.id,revision]);
  const cloudWeather=useCloudWeatherMap(settings.enabled&&isCloudWeather,target,modelId,revision,d2Catalog,synopticCatalog.catalog);
- const active=settings.enabled&&!isCloudWeather&&(isTotals?Boolean(frame):Boolean(field?.kind===kind&&field.run===catalog?.index.run&&nativeFieldModel(field)===modelId))&&(isTotals?modelId===unifiedModelForParameter(parameter):isNativeModel),wmsActive=settings.enabled&&Boolean(wmsProduct&&wmsUrl&&weatherMapFrameReady(wmsProduct,metadata,wmsTime??'',wmsRun,level)),sample=(lat:number,lon:number)=>isTotals?data&&frame?totalsAt(data,frame,lat,lon):null:field?nativeAt(field,lat,lon):null;
+ const active=settings.enabled&&!isCloudWeather&&(isTotals?Boolean(frame):Boolean(field?.kind===kind&&field.run===catalog?.index.run&&nativeFieldModel(field)===modelId))&&(isTotals?modelId===unifiedModelForParameter(parameter):isNativeModel)&&(!isSeasonal||seasonalReady&&field?.time===ref?.time),wmsActive=settings.enabled&&Boolean(wmsProduct&&wmsUrl&&weatherMapFrameReady(wmsProduct,metadata,wmsTime??'',wmsRun,level)),sample=(lat:number,lon:number)=>isTotals?data&&frame?totalsAt(data,frame,lat,lon):null:(isSeasonal?seasonalPrimary:field)?nativeAt((isSeasonal?seasonalPrimary:field)!,lat,lon):null;
  const places=props.favorites.filter(p=>p.name&&Number.isFinite(p.latitude)&&Number.isFinite(p.longitude)),place=places.find(p=>p.id===selected),bounds=isTotals&&data?[[data.lats[0],data.lons[0]],[data.lats.at(-1)!,data.lons.at(-1)!]]:field?[[field.lats[0],field.lons[0]],[field.lats.at(-1)!,field.lons.at(-1)!]]:null;
  const wmsLineStyle=unifiedWmsLineStyle(metadata?.layer===wmsProduct?.layer?metadata:null,level),wmsFillStyle=unifiedWmsFillStyle(metadata?.layer===wmsProduct?.layer?metadata:null,level),wmsStyle=showFill?wmsFillStyle:wmsLineStyle,wmsRenderable=wmsActive&&Boolean(wmsStyle);
  const wmsContext=`${wmsProduct?.id}-${wmsRun}-${level??'surface'}-${wmsStyle}`,wmsSelectedKey=`${wmsProduct?.id}-${wmsTime}-${wmsRun}-${level??'surface'}-${wmsStyle}`;
@@ -105,7 +131,7 @@ export default function UnifiedWeatherMap(props:Props){
  useEffect(()=>setWmsError(''),[wmsProduct?.id,wmsStyle,wmsTime,wmsRun,level]);
  const cloudData=isCloudWeather&&cloudWeather.ready?cloudWeather.data:null;
  const cloudPressureTime=cloudData?.model==='icon-d2'&&cloudData.run===catalog?.index.run?cloudData.time:'';
- const showIsobars=isCloudWeather?eligibleCloudIsobarModel(modelId)&&cloudIsobars:settings.isobars||(presentation==='lines'&&parameter==='pressure');
+ const showIsobars=isSeasonal?false:isCloudWeather?eligibleCloudIsobarModel(modelId)&&cloudIsobars:settings.isobars||(presentation==='lines'&&parameter==='pressure');
  const pressureContours=field?.kind===kind&&nativeFieldModel(field)===modelId&&field.run===catalog?.index.run&&field.isobars.length?field:field&&pressureField?.time===field.time&&pressureField.run===field.run&&nativeFieldModel(pressureField)===modelId?pressureField:null;
  useEffect(()=>{if(isCloudWeather)return;setPressureField(previous=>previous&&previous.time===field?.time&&nativeFieldModel(previous)===modelId?previous:null);setPressureError('');if(kind==='pressure'||!settings.enabled||!showIsobars||!catalog||!field||nativeFieldModel(field)!==modelId||field.kind!==kind||field?.isobars.length)return;const pressureRef=catalog.index.products.pressure?.frames.find(f=>f.time===field.time);if(!pressureRef)return;const c=new AbortController();void loadNativeField(catalog.index,catalog.base,pressureRef,'pressure',c.signal).then(d=>{if(!c.signal.aborted)setPressureField(d)}).catch(e=>{if(!c.signal.aborted)setPressureError('Zusätzliche Isobaren nicht verfügbar: '+String(e.message||e))});return()=>c.abort()},[settings.enabled,showIsobars,catalog,fieldKey,field,kind]);
  useEffect(()=>{if(!cloudPressureTime||!cloudIsobars||!catalog||!settings.enabled){if(isCloudWeather)setPressureField(null);return}
@@ -134,10 +160,10 @@ export default function UnifiedWeatherMap(props:Props){
  const heightsActive=Boolean(isCloudWeather&&cloudWeather.ready&&cloudIsoheights&&isoheightContours.features.length);
  const linesActive=(isCloudWeather?cloudWeather.ready:active)&&showIsobars&&Boolean(contours.features.length);
  const [showExtremes,setShowExtremes]=useDisplayPreference('UnifiedWeatherMap.showExtremes',true,displayBoolean),[showTotalsContours,setShowTotalsContours]=useDisplayPreference('UnifiedWeatherMap.showTotalsContours',true,displayBoolean);
- const scalarLinesActive=active&&!isTotals&&!rawSynoptic&&field?.kind!=='pressure'&&field?.kind!=='sigwx';
+ const scalarLinesActive=active&&!isSeasonal&&!isTotals&&!rawSynoptic&&field?.kind!=='pressure'&&field?.kind!=='sigwx';
  const totalsContours=useMemo(()=>isTotals&&data&&frame?totalsScalarField(data,frame):null,[isTotals,data,frame]);
  const totalsLinesActive=active&&Boolean(totalsContours)&&showTotalsContours;
- const noLines=settings.enabled&&!rawSynoptic&&presentation==='lines'&&!wmsRenderable&&!linesActive&&!scalarLinesActive&&!totalsLinesActive;
+ const noLines=settings.enabled&&!isSeasonal&&!rawSynoptic&&presentation==='lines'&&!wmsRenderable&&!linesActive&&!scalarLinesActive&&!totalsLinesActive;
  const noFill=settings.enabled&&showFill&&Boolean(wmsProduct)&&!wmsFillStyle;
  const times=useMemo(()=>isCloudWeather?cloudWeather.times:rawSynoptic?(settings.enabled?synoptic.model?.frames.map(f=>f.time)??[]:[]):!settings.enabled||isTotals?[]:wmsProduct?wmsTimes:frames.map(f=>f.time),[isCloudWeather,cloudWeather.times.join('|'),rawSynoptic,synoptic.model,settings.enabled,isTotals,wmsProduct,wmsTimes.join('|'),frames]);
  const forecastRun=isCloudWeather?cloudWeather.displayedRun:rawSynoptic?synoptic.model?.run:wmsRun||catalog?.index.run;
