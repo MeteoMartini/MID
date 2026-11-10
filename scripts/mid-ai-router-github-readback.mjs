@@ -75,6 +75,15 @@ export async function readMidGithubSourceSnapshot({fetchImpl}={}){
   if(!VERSION.test(pkg?.version||'')||
       pkg.version!==baseline?.releaseVersion||
       pkg.version!==contracts?.releaseVersion)deny('VERSION_MIRROR_DRIFT');
+  // Recheck both mutable refs after reading immutable version mirrors.
+  // A promotion or in-progress source merge during the HTTP round trip must
+  // not produce a seemingly current snapshot, even if versions still match.
+  const [finalMain,finalStable]=await Promise.all([
+    readJson(fetchImpl,API+'main',8192,'application/vnd.github+json'),
+    readJson(fetchImpl,API+'mid-stable',8192,'application/vnd.github+json')
+  ]);
+  if(finalMain?.object?.sha!==mainSha||finalStable?.object?.sha!==stableSha)
+    deny('SOURCE_DRIFT_DURING_READBACK');
   const end=Date.now();
   if(end-start>30000)deny('SOURCE_READBACK_STALE');
   return Object.freeze({
