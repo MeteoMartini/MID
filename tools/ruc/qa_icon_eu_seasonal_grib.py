@@ -184,6 +184,49 @@ def _request_bytes(session, url: str) -> bytes:
     return bytes(payload)
 
 
+def validate_regular_grid(latitudes, longitudes, ni: int, nj: int) -> str:
+    """Fail closed on transposed/ragged/nonrectangular original DWD coordinates."""
+    import numpy as np
+    if not isinstance(ni, int) or not isinstance(nj, int) or ni < 2 or nj < 2:
+        raise ContractError('invalid original grid dimensions')
+    lats = np.asarray(latitudes, dtype=np.float64)
+    lons = np.asarray(longitudes, dtype=np.float64)
+    if (lats.ndim != 1 or lons.ndim != 1 or lats.size != ni*nj
+        or lons.size != ni*nj or not np.isfinite(lats).all()
+        or not np.isfinite(lons).all()):
+        raise ContractError('missing/nonfinite original grid coordinates')
+    lat = lats.reshape(nj, ni)
+    lon = lons.reshape(nj, ni)
+    if not (np.allclose(lat,lat[:,0,None],rtol=0,atol=1e-6)
+        and np.allclose(lon,lon[0,None,:],rtol=0,atol=1e-6)):
+        raise ContractError('original DWD coordinates are not rectangular')
+    lat_axis, lon_axis = lat[:,0], lon[0,:]
+    if (np.any(np.abs(lat_axis)>90) or np.any(lon_axis < -180)
+        or np.any(lon_axis > 360)):
+        raise ContractError('unphysical original grid coordinates')
+    lat_diff, lon_diff = np.diff(lat_axis), np.diff(lon_axis)
+    if not ((np.all(lat_diff>0) or np.all(lat_diff<0))
+        and (np.all(lon_diff>0) or np.all(lon_diff<0))):
+        raise ContractError('original axes not strictly monotonic')
+    shape = f'{nj}x{ni}:'.encode('ascii')
+    return hashlib.sha256(shape + np.stack((lats,lons)).tobytes()).hexdigest()
+
+
+def validate_original_range(field: str, values) -> None:
+    """Reject physically impossible decoded extremes; never clamp or smooth."""
+    import numpy as np
+    bounds = {'tot_prec':(0,6500), 't_2m':(170,340), 'vmax_10m':(0,200)}
+    if field not in bounds:
+        raise ContractError('unknown original field for physical validation')
+    values = np.asarray(values, dtype=np.float64)
+    finite = values[np.isfinite(values)]
+    if finite.size == 0:
+        raise ContractError('original field has no valid values')
+    low,high = bounds[field]
+    if np.any(finite<low) or np.any(finite>high):
+        raise ContractError('implausible original field values: no clamping permitted')
+
+
 def decode_original(payload: bytes) -> tuple[dict, object, str]:
     """Decode exactly one GRIB2 message with ecCodes; preserve bitmap/NoData."""
     import numpy as np
@@ -215,8 +258,7 @@ def decode_original(payload: bytes) -> tuple[dict, object, str]:
             missing = float(codes_get(gid,'missingValue'))
             mask = np.isfinite(raw_vals) & np.isfinite(lats) & np.isfinite(lons) & (raw_vals != missing) & (np.abs(raw_vals) < 1e15)
             values = np.where(mask,raw_vals,np.nan)
-            axes = (lats,lons)
-            grid_signature = hashlib.sha256(np.stack(axes).tobytes()).hexdigest()
+            grid_signature = validate_regular_grid(lats,lons,meta['Ni'],meta['Nj'])
             extra = codes_grib_new_from_file(file)
             if extra is not None:
                 codes_release(extra)
@@ -250,6 +292,7 @@ def run_qualification(run: str, leads: list[int]) -> dict:
             payload = _request_bytes(session,url)
             meta,values,grid_id = decode_original(payload)
             verify_window(meta,run=run,lead=hour,field=field)
+            validate_original_range(field,values)
             fetched[key] = (meta,values,grid_id,hashlib.sha256(payload).hexdigest())
         if len({v[2] for v in fetched.values()}) != 1:
             raise ContractError('original grids/coordinates differ across paired fields')
