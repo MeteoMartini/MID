@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source": "GitHub PR 729 current public review record, read using connected GitHub app on 2026-11-10",
+  "source": "Post-merge GitHub PR 729 review snapshot read 2026-11-10; per-thread resolved states are NOT a verified pre-merge snapshot",
   "url": "https://github.com/MeteoMartini/MID/pull/729",
   "pr": 729,
   "prHeadSha": "29d12f103b5529a04dea519477f9a371ac310c65",

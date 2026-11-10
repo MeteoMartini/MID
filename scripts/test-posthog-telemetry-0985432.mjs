@@ -58,7 +58,7 @@ function harness({consent=false,token='phc_test_project',host='https://eu.i.post
  };
  vm.runInNewContext(js,context,{timeout:2000});
  const captureNav=section=>{const el=new FakeElement(section);for(const fn of documentListeners.get('click')||[])fn({target:el})};
- return {...context.testExports,requests,window,captureNav,storage};
+ return {...context.testExports,requests,window,captureNav,storage,listenerCount:(name,target='document')=>(target==='document'?documentListeners:listeners).get(name)?.length??0};
 }
 // Default-off must perform no network I/O.
 const off=harness();off.startMidPosthogTelemetry();off.window.dispatchEvent({type:'mid:runtime-healthy'});
@@ -76,6 +76,8 @@ live.captureNav('current');live.captureNav('secret_location_name');
 live.window.dispatchEvent({type:'error',error:new Error('private-location=52.1,13.2')});
 live.window.dispatchEvent({type:'unhandledrejection',reason:'private search content'});
 assert.equal(live.requests.length,4);
+assert.equal(live.listenerCount('click'),1,'Live opt-in must register exactly one real navigation click listener');
+assert.equal(live.listenerCount('error','window'),1,'Live opt-in must register a real window error listener');
 assert.deepEqual(live.requests.map(r=>r.body.event),['mid_runtime_ready','mid_navigation_attempt','mid_client_error','mid_client_error']);
 for(const req of live.requests){
  assert.equal(req.url,'https://eu.i.posthog.com/i/v0/e/');
@@ -108,22 +110,29 @@ for(const options of [{token:''},{native:true},{host:'https://us.i.posthog.com'}
 const iosStorageBlocked=harness({storageWriteThrows:true});
 assert.equal(iosStorageBlocked.setMidPosthogConsent(true),false,'denied storage must leave the checkbox uncommitted');
 assert.equal(iosStorageBlocked.isMidPosthogConsentGranted(),false);
+iosStorageBlocked.startMidPosthogTelemetry();
+assert.equal(iosStorageBlocked.listenerCount('click'),0,'Rejected consent cannot install a click handler');
 iosStorageBlocked.captureNav('current');
 assert.equal(iosStorageBlocked.requests.length,0,'blocked consent cannot send data');
 const iosStorageNoop=harness({storageWriteNoop:true});
 assert.equal(iosStorageNoop.setMidPosthogConsent(true),false,'ignored storage write must be rejected by readback');
 assert.equal(iosStorageNoop.isMidPosthogConsentGranted(),false);
+iosStorageNoop.startMidPosthogTelemetry();
+assert.equal(iosStorageNoop.listenerCount('click'),0,'No-op consent storage cannot install telemetry listeners');
 assert.equal(iosStorageNoop.requests.length,0);
 // Secure randomness is optional for consent storage, but mandatory for capture.
 const iosNoUuid=harness({uuidThrows:true});
 assert.equal(iosNoUuid.setMidPosthogConsent(true),true,'consent must be selectable even when telemetry cannot be started');
 assert.equal(iosNoUuid.isMidPosthogConsentGranted(),true);
+iosNoUuid.startMidPosthogTelemetry();
+assert.equal(iosNoUuid.listenerCount('click'),0,'Secure ID failure must prevent listener registration');
 iosNoUuid.captureNav('current');
 assert.equal(iosNoUuid.requests.length,0,'failed secure session ID must never cause telemetry emission');
 // A failed revoke must immediately stop any current network traffic, even if persistence is blocked.
 const iosRevokeBlocked=harness({consent:true,storageRemoveThrows:true});
 iosRevokeBlocked.startMidPosthogTelemetry();
 assert.equal(iosRevokeBlocked.setMidPosthogConsent(false),false);
+assert.equal(iosRevokeBlocked.listenerCount('click'),1,'Revoke test must actually exercise an installed click listener');
 iosRevokeBlocked.captureNav('current');
 assert.equal(iosRevokeBlocked.requests.length,0,'failed persistent revoke must stop the current page immediately');
 console.log('MID PostHog iPhone consent edge checks: blocked writes, unavailable secure ID, failed revoke fail-closed');

@@ -36,9 +36,10 @@ assert.ok(check(ready,[{...review('r1'),commit:null}],threads).blockers.includes
 assert.ok(check(ready,[review('r1'),review('r1')],threads).blockers.includes('REVIEW_ID_DUPLICATED:r1'));
 assert.equal(check(ready,[review('r0','COMMENTED','0 issues found')],[]).ok,true,'Zero-finding summary is not a substantive review blocker');
 assert.ok(check(ready,[],[thread('resolved',true,[bot,human],true)]).blockers.includes('INDEPENDENT_TRIAGE_ATTESTATION_REQUIRED'),'Outdated human answered thread still requires original code provenance');
-// Original issue #740 readback: PR #729 received 15+6 Cubic findings and
-// 21 unresolved threads before its merge. This synthetic regression embeds
-// only counts and resolution state; it never claims an authenticated replay.
+// Original issue #740: PR #729 received 15+6 Cubic findings before merge.
+// All 21 resolution states in the real public fixture were read POST-MERGE;
+// the unresolved pre-merge example here is deliberately SYNTHETIC, not an
+// authenticated reconstruction of review state at the prior merge instant.
 const cubic729=Array.from({length:21},(_,i)=>thread('review729-t'+i,false,[bot]));
 const historic=check(ready,[review('cubic1','COMMENTED','15 issues found'),review('cubic2','COMMENTED','6 issues found')],cubic729);
 assert.equal(historic.ok,false);
@@ -53,13 +54,14 @@ assert.ok(historic.blockers.includes('INDEPENDENT_TRIAGE_ATTESTATION_REQUIRED'))
 const captured729=JSON.parse(readFileSync(new URL('../tests/fixtures/mid-pr729-cubic-reviewed-record-20261110.json',import.meta.url),'utf8'));
 assert.equal(captured729.schema,1);
 assert.equal(captured729.pr,729);
+assert.ok(captured729.source.startsWith('Post-merge')&&captured729.source.includes('NOT a verified pre-merge'),'Historical thread provenance must stay explicitly post-merge');
 assert.match(captured729.prHeadSha,/^[a-f0-9]{40}$/);
 assert.equal(captured729.reviewSummaries.length,2);
 assert.equal(captured729.threads.length,21);
 assert.deepEqual(captured729.reviewSummaries.map(x=>x.issueCount),[15,6]);
 assert.ok(captured729.reviewSummaries.every(x=>Date.parse(x.submittedAt)<Date.parse(captured729.mergedAt)),
  'All 21 Cubic findings were submitted before the actual merge');
-assert.ok(captured729.threads.every(x=>x.resolved===false),'Historical unresolved review threads must not be silently considered fixed');
+assert.ok(captured729.threads.every(x=>x.resolved===false),'Threads observed unresolved at post-merge readback are not proven unresolved at merge time');
 assert.equal(captured729.threads.filter(x=>x.priority==='P1').length,1);
 const realFormatReviews=captured729.reviewSummaries.map(x=>({
  id:x.id,state:x.state,submittedAt:x.submittedAt,

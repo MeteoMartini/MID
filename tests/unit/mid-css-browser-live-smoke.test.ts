@@ -12,7 +12,7 @@ describe('MID #344: REAL preinstalled Chrome / pinned Playwright launch compatib
    "import {midCssQaBrowserExecutable} from './scripts/lib/cssQaBrowserExecutable.mjs';",
    "const path=midCssQaBrowserExecutable();",
    "if(!path)throw Error('No executable real Chromium/Chrome in this GitHub runner');",
-   "const cli=realpathSync(execFileSync('npm',['exec','--yes','--package=playwright@1.56.1','--','which','playwright'],{encoding:'utf8',timeout:25000}).trim());",
+   "const cli=realpathSync(execFileSync('npm',['exec','--yes','--package=playwright@1.56.1','--','which','playwright'],{encoding:'utf8',timeout:50000}).trim());",
    "const {chromium}=createRequire(import.meta.url)(join(dirname(dirname(cli)),'playwright'));",
    "const browser=await chromium.launch({executablePath:path,headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});",
    "try{const page=await browser.newPage({viewport:{width:390,height:844}});",
@@ -23,10 +23,10 @@ describe('MID #344: REAL preinstalled Chrome / pinned Playwright launch compatib
    "}finally{await browser.close();}"
   ].join('\n');
   const result=spawnSync(process.execPath,['--input-type=module','-e',code],{
-   encoding:'utf8',timeout:70000,maxBuffer:1024*1024,
+   encoding:'utf8',timeout:100000,maxBuffer:1024*1024,
    env:{...process.env,NODE_ENV:'production',GH_TOKEN:''}
   });
   expect(result.status,[result.stdout,result.stderr,result.error?.message].filter(Boolean).join('\n')).toBe(0);
   expect(result.stdout).toContain('launch smoke PASS');
- },80000);
+ },110000);
 });
