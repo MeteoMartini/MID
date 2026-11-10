@@ -39,8 +39,8 @@ export function nativeSeasonalSvg(
  const caption=id==='winter-berge'
   ?'Niederschlag: letzte Stunde · Linien: 2-m-Temperatur · keine Aussage zur Niederschlagsphase'
   :gustIntervalHours>0
-    ?`Niederschlag: letzte Stunde · Linien: Böenmaximum im ${gustIntervalHours}-h-Intervall · keine Gewitterwarnung`
-    :'Niederschlag: letzte Stunde · Linien: Böenwert, Quellintervall nicht ausgewiesen · keine Gewitterwarnung';
+    ?`Niederschlag: letzte Stunde · Linien: Böenmaximum in 10 m Höhe im ${gustIntervalHours}-h-Intervall · keine Gewitterwarnung`
+    :'Niederschlag: letzte Stunde · Linien: Böenwert in 10 m Höhe, Quellintervall nicht ausgewiesen · keine Gewitterwarnung';
  const details=places.map((p,i)=>{
   const val=nativeAt(companion,p.latitude,p.longitude),v=val===null?'–':modelMapValue(companion.kind,val,companion.unit,unit)+' '+secondUnit;
   return `<text x="720" y="${245+i*30}" font-family="Arial,sans-serif" font-size="11" fill="#dce9f4">${xml(companion.kind==='temperature'?'2 m: ':'Böen: ')}${xml(v)}</text>`;
