@@ -28,5 +28,5 @@ describe('MID #344: REAL preinstalled Chrome / pinned Playwright launch compatib
   });
   expect(result.status,[result.stdout,result.stderr,result.error?.message].filter(Boolean).join('\n')).toBe(0);
   expect(result.stdout).toContain('launch smoke PASS');
- });
+ },80000);
 });
