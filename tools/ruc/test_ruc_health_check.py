@@ -482,6 +482,9 @@ class SafeDiagnosticsTests(unittest.TestCase):
                    {'pages_run_mismatch'})
   self.assertEqual({r['phase'] for r in rows},{'pages_pointer'})
   self.assertEqual({r['httpStatus'] for r in rows},{200})
+  self.assertEqual({r['run'] for r in rows},{expected})
+  self.assertEqual({r['observedRun'] for r in rows},{prior})
+  self.assertEqual({r['observedStorageProfile'] for r in rows},{'pages-lossless-v1'})
   self.assertEqual(rows[0]['metadata'],
                    {'ageSeconds':42,'cacheStatus':'hit','contentType':'json'})
   dump=json.dumps(journal.as_dict())
@@ -505,6 +508,10 @@ class SafeDiagnosticsTests(unittest.TestCase):
   self.assertEqual(len(calls),9)
   self.assertEqual([r['diagnosticCode'] for r in journal.records[:8]],
                    ['pages_run_mismatch']*8)
+  self.assertEqual([r['observedRun'] for r in journal.records],
+                   [prior]*8+[expected])
+  self.assertEqual([r['observedStorageProfile'] for r in journal.records],
+                   ['pages-lossless-v1']*9)
   self.assertEqual(journal.records[8]['httpStatus'],None)
   # Correct run with an emergency/raw profile is not a 27h full-codec pass.
   raw={**fresh,'storageProfile':'pages-free-v1',
@@ -522,6 +529,40 @@ class SafeDiagnosticsTests(unittest.TestCase):
     self.assertEqual(failed.exception.code,'pages_convergence_timeout')
     self.assertEqual(journal.records[0]['diagnosticCode'],reason)
     self.assertNotIsInstance(failed.exception,mod.CodecDefectError)
+
+ def test_public_pointer_observed_provenance_is_strictly_sanitized(self):
+  expected='2026-11-09T14:00'
+  previous='2026-11-09T13:00'
+  leak='secret-token-marker-DO-NOT-LOG'
+  tests=(
+   ({'schema':'mid.dwd.ruc.grid.v2',
+     'storageProfile':'pages-free-v1','run':previous},
+    'pages-free-v1',previous,'pages_profile_mismatch'),
+   ({'schema':'mid.dwd.ruc.grid.v2',
+     'storageProfile':leak,'run':leak},
+    'unrecognized','unrecognized','pages_profile_mismatch'),
+   ({'schema':'mid.dwd.ruc.grid.v2',
+     'storageProfile':'pages-lossless-v1','run':'2026-99-99T99:99'},
+    'pages-lossless-v1','unrecognized','pages_profile_mismatch'),
+  )
+  for payload,profile,run,reason in tests:
+   with self.subTest(observed_profile=profile):
+    journal=mod.ProbeJournal()
+    with self.assertRaises(mod.PagesConvergenceError) as caught:
+     mod.probe_pages(
+      'https://host.invalid/ruc/?token='+leak,expected,attempts=1,
+      expected_profile='pages-lossless-v1',
+      fetcher=lambda *_:mod.ProbeResponse(payload,200,{'Content-Type':'application/json'}),
+      sleeper=lambda _:None,journal=journal)
+    self.assertEqual(caught.exception.code,'pages_convergence_timeout')
+    self.assertEqual(len(journal.records),1)
+    row=journal.records[0]
+    self.assertEqual(row['run'],expected)
+    self.assertEqual(row['observedRun'],run)
+    self.assertEqual(row['observedStorageProfile'],profile)
+    self.assertEqual(row['diagnosticCode'],reason)
+    self.assertNotIn(leak,json.dumps(journal.as_dict()))
+    self.assertNotIn('token=',json.dumps(journal.as_dict()))
 
  def test_cli_classifies_failures_and_preserves_exit_two(self):
   with tempfile.TemporaryDirectory() as directory:

@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.453",
+  "version": "0.9.85.454",
   "type": "module",
   "scripts": {
     "test:warning-snow-horizon-coherence": "node scripts/test-warning-snow-horizon-coherence-0985417.mjs",

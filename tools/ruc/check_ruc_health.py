@@ -170,17 +170,33 @@ def _safe_response_metadata(headers) -> dict:
 
 
 class ProbeJournal:
+    @staticmethod
+    def _safe_public_run(value: object) -> str:
+        """Report only canonical public UTC model-run labels, never arbitrary JSON."""
+        if value is None:
+            return 'unavailable'
+        if not isinstance(value, str):
+            return 'unrecognized'
+        for fmt in ('%Y-%m-%dT%H:%M', '%Y%m%d%H'):
+            try:
+                if datetime.strptime(value, fmt).strftime(fmt) == value:
+                    return value
+            except ValueError:
+                pass
+        return 'unrecognized'
+
     def __init__(self):
         self.records = []
 
     def record(self, *, attempt: int, phase: str, run: str, status: int | None,
-               metadata: dict | None = None, diagnostic_code: str | None = None):
+               metadata: dict | None = None, diagnostic_code: str | None = None,
+               observed_run: object = None, observed_profile: object = None):
         if len(self.records) >= MAX_PROBE_JOURNAL_RECORDS:
             return
         safe_run = run if isinstance(run, str) and re.fullmatch(
             r'(?:\d{4}-\d{2}-\d{2}T\d{2}:\d{2}|\d{10})', run
         ) else 'unavailable'
-        self.records.append({
+        record = {
             'utc': datetime.now(timezone.utc).isoformat(timespec='seconds').replace('+00:00', 'Z'),
             'attempt': max(0, int(attempt)),
             'phase': phase if phase in {'pages_pointer', 'worker_adoption'} else 'unclassified',
@@ -189,7 +205,17 @@ class ProbeJournal:
             'metadata': _safe_response_metadata(metadata or {}),
             'diagnosticCode': diagnostic_code if isinstance(diagnostic_code, str)
             and diagnostic_code in SAFE_DIAGNOSTIC_CODES else 'unclassified',
-        })
+        }
+        if phase == 'pages_pointer':
+            record['observedRun'] = self._safe_public_run(observed_run)
+            record['observedStorageProfile'] = (
+                observed_profile
+                if isinstance(observed_profile, str) and observed_profile in {
+                    'pages-lossless-v1', 'pages-free-v1', 'pages-codec-staging-v1'
+                }
+                else 'unavailable' if observed_profile is None else 'unrecognized'
+            )
+        self.records.append(record)
 
     def as_dict(self) -> dict:
         return {
@@ -526,15 +552,20 @@ def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetch
                         code='snapshot_pages_dimensions_mismatch',
                     )
             journal.record(attempt=attempt, phase='pages_pointer', run=run,
-                           status=response.status, metadata=_response_metadata(response))
+                           status=response.status, metadata=_response_metadata(response),
+                           observed_run=meta.get('run'),
+                           observed_profile=meta.get('storageProfile'))
             return attempt
         except RucHealthError as error:
             last_error = error
+            observed = response.payload if response is not None else {}
             journal.record(
                 attempt=attempt, phase='pages_pointer', run=run,
                 status=response.status if response else error.http_status,
                 metadata=_response_metadata(response) if response else error.metadata,
                 diagnostic_code=error.code,
+                observed_run=observed.get('run'),
+                observed_profile=observed.get('storageProfile'),
             )
             if attempt < attempts:
                 delay = min(30, 8 * 1.5 ** (attempt - 1))
