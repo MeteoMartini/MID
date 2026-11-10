@@ -39,7 +39,7 @@ const compiled=pollen.slice(start,end)
 assert.ok(!compiled.includes('PollenForecastEntry')&&!compiled.includes('Map<string'),'QA must remove only the two original TypeScript signatures');
 const {pollenSeverity,pollenHasMissing}=new Function(compiled+';return {pollenSeverity,pollenHasMissing}')();
 const item=(value,integer,date='2026-11-10')=>({pollenValue:value,pollenInt:integer,forecastDate:date});
-for(const [value,integer,expected] of [['0',-1,0],['0-1',0,0.5],['1-2',0,1.5],['2-3',0,2.5],['3',3,3],['-1',0,-1],['',undefined,-1],['',null,-1],['unbekannt',undefined,-1],['',0,0]])
+for(const [value,integer,expected] of [['0',-1,0],['0-1',0,0.5],['1-2',0,1.5],['2-3',0,2.5],['3',3,3],['-1',0,-1],['',undefined,-1],['',null,-1],['unbekannt',undefined,-1],['',0,-1],['unbekannt',0,-1],[' ',0,-1]])
  assert.equal(pollenSeverity(item(value,integer)),expected,'DWD pollen level '+String(value)+' / '+String(integer));
 const map=new Map([['Hasel',[item('0',0)]],['Erle',[item('-1',0)]]]);
 assert.equal(pollenHasMissing('2026-11-10',['Hasel'],map),false,'Valid 0 is genuine no burden');
