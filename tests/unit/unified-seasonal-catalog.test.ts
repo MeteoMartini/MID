@@ -31,6 +31,8 @@ describe('seasonal WXCharts-inspired cards stay inside the original MID map sele
    {id:'icon-d2',label:'DWD ICON-D2 · geprüfte Felder'},
   ]);
   const v2=index();v2.schema='mid.icon-d2.native-fields.v2';v2.modelId='icon-d2';
+  expect(unifiedSources('winter-berge',v2,false,false)).toEqual([]);
+  v2.productionApproved=true;
   v2.products.temperature!.frames=[makeRef(0)];v2.products.gust!.frames=[makeRef(0)];
   expect(availableUnifiedParameters(v2,false,false).filter(p=>p.id==='winter-berge'||p.id==='sommer-gewitter').map(p=>p.id)).toEqual(['winter-berge','sommer-gewitter']);
   const badLead=index();badLead.products.gust!.frames=[{...makeRef(0),hour:2}];
