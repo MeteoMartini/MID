@@ -120,6 +120,22 @@ await test(async()=>{const t=await signed(task('first-test-001'));
  await bad(()=>executor.execute(t),'DUPLICATE_REQUEST_NO_RETRY');assert.equal(fetchCalls,1)});
 await test(async()=>{const t=await signed(task('private-data1'));t.dataClass='private';
  await bad(()=>executor.execute(t),'TASK_SCOPE_INVALID');assert.equal(fetchCalls,1)});
+await test(async()=>{const before=fetchCalls;
+ await bad(()=>executor.execute(task('email-block-1',{
+  prompt:'Contact researcher@mid.example about the public data.'})),'TASK_SCOPE_INVALID');
+ assert.equal(fetchCalls,before)});
+await test(async()=>{const before=fetchCalls;
+ await bad(()=>executor.execute(task('groq-key-block',{
+  prompt:'Never transmit gsk_FAKE_SECRET_123456789abcdef.'})),'TASK_SCOPE_INVALID');
+ assert.equal(fetchCalls,before)});
+await test(async()=>{const before=fetchCalls;
+ await bad(()=>executor.execute(task('github-keyblock',{
+  prompt:'Never transmit github_pat_FAKE_SECRET_LONGGGGGGGGGGG.'})),'TASK_SCOPE_INVALID');
+ assert.equal(fetchCalls,before)});
+await test(async()=>{const before=fetchCalls;
+ await bad(()=>executor.execute(task('query-token-1',{
+  prompt:'Fetch https://example.org/data?token=longSECRETtoken.'})),'TASK_SCOPE_INVALID');
+ assert.equal(fetchCalls,before)});
 await test(async()=>{const t=await signed(task('paid-request'));t.maxAdditionalCashUsd=1;
  await bad(()=>executor.execute(t),'TASK_SCOPE_INVALID');assert.equal(fetchCalls,1)});
 await test(async()=>{authOverride={scopes:[]};const t=await signed(task('unauth-test1'));
