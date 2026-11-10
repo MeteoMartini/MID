@@ -116,5 +116,15 @@ try{
  assert.ok(!rendered.includes('data-skybar-hour="0"'),'Invalid epoch may not produce even an accessible false cell');
  assert.ok(rendered.includes('data-skybar-hour="1"'),'Valid neighboring hour remains visible');
 
+ // A caller that provides an empty/partial time axis explicitly declares
+ // missing geometry; uniform spacing is allowed only if no axis was provided.
+ const noPositions=renderToStaticMarkup(createElement('svg',null,createElement(SkyBarHourCellsSvg,{cells:cells2,left:0,right:0,chartW:100,centerY:8,xPositions:[],xEndPositions:[]})));
+ assert.ok(!noPositions.includes('data-skybar-hour='),'Explicit empty time axis must not fabricate square cells');
+ const partialPositions=renderToStaticMarkup(createElement('svg',null,createElement(SkyBarHourCellsSvg,{cells:cells2,left:0,right:0,chartW:100,centerY:8,xPositions:[points[1]],xEndPositions:[endPoints[1]]})));
+ assert.equal((partialPositions.match(/data-skybar-hour=/g)||[]).length,1,'Partial known axis may only paint the truly positioned cell');
+ assert.deepEqual(detailSkyBarSegments(rows,0,0,100,8,[],[]),[],'Explicit empty band positions cannot trigger a full-width sunshine/precipitation fallback');
+ assert.deepEqual(detailSkyBarSolarSegments(rows,0,0,100,8,[],[{startEpoch:normal.startEpoch,endEpoch:normal.startEpoch+6*m}],[]),[],'Solar band shares the same NoData semantics');
+
+
  console.log('Calendar-day Skybars: full-day axis, real hour widths, genuine missing slots, DST 23/25h and full-day sums protected.');
 }finally{rmSync(dir,{recursive:true,force:true})}
