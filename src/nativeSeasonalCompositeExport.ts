@@ -28,8 +28,14 @@ export function nativeSeasonalSvg(
    precip.values.some((value,i)=>Number.isFinite(value)!==Number.isFinite(companion.values[i])))
   throw new Error('Saisonkartenexport: kein gemeinsamer, geprüfter Originaldatenstand.');
  const label=id==='winter-berge'?'Winter & Berge · Niederschlag / 2-m-Isothermen':'Sommer · Niederschlag / Böen-Isolinien';
- const base=nativeFieldSvg(precip,label,raster,places,1,unit,scale,states,
+ const sourceSvg=nativeFieldSvg(precip,label,raster,places,1,unit,scale,states,
   {fill:true,lines:false,extremes:false});
+ // The common native SVG export defaults to browser smoothing. Seasonal maps
+ // must preserve the transparent NoData cell edges in SVG and SVG-derived PNG.
+ const nativeImageStyle='style="image-rendering:auto"';
+ if(sourceSvg.split(nativeImageStyle).length!==2)
+  throw new Error('Saisonkartenexport: unverifizierte Rasterbild-Darstellung.');
+ const base=sourceSvg.replace(nativeImageStyle,'style="image-rendering:crisp-edges"');
  const west=precip.lons[0],east=precip.lons.at(-1)!;
  const south=mercatorY(precip.lats[0]),north=mercatorY(precip.lats.at(-1)!);
  const x=(lon:number)=>50+(lon-west)/(east-west)*630;

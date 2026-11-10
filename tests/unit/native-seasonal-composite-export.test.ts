@@ -23,6 +23,9 @@ describe('native paired DWD seasonal export',()=>{
   expect(src).toContain('keine Aussage zur Niederschlagsphase');
   expect(src).toContain('letzte Stunde');
   expect(src).toContain('DWD Open Data');
+  expect(src).toContain('image-rendering:crisp-edges');
+  expect(src).not.toContain('image-rendering:auto');
+  expect(src).toContain(raster);
  });
  it('denies time drift, grid drift, invalid raster and inconsistent intervals',()=>{
   expect(()=>nativeSeasonalSvg('winter-berge',precip,{...temperature,time:'2026-11-09T08:00:00Z'},raster,place)).toThrow();
