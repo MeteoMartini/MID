@@ -175,14 +175,8 @@ jobs:
               if (pr.get("state")!="OPEN" or pr.get("isDraft") is not False
                   or pr.get("headRefOid")!=head or pr.get("baseRefName")!="main"):
                 raise ValueError("PR not ready or head/base SHA differs from source gate")
-              thread_ids=set()
-              for thread in first["threads"]:
-                if (not isinstance(thread,dict) or not isinstance(thread.get("id"),str)
-                    or not thread["id"] or thread["id"] in thread_ids):
-                  raise ValueError("Review thread ID missing or duplicated")
-                thread_ids.add(thread["id"])
-                if thread.get("isResolved") is not True:
-                  raise ValueError("Independent triage required for unresolved review threads")
+              if first["threads"]:
+                raise ValueError("Independent triage required for submitted review threads")
               seen=set()
               for review in first["reviews"]:
                 identifier=review.get("id") if isinstance(review,dict) else None
