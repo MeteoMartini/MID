@@ -61,10 +61,10 @@ case_map={
    page(reviews=connection([review("r1","0 issues found")],True,"next")),
    page(reviews=connection([review("r2","0 issues found")]))],True,"PASS"),
  "thread-pagination":([
-   page(reviewThreads=connection([thread],True,"next")),
-   page(reviewThreads=connection([{**thread,"id":"PRRT_second"}])),
-   page(reviewThreads=connection([thread],True,"next")),
-   page(reviewThreads=connection([{**thread,"id":"PRRT_second"}]))],False,"Independent triage")
+   page(reviewThreads=connection([],True,"next")),
+   page(reviewThreads=connection([thread])),
+   page(reviewThreads=connection([],True,"next")),
+   page(reviewThreads=connection([thread]))],False,"Independent triage")
 }
 for name,(pages,allowed,needle) in case_map.items():
  calls=[0]
@@ -97,5 +97,6 @@ for name,(pages,allowed,needle) in case_map.items():
  output=stdout.getvalue()+stderr.getvalue()
  assert (code==0)==allowed,(name,code,output)
  assert needle.lower() in output.lower(),(name,output)
- if allowed:assert calls[0]==len(pages),(name,"Missing complete double readback")
+ if allowed or name=="thread-pagination":
+  assert calls[0]==len(pages),(name,"Second review-thread page and complete double readback are required")
 print("MID trusted premerge Python: 20 mocked allow/deny/TOCTOU tests PASS; ZERO network requests.")

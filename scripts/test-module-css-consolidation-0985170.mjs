@@ -8,6 +8,9 @@ import {execFileSync} from 'node:child_process';
 import {activeCssSources,loadCssCascade,consolidateCssCascade,cssCascadeFingerprint,renderConsolidatedCss,parseCssOutput} from './lib/cssCascade.mjs';
 const root=new URL('../',import.meta.url),read=file=>readFileSync(new URL(file,root),'utf8');
 const baseline=JSON.parse(read('scripts/fixtures/module-css-baseline-0985170.json'));
+const appSource=read('src/App.tsx');
+assert.ok(appSource.includes("const LazyPollenForecast=lazy(()=>import('./PollenForecast')"),'Optional Pollen CSS must keep the React lazy-loaded component boundary');
+assert.ok(!/^\s*import\s+[^;]*\s+from\s+['"]\.\/PollenForecast['"]/m.test(appSource),'Static PollenForecast import would re-introduce eager CSS loading');
 function declarations(file){const source=read(file),ast=ts.createSourceFile(file,source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX),result=new Map;for(const node of ast.statements){for(const name of node.name?[node.name.getText(ast)]:node.declarationList?.declarations.map(d=>d.name.getText(ast))||[])result.set(name,node.getText(ast));}return result;}
 // .365 intentionally changes only storage wiring in these three components.
 // Require each reviewed new expression, then restore only that expression on
