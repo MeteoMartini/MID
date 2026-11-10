@@ -24,7 +24,7 @@ export function seasonalMapFrames(index:NativeIndex|null,id:string):NativeFrameR
  const secondary=new Map(second.frames.map(frame=>[frame.time,frame]));
  return first.frames.filter(frame=>{
   const pair=secondary.get(frame.time);
-  return Boolean(pair&&frame.intervalHours===1&&pair.intervalHours>0&&
+  return Boolean(pair&&frame.intervalHours===1&&Number.isInteger(pair.intervalHours)&&pair.intervalHours>=0&&pair.intervalHours<=pair.hour&&
    Number.isFinite(Date.parse(frame.time))&&Date.parse(frame.time)>Date.parse(index.run)&&
    typeof frame.sha256==='string'&&/^[a-f0-9]{64}$/.test(frame.sha256)&&
    typeof pair!.sha256==='string'&&/^[a-f0-9]{64}$/.test(pair!.sha256));
