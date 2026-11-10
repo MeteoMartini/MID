@@ -17,6 +17,7 @@ describe('native paired DWD seasonal export',()=>{
   expect(src).not.toContain('Regen /');
   expect(src).toContain('Testort &amp; Tal');
   expect(src).toContain('2 m: -2');
+  expect(src).toMatch(/>0(?:[,.]0)? mm<\/text>/);
   expect(src).toContain('keine Aussage zur Niederschlagsphase');
   expect(src).toContain('letzte Stunde');
   expect(src).toContain('DWD Open Data');
@@ -27,12 +28,15 @@ describe('native paired DWD seasonal export',()=>{
   expect(()=>nativeSeasonalSvg('winter-berge',precip,temperature,'javascript:alert(1)',place)).toThrow();
   expect(()=>nativeSeasonalSvg('winter-berge',{...precip,values:[0,1,NaN,3]},temperature,raster,place)).toThrow('kein gemeinsamer');
   expect(()=>nativeSeasonalSvg('winter-berge',precip,{...temperature,values:[-2,2,NaN,3]},raster,place)).toThrow('kein gemeinsamer');
-  expect(()=>nativeSeasonalSvg('sommer-gewitter',precip,mk('gust',[20,40,60,80]),raster,place,'kn',undefined,[],0)).toThrow();
+  expect(()=>nativeSeasonalSvg('sommer-gewitter',precip,mk('gust',[20,40,60,80]),raster,place,'kn',undefined,[],-1)).toThrow();
  });
  it('labels gust maximum interval without claiming lightning or warnings',()=>{
   const src=nativeSeasonalSvg('sommer-gewitter',precip,mk('gust',[20,40,60,80]),raster,place,'kn',undefined,[],3);
   expect(src).toContain('3-h-Intervall');
   expect(src).toContain('keine Gewitterwarnung');
   expect(src).toContain('Böen:');
+  const unknown=nativeSeasonalSvg('sommer-gewitter',precip,mk('gust',[20,40,60,80]),raster,place,'kn',undefined,[],0);
+  expect(unknown).toContain('Quellintervall nicht ausgewiesen');
+  expect(unknown).not.toContain('0-h-Intervall');
  });
 });
