@@ -139,3 +139,17 @@ describe('MID AI Router: durable SQLite one-shot admission is fail-closed', () =
     expect(r.stderr).toBe('');
   });
 });
+
+describe('MID AI Router: signed quota/source proof binds atomic SQLite admission', () => {
+  it('accepts only fresh Ed25519-authenticated public zero-cash requests (offline Node22)', () => {
+    const script = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-signed-quota-0985453.mjs', import.meta.url));
+    const r = spawnSync(process.execPath, ['--disable-warning=ExperimentalWarning', script], {
+      cwd: root, timeout: 20_000, encoding: 'utf8', maxBuffer: 128 * 1024,
+      env: { PATH: process.env.PATH || '' }, stdio: ['ignore', 'pipe', 'pipe']
+    });
+    expect(r.error).toBeUndefined();
+    expect(r.status, r.stderr || r.stdout).toBe(0);
+    expect(r.stdout).toMatch(/MID AI Router signed Ed25519\/SQLite QA OK; scenarios=24; no provider inference, auth bypass, billing or network\./);
+    expect(r.stderr).toBe('');
+  });
+});
