@@ -173,3 +173,90 @@ jobs:
                         'archived offline pairing, not an actual Pages deploy, P4 CAS, '
                         'live Worker or native end-device acceptance**.\n')
           PY
+      - name: Pin Node 22 for real Fast Pages-point and canonical shape readback
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+      - name: Read exact original 13Z/14Z paired site through SHA-verified native point consumer (NO CLIENT ACTIVATION)
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {createHash} from 'node:crypto';
+          import {readFile} from 'node:fs/promises';
+          import {resolve,sep} from 'node:path';
+          import {readPagedFastPointShadow} from './tools/ruc/ruc_fast_paged_point_shadow.mjs';
+          import {inspectFastToCommonForecastShadow} from './tools/ruc/ruc_fast_canonical_bridge_shadow.mjs';
+          const root=resolve('real-inactive-paged-combined/ruc');
+          const manifestBytes=new Uint8Array(await readFile(resolve(root,'fast/paged-shadow.json')));
+          const manifestSha256=createHash('sha256').update(manifestBytes).digest('hex');
+          const file=async key=>{
+            const path=resolve(root,key);
+            assert(path.startsWith(root+sep),'Fast candidate attempted directory traversal');
+            return new Uint8Array(await readFile(path));
+          };
+          let reads=0,bytesRead=0;
+          const boundedReader=async key=>{
+            const data=await file(key);
+            reads++;bytesRead+=data.byteLength;
+            return data;
+          };
+          const cell=await readPagedFastPointShadow(manifestBytes,manifestSha256,boundedReader,300*964+520);
+          assert.equal(cell.available,true,'real DWD native center cell must be available');
+          assert.equal(reads,4,'single point must read one SHA checked chunk per native product');
+          assert(bytesRead>0 && bytesRead<=4*512*168,'unbounded Fast native point read');
+          assert.equal(cell.epsAvailable,false,'no synthetic Fast EPS20');
+          assert.equal(cell.productionAuthorized,false,'do not activate Fast producer');
+          assert.equal(cell.modelRunUtc,'2026-11-10T14:00:00.000Z');
+          assert.equal(cell.hours.length,7);
+          assert.equal(cell.rapid5Minutes.length,73);
+          assert.equal(cell.rapid15Minutes.length,25);
+          assert.equal(cell.hours[0].fields.precipitation,null,'initial hourly accumulation is Missing');
+          assert.equal(cell.rapid5Minutes[0].precipitationMm,null,'initial five minute accumulation is Missing');
+          assert.equal(cell.rapid15Minutes[0].precipitationMm,null,'initial fifteen minute accumulation is Missing');
+          const full=JSON.parse(await readFile(resolve(root,'latest.json'),'utf8'));
+          assert.equal(full.run,'2026-11-10T13:00');
+          assert.equal(full.eps.memberCount,20,'original 27h EPS20 absent');
+          const combined=inspectFastToCommonForecastShadow(full,cell);
+          assert.equal(combined.primary,full);
+          assert.equal(combined.full27hEps20Unchanged,true);
+          assert.equal(combined.fastCandidate.mid_ruc.underlyingFullRun,full.run);
+          assert.equal(combined.fastCandidate.hourly.time.length,7);
+          assert.equal(combined.fastCandidate.rapid.precip5.time.length,73);
+          assert.equal(combined.fastCandidate.rapid.convection15.time.length,25);
+          assert.equal(combined.fastCandidate.rapid.precip5.precipitation[0],null);
+          assert.equal(combined.selectedForForecast,false);
+          assert.equal(combined.releaseAuthorized,false);
+          assert.equal(combined.usedByWebIosWidgetsExports,false);
+          // Negative tests on the REAL archive bytes and model object, without file mutation.
+          const wrongSha='0'.repeat(64);
+          await assert.rejects(readPagedFastPointShadow(manifestBytes,wrongSha,file,300*964+520),
+            /manifest not SHA admitted/);
+          let mutated=false;
+          await assert.rejects(readPagedFastPointShadow(manifestBytes,manifestSha256,async key=>{
+            const data=await file(key);
+            if(!mutated){data[data.length-1]^=1;mutated=true;}
+            return data;
+          },300*964+520),/chunk SHA mismatch/);
+          assert.equal(mutated,true);
+          const fakeInitial={...cell,rapid5Minutes:cell.rapid5Minutes.map((v,i)=>i===0?{...v,precipitationMm:0}:v)};
+          assert.throws(()=>inspectFastToCommonForecastShadow(full,fakeInitial),/initial accumulation is not zero/);
+          const fakeFull={...full,run:'2026-11-10T15:00',times:full.times.map(t=>new Date(Date.parse(t+'Z')+2*3600000).toISOString().slice(0,16))};
+          assert.throws(()=>inspectFastToCommonForecastShadow(fakeFull,cell),/model runs unrelated/);
+          const proof={
+            schema:'mid.ruc.fast-original-archived-paged-client-shadow.v1',
+            fullRunUtc:full.run,fastRunUtc:cell.modelRunUtc,originalFullEpsMembers:20,
+            hourlyHours:7,rapid5Count:73,rapid15Count:25,
+            fourOriginalChunksShaVerified:reads===4,nativeBytesRead:bytesRead,
+            sourceNoDataNotZero:true,realManifestSha256:manifestSha256,
+            forgedManifestRejected:true,tamperedNativeChunkRejected:true,
+            fakeInitialZeroRejected:true,staleFastRunRejected:true,
+            underlyingFullPreserved:true,
+            publicPagesFastVerified:false,liveWorkerFastVerified:false,
+            appOrWidgetAdoptionVerified:false,realIOSVerified:false,
+            releaseAuthorized:false
+          };
+          console.log('MID_RUC_FAST_REAL_CLIENT_SHADOW_PROOF '+JSON.stringify(proof));
+          NODE
+          echo 'Native original point and canonical shared-client SHADOW readback passed. Not a public Pages, Worker, Web, iOS, Widget or Export acceptance.' >> "$GITHUB_STEP_SUMMARY"
