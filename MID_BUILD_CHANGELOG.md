@@ -1,3 +1,11 @@
+## MID v0.9.85.454 · 2026-11-10 · RUC Pages-/Worker-Diagnose und sichere Provenienz
+
+- Source of Truth: v0.9.85.453 main=mid-stable=ba4901932c33e584167c31c310fb11601e77b6df; integrator copies precisely four files from verified QA PR #732 HEAD e2fe7d832b1514d29f29b110df6d01f40eb24e38.
+- Original #732 exact-head Python 13/13 PASS in Actions #42808191010 and complete MID CI core/heavy/CodeQL PASS in Actions #42808190991 attempt 2.
+- Observed Pages UTC run and pages-lossless-v1/pages-free-v1/pages-codec-staging-v1 are strict-sanitized; no HTTP request URLs, auth tokens or arbitrary response bodies in diagnostic journal.
+- Die .454-Source-PR enthält synchronisierte Paket-/Lock-/Baseline-/Vertrag-/Worker-/PWA-/HTML-/iOS-/Changelog-Spiegel; direkte Versionstests müssen idempotent und ohne Versionssprung sein. Keine MID_RELEASE_TARGET.json oder ungetestete Workflow-Änderung.
+- Source PR gate, signed reviewed SHA-bound bot merge, server ZIP, install-mid.yml, Worker/Pages and Stable promotion are mandatory; no gate bypass. The full P1–P5 RUC program remains separately blocked.
+
 ## MID v0.9.85.453 · 2026-11-10 · WXCharts-inspirierte DWD-Saisonkarten [Source-Kandidat]
 
 - **SHA-genaue Herkunft:** verifizierte Basis `main=mid-stable=d8852f672a40d26348d214dc85e9a3a1b9d79c1f` (v0.9.85.451); Integrationsbranch `chatgpt/v0.9.85.453-spatial-manifest-qualification`, PR #729, Issue #724. Paralleler .452-AI-Router-Draft und RUC-Spezialbranches unangetastet.
