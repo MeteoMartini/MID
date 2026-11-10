@@ -13,7 +13,14 @@ import {profileMapCycles} from './lib/mapMemoryProfile.mjs';
 import {createHash} from 'node:crypto';
 import {createServer} from 'vite';
 const require=createRequire(import.meta.url),cli=realpathSync(execFileSync('npm',['exec','--yes','--package=playwright@1.56.1','--','which','playwright'],{encoding:'utf8'}).trim()),pw=require(join(dirname(dirname(cli)),'playwright'));
-const seasonalDraftPilot=process.env.GITHUB_ACTIONS!=='true'&&process.env.MID_MAP_QA_PILOT_CASE==='390/light/next';
+const seasonalDraftPilot=process.env.GITHUB_ACTIONS!=='true'&&Boolean(process.env.MID_MAP_QA_PILOT_CASE);
+const seasonalDraftKeys=seasonalDraftPilot?process.env.MID_MAP_QA_PILOT_CASE.split(','):[];
+const seasonalDraftAllowed=new Map(mapBrowserCases().map(row=>[`${row.width}/${row.theme}/${row.design}`,row]));
+if(seasonalDraftPilot&&(seasonalDraftKeys.length<1||seasonalDraftKeys.length>4||
+  new Set(seasonalDraftKeys).size!==seasonalDraftKeys.length||
+  !seasonalDraftKeys.includes('390/light/next')||
+  seasonalDraftKeys.some(key=>!seasonalDraftAllowed.has(key))))
+ throw Error('Seasonal read-only Chrome pilot requires 1-4 distinct canonical map cases including 390/light/next');
 // The Draft-only browser probe runs on ubuntu-latest (currently Ubuntu 26.04):
 // pinned Playwright 1.56.1 cannot install its bundled Chromium there.
 // Use the GitHub runner's already-installed stable Chrome for this narrow probe.
@@ -370,7 +377,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
   }cases++;console.log(`Map case ${cases}: ${width}px ${theme} ${design} passed · ${((performance.now()-caseStarted)/1000).toFixed(1)} s`);await context.close();
 }
 const focusedCases=process.env.GITHUB_ACTIONS!=='true'&&process.env.MID_MAP_QA_FOCUSED==='1'?[320,390,430,1024,1440].flatMap(width=>['light','dark'].map(theme=>({width,theme,design:'next'}))):null;
-const assignedCases=seasonalDraftPilot?[{width:390,theme:'light',design:'next'}]:focusedCases??mapBrowserCases(process.env.MID_MAP_QA_SHARD);
+const assignedCases=seasonalDraftPilot?seasonalDraftKeys.map(key=>seasonalDraftAllowed.get(key)):focusedCases??mapBrowserCases(process.env.MID_MAP_QA_SHARD);
 try{for(const width of [...new Set(assignedCases.map(row=>row.width))]){const variants=assignedCases.filter(row=>row.width===width),concurrency=mapBrowserCaseConcurrency(width);/* Bound synthetic MapLibre software-GPU contention; all cases and all assertions remain mandatory. */for(let offset=0;offset<variants.length;offset+=concurrency){const results=await Promise.allSettled(variants.slice(offset,offset+concurrency).map(({theme,design})=>verifyCase(width,theme,design)));for(const result of results)if(result.status==='rejected')throw result.reason;}}assert.equal(cases,assignedCases.length,'Complete assigned viewport/theme/design coverage');if(perfEnabled&&mapBrowserMemoryProbe(process.env.MID_MAP_QA_SHARD))await verifyCase(390,'light','next',true);if(perfRows.length){
  const rows=perfRows.sort((a,b)=>a.width-b.width||a.theme.localeCompare(b.theme)||a.design.localeCompare(b.design));
  const report={schema:'mid.map.runtime.fixture.v2',version:JSON.parse(readFileSync(new URL('../package.json',import.meta.url))).version,commit:process.env.GITHUB_SHA||null,shard:process.env.MID_MAP_QA_SHARD||'all',kind:'synthetic-Vite-MapLibre-fixture-not-user-CWV',cases:rows};

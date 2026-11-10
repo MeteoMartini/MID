@@ -32,16 +32,16 @@ describe('seasonal WXCharts-inspired cards stay inside the original MID map sele
  const isMapAudit=process.env.GITHUB_ACTIONS==='true'&&
   process.env.GITHUB_EVENT_NAME==='pull_request'&&
   process.env.GITHUB_HEAD_REF==='chatgpt/v0.9.85.454-seasonal-interval-qa';
- (isMapAudit?it:it.skip)('verifies both seasonal SVG exports on a real 390px Chromium MapLibre view',()=>{
+ (isMapAudit?it:it.skip)('runs four real Chrome MapLibre viewport/theme/design probes with both seasonal PNG and SVG exports',()=>{
   const repoRoot=fileURLToPath(new URL('../../',import.meta.url));
   const result=spawnSync(process.execPath,['scripts/verify-unified-map-browser-0985167.mjs'],{
-   cwd:repoRoot,encoding:'utf8',timeout:460_000,maxBuffer:12*1024*1024,
-   env:{...process.env,GITHUB_ACTIONS:'false',MID_MAP_QA_PILOT_CASE:'390/light/next'},
+   cwd:repoRoot,encoding:'utf8',timeout:540_000,maxBuffer:12*1024*1024,
+   env:{...process.env,GITHUB_ACTIONS:'false',MID_MAP_QA_PILOT_CASE:'390/light/next,320/dark/classic,844/light/next,1440/dark/classic'},
   });
   if(result.error||result.status!==0)throw new Error('Seasonal Chromium integration failed: '+String(result.error||'')+
    '\\n'+String(result.stdout||'').slice(-5200)+'\\n'+String(result.stderr||'').slice(-4200));
-  expect(result.stdout).toContain('1 real-map viewport/theme cases passed');
- },480_000);
+  expect(result.stdout).toContain('4 real-map viewport/theme cases passed');
+ },560_000);
 
  (isMapAudit?it:it.skip)('probes the real production Vite bundle and the unchanged size budgets, draft #741 only',()=>{
   // Explicit non-release QA: all generated files stay outside the repository.
