@@ -1,3 +1,9 @@
+# MID v0.9.85.453 · unabhängige DWD-Saisonkarten nach WXCharts-Parametervergleich [Integrationskandidat]
+
+**Basis:** `main=mid-stable=d8852f672a40d26348d214dc85e9a3a1b9d79c1f` / v0.9.85.451 zum Integrationszeitpunkt. **Umfang:** Winter & Berge (1-h-Gesamtniederschlag + 2-m-Isothermen) und Sommer (1-h-Gesamtniederschlag + Böen-Isolinien), jeweils zwei Originalfelder aus demselben ICON-D2-Modelllauf und gültigen Termin mit identischem Raster und NoData-Schnittmenge. Vorhandene MID-Kartennavigation, Zeitachse und Quellen bleiben erhalten. Vollständiger kombinierter PNG-/SVG-Export und beide Ortswerte. Feldmatrix/Lizenzen/ausdrücklich nicht freigegebene Schneehöhen-, CAPE-, Bulk-Shear- und Blitzprodukte: `docs/implementation/MID_WXCHARTS_SEASONAL_MAP_MATRIX_2026_11_10.md`.
+
+**Source-Draft, keine Produktivfreigabe durch diese Dokumentation.** Ausschließlich erfolgreicher etablierter Pfad: Source-PR-Gate → kontrollierter SHA-Bot-Merge → serverseitiges ZIP → `install-mid.yml` → betroffene Worker-/Pages-Gates → Stable-Promotion. Keine WXCharts-Inhalte, GPL-Reader oder amtlichen Warnungen; NoData nie als Null.
+
 # MID v0.9.85.451 · vorläufige Korrektur des Installer-JS-Rohbudgets [nicht veröffentlicht]
 
 Der vollständig grüne Source-Gate-Lauf der .450 (42568701822) rechtfertigte den regulären Bot-Merge PR #722. Der Installer 42570011322 zeigte danach einen neuen echten JS-Größenbudgetfehler (1.500.098 B > 1.500.000 B), während CSS bei 1.759.965 B knapp innerhalb 1.760.000 B blieb. Main ist noch unveröffentlicht .450; `mid-stable` verbleibt bis zur gesicherten Promotion auf .449. Diese .451-Reparatur erhält die .450-Fachfunktionen und optimiert ausschließlich identische JSX-Literale ohne neue Meteorologielogik. Ein neuer Originalbuild, alle Core-/Heavy-Gates und Installer-/Stable-Promotion sind vor einer Freigabe obligatorisch. Keine unmittelbare App-/Serverfreigabe durch diesen Dokumentstand.

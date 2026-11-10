@@ -32,7 +32,7 @@ assert.equal(actual.filter(name=>name==='test-core-regression-isolated-matrix-09
 // complete one-to-one test inventory. Any missing/renamed test fails closed.
 const expectedSwaps=[
  {slow:'test-compact-profile-location-0985235.mjs',destination:'core-1/4',light:'test-mid-original-dwd-weather-profile-09310.mjs'},
- {slow:'test-favorites-profile-0985242.mjs',destination:'core-3/4',light:'test-pollen-compact-dwd-levels-0985129.mjs'},
+ {slow:'test-favorites-profile-0985242.mjs',destination:'core-1/4',light:'test-pollen-compact-dwd-levels-0985129.mjs'},
  {slow:'test-module-css-consolidation-0985170.mjs',destination:'core-4/4',light:'test-mid-weather-profile-axes-09322.mjs'},
 ];
 assert.deepEqual(REGRESSION_CORE_BALANCE_SWAPS,expectedSwaps,'Only the independently reviewed three cost-balancing swaps are authorized.');
