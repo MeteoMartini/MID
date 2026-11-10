@@ -1,5 +1,8 @@
 import {describe,it,expect} from 'vitest';
-import {execFileSync} from 'node:child_process';
+import {execFileSync,spawnSync} from 'node:child_process';
+import {mkdtempSync,readFileSync,readdirSync,rmSync,statSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {availableUnifiedParameters,groupedUnifiedParameters,unifiedSources,UNIFIED_MAP_PARAMETERS} from '../../src/unifiedMapCatalog';
 import type {NativeIndex,NativeFrameRef} from '../../src/nativeModelFields';
@@ -26,6 +29,47 @@ describe('seasonal WXCharts-inspired cards stay inside the original MID map sele
   });
   expect(output).toContain('MID-C17 unified map: scientific model/parameter matrix');
  },120_000);
+ const isMapAudit=process.env.GITHUB_ACTIONS==='true'&&
+  process.env.GITHUB_EVENT_NAME==='pull_request'&&
+  process.env.GITHUB_HEAD_REF==='chatgpt/v0.9.85.454-seasonal-interval-qa';
+ (isMapAudit?it:it.skip)('probes the real production Vite bundle and the unchanged size budgets, draft #741 only',()=>{
+  // Explicit non-release QA: all generated files stay outside the repository.
+  // Never run this additional resource-intensive probe on unrelated PRs or local tests.
+  const root=fileURLToPath(new URL('../../',import.meta.url));
+  const output=mkdtempSync(join(tmpdir(),'mid-seasonal-qa-build-'));
+  const run=(args:string[],timeout:number)=>{
+   const result=spawnSync(process.execPath,args,{
+    cwd:root,encoding:'utf8',timeout,maxBuffer:12*1024*1024,
+    env:{...process.env},
+   });
+   if(result.error||result.status!==0&&args[0]!=='scripts/check-build-budget.mjs')
+    throw new Error('Nur lokaler QA-Build fehlgeschlagen: '+args.join(' ')+'\\n'+String(result.error||'')+
+     '\\n'+String(result.stdout||'').slice(-2200)+'\\n'+String(result.stderr||'').slice(-2200));
+   return result;
+  };
+  try{
+   run(['--max-old-space-size=4096','node_modules/vite/bin/vite.js','build','--outDir',output,'--emptyOutDir'],420_000);
+   const names=readdirSync(join(output,'assets'));
+   const js=names.filter(name=>/^index-.*\\.js$/.test(name));
+   const css=names.filter(name=>/^index-.*\\.css$/.test(name));
+   expect(js).toHaveLength(1);
+   expect(css).toHaveLength(1);
+   const jsBytes=statSync(join(output,'assets',js[0])).size;
+   const cssBytes=statSync(join(output,'assets',css[0])).size;
+   const budgetResult=run(['scripts/check-build-budget.mjs',output],150_000);
+   const report=JSON.parse(readFileSync(join(root,'artifacts','build-budget.json'),'utf8')) as {
+    schema:number;ok:boolean;totals:Record<string,number>;failures:string[];
+   };
+   console.log('[MID #741 isolation only] Vite candidate main JS '+jsBytes+
+    '/1500000 B; main CSS '+cssBytes+'/1760000 B; full budget '+(report.ok?'PASS':'BLOCKED')+
+    '; '+report.failures.join(' | '));
+   expect(jsBytes,'Main-JS-Rohbudget unverändert').toBeLessThanOrEqual(1_500_000);
+   expect(cssBytes,'Main-CSS-Rohbudget unverändert').toBeLessThanOrEqual(1_760_000);
+   expect(report.schema).toBe(2);
+   expect(budgetResult.status===0).toBe(report.ok);
+   expect(report.failures,'Kein bestehendes hartes Budget wird für die Kartenfreigabe ignoriert').toEqual([]);
+  }finally{rmSync(output,{recursive:true,force:true})}
+ },570_000);
  it('offers both exact-source seasonal products in the existing grouped parameter picker',()=>{
   const available=availableUnifiedParameters(index(),false,false);
   expect(available.filter(x=>['winter-berge','sommer-gewitter'].includes(x.id)).map(x=>x.id))
