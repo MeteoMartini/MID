@@ -103,9 +103,11 @@ export default function UnifiedWeatherMap(props:Props){
    .finally(()=>{if(!c.signal.aborted)setSeasonalLoading(false)});
   return()=>c.abort();
  },[settings.enabled,isSeasonal,modelId,catalog,ref?.time,ref?.sha256,seasonalSelection?.secondary,revision]);
- const seasonalReady=Boolean(isSeasonal&&field&&seasonalCompanion&&modelId==='icon-d2'&&
+ // Pair verification traverses the original grid; never repeat it for unrelated React re-renders.
+ const seasonalReady=useMemo(()=>Boolean(isSeasonal&&field&&seasonalCompanion&&modelId==='icon-d2'&&
   catalog&&field.run===catalog.index.run&&field.time===ref?.time&&
-  seasonalPairValid(parameter,field,seasonalCompanion,ref?.time));
+  seasonalPairValid(parameter,field,seasonalCompanion,ref?.time)),
+  [isSeasonal,field,seasonalCompanion,modelId,catalog,ref?.time,parameter]);
  const seasonalPairInvalid=Boolean(isSeasonal&&field&&seasonalCompanion&&field.time===ref?.time&&seasonalCompanion.time===ref?.time&&!seasonalReady&&!loading&&!seasonalLoading);
  const gustFrameHours=parameter==='sommer-gewitter'?catalog?.index.products.gust?.frames.find(f=>f.time===ref?.time)?.intervalHours:undefined;
  const seasonalPrimary=useMemo(()=>seasonalReady&&field&&seasonalCompanion?
