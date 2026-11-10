@@ -38,6 +38,9 @@ export function assessMidReviewEvidence({pr,reviews,threads,expectedHead}){
   reviewIds.add(review.id);
   if(review.state==='PENDING'||review.state==='DISMISSED')continue;
   submittedReviews++;
+  if(!['APPROVED','COMMENTED','CHANGES_REQUESTED'].includes(review.state)){
+   blockers.push(failure('REVIEW_STATE_UNEXPECTED:'+review.id));continue;
+  }
   if(!review.submittedAt||!review.commit?.oid)blockers.push(failure('REVIEW_PROVENANCE_MISSING:'+review.id));
   if(review.commit?.oid&&review.commit.oid!==expectedHead)blockers.push(failure('REVIEW_HEAD_SHA_STALE:'+review.id));
   if(review.state==='CHANGES_REQUESTED')blockers.push(failure('CHANGES_REQUESTED:'+review.id));
@@ -98,17 +101,22 @@ export async function readMidReviewEvidence({repo,number,token}){
  for(let page=0;page<MAX_PAGES;page++){
   const pr=await graphql(token,QUERY,{owner,name,number,rCursor,tCursor});
   if(!prMeta)prMeta={id:pr.id,state:pr.state,isDraft:pr.isDraft,headRefOid:pr.headRefOid,baseRefName:pr.baseRefName};
-  if(prMeta.headRefOid!==pr.headRefOid||prMeta.state!==pr.state||prMeta.isDraft!==pr.isDraft)
-   throw new Error('PR head/state moved during review pagination');
+  if(prMeta.id!==pr.id||prMeta.headRefOid!==pr.headRefOid||
+     prMeta.baseRefName!==pr.baseRefName||prMeta.state!==pr.state||
+     prMeta.isDraft!==pr.isDraft)
+   throw new Error('PR identity/head/state/base moved during review pagination');
   const rp=pr.reviews?.pageInfo,tp=pr.reviewThreads?.pageInfo;
-  if(!rp||!tp||!Array.isArray(pr.reviews.nodes)||!Array.isArray(pr.reviewThreads.nodes))
-   throw new Error('Review page missing');
+  if(!rp||!tp||typeof rp.hasNextPage!=='boolean'||
+     typeof tp.hasNextPage!=='boolean'||
+     !Array.isArray(pr.reviews.nodes)||!Array.isArray(pr.reviewThreads.nodes))
+   throw new Error('Review page missing or pagination state invalid');
   if(!reviewPagesComplete)reviews.push(...pr.reviews.nodes);
   if(!threadPagesComplete)threads.push(...pr.reviewThreads.nodes);
   reviewPagesComplete=!rp.hasNextPage;threadPagesComplete=!tp.hasNextPage;
   if(reviewPagesComplete&&threadPagesComplete)return {pr:prMeta,reviews,threads};
-  if((rp.hasNextPage&&!rp.endCursor)||(tp.hasNextPage&&!tp.endCursor))
-   throw new Error('Review pagination cursor missing');
+  if((rp.hasNextPage&&(!rp.endCursor||rp.endCursor===rCursor))||
+     (tp.hasNextPage&&(!tp.endCursor||tp.endCursor===tCursor)))
+   throw new Error('Review pagination cursor missing or stalled');
   rCursor=rp.hasNextPage?rp.endCursor:rCursor;
   tCursor=tp.hasNextPage?tp.endCursor:tCursor;
  }

@@ -19,6 +19,8 @@ assert.ok(check({...ready,headRefOid:'b'.repeat(40)}).blockers.includes('HEAD_CH
 assert.ok(check({...ready,isDraft:true}).blockers.includes('PR_NOT_READY'));
 assert.ok(check({...ready,state:'MERGED'}).blockers.includes('PR_NOT_READY'));
 assert.ok(check(ready,[review('r1','CHANGES_REQUESTED','')]).blockers.includes('CHANGES_REQUESTED:r1'));
+assert.ok(check(ready,[review('unknown','UNKNOWN','')]).blockers.includes('REVIEW_STATE_UNEXPECTED:unknown'),
+ 'New or corrupted review states must fail closed, even with empty body');
 assert.ok(check(ready,[],[thread('t1',false)]).blockers.includes('UNRESOLVED_REVIEW_THREAD:t1'));
 assert.ok(check(ready,[],[thread('t1',false,[bot,human],true)]).blockers.includes('UNRESOLVED_REVIEW_THREAD:t1'),'Outdated but untriaged stays blocked');
 assert.ok(check(ready,[],[thread('t1',true,[bot])]).blockers.includes('RESOLUTION_EVIDENCE_MISSING:t1'));
@@ -133,12 +135,32 @@ await mockGraphql([
  ()=>readMidReviewEvidence({repo:'MeteoMartini/MID',number:729,token:'synthetic-read-only'}),
  /Review pagination cursor missing/
 ));
+const missingPaginationFlag=apiPage();
+delete missingPaginationFlag.reviewThreads.pageInfo.hasNextPage;
+await mockGraphql([missingPaginationFlag],async()=>assert.rejects(
+ ()=>readMidReviewEvidence({repo:'MeteoMartini/MID',number:729,token:'synthetic-read-only'}),
+ /Review page missing or pagination state invalid/
+));
+await mockGraphql([
+ apiPage({reviewNext:true,reviewCursor:'same'}),
+ apiPage({reviewNext:true,reviewCursor:'same'})
+],async()=>assert.rejects(
+ ()=>readMidReviewEvidence({repo:'MeteoMartini/MID',number:729,token:'synthetic-read-only'}),
+ /Review pagination cursor missing or stalled/
+));
+await mockGraphql([
+ apiPage({threadNext:true,threadCursor:'second'}),
+ apiPage({meta:{...fakePr(),baseRefName:'release'}})
+],async()=>assert.rejects(
+ ()=>readMidReviewEvidence({repo:'MeteoMartini/MID',number:729,token:'synthetic-read-only'}),
+ /PR identity\/head\/state\/base moved during review pagination/
+));
 await mockGraphql([
  apiPage({reviewNext:true,reviewCursor:'reviews-page2',threadNodes:[pgThreadA]}),
  apiPage({meta:fakePr('b'.repeat(40)),reviewNodes:[pgReview]})
 ],async()=>assert.rejects(
  ()=>readMidReviewEvidence({repo:'MeteoMartini/MID',number:729,token:'synthetic-read-only'}),
- /PR head\/state moved during review pagination/
+ /PR identity\/head\/state\/base moved during review pagination/
 ));
 await mockGraphql([403],async()=>assert.rejects(
  ()=>readMidReviewEvidence({repo:'MeteoMartini/MID',number:729,token:'synthetic-read-only'}),
@@ -153,6 +175,6 @@ await mockGraphql([apiPage({threadNext:true,threadCursor:'x'})],async()=>assert.
  /Invalid review gate configuration/
 ));
 assert.equal(globalThis.fetch,originalFetch,'Global fetch must be restored after isolated mock');
-console.log('MID review GraphQL mock: two-page readback, stale HEAD, missing cursor, HTTP 403 and API errors PASS; no network.');
+console.log('MID review GraphQL mock: two-page readback, stale HEAD/base, missing pagination flag, stalled cursor, HTTP 403 and API errors PASS; no network.');
 console.log('MID review evidence fail-closed QA: real GitHub #729 review metadata plus synthetic negatives PASS; NO workflow attached.');
 
