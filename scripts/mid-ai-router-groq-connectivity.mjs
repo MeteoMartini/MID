@@ -59,8 +59,16 @@ export async function checkMidGroqModelConnectivity({
  if(!Array.isArray(catalog?.data)||catalog.data.length>1000)
    fail('GROQ_CATALOG_INVALID_SCHEMA');
  const models=TARGETS.map(id=>{
-  const item=catalog.data.find(x=>x?.id===id);
-  return Object.freeze({id,listed:!!item,active:item?.active===true});
+  // Groq's Models API lists available active models; its documented Model
+  // schema does not require an 'active' field on every returned item.
+  // An explicit false, malformed object or duplicate ID still fails closed.
+  const hits=catalog.data.filter(x=>x?.id===id);
+  if(hits.length>1)fail('GROQ_CATALOG_DUPLICATE_MODEL');
+  const item=hits[0];
+  const listed=!!item;
+  const active=listed&&item.object==='model'&&
+    (item.active===true||!Object.hasOwn(item,'active'));
+  return Object.freeze({id,listed,active});
  });
  let last;try{last=await sourceReadback()}catch{fail('MID_SOURCE_UNAVAILABLE')}
  verifySource(last,expectedStableSha);
