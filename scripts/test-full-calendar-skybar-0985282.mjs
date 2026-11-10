@@ -89,7 +89,7 @@ try{
 
  const validEpochZero={startEpoch:0,endEpoch:24*m};
  assert.equal(daySkybarTimelinePositions([{epoch:0}],0,0,100,validEpochZero)[0],0,'A true numeric Unix 0 remains valid for its own calendar day');
- assert.equal(daySkybarHourEndPositions([{epoch:0}],validEpochZero,0,0,100)[0],100/24,'A real Unix 0 is not missing');
+ assert.ok(Math.abs(daySkybarHourEndPositions([{epoch:0}],validEpochZero,0,0,100)[0]-100/24)<1e-8,'A real Unix 0 is not missing (floating-point position tolerance)');
  for(const dst of [spring,fall]){
   const sample=[{epoch:undefined},{epoch:dst.startEpoch+2*m},{epoch:dst.startEpoch+3*m}];
   const start=daySkybarTimelinePositions(sample,0,0,100,dst);
