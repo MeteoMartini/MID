@@ -23,11 +23,11 @@ const task=(id,props={})=>({
  dataClass:'public-redacted',expectedStableSha:sha,expectedVersion:'0.9.85.453',
  prompt:'Review the public WMO precipitation accumulation semantics.',...props
 });
-let readCount=0,authOverride={};
+let readCount=0,authOverride={},postResponseDrift=false;
 const source=async()=>{
  readCount++;
  return {checkedAt:new Date(clock).toISOString(),
-  mainSha:sourceDriftSecond && readCount%2===0?'c'.repeat(40):sha,
+  mainSha:(postResponseDrift || (sourceDriftSecond && readCount%2===0))?'c'.repeat(40):sha,
   stableSha:sha,
   versionMirrors:{package:'0.9.85.453',baseline:'0.9.85.453',registry:'0.9.85.453'}};
 };
@@ -81,6 +81,7 @@ const remote=async(url,opts)=>{
  const model=provider==='gemini'?decodeURIComponent(url.split('/models/')[1].split(':')[0]):
   JSON.parse(opts.body).model;
  const raw=mode==='oversized'?'x'.repeat(65537):JSON.stringify(response(provider,model));
+ if(mode==='postResponseDrift')postResponseDrift=true;
  return new Response(raw,{status:200});
 };
 const executor=createMidAiOneShotExecutor({
@@ -149,6 +150,18 @@ await test(async()=>{readCount=0;sourceDriftSecond=true;
  const t=await signed(task('source-race'));
  await bad(()=>executor.execute(t),'SOURCE_DRIFT_OR_VERSION_MISMATCH');
  sourceDriftSecond=false;assert.equal(fetchCalls,1)});
+await test(async()=>{
+ // Promotion in the middle of the only authorized provider request must
+ // suppress its answer. A consumed signed quota claim can never be retried.
+ const before=fetchCalls,t=await signed(task('post-response-source-race'));
+ mode='postResponseDrift';
+ try{
+  await bad(()=>executor.execute(t),'SOURCE_DRIFT_OR_VERSION_MISMATCH');
+ }finally{mode='ok';postResponseDrift=false;}
+ assert.equal(fetchCalls,before+1);
+ await bad(()=>executor.execute(t),'DUPLICATE_REQUEST_NO_RETRY');
+ assert.equal(fetchCalls,before+1);
+});
 await test(async()=>{mode='wrongModel';const t=await signed(task('wrong-model1'));
  await bad(()=>executor.execute(t),'REPORTED_MODEL_MISMATCH');mode='ok';assert.equal(fetchCalls,2)});
 await test(async()=>{mode='truncated';const t=await signed(task('partial-work'));
