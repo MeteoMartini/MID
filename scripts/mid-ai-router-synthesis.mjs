@@ -39,10 +39,15 @@ export function summarizeMidAiBlend({plan,responses=[],sourceChecks=[]}={}){
    deny('INVALID_RESPONSES');
  if(!Array.isArray(sourceChecks)||sourceChecks.length>100)
    deny('INVALID_SOURCE_EVIDENCE');
- const pending=[a,b].filter(x=>!responses.some(r=>r?.requestId===x.requestId));
- if(pending.length){
-   if(responses.some(r=>!r||![a.requestId,b.requestId].includes(r.requestId)))
+ const seen=new Set();
+ for(const result of responses){
+   if(!result||![a.requestId,b.requestId].includes(result.requestId))
      deny('RESPONSE_REQUEST_ID_MISMATCH');
+   if(seen.has(result.requestId))deny('DUPLICATE_OR_MISSING_MODEL_RESPONSE');
+   seen.add(result.requestId);
+ }
+ const pending=[a,b].filter(x=>!seen.has(x.requestId));
+ if(pending.length){
    return Object.freeze({
      status:'PENDING_LIVE_MODEL_OUTPUT',modelsExpected:2,modelsReceived:responses.length,
      missingRequestIds:Object.freeze(pending.map(x=>x.requestId)),
