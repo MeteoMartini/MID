@@ -80,7 +80,38 @@ check(()=>{const r=run(task('independent-review',{allowExternalInference:true,ma
  assert.equal(r.plannedExternalCalls,1);assert.equal(r.dispatchAuthorized,false)});
 check(()=>{const r=run(task('source-code-change'),host({github:ready()}));
  assert.equal(r.status,'MODE_SWITCH_REQUIRED')});
-check(()=>{const copilot={...ready(true),includedQuotaVerified:true,paidOverageDisabled:true};
- const r=run(task('source-code-change'),host({github:ready(),copilot}));
- assert.equal(r.lane,'copilot-issue');assert.equal(r.dispatchPerformed,false)});
+// Existing GitHub connection is the only transport: Copilot is an assignee,
+// not a second separately authenticated ChatGPT plugin.
+const copilotReady={...ready(true),copilotIssueAssignSupported:true,
+ copilotCreditState:'verified-available',copilotPaidOverageDisabled:true};
+const copilotTask=(intent='source-code-change',options={})=>
+ task(intent,{preferredMode:'copilot',...options});
+check(()=>{const r=run(copilotTask(),host({github:copilotReady}));
+ assert.equal(r.lane,'copilot-issue');assert.equal(r.status,'CONNECTED_TOOL_PLAN');
+ assert.equal(r.requestedAssignee,'copilot-swe-agent[bot]');
+ assert.deepEqual(r.requiredTools,['github']);
+ assert.equal(r.sessionStarted,false);assert.equal(r.dispatchAuthorized,false);
+ assert.equal(r.retryAllowed,false);});
+check(()=>{const r=run(copilotTask('independent-review'),host({github:copilotReady}));
+ assert.equal(r.lane,'copilot-issue');assert.equal(r.dispatchPerformed,false);});
+check(()=>denied(run(copilotTask(),host({github:{...copilotReady,copilotCreditState:'exhausted'}})),
+ 'COPILOT_AI_CREDITS_EXHAUSTED'));
+check(()=>denied(run(copilotTask(),host({github:{...copilotReady,copilotCreditState:'unknown'}})),
+ 'COPILOT_CREDIT_LIMITS_UNVERIFIED'));
+check(()=>denied(run(copilotTask(),host({github:{...copilotReady,copilotPaidOverageDisabled:false}})),
+ 'COPILOT_CREDIT_LIMITS_UNVERIFIED'));
+check(()=>denied(run(copilotTask(),host({github:{...copilotReady,copilotIssueAssignSupported:false}})),
+ 'GITHUB_COPILOT_ASSIGNMENT_NOT_VERIFIED'));
+check(()=>denied(run(copilotTask(),host({github:{...copilotReady,canWrite:false}})),
+ 'GITHUB_COPILOT_ASSIGNMENT_NOT_VERIFIED'));
+check(()=>denied(run(copilotTask('repo-readback'),host({github:copilotReady})),
+ 'COPILOT_TASK_KIND_NOT_ALLOWED'));
+check(()=>denied(run(copilotTask('independent-review',{dataClass:'private'}),host({github:copilotReady})),
+ 'PUBLIC_REDACTED_ONLY'));
+check(()=>denied(run(copilotTask('independent-review',{copilotIssueAlreadyCreated:true}),host({github:copilotReady})),
+ 'COPILOT_REQUEST_ALREADY_SUBMITTED'));
+check(()=>denied(run(copilotTask(),host({github:copilotReady},'codex')),
+ 'COPILOT_REQUIRES_CHAT_COORDINATOR'));
+check(()=>denied(route({task:copilotTask(),host:host({github:copilotReady}),
+ snapshot:{...snapshot,mainSha:'b'.repeat(40)},now}),'SOURCE_DRIFT'));
 console.log('MID AI Router capability QA OK; scenarios='+passed+'; no network, paid AI calls or mode switch.');
