@@ -10,6 +10,7 @@ import {describe,expect,it} from 'vitest';
 const root=fileURLToPath(new URL('../..',import.meta.url));
 const scripts=[
  'test-detail-thermal-profile-navigation-09382.mjs',
+ 'test-mid-weather-profile-sultry-09325.mjs',
  'test-display-return-states-0985364.mjs',
  'test-full-calendar-skybar-0985282.mjs',
  'test-posthog-telemetry-0985432.mjs',
