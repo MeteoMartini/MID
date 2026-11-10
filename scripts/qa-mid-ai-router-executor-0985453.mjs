@@ -178,6 +178,32 @@ await test(async()=>{const t=await signed(task('gemini-free1'),'gemini','gemini-
  const r=await executor.execute(t);assert.equal(r.provider,'gemini');
  assert.equal(requests.at(-1).headers['x-goog-api-key'],'FAKE_PROVIDER_KEY_123456');
  assert.equal(JSON.stringify(requests.at(-1).body).includes('FAKE_PROVIDER_KEY'),false)});
+await test(async()=>{
+ // Deliberately compromised admission proof: the executor must still block
+ // unpinned models before any simulated provider HTTP request.
+ const before=fetchCalls;
+ const forgedAdmission=createMidAiOneShotExecutor({
+  authenticate:async()=>({authenticated:true,audience:'mid-ai-router',
+   scopes:['mid-ai:infer-public'],principalSha256:principal}),
+  admission:{reserve:async ({requestId,expectedStableSha})=>({
+   status:'RESERVED_NO_DISPATCH',requestId,stableSha:expectedStableSha
+  })},
+  readback:source,credentialFor:async()=> 'FAKE_PROVIDER_KEY_123456',
+  fetchImpl:remote,now:()=>clock,cryptoImpl
+ });
+ const unpinned=[
+  ['groq','llama-3.3-70b-versatile'],
+  ['openrouter','meta-llama/llama-3.3-70b-instruct:free'],
+  ['gemini','gemini-2.5-pro']
+ ];
+ for(const [provider,model] of unpinned){
+  const t=task('compromised-'+provider);
+  await bad(()=>forgedAdmission.execute({...t,grant:{
+   provider,model,expiresAtMs:clock+60000
+  },signature:'FAKE_SIGNATURE_NO_REAL_PERMISSION'}),'MODEL_NOT_ALLOWED');
+ }
+ assert.equal(fetchCalls,before);
+});
 db.close();
 console.log('MID AI Router Worker one-shot end-to-end mock QA OK; scenarios='+scenarios+
  '; provider HTTP calls simulated, no external inference, credentials or billing.');
