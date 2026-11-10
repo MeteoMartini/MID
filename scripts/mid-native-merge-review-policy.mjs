@@ -22,6 +22,11 @@ export function assessMidNativeMergeReviewPolicy({summaries,detailsById,branch=M
   if(!r||r.id!==s.id)return block('RULESET_DETAIL_MISSING');
   if(r.enforcement!==s.enforcement||r.target!==s.target)
    return block('RULESET_METADATA_MISMATCH');
+ }
+ // Validate every ruleset before accepting even one protective rule.
+ // Otherwise a valid first entry can mask a later duplicate or corrupt ID.
+ for(const s of summaries){
+  const r=detailsById[String(s.id)];
   if(r.enforcement!=='active'||r.target!=='branch')continue;
   const refs=r.conditions?.ref_name;
   if(!Array.isArray(refs?.include)||!refs.include.includes(MAIN)||

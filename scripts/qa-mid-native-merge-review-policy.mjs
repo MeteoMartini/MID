@@ -47,6 +47,10 @@ await reject('missing details',{summaries:[summary],detailsById:{}},'RULESET_DET
 await reject('metadata mismatch',{summaries:[summary],detailsById:{
  [id]:{...detail,target:'tag'}}},'RULESET_METADATA_MISMATCH');
 await reject('duplicate ids',{summaries:[summary,summary],detailsById:{[id]:detail}},'RULESET_ID_MISSING_OR_DUPLICATED');
+await reject('valid first cannot hide later corrupt ruleset',{
+ summaries:[summary,{...summary,id:9030}],
+ detailsById:{[id]:detail,9030:{...detail,id:9030,target:'tag'}}
+},'RULESET_METADATA_MISMATCH');
 await test('unrelated inactive rulesets do not erase valid rule',()=>{
  const extra={id:9,target:'branch',enforcement:'disabled'};
  assert.equal(audit({summaries:[extra,summary],detailsById:{
