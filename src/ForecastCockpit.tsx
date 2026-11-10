@@ -35,7 +35,7 @@ import {dayPeriodHoursForDate,followingNightHoursForDate} from './forecastPeriod
 import {detailSkyBarHourCells,detailSkyBarSegments,detailSkyBarSolarSegments} from './detailSkyBar';
 import {detailSkyBarTimedSegments} from './detailSkyBar';
 import {SkyBarHourCellsSvg,SkyBarSegmentsSvg,SkyBarCoverageGapsSvg} from './SkyBarSegments';
-import {daySkybarTimelinePositions,daySkybarCalendarWindow,daySkybarHourEndPositions,daySkybarUnavailableRanges} from './daySkybarTimeline';
+import {daySkybarTimelinePositions,daySkybarCalendarWindow,daySkybarHourEndPositions,daySkybarUnavailableRanges,daySkybarEpoch} from './daySkybarTimeline';
 import {formatDisplayDateTime,localTimeDisambiguationSuffix} from './timeDisplay';
 import {AppPortalPopover} from './AppPortalPopover';
 import {useDismissibleLayer} from './useDismissibleLayer';
@@ -508,13 +508,14 @@ export function SevenDayCurveOverview({days,hours,ensemble=[],warningEnsemble,lo
   return segments;
  })();
  const skyBarHours=hourly;
- const skybarEpochs=skyBarHours.map(hour=>Number(hour.epoch));
- const skybarEpochsValid=skybarEpochs.length>0&&skybarEpochs.every((epoch,index)=>Number.isFinite(epoch)&&(index===0||epoch>skybarEpochs[index-1]));
- const skybarGaps=skybarEpochsValid?skybarEpochs.slice(1).map((epoch,index)=>epoch-skybarEpochs[index]).filter(gap=>gap>=15*60000&&gap<=3*3600000).sort((a,b)=>a-b):[];
+ const skybarEpochForCurve=(hour:Hour)=>{const epoch=daySkybarEpoch(hour),window=dayWindows[visibleDateIndex.get(hour.time.slice(0,10))??-1];return Number.isFinite(epoch)&&(!window||epoch>=window.startEpoch&&epoch<window.endEpoch)?epoch:NaN};
+ const skybarEpochs=skyBarHours.map(skybarEpochForCurve),knownSkybarEpochs=skybarEpochs.filter(Number.isFinite);
+ const skybarEpochsValid=knownSkybarEpochs.length>0&&knownSkybarEpochs.every((epoch,index)=>index===0||epoch>knownSkybarEpochs[index-1]);
+ const skybarGaps=skybarEpochsValid?knownSkybarEpochs.slice(1).map((epoch,index)=>epoch-knownSkybarEpochs[index]).filter(gap=>gap>=15*60000&&gap<=3*3600000).sort((a,b)=>a-b):[];
  const skybarStep=skybarGaps.length?skybarGaps[Math.floor(skybarGaps.length/2)]:HOUR_MS;
- const skybarSolar=location&&skybarEpochsValid?solarTimelineWindow(skybarEpochs[0],skybarEpochs.at(-1)!+skybarStep,{latitude:location.latitude,longitude:location.longitude,elevation:location.elevation,timezone},skyBarHours[0]?.isDay??true):null;
- const skybarPositionStarts=skyBarHours.map(hour=>left+hourPosition(hour)/totalHours*plotWidth),skybarPositionEnds=skyBarHours.map(hour=>left+hourPosition({...hour,epoch:hour.epoch+HOUR_MS})/totalHours*plotWidth);
- const skyBarSamples=skyBarHours.map(hour=>({...hour,precipitationIntervalStartEpoch:hour.epoch,precipitationIntervalEndEpoch:hour.epoch+HOUR_MS}));
+ const skybarSolar=location&&skybarEpochsValid?solarTimelineWindow(knownSkybarEpochs[0],knownSkybarEpochs.at(-1)!+skybarStep,{latitude:location.latitude,longitude:location.longitude,elevation:location.elevation,timezone},skyBarHours[skybarEpochs.findIndex(Number.isFinite)]?.isDay??true):null;
+ const skybarPositionStarts=skyBarHours.map((hour,index)=>Number.isFinite(skybarEpochs[index])?left+hourPosition({...hour,epoch:skybarEpochs[index]})/totalHours*plotWidth:NaN),skybarPositionEnds=skyBarHours.map((hour,index)=>Number.isFinite(skybarEpochs[index])?left+hourPosition({...hour,epoch:skybarEpochs[index]+HOUR_MS})/totalHours*plotWidth:NaN);
+ const skyBarSamples=skyBarHours.map((hour,index)=>({...hour,epoch:skybarEpochs[index],precipitationIntervalStartEpoch:skybarEpochs[index],precipitationIntervalEndEpoch:skybarEpochs[index]+HOUR_MS}));
  const skyBarSegments=detailSkyBarSolarSegments(skyBarSamples,left,right,width,skyBarY,skybarPositionStarts,skybarSolar?.nightBands??[],skybarPositionEnds),skyBarHourCells=detailSkyBarHourCells(skyBarSamples);
  const nightBandTop=skyBarY-7,nightBandBottom=precipBase+8;
  const dayCountLabel=visible.length===1?'Tages':`${visible.length}-Tage`;
@@ -549,18 +550,18 @@ function curveRainBarStyle(hour:Hour,amount:number):CSSProperties{
 function cockpitDaySkyBarSegments(dayHours:Hour[],location:Location,timezone:string,date:string){
  if(!dayHours.length)return [];
  const left=1.5,right=1.5,width=100,centerY=8,calendarWindow=daySkybarCalendarWindow(date,timezone),positions=daySkybarTimelinePositions(dayHours,left,right,width,calendarWindow),ends=calendarWindow?daySkybarHourEndPositions(dayHours,calendarWindow,left,right,width):undefined;
- const epochs=dayHours.map(hour=>Number(hour.epoch)),valid=epochs.every((epoch,index)=>Number.isFinite(epoch)&&(index===0||epoch>epochs[index-1]));
- const samples=dayHours.map(hour=>({...hour,precipitationIntervalStartEpoch:hour.epoch,precipitationIntervalEndEpoch:Math.min(calendarWindow?.endEpoch??Number.POSITIVE_INFINITY,hour.epoch+HOUR_MS)}));
+ const epochs=dayHours.map(daySkybarEpoch),knownEpochs=epochs.filter(Number.isFinite),valid=knownEpochs.length>0&&knownEpochs.every((epoch,index)=>index===0||epoch>knownEpochs[index-1]);
+ const samples=dayHours.map(hour=>{const epoch=daySkybarEpoch(hour);return {...hour,epoch,precipitationIntervalStartEpoch:epoch,precipitationIntervalEndEpoch:Math.min(calendarWindow?.endEpoch??Number.POSITIVE_INFINITY,epoch+HOUR_MS)}});
  if(!valid)return detailSkyBarSegments(samples,left,right,width,centerY,positions,ends);
- const gaps=epochs.slice(1).map((epoch,index)=>epoch-epochs[index]).filter(gap=>gap>=15*60000&&gap<=3*3600000).sort((a,b)=>a-b),interval=gaps.length?gaps[Math.floor(gaps.length/2)]:HOUR_MS;
- const start=calendarWindow?.startEpoch??epochs[0],end=calendarWindow?.endEpoch??epochs.at(-1)!+interval;
+ const gaps=knownEpochs.slice(1).map((epoch,index)=>epoch-knownEpochs[index]).filter(gap=>gap>=15*60000&&gap<=3*3600000).sort((a,b)=>a-b),interval=gaps.length?gaps[Math.floor(gaps.length/2)]:HOUR_MS;
+ const start=calendarWindow?.startEpoch??knownEpochs[0],end=calendarWindow?.endEpoch??knownEpochs.at(-1)!+interval;
  const solar=solarTimelineWindow(start,end,{latitude:location.latitude,longitude:location.longitude,elevation:location.elevation,timezone},dayHours[0]?.isDay??true);
  return detailSkyBarSolarSegments(samples,left,right,width,centerY,positions,solar.nightBands,ends);
 }
 
 type CockpitSkybarNightBand={key:string;gradientId:string;x:number;width:number;fadeIn:boolean;fadeOut:boolean};
 function cockpitDaySkybarNightBands(dayHours:Hour[],location:Location,timezone:string,keyPrefix:string,left=1,right=1,width=100,date?:string){
- const timed=dayHours.filter(hour=>Number.isFinite(Number(hour.epoch))).sort((a,b)=>Number(a.epoch)-Number(b.epoch));
+ const timed=dayHours.filter(hour=>Number.isFinite(daySkybarEpoch(hour))).sort((a,b)=>daySkybarEpoch(a)-daySkybarEpoch(b));
  const calendarWindow=date?daySkybarCalendarWindow(date,timezone):null;
  if(!timed.length&&!calendarWindow)return[] as CockpitSkybarNightBand[];
  const epochs=timed.map(hour=>Number(hour.epoch)),gaps=epochs.slice(1).map((epoch,index)=>epoch-epochs[index]).filter(gap=>gap>=15*60000&&gap<=3*3600000).sort((a,b)=>a-b),interval=gaps.length?gaps[Math.floor(gaps.length/2)]:HOUR_MS,start=calendarWindow?.startEpoch??epochs[0],end=calendarWindow?.endEpoch??epochs.at(-1)!+interval,span=Math.max(1,end-start),trackWidth=width-left-right;
