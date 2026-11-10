@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** 14 offline scenarios: fixed-origin GitHub readback, no actual network. */
+/** 17 offline scenarios: double-ref GitHub readback, no actual network. */
 import assert from 'node:assert/strict';
 import {readMidGithubSourceSnapshot} from './mid-ai-router-github-readback.mjs';
 import {MidAiRouterBlocked} from './mid-ai-router.mjs';
@@ -40,7 +40,8 @@ await test(async()=>{
     package:version,baseline:version,registry:version
   });
   assert.ok(Date.now()-Date.parse(s.checkedAt)<30000);
-  assert.equal(a.calls.length,5);
+  assert.equal(a.calls.length,7);
+  assert.deepEqual(a.calls.slice(-2).map(x=>x.url),[api+'main',api+'mid-stable']);
 });
 await test(async()=>{
   const a=fixture();await readMidGithubSourceSnapshot(a);
@@ -50,6 +51,33 @@ await test(async()=>{
     assert.equal(opts.credentials,'omit');assert.equal(opts.cache,'no-store');
     assert.ok(!JSON.stringify(opts).includes('authorization'));
   }
+});
+await test(async()=>{
+  // Source ref advances while immutable mirrors are being fetched.
+  const f=fixture(),original=f.fetchImpl;let seen=0;
+  f.fetchImpl=async(url,opts)=>{
+    if(url===api+'main' && ++seen===2)return reply({object:{sha:other}});
+    return original(url,opts);
+  };
+  await reject(f,'SOURCE_DRIFT_DURING_READBACK');
+});
+await test(async()=>{
+  // Stable promotion changes behind a previously valid initial snapshot.
+  const f=fixture(),original=f.fetchImpl;let seen=0;
+  f.fetchImpl=async(url,opts)=>{
+    if(url===api+'mid-stable' && ++seen===2)return reply({object:{sha:other}});
+    return original(url,opts);
+  };
+  await reject(f,'SOURCE_DRIFT_DURING_READBACK');
+});
+await test(async()=>{
+  // A failed final ref readback must not be treated as a validated snapshot.
+  const f=fixture(),original=f.fetchImpl;let seen=0;
+  f.fetchImpl=async(url,opts)=>{
+    if(url===api+'main' && ++seen===2)throw Error('simulated final fetch failure');
+    return original(url,opts);
+  };
+  await reject(f,'SOURCE_READBACK_UNAVAILABLE');
 });
 await test(async()=>reject({},'SOURCE_READBACK_TRANSPORT_REQUIRED'));
 await test(async()=>reject(fixture({main:{object:{sha:other}}}),'SOURCE_DRIFT'));
