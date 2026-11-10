@@ -20,7 +20,7 @@ export function nativeSeasonalSvg(
  id:SeasonalMapId,precip:NativeField,companion:NativeField,raster:string,
  places:Place[],unit:WindUnit='kn',scale:MapColorScale=nativeMapScale(precip,'absolute',unit),
  states:Awaited<ReturnType<typeof loadModelMapGeography>>['states']=[],
- gustIntervalHours:number=1,
+ gustIntervalHours:number=0,
 ):string{
  if(!seasonalPairValid(id,precip,companion)||!Number.isInteger(gustIntervalHours)||
    gustIntervalHours<0||gustIntervalHours>48||
@@ -54,7 +54,7 @@ export function nativeSeasonalSvg(
 export async function exportNativeSeasonal(
  id:SeasonalMapId,precip:NativeField,companion:NativeField,raster:string,
  places:Place[],kind:'svg'|'png',unit:WindUnit='kn',
- scale:MapColorScale=nativeMapScale(precip,'absolute',unit),gustIntervalHours:number=1,
+ scale:MapColorScale=nativeMapScale(precip,'absolute',unit),gustIntervalHours:number=0,
 ):Promise<void>{
  const geography=await loadModelMapGeography();
  const svg=nativeSeasonalSvg(id,precip,companion,raster,places,unit,scale,geography.states,gustIntervalHours);
