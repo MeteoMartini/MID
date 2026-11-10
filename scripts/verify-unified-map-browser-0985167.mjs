@@ -207,17 +207,53 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
    // A real installed Chrome may expose native Web Share. Explicitly test the
    // ordinary fallback-download path; native iOS sharing needs a device check.
    await page.evaluate(()=>Object.defineProperty(navigator,'canShare',{configurable:true,value:()=>false}));
-   const pending=page.waitForEvent('download',{timeout:25000}).catch(async e=>{
-    const status=await page.locator('.unified-layer-status').allTextContents();
-    const alerts=await page.locator('[role="alert"]').allTextContents();
-    throw new Error('Seasonal SVG fallback-download missing: '+id+' | map='+JSON.stringify(status)+
-     ' | alerts='+JSON.stringify(alerts)+' | browser='+JSON.stringify(errors.slice(-5))+' | '+String(e));
-   });
-   await page.getByRole('button',{name:'Komposit + Ortswerte · SVG',exact:true}).click();
-   const downloaded=await pending,svg=readFileSync(await downloaded.path()).toString('utf8');
-   assert.match(downloaded.suggestedFilename(),new RegExp('^MID-ICON-D2-'+id+'-'));
-   assert.ok(svg.includes('image-rendering:crisp-edges'),'Native NoData edges must not be smoothed in SVG');
-   assert.ok(svg.includes(caption),'Export must not fabricate precipitation phase or gust interval');
+   // Exercise both downloadable export formats in a real browser. SVG alone
+   // does not prove the SVG-to-Canvas PNG route or PNG decoding.
+   for(const format of ['SVG','PNG']){
+    const pending=page.waitForEvent('download',{timeout:25000}).catch(async e=>{
+     const status=await page.locator('.unified-layer-status').allTextContents();
+     const alerts=await page.locator('[role="alert"]').allTextContents();
+     throw new Error('Seasonal '+format+' fallback-download missing: '+id+' | map='+JSON.stringify(status)+
+      ' | alerts='+JSON.stringify(alerts)+' | browser='+JSON.stringify(errors.slice(-5))+' | '+String(e));
+    });
+    await page.getByRole('button',{name:'Komposit + Ortswerte · '+format,exact:true}).click();
+    const downloaded=await pending,bytes=readFileSync(await downloaded.path());
+    assert.match(downloaded.suggestedFilename(),new RegExp('^MID-ICON-D2-'+id+'-.*\\.'+format.toLowerCase()+'$'));
+    if(format==='SVG'){
+     const svg=bytes.toString('utf8');
+     assert.ok(svg.includes('image-rendering:crisp-edges'),'Native NoData edges must not be smoothed in SVG');
+     assert.ok(svg.includes('data:image/png;base64,'),'SVG retains the native raster data URI');
+     assert.ok(svg.includes(caption),'Export must not fabricate precipitation phase or gust interval');
+    }else{
+     assert.deepEqual([...bytes.subarray(0,8)],[137,80,78,71,13,10,26,10],'Real PNG signature');
+     assert.equal(bytes.subarray(12,16).toString('ascii'),'IHDR','PNG image header');
+     assert.equal(bytes.readUInt32BE(16),1200,'Native export PNG width');
+     assert.ok(bytes.readUInt32BE(20)>=1130,'Native export PNG height');
+     assert.ok(bytes.length>10000,'PNG contains a nontrivial rendered payload');
+     // Decode the downloaded PNG with Chrome itself. This synthetic data
+     // test is not a claim of Safari or native iOS pixel parity.
+     const png=await page.evaluate(async encoded=>{
+      const data=Uint8Array.from(atob(encoded),ch=>ch.charCodeAt(0));
+      const bitmap=await createImageBitmap(new Blob([data],{type:'image/png'}));
+      try{
+       const canvas=document.createElement('canvas');canvas.width=bitmap.width;canvas.height=bitmap.height;
+       const context=canvas.getContext('2d',{willReadFrequently:true});
+       if(!context)throw new Error('Downloaded PNG cannot be painted to browser canvas');
+       context.drawImage(bitmap,0,0);
+       const pixels=context.getImageData(0,0,bitmap.width,bitmap.height).data;
+       const colors=new Set();
+       for(let y=180;y<Math.min(bitmap.height,900);y+=30)for(let x=60;x<Math.min(bitmap.width,690);x+=30){
+        const offset=(y*bitmap.width+x)*4;
+        if(pixels[offset+3]>0)colors.add(pixels[offset]+','+pixels[offset+1]+','+pixels[offset+2]);
+       }
+       return {width:bitmap.width,height:bitmap.height,colorCount:colors.size};
+      }finally{bitmap.close()}
+     },bytes.toString('base64'));
+     assert.equal(png.width,1200,'Browser-decoded PNG retains SVG canvas width');
+     assert.ok(png.height>=1130,'Browser-decoded PNG retains SVG canvas height');
+     assert.ok(png.colorCount>=2,'Downloaded PNG contains visible pixels, not a blank image');
+    }
+   }
    assert.equal(await page.locator('.maplibregl-map').count(),initialMaps,'One retained MapLibre instance');
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'390px seasonal map fits mobile viewport');
   }
