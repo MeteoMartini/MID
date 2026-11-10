@@ -386,3 +386,40 @@ a restricted local `workerd`/Wrangler *offline* runtime using a
 signed, immutable source manifest and one actual original-byte
 fixture. Only after independent Free-plan/account and budget gates
 can a real production decision be reconsidered. R2 remains OFF.
+
+
+## Optional LOCAL workerd runtime proof, never deployed
+
+Official Cloudflare [local development](https://developers.cloudflare.com/workers/local-development/)
+and [Miniflare](https://developers.cloudflare.com/workers/testing/miniflare/)
+show that SQLite Durable Objects and service RPC can be exercised by a **local
+`workerd` process** without any Cloudflare account, public domain, remote
+binding, subscription or production deploy. Local Miniflare is *not* a hardened
+sandbox, so this uses ephemeral GitHub Actions only, repository-authored QA
+source and least-privilege `contents:read`.
+
+New **QA-only** files: `tools/ruc/ruc_do_workerd_entry_qa.mjs`
+(two `DurableObject` classes using the previously proven SQL-API core, and
+three tightly local QA routes), and
+`tools/ruc/test_ruc_do_workerd_qa.mjs` (local Miniflare dispatch).
+A missing exact local test binding returns HTTP 403. The fixture uses
+**synthetic native bytes** with 28 timesteps, 20 EPS members, genuine zero
+and missing `uint16` values; original DWD bytes are **not** uploaded.
+The simulator tests immutable SQL upload/independent zlib decode,
+one native point at three fields, one generation-fenced promotion and
+stale-writer rejection in distinct run/coordinator instances.
+
+Pinned stable offline-only development dependency:
+`miniflare@4.20260730.0` (last published stable v4 in official npm
+metadata), with matching compatibility date `2026-07-30`. This is deliberately
+**older than the current 2026-11 Cloudflare runtime** and therefore will not
+be represented as final production runtime compatibility. It is installed
+ephemerally in the GitHub runner with no project dependency or lockfile
+change. The `local workerd` test may be treated as successful **only**
+after the exact-PR-HEAD GitHub job succeeds and is independently read back.
+If any dependency/runtime mismatch occurs, remain fail-closed and revise the
+isolated QA only; never weaken the zero-cost or original meteorological gates.
+
+*No Cloudflare account authorization, real Workers-Free quota billing,
+authenticated original-source admission, production Worker CPU P95, iOS
+device or public forecast-client acceptance is provided by this test.*
