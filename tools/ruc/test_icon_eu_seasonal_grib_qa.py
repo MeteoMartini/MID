@@ -31,6 +31,39 @@ class SourceContract(unittest.TestCase):
     def test_exact_original_names(self):
         s=listing('tot_prec',(0,1,78,81)).replace('</body>', '<a href="javascript:bad">x</a><a href="icon-eu_europe_regular-lat-lon_single-level_2026110900_001_TOT_PREC.grib2.bz2">old</a></body>')
         self.assertEqual(sorted(qa.enumerate_leads(s,RUN,'tot_prec')),[0,1,78,81])
+    def test_actual_dwd_absolute_href(self):
+        # DWD uses fully qualified links in its real Apache index pages.
+        for field in qa.FIELDS:
+            basename = f'icon-eu_europe_regular-lat-lon_single-level_{RUN}_001_{qa.FIELDS[field]}.grib2.bz2'
+            url = f'{qa.BASE}/00/{field}/{basename}'
+            html = f'<a href="{url}">original</a>'
+            self.assertEqual(qa.enumerate_leads(html,RUN,field),{1:basename})
+
+    def test_absolute_urls_are_origin_and_path_bound(self):
+        field='tot_prec'
+        basename=f'icon-eu_europe_regular-lat-lon_single-level_{RUN}_001_TOT_PREC.grib2.bz2'
+        trusted=f'{qa.BASE}/00/{field}/{basename}'
+        untrusted=[
+            'https://opendata.dwd.de.evil.invalid/weather/nwp/icon-eu/grib/00/tot_prec/'+basename,
+            'https://opendata.dwd.de@evil.invalid/weather/nwp/icon-eu/grib/00/tot_prec/'+basename,
+            f'{qa.BASE}/06/{field}/{basename}',
+            f'{qa.BASE}/00/t_2m/{basename}',
+            trusted+'?cache-bypass=true',
+            trusted+'#fragment',
+            'http://opendata.dwd.de/weather/nwp/icon-eu/grib/00/tot_prec/'+basename,
+            'https://user@opendata.dwd.de/weather/nwp/icon-eu/grib/00/tot_prec/'+basename,
+        ]
+        for item in untrusted:
+            with self.subTest(url=item):
+                self.assertEqual(qa.enumerate_leads(f'<a href="{item}">x</a>',RUN,field),{})
+
+    def test_relative_and_absolute_duplicate_original_is_rejected(self):
+        basename=f'icon-eu_europe_regular-lat-lon_single-level_{RUN}_001_TOT_PREC.grib2.bz2'
+        a=f'<a href="{basename}">relative</a>'
+        b=f'<a href="{qa.BASE}/00/tot_prec/{basename}">absolute</a>'
+        with self.assertRaises(qa.ContractError):
+            qa.enumerate_leads(a+b,RUN,'tot_prec')
+
     def test_duplicate_lead_rejected(self):
         with self.assertRaises(qa.ContractError): qa.enumerate_leads(listing('t_2m',(1,1)),RUN,'t_2m')
     def test_valid_hourly_and_three_hour_windows(self):
