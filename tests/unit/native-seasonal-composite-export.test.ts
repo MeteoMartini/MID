@@ -35,6 +35,7 @@ describe('native paired DWD seasonal export',()=>{
  it('labels gust maximum interval without claiming lightning or warnings',()=>{
   const src=nativeSeasonalSvg('sommer-gewitter',precip,mk('gust',[20,40,60,80]),raster,place,'kn',undefined,[],3);
   expect(src).toContain('3-h-Intervall');
+  expect(src).toContain('in 10 m Höhe');
   expect(src).toContain('keine Gewitterwarnung');
   expect(src).toContain('Böen:');
   const unknown=nativeSeasonalSvg('sommer-gewitter',precip,mk('gust',[20,40,60,80]),raster,place,'kn',undefined,[],0);
