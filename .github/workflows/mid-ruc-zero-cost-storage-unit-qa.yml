@@ -21,10 +21,12 @@ on:
       - 'tools/ruc/test_ruc_do_workerd_signed_qa.mjs'
       - 'tools/ruc/ruc_do_original_proof_bridge_qa.py'
       - 'tools/ruc/test_ruc_do_original_proof_bridge_qa.py'
+      - 'tools/ruc/ruc_do_persisted_origin_receipt_qa.py'
+      - 'tools/ruc/test_ruc_do_persisted_origin_receipt_qa.py'
+      - 'docs/ruc/MID_RUC_DO_ORIGINAL_PROOF_RECEIPT_453_QA.json'
       - '.github/workflows/mid-ruc-zero-cost-storage-unit-qa.yml'
 permissions:
   contents: read
-  actions: read
 concurrency:
   group: mid-ruc-zero-cost-storage-unit-qa-${{ github.event.pull_request.number }}
   cancel-in-progress: true
@@ -57,25 +59,14 @@ jobs:
           python3 tools/ruc/test_ruc_do_free_capacity_qa.py
           python3 tools/ruc/test_ruc_do_sqlite_physical_qa.py
           echo 'ONLY simulated/offline QA; actual Cloudflare DO/R2, billing, user usage, worker CPU and live client NOT qualified'
-      - name: Fetch SMALL SHA-pinned prior original-DWD QA metadata (not 763MB source)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          artifact-ids: '13746075942'
-          run-id: '42780229524'
-          github-token: ${{ github.token }}
-          digest-mismatch: error
-          path: .ruc-original-qa-evidence
-      - name: Verify all original proof JSON byte hashes, EPS20/27h and negative tamper tests
+      - name: Verify permanent pinned historical QA receipt without re-downloading artifact
         shell: bash
-        env:
-          MID_RUC_PROOF_DIR: .ruc-original-qa-evidence
         run: |
           set -euo pipefail
-          python3 tools/ruc/test_ruc_do_original_proof_bridge_qa.py
-          python3 tools/ruc/ruc_do_original_proof_bridge_qa.py \
-            --proof-dir .ruc-original-qa-evidence \
-            --output "$RUNNER_TEMP/mid-ruc-pin-verified-source-metadata.json"
-          echo "Historical authentic QA metadata only; original DWD payload NOT re-read."
+          python3 tools/ruc/test_ruc_do_persisted_origin_receipt_qa.py
+          python3 tools/ruc/ruc_do_persisted_origin_receipt_qa.py \
+            --receipt docs/ruc/MID_RUC_DO_ORIGINAL_PROOF_RECEIPT_453_QA.json
+          echo 'Prior Actions artifact was SHA verified in #42798390928; no current original-byte verification.'
       - name: Node 22 experimental host SQLite (no Cloudflare / no DWD)
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -102,7 +93,7 @@ jobs:
         shell: bash
         env:
           WRANGLER_SEND_METRICS: 'false'
-          MID_RUC_PINNED_PROOF_RECEIPT: ${{ runner.temp }}/mid-ruc-pin-verified-source-metadata.json
+          MID_RUC_PINNED_PROOF_RECEIPT: docs/ruc/MID_RUC_DO_ORIGINAL_PROOF_RECEIPT_453_QA.json
         run: |
           set -euo pipefail
           node --check tools/ruc/ruc_do_workerd_entry_qa.mjs

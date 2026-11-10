@@ -69,8 +69,10 @@ async function makeDataset(modelRun=run){
 }
 
 const pinnedReceipt=JSON.parse(await readFile(process.env.MID_RUC_PINNED_PROOF_RECEIPT,"utf8"));
-assert.equal(pinnedReceipt.schema,"mid.ruc.do.original-proof-bridge-qa.v1");
-assert.equal(pinnedReceipt.historicalProofMetadataPinnedAndCheckedNow,true);
+assert.equal(pinnedReceipt.schema,"mid.ruc.do.persisted-historical-proof-qa.v1");
+assert.equal(pinnedReceipt.evidenceSource.verifiedByGitHubActionsRunId,42798390928);
+assert.equal(pinnedReceipt.historicalProofMetadataPreviouslyChecked,true);
+assert.equal(pinnedReceipt.historicalProofMetadataPinnedAndCheckedNow,false);
 assert.equal(pinnedReceipt.sourceChecksRecomputedFromOriginalBytesNow,false);
 assert.equal(pinnedReceipt.dwdOfficialSignatureVerified,false);
 assert.equal(pinnedReceipt.productionApproved,false);
@@ -141,7 +143,7 @@ try{
     correctManifestAdmitted:true,missingDataAsZero:false,allPointBytesExact:true,
     immutableReplayRejected:true,crossRunProofReplaySignerDenied:true,lastGoodKept:true,
     sourceSynthetic:true,originalDwdIssuerVerified:false,
-    originalProofMetadataPinnedInCi:true,originalDwdBytesNotSignedHere:true,
+    historicalProofReceiptPersistedAndPinned:true,originalDwdBytesNotSignedHere:true,
     productionApproved:false,activationAuthorized:false,cloudflareAccountTouched:false};
   console.log(JSON.stringify(result));
 }finally{await mf.dispose();}

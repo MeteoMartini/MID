@@ -546,3 +546,42 @@ admission proof*, even for a local synthetic QA. A previous separate
 local DO core test still checks corrupted payload and last-good safety.
 The failing first GitHub run is retained as diagnostic evidence, not
 misreported as green.
+
+
+## Persistent (no repeated artifact download) historical 27h/EPS20 proof readback
+
+The prior one-time *actual archived metadata* re-verification is recorded
+in [Actions #42798390928](https://github.com/MeteoMartini/MID/actions/runs/42798390928),
+exact source SHA `b74884e1f2bf6da421dbe25bf0ee544d1334ffe6`,
+**completed/success**. That prior job read GitHub artifact
+`13746075942` (1.25MB ZIP, SHA-256
+`28ed26fe81a29dc74d0360db1a822446dd29479eed1d07ef21ba9f74e68433c1`)
+and pinned all four underlying JSON file digests, complete range-index,
+full original 27h/EPS20 run, 12 products and earlier true-binary
+70-record parity assertions. There were five successful negative/positive
+proof tamper tests. The initial failed attempt #42798097831 exposed
+a malformed *test expectation* (change of JSON size), corrected by
+same-length SHA corruption; it is not concealed or counted as passed.
+
+For sustainable, low-credit MID CI, the exact **1,814-byte historical
+proof receipt** is now persisted in
+`docs/ruc/MID_RUC_DO_ORIGINAL_PROOF_RECEIPT_453_QA.json`, with pinned
+Git blob SHA `698491e125300f4c867fde0de4ebcc47143e841b`.
+`tools/ruc/ruc_do_persisted_origin_receipt_qa.py` verifies the exact
+Git blob and the immutable upstream Actions/artifact/source/JSON-digest
+lineage; its small negative suite rejects same-size SHA replacement,
+made-up live original proof, and missing/symlinked receipts.
+The existing local-workerd synthetic signer now requires the pinned
+persisted historical receipt and original 14Z run identity. No more
+GitHub Actions `actions:read` permission or 1.25MB cross-run artifact
+download is needed for regular QA. The previous
+`ruc_do_original_proof_bridge_qa.py` remains available for deliberate
+source archive revalidation when original evidence actually exists.
+
+**Non-overstatement:** the pinned receipt reports
+`historicalProofMetadataPreviouslyChecked=true` and
+`historicalProofMetadataPinnedAndCheckedNow=false`. No original 2GB
+DWD bytes were rehashed today by this recurring unit gate; no current
+DWD signer, official DWD cryptographic signature, new source model-run
+attestation, Cloudflare Worker CPU/quota acceptance or deployment was
+established. Production approval and activation remain false.
