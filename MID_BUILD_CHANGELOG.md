@@ -1,3 +1,11 @@
+## MID v0.9.85.455 · General MID Quality + SHA-gebundener Review-Preflight
+
+- **Source:** veröffentlichte Stable v0.9.85.454 `ee7a55b5ece4d3d3687202a95caeb6c5ff615055`; selektive Git-Blob-Übernahme aus PR #742 `da7c4509a6c6c6e604bb528051dbdb937ff1d8da` (25 Pfade) und PR #743 `f782f4585ec631836e57728ee4ea0fc49fa3ea9b` (8 Pfade), zunächst Integrationscommit `1f0f0511d8ec83fa19e048fa816749e85ff43036`, keine Überlappung mit RUC .454.
+- **Fachverträge:** DWD Pollen -1 != 0, Teilgebiets-/Tages-NoData, volle lokale 3h-Intervalle inkl. DST, UT(C)I Provenienz, Skybar ungültige Epochen, Meteogramm Ortswechsel/Persistenz. Offizielle DWD-Warnungsvorgaben unverändert.
+- **UI/Performance:** Optional-Pollen-Split mit Offline-Shell, exakte CSS-Kaskade, Produktionsbudgets 1.500.000 B JS / 1.760.000 B CSS unverändert. Ursprünglicher isolierter QA-Run #42819990890: 117 Vitest PASS, ein Skip, 194/194 technische Subtests PASS; **nicht als neuer Release-Gate gezählt**.
+- **Security:** aus #743 unabhängige fail-closed Review-GraphQL-Readbacks und Doppelpaginierung, exakte SHA-Prüfung vor Merge; frühere isolierte QA #42806707841 (108 PASS, 1 Skip) und 194/194 zusätzliche Subtests. Echte Bot-/GraphQL-/Race-Qualifikation und komplette Source-Gates bleiben erforderlich.
+- **Release-Gates:** keine Änderung der etablierten Source→Bot→ZIP→Installer→Worker/Pages→Stable-Kette. Neues v0.9.85.455 Release erst nach vollständiger SHA-/Verspiegelungs-/Regression-/Browser-/Originaldaten-/Securityprüfung als veröffentlicht kennzeichnen. Gegenwärtiges Dokument ist Kandidateninformation, keine Erfolgsmeldung.
+
 ## MID v0.9.85.454 · 2026-11-10 · RUC Pages-/Worker-Diagnose und sichere Provenienz
 
 - Source of Truth: v0.9.85.453 main=mid-stable=ba4901932c33e584167c31c310fb11601e77b6df; integrator copies precisely four files from verified QA PR #732 HEAD e2fe7d832b1514d29f29b110df6d01f40eb24e38.

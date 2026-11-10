@@ -1,3 +1,15 @@
+# MID v0.9.85.455 · allgemeine Datenintegrität und Review-Release-Sicherheit
+
+**Quellbasis (SHA-verifiziert):** Veröffentlichtes v0.9.85.454 `main=mid-stable=ee7a55b5ece4d3d3687202a95caeb6c5ff615055`, Installer #42826334863 erfolgreich. Der neue allgemeine Integrationsbranch übernimmt die 25 tatsächlichen Blob-Originale aus #742 @ `da7c4509a6c6c6e604bb528051dbdb937ff1d8da` sowie acht unabhängige Review-/CI-Blobs aus #743 @ `f782f4585ec631836e57728ee4ea0fc49fa3ea9b`, selektiv und ohne Überschneidung mit .454 RUC. Unveröffentlichte Karten-, RUC-Fast-Lane-, AI-Router- und Cloud-Kostenprojekte bleiben außerhalb des Scopes.
+
+**Fach-/UI-Integrität:** 3h-Intervalle am tatsächlichen Ortskalender inkl. DST, fehlende Sonnenscheindauer/UTCI-Provenienz, Skybar-Epoch-/NoData-Gates, ortsgebundene Meteogramm-Modellpersistenz und die sieben DWD-Pollen-Stufen (einschließlich -1 als Missing). DWD-Warnungen, Modellparameter, Einheiten und Originalwerte werden nicht neu interpretiert. Fehlende Daten dürfen weder als Null noch als scheinbar sichere Aussage erscheinen.
+
+**Performance/Privacy:** Das optionale Pollen-Stylesheet wird bedarfsgeladen und im Offline-Shell vorgehalten. Frühere getrennte QA-Produktionmessung #42819990890: JS 1.491.413/1.500.000 B und initiales CSS 1.755.595/1.760.000 B, kein Beleg für diesen neuen Build. PostHog bleibt Web/PWA-opt-in ohne Standort/URLs/Formulardaten/Identifizierung; bei fehlerhafter Einwilligung oder fehlender sicherer ID ist Capture untersagt, keine echte Livezustellung behauptet.
+
+**Review-Preflight #740:** SHA-gebundene doppelte authentifizierte GitHub-GraphQL-Evidenz zu eingereichten Reviews und Threads vor dem vorhandenen Bot-Merge, fail-closed bei Unklarheit, Race, ungelösten oder ohne unabhängige Triage bearbeiteten Cubic-Funden. Die Release-Workflowspiegel bleiben bytegleich. Diese Dokumentation ist **keine** Approval-, Bot-Identitäts- oder Produktivfreigabe.
+
+**Veröffentlichungsbedingung:** Exakter v0.9.85.455 Source-PR-HEAD, vollständige Core-/Heavy-/Browser-/Originalmeteorologie-/Security-/Version-/Budget-Regressionsgates, regulärer SHA-Bot-Merge, serverseitiges ZIP, unabhängiger Installer, Worker-/Pages-Gates und Stable-Promotion müssen nachgewiesen erfolgreich sein. Reale iPhone-/iPad-/VoiceOver-Abnahmen und produktive PostHog-Eventzustellung bleiben gesondert zu belegen; Browserchecks ersetzen sie nicht. Kein Bypass, kein kostenträchtiger Dienst.
+
 # MID v0.9.85.454 · RUC Pages-Provenienzdiagnose (SHA-gebundener Source-Kandidat)
 
 **Quellbasis:** `main=mid-stable=ba4901932c33e584167c31c310fb11601e77b6df` (veröffentlicht `v0.9.85.453` zum Integrationszeitpunkt). Diese Änderung übernimmt die vier exakt verifizierten QA-Originaldateien aus [PR #732](https://github.com/MeteoMartini/MID/pull/732) HEAD `e2fe7d832b1514d29f29b110df6d01f40eb24e38`. Weitere RUC-PRs #727/#738, Karten, AI-Router und sonstige Parallelbereiche bleiben unangetastet.

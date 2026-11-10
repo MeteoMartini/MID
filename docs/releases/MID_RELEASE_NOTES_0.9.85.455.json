@@ -1,0 +1,18 @@
+{
+  "schema": "mid.release-notes.v1",
+  "version": "0.9.85.455",
+  "date": "2026-11-10",
+  "title": "Datenintegrität, Pollenflug, Meteogramm und Review-Sicherheit",
+  "external": [
+    "Fehlende Wetter- und Pollenangaben werden in Tagesdetails und Skybar nachvollziehbarer gekennzeichnet; lokale 3-Stunden-Fenster berücksichtigen Sommerzeitwechsel.",
+    "Das Meteogramm bewahrt die Modellwahl beim Ortswechsel; das optionale Pollenmodul lädt seine Darstellung schlanker, auch mit gesichertem Offline-Paket.",
+    "Die freiwillige Diagnostik gibt verständlichere Hinweise bei Speicherproblemen. Wetterwarnungen und Originalmodellwerte bleiben unverändert."
+  ],
+  "internal": [
+    "Verified Stable base v0.9.85.454 ee7a55b5ece4d3d3687202a95caeb6c5ff615055; 25 blob-identical files from Draft #742 HEAD da7c4509a6c6c6e604bb528051dbdb937ff1d8da and 8 blob-identical files from Review Draft #743 HEAD f782f4585ec631836e57728ee4ea0fc49fa3ea9b; initial integrated commit 1f0f0511d8ec83fa19e048fa816749e85ff43036.",
+    "No conflicting files with RUC v0.9.85.454. Existing mandatory meteorological regressions, Source-/Installer-/Worker-/Pages-/Stable gates are not changed or bypassed.",
+    "Isolated previous Draft Vitest and real CSS production pilot were successful; full current combined Source/Installer and browser/device tests are separately mandatory, not inferred from old candidates.",
+    "Added SHA-bound review evidence premerge checks in both exact workflow mirrors; independent full review triage and authenticated GitHub readback remain required for gate claims.",
+    "User release notes/technical history and all version mirrors must remain complete. No pricing, model providers, Cloudflare plan, permissions or branch-rule changes."
+  ]
+}
