@@ -51,7 +51,9 @@ export function seasonalPairValid(id:string,primary:NativeField|null,secondary:N
   if(!Number.isFinite(primary.lats[i])||primary.lats[i]!==secondary.lats[i])return false;
  for(let i=0;i<primary.lons.length;i++)
   if(!Number.isFinite(primary.lons[i])||primary.lons[i]!==secondary.lons[i])return false;
- return true;
+ // Individually valid rasters with disjoint NoData masks yield no drawable composite.
+ // A physically real zero counts as shared valid data, never as missing.
+ return primary.values.some((value,i)=>Number.isFinite(value)&&Number.isFinite(secondary.values[i]));
 }
 /** Missing in either field remains NoData, never zero or a fabricated phase. */
 export function seasonalMaskedPrimary(id:string,primary:NativeField,secondary:NativeField):NativeField|null{
