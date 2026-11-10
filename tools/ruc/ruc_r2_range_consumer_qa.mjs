@@ -43,7 +43,8 @@ async function workerCompatibleInflate(compressed, expectedLength) {
 
 async function verifyLocation({index, source, packed, cell}) {
   const rows = [];
-  let calls = 0, compressedTransferred = 0;
+  let calls = 0, compressedTransferred = 0, primaryCpuUs = 0;
+  const cellStart = process.cpuUsage();
   for (const desc of index.entries) {
     if (!desc.name.endsWith('.bin') || desc.recordBytes <= 1 ||
         desc.sourceBytes !== index.sourcePointCount * desc.recordBytes) continue;
@@ -58,6 +59,7 @@ async function verifyLocation({index, source, packed, cell}) {
       chunkStart += ch.rawBytes;
     }
     assert(selected, 'native cell record crosses chunk boundary: ' + desc.name);
+    const productStart = process.cpuUsage();
     const original = await open(join(source, desc.name), 'r');
     const zlib = await open(join(packed, desc.compressedKey), 'r');
     try {
@@ -71,6 +73,10 @@ async function verifyLocation({index, source, packed, cell}) {
       rows.push(desc.name);
       calls += 1;
       compressedTransferred += c.length;
+      if (desc.name === 'deterministic.bin' || desc.name === 'eps-summary.bin') {
+        const dt = process.cpuUsage(productStart);
+        primaryCpuUs += dt.user + dt.system;
+      }
     } finally {
       await original.close();
       await zlib.close();
@@ -79,8 +85,11 @@ async function verifyLocation({index, source, packed, cell}) {
   assert(rows.includes('deterministic.bin') && rows.includes('eps-summary.bin') &&
          rows.includes('eps-members.bin'), 'missing deterministic / EPS20 point consumer parity');
   assert(calls < 50, 'exceeded Workers Free R2 subrequest cap for one point');
+  const dt = process.cpuUsage(cellStart);
   return {cell, records:rows.length, simulatedR2RangeReads:calls,
-          compressedBytesFetched:compressedTransferred};
+          compressedBytesFetched:compressedTransferred,
+          nodePrimaryForecastCpuUs:primaryCpuUs,
+          nodeWholeCellCpuUs:dt.user + dt.system};
 }
 
 async function main() {
@@ -118,6 +127,9 @@ async function main() {
     checkedNativeProductRecords:rows.reduce((s,r)=>s+r.records,0),
     simulatedR2RangeReads:rows.reduce((s,r)=>s+r.simulatedR2RangeReads,0),
     maxR2ReadsForOneCell:Math.max(...rows.map(r=>r.simulatedR2RangeReads)),
+    maxNodeWholeCellCpuUs:Math.max(...rows.map(r=>r.nodeWholeCellCpuUs)),
+    maxNodePrimaryForecastCpuUs:Math.max(...rows.map(r=>r.nodePrimaryForecastCpuUs)),
+    meanNodePrimaryForecastCpuUs:Math.round(rows.reduce((s,r)=>s+r.nodePrimaryForecastCpuUs,0)/rows.length),
     sampledCompressedBytes:rows.reduce((s,r)=>s+r.compressedBytesFetched,0),
     nodeProcessCpuMicroseconds:cpu.user+cpu.system,
     allPointBytesMatchOriginal:true,
