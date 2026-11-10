@@ -1,6 +1,7 @@
 import {describe,expect,it} from 'vitest';
 import {seasonalMapKinds,seasonalMapFrames,seasonalPairValid,seasonalMaskedPrimary,seasonalMaskedSecondary} from '../../src/nativeSeasonalComposite';
 import type {NativeField,NativeIndex,NativeFrameRef} from '../../src/nativeModelFields';
+import {D2_FULL_DOMAIN_LEADS,D2_FULL_DOMAIN_KINDS,validateD2FullDomainIndex} from '../../src/nativeD2FullDomain';
 const time='2026-11-09T07:00:00Z',run='2026-11-09T06:00:00Z';
 const frame=(t=time,intervalHours=1):NativeFrameRef=>({hour:1,time:t,file:'precipitation-001.json',sha256:'a'.repeat(64),bytes:500,intervalHours});
 const makeIndex=():NativeIndex=>({schema:'mid.icon-d2.fields.v1',run,products:{
@@ -26,6 +27,29 @@ describe('DWD ICON-D2 seasonal composites: fail-closed common native fields',()=
   expect(seasonalMapFrames(native,'winter-berge')).toHaveLength(0);
   const i=makeIndex();i.products.precipitation!.frames=[frame(time,3)];
   expect(seasonalMapFrames(i,'winter-berge')).toHaveLength(0);
+ });
+ it('accepts the actually validated full-domain v2 index with zero-hour companions',()=>{
+  const units={temperature:'°C',pressure:'hPa',wind:'km/h',gust:'km/h',cloud:'%',thetae:'K',sigwx:'WMO',precipitation:'mm/1 h'} as const;
+  const products=Object.fromEntries(D2_FULL_DOMAIN_KINDS.map(kind=>[kind,{
+   unit:units[kind],
+   frames:D2_FULL_DOMAIN_LEADS.map(hour=>({
+    hour,time:new Date(Date.parse(run)+hour*3600_000).toISOString(),
+    file:`${kind}-${String(hour).padStart(3,'0')}.bin`,
+    sha256:'a'.repeat(64),bytes:500,encoding:'gzip-json',decodedBytes:500,
+    intervalHours:kind==='precipitation'?1:0,
+   })),
+  }]));
+  const v2=validateD2FullDomainIndex({
+   schema:'mid.icon-d2.native-fields.v2',productionApproved:true,modelId:'icon-d2',
+   sampling:'nearest-native-cell',nativePoints:542040,sourceInventorySha256:'b'.repeat(64),
+   run,products,
+  },Date.parse(run));
+  expect(seasonalMapFrames(v2,'winter-berge')).toHaveLength(9);
+  expect(seasonalMapFrames(v2,'sommer-gewitter')).toHaveLength(9);
+  const invalid={...v2,products:{...v2.products,gust:{
+   ...v2.products.gust!,frames:v2.products.gust!.frames.map((f,i)=>i===0?{...f,intervalHours:1}:f),
+  }}};
+  expect(()=>validateD2FullDomainIndex(invalid,Date.parse(run))).toThrow('original frame');
  });
  it('does not advertise a composite lacking a shared valid time, field or source unit',()=>{
   const i=makeIndex();i.products.temperature!.frames=[frame('2026-11-09T08:00:00Z')];
