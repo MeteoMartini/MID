@@ -2,7 +2,9 @@
 /** Deterministic adversarial QA — no actual network, secrets, release. */
 import assert from 'node:assert/strict';
 import {assessMidNativeMergeReviewPolicy as audit,
- readMidNativeMergeReviewPolicy as read} from './mid-native-merge-review-policy.mjs';
+ readMidNativeMergeReviewPolicy as read,
+ assessMidClassicBranchReviewPolicy as classicAudit,
+ readMidClassicBranchReviewPolicy as readClassic} from './mid-native-merge-review-policy.mjs';
 const id=9028,summary={id,target:'branch',enforcement:'active'};
 const rule={type:'pull_request',parameters:{
  required_review_thread_resolution:true,required_approving_review_count:1,
@@ -79,4 +81,78 @@ await test('malformed JSON is blocked',async()=>{
 await test('missing token is blocked',async()=>{
  await assert.rejects(read({fetchImpl:fake([])}),/INPUT_INVALID/);
 });
+
+// Classic branch protection is a separate GitHub-native merge-time rule.
+// Explicitly deny incomplete/opaque protection; 403 is NOT proof of absence.
+const classicGood={enforce_admins:{enabled:true},
+ required_conversation_resolution:{enabled:true},
+ allow_force_pushes:{enabled:false},allow_deletions:{enabled:false},
+ required_pull_request_reviews:{required_approving_review_count:1,
+  dismiss_stale_reviews:true,require_last_push_approval:true,
+  bypass_pull_request_allowances:{users:[],teams:[],apps:[]}}};
+const classicDenial=async(name,change,reason)=>{
+ await test(name,()=>{const x=classicAudit({protection:{...classicGood,...change}});
+  assert.equal(x.ok,false);assert.equal(x.reason,reason);
+  assert.equal(x.mergeAuthorized,false);});
+};
+await test('classic policy metadata is a plan, not authority',()=>{
+ const x=classicAudit({protection:classicGood});assert.equal(x.ok,true);
+ assert.equal(x.releaseAuthorized,false);assert.equal(x.sourceGatePassed,false);
+});
+await test('classic wrong protected branch denied',()=>{
+ const x=classicAudit({protection:classicGood,branch:'refs/heads/mid-stable'});
+ assert.equal(x.ok,false);assert.equal(x.reason,'CLASSIC_WRONG_BRANCH');
+});
+await test('classic missing document denied',()=>{
+ const x=classicAudit({});assert.equal(x.reason,'CLASSIC_PROTECTION_NOT_ATTESTED');
+});
+await classicDenial('classic admin bypass',{enforce_admins:{enabled:false}},
+ 'CLASSIC_ADMIN_BYPASS_NOT_EXCLUDED');
+await classicDenial('classic no thread resolution',{
+ required_conversation_resolution:{enabled:false}},'CLASSIC_UNRESOLVED_THREADS_NOT_BLOCKED');
+await classicDenial('classic force push still enabled',{
+ allow_force_pushes:{enabled:true}},'CLASSIC_HISTORY_MUTATION_NOT_BLOCKED');
+await classicDenial('classic deletion still enabled',{
+ allow_deletions:{enabled:true}},'CLASSIC_HISTORY_MUTATION_NOT_BLOCKED');
+const changeReviews=(diff)=>({required_pull_request_reviews:{
+ ...classicGood.required_pull_request_reviews,...diff}});
+await classicDenial('classic no approvals',changeReviews({required_approving_review_count:0}),
+ 'CLASSIC_INDEPENDENT_REVIEW_NOT_ENFORCED');
+await classicDenial('classic stale approvals',changeReviews({dismiss_stale_reviews:false}),
+ 'CLASSIC_INDEPENDENT_REVIEW_NOT_ENFORCED');
+await classicDenial('classic self approves latest push',changeReviews({require_last_push_approval:false}),
+ 'CLASSIC_INDEPENDENT_REVIEW_NOT_ENFORCED');
+await classicDenial('classic ambiguous bypass allowances',changeReviews({
+ bypass_pull_request_allowances:undefined}),'CLASSIC_REVIEW_BYPASS_NOT_EXCLUDED');
+for(const type of ['users','teams','apps']){
+ await classicDenial('classic '+type+' bypass',changeReviews({
+  bypass_pull_request_allowances:{users:[],teams:[],apps:[],[type]:['untrusted']}
+ }), 'CLASSIC_REVIEW_BYPASS_NOT_EXCLUDED');
+}
+const classicFake=(calls,mode='good')=>async(url,opts)=>{
+ calls.push({url,opts});
+ if(mode==='403')return {ok:false,status:403,text:async()=>''};
+ if(mode==='invalid')return {ok:true,text:async()=>'{bad'};
+ return {ok:true,text:async()=>JSON.stringify(classicGood)};
+};
+await test('classic read uses fixed GET only and enforces redirect error',async()=>{
+ const calls=[];const x=await readClassic({fetchImpl:classicFake(calls),token});
+ assert.equal(x.ok,true);assert.equal(calls.length,1);
+ assert.equal(calls[0].url,'https://api.github.com/repos/MeteoMartini/MID/branches/main/protection');
+ assert.equal(calls[0].opts.method,'GET');assert.equal(calls[0].opts.redirect,'error');
+ assert.equal(calls[0].opts.headers.Authorization,'Bearer '+token);
+});
+await test('classic 403 means unreadable, not unprotected',async()=>{
+ const x=await readClassic({fetchImpl:classicFake([],'403'),token});
+ assert.equal(x.ok,false);assert.equal(x.reason,'CLASSIC_PROTECTION_NOT_READABLE');
+});
+await test('classic invalid JSON cannot attest rules',async()=>{
+ const x=await readClassic({fetchImpl:classicFake([],'invalid'),token});
+ assert.equal(x.ok,false);assert.equal(x.reason,'CLASSIC_PROTECTION_NOT_READABLE');
+});
+await test('classic no token cannot attest rules',async()=>{
+ const x=await readClassic({fetchImpl:classicFake([])});
+ assert.equal(x.ok,false);assert.equal(x.reason,'CLASSIC_READ_INPUT_INVALID');
+});
+
 console.log('MID native merge review QA OK; scenarios='+n+'; ZERO network, secrets or release writes.');

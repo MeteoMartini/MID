@@ -78,6 +78,57 @@ export async function readMidNativeMergeReviewPolicy({fetchImpl=globalThis.fetch
  }
  return assessMidNativeMergeReviewPolicy({summaries,detailsById});
 }
+
+/** Optional classic branch-protection route: GitHub enforces review state at
+ * merge time independently of the release workflow's prior GraphQL snapshots.
+ * GitHub App may get HTTP 403; report UNREADABLE, never "unprotected".
+ */
+export function assessMidClassicBranchReviewPolicy({protection,branch=MAIN}={}){
+ if(branch!==MAIN)return block('CLASSIC_WRONG_BRANCH');
+ if(!protection||typeof protection!=='object'||Array.isArray(protection))
+  return block('CLASSIC_PROTECTION_NOT_ATTESTED');
+ const pr=protection.required_pull_request_reviews,limits=pr?.bypass_pull_request_allowances;
+ const empty=k=>Array.isArray(limits?.[k])&&limits[k].length===0;
+ if(protection.enforce_admins?.enabled!==true)
+  return block('CLASSIC_ADMIN_BYPASS_NOT_EXCLUDED');
+ if(protection.required_conversation_resolution?.enabled!==true)
+  return block('CLASSIC_UNRESOLVED_THREADS_NOT_BLOCKED');
+ if(protection.allow_force_pushes?.enabled!==false||
+    protection.allow_deletions?.enabled!==false)
+  return block('CLASSIC_HISTORY_MUTATION_NOT_BLOCKED');
+ if(!pr||!Number.isSafeInteger(pr.required_approving_review_count)||
+    pr.required_approving_review_count<1||pr.dismiss_stale_reviews!==true||
+    pr.require_last_push_approval!==true)
+  return block('CLASSIC_INDEPENDENT_REVIEW_NOT_ENFORCED');
+ if(!empty('users')||!empty('teams')||!empty('apps'))
+  return block('CLASSIC_REVIEW_BYPASS_NOT_EXCLUDED');
+ return Object.freeze({ok:true,reason:'CLASSIC_MAIN_REVIEW_METADATA_VERIFIED',
+  branch:MAIN,mergeAuthorized:false,releaseAuthorized:false,sourceGatePassed:false});
+}
+/** GET only, exact fixed path and host; never leak credentials, never change
+ * protection. 403/404 are evidence of *unreadability*, not missing rules.
+ */
+export async function readMidClassicBranchReviewPolicy({
+ fetchImpl=globalThis.fetch,token,timeoutMs=15000
+}={}){
+ if(typeof fetchImpl!=='function'||typeof token!=='string'||token.length<12||
+    !Number.isSafeInteger(timeoutMs)||timeoutMs<1000||timeoutMs>30000)
+  return block('CLASSIC_READ_INPUT_INVALID');
+ try{
+  const reply=await fetchImpl(HOST+'/branches/main/protection',{
+   method:'GET',redirect:'error',signal:AbortSignal.timeout(timeoutMs),
+   headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json',
+    'X-GitHub-Api-Version':'2022-11-28'}
+  });
+  if(reply?.ok!==true)return block('CLASSIC_PROTECTION_NOT_READABLE');
+  const raw=await reply.text();
+  if(typeof raw!=='string'||raw.length>1048576)
+   return block('CLASSIC_PROTECTION_NOT_READABLE');
+  const data=JSON.parse(raw);
+  return assessMidClassicBranchReviewPolicy({protection:data});
+ }catch{return block('CLASSIC_PROTECTION_NOT_READABLE')}
+}
+
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  // Read-only independent QA. This CLI never merges, approves or changes rules.
  if(process.env.GITHUB_REPOSITORY!=='MeteoMartini/MID'||!process.env.GH_TOKEN){
@@ -85,13 +136,21 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   process.exitCode=2;
  }else{
   try{
-   const result=await readMidNativeMergeReviewPolicy({token:process.env.GH_TOKEN});
-   if(!result.ok){
-    process.stderr.write('MID native review audit BLOCKED: '+result.reason+'\n');
-    process.exitCode=1;
+   // Both native forms must be checked. A classic-API 403 is not proof of
+   // missing protection, and a ruleset-only readback cannot rule classic out.
+   const [native,classic]=await Promise.allSettled([
+    readMidNativeMergeReviewPolicy({token:process.env.GH_TOKEN}),
+    readMidClassicBranchReviewPolicy({token:process.env.GH_TOKEN})
+   ]);
+   const a=native.status==='fulfilled'?native.value:block('RULESETS_NOT_READABLE');
+   const b=classic.status==='fulfilled'?classic.value:block('CLASSIC_PROTECTION_NOT_READABLE');
+   if(a.ok||b.ok){
+    process.stdout.write('MID merge-time review metadata: '+(a.ok?'ruleset ':'')+
+      (b.ok?'classic':'')+' (NOT a release authorization)\n');
    }else{
-    process.stdout.write('MID native ruleset evidence verified: '+result.rulesetId+
-      ' (NOT a release authorization)\n');
+    process.stderr.write('MID native review audit BLOCKED: '+a.reason+
+      '; '+b.reason+'\n');
+    process.exitCode=1;
    }
   }catch{
    process.stderr.write('MID native review audit BLOCKED: GitHub readback unavailable\n');
