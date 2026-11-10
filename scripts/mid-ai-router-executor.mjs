@@ -152,6 +152,15 @@ function sanitizeProviderUsage(provider,json){
    safe[name]=raw[name];
   }
  }
+ const [inputKey,outputKey,totalKey]=keys;
+ // A reported total cannot be lower than its two disjoint components.
+ // Missing totals are not fabricated; extra hidden tokens remain unverified.
+ if(Object.hasOwn(safe,inputKey)&&Object.hasOwn(safe,outputKey)&&
+    Object.hasOwn(safe,totalKey)){
+   const subtotal=safe[inputKey]+safe[outputKey];
+   if(!Number.isSafeInteger(subtotal)||safe[totalKey]<subtotal)
+     return {usage:null,usageStatus:'INVALID_UPSTREAM_USAGE'};
+ }
  if(Object.keys(safe).length===0)
    return {usage:null,usageStatus:'INVALID_UPSTREAM_USAGE'};
  return {usage:Object.freeze(safe),usageStatus:'UPSTREAM_REPORTED_UNVERIFIED'};
