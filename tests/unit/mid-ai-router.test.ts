@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const runner = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-0985452.mjs', import.meta.url));
 const ledgerRunner = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-ledger-0985452.mjs', import.meta.url));
+const sonarRunner = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-sonar-0985452.mjs', import.meta.url));
 const vercelPolicyRunner = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-vercel-policy-0985452.mjs', import.meta.url));
 const githubReadbackRunner = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-github-readback-0985452.mjs', import.meta.url));
 const blendRunner = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-blend-0985452.mjs', import.meta.url));
@@ -59,6 +60,17 @@ describe('MID AI Router: separate direct Free-provider safety QA (issue #725)', 
     expect(r.error).toBeUndefined();
     expect(r.status, r.stderr || r.stdout).toBe(0);
     expect(r.stdout).toMatch(/MID AI Router Vercel soft-budget offline QA OK; scenarios=23; no live API used\./);
+    expect(r.stderr).toBe('');
+  });
+
+  it('checks fixed-model Perplexity Sonar against prepaid credit, trusted citations and fail-closed dispatch', () => {
+    const r = spawnSync(process.execPath, [sonarRunner], {
+      cwd: root, timeout: 20_000, encoding: 'utf8', maxBuffer: 128 * 1024,
+      env: { PATH: process.env.PATH || '' }, stdio: ['ignore', 'pipe', 'pipe']
+    });
+    expect(r.error).toBeUndefined();
+    expect(r.status, r.stderr || r.stdout).toBe(0);
+    expect(r.stdout).toMatch(/MID AI Router Sonar credit-only offline QA OK; scenarios=26; no live API used\./);
     expect(r.stderr).toBe('');
   });
 
