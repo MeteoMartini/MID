@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import ts from 'typescript';
+import { createRequire } from 'node:module';
+const ts = createRequire(import.meta.url)('typescript-strada');
 
 // Uses MID's existing TypeScript dev dependency; no new package/network needed.
 const source = readFileSync(new URL('../src/openMeteoSpatialManifest.ts', import.meta.url), 'utf8');

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import ts from 'typescript';
+import { createRequire } from 'node:module';
+const ts = createRequire(import.meta.url)('typescript-strada');
 
 const source = readFileSync(new URL('../src/openMeteoSpatialByteRange.ts', import.meta.url), 'utf8');
 const compiled = ts.transpileModule(source, {
