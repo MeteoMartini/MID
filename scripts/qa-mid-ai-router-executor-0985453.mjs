@@ -162,8 +162,10 @@ await test(async()=>{
  await bad(()=>executor.execute(t),'DUPLICATE_REQUEST_NO_RETRY');
  assert.equal(fetchCalls,before+1);
 });
-await test(async()=>{mode='wrongModel';const t=await signed(task('wrong-model1'));
- await bad(()=>executor.execute(t),'REPORTED_MODEL_MISMATCH');mode='ok';assert.equal(fetchCalls,2)});
+await test(async()=>{mode='wrongModel';const before=fetchCalls;
+ const t=await signed(task('wrong-model1'));
+ await bad(()=>executor.execute(t),'REPORTED_MODEL_MISMATCH');mode='ok';
+ assert.equal(fetchCalls,before+1)});
 await test(async()=>{mode='truncated';const t=await signed(task('partial-work'));
  await bad(()=>executor.execute(t),'INCOMPLETE_OR_FILTERED_RESPONSE');mode='ok'});
 await test(async()=>{mode='429';const t=await signed(task('quota-http1'));
