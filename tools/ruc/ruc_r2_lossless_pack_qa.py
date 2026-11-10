@@ -58,6 +58,15 @@ def source_check(src: Path, *, expected_run: str, expected_member_count: int = 2
         obj = meta.get(key) or {}
         if obj.get("times") != expected_times:
             fail(key + " does not contain native UTC hours 0..27")
+    for section, filename in (("deterministic", "deterministic.bin"),
+                              ("epsSummary", "eps-summary.bin"), ("eps", "eps-members.bin")):
+        record_bytes = (meta.get(section) or {}).get("recordBytes")
+        actual_bytes = (meta.get("objects") or {}).get(filename, {}).get("bytes")
+        if (type(record_bytes) is not int or record_bytes <= 0 or
+            type(actual_bytes) is not int or actual_bytes != points * record_bytes):
+            fail(section + " native point-record geometry/bytes mismatch")
+    if (meta.get("objects") or {}).get("eps-members.bin", {}).get("bytes") != points * 28 * 20 * 2:
+        fail("EPS20 native 28h uint16 member-cube byte count mismatch")
     eps = meta["eps"]
     if eps.get("memberCount") != expected_member_count or eps.get("layout") != "point-time-member":
         fail("native EPS20 source metadata mismatch")
