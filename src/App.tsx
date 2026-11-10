@@ -84,7 +84,7 @@ import {SkyBarHourCellsSvg,SkyBarSegmentsSvg} from './SkyBarSegments';
 import {applyForecastFusionDays,applyForecastFusionHours,applyForecastFusionModelDays,applyHyperlocalForecastHours,dryRadarNowcastProbability,finalizeForecastHours,finalizeForecastMinute15,reconcileForecastDaysWithHours,forecastFusionLabel,loadForecastFusion,significantRapidThunderRisk,type ForecastFusionResult} from './forecastFusion';
 import {parameterLineStyle} from './parameterLineStyle';
 import {initialForecastDetailsOpen} from './forecastDetailStorage';
-import {isAvailablePrecipitation,isAvailableProbability,sumCompletePrecipitation,maxCompleteProbability,contiguousFinitePrecipitationSegments,completePrecipitationIntervalCoverage,completePrecipitationWindowCoverage} from './precipitationAvailability';
+import {isAvailablePrecipitation,isAvailableProbability,sumCompletePrecipitation,maxCompleteProbability,contiguousFinitePrecipitationSegments,completePrecipitationWindowCoverage} from './precipitationAvailability';
 import {ForecastCockpit,shortTermProfileHourlyPoints} from './ForecastCockpit';
 const LazyRadarForecastStyleGate=lazy(()=>import('./RadarForecastStyleGate'));
 import {normalizeConfidenceDisplayMode,type ConfidenceDisplayMode} from './confidenceDisplay';
