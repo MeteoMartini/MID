@@ -104,6 +104,32 @@ async function boundedJson(response){
  }finally{reader.releaseLock()}
  try{return JSON.parse(text)}catch{deny('INVALID_PROVIDER_JSON')}
 }
+/**
+ * Upstream usage is untrusted telemetry, never evidence of zero price.
+ * Keep only known nonnegative integer token counts; never echo arbitrary
+ * provider metadata, prompts, keys or unexpected string properties.
+ */
+function sanitizeProviderUsage(provider,json){
+ const raw=provider==='gemini'?json?.usageMetadata:json?.usage;
+ if(raw===null||raw===undefined)
+   return {usage:null,usageStatus:'NOT_REPORTED'};
+ if(typeof raw!=='object'||Array.isArray(raw))
+   return {usage:null,usageStatus:'INVALID_UPSTREAM_USAGE'};
+ const keys=provider==='gemini'?
+   ['promptTokenCount','candidatesTokenCount','totalTokenCount']:
+   ['prompt_tokens','completion_tokens','total_tokens'];
+ const safe={};
+ for(const name of keys){
+  if(Object.hasOwn(raw,name)){
+   if(!Number.isSafeInteger(raw[name])||raw[name]<0)
+     return {usage:null,usageStatus:'INVALID_UPSTREAM_USAGE'};
+   safe[name]=raw[name];
+  }
+ }
+ if(Object.keys(safe).length===0)
+   return {usage:null,usageStatus:'INVALID_UPSTREAM_USAGE'};
+ return {usage:Object.freeze(safe),usageStatus:'UPSTREAM_REPORTED_UNVERIFIED'};
+}
 export function createMidAiOneShotExecutor({
  authenticate,admission,readback,credentialFor,fetchImpl,now=()=>Date.now(),
  cryptoImpl=globalThis.crypto
@@ -160,12 +186,13 @@ export function createMidAiOneShotExecutor({
       candidate?.content?.parts?.map(p=>p?.text).filter(x=>typeof x==='string').join('\n'):
       candidate?.message?.content;
    if(typeof answer!=='string'||!answer.trim())deny('EMPTY_PROVIDER_RESPONSE');
+   const reportedUsage=sanitizeProviderUsage(provider,json);
    return Object.freeze({
     status:'UNTRUSTED_REVIEW_ONLY',provider,model,actualModel:actual,
     requestId:task.requestId,stableSha:task.expectedStableSha,
     text:answer.slice(0,16000),
-    usage:json?.usage??json?.usageMetadata??null,
-    usageStatus:'UPSTREAM_REPORTED_UNVERIFIED',
+    usage:reportedUsage.usage,
+    usageStatus:reportedUsage.usageStatus,
     costStatus:'NOT_VERIFIED',cashSpendStatus:'NOT_VERIFIED',
     checkedSources:'REQUIRES_INDEPENDENT_ORIGINAL_VERIFICATION',
     authenticatedPrincipalShown:false,credentialsShown:false,

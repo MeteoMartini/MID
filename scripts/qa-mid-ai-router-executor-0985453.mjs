@@ -52,6 +52,18 @@ const response=(provider,model)=>{
  {model,choices:[{finish_reason:'stop',message:{content:'Reviewed public data.'}}],
   usage:{prompt_tokens:10,completion_tokens:5}};
  if(mode==='wrongModel')data[provider==='gemini'?'modelVersion':'model']='wrong-model';
+ if(mode==='missingUsage'){
+  if(provider==='gemini')delete data.usageMetadata;
+  else delete data.usage;
+ }
+ if(mode==='badUsage'){
+  if(provider==='gemini')data.usageMetadata={promptTokenCount:'not-a-number',tokenDump:'SECRET'};
+  else data.usage={prompt_tokens:'not-a-number',tokenDump:'SECRET'};
+ }
+ if(mode==='injectedUsage'){
+  if(provider==='gemini')data.usageMetadata.tokenDump='malicious untrusted usage data';
+  else data.usage.tokenDump='malicious untrusted usage data';
+ }
  if(mode==='truncated'){
   if(provider==='gemini')data.candidates[0].finishReason='MAX_TOKENS';
   else data.choices[0].finish_reason='length';
@@ -131,6 +143,16 @@ await test(async()=>{mode='network';const t=await signed(task('network-fail'));
  await bad(()=>executor.execute(t),'PROVIDER_TRANSPORT_FAILED');mode='ok'});
 await test(async()=>{mode='oversized';const t=await signed(task('oversized-01'));
  await bad(()=>executor.execute(t),'PROVIDER_RESPONSE_TOO_LARGE');mode='ok'});
+await test(async()=>{mode='missingUsage';const t=await signed(task('no-usage-01'));
+ const r=await executor.execute(t);assert.equal(r.usage,null);
+ assert.equal(r.usageStatus,'NOT_REPORTED');mode='ok'});
+await test(async()=>{mode='badUsage';const t=await signed(task('bad-usage-1'));
+ const r=await executor.execute(t);assert.equal(r.usage,null);
+ assert.equal(r.usageStatus,'INVALID_UPSTREAM_USAGE');mode='ok'});
+await test(async()=>{mode='injectedUsage';const t=await signed(task('injection-01'));
+ const r=await executor.execute(t);assert.equal(r.usageStatus,'UPSTREAM_REPORTED_UNVERIFIED');
+ assert.deepEqual(r.usage,{prompt_tokens:10,completion_tokens:5});
+ assert.equal(JSON.stringify(r).includes('malicious untrusted usage data'),false);mode='ok'});
 await test(async()=>{const t=await signed(task('openrouter-ok'),'openrouter','cohere/north-mini-code:free');
  const r=await executor.execute(t);assert.equal(r.provider,'openrouter');
  const p=requests.at(-1).body.provider;
