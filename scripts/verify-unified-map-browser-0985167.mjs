@@ -197,7 +197,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  // real MapLibre Chromium. Existing 24-case browser coverage stays mandatory.
  if(width===390&&theme==='light'&&design==='next'){
   const initialMaps=await page.locator('.maplibregl-map').count();
-  for(const [id,secondary,caption] of [['winter-berge','Temperatur · 2 m','keine Aussage zur Niederschlagsphase'],['sommer-gewitter','Böen · 10 m','Quellintervall nicht ausgewiesen']]){
+  for(const [id,secondary,caption] of [['winter-berge','Temperatur · 2 m','keine Aussage zur Niederschlagsphase'],['sommer-gewitter','Böen · 10 m','1-h-Intervall']]){
    await page.getByLabel('Parameter-Layer').selectOption(id);
    await page.waitForFunction(()=>{const text=document.querySelector('.unified-layer-status')?.textContent||'';return text.includes('Rastertermin')&&text.includes('ICON-D2')&&!text.includes('lädt')});
    await page.waitForFunction(()=>Boolean(window.__qaMap?.getStyle()?.layers?.some(l=>l.id.startsWith('unified-model-field')&&l.type==='raster'&&window.__qaMap.getPaintProperty(l.id,'raster-resampling')==='nearest')));
