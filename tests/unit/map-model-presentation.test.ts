@@ -4,6 +4,8 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {groupedMapModelOptions,mapModelDisplayLabel} from '../../src/mapModelPresentation';
 import {WEATHER_MAP_MODELS} from '../../src/WeatherMapsData';
+import {cloudWeatherSources} from '../../src/cloudWeatherData';
+import type {SynopticIndex} from '../../src/nativeSynopticFields';
 
 const flatten=(choices:ReadonlyArray<{id:string;label:string;resolutionKm?:number}>)=>
  groupedMapModelOptions(choices).flatMap(group=>group.models.map(model=>model.id));
@@ -72,6 +74,34 @@ describe('MID map model identity: flag, family and fine-to-coarse ordering',()=>
   expect(mapModelDisplayLabel({id:'ifs',label:'ECMWF IFS',resolutionKm:Number.NaN}))
    .toBe('🇪🇺 ECMWF IFS');
   expect(mapModelDisplayLabel({id:'ifs',label:'ECMWF IFS',resolutionKm:-1}))
+   .toBe('🇪🇺 ECMWF IFS');
+ });
+ it('uses a verified native cloud/WW grid rather than mislabelling it as DWD WMS 0,0625°',()=>{
+  const index={models:{
+   'icon-eu':{label:'DWD ICON-EU',resolutionKm:14,cloudWeatherFrames:[{hour:3}],frames:[]},
+   'icon':{label:'DWD ICON Global',resolutionKm:28,cloudWeatherFrames:[{hour:3}],frames:[]},
+  }} as unknown as SynopticIndex;
+  const choices=cloudWeatherSources(null,index);
+  const eu=choices.find(x=>x.id==='icon-eu')!;
+  const global=choices.find(x=>x.id==='icon')!;
+  expect(eu).toMatchObject({sourceGrid:'native',resolutionKm:14});
+  expect(mapModelDisplayLabel(eu)).toBe('🇩🇪 DWD ICON-EU · 14 km Raster');
+  expect(mapModelDisplayLabel(eu)).not.toContain('0,0625° Kartenraster');
+  expect(mapModelDisplayLabel(global)).toBe('🇩🇪 DWD ICON Global · 28 km Raster');
+  expect(choices.find(x=>x.id==='gdps')).toMatchObject({sourceGrid:'wms'});
+ });
+ it('never claims the WMS raster for a native or mixed/unknown source grid',()=>{
+  expect(mapModelDisplayLabel({id:'icon-eu',label:'DWD ICON-EU',sourceGrid:'native'}))
+   .toBe('🇩🇪 DWD ICON-EU');
+  expect(mapModelDisplayLabel({id:'icon',label:'DWD ICON Global',sourceGrid:'native'}))
+   .toBe('🇩🇪 DWD ICON Global');
+  expect(mapModelDisplayLabel({id:'icon-eu',label:'DWD ICON-EU',sourceGrid:'mixed',resolutionKm:14}))
+   .toBe('🇩🇪 DWD ICON-EU');
+  expect(mapModelDisplayLabel({id:'icon-d2',label:'DWD ICON-D2',sourceGrid:'native'}))
+   .toBe('🇩🇪 DWD ICON-D2 · ca. 2 km');
+  expect(mapModelDisplayLabel({id:'icon-eu',label:'DWD ICON-EU',sourceGrid:'wms'}))
+   .toContain('0,0625° Kartenraster');
+  expect(mapModelDisplayLabel({id:'ifs',label:'ECMWF IFS',sourceGrid:'mixed',resolutionKm:9}))
    .toBe('🇪🇺 ECMWF IFS');
  });
  it('keeps unknown model identities transparent, sorted after verified sources',()=>{
