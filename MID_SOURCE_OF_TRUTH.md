@@ -4,7 +4,7 @@
 
 **DWD Pollenflug:** Bei positiven bekannten Pollenarten plus fehlenden DWD-Typen/Terminen bleibt der 3-Tage-Hinweis unvollständig. Echte 0 bleibt 0, NoData bleibt NoData; amtliche Warnungen und Originalmodellwerte unverändert.
 
-**Release/Privacy:** Das read-only Preflight zeigt blockierte Fehlergründe und bleibt fail-closed. Ein neues GraphQL-Review-Gate ist weiterhin nicht aktiv. Der Web/PWA-PostHog-Opt-in sendet bei Zustimmung eine ephemere Sitzungs-ID, keine persistente Benutzerkennung. Historische 16 Cubic-Reviewthreads von #752, P0-Sicherheitsqualifikation #740/#749 und RUC-/Karten-Originaldaten sind nicht hiermit freigegeben.
+**Release/Privacy:** Das read-only Preflight zeigt blockierte Fehlergründe und bleibt fail-closed. Ein neuer Required-Statuscheck für Cubic wurde nicht eingeführt. Der paginierte GraphQL-Premerge-Guard ist in #754 implementiert, wird im Release-Bot aber erst nach Stable-Promotion aktiviert. Die bestehende ownerseitig aktivierte klassische Konversationsregel und der langjährig aktive GitHub Production Branch Guard schützen den ersten Merge unabhängig vom späteren Guard-Code; deren exakte Bot-/ZIP-Wirkung bleibt positiv/negativ zu verifizieren. Der Web/PWA-PostHog-Opt-in sendet bei Zustimmung eine ephemere Sitzungs-ID, keine persistente Benutzerkennung. Historische 16 Cubic-Reviewthreads von #752, P0-Sicherheitsqualifikation #740/#749 und RUC-/Karten-Originaldaten sind nicht hiermit freigegeben.
 
 **Gates:** Vorherige grüne Draft-Unit-QA ersetzt die obligatorische aktuelle Source-/Core-/Heavy-/Browser-/Server-ZIP-/Installer-/Worker-/Pages-/Stable-Verifikation nicht. Reale iOS-/VoiceOver-Abnahme ist gesondert erforderlich. Version W+1, X/Y/Z unverändert.
 

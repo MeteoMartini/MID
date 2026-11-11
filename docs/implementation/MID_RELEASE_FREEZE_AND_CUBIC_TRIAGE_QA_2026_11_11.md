@@ -1,13 +1,13 @@
 # MID Release-Konzept: finaler Versions-Freeze und auflösbares KI-Review (QA-Draft)
 
-**Status:** Nur isolierte, lesende QA. Keine Änderung am produktiven Source-Gate, am Bot-Merge, Installer, Worker/Pages, `main`, `mid-stable`, am Cubic-GitHub-Check oder an GitHub-Rulesets. Kein neues Abo, kein neuer Workflow, keine neue Freigabeberechtigung.
+**Status:** Der ursprüngliche #756-Baustein war isolierte, ausschließlich lesende QA. Im noch nicht veröffentlichten Sammel-PR #754 wird der Versions-Freeze mit dem Bot-/Installer-Kandidaten zusammen geprüft; die Produktivpfade bleiben bis zu einem erfolgreichen Release unverändert. Keine Ruleset-/Cubic-/Secret-Mutation. Kein neues Abo, kein neuer Workflow, keine neue Freigabeberechtigung.
 
 ## Herkunft und Konfliktgrenze
 
 Am 11.11.2026 vor dieser Arbeit aktuell verifiziert: `main=mid-stable=7272a54ef9a9bd02fa1b6523f0cbf352b9412963`, `v0.9.85.455`. `AGENTS.md`, `MID_BASELINE.json`, `MID_SOURCE_OF_TRUTH.md`, `MID_CHATGPT_GITHUB_CONTRACT.md`, fünf aktive Rulesets und offene PRs geprüft. Live erneut verifizieren, bevor irgendetwas integriert wird.
 
-- Spezial-PR [#753](https://github.com/MeteoMartini/MID/pull/753) belegt den isolierten Self-Heal-Timeout-Fix und verändert `scripts/test-release-train-plan-0985376.mjs`; hier **nicht** verändert.
-- Leit-/Fach-PR [#754](https://github.com/MeteoMartini/MID/pull/754) prüft Release-Train-Diagnose und DWD-Pollen; `tools/ci/release-train-plan.mjs` und `release-train-preflight.yml` hier **nicht** verändert.
+- Spezial-PR [#753](https://github.com/MeteoMartini/MID/pull/753) belegt den isolierten Self-Heal-Timeout-Fix. Der Sammel-PR #754 hat dessen Änderungen einschließlich `scripts/test-release-train-plan-0985376.mjs` übernommen; nur der ursprüngliche #756-Draft blieb auf dem Testskript konfliktfrei.
+- Leit-/Fach-PR [#754](https://github.com/MeteoMartini/MID/pull/754) prüft Release-Train-Diagnose, DWD-Pollen und Sicherheitsintegration; `tools/ci/release-train-plan.mjs` sowie beide `release-train-preflight.yml`-Spiegel sind im Sammel-PR tatsächlich geändert, nicht im damaligen isolierten #756-Draft.
 - Review-Policy-PR [#749](https://github.com/MeteoMartini/MID/pull/749) prüft ausschließlich native GitHub-Merge-Zeitsicherung. Die lokale Daten-/KI-Evidenzprüfung in diesem QA-Draft wird nicht in #749, die produktiven Rulesets oder den Release-Bot eingefügt.
 - Verbindliche Dokumentation: [#740](https://github.com/MeteoMartini/MID/issues/740) für vor Merge unbewertete Cubic-Findings. Alte Draft-#745-Findings sind nicht automatisch neue Release-Blocker; **bestätigte** P0/P1/sicherheits- oder wetterdatenrelevante Fehler bleiben aber fachlich offen.
 
