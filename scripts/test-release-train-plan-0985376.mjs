@@ -233,7 +233,7 @@ function unscopedPrNumberPinnedJobs(source) {
   if(!insideJob || !/^    if:\s*/.test(line))continue; // Job-level condition only.
   const condition=[line];
   for(let j=i+1;j<lines.length && /^ {6,}\S/.test(lines[j]);j++)condition.push(lines[j]);
-  if(/\bgithub\.event\.pull_request\.number\s*==\s*[1-9]\d*\b/.test(condition.join('\n')))
+  if(/\bgithub\.event\.pull_request\.number\s*==\s*(?:[1-9]\d*\b|'[1-9]\d*'|"[1-9]\d*")/.test(condition.join('\n')))
    return true;
  }
  return false;
@@ -255,6 +255,16 @@ test('workflow-noise policy detects unscoped PR-number-only jobs without rejecti
   '      - run: echo preflight'
  ].join('\n');
  assert.equal(unscopedPrNumberPinnedJobs(sample),true,'Unrestricted PR run events with #745-only job must be rejected');
+ for(const quoted of ["'745'",'"745"']){
+  const unscoped=sample.replace('github.event.pull_request.number == 745',
+   'github.event.pull_request.number == '+quoted);
+  assert.equal(unscopedPrNumberPinnedJobs(unscoped),true,
+   'Quoted PR-number pin without a positive path scope must also be rejected');
+  const pathScoped=unscoped.replace('    branches: [main]',
+   "    branches: [main]\n    paths:\n      - 'tools/ruc/**'");
+  assert.equal(unscopedPrNumberPinnedJobs(pathScoped),false,
+   'An explicitly path-scoped quoted PR number is not a global workflow trigger');
+ }
  assert.equal(unscopedPrNumberPinnedJobs(sample.replace('    branches: [main]',
   "    branches: [main]\n    paths:\n      - 'tools/ruc/**'")),false,'Explicit positive paths scope is allowed');
  assert.equal(unscopedPrNumberPinnedJobs(sample.replace('    if: >-','    if: >-')
