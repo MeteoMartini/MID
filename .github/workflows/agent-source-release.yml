@@ -138,12 +138,14 @@ jobs:
           echo "number=${pr_number}" >> "$GITHUB_OUTPUT"
           echo "head_sha=${head_sha}" >> "$GITHUB_OUTPUT"
 
-      # Read-only guard comes from released Stable, never an unreviewed PR head.
-      - name: Aktuellen Stable-Reviewguard laden
+      # workflow_run executes this workflow from the protected default branch.
+      # Pin the reviewguard to the workflow's immutable commit, never a PR head
+      # or the independently lagging mid-stable ref during Installer promotion.
+      - name: SHA-gebundenen Reviewguard des ausgeführten Workflows laden
         if: steps.pr.outputs.eligible == 'true' && steps.pr.outputs.already_merged != 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: mid-stable
+          ref: ${{ github.workflow_sha }}
           persist-credentials: false
 
       - name: Node.js 22 für Review-Readback
@@ -161,9 +163,18 @@ jobs:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
           EXPECTED_HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
           EXPECTED_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          EXPECTED_WORKFLOW_SHA: ${{ github.workflow_sha }}
         run: |
           set -euo pipefail
-          # Server-side conversation protection closes the final readback-to-merge race.
+          # The trusted checker must match the immutable workflow code actually
+          # dispatched by GitHub, not a floating ref or a candidate PR checkout.
+          if [[ ! "$EXPECTED_WORKFLOW_SHA" =~ ^[0-9a-f]{40}$ ]] || [ "$(git rev-parse HEAD)" != "$EXPECTED_WORKFLOW_SHA" ] ||
+             [ ! -f tools/ci/mid-review-premerge-guard.mjs ]; then
+            echo "::error::Trusted workflow-SHA reviewguard absent or inconsistent; no bot merge."
+            exit 1
+          fi
+          # Native conversation/review enforcement, if configured, closes the
+          # final readback-to-merge race. The readback itself cannot do so.
           node tools/ci/mid-review-premerge-guard.mjs
           response="$(gh api --method PUT "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/merge" -f merge_method=squash -f sha="${EXPECTED_HEAD_SHA}" -f commit_title="MID Agent-Release PR #${PR_NUMBER}")"
           if [ "$(jq -r '.merged' <<<"$response")" != "true" ]; then
@@ -252,6 +263,17 @@ jobs:
             git add -f MID-professional-replacement.zip
             git commit -m "Prepare MID agent release from PR #${{ steps.pr.outputs.number }}"
             package_sha="$(git rev-parse HEAD)"
+            # The Release App's pre-existing update exception is necessary
+            # for the generated ZIP. Constrain THIS bot path to ZIP-only and
+            # the exact approved merge as parent; no source/config changes.
+            package_parent="$(git rev-parse HEAD^)"
+            changed_paths="$(git diff-tree --no-commit-id --name-only -r HEAD)"
+            if [ "$package_parent" != "$EXPECTED_MERGE_SHA" ] ||
+               [ "$changed_paths" != "MID-professional-replacement.zip" ] ||
+               ! git cat-file -e "HEAD:MID-professional-replacement.zip"; then
+              echo "::error::ZIP transport rejected: commit parent or changed paths violate the authorized package-only scope."
+              exit 1
+            fi
             if git push origin HEAD:main; then
               pushed=true
               echo "package_sha=${package_sha}" >> "$GITHUB_OUTPUT"

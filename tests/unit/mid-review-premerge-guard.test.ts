@@ -90,8 +90,17 @@ describe('SHA-bound MID merge-time review guard',()=>{
   expect(a).toBe(b);
   expect(a.indexOf('node tools/ci/mid-review-premerge-guard.mjs')).toBeGreaterThan(0);
   expect(a.indexOf('node tools/ci/mid-review-premerge-guard.mjs')).toBeLessThan(a.indexOf('gh api --method PUT '));
-  expect(a).toContain('ref: mid-stable');
+  expect(a).toContain('ref: ${{ github.workflow_sha }}');
+  expect(a).toContain('EXPECTED_WORKFLOW_SHA');
+  expect(a).toContain('git rev-parse HEAD');
+  expect(a).not.toContain('ref: mid-stable');
   expect(a).toContain('git push origin HEAD:main');
   expect(a).toContain('gh workflow run install-mid.yml --ref main');
+  expect(a).toContain('package_parent="$(git rev-parse HEAD^)"');
+  expect(a).toContain('changed_paths="$(git diff-tree --no-commit-id --name-only -r HEAD)"');
+  expect(a).toContain('[ "$changed_paths" != "MID-professional-replacement.zip" ]');
+  expect(a.indexOf('git diff-tree --no-commit-id --name-only -r HEAD'))
+   .toBeLessThan(a.indexOf('git push origin HEAD:main'));
+  expect(a.indexOf('git rev-parse HEAD^')).toBeLessThan(a.indexOf('git push origin HEAD:main'));
  });
 });
