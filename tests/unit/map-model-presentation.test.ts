@@ -135,7 +135,7 @@ describe('MID map model identity: flag, family and fine-to-coarse ordering',()=>
   const map=readFileSync(root+'src/UnifiedWeatherMap.tsx','utf8');
   const index=map.indexOf('id="unified-seasonal-companion-isolines"');
   expect(index).toBeGreaterThan(0);
-  const contour=map.slice(index,index+720);
+  const contour=map.slice(index,map.indexOf('/>',index)+2);
   expect(contour).toContain("['get','label']");
   expect(contour).toContain("'text-field'");
   expect(contour).not.toContain('hoverProperty="label"');
