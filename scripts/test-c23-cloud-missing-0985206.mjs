@@ -5,10 +5,10 @@ import {readFileSync,writeFileSync,mkdtempSync,rmSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-const appSource=readFileSync('src/App.tsx','utf8'),meanCloudLayerSource=appSource.match(/^function meanCloudLayer[^\n]+/m)[0],detailSource=appSource.match(/function detailHoursByResolution[\s\S]*?\n}/)[0],detailHelpers=['periodDisplayCode','periodWeatherImpact'].map(name=>appSource.match(new RegExp('^function '+name+'[^\n]+','m'))[0]).join('\n');
+const appSource=readFileSync('src/App.tsx','utf8'),meanCloudLayerSource=appSource.match(/^function meanCloudLayer[^\n]+/m)[0],detailSource=appSource.match(/function detailHoursByResolution[\s\S]*?\n}/)[0],detailWindow=appSource.match(/function detailThreeHourWindow[\s\S]*?\n}/)[0],detailHelpers=['periodDisplayCode','periodWeatherImpact'].map(name=>appSource.match(new RegExp('^function '+name+'[^\n]+','m'))[0]).join('\n');
 const meanOutput=await build({stdin:{contents:'export '+meanCloudLayerSource,loader:'ts'},write:false,format:'esm',logLevel:'silent'});
 const {meanCloudLayer}=await import('data:text/javascript;base64,'+Buffer.from(meanOutput.outputFiles[0].text).toString('base64'));
-const detailContents="import{isAvailablePrecipitation,isAvailableProbability,sumCompletePrecipitation,maxCompleteProbability,completePrecipitationIntervalCoverage}from'./src/precipitationAvailability';import{precipitationParts}from'./src/precipitation';import{weatherPictogramKind}from'./src/WeatherPictogram';import{periodWeatherVisual}from'./src/periodWeatherVisual';import{label}from'./src/weather';"+meanCloudLayerSource+detailHelpers+'export '+detailSource;
+const detailContents="import{isAvailablePrecipitation,isAvailableProbability,sumCompletePrecipitation,maxCompleteProbability,completePrecipitationIntervalCoverage,completePrecipitationWindowCoverage}from'./src/precipitationAvailability';import{localIsoToEpoch}from'./src/timeDisplay';import{precipitationParts}from'./src/precipitation';import{weatherPictogramKind}from'./src/WeatherPictogram';import{periodWeatherVisual}from'./src/periodWeatherVisual';import{label}from'./src/weather';"+meanCloudLayerSource+detailHelpers+detailWindow+'export '+detailSource;
 const output=await build({stdin:{contents:detailContents+"export{buildShortTermForecast,shortTermNinetyMinutePoints}from'./src/ShortTermForecast';export{detailSkyBarHourCells,detailSkyBarSegments}from'./src/detailSkyBar';export{periodWeatherVisual}from'./src/periodWeatherVisual';export{WeatherPictogram}from'./src/WeatherPictogram';export{shortTermCloudLayers,shortTermCloudLabel,shortTermProfileHourlyPoints}from'./src/ForecastCockpit';export{createElement}from'react';export{renderToStaticMarkup}from'react-dom/server';",resolveDir:process.cwd(),loader:'ts'},plugins:[{name:'qa-exports',setup(b){for(const [file,names] of [['ForecastCockpit','shortTermCloudLayers,shortTermCloudLabel']])b.onLoad({filter:new RegExp(`/${file}\\.tsx$`)},()=>({contents:readFileSync(`src/${file}.tsx`,'utf8')+`\nexport{${names}};`,loader:'tsx',resolveDir:process.cwd()+'/src'}));}}],loader:{'.css':'empty'},define:{'import.meta.env':'{}'},bundle:true,jsx:'automatic',write:false,platform:'node',format:'cjs',logLevel:'silent'});
 const qa=mkdtempSync(join(tmpdir(),'mid206-'));writeFileSync(join(qa,'qa.cjs'),output.outputFiles[0].text);const m=createRequire(import.meta.url)(join(qa,'qa.cjs'));rmSync(qa,{recursive:true,force:true});
 const now=Date.UTC(2026,9,8,15,27),base={temperature:13,apparent:12,humidity:70,dewPoint:8,pressure:1015,wind:7,gust:22,direction:225,cloud:60,lowCloud:20,midCloud:20,highCloud:20,visibility:30000,precipitation:0,rain:0,showers:0,snowfall:0,probability:0,code:2,isDay:true,sunshineDuration:1800};
@@ -26,14 +26,14 @@ for(const missing of [null,undefined,'',' ']){
  const fallback=m.shortTermProfileHourlyPoints(unknownHours,[],'Europe/Berlin',now);assert.ok(fallback.every(p=>!Number.isFinite(p.cloud)));
 }
 const known=m.detailSkyBarHourCells([{...base,cloud:35,sunshineDuration:300,precipitationIntervalStartEpoch:0,precipitationIntervalEndEpoch:900000}])[0];assert.equal(known.state,'weather');assert.match(known.base.title,/Wolkenlücken/);assert.match(known.title,/35 %/);assert.match(known.title,/33 %/);assert.doesNotMatch(known.title,/nicht verfügbar/);
-const detailRows=[0,90,0].map((cloud,i)=>({...hours[i],epoch:Date.UTC(2026,9,8,12+i),time:`2026-10-08T${12+i}:00`,cloud,code:cloud?3:0}));const detail=m.detailHoursByResolution(detailRows,'3h')[0];assert.equal(detail.cloud,30);assert.equal(detail.code,1,'3h dry description and icon must follow the same cloud mean');assert.equal(m.detailHoursByResolution(detailRows,'1h'),detailRows);
+const detailRows=[0,90,0].map((cloud,i)=>({...hours[i],epoch:Date.UTC(2026,9,8,10+i),time:`2026-10-08T${12+i}:00`,cloud,code:cloud?3:0}));const detail=m.detailHoursByResolution(detailRows,'3h','Europe/Berlin')[0];assert.equal(detail.cloud,30);assert.equal(detail.code,1,'3h dry description and icon must follow the same cloud mean');assert.equal(m.detailHoursByResolution(detailRows,'1h','Europe/Berlin'),detailRows);
 const missingPrecipDetail=detailRows.map((row,i)=>({...row,precipitation:i===1?null:0,rain:0,showers:0,snowfall:0,probability:i===1?null:0}));
-const missingGroup=m.detailHoursByResolution(missingPrecipDetail,'3h')[0];
+const missingGroup=m.detailHoursByResolution(missingPrecipDetail,'3h','Europe/Berlin')[0];
 assert.ok(Number.isNaN(missingGroup.precipitation),'3h A3 missing precipitation remains missing, not dry');
 assert.ok(Number.isNaN(missingGroup.probability),'3h A3 missing PoP remains missing, not 0%');
-const knownGroup=m.detailHoursByResolution(detailRows.map(row=>({...row,precipitation:0,rain:0,showers:0,snowfall:0,probability:0})),'3h')[0];
+const knownGroup=m.detailHoursByResolution(detailRows.map(row=>({...row,precipitation:0,rain:0,showers:0,snowfall:0,probability:0})),'3h','Europe/Berlin')[0];
 assert.equal(knownGroup.precipitation,0,'3h A3 valid dry 0mm retained');
-assert.equal(knownGroup.probability,0,'3h A3 valid 0% retained');assert.equal(m.detailHoursByResolution(detailRows.map(h=>({...h,code:61,precipitation:1,rain:1})),'3h')[0].code,61,'rain must survive dry sky reconciliation');
+assert.equal(knownGroup.probability,0,'3h A3 valid 0% retained');assert.equal(m.detailHoursByResolution(detailRows.map(h=>({...h,code:61,precipitation:1,rain:1})),'3h','Europe/Berlin')[0].code,61,'rain must survive dry sky reconciliation');
 assert.equal(m.shortTermCloudLabel(0),'0 %');assert.equal(meanCloudLayer([{cloud:0},{cloud:null}],'cloud'),0);
 const quarters=Array.from({length:8},(_,i)=>({...base,epoch:Date.UTC(2026,9,8,15,30)+i*900000,time:new Date(Date.UTC(2026,9,8,15,30)+i*900000).toISOString(),cloud:[60,60,55,40,35,30,30,30][i],sunshineDuration:[900,900,900,300,600,600,0,0][i]}));
 const points=m.shortTermNinetyMinutePoints(m.buildShortTermForecast(quarters,hours,'Europe/Berlin',now,{active:false}),now);assert.equal(points.length,6);assert.deepEqual(points.map(p=>p.timeLabel),['17:30','17:45','18:00','18:15','18:30','18:45']);
@@ -44,9 +44,13 @@ console.log('C23 .206: six screenshot time slots, physical band gaps, missing vs
 if(process.env.GITHUB_ACTIONS==='true')execFileSync(process.execPath,['scripts/verify-c23-sunset-browser-0985206.mjs'],{stdio:'inherit',timeout:360000});
 // C37: 3h display groups retain their true duration and never cross missing slots.
 for(const count of [2,3,4]){
- const rows=Array.from({length:count},(_,i)=>({...hours[0],epoch:Date.UTC(2026,9,25,0)+i*3600000,time:'2026-10-25T02:00',precipitation:1,rain:1}));
- const group=m.detailHoursByResolution(rows,'3h');assert.equal(group.length,1);
- assert.equal(group[0].precipitation,count);assert.equal(group[0].precipitationIntervalEndEpoch-group[0].precipitationIntervalStartEpoch,count*3600000);
+ // Berlin autumn DST: 00:00–03:00 local contains four actual hours.
+ const labels=['2026-10-25T00:00','2026-10-25T01:00','2026-10-25T02:00','2026-10-25T02:00'],start=Date.UTC(2026,9,24,22);
+ const rows=Array.from({length:count},(_,i)=>({...hours[0],epoch:start+i*3600000,time:labels[i],precipitation:1,rain:1}));
+ const group=m.detailHoursByResolution(rows,'3h','Europe/Berlin');assert.equal(group.length,1);
+ if(count<4)assert.ok(Number.isNaN(group[0].precipitation),'Incomplete DST four-hour group must be missing');
+ else assert.equal(group[0].precipitation,4,'Only all four real hourly originals prove a complete DST total');
+ assert.equal(group[0].precipitationIntervalEndEpoch-group[0].precipitationIntervalStartEpoch,count*3600000);
 }
 const gapRows=[0,2,3].map(i=>({...hours[0],epoch:Date.UTC(2026,9,19,0)+i*3600000,time:'2026-10-19T02:00'}));
-const gapGroups=m.detailHoursByResolution(gapRows,'3h');assert.equal(gapGroups.length,2);assert.equal(gapGroups[0].precipitationIntervalEndEpoch,gapRows[0].epoch+3600000);assert.equal(gapGroups[1].epoch,gapRows[1].epoch);
+const gapGroups=m.detailHoursByResolution(gapRows,'3h','Europe/Berlin');assert.equal(gapGroups.length,2);assert.equal(gapGroups[0].precipitationIntervalEndEpoch,gapRows[0].epoch+3600000);assert.equal(gapGroups[1].epoch,gapRows[1].epoch);

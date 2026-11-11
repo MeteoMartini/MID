@@ -14,7 +14,7 @@ export const UNIFIED_MAP_PARAMETERS:{id:string;label:string;detail:string}[]=[
  {id:'totals',label:'Niederschlagssumme',detail:'6 / 12 / 24 / 48 h ab Modelllaufstart'},
  {id:'observed',label:'Gefallener Niederschlag',detail:'RADOLAN · vollständige Messstunden'},
  {id:'wind',label:'Wind · 10 m',detail:'Mittelwind'},
- {id:'gust',label:'Böen · 10 m',detail:'Maximum im bestätigten Modellintervall'},
+ {id:'gust',label:'Böen · 10 m',detail:'Modelliertes Böenmaximum; das Quellenintervall ist nur bei nachgewiesenen Originalmetadaten anzugeben'},
  {id:'cloud',label:'Gesamtbewölkung',detail:'Bedeckungsgrad'},
  {id:'pressure',label:'Bodendruck · MSL',detail:'Auf Meereshöhe reduzierter Druck'},
  {id:'thetae',label:'ThetaE · 850 hPa',detail:'Luftmassen und barokline Zonen; keine analysierten Fronten'},
@@ -28,7 +28,7 @@ export function availableUnifiedParameters(index:NativeIndex|null,hasTotals:bool
 }
 /** Both selectors use this single verified capability matrix. */
 export function unifiedSources(parameter:string,index:NativeIndex|null,hasTotals:boolean,hasObserved:boolean,rucIndex:NativeIndex|null=null,catalog:WeatherMapCatalog|null=null):{id:string;label:string}[]{
- if(seasonalMapKinds(parameter))return seasonalMapFrames(index,parameter).length?[{id:'icon-d2',label:'DWD ICON-D2 · Originalraster'}]:[];
+ if(seasonalMapKinds(parameter))return seasonalMapFrames(index,parameter).length?[{id:'icon-d2',label:'DWD ICON-D2 · geprüfte Felder'}]:[];
  if(['synoptic','thetae','geopotential'].includes(parameter))return [];
  const native=parameter==='observed'?hasObserved?{id:'radolan',label:'DWD RADOLAN · Messanalyse'}:null:parameter==='totals'?hasTotals?{id:'icon-d2',label:'DWD ICON-D2'}:null:index?.products[parameter as NativeFieldKind]?.frames.length?{id:'icon-d2',label:'DWD ICON-D2'}:null;
  return [...new Map([...(native?[native]:[]),...(rucIndex?.schema==='mid.ruc.map-fields.v1'&&rucIndex.products[parameter as NativeFieldKind]?.frames.length?[{id:'icon-d2-ruc',label:'DWD ICON-D2-RUC'}]:[]),...unifiedWmsChoices(catalog).filter(c=>c.parameter===parameter).map(c=>({id:c.model.id,label:c.model.label}))].map(c=>[c.id,c])).values()];

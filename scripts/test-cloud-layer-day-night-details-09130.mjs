@@ -44,7 +44,7 @@ for(const token of [
  'className="weather-period-night"',
  'function windDirectionShort(direction:number)',
  'function detailListPrecipLabel(hour:Hour)',
- "function detailHoursByResolution(hours:Hour[],resolution:'3h'|'1h')",
+ "function detailHoursByResolution(hours:Hour[],resolution:'3h'|'1h',timezone:string)",
  "if(resolution==='1h')return hours",
  'Math.floor(clock/3)*3',
  "precipitation:sum('precipitation')",

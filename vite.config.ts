@@ -32,6 +32,11 @@ export default defineConfig({
       const roots=Object.keys(bundle).filter(file=>/^assets\/FourteenDayDevelopment-.*\.js$/.test(file));
       if(roots.length!==1)throw new Error('Expected exactly one deferred fourteen-day module');
       visit(roots[0]);
+      // Pollen is optional and now deferred; keep its module install-cached so
+      // enabling it for the first time offline does not fail to load its code.
+      const pollenRoots=Object.values(bundle).filter(chunk=>chunk.type==='chunk'&&chunk.facadeModuleId?.endsWith('/src/PollenForecast.tsx'));
+      if(pollenRoots.length!==1)throw new Error('Expected exactly one deferred pollen module');
+      visit(pollenRoots[0].fileName);
       // Export modules are fetched for offline use without eagerly executing them.
       // Their shared map dependencies are already loaded when an export is usable.
       const mapRoot=Object.values(bundle).find(chunk=>chunk.type==='chunk'&&chunk.facadeModuleId?.endsWith('/src/UnifiedWeatherMap.tsx'));

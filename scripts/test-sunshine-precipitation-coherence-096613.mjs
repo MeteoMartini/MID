@@ -32,7 +32,10 @@ const cockpit=fs.readFileSync(path.join(root,'src','ForecastCockpit.tsx'),'utf8'
 assert.ok(!cockpit.includes('shortTermEstimatedPrecipitationDuration'),'Niederschlagswahrscheinlichkeit wird weiterhin in fiktive Minuten umgerechnet');
 assert.ok(!/intervalMinutes\s*\*\s*clamp\(point\.probability/.test(cockpit),'PoP-zu-Dauer-Formel ist weiterhin vorhanden');
 assert.ok(cockpit.includes('Der Prozentwert ist die Eintrittswahrscheinlichkeit im Bezugsintervall, keine Regendauer'),'fachliche Erläuterung im Stundenprofil fehlt');
-assert.ok(cockpit.includes('sunshineValues.reduce((total,value)=>total+Math.max(0,value),0)'),'3-h-Sonnenschein wird nicht summiert');
+assert.ok(cockpit.includes('sunshineValues=sorted.map(point=>point.sunshineDuration).filter((value):value is number=>value!==null&&value!==undefined&&Number.isFinite(value)&&value>=0&&value<=3600)'),
+ '3-h-Sonnenschein muss nur physikalisch gültige vollständige Originalstunden zulassen');
+assert.ok(cockpit.includes('sunshineDuration=completeCoverage&&sunshineValues.length===sorted.length?sunshineValues.reduce((total,value)=>total+value,0):null'),
+ '3-h-Sonnenschein muss vollständig gedeckte, gültige Stunden summieren und bei Lücken Missing statt partieller Summen zeigen');
 assert.ok(cockpit.includes('sunshineMinutesLabel(selectedPoint.sunshineDuration,shortTermIntervalMinutes(selectedPoint))'),'3-h-Anzeige ist weiterhin auf 60 Minuten begrenzt');
 assert.ok(!cockpit.includes('sunshineDuration:Number(hour.sunshineDuration)||0'),'fehlende Stundenwerte werden weiterhin als 0 min ausgegeben');
 

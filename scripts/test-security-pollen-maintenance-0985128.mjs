@@ -19,7 +19,8 @@ const [app,pollen,pollenCss,visual,lockRaw,canonicalWorkflow,activeWorkflow,work
 assert.ok(app.includes('settings-health-weather')&&app.includes('<span>Gesundheitswetter</span>'),'Pollen muss als eigene Gesundheitswetter-Sektion unter Inhalte & Navigation erscheinen.');
 assert.ok(app.includes('pollenDisplaySettings.showPollenForecast'),'Der bestehende optionale Pollen-Schalter muss erhalten bleiben.');
 assert.ok(pollen.includes('rankedTodayEntries')&&pollen.includes('.sort((a,b)=>b.severity-a.severity'),'Aktive Pollen müssen in der kompakten Ansicht nach vorhandener Belastungsstufe priorisiert werden.');
-assert.ok(pollen.includes("todayStatus=!todayAvailable?'DWD-Aktualisierung ausstehend':strongestToday?pollenLabel(strongestToday.entry):'keine Belastung'"),'Der belastungsfreie Zustand braucht eine ruhige, textlich eindeutige Zusammenfassung; fehlende heutige DWD-Daten müssen separat kenntlich bleiben.');
+assert.ok(pollen.includes("todayStatus=!todayAvailable?'DWD-Aktualisierung ausstehend':strongestToday?")&&pollen.includes("todayHasMissing?'DWD-Angaben unvollständig':'keine Belastung'")&&pollen.includes("todayHasMissing?-1:0"),'Nur vollständige DWD-Daten erlauben eine Nullbelastung; Missing bleibt sichtbar.');
+assert.ok(pollen.includes('return-1; // Unknown native DWD strings must remain missing, never accept a worker sentinel 0.'),'Unbekannte Pollenwerte dürfen nicht über Worker-Fallback zu Null werden.');
 for(const token of ['aria-expanded={expanded}','aria-controls={detailId}','Pollenflug-Vorhersage ab heute','DWD · Produktstand'] )assert.ok(pollen.includes(token),'Pollen-Disclosure/Quelle fehlt: '+token);
 assert.ok(pollenCss.includes('.pollen-disclosure')&&pollenCss.includes('min-height:44px'),'Pollen-Disclosure muss ein belastbares Touchziel besitzen.');
 for(const level of ['keine','schwach','mäßig','stark'])assert.ok(pollen.includes(level),'DWD-Belastungsbegriff fehlt: '+level);
