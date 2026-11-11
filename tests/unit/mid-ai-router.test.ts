@@ -154,6 +154,20 @@ describe('MID AI Router: signed quota/source proof binds atomic SQLite admission
   });
 });
 
+describe('MID AI Router: existing Cloudflare account reuse preflight', () => {
+  it('verifies only fixed account GETs, without inferring Free billing or deployment rights', () => {
+    const script = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-cloudflare-reuse-0985455.mjs', import.meta.url));
+    const r = spawnSync(process.execPath, [script], {
+      cwd: root, timeout: 20_000, encoding: 'utf8', maxBuffer: 128 * 1024,
+      env: { PATH: process.env.PATH || '' }, stdio: ['ignore', 'pipe', 'pipe']
+    });
+    expect(r.error).toBeUndefined();
+    expect(r.status, r.stderr || r.stdout).toBe(0);
+    expect(r.stdout).toMatch(/MID existing Cloudflare account read-only QA OK; scenarios=10; mocked GET only, no secrets, writes, deployment or inference\./);
+    expect(r.stderr).toBe('');
+  });
+});
+
 describe('MID AI Router: Cloudflare OAuth resource and consent scaffold', () => {
   it('has syntactically valid protected runtime source and no embedded credentials', () => {
     const script = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-cloudflare-runtime-0985455.mjs', import.meta.url));

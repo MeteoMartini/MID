@@ -60,3 +60,38 @@ https://github.com/cloudflare/workers-oauth-provider/tree/v1.2.4
 https://developers.cloudflare.com/agents/model-context-protocol/protocol/authorization/
 https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps
 https://help.openai.com/en/articles/12584461-developer-mode-and-full-mcp-connectors-in-chatgpt
+
+
+## 11.11.2026: Existing MID Cloudflare integration VERIFIED – earlier statement corrected
+
+A new Cloudflare account is NOT a prerequisite. Existing trusted
+GitHub Actions Cloudflare integration was proven by release installer
+https://github.com/MeteoMartini/MID/actions/runs/42972384988
+and successful job 130373162680: Wrangler 4.125.0 uploaded
+mid-data-proxy, performed 0%-traffic version smoke, promoted the
+verified MID v0.9.85.455 worker to 100%, then confirmed
+www.midwx.app/api/mid-worker* -> mid-data-proxy and same-origin health.
+
+The already configured GitHub Actions secrets CLOUDFLARE_ACCOUNT_ID and
+CLOUDFLARE_API_TOKEN are operational for THIS existing weather-worker
+release path. This does not verify additional Worker creation, OAuth/KV,
+SQLite Durable Object privileges, zero-overage Free plan or AI provider
+account entitlements. Do not widen token permissions, reuse the weather
+worker as a model-secret endpoint, or bypass MID Source/Installer gates.
+
+New script scripts/mid-ai-router-cloudflare-reuse.mjs has a strictly
+read-only, fixed-origin Cloudflare account GET check: existing Worker
+scripts + Durable Object namespace lists. It never prints account
+identity/tokens or activates paid model access. Ten isolated offline
+negative tests cover absent permissions, source lookup failures,
+missing MID worker and missing standalone router. A future trusted
+GitHub Actions execution using ALREADY scoped tokens can confirm the
+account's actual worker/DO listing without a new Cloudflare account.
+A successful read alone is not permission to deploy a separate
+script. This checker is source only and has NOT made a live Cloudflare
+API request in this ChatGPT turn.
+
+The direct Cloudflare ChatGPT plugin in this conversation reports
+not_installed; it is DIFFERENT from the proven GitHub Actions
+Cloudflare connection. Do not use absence of this app as evidence
+against Cloudflare deployment already running successfully.
