@@ -14,6 +14,8 @@ const INTENTS = new Set([
 ]);
 const MODE = new Set(['chat','work','codex']);
 const CANDIDATE_AGE_MS=14*24*60*60*1000;
+const COPILOT_CREDIT_MAX_AGE_MS=15*60*1000;
+const REQUEST_ID=/^[A-Za-z0-9][A-Za-z0-9_-]{7,79}$/;
 const make = (lane,status,reason,additional={})=>Object.freeze({
   lane,status,reason,dispatchPerformed:false,dispatchAuthorized:false,
   externalCallsMade:0,additionalCashAuthorizedUsd:0,...additional
@@ -66,7 +68,8 @@ export function planMidAiTaskSurface({
      !SHA40.test(snapshot?.stableSha||'') ||
      !VERSION.test(snapshot?.version||''))
     return make(null,'BLOCKED','UNVERIFIED_SOURCE_OR_VERSION');
-  if(!MODE.has(host.mode))return make(null,'BLOCKED','INVALID_HOST_MODE');
+  if(!host || typeof host!=='object' || !MODE.has(host.mode))
+    return make(null,'BLOCKED','INVALID_HOST_MODE');
   const sourceAligned=snapshot.mainSha===snapshot.stableSha &&
                       task.expectedStableSha===snapshot.stableSha;
   const t=host.tools??{};
@@ -95,6 +98,12 @@ export function planMidAiTaskSurface({
     if(host.mode!=='chat')return make('copilot-issue','BLOCKED','COPILOT_REQUIRES_CHAT_COORDINATOR',copy);
     if(task.copilotIssueAlreadyCreated===true)
       return make('copilot-issue','BLOCKED','COPILOT_REQUEST_ALREADY_SUBMITTED',copy);
+    // A missing issue-state or request ID cannot prove an assignment is unique.
+    if(task.copilotIssueAlreadyCreated!==false||
+       !REQUEST_ID.test(task.requestId||''))
+      return make('copilot-issue','BLOCKED','COPILOT_IDEMPOTENCY_UNVERIFIED',copy);
+    if(!Object.is(task.maxAdditionalCashUsd,0)||task.maxCopilotSessions!==1)
+      return make('copilot-issue','BLOCKED','COPILOT_ONE_SHOT_ZERO_CASH_REQUIRED',copy);
     if(!toolReady(t,'github','write')||t.github?.copilotIssueAssignSupported!==true)
       return make('copilot-issue','BLOCKED','GITHUB_COPILOT_ASSIGNMENT_NOT_VERIFIED',copy);
     if(t.github?.copilotCreditState==='exhausted')
@@ -102,11 +111,27 @@ export function planMidAiTaskSurface({
     if(t.github?.copilotCreditState!=='verified-available'||
        t.github?.copilotPaidOverageDisabled!==true)
       return make('copilot-issue','BLOCKED','COPILOT_CREDIT_LIMITS_UNVERIFIED',copy);
+    // Historic "available" flags can outlive the real entitlement. A
+    // bounded, SHA-matched, authenticated account readback is mandatory.
+    // This *input* is still not proof until independently checked by host.
+    const credit=t.github?.copilotCreditEvidence;
+    const checked=typeof credit?.checkedAt==='string'?
+      Date.parse(credit.checkedAt):NaN;
+    if(credit?.source!=='github-account-quota-readback'||
+       credit?.expectedStableSha!==snapshot.stableSha||
+       credit?.paidOverageDisabled!==true||
+       !Number.isSafeInteger(credit?.remainingIncludedSessions)||
+       credit.remainingIncludedSessions<1||
+       !Number.isFinite(now)||!Number.isFinite(checked)||
+       checked>now||now-checked>COPILOT_CREDIT_MAX_AGE_MS)
+      return make('copilot-issue','BLOCKED','COPILOT_QUOTA_EVIDENCE_UNVERIFIED_OR_STALE',copy);
     return make('copilot-issue','CONNECTED_TOOL_PLAN',
       'GITHUB_ISSUE_ASSIGNMENT_UNTRUSTED_DRAFT_ONLY',{
         ...copy,requiredTools:toolsUsed(t,['github']),
         issueAssignmentTool:'github.add_issue_assignees',
         requestedAssignee:'copilot-swe-agent[bot]',
+        requestId:task.requestId,maxCopilotSessions:1,
+        maxAdditionalCashUsd:0,issueCreated:false,
         noReleaseAuthority:true
       });
   }

@@ -83,15 +83,22 @@ check(()=>{const r=run(task('source-code-change'),host({github:ready()}));
 // Existing GitHub connection is the only transport: Copilot is an assignee,
 // not a second separately authenticated ChatGPT plugin.
 const copilotReady={...ready(true),copilotIssueAssignSupported:true,
- copilotCreditState:'verified-available',copilotPaidOverageDisabled:true};
+ copilotCreditState:'verified-available',copilotPaidOverageDisabled:true,
+ copilotCreditEvidence:{source:'github-account-quota-readback',
+  expectedStableSha:sha,checkedAt:new Date(now).toISOString(),
+  remainingIncludedSessions:1,paidOverageDisabled:true}};
 const copilotTask=(intent='source-code-change',options={})=>
- task(intent,{preferredMode:'copilot',...options});
+ task(intent,{preferredMode:'copilot',requestId:'mid-router-copilot-01',
+  copilotIssueAlreadyCreated:false,maxAdditionalCashUsd:0,
+  maxCopilotSessions:1,...options});
 check(()=>{const r=run(copilotTask(),host({github:copilotReady}));
  assert.equal(r.lane,'copilot-issue');assert.equal(r.status,'CONNECTED_TOOL_PLAN');
  assert.equal(r.requestedAssignee,'copilot-swe-agent[bot]');
  assert.deepEqual(r.requiredTools,['github']);
  assert.equal(r.sessionStarted,false);assert.equal(r.dispatchAuthorized,false);
- assert.equal(r.retryAllowed,false);});
+ assert.equal(r.retryAllowed,false);assert.equal(r.issueCreated,false);
+ assert.equal(r.requestId,'mid-router-copilot-01');
+ assert.equal(r.maxCopilotSessions,1);assert.equal(r.maxAdditionalCashUsd,0);});
 check(()=>{const r=run(copilotTask('independent-review'),host({github:copilotReady}));
  assert.equal(r.lane,'copilot-issue');assert.equal(r.dispatchPerformed,false);});
 check(()=>denied(run(copilotTask(),host({github:{...copilotReady,copilotCreditState:'exhausted'}})),
@@ -114,4 +121,51 @@ check(()=>denied(run(copilotTask(),host({github:copilotReady},'codex')),
  'COPILOT_REQUIRES_CHAT_COORDINATOR'));
 check(()=>denied(route({task:copilotTask(),host:host({github:copilotReady}),
  snapshot:{...snapshot,mainSha:'b'.repeat(40)},now}),'SOURCE_DRIFT'));
+
+check(()=>denied(run(copilotTask('source-code-change',{requestId:undefined}),
+ host({github:copilotReady})),'COPILOT_IDEMPOTENCY_UNVERIFIED'));
+check(()=>denied(run(copilotTask('source-code-change',{copilotIssueAlreadyCreated:undefined}),
+ host({github:copilotReady})),'COPILOT_IDEMPOTENCY_UNVERIFIED'));
+check(()=>denied(run(copilotTask('source-code-change',{maxCopilotSessions:2}),
+ host({github:copilotReady})),'COPILOT_ONE_SHOT_ZERO_CASH_REQUIRED'));
+check(()=>denied(run(copilotTask('source-code-change',{maxAdditionalCashUsd:0.01}),
+ host({github:copilotReady})),'COPILOT_ONE_SHOT_ZERO_CASH_REQUIRED'));
+check(()=>denied(run(copilotTask(),host({github:{...copilotReady,
+ copilotCreditEvidence:undefined}})),'COPILOT_QUOTA_EVIDENCE_UNVERIFIED_OR_STALE'));
+check(()=>denied(run(copilotTask(),host({github:{...copilotReady,
+ copilotCreditEvidence:{...copilotReady.copilotCreditEvidence,
+ source:'user-assertion'}}})),'COPILOT_QUOTA_EVIDENCE_UNVERIFIED_OR_STALE'));
+check(()=>denied(run(copilotTask(),host({github:{...copilotReady,
+ copilotCreditEvidence:{...copilotReady.copilotCreditEvidence,
+ checkedAt:new Date(now-16*60*1000).toISOString()}}})),
+ 'COPILOT_QUOTA_EVIDENCE_UNVERIFIED_OR_STALE'));
+check(()=>{const r=run(copilotTask(),host({github:{...copilotReady,
+ copilotCreditEvidence:{...copilotReady.copilotCreditEvidence,
+ checkedAt:new Date(now-14*60*1000).toISOString()}}}));assert.equal(r.lane,'copilot-issue')});
+check(()=>denied(run(copilotTask(),host({github:{...copilotReady,
+ copilotCreditEvidence:{...copilotReady.copilotCreditEvidence,
+ checkedAt:new Date(now+1000).toISOString()}}})),
+ 'COPILOT_QUOTA_EVIDENCE_UNVERIFIED_OR_STALE'));
+check(()=>denied(run(copilotTask(),host({github:{...copilotReady,
+ copilotCreditEvidence:{...copilotReady.copilotCreditEvidence,
+ expectedStableSha:'b'.repeat(40)}}})),
+ 'COPILOT_QUOTA_EVIDENCE_UNVERIFIED_OR_STALE'));
+check(()=>denied(run(copilotTask(),host({github:{...copilotReady,
+ copilotCreditEvidence:{...copilotReady.copilotCreditEvidence,
+ remainingIncludedSessions:0}}})),
+ 'COPILOT_QUOTA_EVIDENCE_UNVERIFIED_OR_STALE'));
+check(()=>denied(run(copilotTask(),host({github:{...copilotReady,
+ copilotCreditEvidence:{...copilotReady.copilotCreditEvidence,
+ paidOverageDisabled:false}}})),
+ 'COPILOT_QUOTA_EVIDENCE_UNVERIFIED_OR_STALE'));
+check(()=>denied(run(copilotTask(),host({github:{...copilotReady,
+ copilotCreditEvidence:{...copilotReady.copilotCreditEvidence,
+ checkedAt:'n/a'}}})),
+ 'COPILOT_QUOTA_EVIDENCE_UNVERIFIED_OR_STALE'));
+check(()=>denied(route({task:copilotTask(),host:null,snapshot,now}),
+ 'INVALID_HOST_MODE'));
+check(()=>denied(run(copilotTask(),host({github:{...copilotReady,
+ copilotCreditState:'exhausted',copilotCreditEvidence:copilotReady.copilotCreditEvidence}})),
+ 'COPILOT_AI_CREDITS_EXHAUSTED'));
+
 console.log('MID AI Router capability QA OK; scenarios='+passed+'; no network, paid AI calls or mode switch.');
