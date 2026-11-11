@@ -28,6 +28,8 @@ steps:
     if: \${{ steps.freshness.outputs.should_run == 'true' }}
     run: python -m eccodes selfcheck
   - name: Bereits aktuellen RUC-Lauf ohne Neubau bestätigen
+  - name: Native Python-ecCodes-Wheel vor RUC-Aufbereitung prüfen
+    run: python -m eccodes selfcheck
 `;
 const preWatchdogCatchup=`name: MID DWD RUC preprocessing
 on:
@@ -51,6 +53,8 @@ steps:
     if: \${{ steps.freshness.outputs.should_run == 'true' }}
     run: python -m eccodes selfcheck
   - name: Bereits aktuellen RUC-Lauf ohne Neubau bestätigen
+  - name: Native Python-ecCodes-Wheel vor RUC-Aufbereitung prüfen
+    run: python -m eccodes selfcheck
 `;
 const legacy=`name: MID DWD RUC preprocessing
 on:
