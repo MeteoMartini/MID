@@ -130,6 +130,13 @@ describe('MID map model identity: flag, family and fine-to-coarse ordering',()=>
   expect(mapModelDisplayLabel({id:'icon-d2',label:'DWD ICON-D2',sourceGrid:'wms'}))
    .toBe('🇩🇪 DWD ICON-D2');
  });
+ it('keeps ECCC GeoMet versus DWD WMS point value provenance distinct',()=>{
+  const root=fileURLToPath(new URL('../../',import.meta.url));
+  const map=readFileSync(root+'src/UnifiedWeatherMap.tsx','utf8');
+  const probe=map.slice(map.indexOf('wmsRenderable&&wmsProduct&&metadata?.pointUnit?<ModelMapProbe'),map.indexOf('wmsRenderable&&wmsProduct&&metadata?.pointUnit?<ModelMapProbe')+680);
+  expect(probe).toContain("wmsProduct.provider==='geomet'?'ECCC GeoMet':'DWD'");
+  expect(probe).not.toContain('${modelLabel} · DWD-Rasterwert');
+ });
  it('labels the verified gust interval separately from 10-m measurement height in popup source',()=>{
   const root=fileURLToPath(new URL('../../',import.meta.url));
   const map=readFileSync(root+'src/UnifiedWeatherMap.tsx','utf8');
