@@ -143,6 +143,13 @@ async function main() {
   const result={...snapshot.plan};
   if(Object.hasOwn(manifest,'versioning')){
     const version=await inspectStableVersion(repository,manifest.stableSha,token);
+    const [lastMain,lastStable]=await Promise.all([
+      api(repository,'git/ref/heads/main',token),
+      api(repository,'git/ref/heads/mid-stable',token),
+    ]);
+    if(lastMain.object?.sha!==snapshot.current.mainSha||
+       lastStable.object?.sha!==snapshot.current.stableSha)
+      throw Error('Main/Stable drift during pinned version mirror readback');
     result.versionProposal=analyzeVerifiedReleaseVersion(manifest.versioning,{
       mainSha:snapshot.current.mainSha,stableSha:snapshot.current.stableSha,version,
     },snapshot);
