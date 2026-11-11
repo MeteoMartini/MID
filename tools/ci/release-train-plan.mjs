@@ -158,7 +158,7 @@ async function main() {
   if(!result.validForIntegrationReview || (result.versionProposal && !result.versionProposal.readyForIntegrationReview)){
     // A redirected machine-readable result must not suppress the fail-closed reason in CI logs.
     const reasons=[...result.blockers,...(result.versionProposal?.blockers??[])];
-    process.stderr.write('Release train preflight BLOCKED: '+(reasons.length?reasons.join('; '):'candidate not eligible')+'\n');
+    process.stderr.write('Release train preflight BLOCKED: '+JSON.stringify(reasons.length?reasons:['candidate not eligible'])+'\n');
     process.exitCode=1;
   }
 }

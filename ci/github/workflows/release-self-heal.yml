@@ -46,6 +46,13 @@ jobs:
           RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
         run: |
           set -euo pipefail
+          # Bootstrap before first Stable promotion: never run untrusted main/PR code.
+          if [ ! -f tools/ci/release-self-heal-classify.mjs ]; then
+            echo "retry=false" >> "$GITHUB_OUTPUT"
+            echo "reason=trusted-classifier-not-yet-promoted" >> "$GITHUB_OUTPUT"
+            echo "::notice::Trusted classifier is not yet in Stable; no automatic retry."
+            exit 0
+          fi
           gh run view "$RUN_ID" --repo "$GITHUB_REPOSITORY" --log-failed > /tmp/mid-failed.log 2>&1 || true
           gh api --method GET "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/jobs?per_page=100" > /tmp/mid-failed-jobs.json
           # Trusted Stable classifier never approves a release: it only retries

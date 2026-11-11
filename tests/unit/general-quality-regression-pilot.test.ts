@@ -55,7 +55,10 @@ describe('Read-only release-train fail-closed diagnostics',()=>{
   expect(active).toBe(canonical);
   expect(active).toContain('preflight_status=$?');
   expect(active).toContain('cat "$RUNNER_TEMP/mid-release-train-result.json"');
-  expect(active.indexOf('} >> "$GITHUB_STEP_SUMMARY"')).toBeLessThan(active.indexOf('exit "$preflight_status"'));
+  const summaryEnd=active.indexOf('} >> "$GITHUB_STEP_SUMMARY"');
+  const exitIndex=active.indexOf('exit "$preflight_status"');
+  expect(summaryEnd).toBeGreaterThan(-1);
+  expect(exitIndex).toBeGreaterThan(summaryEnd);
   expect(cli).toContain("process.stderr.write('Release train preflight BLOCKED:");
   expect(cli).toContain('process.exitCode=1');
  },20_000);

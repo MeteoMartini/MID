@@ -40,9 +40,13 @@ jobs:
           printf '%s' "$PLAN_MANIFEST" > "$RUNNER_TEMP/mid-release-train-plan.json"
           # Capture the result and publish its explanation EVEN when the advisory preflight blocks.
           set +e
-          node tools/ci/release-train-plan.mjs "$RUNNER_TEMP/mid-release-train-plan.json" "$GITHUB_REPOSITORY" > "$RUNNER_TEMP/mid-release-train-result.json"
+          node tools/ci/release-train-plan.mjs "$RUNNER_TEMP/mid-release-train-plan.json" "$GITHUB_REPOSITORY" > "$RUNNER_TEMP/mid-release-train-result.json" 2> "$RUNNER_TEMP/mid-release-train-error.log"
           preflight_status=$?
           set -e
+          # Make pre-JSON failures visible, keeping the original failed exit.
+          if [ -s "$RUNNER_TEMP/mid-release-train-error.log" ]; then
+            cat "$RUNNER_TEMP/mid-release-train-error.log" >&2
+          fi
           {
             echo '### MID Release Train – rein lesende Vorprüfung'
             echo
@@ -51,5 +55,11 @@ jobs:
             echo '~~~json'
             cat "$RUNNER_TEMP/mid-release-train-result.json"
             echo '~~~'
+            if [ -s "$RUNNER_TEMP/mid-release-train-error.log" ]; then
+              echo '### Blockierungsursache (JSON-escaped)'
+              echo '~~~json'
+              node -e 'const fs=require("node:fs");console.log(JSON.stringify(fs.readFileSync(process.argv[1],"utf8").slice(0,4000)))' "$RUNNER_TEMP/mid-release-train-error.log"
+              echo '~~~'
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
           exit "$preflight_status"

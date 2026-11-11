@@ -1,6 +1,6 @@
 # MID Release Self-Heal: Single unified-map timeout classification (QA Draft)
 
-**Status: QA ONLY / NO RELEASE / NO READY / NO MAIN-STABLE-WRITE.** Proposed scope is exclusively the established `MID Release Self-Heal` workflow and its canonical mirror. Not a new workflow or release authorization. Version in this QA branch remains the last verified Stable `0.9.85.455`; a future integration would require a new synchronized version after full review and existing Source/Installer/Worker/Pages/Stable gates.
+**Status: QA ONLY / NO RELEASE / NO READY / NO MAIN-STABLE-WRITE.** Proposed scope is exclusively the established `MID Release Self-Heal` workflow and its canonical mirror. Not a new workflow or release authorization. The originally reviewed Stable base was `0.9.85.455`; the current integrated QA release candidate #754 is `0.9.85.456`, not yet promoted. Source/Installer/Worker/Pages/Stable gates remain binding.
 
 ## Exact live incident (11 Nov 2026)
 

@@ -479,6 +479,15 @@ test('release retry preserves existing deterministic-before-network precedence',
  assert.equal(selfHealClassify({failedLog:'TypeError: HTTP 503',attempt:1}).retry,false);
  assert.equal(selfHealClassify({failedLog:'unknown failure'}).retry,false);
 });
+test('release self-heal bootstrap rejects pre-promotion untrusted fallback',async()=>{
+ const active=await readRepositoryFile(new URL('../.github/workflows/release-self-heal.yml',import.meta.url),'utf8');
+ const mirror=await readRepositoryFile(new URL('../ci/github/workflows/release-self-heal.yml',import.meta.url),'utf8');
+ assert.equal(active,mirror);
+ assert.match(active,/if \\[ ! -f tools\\/ci\\/release-self-heal-classify\\.mjs \\]; then/);
+ assert.match(active,/reason=trusted-classifier-not-yet-promoted/);
+ assert.match(active,/retry=false/);
+ assert.match(active,/ref: mid-stable/);
+});
 test('release self-heal continues through its existing workflow only and retains immutable Stable-sourced helper',async()=>{
  const canonical=await readRepositoryFile(new URL('../ci/github/workflows/release-self-heal.yml',import.meta.url),'utf8');
  const active=await readRepositoryFile(new URL('../.github/workflows/release-self-heal.yml',import.meta.url),'utf8');
