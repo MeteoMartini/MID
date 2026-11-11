@@ -112,7 +112,8 @@ def planned_pairs(catalogs: dict[str, dict[int, str]], lead: int) -> dict[str, s
     return out
 
 
-def verify_window(meta: dict, *, run: str, lead: int, field: str) -> int:
+def verify_window(meta: dict, *, run: str, lead: int, field: str,
+                  allow_gust_interval_mismatch: bool = False) -> int:
     """Use GRIB keys, never the listing or filename, as semantic authority."""
     expected = datetime.strptime(run, '%Y%m%d%H').replace(tzinfo=timezone.utc)
     category = {'tot_prec': (0,1,52), 't_2m': (0,0,0), 'vmax_10m': (0,2,22)}.get(field)
@@ -144,8 +145,10 @@ def verify_window(meta: dict, *, run: str, lead: int, field: str) -> int:
         if interval <= 0 or interval > lead:
             raise ContractError('invalid original gust statistic interval')
         # The summer composite must compare the same accumulation/statistics period.
-        if interval != target_interval(lead):
-            raise ContractError('gust interval incompatible with original precipitation window')
+        if not allow_gust_interval_mismatch and interval != target_interval(lead):
+            raise ContractError(
+                f'gust statistic window {interval} h differs from '
+                f'precipitation accumulation {target_interval(lead)} h')
         return interval
     raise ContractError('unknown original parameter')
 
@@ -323,7 +326,8 @@ def run_qualification(run: str, leads: list[int]) -> dict:
             url = f'{BASE}/{run[-2:]}/{field}/{name}'
             payload = _request_bytes(session,url)
             meta,values,grid_id = decode_original(payload)
-            verify_window(meta,run=run,lead=hour,field=field)
+            verify_window(meta,run=run,lead=hour,field=field,
+                          allow_gust_interval_mismatch=(field=='vmax_10m'))
             validate_original_range(field,values)
             fetched[key] = (meta,values,grid_id,hashlib.sha256(payload).hexdigest())
         if len({v[2] for v in fetched.values()}) != 1:
@@ -335,11 +339,21 @@ def run_qualification(run: str, leads: list[int]) -> dict:
         values = cumulative_difference_array(old,new)
         gust = fetched[f'vmax_10m:{lead}'][1]
         temp = fetched[f't_2m:{lead}'][1]
+        original_gust_hours = lead - fetched[f'vmax_10m:{lead}'][0]['startStep']
+        gust_window_matches = original_gust_hours == width
         valid_winter = np.isfinite(values) & np.isfinite(temp)
-        valid_summer = np.isfinite(values) & np.isfinite(gust)
-        if not valid_winter.any() or not valid_summer.any():
-            raise ContractError('no valid seasonal pair cells')
-        entries.append({'lead':lead,'intervalHours':width,'totalCells':len(values),
+        # If gust statistic covers e.g. only hour 80..81 while precipitation
+        # covers 78..81, summer must be UNAVAILABLE even for finite gust values.
+        valid_summer = ((np.isfinite(values) & np.isfinite(gust)) if gust_window_matches
+                        else np.zeros(values.shape,dtype=bool))
+        if not valid_winter.any() or (gust_window_matches and not valid_summer.any()):
+            raise ContractError('no valid temporal original-field pair cells')
+        entries.append({'lead':lead,'intervalHours':width,
+          'precipitationIntervalHours':width,'gustIntervalHours':original_gust_hours,
+          'winterPairStatus':'grib-pair-qualified',
+          'summerPairStatus':('grib-pair-qualified' if gust_window_matches
+                              else 'blocked-gust-interval'),
+          'totalCells':len(values),
           'validWinter':int(valid_winter.sum()),'validSummer':int(valid_summer.sum()),
           'minPrecipitationMm':float(np.nanmin(values)),'maxPrecipitationMm':float(np.nanmax(values)),
           'files':{key:{'sha256':val[3], 'units':val[0]['units'], 'stepType':val[0]['stepType'],
