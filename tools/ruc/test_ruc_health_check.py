@@ -675,11 +675,11 @@ class SafeDiagnosticsTests(unittest.TestCase):
    metadata.write_text(json.dumps(active),encoding='utf-8')
    output=Path(directory)/'github-output'
    stderr=io.StringIO()
-   with mock.patch.dict(mod.os.environ,{'GITHUB_OUTPUT':str(output)}),\\
-        contextlib.redirect_stderr(stderr),\\
-        mock.patch.object(mod,'probe_until_ready',return_value=(
-         {'ready':True,'fullCodec':{'verified':True}},1)) as worker_probe,\\
-        mock.patch.object(mod,'probe_pages') as pages_probe:
+   with (mock.patch.dict(mod.os.environ,{'GITHUB_OUTPUT':str(output)}),
+         contextlib.redirect_stderr(stderr),
+         mock.patch.object(mod,'probe_until_ready',return_value=(
+          {'ready':True,'fullCodec':{'verified':True}},1)) as worker_probe,
+         mock.patch.object(mod,'probe_pages') as pages_probe):
     result=mod.main(['--url','https://host.invalid/',
                      '--meta',str(metadata)])
    self.assertEqual(result,2)
