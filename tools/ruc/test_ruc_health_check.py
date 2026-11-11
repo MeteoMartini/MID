@@ -414,6 +414,7 @@ class SafeDiagnosticsTests(unittest.TestCase):
   for modified,reason in (
    ({'storageProfile':'pages-lossless-v1'},'worker_pages_profile_invalid'),
    ({'storageProfile':None},'worker_pages_profile_invalid'),
+   ({'storageProfile':{}},'worker_pages_profile_invalid'),
    ({'storageProfile':'pages-codec-staging-v1'},'worker_pages_profile_invalid'),
    ({'nativeEpsMembers':True},'worker_pages_profile_invalid'),
    ({'objectsPresent':{**pages['objectsPresent'],'epsMembers':True}},
