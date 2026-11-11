@@ -5,8 +5,8 @@ Source at creation: `main = mid-stable = 7272a54ef9a9bd02fa1b6523f0cbf352b941296
 ## Scope and execution
 
 - `tools/ci/mid-workflow-quality-pilot.mjs` checks byte-identical canonical/active copies of seven fixed release/source/security/RUC workflows before running the separately, SHA/checksum-verified `actionlint` and `zizmor` executables. Offline `zizmor` receives no token or secret environment variables. Scan findings, missing tools and mirror drift cannot become green. No workflow or CI integration is enabled. On the exact source snapshot, after a trusted offline installation: `node tools/ci/mid-workflow-quality-pilot.mjs`.
-- `scripts/test-mid-workflow-quality-pilot-0985455.mjs` has eight self-contained negative/safety test groups, no network, external scanner, new dependency or paid service. Run with `node scripts/test-mid-workflow-quality-pilot-0985455.mjs`.
-- `scripts/test-mid-release-property-invariants-0985455.mjs` has 512 seeded property inputs / 2568 version arithmetic and rejection checks against the existing trusted MID versioning implementation. No additional dependency. Run with `node scripts/test-mid-release-property-invariants-0985455.mjs`.
+- `scripts/qa-mid-workflow-quality-pilot-0985455.mjs` has eight self-contained negative/safety test groups, no network, external scanner, new dependency or paid service. Run with `node scripts/qa-mid-workflow-quality-pilot-0985455.mjs`.
+- `scripts/qa-mid-release-property-invariants-0985455.mjs` has 512 seeded property inputs / 2568 version arithmetic and rejection checks against the existing trusted MID versioning implementation. No additional dependency. Run with `node scripts/qa-mid-release-property-invariants-0985455.mjs`.
 
 ## Qualification, non-authorizations and handoff
 
