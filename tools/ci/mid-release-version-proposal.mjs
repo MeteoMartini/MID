@@ -63,6 +63,52 @@ export function analyzeReleaseVersion(manifest,live) {
     notice:'Read-only recommendation from declared, SHA-bound evidence. It has NOT verified GitHub diffs, reviewers, CI, official weather data, approvals or release gates.'};
 }
 
+// Consume only a complete SHA-bound remote inventory from the existing release-train
+// preflight; a candidate-authored paths list alone never counts as verified evidence.
+// This checks *inventory* and arithmetic, NOT semantic impact, review or release authority.
+export function analyzeVerifiedReleaseVersion(manifest,live,snapshot) {
+ const declared=analyzeReleaseVersion(manifest,live);
+ const blockers=[...declared.blockers];
+ if(!snapshot || snapshot.plan?.validForIntegrationReview!==true ||
+    snapshot.plan?.releaseAuthorized!==false ||
+    snapshot.current?.mainSha!==manifest.mainSha ||
+    snapshot.current?.stableSha!==manifest.stableSha)
+   blockers.push('Remote PR/Stable preflight missing, stale or blocked');
+ const actual=snapshot?.verifiedCandidates;
+ if(!Array.isArray(actual)||actual.length!==manifest.candidates.length)
+   blockers.push('Remote PR inventory missing or incomplete');
+ else {
+   const lookup=new Map();
+   for(const p of actual){
+    if(!p||!Number.isSafeInteger(p.pr)||!SHA.test(p.headSha??'')||
+       !Array.isArray(p.files)||p.files.length===0||
+       p.files.some(path=>typeof path!=='string'||!VALID_PATH.test(path))||
+       new Set(p.files).size!==p.files.length||lookup.has(p.pr)){
+      blockers.push('Malformed or duplicated verified remote PR evidence');
+      continue;
+    }
+    lookup.set(p.pr,p);
+   }
+   for(const candidate of manifest.candidates){
+    const remote=lookup.get(candidate.pr);
+    if(!remote||remote.headSha!==candidate.headSha)
+      blockers.push('PR #'+candidate.pr+' remote HEAD or identity mismatch');
+    else if(remote.files.length!==candidate.changedPaths.length ||
+        remote.files.some(p=>!candidate.changedPaths.includes(p)))
+      blockers.push('PR #'+candidate.pr+' declared paths differ from complete GitHub diff inventory');
+   }
+ }
+ const verifiedDiffInventory=blockers.length===0;
+ return {...declared,
+   proposedVersion:verifiedDiffInventory?declared.proposedVersion:null,
+   readyForIntegrationReview:verifiedDiffInventory,
+   verifiedDiffInventory,
+   blockers,
+   observations:[...declared.observations,
+     'GitHub file inventory and SHA identities checked independently by the existing read-only release-train preflight; declared impact still requires human domain review'],
+   notice:'Read-only version proposal from exact GitHub PR inventory and pinned Stable version mirrors; no semantic-impact proof, reviewer attestation, merge approval, Source/Installer gate or release authorization.'};
+}
+
 export function verifyProposedTarget(result,targetVersion) {
   if(!result || result.readyForIntegrationReview!==true || !result.proposedVersion)
     throw Error('No eligible version proposal');
