@@ -32,13 +32,19 @@ for(const [candidate,current,expected] of [['0.7.70.1','0.7.70',true],['0.7.70.2
 const frozenVersion=await inspectMidReleaseMirrors(pkg.version,path=>Promise.resolve(read('../'+path)));
 if(!frozenVersion.evidenceConsistent)
   failures.push('MID version mirrors drift: '+frozenVersion.blockers.join(', '));
-if(frozenVersion.releaseAuthorized!==false||frozenVersion.pathsChecked!==19)
+if(frozenVersion.releaseAuthorized!==false||frozenVersion.mergeAuthorized!==false||frozenVersion.pathsChecked!==19)
   failures.push('Read-only release mirror inspector claimed authority or lost paths');
 const damagedMirror=await inspectMidReleaseMirrors(pkg.version,path=>Promise.resolve(
  path==='contracts/index.json'?'{"releaseVersion":"0.9.85.0"}':read('../'+path)
 ));
 if(damagedMirror.evidenceConsistent||!damagedMirror.blockers.includes('MIRROR_MISMATCH:contracts/index.json'))
   failures.push('Malformed version mirror was not rejected');
+
+const excessiveVersion=await inspectMidReleaseMirrors(pkg.version,path=>Promise.resolve(
+ path==='CHANGELOG.md'?'# MID v'+pkg.version+'.1\n':read('../'+path)
+));
+if(excessiveVersion.evidenceConsistent||!excessiveVersion.blockers.includes('MIRROR_MISMATCH:CHANGELOG.md'))
+ failures.push('A fifth version component was wrongly accepted in a changelog mirror');
 const missingMirror=await inspectMidReleaseMirrors(pkg.version,path=>path==='MID_IOS_STATUS.json'?
  Promise.reject(new Error('not available')):Promise.resolve(read('../'+path)));
 if(missingMirror.evidenceConsistent||!missingMirror.blockers.some(x=>x.includes('MISSING_OR_UNREADABLE_MIRROR:MID_IOS_STATUS.json')))
@@ -48,7 +54,8 @@ const snapshot={stableSha:'a'.repeat(40),mainSha:'a'.repeat(40),expectedStableSh
  baseVersion:'0.9.85.455',candidateHeadSha:'b'.repeat(40),reviewedHeadSha:'b'.repeat(40)};
 const maintenance=assessMidVersionFreeze({...snapshot,impact:'maintenance',targetVersion:'0.9.85.456'});
 const feature=assessMidVersionFreeze({...snapshot,impact:'feature',targetVersion:'0.9.86.0'});
-if(!maintenance.evidenceConsistent||!feature.evidenceConsistent||maintenance.releaseAuthorized!==false)
+if(!maintenance.evidenceConsistent||!feature.evidenceConsistent||maintenance.releaseAuthorized!==false||maintenance.mergeAuthorized!==false||
+ feature.mergeAuthorized!==false)
  failures.push('Maintenance/feature four-component arithmetic is not read-only and correct');
 for(const example of [
  {...snapshot,impact:'feature',targetVersion:'0.9.85.456'},
@@ -66,7 +73,7 @@ const reviewHead='c'.repeat(40),qualified={headSha:reviewHead,status:'qualified'
 const baseReview={headSha:reviewHead,cubic:{state:'unavailable'},independentReview:qualified,findings:[]};
 const cubicDown=assessMidReviewDispositions(baseReview);
 if(!cubicDown.evidenceConsistent||cubicDown.cubicRequired!==false||
- cubicDown.releaseAuthorized!==false)
+ cubicDown.releaseAuthorized!==false||cubicDown.mergeAuthorized!==false)
  failures.push('Cubic unavailability incorrectly created a new required release check');
 const p1={id:'cubic-P1',severity:'P1',domainCritical:true,disposition:'unreviewed'};
 for(const input of [
@@ -85,11 +92,18 @@ const explained={...p1,disposition:'fixed',reviewedHeadSha:reviewHead,
  evidenceRef:'GitHub SHA-pinned regression test / CI run #12345',
  rationale:'Fixed in the reviewed final integration commit'};
 const resolved=assessMidReviewDispositions({...baseReview,cubic:{state:'completed',headSha:reviewHead},findings:[explained]});
-if(!resolved.evidenceConsistent||resolved.releaseAuthorized!==false)
+if(!resolved.evidenceConsistent||resolved.releaseAuthorized!==false||resolved.mergeAuthorized!==false)
  failures.push('Evidence-bearing disposition should be reviewable but never authorize release');
 const staleCubic=assessMidReviewDispositions({...baseReview,cubic:{state:'completed',headSha:'d'.repeat(40)}});
 if(!staleCubic.evidenceConsistent||!staleCubic.observations.some(x=>x.includes('stale')))
  failures.push('Stale Cubic review was treated as current proof');
+const noncriticalP2={id:'optional-copy',severity:'P2',disposition:'deferred',
+ reviewedHeadSha:reviewHead,evidenceRef:'Independent review #740 on the exact SHA',
+ rationale:'A minor label alignment can be safely deferred with express owner risk acceptance'};
+if(assessMidReviewDispositions({...baseReview,findings:[{...noncriticalP2,ownerRiskAccepted:'false'}]}).evidenceConsistent)
+ failures.push('Truthiness of ownerRiskAccepted string falsely bypassed risk acceptance');
+if(!assessMidReviewDispositions({...baseReview,findings:[{...noncriticalP2,ownerRiskAccepted:true}]}).evidenceConsistent)
+ failures.push('Explicit verified Boolean risk acceptance was not recognized');
 const traceableP3={id:'style-note',severity:'P3',disposition:'deferred',
  reviewedHeadSha:reviewHead,evidenceRef:'Tracked suggestion / optional housekeeping',
  rationale:'This style suggestion has no product or release implications'};

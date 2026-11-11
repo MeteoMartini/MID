@@ -86,8 +86,8 @@ export async function inspectMidReleaseMirrors(expectedVersion,readText=pathRead
   for(const p of ['public/service-worker.js','public/sw.js'])
     record(p,match(p,/const CACHE='mid-shell-v([^']+)';/));
   for(const p of ['RELEASE_NOTES.md','CHANGELOG.md','public/CHANGELOG.md','MID_SOURCE_OF_TRUTH.md'])
-    record(p,match(p,/^# MID v(\d+\.\d+\.\d+(?:\.\d+)?)/));
-  record('MID_BUILD_CHANGELOG.md',match('MID_BUILD_CHANGELOG.md',/^## MID v(\d+\.\d+\.\d+(?:\.\d+)?)/));
+    record(p,match(p,/^# MID v(\d+\.\d+\.\d+(?:\.\d+)?)(?![\d.])/));
+  record('MID_BUILD_CHANGELOG.md',match('MID_BUILD_CHANGELOG.md',/^## MID v(\d+\.\d+\.\d+(?:\.\d+)?)(?![\d.])/));
 
   // On MID's iOS-only Xcode project, changing marketing version may restart
   // CFBundleVersion at one. This is not an automatic macOS-versioning policy.
@@ -139,7 +139,7 @@ export function assessMidReviewDispositions({headSha,cubic,independentReview,fin
           if(!traceable)blockers.push('FINDING_DISPOSITION_NOT_VERIFIED:'+finding.id);
           break;
         case 'deferred':
-          if(critical||finding.severity==='P2'&&!finding.ownerRiskAccepted)
+          if(critical||finding.severity==='P2'&&finding.ownerRiskAccepted!==true)
             blockers.push('CRITICAL_OR_UNAPPROVED_DEFERRED_FINDING:'+finding.id);
           else if(!traceable)blockers.push('DEFERRED_FINDING_WITHOUT_EVIDENCE:'+finding.id);
           break;

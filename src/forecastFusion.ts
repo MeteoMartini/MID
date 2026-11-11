@@ -570,8 +570,10 @@ export function finalizeForecastMinute15(minutes15:Minute15[],baseHours:Hour[],f
     const rapidThunder=rapidThunderRisk(rucRapid),convectiveSupport=Math.max(baseConvective,rapidThunder?.support??0);
     const rapidDry=rapidAmount!==undefined&&rapidAmount<=.005&&Number.isFinite(peak)&&peak<=.05&&(!Number.isFinite(dbz)||dbz<12)&&convectiveSupport<.12;
     if(rapidDry)probability=clamp(probability*(1-weight*.55),0,100);
-    else if(rapidAmount!==undefined)probability=Math.max(probability,clamp((rapidAmount>.02?35:10)+rapidAmount*80+convectiveSupport*35,0,92),rapidThunder?.signalScore??0);
-    else if(rapidThunder||convectiveSupport>.12)probability=Math.max(probability,clamp(10+convectiveSupport*35,0,92),rapidThunder?.signalScore??0);
+    else if(rapidAmount!==undefined)probability=Math.max(probability,clamp((rapidAmount>.02?35:10)+rapidAmount*80,0,92));
+    // A diagnostic instability score is not a calibrated precipitation PoP.
+    // Without a native accumulation, do not alter the canonical PoP; the
+    // independent, MID-owned thunder diagnostic can still affect the code.
     // This is an MID-owned diagnostic forecast, never an official warning.
     if(rapidThunder&&(rapidThunder.level==='likely'||rapidThunder.level==='high')&&precipitation>.08&&![68,69,71,73,75,76,77,78,79,83,84,85,86,87,88,89,90,93,94,96,99].includes(code))code=rapidThunderForecastCode(code,rapidThunder);
     else if(convectiveSupport>.55&&precipitation>.08&&![68,69,71,73,75,76,77,78,79,83,84,85,86,87,88,89,90,93,94,96,99].includes(code))code=Math.max(code,82);

@@ -5,7 +5,6 @@ import {pathToFileURL} from 'node:url';
 
 const BROWSER_JOB = 'Release-Heavy · heavy-unified-map · 2/3';
 const DETERMINISTIC = /TS[0-9]{4}:|AssertionError|SyntaxError|ReferenceError|TypeError|\bRegression\b|Tests? failed|Test .* failed|build failed|nicht bestanden|Capacitor-iOS-Web-Bundle .* != Release|Dependency-Audit konnte|high severity|critical severity|ERESOLVE/i;
-const HARD_DETERMINISTIC = /TS[0-9]{4}:|AssertionError|SyntaxError|ReferenceError|TypeError|build failed|nicht bestanden|Capacitor-iOS-Web-Bundle .* != Release|Dependency-Audit konnte|high severity|critical severity|ERESOLVE|\b[0-9]+ von [2-9][0-9]* Regressionstests fehlgeschlagen/i;
 const TRANSIENT = /ECONNRESET|ETIMEDOUT|EAI_AGAIN|ENETUNREACH|ECONNREFUSED|socket hang up|TLS handshake|temporarily unavailable|Temporary failure|HTTP (429|500|502|503|504)|status code (429|500|502|503|504)|rate limit|codeload|network timeout|upstream.*(502|503|504)|Cloudflare.*(429|500|502|503|504)|Pages.*(429|500|502|503|504)/i;
 
 const blocked = reason => Object.freeze({retry:false,reason});
@@ -28,7 +27,7 @@ export function classifyReleaseFailure({failedLog,jobs,attempt}={}){
      /page\.waitForFunction: Timeout 30000ms exceeded\./.test(failedLog)&&
      /scripts\/verify-unified-map-browser-0985167\.mjs:[0-9]+:[0-9]+/.test(failedLog)&&
      /1 von 1 Regressionstests fehlgeschlagen: test-unified-map-layers-0985167\.mjs/.test(failedLog)&&
-     !HARD_DETERMINISTIC.test(failedLog))
+     !DETERMINISTIC.test(failedLog))
     return Object.freeze({retry:true,reason:'one-time-map-browser-timeout'});
 
   // Existing fail-closed order for all other deterministic versus transient errors.

@@ -26,13 +26,18 @@ export function assessMidPremerge({before,after,main,stable,data,number,sha,bran
   if(!t.isResolved)return block('OPEN_THREAD');
  }
  const reviewIds=new Set(),requests=new Set();
- const ordered=[...data.reviews].sort((a,b)=>Date.parse(a.submittedAt??'')-Date.parse(b.submittedAt??''));
- for(const r of ordered){
+ for(const r of data.reviews){
   if(typeof r?.id!=='string'||!r.id||reviewIds.has(r.id)||
      typeof r.author?.login!=='string'||!r.author.login||
      !['APPROVED','CHANGES_REQUESTED','COMMENTED','DISMISSED','PENDING'].includes(r.state)||
      (r.state!=='PENDING'&&!Number.isFinite(Date.parse(r.submittedAt??''))))return block('BAD_REVIEW');
   reviewIds.add(r.id);
+ }
+ // A PENDING draft review has no submittedAt. Including it in Date.parse
+ // creates a NaN sort comparator and can reorder submitted change requests.
+ const submitted=data.reviews.filter(r=>r.state!=='PENDING').sort((a,b)=>
+  Date.parse(a.submittedAt)-Date.parse(b.submittedAt));
+ for(const r of submitted){
   const author=r.author.login.toLowerCase();
   if(r.state==='CHANGES_REQUESTED')requests.add(author);
   else if(r.state==='APPROVED'||r.state==='DISMISSED')requests.delete(author);

@@ -27,6 +27,16 @@ describe('SHA-bound MID merge-time review guard',()=>{
   expect(decide([review('CHANGES_REQUESTED'),review('APPROVED','r2','auditor','2026-11-11T15:01:00Z')])).toBe(true);
   expect(decide([review('CHANGES_REQUESTED'),review('APPROVED','r2','different','2026-11-11T15:01:00Z')])).toBe(false);
  });
+ it('does not let an interleaved PENDING draft reorder submitted change requests',()=>{
+  const reviews=[
+   review('APPROVED','approved','auditor','2026-11-11T14:00:00Z'),
+   review('PENDING','pending','auditor',null as any),
+   review('CHANGES_REQUESTED','changes','auditor','2026-11-11T15:00:00Z')
+  ];
+  expect(check(input({data:{meta,threads:[],reviews,truncated:false}})).toMatchObject({
+   ok:false,reason:'MID_REVIEW_CHANGES_REQUESTED'
+  });
+ });
  it('never makes absent Cubic or informational P3 a standalone block',()=>{expect(check(input()).ok).toBe(true)});
  it('blocks source PR/head/main/Stable drift, missing evidence, duplicates',()=>{
   for(const bad of [
@@ -42,7 +52,15 @@ describe('SHA-bound MID merge-time review guard',()=>{
   let n=0;
   const pages=[page([thread(true,false,'t1')],[review('COMMENTED')],true,true),
    page([thread(false,false,'t2')],[review('CHANGES_REQUESTED','r2')])];
-  const data=await collectMidReviews(async()=>pages[n++],777,sha);
+  const cursors:any[]=[];
+  const data=await collectMidReviews(async cursorsForPage=>{
+   cursors.push(cursorsForPage);
+   return pages[n++];
+  },777,sha);
+  expect(cursors).toEqual([
+   {threadAfter:null,reviewAfter:null},
+   {threadAfter:'nextT',reviewAfter:'nextR'}
+  ]);
   expect(data.threads).toHaveLength(2);
   expect(data.reviews).toHaveLength(2);
   expect(check(input({data})).ok).toBe(false);

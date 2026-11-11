@@ -20,8 +20,10 @@ describe('RUC diagnostics with native quarter-amount NoData',()=>{
   expect(withEvidence.rain).toBeCloseTo(original.rain);
   expect(withEvidence.showers).toBeCloseTo(original.showers);
   expect(withEvidence.snowfall).toBeCloseTo(original.snowfall);
-  expect(withEvidence.probability).toBeGreaterThan(original.probability);
+  expect(withEvidence.probability).toBeCloseTo(original.probability);
   expect(withEvidence.code).toBe(95);
+  // Signal strength is not calibrated precipitation probability, even for
+  // an explicit WMO storm code derived from an MID-owned model diagnosis.
  });
  it.each([undefined,-1,Number.NaN] as const)('keeps a missing %s amount unknown, never as dry evidence',precipitation=>{
   const original=output(),candidate=output({...diagnostic,precipitation,peakRateMmh:0,dbzCmax:0,cape:0});
