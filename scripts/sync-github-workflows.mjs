@@ -19,7 +19,7 @@ function pinApprovedActions(source){
   .replace(/actions\/upload-artifact@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/upload-artifact@${UPLOAD_ARTIFACT_V7_SHA} # v7.0.2`)
   .replace(/actions\/download-artifact@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/download-artifact@${DOWNLOAD_ARTIFACT_V8_SHA} # v8.0.1`)
   .replace(/actions\/setup-python@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/setup-python@${SETUP_PYTHON_V7_SHA} # v7.0.0`)
-  .replace(/github\/codeql-action\/(init|analyze)@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,(_match,action)=>`github/codeql-action/${action}@${CODEQL_V4_SHA} # v4.38.2`)
+  .replace(/github\/codeql-action\/(init|analyze)@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,(_match,action)=>`github/codeql-action/${action}@${CODEQL_V4_SHA} # v4.39.1`)
   .replace(/actions\/deploy-pages@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/deploy-pages@${DEPLOY_PAGES_V5_SHA} # v5.0.1`);
 }
 
