@@ -104,17 +104,21 @@ describe('MID map model identity: flag, family and fine-to-coarse ordering',()=>
   expect(mapModelDisplayLabel({id:'ifs',label:'ECMWF IFS',sourceGrid:'mixed',resolutionKm:9}))
    .toBe('🇪🇺 ECMWF IFS');
  });
- it('rejects a single native 2 km claim for a D2 model offering both original native and WMS products',()=>{
+ it('classifies the real D2 native-only and ICON-EU WMS-only model products without inventing a mixed catalog',()=>{
   const d2=weatherMapProductsForModel('icon-d2');
   expect(d2.some(p=>p.source==='native')).toBe(true);
-  expect(d2.some(p=>p.source===undefined||p.source==='wms')).toBe(true);
-  expect(mapModelSourceGrid(d2)).toBe('mixed');
+  expect(d2.every(p=>p.source==='native'||p.source==='totals')).toBe(true);
+  expect(mapModelSourceGrid(d2)).toBe('native');
   expect(mapModelDisplayLabel({id:'icon-d2',label:'DWD ICON-D2',sourceGrid:mapModelSourceGrid(d2)}))
-   .toBe('🇩🇪 DWD ICON-D2');
+   .toBe('🇩🇪 DWD ICON-D2 · ca. 2 km');
   const eu=weatherMapProductsForModel('icon-eu');
   expect(mapModelSourceGrid(eu)).toBe('wms');
   expect(mapModelDisplayLabel({id:'icon-eu',label:'DWD ICON-EU',sourceGrid:mapModelSourceGrid(eu)}))
    .toContain('0,0625° Kartenraster');
+  // Future, explicitly qualified hybrid catalogs must never claim a single grid.
+  expect(mapModelSourceGrid([...d2,{source:'wms'}])).toBe('mixed');
+  expect(mapModelDisplayLabel({id:'icon-d2',label:'DWD ICON-D2',sourceGrid:'mixed'}))
+   .toBe('🇩🇪 DWD ICON-D2');
  });
  it('keeps source-grid classification strictly tied to existing eligible products',()=>{
   expect(mapModelSourceGrid([])).toBe('mixed');
