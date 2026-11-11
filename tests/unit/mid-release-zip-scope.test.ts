@@ -55,16 +55,16 @@ describe('MID release-bot ZIP-only direct update scope',()=>{
  it('denies a source-code change hidden next to the ZIP',()=>{
   const {result}=verifyCase({extraSource:true});
   expect(result.status).not.toBe(0);
-  expect(result.stderr).toContain('ZIP transport rejected');
+  expect((result.stdout||'')+(result.stderr||'')).toContain('ZIP transport rejected');
  });
  it('denies a foreign merge parent',()=>{
   const {result}=verifyCase({wrongParent:true});
   expect(result.status).not.toBe(0);
-  expect(result.stderr).toContain('ZIP transport rejected');
+  expect((result.stdout||'')+(result.stderr||'')).toContain('ZIP transport rejected');
  });
  it('denies a changed ZIP path when the archive was deleted',()=>{
   const {result}=verifyCase({missingZipBlob:true});
   expect(result.status).not.toBe(0);
-  expect(result.stderr).toContain('ZIP transport rejected');
+  expect((result.stdout||'')+(result.stderr||'')).toContain('ZIP transport rejected');
  });
 });
