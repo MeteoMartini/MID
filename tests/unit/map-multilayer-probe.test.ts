@@ -100,6 +100,15 @@ describe('MID map popover: one map event, several separately labelled original-f
   group.remove(temp.id);
   expect(group.size).toBe(0);
  });
+ it('does not open a second raster dialog when a favorite marker or MapLibre popup is clicked',()=>{
+  const root=fileURLToPath(new URL('../../',import.meta.url));
+  const map=readFileSync(root+'src/ModelMapProbe.tsx','utf8');
+  const core=readFileSync(root+'src/MapLibreCore.tsx','utf8');
+  expect(core).toContain('new maplibregl.Marker({element:el,anchor,offset})');
+  expect(core).toContain('marker.setPopup(new maplibregl.Popup');
+  expect(map).toContain("closest('button,a,.maplibregl-ctrl,.maplibregl-marker,.maplibregl-popup')");
+  expect(map).toContain('group.show(event.lngLat.lat,event.lngLat.wrap().lng)');
+ });
  it('preserves the published exact accessibility contract used by native Chrome map regression',()=>{
   const root=fileURLToPath(new URL('../../',import.meta.url));
   const map=readFileSync(root+'src/ModelMapProbe.tsx','utf8');
