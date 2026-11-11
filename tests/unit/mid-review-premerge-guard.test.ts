@@ -33,7 +33,7 @@ describe('SHA-bound MID merge-time review guard',()=>{
    review('PENDING','pending','auditor',null as any),
    review('CHANGES_REQUESTED','changes','auditor','2026-11-11T15:00:00Z')
   ];
-  expect(check(input({data:{meta,threads:[],reviews,truncated:false}})).toMatchObject({
+  expect(check(input({data:{meta,threads:[],reviews,truncated:false}}))).toMatchObject({
    ok:false,reason:'MID_REVIEW_CHANGES_REQUESTED'
   });
  });
