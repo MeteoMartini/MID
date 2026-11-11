@@ -1,0 +1,38 @@
+# MID-Karten · Modellfamilien, Rasterauflösung und zusätzliche Datenquellen
+
+**Stand:** 11.11.2026 · **verifizierte freigegebene Basis:** \`main=mid-stable=7272a54ef9a9bd02fa1b6523f0cbf352b9412963\`, v0.9.85.455. **QA-Draft:** #755 · **Karten-Originaldaten-QA:** #748 · **Source-Release:** nur etablierter MID-Train. Diese Matrix ist eine wissenschaftlich begründete Funktions- und Integrationsprüfung, kein pauschaler Providerfreibrief.
+
+## Modellwahl in beiden bestehenden Kartenansichten
+
+- Die vorhandenen HTML-\`select\`-Modellwahlen in \`src/UnifiedWeatherMap.tsx\` und \`src/WeatherMapsPanel.tsx\` verwenden dasselbe \`src/mapModelPresentation.ts\`-Modul. Innerhalb von \`optgroup\` werden **zuerst die Familie** und **danach die verfügbaren Kartenraster (fein → grob)** sortiert. Ein stabiles Tie-Break vermeidet Änderungen beim Reload. Keine neue Navigationshierarchie.
+- **Länder-/EU-Flagge vor dem bisherigen Namen**, für bekannte Modell-IDs: 🇩🇪 DWD ICON-D2-RUC / ICON-D2 / ICON-EU / ICON Global / ICON-EPS / AICON / Messanalyse / Nowcasting; 🇪🇺 ECMWF IFS; 🇺🇸 NOAA GFS; 🇨🇦 ECCC GDPS. **Unbekannte IDs** bleiben ohne geratene Flagge in „Weitere Modelle“.
+- **Angezeigtes Zahlenmaß:** D2 rund 2 km; DWD ICON-EU **0,0625° Kartenraster**, DWD ICON Global/EPS/AICON **0,25° Kartenraster** (DWD-WMS-Layerkennung \`reg00625\` bzw. \`reg025\`, nicht unbesehen die native Modellgitterauflösung); ECCC-GDPS 15 km laut bereits bestehendem MID-Modelldetail; ECMWF IFS/NOAA GFS erhalten eine km-Rasterangabe **nur wenn der verifizierte Synoptik-Index \`resolutionKm\` liefert**. Die exakte effektive physikalische Auflösung kann davon abweichen und wird nicht behauptet.
+- **Null Änderungen** an Modell-ID, Feld, WMS-URL, Source-Priorität, UTC-Run/Gültigkeitszeit, (De-)Kompression, Einheiten, Cache, gespeicherten Auswahlwerten, Produktfähigkeit, Warnungen oder Modell-Schemas. Die bestehende Katalog-/Frameprüfung entscheidet weiterhin allein, welche Optionen überhaupt angeboten werden. Fallback-Einträge für temporär unbekannte oder nicht verfügbare bevorzugte Modelle bleiben sichtbar.
+- QA: \`tests/unit/map-model-presentation.test.ts\` umfasst Gruppierung, D2→EU→Global-Auflösung, Flaggen, aus unbekannten IDs keine Länderannahmen, bestehende Produkt-IDs, beide echten Selectors und unveränderte Catalog-Gates. **Browser-/iOS-Darstellung und Dynamic Type** müssen separat auf tatsächlichen Geräten/Simulatoren abgenommen werden; Unit-Tests sind dafür kein Ersatz.
+
+## Weitere Modelle – nach tatsächlichem Integrationsnutzen und Datenverfügbarkeit
+
+| Priorität | Datenquelle / Familie | Im aktuellen MID-Karten-Code | Konkrete Erweiterungsmöglichkeit | Verbindliche Hürden |
+| --- | --- | --- | --- | --- |
+| **P1** | 🇩🇪 DWD **ICON-EU Original-GRIB** | DWD-WMS Einzelprodukte und native Synoptik, aber **noch kein produktiver Originalraster-Saisonkomposit**; echter GRIB-QA-Draft #748 | Getrennter ICON-EU-Originalraster-Publisher/Loader für 1h / 3h-Niederschlag plus 2-m-Temperatur; anschließend zusätzliche Schnee-/Konvektionsfelder | T+81h \`TOT_PREC\` = 3 h, \`VMAX_10M\` = **nur 1 h** ⇒ Wintergrunddatenpaar qualifiziert, Sommer-Böenpaar gesperrt. Eigener Schema-/Run-/Grid-/SHA-/NoData- und Intervallvertrag; nicht unter D2/\`mm/1 h\` veröffentlichen |
+| **P2** | 🇪🇺 ECMWF **IFS** (offiziell neues Open Data 0,1°) | IFS nur für tatsächlich angebotene native MID-Synoptik; mehr kartografische Grundfelder noch nicht qualifiziert | IFS Open Data seit **20.10.2026** zusätzlich **0,1°** neben 0,25°; künftig bessere Europa-Synoptik/Winter-/Konvektion unter CC BY 4.0 mit Attribution | 0,1° nach offiziellen Angaben **rund zwei Stunden später** als 0,25°, separate \`-sfc\`/\`-pl\`-Dateien, Modell 9 km ≠ 0,1°/0,25° Ausgangsraster. Nur richtige IFS-Run-/ValidTime-/WMO-Steptypen, keine Feldmischung oder gratis Dauerbereitstellung behaupten |
+| **P2 (Alpen)** | 🇨🇭 MeteoSwiss **ICON-CH1-EPS / ICON-CH2-EPS** | Kein bestätigter unabhängiger MID-Kartenraster-Adapter | CH1 rund **1 km**, 11 Mitglieder, **33 h**; CH2 rund **2,1 km**, 21 Mitglieder, **120 h**; echte Berg-/Schnee-/Alpenmodelle und uncertainty | **Native ikosaedrische GRIB2-Gitter**, **gesonderte statische CLAT/CLON/Höhen-Dateien**, nur **24 h** DWH-Verfügbarkeit; lokales DWD-eccodes-COSMO-Tabellenmapping prüfen. Ensemble-Member nie als unabhängige Modelle zählen |
+| **P3** | 🇳🇱 KNMI **HARMONIE** | Nicht als eigenständiges MID-Wetterkartenfeld qualifiziert | Regionale hochauflösende Nachbarländer-Karten / Wind / Niederschlagsphase | Eigene KNMI-Datei-API mit **API-Key**, fair-use und ggf. 72h-Retention je Dataset; keine breiten Credentials oder hohe Pollrate; Quellen-/Lizenz-/Downloadkosten prüfen |
+| **P3** | 🇫🇷 Météo-France **AROME / ARPEGE** | Nicht als Original-Wetterkartenadapter qualifiziert; Punktmodellnutzung in anderen MID-Bereichen zählt nicht als Karten-Freigabe | Regionale Frankreich-/Alpen-Niederschlags- und Schneefelder (AROME); ARPEGE-Europa/Global für Übersicht | Offizielle API-Registrierung/Token erforderlich; Parameter, lizenzrechtliche Weitergabe, max. 100 req/min (Produktabhängig) und Flächen-/Zeitsemantik vor produktivem Einstieg getrennt prüfen |
+| **P3** | 🇺🇸 NOAA **GFS** 0,25° | Bereits in MID-Synoptik, **kein** universell freigegebenes Winter-/Sommerkomposit | Globale feldgetreue Niederschlag-/CAPE-/Windscherungsprodukte, falls Originalfeldintervall und Rasterpaarung validiert | NOMADS 0,25° 00/06/12/18 UTC, stündliche Dateien nicht unbegrenzt (OPeNDAP 1h bis +120h, darüber 3h). 3h-Cadence nicht als nachgewiesenes GRIB-Maximums- oder Akkumulationsfenster ausgeben |
+
+**Offizielle nachprüfbare Herstellerquellen:**
+- DWD Original GRIB: <https://opendata.dwd.de/weather/nwp/icon-eu/grib/>; MID-DWD-GRIB-SHA-Belege aus [GitHub-QA #748](https://github.com/MeteoMartini/MID/pull/748)
+- ECMWF/Open Data/Lizenz und IFS 0,1°: <https://www.ecmwf.int/en/forecasts/datasets/open-data>; <https://github.com/ecmwf/ecmwf-opendata>
+- MeteoSwiss ICON-CH1/CH2 native Originaldaten und statische Gitter: <https://opendatadocs.meteoswiss.ch/e-forecast-data/e2-e3-numerical-weather-forecasting-model>
+- KNMI HARMONIE und API-Zugang: <https://english.knmidata.nl/open-data/harmonie>; <https://developer.dataplatform.knmi.nl/open-data-api>
+- Météo-France öffentlich zugängliche API-Katalogeinträge: <https://www.data.gouv.fr/organizations/meteo-france/dataservices>; <https://www.data.gouv.fr/dataservices/api-package-arome-1>
+- NOAA GFS NOMADS Veröffentlichungsinventar: <https://www.nco.ncep.noaa.gov/pmb/products/gfs/nomads/>
+
+## Wissenschaftliche und Release-Gates für jede tatsächliche Modellintegration
+
+1. Originalanbieter/CC-BY oder Nutzungsrechte verifizieren, Quelle und fällige Attribution; keine kostenpflichtigen Provider ohne gesonderte Nutzerfreigabe.
+2. Jede Modell-/Ensemble-Familie und jede Rastervariante mit eigener stabiler ID, \`model/runUTC/validUTC/stepType/startStep/endStep/grid/hash/units/NoData\`; keine stille Fallback-Mischung und **fehlend ≠ null/0**.
+3. Komposite nach den tatsächlichen Originalstatistikintervallen bilden, nicht aus Datei-Cadence oder automatischer Modellumschaltung raten. Schneehöhe ≠ Neuschnee/SWE, 2-m-Nullgrad-Isotherme ≠ Schneefallgrenze, Böen ≠ 0–6-km-Scherung, CAPE ≠ amtliche Warnung.
+4. Feld-/Raster-/Geografie-Originalbytes in echter CI prüfen, danach Kartenlegendeneinheiten, Ortswert, Zeitleiste, NoData-Schnittmasken, PNG/SVG, Touch/320–1440 px, Light/Dark, iOS-Shell, Performance und vollständige Rückwärtskompatibilität.
+5. Ausschließlich verifizierter Source-PR → SHA-gebundener Merge → serverseitiges ZIP → \`install-mid.yml\` → betroffene Worker/Pages → erfolgreiche Stable-Promotion. Dieser UI-PR ist Draft; kein eigenständiger Build/Release.
