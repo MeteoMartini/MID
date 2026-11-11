@@ -68,7 +68,7 @@ export default function ModelMapProbe<T extends number|string=number>(
    releaseStore(map,store);
    if(storeRef.current===store)storeRef.current=null;
   };
- },[map,enabled,contextKey]);
+ },[map,enabled,contextKey,label,unit,source,unavailableNote]);
  const point=view.point;
  useLayoutEffect(()=>{
   if(!map||!view.owner||!point)return;
