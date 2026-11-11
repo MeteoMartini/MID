@@ -100,6 +100,20 @@ describe('MID map popover: one map event, several separately labelled original-f
   group.remove(temp.id);
   expect(group.size).toBe(0);
  });
+ it('preserves the published exact accessibility contract used by native Chrome map regression',()=>{
+  const root=fileURLToPath(new URL('../../',import.meta.url));
+  const map=readFileSync(root+'src/ModelMapProbe.tsx','utf8');
+  const browser=readFileSync(root+'scripts/verify-native-model-browser-0985141.mjs','utf8');
+  expect(browser).toContain("name:'Wert am Kartenmittelpunkt anzeigen',exact:true");
+  expect(map).toContain('title="Wert am Kartenmittelpunkt" aria-label="Wert am Kartenmittelpunkt anzeigen" aria-haspopup="dialog"');
+  expect(map).toContain('role="dialog" className="mid-model-map-probe"');
+  expect(map).toContain('if(!view.owner)return null');
+ });
+ it('resubscribes rather than showing old displayed values after a unit, source or label change',()=>{
+  const root=fileURLToPath(new URL('../../',import.meta.url));
+  const map=readFileSync(root+'src/ModelMapProbe.tsx','utf8');
+  expect(map).toContain('[map,enabled,contextKey,label,unit,source,unavailableNote]');
+ });
  it('does not apply an unrelated source value or duplicate the map center control',()=>{
   const root=fileURLToPath(new URL('../../',import.meta.url));
   const map=readFileSync(root+'src/ModelMapProbe.tsx','utf8');
