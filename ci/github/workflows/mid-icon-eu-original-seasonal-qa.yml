@@ -90,6 +90,9 @@ jobs:
           PY
             else
               echo "::error::Original DWD GRIB qualification blocked for lead $lead; no release."
+              if [ -s ".icon-eu-evidence/lead-$lead.out" ]; then
+                python -c "import json,sys; d=json.load(open(sys.argv[1])); print('BLOCK_REASON:', str(d.get('error','unstructured source error'))[:350])" ".icon-eu-evidence/lead-$lead.out" || true
+              fi
               failed=1
             fi
           done
@@ -101,4 +104,5 @@ jobs:
           name: mid-icon-eu-original-grib-${{ github.run_id }}
           path: .icon-eu-evidence/
           if-no-files-found: warn
+          include-hidden-files: true
           retention-days: 7
