@@ -483,7 +483,7 @@ test('release self-heal bootstrap rejects pre-promotion untrusted fallback',asyn
  const active=await readRepositoryFile(new URL('../.github/workflows/release-self-heal.yml',import.meta.url),'utf8');
  const mirror=await readRepositoryFile(new URL('../ci/github/workflows/release-self-heal.yml',import.meta.url),'utf8');
  assert.equal(active,mirror);
- assert.match(active,/if \\[ ! -f tools\\/ci\\/release-self-heal-classify\\.mjs \\]; then/);
+ assert.ok(active.includes('if [ ! -f tools/ci/release-self-heal-classify.mjs ]; then'));
  assert.match(active,/reason=trusted-classifier-not-yet-promoted/);
  assert.match(active,/retry=false/);
  assert.match(active,/ref: mid-stable/);
