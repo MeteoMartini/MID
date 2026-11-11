@@ -226,6 +226,10 @@ export function createMidAiOneShotExecutor({
    // Fail closed again before disclosing the untrusted provider output.
    // The durable quota claim stays consumed and the provider call is NOT retried.
    await verifySource(readback,task,now);
+   // The signed one-shot approval must still be live at disclosure time.
+   // The durable claim remains consumed; no retry or extra provider call.
+   if(!Number.isSafeInteger(task.grant.expiresAtMs)||
+      task.grant.expiresAtMs<=now())deny('GRANT_EXPIRED_AFTER_RESPONSE');
    return Object.freeze({
     status:'UNTRUSTED_REVIEW_ONLY',provider,model,actualModel:actual,
     requestId:task.requestId,stableSha:task.expectedStableSha,

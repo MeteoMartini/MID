@@ -87,6 +87,7 @@ const remote=async(url,opts)=>{
   JSON.parse(opts.body).model;
  const raw=mode==='oversized'?'x'.repeat(65537):JSON.stringify(response(provider,model));
  if(mode==='postResponseDrift')postResponseDrift=true;
+ if(mode==='expireDuringFetch')clock+=130000;
  return new Response(raw,{status:200});
 };
 const executor=createMidAiOneShotExecutor({
@@ -167,6 +168,15 @@ await test(async()=>{
  }finally{mode='ok';postResponseDrift=false;}
  assert.equal(fetchCalls,before+1);
  await bad(()=>executor.execute(t),'DUPLICATE_REQUEST_NO_RETRY');
+ assert.equal(fetchCalls,before+1);
+});
+await test(async()=>{
+ // A signed grant can expire during the one permitted HTTP call. A late
+ // response must never be disclosed, even with unchanged MID Stable SHA.
+ const before=fetchCalls,t=await signed(task('grant-expired-in-flight'));
+ mode='expireDuringFetch';
+ try{await bad(()=>executor.execute(t),'GRANT_EXPIRED_AFTER_RESPONSE');}
+ finally{mode='ok';}
  assert.equal(fetchCalls,before+1);
 });
 await test(async()=>{mode='wrongModel';const before=fetchCalls;
