@@ -154,6 +154,20 @@ describe('MID AI Router: signed quota/source proof binds atomic SQLite admission
   });
 });
 
+describe('MID AI Router: authenticated stateless MCP HTTP boundary', () => {
+  it('enforces read/write scopes, source identity, no-dispatch preflight and safe result receipts', () => {
+    const script = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-mcp-http-0985455.mjs', import.meta.url));
+    const r = spawnSync(process.execPath, [script], {
+      cwd: root, timeout: 20_000, encoding: 'utf8', maxBuffer: 128 * 1024,
+      env: { PATH: process.env.PATH || '' }, stdio: ['ignore', 'pipe', 'pipe']
+    });
+    expect(r.error).toBeUndefined();
+    expect(r.status, r.stderr || r.stdout).toBe(0);
+    expect(r.stdout).toMatch(/MID AI Router MCP protected HTTP offline QA OK; scenarios=22; no network, secrets or external inference\./);
+    expect(r.stderr).toBe('');
+  });
+});
+
 describe('MID AI Router: one-shot external executor with signed OAuth/SQLite gate', () => {
   it('runs fixed Groq/OpenRouter/Gemini mock responses with zero paid fallback and no network', () => {
     const script = fileURLToPath(new URL('../../scripts/qa-mid-ai-router-executor-0985453.mjs', import.meta.url));
