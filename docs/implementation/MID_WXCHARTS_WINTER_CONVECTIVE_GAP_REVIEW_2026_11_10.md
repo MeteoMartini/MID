@@ -48,3 +48,27 @@ Die synthetischen Negativregressionen in `tools/ruc/test_dwd_seasonal_source_inv
 **AP-M – Mehrmodell-/Designintegration.** Erst nach erfolgreicher feldweiser Echt-Original-Grib-QA model_id-spezifische Backend-Adapter, Capability-Matrix, Raster-/Contour-/Export-/Ortswert-E2E und Tests zu Laufwechsel, Cache, Quellenlabels, fehlenden Stunden/Einheiten und 320/390/844/1440 px, Light/Dark, Tastatur/Touchtargets. Das bestehende Kartenlayout und Nutzerpräferenzen erhalten; keine fremden visuellen Elemente kopieren.
 
 **Release:** Alle produktiven Kartenänderungen ausschließlich nach unabhängigen qualifizierten Originaldaten-Gates sowie MID Source-PR → SHA-Bot → serverseitiges ZIP → `install-mid.yml` → Worker-/Pages-Verifikation → Stable-Promotion. Sammel-PR #745 bleibt wegen offener Reviews und ausstehender vollständiger Gates gesperrt. Das vorliegende Dokument und die QA-Dateien **sind keine Release-Genehmigung**.
+
+
+
+---
+
+## 11.11.2026: Echt-Original-GRIB-Qualifikation (read-only, keine Produktfreigabe)
+
+<!-- MID-ORIGINAL-ICON-EU-REAL-GRIB-20261111-RUN42962610933 -->
+
+**SHA-gebundene GitHub-Actions-Quelle:** [MID ICON-EU original seasonal GRIB QA, Run 42962610933](https://github.com/MeteoMartini/MID/actions/runs/42962610933), getesteter PR #748 **HEAD `bb85cf8935a29b87e4fffac05291053456490df0`**, von Stable `ee7a55b5ece4d3d3687202a95caeb6c5ff615055`. Original-DWD-Lauf **2026-11-11T00:00Z**, vollständig in GitHub Actions mit ecCodes/BZip2/numpy aus tatsächlich geladenen DWD-Originaldateien decodiert. **20/20 Original-GRIB- und 16/16 Winter/Convective-Inventar-Unit-Tests bestanden**, Source-Workflow-Gates und echte Originalfelder **completed/success**. Der unabhängige Vitest-/Coverage-Pilot war für denselben PR-HEAD ebenfalls `success`; **vollständige Source-/Heavy-/Browser-/Installer-/Worker-/Pages-/Stable-Gates wurden nicht durchgeführt**.
+
+**Original-Evidenz:** Actions-Artefakt [ID 13829193411](https://github.com/MeteoMartini/MID/actions/runs/42962610933/artifacts/13829193411), ZIP-SHA-256 **`adc16810ce3447c21ce1bd7acedd6f5c3637d6b273bede2eec9070e14469d8a3`**. ZIP enthält je einen JSON-Nachweis plus `.out`/`.err` für T+1, T+78, T+81. Für jedes Feld werden originaler SHA-256, Einheit, `stepType`, `startStep`, `endStep` und geprüfte Rasterzellen dokumentiert. **Keine WXCharts-Kartendaten** wurden geladen oder übernommen.
+
+| Vorhersagetermin | Original `TOT_PREC` (Kumulativstände) | Original `T_2M` | Original `VMAX_10M` | Qualifizierte Datenzellen | Ergebnisschlüssel |
+| --- | --- | --- | --- | --- | --- |
+| T+1 | +0 → +1, **1 h** | `instant`, +1 | `max`, +0 → +1, **1 h** | **904 689 Winter**, **904 689 Sommer** | `winterPairStatus=grib-pair-qualified`; `summerPairStatus=grib-pair-qualified` |
+| T+78 | +77 → +78, **1 h** | `instant`, +78 | `max`, +77 → +78, **1 h** | **904 689 Winter**, **904 689 Sommer** | `winterPairStatus=grib-pair-qualified`; `summerPairStatus=grib-pair-qualified` |
+| T+81 | +78 → +81, **3 h** | `instant`, +81 | `max`, +80 → +81, **1 h** | **904 689 Winter**, **0 Sommer** | `winterPairStatus=grib-pair-qualified`; **`summerPairStatus=blocked-gust-interval`** |
+
+Die originalen Gesamt-Niederschlags-Intervallmaxima im geprüften europäischen Gitter waren **38,017578125 mm/1 h** bei +1, **12,5390625 mm/1 h** bei +78 und **26,75 mm/3 h** bei +81; gültige Nullen bleiben erhalten. Dies sind punktuelle Maxima dieses einzelnen Modelllaufs, **keine geglätteten oder übertragbaren Schwellen**. `minPrecipitationMm=0` ist ein echt erhaltener Datenwert, nicht die Kodierung fehlender Daten. Die Anzahl 904 689 gilt nur für diese originalen drei Termine, nicht für andere Runs/Modelle/Regionen.
+
+**Entscheidende wissenschaftliche Erkenntnis:** Dass `VMAX_10M` im offiziellen DWD-Open-Data-Dateiverzeichnis nach T+78 nur alle 3 Stunden als Datei vorliegt, ändert **nicht** das im jeweiligen GRIB-Header tatsächlich berechnete Extremwertfenster. T+81 hat `startStep=80,endStep=81` (1 h) und darf deshalb **nicht** als 3-h-Maximalböe zur 3-h-Niederschlagssumme ausgegeben werden. Die neue QA meldet den belegten Winter-Grunddatenpaarstatus getrennt vom ausdrücklich blockierten Sommer-Grunddatenpaar. **Keine** interpolation, keine Mittelwert-/Böenverwechslung, keine Null-Substitution, kein heimlicher Modellwechsel.
+
+**Strikte Grenzen:** Das ist ausschließlich die datenfachliche Qualifikation der Paare **Niederschlag+T2M** bzw. **Niederschlag+Böen**, **keine** fertige WXCharts-Tiefenparität: keine geprüfte Phasen-/Gefrierregen-/Schneehöhen-/Neuschneekarte, keine CAPE-/CIN-/0–6-km-Scherung, keine DWD-Warnung, keine abgenommene Karte/Legende/Ortswerte/Export/Browser/iOS und **keine produktive Modellwahl für ICON-EU**. Alle QA-Ausgaben enthalten `releaseApproved:false`, auch bei fachlichem Erfolg. Ein vollständiges Produkt- und Release-Gate bleibt erforderlich.
