@@ -1,8 +1,8 @@
 import {access,readdir,readFile as readRepositoryFile} from 'node:fs/promises';
-import {parseMidVersion,makeProposedVersion,analyzeReleaseVersion,verifyProposedTarget} from '../tools/ci/mid-release-version-proposal.mjs';
+import {parseMidVersion,makeProposedVersion,analyzeReleaseVersion,analyzeVerifiedReleaseVersion,verifyProposedTarget} from '../tools/ci/mid-release-version-proposal.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {validateManifest,analyzeCandidates,inspectRemote} from '../tools/ci/release-train-plan.mjs';
+import {validateManifest,analyzeCandidates,inspectRemote,inspectRemoteSnapshot,inspectStableVersion} from '../tools/ci/release-train-plan.mjs';
 const a='a'.repeat(40),b='b'.repeat(40),c='c'.repeat(40);
 const manifest=()=>({schema:1,mainSha:a,stableSha:a,changes:[{pr:501,headSha:b},{pr:502,headSha:c}]});
 const prs=()=>[
@@ -272,4 +272,85 @@ test('current workflow registry does not use globally triggered per-PR-only jobs
   if(unscopedPrNumberPinnedJobs(source))offenders.push(name);
  }
  assert.deepEqual(offenders,[],'Unscoped per-PR workflow noise must be removed or positively path-scoped');
+});
+
+const versionEvidence=()=>({schema:1,mainSha:a,stableSha:a,baseVersion:'0.9.85.454',
+ candidates:[{pr:501,headSha:b,impact:'maintenance',reason:'Independent maintenance diff review required',changedPaths:['src/foo.ts','docs/a.md']}]});
+const evidenceSnapshot=()=>({
+ current:{mainSha:a,stableSha:a,repository:'MeteoMartini/MID'},
+ plan:{validForIntegrationReview:true,releaseAuthorized:false},
+ verifiedCandidates:[{pr:501,headSha:b,files:['src/foo.ts','docs/a.md']}],
+});
+const pinnedLive={mainSha:a,stableSha:a,version:'0.9.85.454'};
+test('verified GitHub files are required before proposing any MID version',()=>{
+ const result=analyzeVerifiedReleaseVersion(versionEvidence(),pinnedLive,evidenceSnapshot());
+ assert.equal(result.verifiedDiffInventory,true);
+ assert.equal(result.proposedVersion,'0.9.85.455');
+ assert.equal(result.releaseAuthorized,false);
+ assert.match(result.notice,/no semantic-impact proof/);
+});
+test('version verification fails closed on omitted, added, renamed or duplicated actual paths',()=>{
+ const badVariants=[
+  ['src/foo.ts'],
+  ['src/foo.ts','docs/a.md','extra/path.txt'],
+  ['src/foo.ts','docs/new.md'],
+  ['src/foo.ts','src/foo.ts'],
+ ];
+ for(const files of badVariants){
+  const snapshot=evidenceSnapshot();
+  snapshot.verifiedCandidates[0].files=files;
+  const result=analyzeVerifiedReleaseVersion(versionEvidence(),pinnedLive,snapshot);
+  assert.equal(result.proposedVersion,null,JSON.stringify(files));
+  assert.equal(result.readyForIntegrationReview,false);
+  assert.equal(result.releaseAuthorized,false);
+ }
+});
+test('version verification cannot trust forged PR HEAD, missing preflight or fresh Stable drift',()=>{
+ for(const change of [
+  {verifiedCandidates:[{pr:501,headSha:c,files:['src/foo.ts','docs/a.md']}]},
+  {verifiedCandidates:[]},
+  {plan:{validForIntegrationReview:false,releaseAuthorized:false}},
+  {plan:{validForIntegrationReview:true,releaseAuthorized:true}},
+  {current:{mainSha:a,stableSha:c}},
+  {verifiedCandidates:[{pr:777,headSha:b,files:['src/foo.ts','docs/a.md']}]},
+ ]){
+  const r=analyzeVerifiedReleaseVersion(versionEvidence(),pinnedLive,{...evidenceSnapshot(),...change});
+  assert.equal(r.proposedVersion,null,JSON.stringify(change));
+  assert.equal(r.readyForIntegrationReview,false);
+ }
+ assert.equal(analyzeVerifiedReleaseVersion(versionEvidence(),pinnedLive,null).proposedVersion,null);
+ assert.equal(analyzeVerifiedReleaseVersion(versionEvidence(),{...pinnedLive,version:'0.9.85.455'},evidenceSnapshot()).proposedVersion,null);
+});
+test('actual remote integration inventory is returned without changing the existing API result',async()=>{
+ const fixture=remoteFixture();
+ const snapshot=await withRemote(fixture,()=>inspectRemoteSnapshot(one(),current.repository,''));
+ assert.equal(snapshot.plan.validForIntegrationReview,true);
+ assert.equal(snapshot.plan.releaseAuthorized,false);
+ assert.equal(snapshot.current.mainSha,a);
+ assert.deepEqual(snapshot.verifiedCandidates,[{pr:501,headSha:b,files:['src/foo.ts','docs/a.md']}]);
+});
+test('Stable version comes from immutable GitHub SHA-pinned package/baseline/contract mirrors',async()=>{
+ const original=globalThis.fetch;
+ const observed=[];
+ const docs={
+  'package.json':{version:'0.9.85.454'},
+  'MID_BASELINE.json':{version:'0.9.85.454',releaseVersion:'0.9.85.454'},
+  'contracts/index.json':{releaseVersion:'0.9.85.454'},
+ };
+ try{
+  globalThis.fetch=async url=>{
+   const u=new URL(String(url));
+   assert.equal(u.searchParams.get('ref'),a);
+   const path=u.pathname.split('/contents/')[1];
+   assert.ok(Object.hasOwn(docs,path),'Only three pinned version mirrors may be read');
+   observed.push(path);
+   return {ok:true,json:async()=>({type:'file',encoding:'base64',sha:b,
+     content:Buffer.from(JSON.stringify(docs[path])).toString('base64')})};
+  };
+  assert.equal(await inspectStableVersion(current.repository,a,''),'0.9.85.454');
+  assert.deepEqual(observed.sort(),Object.keys(docs).sort());
+  docs['contracts/index.json'].releaseVersion='0.9.85.455';
+  await assert.rejects(inspectStableVersion(current.repository,a,''),/version mirrors disagree/);
+  await assert.rejects(inspectStableVersion('evil/../repository',a,''),/Invalid immutable/);
+ }finally{globalThis.fetch=original}
 });
