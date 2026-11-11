@@ -8,10 +8,27 @@ const [app,precip,meteogram,route,worker]=await Promise.all([
  readFile(new URL('../worker/metar-proxy.js',import.meta.url),'utf8')
 ]);
 const failures=[];
-const detailOrder=app.indexOf('<small>Taupunkt / Feuchte</small>');
-const windOrder=app.indexOf('<small>Wind / Böen</small>',detailOrder);
+const detailOrder=app.indexOf('<span><small>Taupunkt / Feuchte</small><b>{detailDegree(currentHour.dewPoint)}');
+const windOrder=app.indexOf('<span><small>Wind / Böen</small>',detailOrder);
 if(detailOrder<0||windOrder<0||detailOrder>=windOrder)failures.push('Tagesdetail-Tooltip ordnet Taupunkt/Feuchte nicht vor Wind/Böen ein.');
-if(!app.includes('<b>{Math.round(currentHour.dewPoint)}° · {Math.round(currentHour.humidity)} %</b>'))failures.push('Tagesdetail-Tooltip zeigt Taupunkt und Feuchte nicht in der gewünschten Reihenfolge.');
+// The v0.9.85.455 intentional NoData contract changes only the value
+// formatter, not the required ordering of dew point before humidity or
+// the Wind / Böen row. Preserve the original UI ordering regression.
+const tooltip='<span><small>Taupunkt / Feuchte</small><b>{detailDegree(currentHour.dewPoint)} · {Number.isFinite(currentHour.humidity)?`\${Math.round(currentHour.humidity)} %`:"–"}</b></span>';
+if(!app.includes(tooltip))failures.push('Tagesdetail-Tooltip muss Taupunkt vor Feuchte darstellen und fehlende Werte explizit als – markieren.');
+const helper="const detailDegree=(value:number)=>Number.isFinite(value)?`\${Math.round(value)}°`:'–';";
+if(!app.includes(helper))failures.push('Taupunkt muss nur endliche Werte runden und Missing als – zeigen; NaN/Infinity dürfen nicht angezeigt werden.');
+// Protect the source's actual finite-only degree expression rather than
+// reviving the old Math.round(NaN) bug to satisfy a historical literal.
+const match=app.match(/const detailDegree=\(value:number\)=>([^;]+);/);
+if(match){
+ try{
+  const formatter=new Function('value','return '+match[1]);
+  for(const [value,expected] of [[0,'0°'],[-2.6,'-3°'],[NaN,'–'],[Infinity,'–'],[-Infinity,'–']])
+   if(formatter(value)!==expected)failures.push('Taupunkt-Formatter verletzt Finite/NoData-Grenze für '+String(value));
+ }catch(error){failures.push('Taupunkt-Formatter kann nicht geprüft werden: '+String(error))}
+}else failures.push('Taupunkt-Formatter fehlt.');
+
 for(const token of [
  "label:'Wind / Böen'",
  "detail:`${formatWeatherValue(windDirection,'windDirection')}° · ${cardinalDirection(windDirection)}`",

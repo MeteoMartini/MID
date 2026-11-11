@@ -1,12 +1,14 @@
 import {describe,expect,it} from 'vitest';
-import {seasonalMapKinds,seasonalMapFrames,seasonalPairValid,seasonalMaskedPrimary,seasonalMaskedSecondary} from '../../src/nativeSeasonalComposite';
+import {seasonalMapKinds,seasonalMapFrames,seasonalPairValid,seasonalMaskedPair,seasonalMaskedPrimary,seasonalMaskedSecondary} from '../../src/nativeSeasonalComposite';
 import type {NativeField,NativeIndex,NativeFrameRef} from '../../src/nativeModelFields';
+import {D2_FULL_DOMAIN_LEADS,D2_FULL_DOMAIN_KINDS,validateD2FullDomainIndex} from '../../src/nativeD2FullDomain';
+import {nativeScalarLines,nativeRasterExtremes} from '../../src/nativeScalarAnnotations';
 const time='2026-11-09T07:00:00Z',run='2026-11-09T06:00:00Z';
 const frame=(t=time,intervalHours=1):NativeFrameRef=>({hour:1,time:t,file:'precipitation-001.json',sha256:'a'.repeat(64),bytes:500,intervalHours});
 const makeIndex=():NativeIndex=>({schema:'mid.icon-d2.fields.v1',run,products:{
  precipitation:{unit:'mm/1 h',frames:[frame()]},
- temperature:{unit:'°C',frames:[frame()]},
- gust:{unit:'km/h',frames:[frame()]},
+ temperature:{unit:'°C',frames:[frame(time,0)]},
+ gust:{unit:'km/h',frames:[frame(time,0)]},
 }});
 const field=(kind:NativeField['kind'],values:number[]=[0,1,NaN,2]):NativeField=>({
  schema:'mid.icon-d2.field.v1',run,time,kind,unit:kind==='temperature'?'°C':kind==='gust'?'km/h':'mm/1 h',
@@ -19,8 +21,42 @@ describe('DWD ICON-D2 seasonal composites: fail-closed common native fields',()=
   expect(seasonalMapKinds('unknown')).toBeNull();
   expect(seasonalMapFrames(makeIndex(),'winter-berge')).toHaveLength(1);
   expect(seasonalMapFrames(makeIndex(),'sommer-gewitter')).toHaveLength(1);
+  const native=makeIndex();native.schema='mid.icon-d2.native-fields.v2';
+  expect(seasonalMapFrames(native,'winter-berge')).toEqual([]);
+  native.productionApproved=true;
+  expect(seasonalMapFrames(native,'winter-berge')).toHaveLength(1);
+  expect(seasonalMapFrames(native,'sommer-gewitter')).toHaveLength(1);
+  native.products.temperature!.frames=[frame(time,-1)];
+  expect(seasonalMapFrames(native,'winter-berge')).toHaveLength(0);
+  const wrongLead=makeIndex();wrongLead.products.temperature!.frames=[{...frame(time,0),hour:2}];
+  expect(seasonalMapFrames(wrongLead,'winter-berge')).toEqual([]);
+  const wrongTime=makeIndex();wrongTime.products.precipitation!.frames=[{...frame(),hour:2}];
+  expect(seasonalMapFrames(wrongTime,'winter-berge')).toEqual([]);
   const i=makeIndex();i.products.precipitation!.frames=[frame(time,3)];
   expect(seasonalMapFrames(i,'winter-berge')).toHaveLength(0);
+ });
+ it('accepts the actually validated full-domain v2 index with zero-hour companions',()=>{
+  const units={temperature:'°C',pressure:'hPa',wind:'km/h',gust:'km/h',cloud:'%',thetae:'K',sigwx:'WMO',precipitation:'mm/1 h'} as const;
+  const products=Object.fromEntries(D2_FULL_DOMAIN_KINDS.map(kind=>[kind,{
+   unit:units[kind],
+   frames:D2_FULL_DOMAIN_LEADS.map(hour=>({
+    hour,time:new Date(Date.parse(run)+hour*3600_000).toISOString(),
+    file:`${kind}-${String(hour).padStart(3,'0')}.bin`,
+    sha256:'a'.repeat(64),bytes:500,encoding:'gzip-json',decodedBytes:500,
+    intervalHours:kind==='precipitation'?1:0,
+   })),
+  }]));
+  const v2=validateD2FullDomainIndex({
+   schema:'mid.icon-d2.native-fields.v2',productionApproved:true,modelId:'icon-d2',
+   sampling:'nearest-native-cell',nativePoints:542040,sourceInventorySha256:'b'.repeat(64),
+   run,products,
+  },Date.parse(run));
+  expect(seasonalMapFrames(v2,'winter-berge')).toHaveLength(9);
+  expect(seasonalMapFrames(v2,'sommer-gewitter')).toHaveLength(9);
+  const invalid={...v2,products:{...v2.products,gust:{
+   ...v2.products.gust!,frames:v2.products.gust!.frames.map((f,i)=>i===0?{...f,intervalHours:1}:f),
+  }}};
+  expect(()=>validateD2FullDomainIndex(invalid,Date.parse(run))).toThrow('original frame');
  });
  it('does not advertise a composite lacking a shared valid time, field or source unit',()=>{
   const i=makeIndex();i.products.temperature!.frames=[frame('2026-11-09T08:00:00Z')];
@@ -32,6 +68,8 @@ describe('DWD ICON-D2 seasonal composites: fail-closed common native fields',()=
  it('never pairs different model runs, times, model IDs, shapes or geolocation',()=>{
   const p=field('precipitation'),t=field('temperature');
   expect(seasonalPairValid('winter-berge',p,t,time)).toBe(true);
+  expect(seasonalPairValid('winter-berge',{...p,unit:'mm'},t)).toBe(false);
+  expect(seasonalPairValid('winter-berge',p,{...t,unit:'K'})).toBe(false);
   expect(seasonalPairValid('winter-berge',p,{...t,run:'2026-11-09T03:00:00Z'})).toBe(false);
   expect(seasonalPairValid('winter-berge',p,{...t,time:'2026-11-09T08:00:00Z'})).toBe(false);
   expect(seasonalPairValid('winter-berge',p,{...t,modelId:'icon-d2-ruc'})).toBe(false);
@@ -49,6 +87,41 @@ describe('DWD ICON-D2 seasonal composites: fail-closed common native fields',()=
   expect(Number.isNaN(primary?.values[3])).toBe(true);
   expect(secondary?.values[0]).toBe(-2);
   expect(Number.isNaN(secondary?.values[1])).toBe(true);
+  expect(Number.isNaN(secondary?.values[2])).toBe(true);
+ });
+ it('builds the primary and companion from one identical lossless NoData mask',()=>{
+  const p=field('precipitation',[0,NaN,4,10]),t=field('temperature',[-1,2,NaN,5]);
+  const pair=seasonalMaskedPair('winter-berge',p,t,time);
+  expect(pair?.primary.values).toEqual([0,NaN,NaN,10]);
+  expect(pair?.secondary.values).toEqual([-1,NaN,NaN,5]);
+  expect(pair?.primary.values).toEqual(seasonalMaskedPrimary('winter-berge',p,t)?.values);
+  expect(pair?.secondary.values).toEqual(seasonalMaskedSecondary('winter-berge',p,t)?.values);
+  expect(p.values).toEqual([0,NaN,4,10]); // Original frames remain immutable
+  expect(t.values).toEqual([-1,2,NaN,5]);
+  expect(seasonalMaskedPair('winter-berge',p,t,'2026-11-09T08:00:00Z')).toBeNull();
+  expect(seasonalMaskedPair('sommer-gewitter',p,t,time)).toBeNull();
+ });
+ it('keeps original extremes but never draws companion contours over one-field NoData',()=>{
+  const precip=field('precipitation',[0,5,20,60]),validGust=field('gust',[0,40,80,120]);
+  const complete=seasonalMaskedSecondary('sommer-gewitter',precip,validGust);
+  expect(complete).not.toBeNull();
+  expect(nativeScalarLines(complete!,'kmh').length).toBeGreaterThan(0);
+  const missing=seasonalMaskedSecondary('sommer-gewitter',{...precip,values:[0,NaN,20,60]},validGust);
+  expect(missing).not.toBeNull();
+  expect(Number.isNaN(missing!.values[1])).toBe(true);
+  expect(nativeScalarLines(missing!,'kmh')).toEqual([]); // The only 2x2 quad contains NoData
+  const extremes=nativeRasterExtremes(missing!);
+  expect(extremes.find(p=>p.type==='Max')?.value).toBe(120);
+  expect(extremes.find(p=>p.type==='Min')?.value).toBe(0);
+ });
+ it('rejects two individually valid rasters with disjoint NoData masks',()=>{
+  const precip=field('precipitation',[0,NaN,0,NaN]);
+  const temp=field('temperature',[NaN,-2,NaN,3]);
+  expect(seasonalPairValid('winter-berge',precip,temp)).toBe(false);
+  expect(seasonalMaskedPrimary('winter-berge',precip,temp)).toBeNull();
+  expect(seasonalMaskedSecondary('winter-berge',precip,temp)).toBeNull();
+  expect(seasonalPairValid('winter-berge',precip,{...temp,values:[-2,-2,NaN,3]})).toBe(true);
+  expect(seasonalMaskedPrimary('winter-berge',precip,{...temp,values:[-2,-2,NaN,3]})?.values[0]).toBe(0);
  });
  it('does not manufacture snow, lightning or a synthetic hazard value',()=>{
   const p=field('precipitation',[0,1,4,NaN]),g=field('gust',[10,40,80,90]);

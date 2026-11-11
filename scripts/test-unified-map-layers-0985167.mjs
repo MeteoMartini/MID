@@ -11,16 +11,23 @@ assert.equal(m.unifiedWmsProduct('geopotential','icon').id,'icon-gh');assert.equ
 // Load the REAL seasonal guard into this stripped-import fixture; never stub its logic.
 const seasonal=read('src/nativeSeasonalComposite.ts').replace(/^import .*?;\n/gm,'');
 const catalog=read('src/unifiedMapCatalog.ts').replace(/^import .*?;\n/gm,''),catalogJs=ts.transpileModule(`const readDurableStorageValue=key=>localStorage.getItem(key);const UNIFIED_WMS_PARAMETERS=[];const choices=${JSON.stringify(m.unifiedWmsChoices())};const unifiedWmsChoices=()=>choices;${seasonal}\n${catalog}`,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText,c=await import('data:text/javascript;base64,'+Buffer.from(catalogJs).toString('base64'));
+const nativeUi=read('src/UnifiedWeatherMap.tsx');
+assert.match(nativeUi,/resampling=\{isSeasonal\|\|modelId==='icon-d2-ruc'\?'nearest':'linear'\}/,'Native paired seasonal rasters retain exact NoData cell boundaries, never bilinear bleed');
 const index={products:{temperature:{frames:[{}]},gust:{frames:[{}]}}};
 assert.deepEqual(c.unifiedSources('temperature',index,false,false).map(s=>s.id),['icon-d2','icon']);
 assert.deepEqual(c.unifiedSources('gust',index,false,false).map(s=>s.id),['icon-d2']);
 assert.deepEqual(c.unifiedSources('observed',index,true,false),[],'Unpublished observations are not offered');
 assert.equal(c.unifiedSources('observed',index,true,true)[0].id,'radolan');
-const pairedTime='2026-10-05T01:00:00Z',goodRef={time:pairedTime,intervalHours:1,sha256:'a'.repeat(64)};
+const pairedTime='2026-10-05T01:00:00Z',goodRef={hour:1,time:pairedTime,intervalHours:1,sha256:'a'.repeat(64)};
 const seasonalIndex={schema:'mid.icon-d2.fields.v1',run:'2026-10-05T00:00:00Z',products:{
- precipitation:{unit:'mm/1 h',frames:[goodRef]},temperature:{unit:'°C',frames:[goodRef]},gust:{unit:'km/h',frames:[goodRef]}}};
+ precipitation:{unit:'mm/1 h',frames:[goodRef]},temperature:{unit:'°C',frames:[{...goodRef,intervalHours:0}]},gust:{unit:'km/h',frames:[{...goodRef,intervalHours:0}]}}};
 assert.deepEqual(c.unifiedSources('winter-berge',seasonalIndex,false,false).map(s=>s.id),['icon-d2']);
 assert.deepEqual(c.unifiedSources('sommer-gewitter',seasonalIndex,false,false).map(s=>s.id),['icon-d2']);
+const nativeV2SeasonalIndex={...seasonalIndex,schema:'mid.icon-d2.native-fields.v2',modelId:'icon-d2',productionApproved:true};
+assert.deepEqual(c.unifiedSources('winter-berge',nativeV2SeasonalIndex,false,false).map(s=>s.id),['icon-d2'],'Native v2 temperature uses intervalHours=0, not 1');
+assert.deepEqual(c.unifiedSources('sommer-gewitter',nativeV2SeasonalIndex,false,false).map(s=>s.id),['icon-d2'],'Native v2 gust uses intervalHours=0, not 1');
+assert.equal(c.unifiedSources('sommer-gewitter',{...nativeV2SeasonalIndex,products:{...nativeV2SeasonalIndex.products,gust:{unit:'km/h',frames:[{...goodRef,intervalHours:-1}]}}},false,false).length,0,'Invalid negative companion interval cannot be offered');
+assert.equal(c.unifiedSources('sommer-gewitter',{...nativeV2SeasonalIndex,products:{...nativeV2SeasonalIndex.products,gust:{unit:'km/h',frames:[{...goodRef,hour:2,intervalHours:0}]}}},false,false).length,0,'Different lead for same valid time is not a verified same-run field pair');
 assert.equal(c.unifiedSources('winter-berge',{...seasonalIndex,products:{...seasonalIndex.products,temperature:{unit:'°C',frames:[]}}},false,false).length,0,'Unavailable original source pair cannot be offered');
 assert.equal(c.unifiedSources('sommer-gewitter',{...seasonalIndex,products:{...seasonalIndex.products,precipitation:{unit:'mm/1 h',frames:[{...goodRef,intervalHours:3}]}}},false,false).length,0,'3-h accumulation must never masquerade as 1-h composite');
 const terms=[{time:'2026-10-05T00:00:00Z'},{time:'2026-10-05T03:00:00Z'}];

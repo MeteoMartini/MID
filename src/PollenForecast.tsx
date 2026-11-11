@@ -1,3 +1,4 @@
+import './midPollen.css';
 import {useDisplayPreference,displayBoolean} from './useDisplayPreference';
 import {useState,useEffect,type CSSProperties} from 'react';
 import {fetchWorkerJson} from './workerClient';
@@ -21,11 +22,13 @@ function pollenSeverity(entry:PollenForecastEntry|undefined):number{
   if(raw==='2'||raw==='mäßig'||raw==='maessig'||raw==='mittel'||raw==='mittlere belastung')return 2;
   if(raw==='2-3'||raw.includes('mittel bis hoch')||raw.includes('mittlere bis hohe'))return 2.5;
   if(raw==='3'||raw==='stark'||raw==='hoch'||raw==='hohe belastung')return 3;
-  const numeric=Number(entry.pollenInt);
-  return Number.isFinite(numeric)?Math.max(0,Math.min(3,numeric)):0;
+  return-1; // Unknown native DWD strings must remain missing, never accept a worker sentinel 0.
+}
+function pollenHasMissing(date:string,types:string[],byType:Map<string,PollenForecastEntry[]>):boolean{
+  return types.length===0||types.some(type=>pollenSeverity(byType.get(type)?.find(entry=>entry.forecastDate===date))<0);
 }
 function pollenLabel(entry:PollenForecastEntry|undefined):string{
-  if(!entry)return'–';
+  if(!entry||pollenSeverity(entry)<0)return'–';
   const raw=String(entry.pollenValue||'').trim();
   return POLLEN_CODE_LABELS[raw]||raw||'–';
 }
@@ -142,8 +145,12 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
   const relevantTypes=sortedTypes.filter(type=>maxTypeSeverity(type)>0).sort((a,b)=>maxTypeSeverity(b)-maxTypeSeverity(a)||sortedTypes.indexOf(a)-sortedTypes.indexOf(b));
   const primaryTypes=relevantTypes.slice(0,4);
   const detailTypes=showAll?sortedTypes:primaryTypes;
-  const strongestToday=rankedTodayEntries[0],todayAvailable=Boolean(todayDate),todayStatus=!todayAvailable?'DWD-Aktualisierung ausstehend':strongestToday?pollenLabel(strongestToday.entry):'keine Belastung';
-  const statusLevel=strongestToday?pollenLevel(strongestToday.entry):0;
+  const expectedTypes=data.pollenTypes.length?data.pollenTypes:sortedTypes;
+  const todayHasMissing=pollenHasMissing(todayDate??'',expectedTypes,byPollenType);
+  const forecastHasMissing=forecastDates.length<3||forecastDates.some(date=>pollenHasMissing(date,expectedTypes,byPollenType));
+  const strongestToday=rankedTodayEntries[0],todayAvailable=Boolean(todayDate);
+  const todayStatus=!todayAvailable?'DWD-Aktualisierung ausstehend':strongestToday?`${pollenLabel(strongestToday.entry)}${todayHasMissing?' · Datenlücken':''}`:todayHasMissing?'DWD-Angaben unvollständig':'keine Belastung';
+  const statusLevel=strongestToday?pollenLevel(strongestToday.entry):todayHasMissing?-1:0;
   const detailId='pollen-forecast-detail',allToggleId='pollen-forecast-all';
   const productUpdatedAt=data.productUpdatedAt?new Date(data.productUpdatedAt):null,checkedAt=data.checkedAt?new Date(data.checkedAt):null,displayUpdatedAt=productUpdatedAt&&!Number.isNaN(productUpdatedAt.getTime())?productUpdatedAt:checkedAt,checkedLabel=displayUpdatedAt&&!Number.isNaN(displayUpdatedAt.getTime())?displayUpdatedAt.toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'unbekannt',freshnessLabel=productUpdatedAt&&!Number.isNaN(productUpdatedAt.getTime())?'DWD · Produktstand':'DWD · Abruf',refreshStatus=error?' · Aktualisierung ausstehend':'';
   const toggleExpanded=()=>setExpanded(current=>{if(current)setShowAll(false);return!current});
@@ -161,16 +168,16 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
         {hiddenActiveCount>0&&<span className="pollen-chip pollen-chip-more">+{hiddenActiveCount}</span>}
       </div>}
       {expanded&&<div id={detailId} className="pollen-detail">
-        <header className="pollen-detail-head"><strong>3-Tage-Ausblick</strong><small>{relevantTypes.length?(relevantTypes.length>primaryTypes.length?`${relevantTypes.length} relevant · ${primaryTypes.length} angezeigt`:relevantTypes.length===1?'1 relevante Pollenart':`${relevantTypes.length} relevante Pollenarten`):'keine Belastung'}</small></header>
+        <header className="pollen-detail-head"><strong>3-Tage-Ausblick</strong><small>{relevantTypes.length?(relevantTypes.length>primaryTypes.length?`${relevantTypes.length} relevant · ${primaryTypes.length} angezeigt`:relevantTypes.length===1?'1 relevante Pollenart':`${relevantTypes.length} relevante Pollenarten`):forecastHasMissing?'DWD-Angaben unvollständig':'keine Belastung'}</small></header>
         {detailTypes.length>0?(
           <div className="pollen-grid" style={{'--pollen-days':Math.max(1,forecastDates.length)} as CSSProperties} role="table" aria-label="Pollenflug-Vorhersage ab heute">
             <div className="pollen-grid-header" role="row"><span role="columnheader">Pollenart</span>{forecastDates.map((date,i)=><span key={date} role="columnheader">{dateLabel(date)||`Tag ${i+1}`}</span>)}</div>
             {detailTypes.map(pollenType=>{
               const entries=byPollenType.get(pollenType)||[],sortedEntries=forecastDates.map(date=>entries.find(e=>e.forecastDate===date));
-              return <div key={pollenType} className="pollen-grid-row" role="row"><span role="rowheader" className="pollen-type-label">{POLLEN_LABELS[pollenType]||pollenType}</span>{sortedEntries.map((entry,i)=>entry?<span key={i} role="cell" className={`pollen-value pollen-level-${pollenLevel(entry)}`} title={pollenLabel(entry)}><span className="pollen-dot" style={{background:POLLEN_LEVEL_COLORS[pollenLevel(entry)]}} aria-hidden="true"/><span>{pollenLabel(entry)}</span></span>:<span key={i} role="cell" className="pollen-value pollen-na">–</span>)}</div>;
+              return <div key={pollenType} className="pollen-grid-row" role="row"><span role="rowheader" className="pollen-type-label">{POLLEN_LABELS[pollenType]||pollenType}</span>{sortedEntries.map((entry,i)=>entry&&pollenSeverity(entry)>=0?<span key={i} role="cell" className={`pollen-value pollen-level-${pollenLevel(entry)}`} title={pollenLabel(entry)}><span className="pollen-dot" style={{background:POLLEN_LEVEL_COLORS[pollenLevel(entry)]}} aria-hidden="true"/><span>{pollenLabel(entry)}</span></span>:<span key={i} role="cell" className="pollen-value pollen-na">–</span>)}</div>;
             })}
           </div>
-        ):<div className="pollen-three-day-clear">In den nächsten drei Tagen keine Pollenbelastung.</div>}
+        ):<div className="pollen-three-day-clear">{forecastHasMissing?'Pollenangaben teilweise nicht verfügbar.':'In den nächsten drei Tagen keine Pollenbelastung.'}</div>}
         {sortedTypes.length>primaryTypes.length&&<button id={allToggleId} type="button" className="pollen-all-toggle" onClick={()=>setShowAll(value=>!value)} aria-pressed={showAll}>{showAll?'Weniger anzeigen':'Alle 8 Pollenarten anzeigen'}</button>}
       </div>}
     </section>
