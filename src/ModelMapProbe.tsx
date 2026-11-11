@@ -15,7 +15,7 @@ function acquireStore(map:MapLibreMap):MapProbeStore{
  const current=stores.get(map);if(current)return current;
  const group=new MapProbeGroup();
  const click=(event:MapMouseEvent)=>{
-  if((event.originalEvent.target as Element|null)?.closest('button,a,.maplibregl-ctrl'))return;
+  if((event.originalEvent.target as Element|null)?.closest('button,a,.maplibregl-ctrl,.maplibregl-marker,.maplibregl-popup'))return;
   group.show(event.lngLat.lat,event.lngLat.wrap().lng);
  };
  const move=()=>group.close();
