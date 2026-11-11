@@ -1,3 +1,4 @@
+import {spawnSync} from 'node:child_process';
 import {access,readdir,readFile as readRepositoryFile} from 'node:fs/promises';
 import {classifyReleaseFailure} from '../tools/ci/release-self-heal-classify.mjs';
 import {parseMidVersion,makeProposedVersion,analyzeReleaseVersion,analyzeVerifiedReleaseVersion,verifyProposedTarget} from '../tools/ci/mid-release-version-proposal.mjs';
@@ -417,6 +418,35 @@ test('installer dispatch must pin expected release ZIP SHA while manual workflow
  assert.match(installer,/required: false/);
  assert.match(installer,/if: github\.event_name == 'workflow_dispatch' && inputs\.expected_package_sha != ''/);
  assert.match(installer,/\[ "\$EXPECTED_PACKAGE_SHA" != "\$EVENT_SHA" \]/);
+});
+test('failed Installer dispatch can recover only on exact ZIP SHA with independent proof',async()=>{
+ const active=await readRepositoryFile(new URL('../.github/workflows/agent-source-release.yml',import.meta.url),'utf8');
+ const canonical=await readRepositoryFile(new URL('../ci/github/workflows/agent-source-release.yml',import.meta.url),'utf8');
+ assert.equal(active,canonical);
+ for(const marker of ['GITHUB_RUN_ATTEMPT','MID_INSTALL_RECOVERY_PREVIOUS_JOB','MID_INSTALL_RECOVERY_ZIP_PROVENANCE','MID_INSTALL_RECOVERY_NO_DUPLICATE','package_recovered != \'true\'','steps.package.outputs.package_sha || steps.pr.outputs.package_sha'])
+  assert.ok(active.includes(marker),'Exact recovery protection missing: '+marker);
+ const match=(label,re)=>{const x=active.match(re);assert.ok(x,label+' predicate not found');return x[1];};
+ const prior=match('prior job',/if ! jq -e --arg name "[^"]+" '([\s\S]*?)' <<<"\$previous_jobs" >\/dev\/null; then/);
+ const commitRule=match('package lineage',/if ! jq -e --arg sha "[^"]+" --arg merge "[^"]+" --arg bot "[^"]+" --arg title "[^"]+" '([\s\S]*?)' <<<"\$live_package" >\/dev\/null; then/);
+ const inventory=match('no duplicate',/if ! jq -e '([^']+)' <<<"\$installer_runs" >\/dev\/null; then/);
+ const jq=(f,input,...args)=>spawnSync('jq',['-e',...args,f],{input:JSON.stringify(input),encoding:'utf8'}).status;
+ const title='PR mergen, Release-ZIP erzeugen und Installer starten';
+ const good={total_count:1,jobs:[{name:title,conclusion:'failure',steps:[
+  {name:'Release-ZIP aus dem aktuellen main-Quellstand erzeugen und committen',conclusion:'success'},
+  {name:'Bewährten MID-Installer explizit starten',conclusion:'failure'}]}]};
+ const args=['--arg','name',title];
+ assert.equal(jq(prior,good,...args),0);
+ for(const bad of [{...good,total_count:2},{...good,jobs:[good.jobs[0],good.jobs[0]]},{...good,jobs:[{...good.jobs[0],conclusion:'success'}]},{...good,jobs:[{...good.jobs[0],steps:good.jobs[0].steps.slice(0,1)}]}])
+  assert.notEqual(jq(prior,bad,...args),0);
+ const merge='a'.repeat(40),zip='b'.repeat(40),bot='mid-release-bot-meteomartini[bot]',msg='Prepare MID agent release from PR #754';
+ const zipArgs=['--arg','sha',zip,'--arg','merge',merge,'--arg','bot',bot,'--arg','title',msg];
+ const valid={sha:zip,parents:[{sha:merge}],author:{login:bot},committer:{login:bot},commit:{message:msg},files:[{filename:'MID-professional-replacement.zip',status:'modified'}]};
+ assert.equal(jq(commitRule,valid,...zipArgs),0);
+ for(const bad of [{...valid,parents:[{sha:zip}]},{...valid,author:{login:'other'}},{...valid,committer:{login:'other'}},{...valid,files:[...valid.files,{filename:'src/main.ts'}]},{...valid,commit:{message:'wrong'}},{...valid,sha:merge}])
+  assert.notEqual(jq(commitRule,bad,...zipArgs),0);
+ assert.equal(jq(inventory,{total_count:0,workflow_runs:[]}),0);
+ for(const bad of [{total_count:1,workflow_runs:[{id:1}]},{total_count:0,workflow_runs:[{id:1}]},{workflow_runs:[]}])
+  assert.notEqual(jq(inventory,bad),0);
 });
 test('established trusted SHA-bound bot release workflow mirrors and source-to-installer handoff remain intact',async()=>{
  const canonical=await readRepositoryFile(new URL('../ci/github/workflows/agent-source-release.yml',import.meta.url),'utf8');
