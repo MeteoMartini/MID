@@ -85,8 +85,16 @@ jobs:
           assert p['run']=='2026111100' and p['releaseApproved'] is False
           assert len(p['entries'])==1 and p['entries'][0]['lead']==lead
           assert p['entries'][0]['intervalHours']==(1 if lead<=78 else 3)
-          assert p['entries'][0]['validWinter']>0 and p['entries'][0]['validSummer']>0
-          print('Original data qualified, lead',lead,'files',len(p['entries'][0]['files']))
+          e=p['entries'][0]
+          assert e['validWinter']>0 and e['winterPairStatus']=='grib-pair-qualified'
+          assert e['precipitationIntervalHours']==(1 if lead<=78 else 3)
+          if e['gustIntervalHours']==e['precipitationIntervalHours']:
+              assert e['summerPairStatus']=='grib-pair-qualified' and e['validSummer']>0
+          else:
+              assert e['summerPairStatus']=='blocked-gust-interval' and e['validSummer']==0
+          print('Original data verified',lead,'h; winter',e['winterPairStatus'],
+                'summer',e['summerPairStatus'],'gust interval',e['gustIntervalHours'],'h',
+                'SHA files',len(e['files']))
           PY
             else
               echo "::error::Original DWD GRIB qualification blocked for lead $lead; no release."
