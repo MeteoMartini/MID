@@ -473,11 +473,24 @@ test('release self-heal refuses multiple failed jobs, altered job identity or tr
  assert.equal(selfHealClassify({jobs:{total_count:3,jobs:selfHealBrowserJobs().jobs}}).retry,false);
  assert.equal(selfHealClassify({failedLog:''}).retry,false);
 });
+test('browser attempt two never retries via a stray HTTP status',()=>{
+ assert.equal(selfHealClassify({attempt:2,failedLog:selfHealTimeoutLog+'\nHTTP 503 upstream'}).retry,false);
+});
+test('a routine codeload URL is not an outage classification',()=>{
+ assert.equal(selfHealClassify({failedLog:'Downloaded source from https://codeload.github.com/org/repo/archive.zip'}).retry,false);
+ assert.equal(selfHealClassify({failedLog:'codeload.github.com HTTP 503 upstream'}).retry,true);
+});
 test('release retry preserves existing deterministic-before-network precedence',()=>{
  assert.deepEqual(selfHealClassify({failedLog:'HTTP 503 upstream',attempt:2}),
   {retry:true,reason:'transient'});
  assert.equal(selfHealClassify({failedLog:'TypeError: HTTP 503',attempt:1}).retry,false);
  assert.equal(selfHealClassify({failedLog:'unknown failure'}).retry,false);
+});
+test('trusted release classifier cannot inherit a write-capable GitHub token',async()=>{
+ const active=await readRepositoryFile(new URL('../.github/workflows/release-self-heal.yml',import.meta.url),'utf8');
+ const canonical=await readRepositoryFile(new URL('../ci/github/workflows/release-self-heal.yml',import.meta.url),'utf8');
+ assert.equal(active,canonical);
+ assert.match(active,/env -u GH_TOKEN node tools\/ci\/release-self-heal-classify\.mjs/);
 });
 test('release self-heal bootstrap rejects pre-promotion untrusted fallback',async()=>{
  const active=await readRepositoryFile(new URL('../.github/workflows/release-self-heal.yml',import.meta.url),'utf8');

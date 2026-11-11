@@ -57,7 +57,7 @@ jobs:
           gh api --method GET "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/jobs?per_page=100" > /tmp/mid-failed-jobs.json
           # Trusted Stable classifier never approves a release: it only retries
           # exactly the failed jobs on the same SHA, once for one known browser timeout.
-          node tools/ci/release-self-heal-classify.mjs /tmp/mid-failed.log /tmp/mid-failed-jobs.json "$RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+          env -u GH_TOKEN node tools/ci/release-self-heal-classify.mjs /tmp/mid-failed.log /tmp/mid-failed-jobs.json "$RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
 
       - name: Nur temporär klassifizierte Fehler automatisch erneut ausführen
         if: steps.classify.outputs.retry == 'true'

@@ -66,7 +66,8 @@ describe('SHA-bound MID merge-time review guard',()=>{
   expect(check(input({data})).ok).toBe(false);
  });
  it('fails closed on HTTP-like GraphQL errors, invalid pagination and changed head',async()=>{
-  await expect(collectMidReviews(async()=>({errors:[{message:'403'}]}),777,sha)).rejects.toThrow();
+  const gqlFail=page();(gqlFail as any).errors=[{message:'403'}];
+  await expect(collectMidReviews(async()=>gqlFail,777,sha)).rejects.toThrow();
   const bad=page([],[],true,false);bad.data.repository.pullRequest.reviewThreads.pageInfo.endCursor=null;
   await expect(collectMidReviews(async()=>bad,777,sha)).rejects.toThrow();
   const changed=page();changed.data.repository.pullRequest.headRefOid='c'.repeat(40);

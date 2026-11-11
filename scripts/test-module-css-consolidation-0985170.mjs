@@ -12,7 +12,7 @@ const appSource=read('src/App.tsx');
 assert.ok(appSource.includes("const LazyPollenForecast=lazy(()=>import('./PollenForecast')"),'Optional Pollen CSS must keep the React lazy-loaded component boundary');
 const hasStaticPollenImport=source=>{
  const ast=ts.createSourceFile('App.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
- return ast.statements.some(node=>ts.isImportDeclaration(node)&&
+ return ast.statements.some(node=>(ts.isImportDeclaration(node)||ts.isExportDeclaration(node))&&
   typeof node.moduleSpecifier?.text==='string'&&
   /^\.\/PollenForecast(?:\.tsx?)?$/.test(node.moduleSpecifier.text));
 };
@@ -20,6 +20,8 @@ for(const bad of [
  "import './PollenForecast';",
  'import {PollenForecast} from "./PollenForecast";',
  "import type {PollenForecast} from './PollenForecast.tsx';",
+ "export {PollenForecast} from './PollenForecast';",
+ "export * from './PollenForecast.tsx';",
  "import {\n PollenForecast\n} from './PollenForecast'",
 ]) assert.ok(hasStaticPollenImport(bad),'Regression: static multiline pollen imports must be rejected');
 assert.ok(!hasStaticPollenImport("const LazyPollenForecast=lazy(()=>import('./PollenForecast'))"),'React lazy import remains permitted');

@@ -50,7 +50,7 @@ const pathReader=path=>readFile(new URL('../../'+path,import.meta.url),'utf8');
 export async function inspectMidReleaseMirrors(expectedVersion,readText=pathReader){
   const blockers=[],observations=[],observed={};
   let segments;
-  try{segments=parseMidVersion(expectedVersion)}
+  try{segments=parseMidVersion(expectedVersion.split('.').length===3?expectedVersion+'.0':expectedVersion)}
   catch{return {...deny(['EXPECTED_VERSION_INVALID']),expectedVersion,observed,pathsChecked:0}}
   if(typeof readText!=='function')
     return {...deny(['MIRROR_READER_INVALID']),expectedVersion,observed,pathsChecked:0};
@@ -144,7 +144,7 @@ export function assessMidReviewDispositions({headSha,cubic,independentReview,fin
           else if(!traceable)blockers.push('DEFERRED_FINDING_WITHOUT_EVIDENCE:'+finding.id);
           break;
         default:
-          if(critical||finding.severity==='P2')
+          if(critical||finding.severity==='P2'||finding.severity==='P3')
             blockers.push('UNRESOLVED_ACTIONABLE_FINDING:'+finding.id);
           else observations.push('Noncritical P3 finding still requires tracking: '+finding.id);
       }

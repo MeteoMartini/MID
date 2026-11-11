@@ -45,6 +45,9 @@ const excessiveVersion=await inspectMidReleaseMirrors(pkg.version,path=>Promise.
 ));
 if(excessiveVersion.evidenceConsistent||!excessiveVersion.blockers.includes('MIRROR_MISMATCH:CHANGELOG.md'))
  failures.push('A fifth version component was wrongly accepted in a changelog mirror');
+const legacyThreeComponent=await inspectMidReleaseMirrors('0.9.86',path=>Promise.resolve(read('../'+path)));
+if(legacyThreeComponent.blockers.includes('EXPECTED_VERSION_INVALID')||legacyThreeComponent.pathsChecked!==19)
+ failures.push('Legacy three-component feature version rejected before real version mirror comparison');
 const missingMirror=await inspectMidReleaseMirrors(pkg.version,path=>path==='MID_IOS_STATUS.json'?
  Promise.reject(new Error('not available')):Promise.resolve(read('../'+path)));
 if(missingMirror.evidenceConsistent||!missingMirror.blockers.some(x=>x.includes('MISSING_OR_UNREADABLE_MIRROR:MID_IOS_STATUS.json')))
@@ -54,7 +57,7 @@ const snapshot={stableSha:'a'.repeat(40),mainSha:'a'.repeat(40),expectedStableSh
  baseVersion:'0.9.85.455',candidateHeadSha:'b'.repeat(40),reviewedHeadSha:'b'.repeat(40)};
 const maintenance=assessMidVersionFreeze({...snapshot,impact:'maintenance',targetVersion:'0.9.85.456'});
 const feature=assessMidVersionFreeze({...snapshot,impact:'feature',targetVersion:'0.9.86.0'});
-if(!maintenance.evidenceConsistent||!feature.evidenceConsistent||maintenance.releaseAuthorized!==false||maintenance.mergeAuthorized!==false||
+if(!maintenance.evidenceConsistent||!feature.evidenceConsistent||maintenance.releaseAuthorized!==false||maintenance.mergeAuthorized!==false||feature.releaseAuthorized!==false||
  feature.mergeAuthorized!==false)
  failures.push('Maintenance/feature four-component arithmetic is not read-only and correct');
 for(const example of [
@@ -104,6 +107,9 @@ if(assessMidReviewDispositions({...baseReview,findings:[{...noncriticalP2,ownerR
  failures.push('Truthiness of ownerRiskAccepted string falsely bypassed risk acceptance');
 if(!assessMidReviewDispositions({...baseReview,findings:[{...noncriticalP2,ownerRiskAccepted:true}]}).evidenceConsistent)
  failures.push('Explicit verified Boolean risk acceptance was not recognized');
+const unreviewedP3={id:'style-pending',severity:'P3',disposition:'unreviewed'};
+if(assessMidReviewDispositions({...baseReview,findings:[unreviewedP3]}).evidenceConsistent)
+ failures.push('Unreviewed P3 must be acknowledged before being non-blocking');
 const traceableP3={id:'style-note',severity:'P3',disposition:'deferred',
  reviewedHeadSha:reviewHead,evidenceRef:'Tracked suggestion / optional housekeeping',
  rationale:'This style suggestion has no product or release implications'};
