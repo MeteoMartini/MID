@@ -8,6 +8,11 @@ on:
     paths:
       - MID-professional-replacement.zip
   workflow_dispatch:
+    inputs:
+      expected_package_sha:
+        description: "Optionale SHA-Bindung der Bot-ZIP-Veröffentlichung; bisheriger manueller Installer bleibt möglich"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -30,6 +35,19 @@ jobs:
       snapshot_sha: ${{ steps.snapshot.outputs.snapshot_sha }}
       snapshot_id: ${{ steps.snapshot_upload.outputs.artifact-id }}
     steps:
+      - name: Bot-Installer gegen eventgebundene ZIP-Commit-SHA prüfen
+        if: github.event_name == 'workflow_dispatch' && inputs.expected_package_sha != ''
+        shell: bash
+        env:
+          EXPECTED_PACKAGE_SHA: ${{ inputs.expected_package_sha }}
+          EVENT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$EXPECTED_PACKAGE_SHA" =~ ^[0-9a-f]{40}$ ]] || [ "$EXPECTED_PACKAGE_SHA" != "$EVENT_SHA" ]; then
+            echo "::error::Installer-Ereignis-SHA stimmt nicht mit dem geprüften ZIP-Paket überein."
+            exit 1
+          fi
+
       - name: Repository laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
