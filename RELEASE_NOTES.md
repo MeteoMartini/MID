@@ -4,3 +4,6 @@
 - Bestehende Funktionen bleiben erhalten. Zusätzliche Regressionstests schützen den Sonnenverlauf, die Pollenbeschriftung und das verzögerte Laden des optionalen Pollenmoduls.
 - Die ausschließlich lesende Release-Train-Vorprüfung zeigt bei einer Ablehnung die Gründe an. Die Ablehnung bleibt verbindlich und kann keine Veröffentlichung auslösen.
 - Die Versionshinweise unterscheiden den tatsächlich vorhandenen Review-Schutz von einer noch nicht freigegebenen Erweiterung. Die freiwillige Web-/PWA-Diagnostik nutzt nach Einwilligung eine kurzlebige Sitzungskennung statt einer dauerhaften Nutzerkennung.
+- Die 15-Minuten-Prognose kann unabhängig belegte RUC-Gewittersignale berücksichtigen, auch wenn die native Niederschlagsmenge fehlt. Fehlende Regen- und Schneemengen bleiben unbekannt; dies ist keine amtliche Gewitterwarnung.
+- Der Release-Self-Heal wiederholt ausschließlich einen eng nachgewiesenen temporären Browser-Zeitüberschreitungsfall auf demselben geprüften Commit. Echte Test- und Sicherheitsfehler bleiben Sperrgründe.
+- Der SHA-gebundene Release-Bot erhält eine zusätzliche Überprüfung offener GitHub-Reviewthreads unmittelbar vor dem Merge. Der Schutz gegen gleichzeitig neu eintreffende Threads beruht separat auf der GitHub-Branchregel; der neue Botcode wird erst nach erfolgreicher Veröffentlichung wirksam.
