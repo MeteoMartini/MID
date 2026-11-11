@@ -38,8 +38,8 @@ await t(async()=>{const r=await call('initialize');assert.equal(r.status,200);
  assert.equal(r.body.result.serverInfo.name,'mid-ai-router')});
 await t(async()=>{const r=await call('ping');assert.deepEqual(r.body.result,{})});
 await t(async()=>{const r=await call('tools/list');
- assert.equal(r.body.result.tools.length,3);
- assert.equal(r.body.result.tools[2].annotations.idempotentHint,false)});
+ assert.equal(r.body.result.tools.length,4);
+ assert.equal(r.body.result.tools[3].annotations.idempotentHint,false)});
 await t(async()=>{const r=await tool('list_models_status');const x=JSON.parse(r.body.result.content[0].text);
  assert.equal(x.dispatchAuthorized,false);assert.equal(x.zeroCashVerified,false)});
 await t(async()=>{const r=await tool('plan_request',plan);const x=JSON.parse(r.body.result.content[0].text);
@@ -97,5 +97,25 @@ await t(async()=>{source={...source,versionMirrors:{
  const r=await call('methods/unknown');assert.equal(r.body.error.code,-32601)});
 await t(async()=>{const r=await tool('execute_public_review',{task:{requestId:'mid-mcp-exec-003'},evil:true});
  assert.equal(JSON.parse(r.body.result.content[0].text).reason,'SIGNED_TASK_REQUIRED')});
+await t(async()=>{
+ const a={status:'PLAN_ONLY',requestId:'mid-two-review-01a',
+  provider:'groq',model:'openai/gpt-oss-20b',expectedStableSha:sha};
+ const b={status:'PLAN_ONLY',requestId:'mid-two-review-01b',
+  provider:'openrouter',model:'cohere/north-mini-code:free',expectedStableSha:sha};
+ const p={status:'PLAN_ONLY',mode:'independent-two-models',modelCalls:2,
+  plans:[a,b],automaticDispatch:false,mergeIsAuthoritative:false};
+ const receipt=x=>({status:'UNTRUSTED_REVIEW_ONLY',requestId:x.requestId,
+  provider:x.provider,model:x.model,actualModel:x.model,stableSha:sha,
+  text:'Unverified answer',costStatus:'NOT_VERIFIED',
+  cashSpendStatus:'NOT_VERIFIED',usageStatus:'NOT_REPORTED'});
+ const prior=execCount;
+ const out=await tool('compare_two_reviews',{plan:p,responses:[receipt(a),receipt(b)]});
+ const result=JSON.parse(out.body.result.content[0].text);
+ assert.equal(result.status,'UNTRUSTED_BLEND_REVIEW_ONLY');
+ assert.equal(result.nativeExecutorReceipts,2);
+ assert.equal(result.blendAuthoritative,false);
+ assert.equal(result.sourceClaimsVerified,0);
+ assert.equal(execCount,prior);
+});
 assert.ok(readCount>=4);assert.equal(execCount,4);
 console.log('MID AI Router MCP protected HTTP offline QA OK; scenarios='+tests+'; no network, secrets or external inference.');

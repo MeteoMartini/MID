@@ -5,6 +5,7 @@
  * A live execution still requires the separately signed one-shot grant and
  * globally durable quota claim in mid-ai-router-executor.mjs.
  */
+import {summarizeMidAiBlend} from './mid-ai-router-synthesis.mjs';
 const HEX=/^[a-f0-9]{64}$/;
 const SHA=/^[a-f0-9]{40}$/;
 const REQ=/^[A-Za-z0-9][A-Za-z0-9_-]{7,79}$/;
@@ -26,6 +27,10 @@ const TOOLS=Object.freeze([
   inputSchema:{type:'object',additionalProperties:false,required:['requestId','expectedStableSha','expectedVersion','kind','prompt'],
    properties:{requestId:{type:'string'},expectedStableSha:{type:'string'},expectedVersion:{type:'string'},
     kind:{type:'string'},prompt:{type:'string'}}},
+  annotations:{readOnlyHint:true,destructiveHint:false,openWorldHint:false}}),
+ Object.freeze({name:'compare_two_reviews',description:'Read-only side-by-side review of two untrusted previously obtained model responses. No model calls and no claimed source verification.',
+  inputSchema:{type:'object',additionalProperties:false,required:['plan','responses'],
+   properties:{plan:{type:'object'},responses:{type:'array'},sourceChecks:{type:'array'}}},
   annotations:{readOnlyHint:true,destructiveHint:false,openWorldHint:false}}),
  Object.freeze({name:'execute_public_review',description:'One explicit public-redacted signed review. Requires fresh verified free account, OAuth write scope, exact stable SHA, durable global claim; no retries or paid fallback.',
   inputSchema:{type:'object',additionalProperties:false,required:['task'],properties:{task:{type:'object'}}},
@@ -161,6 +166,23 @@ export function createMidAiMcpHttpHandler({verifiedAuth,readSource,execute,now=(
    try{snap=await readSource()}catch{return rpc(id,trouble('SOURCE_READBACK_UNAVAILABLE'))}
    if(!validSource(snap,now))return rpc(id,trouble('SOURCE_READBACK_STALE_OR_INVALID'));
    return rpc(id,safePlan(p.arguments,snap));
+  }
+  if(p.name==='compare_two_reviews'){
+   let snap;
+   try{snap=await readSource()}catch{return rpc(id,trouble('SOURCE_READBACK_UNAVAILABLE'))}
+   if(!validSource(snap,now))return rpc(id,trouble('SOURCE_READBACK_STALE_OR_INVALID'));
+   if(!Array.isArray(p.arguments.plan?.plans)||
+      p.arguments.plan.plans.length!==2||
+      p.arguments.plan.plans.some(x=>x?.expectedStableSha!==snap.stableSha))
+    return rpc(id,trouble('BLEND_STABLE_SHA_NOT_VERIFIED'));
+   try{
+    const report=summarizeMidAiBlend(p.arguments);
+    return rpc(id,result(report));
+   }catch(e){
+    const reason=typeof e?.reason==='string'&&/^[A-Z0-9_]{3,80}$/.test(e.reason)?
+      e.reason:'INVALID_UNTRUSTED_BLEND';
+    return rpc(id,trouble(reason));
+   }
   }
   if(p.name!=='execute_public_review')return fault(id,-32602,'Unknown tool');
   if(!hasScope(auth,'mid-ai:infer-public'))

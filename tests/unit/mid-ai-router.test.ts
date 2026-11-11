@@ -177,7 +177,7 @@ describe('MID AI Router: authenticated stateless MCP HTTP boundary', () => {
     });
     expect(r.error).toBeUndefined();
     expect(r.status, r.stderr || r.stdout).toBe(0);
-    expect(r.stdout).toMatch(/MID AI Router MCP protected HTTP offline QA OK; scenarios=24; no network, secrets or external inference\./);
+    expect(r.stdout).toMatch(/MID AI Router MCP protected HTTP offline QA OK; scenarios=25; no network, secrets or external inference\./);
     expect(r.stderr).toBe('');
   });
 });
