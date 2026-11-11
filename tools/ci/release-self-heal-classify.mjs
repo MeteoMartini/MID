@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
 
 const BROWSER_JOB = 'Release-Heavy · heavy-unified-map · 2/3';
-const DETERMINISTIC = /TS[0-9]{4}:|AssertionError|SyntaxError|ReferenceError|TypeError|\bRegression\b|Tests? failed|Test .* failed|build failed|nicht bestanden|Capacitor-iOS-Web-Bundle .* != Release|Dependency-Audit konnte|high severity|critical severity|ERESOLVE/i;
+const DETERMINISTIC = /TS[0-9]{4}:|AssertionError|SyntaxError|ReferenceError|TypeError|\bRegression(?:stests?)?\b|Tests? failed|Test .* failed|build failed|nicht bestanden|Capacitor-iOS-Web-Bundle .* != Release|Dependency-Audit konnte|high severity|critical severity|ERESOLVE/i;
 const TRANSIENT = /ECONNRESET|ETIMEDOUT|EAI_AGAIN|ENETUNREACH|ECONNREFUSED|socket hang up|TLS handshake|temporarily unavailable|Temporary failure|HTTP (429|500|502|503|504)|status code (429|500|502|503|504)|rate limit|codeload[^\r\n]{0,120}(?:error|fail|status|HTTP|429|500|502|503|504|ECONNRESET|ETIMEDOUT)|network timeout|upstream.*(502|503|504)|Cloudflare.*(429|500|502|503|504)|Pages.*(429|500|502|503|504)/i;
 
 const blocked = reason => Object.freeze({retry:false,reason});

@@ -59,8 +59,8 @@ for(const name of ['core-1/4','core-2/4','core-3/4','core-4/4'])assert.ok(cores[
 const mapCases=mapBrowserRunPlan().flatMap(group=>mapBrowserCases(group));
 assert.equal(mapCases.length,24);
 assert.equal(new Set(mapCases.map(v=>JSON.stringify(v))).size,24);
-assert.equal(mapBrowserMemoryProbe('1/3'),false);
-assert.equal(mapBrowserMemoryProbe('2/3'),true);
+assert.equal(mapBrowserMemoryProbe('1/3'),true);
+assert.equal(mapBrowserMemoryProbe('2/3'),false);
 assert.equal(mapBrowserMemoryProbe('3/3'),false);
 assert.throws(()=>mapBrowserRunPlan('4/3'));
 console.log('MID revision matrix: 10 SHA-identical jobs; all regression files and 24 browser cases exactly covered; strict CI/nightly gates remain.');

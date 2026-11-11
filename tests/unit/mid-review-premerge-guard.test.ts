@@ -33,6 +33,9 @@ describe('SHA-bound MID merge-time review guard',()=>{
   expect(decide([review('CHANGES_REQUESTED'),review('COMMENTED','r2')])).toBe(false);
   expect(decide([review('CHANGES_REQUESTED'),review('APPROVED','r2','auditor','2026-11-11T15:01:00Z')])).toBe(true);
   expect(decide([review('CHANGES_REQUESTED'),review('APPROVED','r2','different','2026-11-11T15:01:00Z')])).toBe(false);
+  // A later dismissed *different* review must not clear an outstanding request.
+  expect(decide([review('CHANGES_REQUESTED'),review('DISMISSED','r2','auditor','2026-11-11T15:01:00Z')])).toBe(false);
+  expect(decide([review('CHANGES_REQUESTED'),review('DISMISSED','r2','different','2026-11-11T15:01:00Z')])).toBe(false);
  });
  it('fails closed when conflicting same-author reviews have the same submission timestamp',()=>{
   const same='2026-11-11T15:00:00Z';

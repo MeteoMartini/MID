@@ -53,7 +53,9 @@ export function assessMidPremerge({before,after,main,stable,data,number,sha,bran
  for(const r of submitted){
   const author=r.author.login.toLowerCase();
   if(r.state==='CHANGES_REQUESTED')requests.add(author);
-  else if(r.state==='APPROVED'||r.state==='DISMISSED')requests.delete(author);
+  else if(r.state==='APPROVED')requests.delete(author);
+  // A separate DISMISSED approval is not evidence that this author's
+  // outstanding CHANGES_REQUESTED was dismissed. Fail closed without identity.
  }
  if(requests.size)return block('CHANGES_REQUESTED');
  return {ok:true,reason:'READBACK_CLEAN',threadCount:data.threads.length,reviewCount:data.reviews.length,
