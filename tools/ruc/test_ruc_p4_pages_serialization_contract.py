@@ -88,6 +88,12 @@ def check_contract(install: str, ruc: str, watchdog: str,
     cause_guard = "steps.worker_health.outputs.rollback_admitted == 'true'"
     if publisher.count(cause_guard) != 1:
         raise ValueError("RUC raw rollback is not bounded to verified codec-cause admission")
+    # Same version does NOT prove that main and mid-stable are the same source.
+    # Both independent pre-download and pre-publish windows must compare SHA.
+    sha_capture = 'main_sha="$(git rev-parse refs/remotes/origin/main)"'
+    sha_guard = 'if [ "${main_sha}" != "${actual_sha}" ]; then'
+    if publisher.count(sha_capture) != 2 or publisher.count(sha_guard) != 2:
+        raise ValueError("RUC publish missing both main/stable exact-SHA drift gates")
     if publisher.count("digest-mismatch: error") != 2:
         raise ValueError("RUC immutable data and rollback artifact digest gates absent")
     if "--run-id \"$GITHUB_RUN_ID\" --require-fresh" not in ruc_jobs["prepare"]:
@@ -121,6 +127,7 @@ def check_contract(install: str, ruc: str, watchdog: str,
         "manualPagesWriterSerialized": True,
         "immutableReAdmission": True,
         "verifiedRollbackCauseGuard": True,
+        "sameSourceShaReleaseWindowGates": True,
         "staleRunAndSourceGuards": True,
         "watchdogDispatchesThroughSameRucWorkflow": True,
         "globalCrossProviderCasFencingVerified": False,
@@ -205,6 +212,22 @@ class P4PagesSerialization(unittest.TestCase):
         unguarded = self.ruc.replace(" && steps.worker_health.outputs.rollback_admitted == 'true'", "", 1)
         with self.assertRaisesRegex(ValueError, "verified codec-cause"):
             check_contract(self.install, unguarded, self.watchdog)
+
+    def test_same_version_but_different_main_sha_rejects_missing_gate(self):
+        self.assertTrue(check_contract(self.install, self.ruc, self.watchdog)[
+            "sameSourceShaReleaseWindowGates"])
+        for guard in (
+            'main_sha="$(git rev-parse refs/remotes/origin/main)"',
+            'if [ "${main_sha}" != "${actual_sha}" ]; then',
+        ):
+            # Both first and second instances are required, not just one.
+            for index in (1, 2):
+                with self.subTest(guard=guard, index=index):
+                    parts = self.ruc.split(guard)
+                    self.assertEqual(len(parts), 3)
+                    damaged = guard.join(parts[:index]) + parts[index] + guard.join(parts[index + 1:])
+                    with self.assertRaisesRegex(ValueError, "exact-SHA drift gates"):
+                        check_contract(self.install, damaged, self.watchdog)
 
     def test_early_core_freshness_guard_cannot_be_removed(self):
         verdict = check_contract(self.install, self.ruc, self.watchdog)

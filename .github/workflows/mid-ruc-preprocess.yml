@@ -426,6 +426,12 @@ jobs:
           git fetch --no-tags --depth=1 origin +refs/heads/main:refs/remotes/origin/main
           stable_version="$(python3 -c 'import json; print(json.load(open("package.json"))["version"])')"
           main_version="$(git show refs/remotes/origin/main:package.json | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')"
+          main_sha="$(git rev-parse refs/remotes/origin/main)"
+          if [ "${main_sha}" != "${actual_sha}" ]; then
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::MID main/mid-stable SHA drift (${main_sha} != ${actual_sha}); RUC-Publish übersprungen, um einen parallelen Release nicht zu überschreiben."
+            exit 0
+          fi
           if [ -z "${stable_version}" ] || [ -z "${main_version}" ]; then
             echo "allowed=false" >> "$GITHUB_OUTPUT"
             echo "::warning::MID-Releaseversion konnte für den RUC-Publish nicht eindeutig bestimmt werden; Publish wird fail-closed übersprungen."
@@ -528,9 +534,15 @@ jobs:
           actual_sha="$(git rev-parse refs/remotes/origin/mid-stable)"
           stable_version="$(python3 -c 'import json; print(json.load(open("package.json"))["version"])')"
           main_version="$(git show refs/remotes/origin/main:package.json | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')"
+          main_sha="$(git rev-parse refs/remotes/origin/main)"
           if [ "${actual_sha}" != "${EXPECTED_STABLE_SHA}" ]; then
             echo "allowed=false" >> "$GITHUB_OUTPUT"
             echo "::notice::MID-Stable änderte sich während der RUC-Publish-Vorbereitung (${EXPECTED_STABLE_SHA} → ${actual_sha}). Kein veraltetes RUC-Artefakt wird veröffentlicht."
+            exit 0
+          fi
+          if [ "${main_sha}" != "${actual_sha}" ]; then
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::MID main/mid-stable SHA drift unmittelbar vor RUC-Publish (${main_sha} != ${actual_sha}); Veröffentlichung unterdrückt."
             exit 0
           fi
           if [ -z "${stable_version}" ] || [ -z "${main_version}" ] || [ "${main_version}" != "${stable_version}" ]; then
