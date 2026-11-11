@@ -396,6 +396,17 @@ test('Stable version comes from immutable GitHub SHA-pinned package/baseline/con
  }finally{globalThis.fetch=original}
 });
 
+test('trusted bot never repackages another SHA after approved merge or stale Source replay',async()=>{
+ const canonical=await readRepositoryFile(new URL('../ci/github/workflows/agent-source-release.yml',import.meta.url),'utf8');
+ const active=await readRepositoryFile(new URL('../.github/workflows/agent-source-release.yml',import.meta.url),'utf8');
+ assert.equal(active,canonical);
+ assert.match(canonical,/if \[ "\$actual_main_sha" != "\$EXPECTED_MERGE_SHA" \]/);
+ assert.match(canonical,/git reset --hard "\$EXPECTED_MERGE_SHA"/);
+ assert.match(canonical,/if \[ "\$remote_main" != "\$EXPECTED_MERGE_SHA" \]/);
+ assert.match(canonical,/if \[ "\$current_main" != "\$merge_sha" \]/);
+ assert.match(canonical,/if \[ "\$current_main" != "\$EXPECTED_PACKAGE_SHA" \]/);
+ assert.doesNotMatch(canonical,/Release-Paket wird aus dem neuesten main-Stand neu erzeugt/);
+});
 test('established trusted SHA-bound bot release workflow mirrors and source-to-installer handoff remain intact',async()=>{
  const canonical=await readRepositoryFile(new URL('../ci/github/workflows/agent-source-release.yml',import.meta.url),'utf8');
  const active=await readRepositoryFile(new URL('../.github/workflows/agent-source-release.yml',import.meta.url),'utf8');

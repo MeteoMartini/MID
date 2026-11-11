@@ -73,8 +73,19 @@ jobs:
           pr_number="$(jq -r '.[0].number' <<<"$matches")"
           head_sha="$(jq -r '.[0].head.sha' <<<"$matches")"
           if [ "$(jq -r '.[0].merged_at != null' <<<"$matches")" = "true" ]; then
+            merge_sha="$(jq -r '.[0].merge_commit_sha // empty' <<<"$matches")"
+            if [[ ! "$merge_sha" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "::error::Previously merged PR has no valid merge SHA; no ZIP recovery."
+              exit 1
+            fi
+            current_main="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
+            if [ "$current_main" != "$merge_sha" ]; then
+              echo "eligible=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::Old merged PR is no longer exact main HEAD; safe duplicate-event skip."
+              exit 0
+            fi
             echo "already_merged=true" >> "$GITHUB_OUTPUT"
-            echo "merge_sha=$(jq -r '.[0].merge_commit_sha // empty' <<<"$matches")" >> "$GITHUB_OUTPUT"
+            echo "merge_sha=${merge_sha}" >> "$GITHUB_OUTPUT"
           else
             echo "already_merged=false" >> "$GITHUB_OUTPUT"
           fi
@@ -121,8 +132,8 @@ jobs:
         if: steps.pr.outputs.eligible == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: main
-          # Paketierung benötigt nur den aktuellen main-Snapshot.
+          ref: ${{ steps.merge.outputs.merge_sha || steps.pr.outputs.merge_sha }}
+          # Immutable, authorized squash merge SHA, not a floating main HEAD.
           fetch-depth: 1
           persist-credentials: false
 
@@ -133,6 +144,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
           RELEASE_BOT_SLUG: ${{ steps.release_app_token.outputs.app-slug }}
+          EXPECTED_MERGE_SHA: ${{ steps.merge.outputs.merge_sha || steps.pr.outputs.merge_sha }}
         run: |
           set -euo pipefail
           bot_user_id="$(gh api "/users/${RELEASE_BOT_SLUG}[bot]" --jq .id)"
@@ -178,10 +190,19 @@ jobs:
           print(f'Release-ZIP: {out.stat().st_size} Byte')
           PY
           }
+          if [[ ! "$EXPECTED_MERGE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::GitHub did not return a valid authorized merge SHA."
+            exit 1
+          fi
           pushed=false
           for attempt in 1 2 3; do
             git fetch --no-tags --depth=1 origin "+refs/heads/main:refs/remotes/origin/main"
-            git reset --hard origin/main
+            actual_main_sha="$(git rev-parse refs/remotes/origin/main)"
+            if [ "$actual_main_sha" != "$EXPECTED_MERGE_SHA" ]; then
+              echo "::error::main changed after approved merge; never package an unrelated source commit."
+              exit 1
+            fi
+            git reset --hard "$EXPECTED_MERGE_SHA"
             make_zip
             git add -f MID-professional-replacement.zip
             git commit -m "Prepare MID agent release from PR #${{ steps.pr.outputs.number }}"
@@ -191,7 +212,18 @@ jobs:
               echo "package_sha=${package_sha}" >> "$GITHUB_OUTPUT"
               break
             fi
-            echo "::warning::main wurde parallel fortgeführt; Release-Paket wird aus dem neuesten main-Stand neu erzeugt (Versuch ${attempt}/3)."
+            remote_main="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+            if [ "$remote_main" = "$package_sha" ]; then
+              echo "::notice::Exactly this ZIP commit reached GitHub despite lost push acknowledgement."
+              pushed=true
+              echo "package_sha=${package_sha}" >> "$GITHUB_OUTPUT"
+              break
+            fi
+            if [ "$remote_main" != "$EXPECTED_MERGE_SHA" ]; then
+              echo "::error::Remote main drifted; ZIP retry cannot rebuild from a foreign SHA."
+              exit 1
+            fi
+            echo "::warning::Retrying transport only for unchanged approved merge (${attempt}/3)."
             sleep $((attempt * 2))
           done
           if [ "$pushed" != true ]; then
@@ -204,8 +236,14 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          EXPECTED_PACKAGE_SHA: ${{ steps.package.outputs.package_sha }}
         run: |
           set -euo pipefail
+          current_main="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
+          if [[ ! "$EXPECTED_PACKAGE_SHA" =~ ^[0-9a-f]{40}$ ]] || [ "$current_main" != "$EXPECTED_PACKAGE_SHA" ]; then
+            echo "::error::Installer dispatch refused because main no longer equals the approved ZIP SHA."
+            exit 1
+          fi
           gh workflow run install-mid.yml --ref main
           {
             echo "### Automatischer MID-Release gestartet"
