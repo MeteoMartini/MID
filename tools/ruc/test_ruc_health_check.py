@@ -65,7 +65,7 @@ def pages_late(url, timeout):
  pages_requests.append(q)
  run = old_pages_run if len(pages_requests) < 9 else expected_pages_run
  return {'schema': 'mid.dwd.ruc.grid.v2', 'storageProfile': 'pages-free-v1', 'run': run}
-assert mod.MAX_PAGES_PROBE_ATTEMPTS == 12
+assert mod.MAX_PAGES_PROBE_ATTEMPTS == 18
 assert mod.probe_pages('https://mid.example/ruc/', expected_pages_run, attempts=12,
                        fetcher=pages_late, sleeper=lambda _: None) == 9
 assert len(pages_requests) == 9
@@ -74,7 +74,7 @@ assert all(row['mid_ruc_expected'] == [expected_pages_run] for row in pages_requ
 
 def pages_stale(url, timeout):
  return {'schema': 'mid.dwd.ruc.grid.v2', 'storageProfile': 'pages-free-v1', 'run': old_pages_run}
-for attempts in (1, 7, 12):
+for attempts in (1, 7, 12, 18):
  try:
   mod.probe_pages('https://mid.example/ruc/', expected_pages_run, attempts=attempts,
                   fetcher=pages_stale, sleeper=lambda _: None)
@@ -429,8 +429,8 @@ class SafeDiagnosticsTests(unittest.TestCase):
   self.assertEqual(result['records'][0]['metadata'],
                    {'ageSeconds':120,'cacheStatus':'hit'})
 
- def test_probe_budgets_remain_bounded_at_twelve_and_seven(self):
-  self.assertEqual(mod.MAX_PAGES_PROBE_ATTEMPTS,12)
+ def test_probe_budgets_remain_bounded_at_eighteen_and_seven(self):
+  self.assertEqual(mod.MAX_PAGES_PROBE_ATTEMPTS,18)
   self.assertEqual(mod.MAX_WORKER_PROBE_ATTEMPTS,7)
   self.assertEqual(mod.MAX_PROBE_JOURNAL_RECORDS,64)
   with self.assertRaises(mod.PagesConvergenceError) as pages:
@@ -439,12 +439,42 @@ class SafeDiagnosticsTests(unittest.TestCase):
     fetcher=lambda *_:{'schema':'mid.dwd.ruc.grid.v2',
                        'storageProfile':'pages-free-v1','run':'stale'},
     sleeper=lambda _:None)
-  self.assertEqual(pages.exception.attempts,12)
+  self.assertEqual(pages.exception.attempts,18)
   with self.assertRaises(mod.WorkerAdoptionError) as worker:
    mod.probe_until_ready(
     'https://host.invalid/','2026082822',attempts=99,
     fetcher=lambda *_:{**good,'ready':False},sleeper=lambda _:None)
   self.assertEqual(worker.exception.attempts,7)
+
+ def test_full_pages_recovers_at_thirteenth_probe_only_on_exact_run(self):
+  # Synthetic timing replay of the public 16Z/19Z 2026-11-10 late-pointer
+  # incidents: historic twelve-probe limit must not be mistaken for a codec
+  # failure. The new bound remains finite and cannot accept a stale pointer.
+  expected='2026-11-10T19:00'
+  prior='2026-11-10T18:00'
+  fresh=copy.deepcopy(full_meta)
+  fresh['run']=expected
+  stale=copy.deepcopy(fresh)
+  stale['run']=prior
+  journal=mod.ProbeJournal()
+  calls=[]
+  def delayed(url,timeout):
+   calls.append(url)
+   return mod.ProbeResponse(copy.deepcopy(stale if len(calls)<=12 else fresh),
+                            200,{'ageSeconds':0,'cacheStatus':'dynamic',
+                                 'contentType':'json'})
+  self.assertEqual(mod.probe_pages(
+   'https://host.invalid/ruc/',expected,attempts=18,
+   expected_profile='pages-lossless-v1',
+   fetcher=delayed,sleeper=lambda _:None,journal=journal),13)
+  self.assertEqual(len(calls),13)
+  self.assertEqual(len(journal.records),13)
+  self.assertEqual([r['diagnosticCode'] for r in journal.records[:12]],
+                   ['pages_run_mismatch']*12)
+  self.assertEqual(journal.records[-1]['observedRun'],expected)
+  self.assertEqual(journal.records[-1]['observedStorageProfile'],
+                   'pages-lossless-v1')
+  self.assertEqual(journal.records[-1]['phase'],'pages_pointer')
 
  def test_observed_04z_twelve_stale_pages_is_not_codec_defect(self):
   # 08.11.2026 public Pages incident, *offline synthetic replay* based on

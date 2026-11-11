@@ -22,7 +22,10 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-MAX_PAGES_PROBE_ATTEMPTS = 12
+# Public Pages edges can still serve the preceding run after deploy-pages
+# succeeds (observed in the 16Z/19Z incidents on 2026-11-10). Allow bounded
+# propagation time before declaring non-convergence; never accept a stale run.
+MAX_PAGES_PROBE_ATTEMPTS = 18
 MAX_WORKER_PROBE_ATTEMPTS = 7
 MAX_PROBE_JOURNAL_RECORDS = 64
 SAFE_DIAGNOSTIC_CODES = {
