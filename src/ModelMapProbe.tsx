@@ -116,14 +116,12 @@ export default function ModelMapProbe<T extends number|string=number>(
       {row.pending?'Wert wird geladen …':row.value===null?'Kein Wert verfügbar':
        <>{row.format(row.value)} {row.unit&&<span>{row.unit}</span>}</>}
      </p>
-     {multiple&&<p className="mid-model-map-probe__source">
-      {!row.pending&&row.value===null?row.unavailableNote:row.source}
-     </p>}
+     {multiple&&<p className="mid-model-map-probe__source">{row.source}</p>}
+     {multiple&&!row.pending&&row.value===null&&<p className="mid-model-map-probe__source" role="status">{row.unavailableNote}</p>}
     </div>)}
     <p className="mid-model-map-probe__coordinates">{coordinates}</p>
-    {!multiple&&rows[0]&&<p className="mid-model-map-probe__source">
-     {!rows[0].pending&&rows[0].value===null?rows[0].unavailableNote:rows[0].source}
-    </p>}
+    {!multiple&&rows[0]&&<p className="mid-model-map-probe__source">{rows[0].source}</p>}
+    {!multiple&&rows[0]&&!rows[0].pending&&rows[0].value===null&&<p className="mid-model-map-probe__source" role="status">{rows[0].unavailableNote}</p>}
    </>:null}
   </AppPortalPopover>
  </>;
