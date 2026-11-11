@@ -35,11 +35,20 @@ const hasEagerPollenDynamicImport=source=>{
   if(ts.isCallExpression(node)&&node.expression.kind===ts.SyntaxKind.ImportKeyword&&
      node.arguments.length===1&&ts.isStringLiteralLike(node.arguments[0])&&
      /^\.\/PollenForecast(?:\.tsx?)?$/.test(node.arguments[0].text)){
-   const callback=node.parent,caller=callback?.parent;
-   const safe=ts.isArrowFunction(callback)&&callback.body===node&&
-    ts.isCallExpression(caller)&&ts.isIdentifier(caller.expression)&&
-    caller.expression.text==='lazy'&&caller.arguments[0]===callback;
-   if(!safe)eager=true;
+   const isLazyCallback=callback=>{
+    const caller=callback.parent;
+    return ts.isCallExpression(caller)&&ts.isIdentifier(caller.expression)&&
+     caller.expression.text==='lazy'&&caller.arguments[0]===callback;
+   };
+   const parent=node.parent;
+   const direct=ts.isArrowFunction(parent)&&parent.body===node&&isLazyCallback(parent);
+   // Production uses lazy(()=>import('./PollenForecast').then(module=>...)).
+   // Permit precisely that deferred wrapper; reject stray eager import() calls.
+   const deferredThen=ts.isPropertyAccessExpression(parent)&&parent.expression===node&&
+    parent.name.text==='then'&&ts.isCallExpression(parent.parent)&&
+    parent.parent.expression===parent&&ts.isArrowFunction(parent.parent.parent)&&
+    parent.parent.parent.body===parent.parent&&isLazyCallback(parent.parent.parent);
+   if(!direct&&!deferredThen)eager=true;
   }
   ts.forEachChild(node,visit);
  };
@@ -50,8 +59,10 @@ for(const bad of [
  "void import('./PollenForecast')",
  "const eager=import('./PollenForecast')",
  "const LazyPollenForecast=lazy(()=>import('./PollenForecast')); import('./PollenForecast')",
+ "const LazyPollenForecast=lazy(()=>Promise.resolve().then(()=>import('./PollenForecast')))",
 ])assert.ok(hasEagerPollenDynamicImport(bad),'Top-level dynamic pollen import must be rejected');
 assert.ok(!hasEagerPollenDynamicImport("const LazyPollenForecast=lazy(()=>import('./PollenForecast'))"),'React.lazy callback remains accepted');
+assert.ok(!hasEagerPollenDynamicImport("const LazyPollenForecast=lazy(()=>import('./PollenForecast').then(module=>({default:module.PollenForecast})))"),'React.lazy with deferred then() module export remains accepted');
 assert.ok(!hasEagerPollenDynamicImport(appSource),'Eager dynamic pollen import would defeat CSS lazy loading');
 
 function declarations(file){const source=read(file),ast=ts.createSourceFile(file,source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX),result=new Map;for(const node of ast.statements){for(const name of node.name?[node.name.getText(ast)]:node.declarationList?.declarations.map(d=>d.name.getText(ast))||[])result.set(name,node.getText(ast));}return result;}

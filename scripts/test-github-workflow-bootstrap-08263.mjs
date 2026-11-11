@@ -95,7 +95,7 @@ for(const name of await readdir(path.join(root,'.github','workflows'))){
 const retiredP0P4Active=await readFile(path.join(root,'.github','workflows','mid-p0-p4-consolidated-qa.yml'),'utf8');
 const retiredP0P4Canonical=await readFile(path.join(root,'ci','github','workflows','mid-p0-p4-consolidated-qa.yml'),'utf8');
 if(retiredP0P4Active!==retiredP0P4Canonical)failures.push('Historischer P0–P4-Pilot muss aktiv und kanonisch byteidentisch bleiben.');
-const retiredP0P4Header=retiredP0P4Active.split('\npermissions:\n')[0];
+const retiredP0P4Header=retiredP0P4Active.split('\npermissions:\n')[0]+'\n';
 const retiredP0P4PullBlock=retiredP0P4Header.match(/^  pull_request:\n((?: {4,}.*\n)*)/m)?.[1]??'';
 const retiredP0P4Paths=retiredP0P4PullBlock.match(/^    paths:\n((?:      - .*\n)*)/m)?.[1]?.trimEnd().split('\n')??[];
 const retiredP0P4Expected=[
