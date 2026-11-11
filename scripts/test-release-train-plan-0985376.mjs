@@ -404,7 +404,7 @@ test('trusted bot never repackages another SHA after approved merge or stale Sou
  assert.match(canonical,/git reset --hard "\$EXPECTED_MERGE_SHA"/);
  assert.match(canonical,/if \[ "\$remote_main" != "\$EXPECTED_MERGE_SHA" \]/);
  assert.match(canonical,/if \[ "\$current_main" != "\$merge_sha" \]/);
- assert.match(canonical,/if \[ "\$current_main" != "\$EXPECTED_PACKAGE_SHA" \]/);
+ assert.ok(canonical.includes('if [[ ! "$EXPECTED_PACKAGE_SHA" =~ ^[0-9a-f]{40}$ ]] || [ "$current_main" != "$EXPECTED_PACKAGE_SHA" ]'),'Installer dispatch must validate both the full SHA format and the current main SHA');
  assert.doesNotMatch(canonical,/Release-Paket wird aus dem neuesten main-Stand neu erzeugt/);
 });
 test('installer dispatch must pin expected release ZIP SHA while manual workflow stays optional',async()=>{
