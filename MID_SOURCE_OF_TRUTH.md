@@ -1,3 +1,13 @@
+# MID v0.9.85.456 · Allgemeine Integritätskorrekturen im Release-Train-Kandidaten
+
+**Provenienz:** Quellenbasis ist v0.9.85.455 `main=mid-stable=7272a54ef9a9bd02fa1b6523f0cbf352b9412963`; der autorisierte, noch nicht veröffentlichte allgemeine Integrations-PR #754 ist daraus abgeleitet. Das Dokument belegt keine bereits erfolgte Stable-Promotion.
+
+**DWD Pollenflug:** Bei positiven bekannten Pollenarten plus fehlenden DWD-Typen/Terminen bleibt der 3-Tage-Hinweis unvollständig. Echte 0 bleibt 0, NoData bleibt NoData; amtliche Warnungen und Originalmodellwerte unverändert.
+
+**Release/Privacy:** Das read-only Preflight zeigt blockierte Fehlergründe und bleibt fail-closed. Ein neues GraphQL-Review-Gate ist weiterhin nicht aktiv. Der Web/PWA-PostHog-Opt-in sendet bei Zustimmung eine ephemere Sitzungs-ID, keine persistente Benutzerkennung. Historische 16 Cubic-Reviewthreads von #752, P0-Sicherheitsqualifikation #740/#749 und RUC-/Karten-Originaldaten sind nicht hiermit freigegeben.
+
+**Gates:** Vorherige grüne Draft-Unit-QA ersetzt die obligatorische aktuelle Source-/Core-/Heavy-/Browser-/Server-ZIP-/Installer-/Worker-/Pages-/Stable-Verifikation nicht. Reale iOS-/VoiceOver-Abnahme ist gesondert erforderlich. Version W+1, X/Y/Z unverändert.
+
 # MID v0.9.85.455 · allgemeine Datenintegrität und bewährter Releasepfad
 
 **Quellbasis (SHA-verifiziert):** Veröffentlichtes v0.9.85.454 `main=mid-stable=ee7a55b5ece4d3d3687202a95caeb6c5ff615055`, Installer #42826334863 erfolgreich. Die Integration begann mit 25 selektierten Quelldateipfaden aus #742 @ `da7c4509a6c6c6e604bb528051dbdb937ff1d8da` und acht Review-/CI-Pfaden aus #743 @ `f782f4585ec631836e57728ee4ea0fc49fa3ea9b`. Nachfolgende Sicherheits-, Meteorologie-, CSS- und QA-Korrekturen ändern diese Blobs bewusst; sie sind **nicht** pauschal identisch mit den ursprünglichen Spezial-Drafts. Ein vollständiger Git-Tree-/PR-Dateivergleich auf Integrations-HEAD `fa63a3cd5d97fa28807dd298b1b5ab9f962fb79c` (truncated=false) weist **12/25** noch byteidentische #742-Pfade und **0/8** #743-Pfade aus; die jeweils 13 und acht abweichenden Pfade bedürfen unabhängiger Diff-/Test-/Review-Zuordnung. Kein ungeprüftes Reimportieren aus älteren Drafts. Unveröffentlichte RUC-Fast-Lane-, AI-Router- und Cloud-Kostenprojekte bleiben außerhalb des Scopes; die ausschließlich QA-qualifizierten Kartenfixes aus #741 wurden nun gebündelt.
