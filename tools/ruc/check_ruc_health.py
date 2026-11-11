@@ -30,6 +30,9 @@ MAX_WORKER_PROBE_ATTEMPTS = 7
 # The Pages publish job allows 15 minutes total. Keep the combined Pages
 # and Worker checks inside ten minutes, with time reserved for other steps.
 MAX_HEALTH_BUDGET_SECONDS = 600
+# The HTTP health endpoints return JSON metadata, never binary GRIB/products.
+# Bound each untrusted response independently of Content-Length headers.
+MAX_PROBE_PAYLOAD_BYTES = 8 * 1024 * 1024
 MAX_PROBE_JOURNAL_RECORDS = 64
 SAFE_DIAGNOSTIC_CODES = {
     'codec_defect_proven',
@@ -42,6 +45,7 @@ SAFE_DIAGNOSTIC_CODES = {
     'pages_profile_mismatch',
     'pages_run_mismatch',
     'payload_not_object',
+    'probe_payload_too_large',
     'probe_timeout',
     'probe_transport_failed',
     'ruc_health_error',
@@ -157,6 +161,12 @@ class _InvalidProbePayload(Exception):
     pass
 
 
+class _OversizedProbePayload(Exception):
+    def __init__(self, status: int, metadata: dict):
+        self.status = status
+        self.metadata = metadata
+
+
 class ProbeResponse:
     def __init__(self, payload, status: int | None = None, metadata: dict | None = None):
         self.payload = payload
@@ -265,6 +275,11 @@ def _response_metadata(response: ProbeResponse) -> dict:
 def _fetch_for_probe(fetcher, url: str, timeout: float, phase: str) -> ProbeResponse:
     try:
         result = fetcher(url, timeout)
+    except _OversizedProbePayload as error:
+        error_type = PagesConvergenceError if phase == 'pages_pointer' else WorkerPayloadError
+        raise error_type('Probe JSON metadata exceeds the bounded response size',
+                         code='probe_payload_too_large', http_status=error.status,
+                         metadata=error.metadata) from None
     except _InvalidProbePayload:
         error_type = PagesConvergenceError if phase == 'pages_pointer' else WorkerPayloadError
         raise error_type('Probe response is not valid JSON', code='invalid_json') from None
@@ -471,6 +486,10 @@ def fetch_payload(url: str, timeout: float) -> dict:
         raise WorkerHTTPError('Worker request returned a non-success HTTP status',
                               http_status=error.status,
                               metadata=error.metadata) from None
+    except _OversizedProbePayload as error:
+        raise WorkerPayloadError('Worker JSON metadata exceeds the bounded response size',
+                                 code='probe_payload_too_large',
+                                 http_status=error.status, metadata=error.metadata) from None
     except _InvalidProbePayload:
         raise WorkerPayloadError('Worker response is not valid JSON',
                                  code='invalid_json') from None
@@ -492,7 +511,11 @@ def fetch_probe(url: str, timeout: float) -> ProbeResponse:
             metadata = _safe_response_metadata(response.headers)
             if status != 200:
                 raise _HTTPProbeFailure(status, metadata)
-            body = response.read()
+            # Never trust Content-Length, nor allocate an unbounded upstream
+            # payload while the GitHub Pages/Worker publish lock is held.
+            body = response.read(MAX_PROBE_PAYLOAD_BYTES + 1)
+            if len(body) > MAX_PROBE_PAYLOAD_BYTES:
+                raise _OversizedProbePayload(status, metadata)
     except urllib.error.HTTPError as error:
         raise _HTTPProbeFailure(error.code, _safe_response_metadata(error.headers)) from None
     try:

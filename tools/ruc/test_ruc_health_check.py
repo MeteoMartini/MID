@@ -327,7 +327,7 @@ class SafeDiagnosticsTests(unittest.TestCase):
    headers=fake_headers
    def __enter__(self):return self
    def __exit__(self,*_):return False
-   def read(self):return b'{bad json'
+   def read(self,size=-1):return b'{bad json'[:size]
   with mock.patch.object(mod.urllib.request,'urlopen',return_value=Response()):
    with self.assertRaises(mod.WorkerPayloadError) as invalid_json:
     mod.probe_until_ready('https://host.invalid/','2026082822',attempts=1)
@@ -336,6 +336,54 @@ class SafeDiagnosticsTests(unittest.TestCase):
    mod.probe_until_ready('https://host.invalid/','2026082822',attempts=1,
                          fetcher=lambda *_:['not','an','object'])
   self.assertEqual(unusable.exception.code,'payload_not_object')
+
+
+ def test_http_metadata_payload_is_size_bounded_for_pages_and_worker(self):
+  # A 200 status and JSON content type are insufficient if a malicious or
+  # broken endpoint streams an oversized manifest or Worker health payload.
+  # The actual response read must request at most MAX+1, regardless of headers.
+  class OversizedResponse:
+   status=200
+   def __init__(self):
+    self.headers=Message()
+    self.headers['Content-Type']='application/json'
+    self.headers['Age']='7'
+    self.read_sizes=[]
+   def __enter__(self):return self
+   def __exit__(self,*_):return False
+   def read(self,size=-1):
+    self.read_sizes.append(size)
+    return b'X'*size
+  expected=mod.MAX_PROBE_PAYLOAD_BYTES+1
+  self.assertEqual(mod.MAX_PROBE_PAYLOAD_BYTES,8*1024*1024)
+  for phase in ('pages','worker'):
+   response=OversizedResponse()
+   journal=mod.ProbeJournal()
+   with self.subTest(phase=phase),mock.patch.object(
+       mod.urllib.request,'urlopen',return_value=response):
+    with self.assertRaises(mod.RucHealthError) as caught:
+     if phase=='pages':
+      mod.probe_pages('https://host.invalid/ruc/',
+                      '2026-11-07T18:00',attempts=1,journal=journal)
+     else:
+      mod.probe_until_ready('https://host.invalid/',
+                            '2026082822',attempts=1,journal=journal)
+   self.assertEqual(response.read_sizes,[expected])
+   self.assertEqual(journal.records[0]['diagnosticCode'],
+                    'probe_payload_too_large')
+   self.assertEqual(journal.records[0]['httpStatus'],200)
+   self.assertEqual(journal.records[0]['metadata'],
+                    {'ageSeconds':7,'contentType':'json'})
+   if phase=='worker':
+    self.assertEqual(caught.exception.code,'probe_payload_too_large')
+   else:
+    self.assertEqual(caught.exception.code,'pages_convergence_timeout')
+  response=OversizedResponse()
+  with mock.patch.object(mod.urllib.request,'urlopen',return_value=response):
+   with self.assertRaises(mod.WorkerPayloadError) as rejected:
+    mod.fetch_payload('https://host.invalid/',15)
+  self.assertEqual(rejected.exception.code,'probe_payload_too_large')
+  self.assertEqual(response.read_sizes,[expected])
 
  def test_real_http_non_object_json_is_payload_failure_for_pages_and_worker(self):
   class Response:
@@ -348,7 +396,7 @@ class SafeDiagnosticsTests(unittest.TestCase):
     self.headers['CF-Cache-Status']='MISS'
    def __enter__(self):return self
    def __exit__(self,*_):return False
-   def read(self):return self.body
+   def read(self,size=-1):return self.body[:size]
 
   for payload in ([],None,'private-token-fragment'):
    with self.subTest(payload_type=type(payload).__name__):
