@@ -7,7 +7,9 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const health=await readFile(path.join(root,'tools/ruc/check_ruc_health.py'),'utf8');
 for(const token of [
   "attempts: int = 7",
-  "MAX_PAGES_PROBE_ATTEMPTS = 12",
+  // Exact current upper bound is covered independently by the Python
+  // stale-pointer and thirteenth-probe recovery regressions executed below.
+  "MAX_PAGES_PROBE_ATTEMPTS = 18",
   "'--pages-attempts'",
   "MID RUC Pages not converged",
   "retry_delay: float = 8",
