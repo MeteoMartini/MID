@@ -658,6 +658,46 @@ class SafeDiagnosticsTests(unittest.TestCase):
 
 
 
+
+ def test_same_run_pages_manifest_must_match_sealed_object_inventory(self):
+  # Same UTC run, grid, EPS20 and full time axis must NOT mask changed
+  # compressed Pages SHA/object metadata or invalid typed JSON values.
+  expected=copy.deepcopy(sealed)
+  expected['pages']={'objects':[{'key':'runs/demo/object',
+                                 'sha256':'a'*64,'bytes':123}]}
+  contract=mod.verified_snapshot_contract(expected)
+  base_args=('https://host.invalid/ruc/',MODEL_RUN)
+  self.assertEqual(mod.probe_pages(
+   *base_args,attempts=1,expected_profile='pages-free-v1',
+   expected_contract=contract,expected_manifest=expected,
+   fetcher=lambda *_:copy.deepcopy(expected),sleeper=lambda _:None),1)
+  for corrupt in ('digest','bytes_type','missing_object','extra_object','nan'):
+   public=copy.deepcopy(expected)
+   if corrupt=='digest':
+    public['pages']['objects'][0]['sha256']='b'*64
+   elif corrupt=='bytes_type':
+    public['pages']['objects'][0]['bytes']=123.0
+   elif corrupt=='missing_object':
+    public['pages']['objects']=[]
+   elif corrupt=='extra_object':
+    public['pages']['objects'].append({'key':'runs/demo/extra',
+                                       'sha256':'c'*64,'bytes':0})
+   else:
+    public['pages']['objects'][0]['bytes']=float('nan')
+   with self.subTest(corrupt=corrupt):
+    journal=mod.ProbeJournal()
+    with self.assertRaises(mod.SnapshotContractError) as caught:
+     mod.probe_pages(
+      *base_args,attempts=1,expected_profile='pages-free-v1',
+      expected_contract=contract,expected_manifest=expected,
+      fetcher=lambda *_, public=public:public,
+      sleeper=lambda _:None,journal=journal)
+    self.assertEqual(caught.exception.code,
+                     'snapshot_pages_manifest_mismatch')
+    self.assertEqual(journal.records[0]['diagnosticCode'],
+                     'snapshot_pages_manifest_mismatch')
+    self.assertEqual(journal.records[0]['observedRun'],MODEL_RUN)
+
  def test_full_codec_never_passes_without_independent_pages_pointer_proof(self):
   # A successful Worker alone cannot prove the active full-codec run is
   # publicly visible. A missing Pages endpoint must fail before Worker I/O.

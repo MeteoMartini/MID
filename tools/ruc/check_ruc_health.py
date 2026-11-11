@@ -45,6 +45,7 @@ SAFE_DIAGNOSTIC_CODES = {
     'snapshot_grid_invalid',
     'snapshot_member_or_point_count_invalid',
     'snapshot_pages_dimensions_mismatch',
+    'snapshot_pages_manifest_mismatch',
     'snapshot_pages_proof_missing',
     'snapshot_profile_inactive',
     'snapshot_rollback_profile_invalid',
@@ -552,7 +553,7 @@ def full_codec_evidence(payload:dict,meta:dict)->dict:
             'advertised':advertised if type(advertised) is bool else None,
             'rawRetained':raw_retained if type(raw_retained) is bool else None}
 
-def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetcher=None, sleeper=time.sleep, expected_profile='pages-free-v1', expected_contract: dict | None = None, allow_legacy_rollback: bool = False, journal: ProbeJournal | None = None) -> int:
+def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetcher=None, sleeper=time.sleep, expected_profile='pages-free-v1', expected_contract: dict | None = None, expected_manifest: dict | None = None, allow_legacy_rollback: bool = False, journal: ProbeJournal | None = None) -> int:
     """Prove public Pages convergence separately from Worker adoption."""
     url = urllib.parse.urljoin(base.rstrip('/') + '/', 'latest.json')
     last_error = None
@@ -577,6 +578,26 @@ def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetch
                     raise SnapshotContractError(
                         'Pages RUC dimensions or validity axes differ from the sealed snapshot',
                         code='snapshot_pages_dimensions_mismatch',
+                    )
+            # Dimensions alone do not bind the original object SHA inventory,
+            # codec proof, or Pages byte budget. Compare the complete sealed
+            # JSON manifest after public convergence, not merely its model run.
+            # Canonical typed JSON avoids false passes for e.g. 1 == True.
+            if expected_manifest is not None:
+                try:
+                    published_json = json.dumps(meta, sort_keys=True, separators=(',', ':'),
+                                                allow_nan=False)
+                    sealed_json = json.dumps(expected_manifest, sort_keys=True,
+                                             separators=(',', ':'), allow_nan=False)
+                except (TypeError, ValueError):
+                    raise SnapshotContractError(
+                        'Pages RUC manifest is not canonical JSON',
+                        code='snapshot_pages_manifest_mismatch',
+                    ) from None
+                if published_json != sealed_json:
+                    raise SnapshotContractError(
+                        'Pages RUC manifest differs from the sealed snapshot',
+                        code='snapshot_pages_manifest_mismatch',
                     )
             journal.record(attempt=attempt, phase='pages_pointer', run=run,
                            status=response.status, metadata=_response_metadata(response),
@@ -719,7 +740,7 @@ def main(argv=None) -> int:
             page_attempt = probe_pages(
                 a.pages_base, run, attempts=a.pages_attempts,
                 expected_profile=meta.get('storageProfile', 'pages-free-v1'),
-                expected_contract=expected_contract,
+                expected_contract=expected_contract, expected_manifest=meta,
                 allow_legacy_rollback=a.legacy_rollback, journal=journal,
             )
             pages_verified = True
