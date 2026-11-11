@@ -426,7 +426,7 @@ def check(payload: dict, run: str, *, expected_contract: dict | None = None) -> 
     backend = payload.get('backend')
     # Only the two deployed Worker backends may pass a public health gate.
     # Missing/unknown backends must not silently bypass EPS/profile checks.
-    if backend not in {'r2', 'pages'} or not isinstance(backend, str):
+    if not isinstance(backend, str) or backend not in {'r2', 'pages'}:
         raise WorkerAdoptionError('Worker RUC backend is missing or unsupported',
                                   code='worker_backend_invalid')
     if backend == 'r2' and objects.get('epsMembers') is not True:
