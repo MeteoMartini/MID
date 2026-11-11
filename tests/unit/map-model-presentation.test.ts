@@ -2,7 +2,7 @@ import {describe,expect,it} from 'vitest';
 import {execFileSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
-import {groupedMapModelOptions,mapModelDisplayLabel} from '../../src/mapModelPresentation';
+import {groupedMapModelOptions,mapModelDisplayLabel,mapModelSourceGrid} from '../../src/mapModelPresentation';
 import {WEATHER_MAP_MODELS} from '../../src/WeatherMapsData';
 import {cloudWeatherSources} from '../../src/cloudWeatherData';
 import type {SynopticIndex} from '../../src/nativeSynopticFields';
@@ -103,6 +103,28 @@ describe('MID map model identity: flag, family and fine-to-coarse ordering',()=>
    .toContain('0,0625° Kartenraster');
   expect(mapModelDisplayLabel({id:'ifs',label:'ECMWF IFS',sourceGrid:'mixed',resolutionKm:9}))
    .toBe('🇪🇺 ECMWF IFS');
+ });
+ it('rejects a single native 2 km claim for a D2 model offering both original native and WMS products',()=>{
+  const d2=weatherMapProductsForModel('icon-d2');
+  expect(d2.some(p=>p.source==='native')).toBe(true);
+  expect(d2.some(p=>p.source===undefined||p.source==='wms')).toBe(true);
+  expect(mapModelSourceGrid(d2)).toBe('mixed');
+  expect(mapModelDisplayLabel({id:'icon-d2',label:'DWD ICON-D2',sourceGrid:mapModelSourceGrid(d2)}))
+   .toBe('🇩🇪 DWD ICON-D2');
+  const eu=weatherMapProductsForModel('icon-eu');
+  expect(mapModelSourceGrid(eu)).toBe('wms');
+  expect(mapModelDisplayLabel({id:'icon-eu',label:'DWD ICON-EU',sourceGrid:mapModelSourceGrid(eu)}))
+   .toContain('0,0625° Kartenraster');
+ });
+ it('keeps source-grid classification strictly tied to existing eligible products',()=>{
+  expect(mapModelSourceGrid([])).toBe('mixed');
+  expect(mapModelSourceGrid([{source:'native'},{source:'totals'}])).toBe('native');
+  expect(mapModelSourceGrid([{source:'grid'},{source:'observed-totals'}])).toBe('native');
+  expect(mapModelSourceGrid([{}, {source:'wms'}])).toBe('wms');
+  expect(mapModelSourceGrid([{source:'native'},{}])).toBe('mixed');
+  expect(mapModelSourceGrid([{source:'future-unverified'}])).toBe('mixed');
+  expect(mapModelDisplayLabel({id:'icon-d2',label:'DWD ICON-D2',sourceGrid:'wms'}))
+   .toBe('🇩🇪 DWD ICON-D2');
  });
  it('keeps unknown model identities transparent, sorted after verified sources',()=>{
   const list=[{id:'unlisted-a',label:'Zeta'},{id:'ifs',label:'ECMWF IFS'},
