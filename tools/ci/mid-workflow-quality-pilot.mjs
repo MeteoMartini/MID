@@ -87,7 +87,10 @@ export function runWorkflowQualityPilot({root=ROOT,read=readFileSync,invoke=spaw
     const fullOutput=String(run?.stdout||'');
     const summary=summarizeWorkflowScanner(tool.name,fullOutput,exitCode);
     let verdict=run?.error?'SCANNER_UNAVAILABLE':exitCode===0?'PASS':exitCode===null?'SCANNER_INTERRUPTED':'FINDINGS_OR_ERROR';
-    if(tool.name==='zizmor'&&summary?.valid!==true)verdict='SCANNER_OUTPUT_INVALID';
+    // Preserve executable-not-found/interrupted as the primary failure; malformed
+    // tool output may only further classify a scanner that actually ran.
+    if(tool.name==='zizmor'&&!run?.error&&exitCode!==null&&summary?.valid!==true)
+      verdict='SCANNER_OUTPUT_INVALID';
     results.push({tool:tool.name,verdict,exitCode,summary,
       outputTruncated:fullOutput.length>MAX_OUTPUT,output,errors});
   }
