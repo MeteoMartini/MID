@@ -102,7 +102,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y libeccodes-tools
           python3 -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+          # Native C decoder must be usable, never silently substituted.
+          python3 -m eccodes selfcheck
           python3 tools/ruc/test_fetch_resilience.py -v

@@ -110,17 +110,19 @@ jobs:
           else
             python tools/ruc/check_ruc_schedule_guard.py --pages-base "$MID_RUC_PAGES_BASE_URL" --github-output "$GITHUB_OUTPUT"
           fi
-      - name: Freie DWD-Decodierwerkzeuge installieren
+      - name: Native Python-ecCodes-Wheel vor DWD-Decode prüfen
         if: ${{ steps.freshness.outputs.should_run == 'true' }}
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libeccodes-tools
+          set -euo pipefail
+          # Python ecCodes ships the native ECMWF library; no CLI tools needed.
+          # Fail closed on an unavailable wheel or native decoder.
           requirements='tools/ruc/requirements-pages.txt'
           if [ ! -f "$requirements" ]; then
             echo '::notice::Lean Pages requirements not present on this older stable source; using compatible full RUC requirements once.'
             requirements='tools/ruc/requirements.txt'
           fi
           python -m pip install --disable-pip-version-check -r "$requirements"
+          python -m eccodes selfcheck
       - name: RUC-Downloadfehler und frühe Vollständigkeitsprüfung offline testen
         if: ${{ steps.freshness.outputs.should_run == 'true' }}
         run: python tools/ruc/timed_command.py download-tests -- python tools/ruc/test_fetch_resilience.py
@@ -230,12 +232,12 @@ jobs:
           python tools/ruc/timed_command.py check-core-handoff -- python tools/ruc/prepared_snapshot.py admit-core --snapshot .ruc-out --run-id "$GITHUB_RUN_ID" --require-fresh
           test ! -e .ruc-stage
           mv .ruc-out/prepared-map-grib .ruc-stage
-      - name: Etablierte native Aufbereitungsabhängigkeiten installieren
+      - name: Native Python-ecCodes-Wheel vor RUC-Aufbereitung prüfen
         if: inputs.reuse_run_id == ''
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libeccodes-tools
+          set -euo pipefail
           python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+          python -m eccodes selfcheck
       - name: RUC-Wire- und Pages-Free-Profil prüfen
         env:
           PYTHONFAULTHANDLER: '1'

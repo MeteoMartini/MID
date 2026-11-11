@@ -54,6 +54,11 @@ def check_contract(install: str, ruc: str, watchdog: str,
     manual_jobs = job_blocks(manual)
     ruc_jobs = job_blocks(ruc)
     recovery = job_blocks(watchdog)
+    # Both native GRIB workflows use the verified Python binary, not apt.
+    for job_name in ("calculate", "prepare"):
+        job = ruc_jobs.get(job_name, "")
+        if "sudo apt-get" in job or job.count("python -m eccodes selfcheck") != 1:
+            raise ValueError("RUC native Python ecCodes preflight missing or apt regression: " + job_name)
     if not {"deploy_pages_1", "deploy_pages_2", "deploy_pages_3", "finalize_release"} <= set(main):
         raise ValueError("MID Pages retries/finalize not all present")
     if "publish" not in ruc_jobs or "verify-and-recover" not in recovery:
@@ -235,6 +240,21 @@ class P4PagesSerialization(unittest.TestCase):
         hostile = self.ruc.replace("--run-id \"$GITHUB_RUN_ID\" --require-fresh", "--run-id \"$GITHUB_RUN_ID\"", 1)
         with self.assertRaisesRegex(ValueError, "240-minute freshness"):
             check_contract(self.install, hostile, self.watchdog)
+
+    def test_apt_free_native_eccodes_preflight_and_workflow_mirrors(self):
+        self.assertTrue(check_contract(self.install, self.ruc, self.watchdog)["sharedGitHubPagesLease"])
+        for job_name in ("calculate", "prepare"):
+            block = job_blocks(self.ruc)[job_name]
+            self.assertNotIn("sudo apt-get", block)
+            self.assertIn("python -m eccodes selfcheck", block)
+        hostile = self.ruc.replace("python -m eccodes selfcheck", "true", 1)
+        with self.assertRaisesRegex(ValueError, "native Python ecCodes preflight"):
+            check_contract(self.install, hostile, self.watchdog)
+        native = (ROOT / "ci/github/workflows/mid-ruc-telemetry-qa.yml").read_text(encoding="utf-8")
+        mirror = (ROOT / ".github/workflows/mid-ruc-telemetry-qa.yml").read_text(encoding="utf-8")
+        self.assertEqual(native, mirror)
+        self.assertNotIn("sudo apt-get", native)
+        self.assertIn("python3 -m eccodes selfcheck", native)
 
     def test_bad_workflow_structure_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "missing jobs map"):
