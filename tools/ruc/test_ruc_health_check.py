@@ -429,6 +429,56 @@ class SafeDiagnosticsTests(unittest.TestCase):
   self.assertEqual(result['records'][0]['metadata'],
                    {'ageSeconds':120,'cacheStatus':'hit'})
 
+
+ def test_combined_health_deadline_bounds_both_retry_phases(self):
+  class FakeClock:
+   def __init__(self):self.now=0.0
+   def read(self):return self.now
+   def sleep(self,seconds):self.now+=seconds
+  for phase in ('pages','worker'):
+   with self.subTest(phase=phase):
+    clock=FakeClock()
+    journal=mod.ProbeJournal()
+    responses=[]
+    def fetch(url,timeout):
+     responses.append(timeout)
+     if phase=='pages':
+      return {'schema':'mid.dwd.ruc.grid.v2',
+              'storageProfile':'pages-free-v1','run':'2026-11-07T17:00'}
+     return {**good,'ready':False}
+    with self.assertRaises(mod.RucHealthError) as caught:
+     if phase=='pages':
+      mod.probe_pages('https://host.invalid/ruc/','2026-11-07T18:00',
+                      attempts=18,fetcher=fetch,sleeper=clock.sleep,
+                      deadline=17.0,clock=clock.read,journal=journal)
+     else:
+      mod.probe_until_ready('https://host.invalid/','2026082822',
+                            attempts=7,fetcher=fetch,sleeper=clock.sleep,
+                            deadline=17.0,clock=clock.read,journal=journal)
+    self.assertEqual(caught.exception.code,'health_budget_exhausted')
+    self.assertLessEqual(clock.now,17.0)
+    self.assertEqual(len(responses),2)
+    self.assertEqual(journal.records[-1]['diagnosticCode'],
+                     'health_budget_exhausted')
+    self.assertLessEqual(len(journal.records),3)
+
+ def test_cli_shares_health_deadline_between_pages_and_worker(self):
+  with tempfile.TemporaryDirectory() as directory:
+   metadata=Path(directory)/'latest.json'
+   metadata.write_text(json.dumps(sealed),encoding='utf-8')
+   with (mock.patch.object(mod.time,'monotonic',return_value=1000.0),
+         mock.patch.object(mod,'probe_pages',return_value=1) as pages,
+         mock.patch.object(mod,'probe_until_ready',
+                           return_value=({**worker,'run':MODEL_RUN},1)) as adopted,
+         contextlib.redirect_stdout(io.StringIO())):
+    result=mod.main(['--url','https://host.invalid/',
+                     '--pages-base','https://host.invalid/ruc/',
+                     '--meta',str(metadata)])
+   self.assertEqual(result,0)
+   self.assertEqual(pages.call_args.kwargs['deadline'],1600.0)
+   self.assertEqual(adopted.call_args.kwargs['deadline'],1600.0)
+   self.assertEqual(mod.MAX_HEALTH_BUDGET_SECONDS,600)
+
  def test_probe_budgets_remain_bounded_at_eighteen_and_seven(self):
   self.assertEqual(mod.MAX_PAGES_PROBE_ATTEMPTS,18)
   self.assertEqual(mod.MAX_WORKER_PROBE_ATTEMPTS,7)

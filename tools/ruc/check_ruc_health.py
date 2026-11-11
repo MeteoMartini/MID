@@ -27,11 +27,15 @@ from pathlib import Path
 # propagation time before declaring non-convergence; never accept a stale run.
 MAX_PAGES_PROBE_ATTEMPTS = 18
 MAX_WORKER_PROBE_ATTEMPTS = 7
+# The Pages publish job allows 15 minutes total. Keep the combined Pages
+# and Worker checks inside ten minutes, with time reserved for other steps.
+MAX_HEALTH_BUDGET_SECONDS = 600
 MAX_PROBE_JOURNAL_RECORDS = 64
 SAFE_DIAGNOSTIC_CODES = {
     'codec_defect_proven',
     'codec_evidence_unclassified',
     'invalid_json',
+    'health_budget_exhausted',
     'pages_convergence_timeout',
     'pages_http_error',
     'pages_pointer_not_converged',
@@ -553,7 +557,7 @@ def full_codec_evidence(payload:dict,meta:dict)->dict:
             'advertised':advertised if type(advertised) is bool else None,
             'rawRetained':raw_retained if type(raw_retained) is bool else None}
 
-def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetcher=None, sleeper=time.sleep, expected_profile='pages-free-v1', expected_contract: dict | None = None, expected_manifest: dict | None = None, allow_legacy_rollback: bool = False, journal: ProbeJournal | None = None) -> int:
+def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetcher=None, sleeper=time.sleep, expected_profile='pages-free-v1', expected_contract: dict | None = None, expected_manifest: dict | None = None, allow_legacy_rollback: bool = False, journal: ProbeJournal | None = None, deadline: float | None = None, clock=time.monotonic) -> int:
     """Prove public Pages convergence separately from Worker adoption."""
     url = urllib.parse.urljoin(base.rstrip('/') + '/', 'latest.json')
     last_error = None
@@ -563,9 +567,22 @@ def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetch
     for attempt in range(1, attempts + 1):
         response = None
         try:
+            remaining = None if deadline is None else deadline - clock()
+            if remaining is not None and remaining <= 0:
+                raise PagesConvergenceError(
+                    'Combined RUC Pages/Worker health budget exhausted',
+                    code='health_budget_exhausted', attempts=attempt,
+                )
             response = _fetch_for_probe(
-                fetcher, probe_url(url, run, attempt), 15, 'pages_pointer'
+                fetcher, probe_url(url, run, attempt),
+                min(15, remaining) if remaining is not None else 15,
+                'pages_pointer',
             )
+            if deadline is not None and clock() >= deadline:
+                raise PagesConvergenceError(
+                    'Combined RUC Pages/Worker health budget exhausted',
+                    code='health_budget_exhausted', attempts=attempt,
+                )
             meta = response.payload
             if meta.get('schema') != 'mid.dwd.ruc.grid.v2' or meta.get('storageProfile') != expected_profile or (expected_profile == 'pages-lossless-v1' and not active_profile_valid(meta)):
                 raise PagesConvergenceError('Pages RUC metadata schema/profile is invalid',
@@ -615,8 +632,12 @@ def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetch
                 observed_run=observed.get('run'),
                 observed_profile=observed.get('storageProfile'),
             )
+            if error.code == 'health_budget_exhausted':
+                raise error
             if attempt < attempts:
                 delay = min(30, 8 * 1.5 ** (attempt - 1))
+                if deadline is not None:
+                    delay = min(delay, max(0.0, deadline - clock()))
                 print(
                     f'MID RUC Pages not converged ({attempt}/{attempts}) [{error.code}]; '
                     f'retry in {delay:.0f}s',
@@ -646,6 +667,8 @@ def probe_until_ready(
     sleeper=time.sleep,
     expected_contract: dict | None = None,
     journal: ProbeJournal | None = None,
+    deadline: float | None = None,
+    clock=time.monotonic,
 ) -> tuple[dict, int]:
     attempts = min(MAX_WORKER_PROBE_ATTEMPTS, max(1, int(attempts)))
     retry_delay = max(0.0, float(retry_delay))
@@ -657,9 +680,22 @@ def probe_until_ready(
     for attempt in range(1, attempts + 1):
         response = None
         try:
+            remaining = None if deadline is None else deadline - clock()
+            if remaining is not None and remaining <= 0:
+                raise WorkerAdoptionError(
+                    'Combined RUC Pages/Worker health budget exhausted',
+                    code='health_budget_exhausted', attempts=attempt,
+                )
             response = _fetch_for_probe(
-                fetcher, probe_url(url, run, attempt), timeout, 'worker_adoption'
+                fetcher, probe_url(url, run, attempt),
+                min(timeout, remaining) if remaining is not None else timeout,
+                'worker_adoption',
             )
+            if deadline is not None and clock() >= deadline:
+                raise WorkerAdoptionError(
+                    'Combined RUC Pages/Worker health budget exhausted',
+                    code='health_budget_exhausted', attempts=attempt,
+                )
             check(response.payload, run, expected_contract=expected_contract)
             journal.record(attempt=attempt, phase='worker_adoption', run=run,
                            status=response.status, metadata=_response_metadata(response))
@@ -672,9 +708,13 @@ def probe_until_ready(
                 metadata=_response_metadata(response) if response else error.metadata,
                 diagnostic_code=error.code,
             )
+            if error.code == 'health_budget_exhausted':
+                raise error
             if attempt >= attempts:
                 break
             delay = min(max_retry_delay, retry_delay * (1.5 ** (attempt - 1)))
+            if deadline is not None:
+                delay = min(delay, max(0.0, deadline - clock()))
             print(
                 f'MID RUC health not converged ({attempt}/{attempts}) [{error.code}]; '
                 f'retry in {delay:.0f}s',
@@ -716,6 +756,9 @@ def main(argv=None) -> int:
     journal = ProbeJournal()
     pages_verified = False
     full_profile = False
+    # Shared wall-clock deadline: strict failure before GitHub cancels the
+    # whole publish job, so the typed journal and rollback=false are retained.
+    health_deadline = time.monotonic() + MAX_HEALTH_BUDGET_SECONDS
     try:
         run = expected_run(a.meta)
         try:
@@ -742,6 +785,7 @@ def main(argv=None) -> int:
                 expected_profile=meta.get('storageProfile', 'pages-free-v1'),
                 expected_contract=expected_contract, expected_manifest=meta,
                 allow_legacy_rollback=a.legacy_rollback, journal=journal,
+                deadline=health_deadline,
             )
             pages_verified = True
             print(f'MID RUC Pages publication OK: run={run}, probe={page_attempt}')
@@ -754,6 +798,7 @@ def main(argv=None) -> int:
             max_retry_delay=a.max_retry_delay,
             expected_contract=expected_contract,
             journal=journal,
+            deadline=health_deadline,
         )
         backend = payload.get('backend')
         backend = backend if isinstance(backend, str) and backend in {'pages', 'r2'} else 'unavailable'
