@@ -6,7 +6,7 @@
  * Degree labels describe the DWD published map GRID, not atmospheric
  * effective native model resolution.
  */
-export type MapModelChoice={id:string;label:string;resolutionKm?:number};
+export type MapModelChoice={id:string;label:string;resolutionKm?:number;sourceGrid?:'native'|'wms'|'mixed'};
 export type MapModelOption<T extends MapModelChoice>=T&{displayLabel:string};
 export type MapModelGroup<T extends MapModelChoice>={id:string;label:string;models:MapModelOption<T>[]};
 
@@ -38,9 +38,13 @@ export function mapModelDisplayLabel(choice:MapModelChoice):string{
  const known=identityFor(choice.id);
  if(!known)return choice.label; // Never claim a guessed nationality.
  const km=recognizedResolution(choice.resolutionKm);
- // Synoptic model resolution is read from verified index metadata. WMS-only
- // sources keep the distinct published grid label instead of claiming native.
- const res=km!==undefined?new Intl.NumberFormat('de-DE',{maximumFractionDigits:1}).format(km)+' km Raster':known.displayResolution;
+ // A model can offer separate native and WMS grids. Never reuse a WMS grid
+ // descriptor for its native cloud/synoptic data, or a single grid for an
+ // all-parameters (mixed) model picker. A validated native index may supply km.
+ const res=choice.sourceGrid==='mixed'?undefined:km!==undefined?
+  new Intl.NumberFormat('de-DE',{maximumFractionDigits:1}).format(km)+' km Raster':
+  choice.sourceGrid==='native'&&known.displayResolution?.includes('Kartenraster')?
+   undefined:known.displayResolution;
  return known.flag+' '+choice.label+(res?' · '+res:'');
 }
 /** First: model family; inside family: finest verified/published map grid first. */
