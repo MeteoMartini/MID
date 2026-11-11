@@ -300,6 +300,36 @@ test('verified GitHub files are required before proposing any MID version',()=>{
  assert.equal(result.releaseAuthorized,false);
  assert.match(result.notice,/no semantic-impact proof/);
 });
+test('remote inventory can be verified while update impact remains unapproved',()=>{
+ const unknown=versionEvidence();
+ unknown.candidates[0].impact='unknown';
+ const x=analyzeVerifiedReleaseVersion(unknown,pinnedLive,evidenceSnapshot());
+ assert.equal(x.verifiedDiffInventory,true,'Exact immutable GitHub files remain established');
+ assert.equal(x.readyForIntegrationReview,false,'Unknown impact still blocks integration');
+ assert.equal(x.proposedVersion,null,'No proposal without substantive classification');
+ assert.equal(x.releaseAuthorized,false);
+ assert.ok(x.blockers.some(t=>t.includes('unknown impact')));
+});
+test('unrelated remote plan blockers do not erase matching file evidence',()=>{
+ const snapshot=evidenceSnapshot();
+ snapshot.plan.validForIntegrationReview=false;
+ const x=analyzeVerifiedReleaseVersion(versionEvidence(),pinnedLive,snapshot);
+ assert.equal(x.verifiedDiffInventory,true,'Independent file identities remain matched');
+ assert.equal(x.readyForIntegrationReview,false);
+ assert.equal(x.proposedVersion,null);
+ assert.equal(x.releaseAuthorized,false);
+});
+test('no false verified inventory when impact and remote files both fail',()=>{
+ const unknown=versionEvidence();
+ unknown.candidates[0].impact='unknown';
+ const snapshot=evidenceSnapshot();
+ snapshot.verifiedCandidates[0].files=['src/foo.ts','docs/missing.md'];
+ const x=analyzeVerifiedReleaseVersion(unknown,pinnedLive,snapshot);
+ assert.equal(x.verifiedDiffInventory,false);
+ assert.equal(x.readyForIntegrationReview,false);
+ assert.equal(x.proposedVersion,null);
+ assert.equal(x.releaseAuthorized,false);
+});
 test('version verification fails closed on omitted, added, renamed or duplicated actual paths',()=>{
  const badVariants=[
   ['src/foo.ts'],
