@@ -158,8 +158,7 @@ class SourceContract(unittest.TestCase):
         with self.assertRaises(qa.ContractError):qa.verify_window(d,run=RUN,lead=1,field='tot_prec')
         d=metadata('tot_prec',1,0);d['validityTime']=0
         with self.assertRaises(qa.ContractError):qa.verify_window(d,run=RUN,lead=1,field='tot_prec')
-    def test_original_gust_observation_never_qualifies_mismatched_summer(self):
-        # A genuine 1h peak at 81h is a real source field, but NOT a 3h peak.
+    def test_observed_one_hour_gust_cannot_pass_three_hour_summer(self):
         h=metadata('vmax_10m',81,80)
         with self.assertRaises(qa.ContractError):
             qa.verify_window(h,run=RUN,lead=81,field='vmax_10m')
@@ -168,50 +167,50 @@ class SourceContract(unittest.TestCase):
 
     def test_winter_three_hour_pair_survives_mismatched_gust(self):
         import numpy as np
+        from re import search
         from unittest.mock import patch
 
         class FakeReply:
             status_code=200
-            def __init__(self,body):self.text=body
-            def raise_for_status(self):pass
+            def __init__(self,body): self.text=body
+            def raise_for_status(self): pass
 
         class FakeSession:
             def get(self,url,**kwargs):
                 field=url.rstrip('/').split('/')[-1]
-                leads=[78,81] if field=='tot_prec' else [81]
-                return FakeReply(listing(field,leads))
+                return FakeReply(listing(field,[78,81] if field=='tot_prec' else [81]))
 
-        for gust_start,expected_status,expected_count in (
-            (80,'blocked-gust-interval',0),(78,'grib-pair-qualified',3)
-        ):
-            def fake_decoded(payload):
-                from re import search
+        for gust_start,summer_status,summer_cells in [
+            (80,'blocked-gust-interval',0),
+            (78,'grib-pair-qualified',3),
+        ]:
+            def fake_decode(payload):
                 url=payload.decode('ascii')
                 field=url.split('/')[-2]
-                lead=int(search(r'_(\d{3})_(?:TOT_PREC|T_2M|VMAX_10M)\.grib2\.bz2
-        self.assertEqual(qa.FIELDS,{'tot_prec':'TOT_PREC','t_2m':'T_2M','vmax_10m':'VMAX_10M'})
-
-if __name__ == '__main__':unittest.main()
-,url).group(1))
-                start=(0 if field=='tot_prec' else lead if field=='t_2m' else gust_start)
-                raw={'tot_prec':np.array([0.,2.,10.]) if lead==78 else np.array([0.,4.,12.]),
-                     't_2m':np.array([273.15,270.,268.]),
-                     'vmax_10m':np.array([10.,12.,14.])}[field]
-                return metadata(field,lead,start),raw,'same-exact-grid-sha'
+                match=search(r'_(\d{3})_(?:TOT_PREC|T_2M|VMAX_10M)\.grib2\.bz2$',url)
+                assert match is not None
+                lead=int(match.group(1))
+                start=0 if field=='tot_prec' else lead if field=='t_2m' else gust_start
+                values={
+                    'tot_prec':np.array([0.,2.,10.]) if lead==78 else np.array([0.,4.,12.]),
+                    't_2m':np.array([273.15,270.,268.]),
+                    'vmax_10m':np.array([10.,12.,14.]),
+                }[field]
+                return metadata(field,lead,start),values,'identical-verified-grid'
 
             with self.subTest(gust_start=gust_start):
-                with patch('requests.Session',return_value=FakeSession()),\
-                     patch.object(qa,'_request_bytes',side_effect=lambda sess,url:url.encode('ascii')),\
-                     patch.object(qa,'decode_original',side_effect=fake_decoded):
-                    result=qa.run_qualification(RUN,[81])
-                entry=result['entries'][0]
-                self.assertFalse(result['releaseApproved'])
+                with patch('requests.Session',return_value=FakeSession()), \
+                     patch.object(qa,'_request_bytes',side_effect=lambda sess,url:url.encode('ascii')), \
+                     patch.object(qa,'decode_original',side_effect=fake_decode):
+                    out=qa.run_qualification(RUN,[81])
+                entry=out['entries'][0]
+                self.assertFalse(out['releaseApproved'])
                 self.assertEqual(entry['intervalHours'],3)
                 self.assertEqual(entry['winterPairStatus'],'grib-pair-qualified')
                 self.assertEqual(entry['validWinter'],3)
                 self.assertEqual(entry['gustIntervalHours'],81-gust_start)
-                self.assertEqual(entry['summerPairStatus'],expected_status)
-                self.assertEqual(entry['validSummer'],expected_count)
+                self.assertEqual(entry['summerPairStatus'],summer_status)
+                self.assertEqual(entry['validSummer'],summer_cells)
                 self.assertEqual(entry['minPrecipitationMm'],0.)
 
     def test_no_false_model_licensing(self):
