@@ -72,6 +72,8 @@ def check_contract(install: str, ruc: str, watchdog: str) -> dict:
         raise ValueError("RUC raw rollback is not bounded to verified codec-cause admission")
     if publisher.count("digest-mismatch: error") != 2:
         raise ValueError("RUC immutable data and rollback artifact digest gates absent")
+    if "--run-id \"$GITHUB_RUN_ID\" --require-fresh" not in ruc_jobs["prepare"]:
+        raise ValueError("RUC core handoff missing exact 240-minute freshness recheck")
     admission = publisher.find("prepared_snapshot.py admit --snapshot")
     decoder = publisher.find("verify_prepared_snapshot.mjs")
     publish_guard = publisher.find("id: publish_guard")
@@ -162,6 +164,13 @@ class P4PagesSerialization(unittest.TestCase):
         unguarded = self.ruc.replace(" && steps.worker_health.outputs.rollback_admitted == 'true'", "", 1)
         with self.assertRaisesRegex(ValueError, "verified codec-cause"):
             check_contract(self.install, unguarded, self.watchdog)
+
+    def test_early_core_freshness_guard_cannot_be_removed(self):
+        verdict = check_contract(self.install, self.ruc, self.watchdog)
+        self.assertTrue(verdict["immutableReAdmission"])
+        hostile = self.ruc.replace("--run-id \"$GITHUB_RUN_ID\" --require-fresh", "--run-id \"$GITHUB_RUN_ID\"", 1)
+        with self.assertRaisesRegex(ValueError, "240-minute freshness"):
+            check_contract(self.install, hostile, self.watchdog)
 
     def test_bad_workflow_structure_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "missing jobs map"):

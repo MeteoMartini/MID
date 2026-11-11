@@ -227,7 +227,7 @@ jobs:
       - name: Kernbytes und Berechnungsquelle nach dem Jobwechsel erneut prüfen
         if: inputs.reuse_run_id == ''
         run: |
-          python tools/ruc/timed_command.py check-core-handoff -- python tools/ruc/prepared_snapshot.py admit-core --snapshot .ruc-out --run-id "$GITHUB_RUN_ID"
+          python tools/ruc/timed_command.py check-core-handoff -- python tools/ruc/prepared_snapshot.py admit-core --snapshot .ruc-out --run-id "$GITHUB_RUN_ID" --require-fresh
           test ! -e .ruc-stage
           mv .ruc-out/prepared-map-grib .ruc-stage
       - name: Etablierte native Aufbereitungsabhängigkeiten installieren
