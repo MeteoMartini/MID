@@ -130,6 +130,19 @@ describe('MID map model identity: flag, family and fine-to-coarse ordering',()=>
   expect(mapModelDisplayLabel({id:'icon-d2',label:'DWD ICON-D2',sourceGrid:'wms'}))
    .toBe('🇩🇪 DWD ICON-D2');
  });
+ it('avoids a competing line-only popup over seasonal paired-raster values',()=>{
+  const root=fileURLToPath(new URL('../../',import.meta.url));
+  const map=readFileSync(root+'src/UnifiedWeatherMap.tsx','utf8');
+  const index=map.indexOf('id="unified-seasonal-companion-isolines"');
+  expect(index).toBeGreaterThan(0);
+  const contour=map.slice(index,index+720);
+  expect(contour).toContain("['get','label']");
+  expect(contour).toContain("'text-field'");
+  expect(contour).not.toContain('hoverProperty="label"');
+  // Only redundant seasonal tooltip changes: cloud/synoptic contour
+  // hover info is not silently disabled.
+  expect(map).toContain('id="unified-cloud-weather-isobars" data={contours} hoverProperty="label"');
+ });
  it('keeps unknown model identities transparent, sorted after verified sources',()=>{
   const list=[{id:'unlisted-a',label:'Zeta'},{id:'ifs',label:'ECMWF IFS'},
    {id:'unlisted-b',label:'Alpha'}];
