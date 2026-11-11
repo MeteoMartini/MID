@@ -17,14 +17,17 @@ export function seasonalMapKinds(id:string):{primary:NativeFieldKind;secondary:N
 export function seasonalMapFrames(index:NativeIndex|null,id:string):NativeFrameRef[]{
  const c=seasonalMapKinds(id);
  if(!c||!index||!['mid.icon-d2.fields.v1','mid.icon-d2.native-fields.v2'].includes(index.schema)||
-   (index.modelId!==undefined&&index.modelId!=='icon-d2'))return [];
+   (index.modelId!==undefined&&index.modelId!=='icon-d2')||
+   (index.schema==='mid.icon-d2.native-fields.v2'&&index.productionApproved!==true))return [];
  const first=index.products[c.primary],second=index.products[c.secondary];
  if(!first?.frames?.length||!second?.frames?.length||
    first.unit!=='mm/1 h'||second.unit!==(c.secondary==='temperature'?'°C':'km/h'))return [];
  const secondary=new Map(second.frames.map(frame=>[frame.time,frame]));
  return first.frames.filter(frame=>{
   const pair=secondary.get(frame.time);
-  return Boolean(pair&&frame.intervalHours===1&&pair.intervalHours>0&&
+  return Boolean(pair&&frame.intervalHours===1&&Number.isInteger(frame.hour)&&frame.hour>0&&pair.hour===frame.hour&&
+   Date.parse(frame.time)===Date.parse(index.run)+frame.hour*3600000&&
+   Number.isInteger(pair.intervalHours)&&pair.intervalHours>=0&&pair.intervalHours<=pair.hour&&
    Number.isFinite(Date.parse(frame.time))&&Date.parse(frame.time)>Date.parse(index.run)&&
    typeof frame.sha256==='string'&&/^[a-f0-9]{64}$/.test(frame.sha256)&&
    typeof pair!.sha256==='string'&&/^[a-f0-9]{64}$/.test(pair!.sha256));
@@ -33,6 +36,7 @@ export function seasonalMapFrames(index:NativeIndex|null,id:string):NativeFrameR
 export function seasonalPairValid(id:string,primary:NativeField|null,secondary:NativeField|null,expectedTime?:string):boolean{
  const c=seasonalMapKinds(id);
  if(!c||!primary||!secondary||primary.kind!==c.primary||secondary.kind!==c.secondary||
+   primary.unit!=='mm/1 h'||secondary.unit!==(c.secondary==='temperature'?'°C':'km/h')||
    primary.run!==secondary.run||primary.time!==secondary.time||
    (expectedTime!==undefined&&primary.time!==expectedTime)||
    (primary.modelId!==undefined&&primary.modelId!=='icon-d2')||
@@ -48,16 +52,27 @@ export function seasonalPairValid(id:string,primary:NativeField|null,secondary:N
   if(!Number.isFinite(primary.lats[i])||primary.lats[i]!==secondary.lats[i])return false;
  for(let i=0;i<primary.lons.length;i++)
   if(!Number.isFinite(primary.lons[i])||primary.lons[i]!==secondary.lons[i])return false;
- return true;
+ // Individually valid rasters with disjoint NoData masks yield no drawable composite.
+ // A physically real zero counts as shared valid data, never as missing.
+ return primary.values.some((value,i)=>Number.isFinite(value)&&Number.isFinite(secondary.values[i]));
 }
-/** Missing in either field remains NoData, never zero or a fabricated phase. */
+/** Both displays must share one checked pairing and the exact same NoData mask.
+ * A single masked output pass avoids duplicate coordinate checks and repeated
+ * traversals of the published raster when the forecast step changes.
+ */
+export function seasonalMaskedPair(id:string,primary:NativeField,secondary:NativeField,expectedTime?:string):{primary:NativeField;secondary:NativeField}|null{
+ if(!seasonalPairValid(id,primary,secondary,expectedTime))return null;
+ const first=new Array<number>(primary.values.length),second=new Array<number>(primary.values.length);
+ for(let i=0;i<first.length;i++){
+  const a=primary.values[i],b=secondary.values[i],valid=Number.isFinite(a)&&Number.isFinite(b);
+  first[i]=valid?a:NaN;second[i]=valid?b:NaN;
+ }
+ return {primary:{...primary,values:first},secondary:{...secondary,values:second}};
+}
+/** Preserve existing single-field clients without relaxing the shared mask. */
 export function seasonalMaskedPrimary(id:string,primary:NativeField,secondary:NativeField):NativeField|null{
- if(!seasonalPairValid(id,primary,secondary))return null;
- return {...primary,values:primary.values.map((value,i)=>
-   Number.isFinite(value)&&Number.isFinite(secondary.values[i])?value:NaN)};
+ return seasonalMaskedPair(id,primary,secondary)?.primary??null;
 }
 export function seasonalMaskedSecondary(id:string,primary:NativeField,secondary:NativeField):NativeField|null{
- if(!seasonalPairValid(id,primary,secondary))return null;
- return {...secondary,values:secondary.values.map((value,i)=>
-   Number.isFinite(value)&&Number.isFinite(primary.values[i])?value:NaN)};
+ return seasonalMaskedPair(id,primary,secondary)?.secondary??null;
 }

@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 import {assessMidNativeMergeReviewPolicy as audit,
  readMidNativeMergeReviewPolicy as read,
  assessMidClassicBranchReviewPolicy as classicAudit,
- readMidClassicBranchReviewPolicy as readClassic} from './mid-native-merge-review-policy.mjs';
+ readMidClassicBranchReviewPolicy as readClassic,
+ inspectMidMergeReviewPolicy as inspect} from './mid-native-merge-review-policy.mjs';
 const id=9028,summary={id,target:'branch',enforcement:'active'};
 const rule={type:'pull_request',parameters:{
  required_review_thread_resolution:true,required_approving_review_count:1,
@@ -153,6 +154,65 @@ await test('classic invalid JSON cannot attest rules',async()=>{
 await test('classic no token cannot attest rules',async()=>{
  const x=await readClassic({fetchImpl:classicFake([])});
  assert.equal(x.ok,false);assert.equal(x.reason,'CLASSIC_READ_INPUT_INVALID');
+});
+
+
+// Least-privilege default must never issue the Administration:read classic GET.
+// The owner UI (2026-11-11) shows no classic protection rules on MID.
+await test('default checks only Rulesets and never calls classic',async()=>{
+ let classicCalls=0;
+ const x=await inspect({token,nativeReader:async()=>audit(data()),
+  classicReader:async()=>{classicCalls++;throw new Error('must not call')}});
+ assert.equal(x.ok,true);assert.equal(classicCalls,0);
+ assert.equal(x.classicQueried,false);
+ assert.equal(x.classic.reason,'CLASSIC_SKIPPED_ADMIN_SCOPE');
+ assert.equal(x.mergeAuthorized,false);assert.equal(x.releaseAuthorized,false);
+});
+await test('absent native review stays blocked without a classic 403',async()=>{
+ let classicCalls=0;
+ const x=await inspect({token,nativeReader:async()=>audit({
+  summaries:[],detailsById:{}}),
+  classicReader:async()=>{classicCalls++;return classicAudit({protection:classicGood})}});
+ assert.equal(x.ok,false);assert.equal(classicCalls,0);
+ assert.equal(x.native.reason,'NATIVE_MERGE_TIME_REVIEW_ENFORCEMENT_MISSING');
+});
+await test('Ruleset read error is a real evidence failure not admin 403',async()=>{
+ const x=await inspect({token,nativeReader:async()=>{throw new Error('403')},
+  classicReader:async()=>{throw new Error('must not call')}});
+ assert.equal(x.ok,false);assert.equal(x.native.reason,'RULESETS_NOT_READABLE');
+ assert.equal(x.classic.reason,'CLASSIC_SKIPPED_ADMIN_SCOPE');
+});
+await test('privileged classic probe remains explicitly opt-in',async()=>{
+ let calls=0;
+ const x=await inspect({token,includeClassic:true,
+  nativeReader:async()=>audit({summaries:[],detailsById:{}}),
+  classicReader:async()=>{calls++;return readClassic({
+   fetchImpl:classicFake([],'403'),token
+  })}});
+ assert.equal(calls,1);assert.equal(x.classicQueried,true);
+ assert.equal(x.ok,false);
+ assert.equal(x.classic.reason,'CLASSIC_PROTECTION_NOT_READABLE');
+});
+await test('a validated opted-in classic rule is metadata not release authorization',async()=>{
+ const x=await inspect({token,includeClassic:true,
+  nativeReader:async()=>audit({summaries:[],detailsById:{}}),
+  classicReader:async()=>classicAudit({protection:classicGood})});
+ assert.equal(x.ok,true);assert.equal(x.native.ok,false);
+ assert.equal(x.classic.ok,true);
+ assert.equal(x.mergeAuthorized,false);assert.equal(x.releaseAuthorized,false);
+});
+await test('invalid opt-in mode is fail closed',async()=>{
+ const x=await inspect({token,includeClassic:'yes',
+  nativeReader:async()=>audit(data())});
+ assert.equal(x.ok,false);assert.equal(x.native.ok,false);
+ assert.equal(x.classicQueried,false);
+ assert.equal(x.native.reason,'RULESETS_NOT_READABLE');
+});
+await test('malformed positive reader result cannot supply review proof',async()=>{
+ const x=await inspect({token,
+  nativeReader:async()=>({ok:true,mergeAuthorized:true,releaseAuthorized:true})});
+ assert.equal(x.ok,false);
+ assert.equal(x.native.reason,'RULESETS_EVIDENCE_INVALID');
 });
 
 console.log('MID native merge review QA OK; scenarios='+n+'; ZERO network, secrets or release writes.');

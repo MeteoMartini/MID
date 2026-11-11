@@ -129,6 +129,38 @@ export async function readMidClassicBranchReviewPolicy({
  }catch{return block('CLASSIC_PROTECTION_NOT_READABLE')}
 }
 
+/**
+ * Ruleset evidence is the least-privilege default for MID. Classic branch
+ * protection requires Administration:read and is only queried when explicitly
+ * requested for a privileged diagnostic. Neither evidence path grants release.
+ */
+export async function inspectMidMergeReviewPolicy({
+ token,includeClassic=false,
+ nativeReader=readMidNativeMergeReviewPolicy,
+ classicReader=readMidClassicBranchReviewPolicy
+}={}){
+ const skipped=block('CLASSIC_SKIPPED_ADMIN_SCOPE');
+ if(typeof includeClassic!=='boolean'||typeof nativeReader!=='function'||
+    typeof classicReader!=='function')
+  return Object.freeze({...block('AUDIT_MODE_INVALID'),
+   classicQueried:false,native:block('RULESETS_NOT_READABLE'),classic:skipped});
+ const validEvidence=x=>x&&typeof x==='object'&&typeof x.ok==='boolean'&&
+  x.mergeAuthorized===false&&x.releaseAuthorized===false;
+ let native;
+ try {native=await nativeReader({token})}
+ catch {native=block('RULESETS_NOT_READABLE')}
+ if(!validEvidence(native))native=block('RULESETS_EVIDENCE_INVALID');
+ let classic=skipped;
+ if(includeClassic){
+  try {classic=await classicReader({token})}
+  catch {classic=block('CLASSIC_PROTECTION_NOT_READABLE')}
+  if(!validEvidence(classic))classic=block('CLASSIC_PROTECTION_NOT_READABLE');
+ }
+ return Object.freeze({ok:native.ok===true||classic.ok===true,
+  native,classic,classicQueried:includeClassic,
+  mergeAuthorized:false,releaseAuthorized:false});
+}
+
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  // Read-only independent QA. This CLI never merges, approves or changes rules.
  if(process.env.GITHUB_REPOSITORY!=='MeteoMartini/MID'||!process.env.GH_TOKEN){
@@ -136,14 +168,16 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   process.exitCode=2;
  }else{
   try{
-   // Both native forms must be checked. A classic-API 403 is not proof of
-   // missing protection, and a ruleset-only readback cannot rule classic out.
-   const [native,classic]=await Promise.allSettled([
-    readMidNativeMergeReviewPolicy({token:process.env.GH_TOKEN}),
-    readMidClassicBranchReviewPolicy({token:process.env.GH_TOKEN})
-   ]);
-   const a=native.status==='fulfilled'?native.value:block('RULESETS_NOT_READABLE');
-   const b=classic.status==='fulfilled'?classic.value:block('CLASSIC_PROTECTION_NOT_READABLE');
+   // The owner confirmed no classic rules on 2026-11-11. Do not probe a
+   // restricted admin endpoint in the normal least-privilege Ruleset audit.
+   // Explicit opt-in retains the classic route for privileged diagnostics.
+   const includeClassic=process.env.MID_AUDIT_CLASSIC==='1';
+   if(process.env.MID_AUDIT_CLASSIC&& !includeClassic)
+    throw new Error('INVALID_CLASSIC_AUDIT_MODE');
+   const evidence=await inspectMidMergeReviewPolicy({
+    token:process.env.GH_TOKEN,includeClassic
+   });
+   const {native:a,classic:b}=evidence;
    if(a.ok||b.ok){
     process.stdout.write('MID merge-time review metadata: '+(a.ok?'ruleset ':'')+
       (b.ok?'classic':'')+' (NOT a release authorization)\n');
