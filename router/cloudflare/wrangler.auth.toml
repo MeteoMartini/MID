@@ -1,0 +1,8 @@
+# MID AI Router OAuth – isolated QA template; NO PRODUCTION DEPLOY
+name = "mid-ai-router-auth"
+main = "./oauth-server.mjs"
+compatibility_date = "2026-11-11"
+workers_dev = true
+
+# Required KV namespace binding: OAUTH_KV.
+# Bind only a verified Free-plan namespace. No invented IDs or keys.
