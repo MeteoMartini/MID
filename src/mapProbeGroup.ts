@@ -51,8 +51,12 @@ export class MapProbeGroup{
  }
  private settle(revision:number,id:symbol,result:MapProbeValue|null,controller:AbortController){
   if(controller.signal.aborted||this.point?.revision!==revision)return;
-  // Missing, invalid and genuine meteorological zero must remain distinct.
-  const value=typeof result==='number'&&!Number.isFinite(result)?null:result;
+  // Foreign APIs can return undefined, objects, or whitespace despite typed
+  // callers. None is an observed zero; keep genuine numerical 0 untouched.
+  const value:MapProbeValue|null=typeof result==='number'?
+   (Number.isFinite(result)?result:null):
+   typeof result==='string'&&result.trim()&&!/^(?:NaN|[-+]?Infinity)$/i.test(result.trim())?
+    result:null;
   this.point={...this.point,rows:this.point.rows.map(row=>
    row.id===id?{...row,value,pending:false}:row)};
   this.emit();
