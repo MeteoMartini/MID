@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Repository laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Node.js 22 einrichten
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -66,6 +68,52 @@ jobs:
           npm run sync:github-workflows
           git diff --exit-code -- .
           test -z "$(git status --porcelain)"
+
+      # Non-gating, branch-scoped experiment: never part of Source/Installer/Stable authorization.
+      # Official GitHub release asset SHA-256 digests verified on 2026-11-11.
+      - name: MID actionlint + zizmor · optionaler Offline-Sicherheits-Pilot
+        if: github.event_name == 'pull_request' && github.head_ref == 'chatgpt/v0.9.85.455-release-quality-pilot-12'
+        continue-on-error: true
+        shell: bash
+        env:
+          GH_TOKEN: ''
+          GITHUB_TOKEN: ''
+          ZIZMOR_GITHUB_TOKEN: ''
+          ZIZMOR_OFFLINE: '1'
+          NO_COLOR: '1'
+        run: |
+          set -euo pipefail
+          tool_dir="$RUNNER_TEMP/mid-quality-scan-tools"
+          report="$RUNNER_TEMP/mid-workflow-scan.json"
+          mkdir -p "$tool_dir"
+          trap 'if [ ! -s "$report" ]; then printf "%s\\n" "{\"schema\":1,\"status\":\"SCANNER_BOOTSTRAP_ERROR\",\"releaseAuthorized\":false,\"mergeAuthorized\":false}" > "$report"; fi' EXIT
+          cd "$tool_dir"
+          curl --fail --location --retry 3 --proto '=https' --tlsv1.2 \
+            --output actionlint.tgz \
+            https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
+          printf '%s  %s\n' '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8' actionlint.tgz | sha256sum --check
+          tar -xzf actionlint.tgz actionlint
+          curl --fail --location --retry 3 --proto '=https' --tlsv1.2 \
+            --output zizmor.tgz \
+            https://github.com/zizmorcore/zizmor/releases/download/v1.32.0/zizmor-x86_64-unknown-linux-gnu.tar.gz
+          printf '%s  %s\n' 'bb110cc765eca9cd7efb2e284a956be5974c60027b0970f16397d86208a9957b' zizmor.tgz | sha256sum --check
+          tar -xzf zizmor.tgz zizmor
+          chmod 755 "$tool_dir/actionlint" "$tool_dir/zizmor"
+          export PATH="$tool_dir:$PATH"
+          actionlint -version
+          zizmor --version
+          cd "$GITHUB_WORKSPACE"
+          node tools/ci/mid-workflow-quality-pilot.mjs > "$report"
+          cat "$report"
+
+      - name: MID optionalen Offline-Scannerbericht sichern
+        if: always() && github.event_name == 'pull_request' && github.head_ref == 'chatgpt/v0.9.85.455-release-quality-pilot-12'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-offline-actionlint-zizmor-pilot
+          path: ${{ runner.temp }}/mid-workflow-scan.json
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Coverage-Bericht sichern
         if: always()
