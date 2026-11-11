@@ -57,6 +57,24 @@ describe('MID map popover: one map event, several separately labelled original-f
    'Originalwert fehlt','Originalwert fehlt','Originalwert fehlt',
   ]);
  });
+ it('fails closed on unexpected API return types without inventing dry weather or suppressing a real zero',()=>{
+  const group=new MapProbeGroup();
+  const rows=[
+   watch(group,'Ungültig undefined',{sample:()=>undefined as never}),
+   watch(group,'Ungültig Objekt',{sample:()=>({value:0} as never)}),
+   watch(group,'Ungültig leer',{sample:()=>''}),
+   watch(group,'Ungültig whitespace',{sample:()=> '   '}),
+   watch(group,'Ungültig NaN-Text',{sample:()=> 'NaN'}),
+   watch(group,'Ungültig Infinity-Text',{sample:()=> 'Infinity'}),
+   watch(group,'Echte Null',{unit:'mm',sample:()=>0}),
+   watch(group,'WMO-Wetterbeschreibung',{unit:'',sample:()=> 'Wolken 85 %'}),
+  ];
+  group.show(51,8);
+  const sampled=rows[0].snapshot.point!.rows;
+  expect(sampled.map(row=>row.value)).toEqual([null,null,null,null,null,null,0,'Wolken 85 %']);
+  expect(sampled.every(row=>row.pending===false)).toBe(true);
+  expect(sampled.every(row=>row.source==='DWD ICON-D2 · gleicher geprüfter Lauf')).toBe(true);
+ });
  it('forbids late results from an obsolete model time or coordinate',async()=>{
   const group=new MapProbeGroup();
   let finishOld!: (v:number|null)=>void,first=true,aborted:AbortSignal|undefined;
