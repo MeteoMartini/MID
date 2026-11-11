@@ -1,0 +1,104 @@
+name: MID ICON-EU original seasonal GRIB QA (read-only)
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [main]
+    paths:
+      - 'tools/ruc/qa_icon_eu_seasonal_grib.py'
+      - 'tools/ruc/test_icon_eu_seasonal_grib_qa.py'
+      - '.github/workflows/mid-icon-eu-original-seasonal-qa.yml'
+      - 'ci/github/workflows/mid-icon-eu-original-seasonal-qa.yml'
+permissions:
+  contents: read
+concurrency:
+  group: mid-icon-eu-original-qa-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  verify-original:
+    if: >-
+      github.repository == 'MeteoMartini/MID' &&
+      github.event.pull_request.number == 748 &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'chatgpt/v0.9.85.454-icon-eu-original-grib-qa' &&
+      github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact trusted QA candidate without credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Stable/main lineage and mandatory mirror preflight
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          cmp .github/workflows/mid-icon-eu-original-seasonal-qa.yml ci/github/workflows/mid-icon-eu-original-seasonal-qa.yml
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          test "$stable" = "$main"
+          test "$stable" = 'ee7a55b5ece4d3d3687202a95caeb6c5ff615055'
+          compare="$(gh api "repos/$GITHUB_REPOSITORY/compare/$stable...$EXPECTED_HEAD")"
+          jq -e --arg stable "$stable" --arg head "$EXPECTED_HEAD" \
+            '.status == "ahead" and .base_commit.sha == $stable and .merge_base_commit.sha == $stable and .head_commit.sha == $head' \
+            <<< "$compare" >/dev/null
+          echo "Exact source and Stable ancestry verified; observational QA only."
+      - name: Python 3.12
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Install established ecCodes and numerical dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'numpy>=2.0,<3' 'eccodes>=2.38,<3' 'requests>=2.31,<3'
+      - name: Negative/offline original GRIB and field-availability tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s tools/ruc -p 'test_icon_eu_seasonal_grib_qa.py' -v
+          python -m unittest discover -s tools/ruc -p 'test_dwd_seasonal_source_inventory.py' -v
+      - name: Read authentic DWD ICON-EU 00Z cycle at 1h/78h/81h boundaries
+        shell: bash
+        env:
+          PINNED_RUN: '2026111100'
+        run: |
+          set -euo pipefail
+          mkdir -p .icon-eu-evidence
+          failed=0
+          for lead in 1 78 81; do
+            if python tools/ruc/qa_icon_eu_seasonal_grib.py --run "$PINNED_RUN" --leads "$lead" \
+              --output ".icon-eu-evidence/lead-$lead.json" \
+              > ".icon-eu-evidence/lead-$lead.out" 2> ".icon-eu-evidence/lead-$lead.err"; then
+              python - "$lead" <<'PY'
+          import json,sys
+          lead=int(sys.argv[1])
+          p=json.load(open(f'.icon-eu-evidence/lead-{lead}.json'))
+          assert p['schema']=='mid.icon-eu.seasonal.original-qa.v1'
+          assert p['run']=='2026111100' and p['releaseApproved'] is False
+          assert len(p['entries'])==1 and p['entries'][0]['lead']==lead
+          assert p['entries'][0]['intervalHours']==(1 if lead<=78 else 3)
+          assert p['entries'][0]['validWinter']>0 and p['entries'][0]['validSummer']>0
+          print('Original data qualified, lead',lead,'files',len(p['entries'][0]['files']))
+          PY
+            else
+              echo "::error::Original DWD GRIB qualification blocked for lead $lead; no release."
+              failed=1
+            fi
+          done
+          exit "$failed"
+      - name: Preserve read-only source evidence even after failure
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-icon-eu-original-grib-${{ github.run_id }}
+          path: .icon-eu-evidence/
+          if-no-files-found: warn
+          retention-days: 7
