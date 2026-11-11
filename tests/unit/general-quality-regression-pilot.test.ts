@@ -15,6 +15,7 @@ const scripts=[
  'test-display-return-states-0985364.mjs',
  'test-full-calendar-skybar-0985282.mjs',
  'test-posthog-telemetry-0985432.mjs',
+ 'test-chatgpt-github-write-contract-098510.mjs',
  'test-sunshine-duration-contract-09655.mjs',
  'test-pollen-compact-dwd-levels-0985129.mjs',
 ] as const;
