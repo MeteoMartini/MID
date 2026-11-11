@@ -1,4 +1,5 @@
 import {access,readdir,readFile as readRepositoryFile} from 'node:fs/promises';
+import {classifyReleaseFailure} from '../tools/ci/release-self-heal-classify.mjs';
 import {parseMidVersion,makeProposedVersion,analyzeReleaseVersion,analyzeVerifiedReleaseVersion,verifyProposedTarget} from '../tools/ci/mid-release-version-proposal.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -369,4 +370,62 @@ test('established trusted SHA-bound bot release workflow mirrors and source-to-i
  assert.match(canonical,/-f sha="\$\{EXPECTED_HEAD_SHA\}"/);
  assert.match(canonical,/gh workflow run install-mid\.yml --ref main/);
  assert.doesNotMatch(canonical,/pull_request_target:/);
+});
+
+const selfHealBrowserJobs=()=>({total_count:2,jobs:[
+ {name:'Release-Heavy · heavy-unified-map · 2/3',conclusion:'failure'},
+ {name:'Release-Core',conclusion:'success'},
+]});
+const selfHealTimeoutLog=[
+ 'page.waitForFunction: Timeout 30000ms exceeded.',
+ '  at verifyCase (/home/runner/work/MID/MID/scripts/verify-unified-map-browser-0985167.mjs:283:70)',
+ '1 von 1 Regressionstests fehlgeschlagen: test-unified-map-layers-0985167.mjs',
+].join('\n');
+const selfHealClassify=(overrides={})=>classifyReleaseFailure({
+ failedLog:selfHealTimeoutLog,jobs:selfHealBrowserJobs(),attempt:1,...overrides,
+});
+test('release retry classifier permits only one exact known installer map-browser timeout',()=>{
+ assert.deepEqual(selfHealClassify(),{retry:true,reason:'one-time-map-browser-timeout'});
+ for(const attempt of [2,3,0]){
+  assert.equal(selfHealClassify({attempt}).retry,false,'No repeated or invalid browser-timeout retry');
+ }
+ for(const altered of [
+  selfHealTimeoutLog+' AssertionError',
+  selfHealTimeoutLog.replace('verify-unified-map-browser','other-browser'),
+  selfHealTimeoutLog.replace('Timeout 30000ms','Timeout 40000ms'),
+  selfHealTimeoutLog.replace('1 von 1','2 von 2'),
+  selfHealTimeoutLog.replace('test-unified-map-layers-0985167.mjs','other-test.mjs'),
+ ]){
+  assert.equal(selfHealClassify({failedLog:altered}).retry,false,'Nonmatching/explicit deterministic evidence blocks');
+ }
+});
+test('release self-heal refuses multiple failed jobs, altered job identity or truncated run inventory',()=>{
+ assert.equal(selfHealClassify({jobs:{total_count:2,jobs:[
+  {name:'Release-Heavy · heavy-unified-map · 2/3',conclusion:'failure'},
+  {name:'Another',conclusion:'failure'},
+ ]}}).retry,false);
+ assert.equal(selfHealClassify({jobs:{total_count:2,jobs:[
+  {name:'Another',conclusion:'failure'},{name:'Release-Core',conclusion:'success'},
+ ]}}).retry,false);
+ assert.equal(selfHealClassify({jobs:{total_count:3,jobs:selfHealBrowserJobs().jobs}}).retry,false);
+ assert.equal(selfHealClassify({failedLog:''}).retry,false);
+});
+test('release retry preserves existing deterministic-before-network precedence',()=>{
+ assert.deepEqual(selfHealClassify({failedLog:'HTTP 503 upstream',attempt:2}),
+  {retry:true,reason:'transient'});
+ assert.equal(selfHealClassify({failedLog:'TypeError: HTTP 503',attempt:1}).retry,false);
+ assert.equal(selfHealClassify({failedLog:'unknown failure'}).retry,false);
+});
+test('release self-heal continues through its existing workflow only and retains immutable Stable-sourced helper',async()=>{
+ const canonical=await readRepositoryFile(new URL('../ci/github/workflows/release-self-heal.yml',import.meta.url),'utf8');
+ const active=await readRepositoryFile(new URL('../.github/workflows/release-self-heal.yml',import.meta.url),'utf8');
+ assert.equal(active,canonical,'Self-Heal active/canonical mirrors must be identical');
+ assert.match(canonical,/name: MID Release Self-Heal/);
+ assert.match(canonical,/ref: mid-stable/);
+ assert.match(canonical,/persist-credentials: false/);
+ assert.match(canonical,/github\.event\.workflow_run\.conclusion == 'failure'/);
+ assert.match(canonical,/github\.event\.workflow_run\.run_attempt < 3/);
+ assert.match(canonical,/release-self-heal-classify\.mjs/);
+ assert.match(canonical,/rerun-failed-jobs/);
+ assert.doesNotMatch(canonical,/force-push|pull_request_target|--force/);
 });
