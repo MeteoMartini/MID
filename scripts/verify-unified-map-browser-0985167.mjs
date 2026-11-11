@@ -58,6 +58,7 @@ const perfRows=[];
 const perfEnabled=process.env.GITHUB_ACTIONS==='true'||process.env.MID_MAP_PROFILE==='1';
 async function verifyGroupedSelectors(page){
  const lists=await page.evaluate(()=>({
+  modelFirst:document.querySelector('.unified-selection-mode button:last-child[aria-pressed="true"]')!==null,
   modelGroups:[...document.querySelectorAll('select[aria-label="Modell für Parameter"] optgroup')].map(g=>({
    label:g.label,models:[...g.querySelectorAll('option')].filter(o=>!o.disabled).map(o=>({id:o.value,text:(o.textContent||'').trim()})),
   })),
@@ -85,8 +86,12 @@ async function verifyGroupedSelectors(page){
    assert.ok(!seen.has(model.id),'map selector does not duplicate source IDs');
    seen.add(model.id);
    if(flags[model.id])assert.ok(model.text.startsWith(flags[model.id]+' '),'country/EU flag precedes model name');
-   if(model.id==='icon-eu')assert.ok(model.text.includes('0,0625° Kartenraster')||model.text.includes('km Raster'),'ICON-EU grid is explicitly identified');
-   if(model.id==='icon'||model.id==='icon-eps')assert.ok(model.text.includes('0,25° Kartenraster')||model.text.includes('km Raster'),'ICON published grid is distinct from native resolution');
+   if(lists.modelFirst){
+    assert.doesNotMatch(model.text,/\d+(?:,\d+)?\s*(?:km Raster|° Kartenraster)/,'model-first multi-source choice must not claim one product grid');
+   }else{
+    if(model.id==='icon-eu')assert.ok(model.text.includes('0,0625° Kartenraster')||model.text.includes('km Raster'),'known ICON-EU parameter grid is explicitly identified');
+    if(model.id==='icon'||model.id==='icon-eps')assert.ok(model.text.includes('0,25° Kartenraster')||model.text.includes('km Raster'),'known ICON field grid is distinguished from native resolution');
+   }
   }
  }
 }
