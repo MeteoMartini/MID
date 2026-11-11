@@ -3,7 +3,7 @@
 
 This is not a claim of global CAS/fencing across optional R2 writers or a
 second provider's direct API. It prevents accidental disabling of the actual
-shared MID install + RUC GitHub Pages lock, immutable readmission and drift
+shared MID install + manual + RUC GitHub Pages lock, immutable readmission and drift
 guards. The only publisher is the unchanged, privileged GitHub release path.
 """
 from __future__ import annotations
@@ -13,6 +13,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 INSTALL = "ci/github/workflows/install-mid.yml"
+MANUAL = "ci/github/workflows/deploy.yml"
 RUC = "ci/github/workflows/mid-ruc-preprocess.yml"
 WATCHDOG = "ci/github/workflows/mid-ruc-schedule-watchdog.yml"
 
@@ -43,10 +44,14 @@ def assert_serialized_pages(job: str, label: str) -> None:
         raise ValueError(label + ": missing established Pages auth scope")
 
 
-def check_contract(install: str, ruc: str, watchdog: str) -> dict:
-    if not all(isinstance(s, str) for s in (install, ruc, watchdog)):
+def check_contract(install: str, ruc: str, watchdog: str,
+                   manual: str | None = None) -> dict:
+    if manual is None:
+        manual = (ROOT / MANUAL).read_text(encoding="utf-8")
+    if not all(isinstance(s, str) for s in (install, ruc, watchdog, manual)):
         raise ValueError("invalid workflow document")
     main = job_blocks(install)
+    manual_jobs = job_blocks(manual)
     ruc_jobs = job_blocks(ruc)
     recovery = job_blocks(watchdog)
     if not {"deploy_pages_1", "deploy_pages_2", "deploy_pages_3", "finalize_release"} <= set(main):
@@ -58,6 +63,19 @@ def check_contract(install: str, ruc: str, watchdog: str) -> dict:
         assert_serialized_pages(job, "MID " + name)
         if "actions/deploy-pages@" not in job:
             raise ValueError("expected MID deployment action missing in " + name)
+    # The independent manual stable-deploy workflow is a real fourth Pages
+    # writer. Cover every attempt under exactly the same uncancelled lease;
+    # extra deploy-pages actions elsewhere are a regression, not proof of CAS.
+    manual_attempts = ("deploy_pages_1", "deploy_pages_2", "deploy_pages_3")
+    if not set(manual_attempts) <= set(manual_jobs):
+        raise ValueError("manual MID Pages retries absent")
+    if manual.count("actions/deploy-pages@") != len(manual_attempts):
+        raise ValueError("manual MID gained an unaccounted Pages writer")
+    for name in manual_attempts:
+        job = manual_jobs[name]
+        assert_serialized_pages(job, "Manual MID " + name)
+        if job.count("actions/deploy-pages@") != 1:
+            raise ValueError("manual MID Pages writer missing or duplicated: " + name)
     # Keep the release finalizer serialized against a new RUC Pages deployment,
     # even though it no longer needs pages:write itself.
     final = main["finalize_release"]
@@ -100,6 +118,7 @@ def check_contract(install: str, ruc: str, watchdog: str) -> dict:
     return {
         "schema": "mid.ruc.p4-shared-pages-serialization-qa.v1",
         "sharedGitHubPagesLease": True,
+        "manualPagesWriterSerialized": True,
         "immutableReAdmission": True,
         "verifiedRollbackCauseGuard": True,
         "staleRunAndSourceGuards": True,
@@ -114,6 +133,7 @@ class P4PagesSerialization(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.install = (ROOT / INSTALL).read_text(encoding="utf-8")
+        cls.manual = (ROOT / MANUAL).read_text(encoding="utf-8")
         cls.ruc = (ROOT / RUC).read_text(encoding="utf-8")
         cls.watchdog = (ROOT / WATCHDOG).read_text(encoding="utf-8")
 
@@ -121,6 +141,27 @@ class P4PagesSerialization(unittest.TestCase):
         verdict = check_contract(self.install, self.ruc, self.watchdog)
         self.assertTrue(verdict["sharedGitHubPagesLease"])
         self.assertFalse(verdict["globalCrossProviderCasFencingVerified"])
+
+    def test_manual_stable_pages_retries_share_lease_and_canonical_mirror(self):
+        self.assertEqual(self.manual,
+                         (ROOT / ".github/workflows/deploy.yml").read_text(encoding="utf-8"))
+        proof = check_contract(self.install, self.ruc, self.watchdog, self.manual)
+        self.assertTrue(proof["manualPagesWriterSerialized"])
+        self.assertFalse(proof["globalCrossProviderCasFencingVerified"])
+
+    def test_manual_pages_deploy_lock_and_rogue_writer_mutations_fail(self):
+        for job_name in ("deploy_pages_1", "deploy_pages_2", "deploy_pages_3"):
+            with self.subTest(job=job_name):
+                job = job_blocks(self.manual)[job_name]
+                self.assertIn("group: mid-pages", job)
+                tampered = self.manual.replace(job,
+                    job.replace("group: mid-pages", "group: unshared-pages", 1), 1)
+                with self.assertRaisesRegex(ValueError, "shared Pages lease"):
+                    check_contract(self.install, self.ruc, self.watchdog, tampered)
+        untrusted = self.manual + ("\n  rogue:\n    runs-on: ubuntu-latest\n"
+                                   "    steps:\n      - uses: actions/deploy-pages@rogue\n")
+        with self.assertRaisesRegex(ValueError, "unaccounted Pages writer"):
+            check_contract(self.install, self.ruc, self.watchdog, untrusted)
 
     def test_losing_ruc_shared_lock_fails(self):
         source = self.ruc.replace("group: mid-pages", "group: other-pages", 1)
