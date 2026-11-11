@@ -5,6 +5,7 @@ import {assessMidNativeMergeReviewPolicy as audit,
  readMidNativeMergeReviewPolicy as read,
  assessMidClassicBranchReviewPolicy as classicAudit,
  readMidClassicBranchReviewPolicy as readClassic,
+ assessMidClassicConversationOnlyProtection as conversation,
  inspectMidMergeReviewPolicy as inspect} from './mid-native-merge-review-policy.mjs';
 const id=9028,summary={id,target:'branch',enforcement:'active'};
 const rule={type:'pull_request',parameters:{
@@ -213,6 +214,66 @@ await test('malformed positive reader result cannot supply review proof',async()
   nativeReader:async()=>({ok:true,mergeAuthorized:true,releaseAuthorized:true})});
  assert.equal(x.ok,false);
  assert.equal(x.native.reason,'RULESETS_EVIDENCE_INVALID');
+});
+
+
+const solo={...classicGood,
+ required_pull_request_reviews:null,required_status_checks:null,restrictions:null};
+await test('standalone conversation-only is metadata candidate, never release clearance',()=>{
+ const x=conversation({protection:solo});
+ assert.equal(x.ok,true);
+ assert.equal(x.conversationResolutionRequired,true);
+ assert.equal(x.requiredApprovals,0);
+ assert.equal(x.directZipPushVerified,false);
+ assert.equal(x.liveMergeRaceVerified,false);
+ assert.equal(x.mergeAuthorized,false);assert.equal(x.releaseAuthorized,false);
+});
+await test('existing strict approval test rejects standalone mode',()=>{
+ const x=classicAudit({protection:solo});
+ assert.equal(x.ok,false);assert.equal(x.reason,'CLASSIC_INDEPENDENT_REVIEW_NOT_ENFORCED');
+});
+await test('standalone wrong branch denied',()=>{
+ const x=conversation({protection:solo,branch:'refs/heads/mid-stable'});
+ assert.equal(x.ok,false);assert.equal(x.reason,'CONVERSATION_WRONG_BRANCH');
+});
+await test('standalone absent protection denied',()=>{
+ assert.equal(conversation({}).reason,'CONVERSATION_CLASSIC_PROTECTION_NOT_ATTESTED');
+});
+await test('standalone admin bypass denied',()=>{
+ const x=conversation({protection:{...solo,enforce_admins:{enabled:false}}});
+ assert.equal(x.ok,false);assert.equal(x.reason,'CONVERSATION_ADMIN_BYPASS_NOT_EXCLUDED');
+});
+await test('standalone unresolved conversations must be enforced',()=>{
+ const x=conversation({protection:{...solo,required_conversation_resolution:{enabled:false}}});
+ assert.equal(x.ok,false);assert.equal(x.reason,'CONVERSATION_RESOLUTION_NOT_ENFORCED');
+});
+await test('standalone require PR even with zero reviews blocks ZIP compatibility',()=>{
+ const x=conversation({protection:{...solo,required_pull_request_reviews:{required_approving_review_count:0}}});
+ assert.equal(x.ok,false);assert.equal(x.reason,'CONVERSATION_ZIP_PR_REQUIREMENT_UNRESOLVED');
+});
+await test('standalone missing PR field cannot be treated as disabled',()=>{
+ const x=conversation({protection:{...solo,required_pull_request_reviews:undefined}});
+ assert.equal(x.ok,false);assert.equal(x.reason,'CONVERSATION_ZIP_PR_REQUIREMENT_UNRESOLVED');
+});
+await test('standalone extra status checks may block ZIP push',()=>{
+ const x=conversation({protection:{...solo,required_status_checks:{contexts:['x']}}});
+ assert.equal(x.ok,false);assert.equal(x.reason,'CONVERSATION_ZIP_STATUS_REQUIREMENT_UNRESOLVED');
+});
+await test('standalone push restrictions are not assumed ZIP compatible',()=>{
+ const x=conversation({protection:{...solo,restrictions:{apps:[],users:[],teams:[]}}});
+ assert.equal(x.ok,false);assert.equal(x.reason,'CONVERSATION_ZIP_PUSH_RESTRICTIONS_UNRESOLVED');
+});
+await test('standalone branch lock blocks ZIP push',()=>{
+ const x=conversation({protection:{...solo,lock_branch:{enabled:true}}});
+ assert.equal(x.ok,false);assert.equal(x.reason,'CONVERSATION_ZIP_BRANCH_LOCKED');
+});
+await test('standalone force push permission denied',()=>{
+ const x=conversation({protection:{...solo,allow_force_pushes:{enabled:true}}});
+ assert.equal(x.ok,false);assert.equal(x.reason,'CONVERSATION_HISTORY_PROTECTION_NOT_ATTESTED');
+});
+await test('standalone delete permission denied',()=>{
+ const x=conversation({protection:{...solo,allow_deletions:{enabled:true}}});
+ assert.equal(x.ok,false);assert.equal(x.reason,'CONVERSATION_HISTORY_PROTECTION_NOT_ATTESTED');
 });
 
 console.log('MID native merge review QA OK; scenarios='+n+'; ZERO network, secrets or release writes.');

@@ -105,6 +105,41 @@ export function assessMidClassicBranchReviewPolicy({protection,branch=MAIN}={}){
  return Object.freeze({ok:true,reason:'CLASSIC_MAIN_REVIEW_METADATA_VERIFIED',
   branch:MAIN,mergeAuthorized:false,releaseAuthorized:false,sourceGatePassed:false});
 }
+/**
+ * Additional metadata-only assessment of a standalone classic
+ * "Require conversation resolution before merging" rule. GitHub documents
+ * it separately from PR approval/require-PR options. This DOES NOT relax the
+ * existing independent-approval assessment or verify the release ZIP push.
+ */
+export function assessMidClassicConversationOnlyProtection({protection,branch=MAIN}={}){
+ if(branch!==MAIN)return block('CONVERSATION_WRONG_BRANCH');
+ if(!protection||typeof protection!=='object'||Array.isArray(protection))
+  return block('CONVERSATION_CLASSIC_PROTECTION_NOT_ATTESTED');
+ if(protection.enforce_admins?.enabled!==true)
+  return block('CONVERSATION_ADMIN_BYPASS_NOT_EXCLUDED');
+ if(protection.required_conversation_resolution?.enabled!==true)
+  return block('CONVERSATION_RESOLUTION_NOT_ENFORCED');
+ // A "require PR" setting with 0 approvals may still block the release
+ // bot's direct ZIP commit. Missing fields cannot be assumed to be null.
+ if(!has(protection,'required_pull_request_reviews')||
+    protection.required_pull_request_reviews!==null)
+  return block('CONVERSATION_ZIP_PR_REQUIREMENT_UNRESOLVED');
+ if(!has(protection,'required_status_checks')||
+    protection.required_status_checks!==null)
+  return block('CONVERSATION_ZIP_STATUS_REQUIREMENT_UNRESOLVED');
+ if(!has(protection,'restrictions')||protection.restrictions!==null)
+  return block('CONVERSATION_ZIP_PUSH_RESTRICTIONS_UNRESOLVED');
+ if(protection.lock_branch?.enabled===true)
+  return block('CONVERSATION_ZIP_BRANCH_LOCKED');
+ if(protection.allow_force_pushes?.enabled!==false||
+    protection.allow_deletions?.enabled!==false)
+  return block('CONVERSATION_HISTORY_PROTECTION_NOT_ATTESTED');
+ return Object.freeze({ok:true,reason:'CONVERSATION_ONLY_METADATA_CANDIDATE',
+  conversationResolutionRequired:true,requiredApprovals:0,
+  directZipPushVerified:false,liveMergeRaceVerified:false,
+  mergeAuthorized:false,releaseAuthorized:false,sourceGatePassed:false});
+}
+
 /** GET only, exact fixed path and host; never leak credentials, never change
  * protection. 403/404 are evidence of *unreadability*, not missing rules.
  */
