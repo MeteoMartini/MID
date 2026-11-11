@@ -31,6 +31,39 @@ Existing repository documentation defines a functional release as `0.7.x` or `0.
 
 **Important limitation:** A specialist-supplied description/`impact` field and filenames do **not** prove the actual semantic scope. The lead integrator must independently compare the real GitHub code diff, meteorological/worker contracts, API/backwards compatibility, release notes and identified user-visible changes before relying on any proposal. Malicious or mistaken labels cannot authorize any release. The proposal's `verifyProposedTarget` is arithmetic/consistency validation, **not** approval. An eventual production gate must independently read the exact current Stable version and candidate version, reject unauthorized X/Y changes, check required sync mirrors, and bind authorization to verified GitHub identities/SHAs, not to a modifiable PR label, self-written manifest or untrusted assistant response.
 
+### Existing release-train preflight: actual diff and Stable mirror readback
+
+The established read-only `tools/ci/release-train-plan.mjs` (invoked by the existing `release-train-preflight.yml` workflow) now optionally accepts an additional **`versioning` property** in its existing schema-1 manifest; no new Action/workflow, permission, credential, release trigger or installer path is created. Without `versioning` it maintains the original planner result and query behavior.
+
+Example manifest **shape only** (not a proposed release and not a trusted impact verdict):
+
+```json
+{
+  "schema": 1,
+  "mainSha": "<exact 40-character main SHA>",
+  "stableSha": "<same exact 40-character Stable SHA>",
+  "candidateMode": "draft-planning",
+  "changes": [{"pr": 751, "headSha": "<exact PR SHA>"}],
+  "versioning": {
+    "schema": 1,
+    "mainSha": "<same main SHA>",
+    "stableSha": "<same Stable SHA>",
+    "baseVersion": "0.9.85.454",
+    "candidates": [{
+      "pr": 751,
+      "headSha": "<same exact PR SHA>",
+      "impact": "maintenance",
+      "reason": "Independent maintainer to confirm actual compatible scope",
+      "changedPaths": ["<each actual file path, including rename source paths>"]
+    }]
+  }
+}
+```
+
+The actual dispatch must supply **real verified SHAs and the complete actual file list**. The existing preflight separately retrieves the live main/stable refs, PR metadata (including exact HEAD and base), all paginated changed files (including both old/new paths on renames), and performs an ending ref/HEAD recheck. When `versioning` is present, it additionally reads `package.json`, `MID_BASELINE.json` and `contracts/index.json` from the exact immutable GitHub Stable SHA (not moving branch or a user-authored local file), checks all four version fields for exact equality, rechecks main/stable for drift, then rejects any missing/extra/renamed path, candidate mismatch, disallowed X/Y change or unknown impact. The report includes `versionProposal`, `verifiedDiffInventory`, `versionProposalOnly:true` and **`releaseAuthorized:false`**; if blockers exist the existing workflow fails closed.
+
+**Not automated:** semantic product-impact classification, major/generation approval, WMO/DWD scientific correctness, Source/Installer evidence, merge authorization or deployment. A correctly inventoried diff marked `maintenance` can still be misclassified; manual risk/product review remains required. This is only an accurate conditional version *proposal* on trusted inventory, not an autonomous release-bump decision. Test cases for missing/renamed/forged PR paths, HEAD/SHA/version drift and mismatched version mirrors are in the already registered release-train test; no test-inventory or sharding reindex is needed.
+
 ## Required deployment safety, version mirrors and tests
 
 Once a version is independently approved and proposed, update `package.json` as the canonical version and execute the existing `npm run sync-version` idempotently; verify lockfile, baseline, src/public version, both service workers, all worker sources/mirrors, iOS marketing/build metadata, release notes/changelogs, source-of-truth/contracts and applicable legal/license data. **Do not run this while preparing a QA-only draft.** A Z bump resets W to zero; the current `scripts/sync-version.mjs` maps iOS marketing version to X.Y.Z and CFBundleVersion to W+1; real App Store monotonicity/compatibility constraints require qualification before activating a changed Z/Y policy. Preserve full historical changelogs.
