@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import path from 'node:path';
 import {tmpdir} from 'node:os';
-import {MID_WORKFLOW_PILOT_NAMES,collectWorkflowPilot,makeWorkflowToolPlan,runWorkflowQualityPilot} from '../tools/ci/mid-workflow-quality-pilot.mjs';
+import {MID_WORKFLOW_PILOT_NAMES,collectWorkflowPilot,makeWorkflowToolPlan,runWorkflowQualityPilot,summarizeWorkflowScanner} from '../tools/ci/mid-workflow-quality-pilot.mjs';
 const root=mkdtempSync(path.join(tmpdir(),'mid-workflow-pilot-'));
 let checks=0;
 try{
@@ -18,7 +18,7 @@ try{
   assert.equal(plan[0].args.filter(x=>x.endsWith('.yml')).length,MID_WORKFLOW_PILOT_NAMES.length);checks++;
   const calls=[];
   const good=runWorkflowQualityPilot({root,env:{PATH:'/test',HOME:'/safe',GITHUB_TOKEN:'SHOULD_NOT_PASS',MID_SECRET:'SHOULD_NOT_PASS'},invoke:(name,args,opts)=>{
-    calls.push({name,args,opts});return {status:0,stdout:'ok',stderr:''};}});
+    calls.push({name,args,opts});return {status:0,stdout:name==='zizmor'?'[]':'',stderr:''};}});
   assert.equal(good.status,'PILOT_PASS');assert.equal(good.releaseAuthorized,false);assert.equal(good.mergeAuthorized,false);
   assert.equal(calls.length,2);assert.equal(calls[0].opts.env.GITHUB_TOKEN,undefined);
   assert.equal(calls[1].opts.env.MID_SECRET,undefined);assert.equal(calls[1].opts.env.ZIZMOR_OFFLINE,'true');
@@ -36,5 +36,19 @@ try{
   const bad=path.join(root,'ci/github/workflows',MID_WORKFLOW_PILOT_NAMES[0]);
   rmSync(bad);assert.equal(collectWorkflowPilot(root).reason,'MIRROR_MISSING');checks++;
   assert.throws(()=>makeWorkflowToolPlan(['./untrusted.yml']));checks++;
+  const example=JSON.stringify([{ident:'dangerous-triggers',determinations:{severity:'High'},
+    locations:[{symbolic:{key:{Local:{verbatim_path:'/repo/.github/workflows/agent-source-release.yml'}}}}]},
+    {ident:'template-injection',determinations:{severity:'Informational'},locations:[]}]);
+  const summary=summarizeWorkflowScanner('zizmor',example,14);
+  assert.deepEqual(summary.bySeverity,{High:1,Informational:1});
+  assert.deepEqual(summary.byAudit,{'dangerous-triggers':1,'template-injection':1});
+  assert.equal(summary.byWorkflow['.github/workflows/agent-source-release.yml'],1);
+  assert.equal(summary.valid,true);checks++;
+  assert.equal(summarizeWorkflowScanner('zizmor','not-json',14).valid,false);checks++;
+  assert.equal(summarizeWorkflowScanner('zizmor','[]',14).valid,false);checks++;
+  const lag=summarizeWorkflowScanner('actionlint',
+    '.github/workflows/release.yml:3: unexpected key "queue" for "concurrency" section\n'+
+    '.github/workflows/release.yml:9: SC2129:style: Consider grouping redirects',1);
+  assert.equal(lag.findings,2);assert.equal(lag.knownGitHubQueueSchemaLag,1);checks++;
   console.log('MID workflow quality pilot: '+checks+' deterministic safety groups PASS (offline, no scanner invocation).');
 }finally{rmSync(root,{recursive:true,force:true});}

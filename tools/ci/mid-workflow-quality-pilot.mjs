@@ -41,6 +41,36 @@ export function makeWorkflowToolPlan(files){
   ];
 }
 
+/** Count findings from the complete tool output before its human-readable excerpt
+ * is capped. Unsupported actionlint queue syntax is observed, never deleted.
+ * Zizmor JSON must remain parseable and its exit code consistent with findings. */
+export function summarizeWorkflowScanner(name,raw,exitCode){
+ if(name==='actionlint'){
+  const rows=String(raw||'').split(/\r?\n/).filter(Boolean);
+  return {findings:rows.length,knownGitHubQueueSchemaLag:
+   rows.filter(x=>x.includes('unexpected key "queue" for "concurrency" section')).length,
+   shellcheckStyle:rows.filter(x=>x.includes('SC2129:style:')).length};
+ }
+ if(name!=='zizmor')return null;
+ let items;
+ try{items=JSON.parse(String(raw||''));}catch{return {valid:false,reason:'UNPARSEABLE_ZIZMOR_JSON'};}
+ if(!Array.isArray(items))return {valid:false,reason:'NON_ARRAY_ZIZMOR_JSON'};
+ const bySeverity={},byAudit={},byWorkflow={};
+ for(const item of items){
+  if(!item||typeof item.ident!=='string'||typeof item.determinations?.severity!=='string')
+   return {valid:false,reason:'MALFORMED_ZIZMOR_ITEM'};
+  const severity=item.determinations.severity,audit=item.ident;
+  bySeverity[severity]=(bySeverity[severity]||0)+1;
+  byAudit[audit]=(byAudit[audit]||0)+1;
+  const path=String(item.locations?.[0]?.symbolic?.key?.Local?.verbatim_path||'');
+  const file=path.match(/\.github\/workflows\/[^/]+$/)?.[0]||'unknown';
+  byWorkflow[file]=(byWorkflow[file]||0)+1;
+ }
+ const inconsistent=exitCode===0&&items.length>0||exitCode>=11&&exitCode<=14&&items.length===0;
+ return {valid:!inconsistent,reason:inconsistent?'SCANNER_EXIT_FINDINGS_MISMATCH':null,
+  findings:items.length,bySeverity,byAudit,byWorkflow};
+}
+
 const safeEnv=env=>({PATH:env.PATH||'/usr/bin:/bin',HOME:env.HOME||'/tmp',LANG:'C',LC_ALL:'C',ZIZMOR_OFFLINE:'true',ZIZMOR_NO_ONLINE_AUDITS:'true'});
 export function runWorkflowQualityPilot({root=ROOT,read=readFileSync,invoke=spawnSync,env=process.env}={}){
   const inventory=collectWorkflowPilot(root,read);
@@ -54,8 +84,12 @@ export function runWorkflowQualityPilot({root=ROOT,read=readFileSync,invoke=spaw
     const exitCode=Number.isInteger(run?.status)?run.status:null;
     const output=String(run?.stdout||'').slice(0,MAX_OUTPUT);
     const errors=String(run?.stderr||'').slice(0,MAX_OUTPUT);
-    const verdict=run?.error?'SCANNER_UNAVAILABLE':exitCode===0?'PASS':exitCode===null?'SCANNER_INTERRUPTED':'FINDINGS_OR_ERROR';
-    results.push({tool:tool.name,verdict,exitCode,output,errors});
+    const fullOutput=String(run?.stdout||'');
+    const summary=summarizeWorkflowScanner(tool.name,fullOutput,exitCode);
+    let verdict=run?.error?'SCANNER_UNAVAILABLE':exitCode===0?'PASS':exitCode===null?'SCANNER_INTERRUPTED':'FINDINGS_OR_ERROR';
+    if(tool.name==='zizmor'&&summary?.valid!==true)verdict='SCANNER_OUTPUT_INVALID';
+    results.push({tool:tool.name,verdict,exitCode,summary,
+      outputTruncated:fullOutput.length>MAX_OUTPUT,output,errors});
   }
   return {schema:1,status:results.every(r=>r.verdict==='PASS')?'PILOT_PASS':'PILOT_FINDINGS_OR_FAILURE',
     files:MID_WORKFLOW_PILOT_NAMES,results,offline:true,readOnly:true,
