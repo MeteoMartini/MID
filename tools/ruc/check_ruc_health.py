@@ -45,6 +45,7 @@ SAFE_DIAGNOSTIC_CODES = {
     'snapshot_grid_invalid',
     'snapshot_member_or_point_count_invalid',
     'snapshot_pages_dimensions_mismatch',
+    'snapshot_pages_proof_missing',
     'snapshot_profile_inactive',
     'snapshot_rollback_profile_invalid',
     'snapshot_run_invalid',
@@ -705,6 +706,14 @@ def main(argv=None) -> int:
         if meta.get('storageProfile') == 'pages-lossless-v1' and not active_profile_valid(meta):
             raise SnapshotContractError('Full RUC profile has not been explicitly activated',
                                         code='snapshot_profile_inactive')
+        # A healthy Worker response alone cannot prove public same-run Pages
+        # convergence. Full-codec publication must never pass without the
+        # independently checked Pages pointer and sealed dimensions.
+        if full_profile and not a.pages_base:
+            raise SnapshotContractError(
+                'Active full RUC profile requires public Pages pointer verification',
+                code='snapshot_pages_proof_missing',
+            )
         url = health_url(a.url)
         if a.pages_base:
             page_attempt = probe_pages(

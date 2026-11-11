@@ -645,13 +645,50 @@ class SafeDiagnosticsTests(unittest.TestCase):
    metadata.write_text(json.dumps(active),encoding='utf-8')
    stderr=io.StringIO()
    with contextlib.redirect_stderr(stderr),mock.patch.object(
+    mod,'probe_pages',return_value=1
+   ),mock.patch.object(
     mod,'probe_until_ready',return_value=(worker,1)
    ):
-    result=mod.main(['--url','https://host.invalid/','--meta',str(metadata)])
+    result=mod.main(['--url','https://host.invalid/',
+                     '--pages-base','https://host.invalid/ruc/',
+                     '--meta',str(metadata)])
    self.assertEqual(result,2)
    self.assertIn('codec_evidence_unclassified',stderr.getvalue())
    self.assertNotIn('codec_defect_proven',stderr.getvalue())
 
+
+
+ def test_full_codec_never_passes_without_independent_pages_pointer_proof(self):
+  # A successful Worker alone cannot prove the active full-codec run is
+  # publicly visible. A missing Pages endpoint must fail before Worker I/O.
+  active=copy.deepcopy(sealed)
+  active.update({'storageProfile':'pages-lossless-v1',
+                 'migration':{'schema':'mid.ruc.migration-active.v1',
+                              'productionEnabled':True},
+                 'pages':{'profile':'pages-lossless-v1',
+                          'losslessTransport':{
+                           'profile':'mid.ruc.compressed-pages.v1',
+                           'mode':'replacement','rawRetained':False}}})
+  self.assertTrue(mod.active_profile_valid(active))
+  with tempfile.TemporaryDirectory() as directory:
+   metadata=Path(directory)/'latest.json'
+   metadata.write_text(json.dumps(active),encoding='utf-8')
+   output=Path(directory)/'github-output'
+   stderr=io.StringIO()
+   with mock.patch.dict(mod.os.environ,{'GITHUB_OUTPUT':str(output)}),\\
+        contextlib.redirect_stderr(stderr),\\
+        mock.patch.object(mod,'probe_until_ready',return_value=(
+         {'ready':True,'fullCodec':{'verified':True}},1)) as worker_probe,\\
+        mock.patch.object(mod,'probe_pages') as pages_probe:
+    result=mod.main(['--url','https://host.invalid/',
+                     '--meta',str(metadata)])
+   self.assertEqual(result,2)
+   self.assertIn('snapshot_pages_proof_missing',stderr.getvalue())
+   worker_probe.assert_not_called()
+   pages_probe.assert_not_called()
+   self.assertEqual(output.read_text(encoding='utf-8').splitlines(),[
+    'health_failure_code=snapshot_pages_proof_missing',
+    'rollback_admitted=false'])
 
  def test_raw_rollback_admission_is_bound_to_proven_post_pages_codec_defect(self):
   # Synthetic replay of the 16Z failure class; not an actual codec proof.
