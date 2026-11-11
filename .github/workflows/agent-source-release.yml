@@ -114,7 +114,7 @@ jobs:
                 and (.commit.message == $title)
                 and ((.files | length) == 1)
                 and (.files[0].filename == "MID-professional-replacement.zip")
-                and (.files[0].status == "modified")
+                and ((.files[0].status == "added") or (.files[0].status == "modified"))
               ' <<<"$live_package" >/dev/null; then
                 echo "::error::Foreign or incomplete ZIP commit cannot authorize recovery."
                 exit 1

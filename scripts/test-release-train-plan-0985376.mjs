@@ -442,6 +442,8 @@ test('failed Installer dispatch can recover only on exact ZIP SHA with independe
  const zipArgs=['--arg','sha',zip,'--arg','merge',merge,'--arg','bot',bot,'--arg','title',msg];
  const valid={sha:zip,parents:[{sha:merge}],author:{login:bot},committer:{login:bot},commit:{message:msg},files:[{filename:'MID-professional-replacement.zip',status:'modified'}]};
  assert.equal(jq(commitRule,valid,...zipArgs),0);
+ assert.equal(jq(commitRule,{...valid,files:[{filename:'MID-professional-replacement.zip',status:'added'}]},...zipArgs),0);
+ assert.notEqual(jq(commitRule,{...valid,files:[{filename:'MID-professional-replacement.zip',status:'removed'}]},...zipArgs),0);
  for(const bad of [{...valid,parents:[{sha:zip}]},{...valid,author:{login:'other'}},{...valid,committer:{login:'other'}},{...valid,files:[...valid.files,{filename:'src/main.ts'}]},{...valid,commit:{message:'wrong'}},{...valid,sha:merge}])
   assert.notEqual(jq(commitRule,bad,...zipArgs),0);
  assert.equal(jq(inventory,{total_count:0,workflow_runs:[]}),0);
