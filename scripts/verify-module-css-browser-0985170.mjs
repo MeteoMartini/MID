@@ -6,11 +6,17 @@ import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createServer} from 'vite';
 import {startCssRuleUsageTracking,collectCssRuleUsage} from './lib/cssRuleUsageDiagnostic.mjs';
+import {midCssQaBrowserExecutable} from './lib/cssQaBrowserExecutable.mjs';
 import {browserPrelude} from './lib/mountainBrowserFixture.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..'),require=createRequire(import.meta.url);
 const cli=realpathSync(execFileSync('npm',['exec','--yes','--package=playwright@1.56.1','--','which','playwright'],{encoding:'utf8'}).trim());
 const {chromium}=require(join(dirname(dirname(cli)),'playwright'));
-if(process.env.GITHUB_ACTIONS==='true')execFileSync('node',[cli,'install','chromium'],{stdio:'inherit',timeout:240000});
+const cssQaBrowserExecutable=midCssQaBrowserExecutable();
+// The Ubuntu 26.04 GitHub image already ships Chromium/Chrome; installing
+// Playwright 1.56's unsupported OS-specific browser fails before pixel QA.
+// Only use a verified existing executable, otherwise retain the fail-closed
+// bundled browser installation. Do not mark a skipped browser as passed.
+if(process.env.GITHUB_ACTIONS==='true'&&!cssQaBrowserExecutable)execFileSync('node',[cli,'install','chromium'],{stdio:'inherit',timeout:240000});
 const epoch=Date.UTC(2026,9,5,12),location={id:'soelden-module-fixture',name:'Sölden',latitude:46.9699,longitude:11.0076,elevation:1368,country:'Österreich',country_code:'AT',timezone:'Europe/Vienna'};
 const mountain={schemaVersion:2,enabled:true,season:'winter',middleEnabled:true,valleyElevation:1368,middleElevation:2500,summitElevation:3250,valleyName:'Talstation Gaislachkoglbahn · Sölden',middleName:'Mittelstation Gaislachkogl · Sölden',summitName:'Bergstation Rettenbachferner · Sölden',valleyLatitude:46.9699,valleyLongitude:11.0076,middleLatitude:46.955,middleLongitude:10.984,summitLatitude:46.928,summitLongitude:10.94,profileSource:'manual',profileConfidence:'high',profileUpdatedAt:'2026-09-25T12:00:00Z'};
 const favorite={id:'module-fixture',location,alias:'Sölden',group:'QA',isDefault:true,rules:{enabled:false},mountain,water:{enabled:false}};
@@ -29,7 +35,8 @@ async function fixtureServer(project){
  await server.listen();return {server,url:`http://127.0.0.1:${server.httpServer.address().port}/__module-qa`};
 }
 const active=await fixtureServer(root),baseline=process.env.MID_PARITY_BASE?await fixtureServer(resolve(process.env.MID_PARITY_BASE)):null;
-const browser=await chromium.launch({executablePath:process.env.MID_BROWSER_EXECUTABLE||undefined,headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+const browser=await chromium.launch({executablePath:cssQaBrowserExecutable||undefined,headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+console.log('MID CSS browser QA: real Chromium/Chrome '+browser.version()+' · executable '+(cssQaBrowserExecutable||'Playwright bundled')+' · full pixel/coverage suite remains mandatory.');
 let cases=0,parity=0;const cssCoverage=[];
 async function openPage(target,width,height,theme){
  const context=await browser.newContext({viewport:{width,height},colorScheme:theme}),page=await context.newPage(),requests=[],errors=[];

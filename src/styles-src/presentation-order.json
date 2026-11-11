@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "description": "Canonical eager CSS order inherited from v0.9.85.169, including v078.css. Generated midPresentation.css is the only eager runtime stylesheet.",
+  "description": "Canonical initial CSS order: 69 eager sources; optional pollen styles move only with the deferred PollenForecast module (CSS cascade regression must still prove historical order).",
   "sources": [
     "src/styles-src/00-foundation.css",
     "src/styles-src/10-features.css",
@@ -11,7 +11,6 @@
     "src/midDesign.css",
     "src/v078.css",
     "src/midHighContrast.css",
-    "src/midPollen.css",
     "src/midDataQuality.css",
     "src/midC7Redesign.css",
     "src/midC7Composition.css",
