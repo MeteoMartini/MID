@@ -1,13 +1,12 @@
 name: MID P0-P4 consolidated integration QA (read-only)
+# Historical, SHA-specific v0.9.85.412 pilot. Run only when this workflow
+# definition changes; current PRs use the full MID Source-PR and specialist gates.
+# Do not broaden paths to src/**, tools/ruc/** or general regression files:
+# those events cannot satisfy this pilot's fixed branch/SHA prerequisites.
 on:
   pull_request:
     types: [opened, reopened, synchronize]
     paths:
-      - 'src/**'
-      - 'tests/unit/**'
-      - 'tools/ruc/**'
-      - 'scripts/test-ruc-*'
-      - 'scripts/sync-github-workflows.mjs'
       - '.github/workflows/mid-p0-p4-consolidated-qa.yml'
       - 'ci/github/workflows/mid-p0-p4-consolidated-qa.yml'
 permissions:

@@ -90,6 +90,20 @@ for(const name of await readdir(path.join(root,'.github','workflows'))){
  }
 }
 
+// This retired .412-only QA must not generate skipped jobs for every regular
+// src/RUC/coverage PR update. Current source and RUC gates remain independent.
+const retiredP0P4Active=await readFile(path.join(root,'.github','workflows','mid-p0-p4-consolidated-qa.yml'),'utf8');
+const retiredP0P4Canonical=await readFile(path.join(root,'ci','github','workflows','mid-p0-p4-consolidated-qa.yml'),'utf8');
+if(retiredP0P4Active!==retiredP0P4Canonical)failures.push('Historischer P0–P4-Pilot muss aktiv und kanonisch byteidentisch bleiben.');
+const retiredP0P4Header=retiredP0P4Active.split('\npermissions:\n')[0];
+const retiredP0P4Paths=retiredP0P4Header.split('\n    paths:\n')[1]?.split('\n').filter(line=>line.startsWith('      - '))??[];
+const retiredP0P4Expected=[
+ "      - '.github/workflows/mid-p0-p4-consolidated-qa.yml'",
+ "      - 'ci/github/workflows/mid-p0-p4-consolidated-qa.yml'"
+];
+if(JSON.stringify(retiredP0P4Paths)!==JSON.stringify(retiredP0P4Expected))failures.push('Historische P0–P4-QA darf nicht mehr breit bei src/RUC/Tests-Pushes übersprungene PR-Jobs erzeugen.');
+if(!retiredP0P4Header.includes('types: [opened, reopened, synchronize]'))failures.push('Historische P0–P4-QA muss auf echte Workflow-Dateiänderungen reagieren.');
+
 const temp=await mkdtemp(path.join(tmpdir(),'mid-workflow-package-'));
 try{
  await cp(path.join(root,'ci'),path.join(temp,'ci'),{recursive:true});
