@@ -27,7 +27,10 @@ export function classifyReleaseFailure({failedLog,jobs,attempt}={}){
      /page\.waitForFunction: Timeout 30000ms exceeded\./.test(failedLog)&&
      /scripts\/verify-unified-map-browser-0985167\.mjs:[0-9]+:[0-9]+/.test(failedLog)&&
      /1 von 1 Regressionstests fehlgeschlagen: test-unified-map-layers-0985167\.mjs/.test(failedLog)&&
-     !DETERMINISTIC.test(failedLog))
+     // The *exact* allowlisted wrapper summary is expected for this timeout.
+     // Any additional deterministic regression marker must still block.
+     !DETERMINISTIC.test(failedLog.replace(
+       '1 von 1 Regressionstests fehlgeschlagen: test-unified-map-layers-0985167.mjs','')))
     return Object.freeze({retry:true,reason:'one-time-map-browser-timeout'});
 
   // A recognized browser failure may only be retried once; an unrelated HTTP

@@ -485,6 +485,7 @@ test('release retry classifier permits only one exact known installer map-browse
  }
  for(const altered of [
   selfHealTimeoutLog+' AssertionError',
+  selfHealTimeoutLog+'\nRegressionstests fehlgeschlagen: unrelated-test.mjs\nHTTP 503 upstream',
   selfHealTimeoutLog+'\nTest unrelated deterministic check failed',
   selfHealTimeoutLog.replace('verify-unified-map-browser','other-browser'),
   selfHealTimeoutLog.replace('Timeout 30000ms','Timeout 40000ms'),
