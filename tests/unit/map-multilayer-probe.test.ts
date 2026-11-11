@@ -100,6 +100,23 @@ describe('MID map popover: one map event, several separately labelled original-f
   group.remove(temp.id);
   expect(group.size).toBe(0);
  });
+ it('keeps model provenance visible even when both seasonal fields are missing',()=>{
+  const group=new MapProbeGroup();
+  const rain=watch(group,'Niederschlag',{source:'DWD ICON-D2 · original SHA',sample:()=>null});
+  watch(group,'Temperatur',{source:'DWD ICON-D2 · gemeinsamer Lauf',sample:()=>Number.NaN});
+  group.show(51,8);
+  const rows=rain.snapshot.point!.rows;
+  expect(rows.map(row=>[row.value,row.source,row.unavailableNote])).toEqual([
+   [null,'DWD ICON-D2 · original SHA','Originalwert fehlt'],
+   [null,'DWD ICON-D2 · gemeinsamer Lauf','Originalwert fehlt'],
+  ]);
+  const root=fileURLToPath(new URL('../../',import.meta.url));
+  const component=readFileSync(root+'src/ModelMapProbe.tsx','utf8');
+  expect(component).toContain('{row.source}</p>');
+  expect(component).toContain('role="status">{row.unavailableNote}');
+  expect(component).toContain('{rows[0].source}</p>');
+  expect(component).toContain('role="status">{rows[0].unavailableNote}');
+ });
  it('does not open a second raster dialog when a favorite marker or MapLibre popup is clicked',()=>{
   const root=fileURLToPath(new URL('../../',import.meta.url));
   const map=readFileSync(root+'src/ModelMapProbe.tsx','utf8');
