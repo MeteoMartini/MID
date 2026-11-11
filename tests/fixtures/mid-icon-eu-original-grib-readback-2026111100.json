@@ -1,0 +1,143 @@
+{
+  "entries": [
+    {
+      "files": {
+        "tot_prec:0": {
+          "endStep": 0,
+          "sha256": "9b7362dfee45cf1ebffd2234a97c1d619d87f62f1d36031f143d8f9c13f420bc",
+          "startStep": 0,
+          "stepType": "accum",
+          "units": "kg m**-2"
+        },
+        "tot_prec:1": {
+          "endStep": 1,
+          "sha256": "632ff52809c9a1536451a2ced46ce80fd6df78db842458ed3dfa952036f2ad1f",
+          "startStep": 0,
+          "stepType": "accum",
+          "units": "kg m**-2"
+        },
+        "t_2m:1": {
+          "endStep": 1,
+          "sha256": "b1eeec937527789981957b67a4e09856cbd31bd9a90d9fdaa510a389e9bcf296",
+          "startStep": 1,
+          "stepType": "instant",
+          "units": "K"
+        },
+        "vmax_10m:1": {
+          "endStep": 1,
+          "sha256": "375e7f241eb0f6828340aceb9a45ccdb2dab02d54ef87640074cbc671c231ac6",
+          "startStep": 0,
+          "stepType": "max",
+          "units": "m s**-1"
+        }
+      },
+      "gridSha256": "47ec431f6ca26fea659270ae395b438ee7bf9fe1b1bbb1d35a3fcec7a5fd614e",
+      "gustIntervalHours": 1,
+      "intervalHours": 1,
+      "lead": 1,
+      "maxPrecipitationMm": 38.017578125,
+      "minPrecipitationMm": 0,
+      "precipitationIntervalHours": 1,
+      "summerPairStatus": "grib-pair-qualified",
+      "totalCells": 904689,
+      "validSummer": 904689,
+      "validWinter": 904689,
+      "validTimeUTC": "2026-11-11T01:00:00Z",
+      "winterPairStatus": "grib-pair-qualified"
+    },
+    {
+      "files": {
+        "tot_prec:77": {
+          "endStep": 77,
+          "sha256": "0edb3e6de43b43d85d53587c2696fe1e412b56c39e42d3d0c71520ab7a3e0b64",
+          "startStep": 0,
+          "stepType": "accum",
+          "units": "kg m**-2"
+        },
+        "tot_prec:78": {
+          "endStep": 78,
+          "sha256": "fe159c5531c0d79046a598efe5d59bb3e1d68e666f5c00ca506d2e3e8c1c1f2e",
+          "startStep": 0,
+          "stepType": "accum",
+          "units": "kg m**-2"
+        },
+        "t_2m:78": {
+          "endStep": 78,
+          "sha256": "72d63e979646eb7bebf61e7459b26d6c93c45bd2290aa8b075e954023112e914",
+          "startStep": 78,
+          "stepType": "instant",
+          "units": "K"
+        },
+        "vmax_10m:78": {
+          "endStep": 78,
+          "sha256": "bd3ad425d2e684bed863e283bd934a5f4a6dc41d82db24f804b5dda8b9d705cf",
+          "startStep": 77,
+          "stepType": "max",
+          "units": "m s**-1"
+        }
+      },
+      "gridSha256": "47ec431f6ca26fea659270ae395b438ee7bf9fe1b1bbb1d35a3fcec7a5fd614e",
+      "gustIntervalHours": 1,
+      "intervalHours": 1,
+      "lead": 78,
+      "maxPrecipitationMm": 12.5390625,
+      "minPrecipitationMm": 0,
+      "precipitationIntervalHours": 1,
+      "summerPairStatus": "grib-pair-qualified",
+      "totalCells": 904689,
+      "validSummer": 904689,
+      "validWinter": 904689,
+      "validTimeUTC": "2026-11-14T06:00:00Z",
+      "winterPairStatus": "grib-pair-qualified"
+    },
+    {
+      "files": {
+        "tot_prec:78": {
+          "endStep": 78,
+          "sha256": "fe159c5531c0d79046a598efe5d59bb3e1d68e666f5c00ca506d2e3e8c1c1f2e",
+          "startStep": 0,
+          "stepType": "accum",
+          "units": "kg m**-2"
+        },
+        "tot_prec:81": {
+          "endStep": 81,
+          "sha256": "576cbc2846ae86a08b9b9aa31b4b7919c3ee187fe4b8e17a93116a639adfec7d",
+          "startStep": 0,
+          "stepType": "accum",
+          "units": "kg m**-2"
+        },
+        "t_2m:81": {
+          "endStep": 81,
+          "sha256": "e46c89e1bf1c4f591a0826896d4af7f32461da7da171600bfda3edfd06b5aaf0",
+          "startStep": 81,
+          "stepType": "instant",
+          "units": "K"
+        },
+        "vmax_10m:81": {
+          "endStep": 81,
+          "sha256": "20338ed00515fa569319ce8f6b7214728d911aad016fc7e02ec122bf006115b8",
+          "startStep": 80,
+          "stepType": "max",
+          "units": "m s**-1"
+        }
+      },
+      "gridSha256": "47ec431f6ca26fea659270ae395b438ee7bf9fe1b1bbb1d35a3fcec7a5fd614e",
+      "gustIntervalHours": 1,
+      "intervalHours": 3,
+      "lead": 81,
+      "maxPrecipitationMm": 26.75,
+      "minPrecipitationMm": 0,
+      "precipitationIntervalHours": 3,
+      "summerPairStatus": "blocked-gust-interval",
+      "totalCells": 904689,
+      "validSummer": 0,
+      "validWinter": 904689,
+      "validTimeUTC": "2026-11-14T09:00:00Z",
+      "winterPairStatus": "grib-pair-qualified"
+    }
+  ],
+  "releaseApproved": false,
+  "run": "2026111100",
+  "schema": "mid.icon-eu.seasonal.original-qa.v1",
+  "source": "DWD ICON-EU GRIB2 originals"
+}
