@@ -440,8 +440,8 @@ def check(payload: dict, run: str, *, expected_contract: dict | None = None,
             raise WorkerAdoptionError('GitHub Pages profile did not explicitly omit native EPS members',
                                       code='worker_pages_profile_invalid')
         storage_profile = payload.get('storageProfile')
-        if (storage_profile not in {'pages-free-v1', 'pages-lossless-v1'} or
-                not isinstance(storage_profile, str) or
+        if (not isinstance(storage_profile, str) or
+                storage_profile not in {'pages-free-v1', 'pages-lossless-v1'} or
                 (expected_profile is not None and storage_profile != expected_profile)):
             raise WorkerAdoptionError('Worker Pages storage profile differs from sealed publication',
                                       code='worker_pages_profile_invalid')
