@@ -54,8 +54,9 @@ export async function readMidNativeMergeReviewPolicy({fetchImpl=globalThis.fetch
  if(typeof fetchImpl!=='function'||typeof token!=='string'||token.length<12||
     !Number.isSafeInteger(timeoutMs)||timeoutMs<1000||timeoutMs>30000)
   throw new Error('MID_REVIEW_AUDIT_INPUT_INVALID');
- async function get(path){
-  if(!/^\/rulesets(?:\?includes_parents=true|\/[1-9][0-9]*)$/.test(path))
+ async function get(path,{list=false}={}){
+  if(list?!/^\/rulesets\?includes_parents=true&per_page=100&page=[1-9][0-9]*$/.test(path)
+         :!/^\/rulesets\/[1-9][0-9]*$/.test(path))
    throw new Error('MID_REVIEW_AUDIT_PATH_INVALID');
   const reply=await fetchImpl(HOST+path,{method:'GET',redirect:'error',
    signal:AbortSignal.timeout(timeoutMs),headers:{
@@ -65,11 +66,36 @@ export async function readMidNativeMergeReviewPolicy({fetchImpl=globalThis.fetch
   const body=await reply.text();
   if(typeof body!=='string'||body.length>1048576)
    throw new Error('MID_REVIEW_AUDIT_RESPONSE_TOO_LARGE');
-  try{return JSON.parse(body)}catch{throw new Error('MID_REVIEW_AUDIT_INVALID_JSON')}
+  let parsed;
+  try{parsed=JSON.parse(body)}catch{throw new Error('MID_REVIEW_AUDIT_INVALID_JSON')}
+  if(!list)return parsed;
+  const link=reply.headers?.get?.('link')??'';
+  if(typeof link!=='string'||link.length>8192)
+   throw new Error('MID_REVIEW_AUDIT_LINK_INVALID');
+  return {data:parsed,link};
  }
- const summaries=await get('/rulesets?includes_parents=true');
- if(!Array.isArray(summaries)||summaries.length>100)
-  throw new Error('MID_REVIEW_AUDIT_LIST_INVALID');
+ // GitHub paginates Rulesets. Never conclude that the first page contains
+ // every active protection; over 100 total entries exceeds our audit budget.
+ const summaries=[];
+ for(let page=1;page<=2;page++){
+  const {data:batch,link}=await get('/rulesets?includes_parents=true&per_page=100&page='+page,{list:true});
+  if(!Array.isArray(batch)||batch.length>100||summaries.length+batch.length>100)
+   throw new Error('MID_REVIEW_AUDIT_LIST_INVALID');
+  summaries.push(...batch);
+  const matches=[...link.matchAll(/<([^<>]+)>;\s*rel="?next"?/g)];
+  if(matches.length===0){
+   if(/\bnext\b/i.test(link))throw new Error('MID_REVIEW_AUDIT_LINK_INVALID');
+   break;
+  }
+  if(matches.length!==1||page===2)throw new Error('MID_REVIEW_AUDIT_PAGINATION_LIMIT');
+  let next;
+  try{next=new URL(matches[0][1])}catch{throw new Error('MID_REVIEW_AUDIT_LINK_INVALID')}
+  if(next.origin!=='https://api.github.com'||next.pathname!=='/repos/MeteoMartini/MID/rulesets'||
+    next.searchParams.size!==3||next.searchParams.get('includes_parents')!=='true'||
+    next.searchParams.get('per_page')!=='100'||
+    next.searchParams.get('page')!==String(page+1))
+   throw new Error('MID_REVIEW_AUDIT_LINK_INVALID');
+ }
  const detailsById=Object.create(null);
  for(const s of summaries){
   if(!Number.isSafeInteger(s?.id)||s.id<1||has(detailsById,String(s.id)))
@@ -129,7 +155,7 @@ export function assessMidClassicConversationOnlyProtection({protection,branch=MA
   return block('CONVERSATION_ZIP_STATUS_REQUIREMENT_UNRESOLVED');
  if(!has(protection,'restrictions')||protection.restrictions!==null)
   return block('CONVERSATION_ZIP_PUSH_RESTRICTIONS_UNRESOLVED');
- if(protection.lock_branch?.enabled===true)
+ if(!has(protection,'lock_branch')||protection.lock_branch?.enabled!==false)
   return block('CONVERSATION_ZIP_BRANCH_LOCKED');
  if(protection.allow_force_pushes?.enabled!==false||
     protection.allow_deletions?.enabled!==false)

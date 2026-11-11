@@ -64,7 +64,7 @@ const fake=(calls,mode='good')=>async(url,opts)=>{
  calls.push({url,opts});
  if(mode==='denied')return {ok:false,text:async()=>''};
  if(mode==='invalid')return {ok:true,text:async()=>'{bad'};
- return {ok:true,text:async()=>JSON.stringify(url.endsWith('true')?[summary]:detail)};
+ return {ok:true,text:async()=>JSON.stringify(url.includes('/rulesets?')?[summary]:detail)};
 };
 const token='dummy-github-credential';
 await test('readback uses only fixed GitHub GET and rejects redirects',async()=>{
@@ -72,7 +72,38 @@ await test('readback uses only fixed GitHub GET and rejects redirects',async()=>
  assert.equal(out.ok,true);assert.equal(calls.length,2);
  for(const c of calls){assert.equal(c.opts.method,'GET');
   assert.equal(c.opts.redirect,'error');assert.equal(c.opts.headers.Authorization,'Bearer '+token);
-  assert.ok(c.url.startsWith('https://api.github.com/repos/MeteoMartini/MID/rulesets'));}
+  assert.ok([
+   'https://api.github.com/repos/MeteoMartini/MID/rulesets?includes_parents=true&per_page=100&page=1',
+   'https://api.github.com/repos/MeteoMartini/MID/rulesets/'+id
+  ].includes(c.url),'Only documented fixed Rulesets URLs are accepted');}
+});
+await test('all GitHub Rulesets pages are read before review-policy assessment',async()=>{
+ const calls=[],host='https://api.github.com/repos/MeteoMartini/MID';
+ const extra={id:9030,target:'branch',enforcement:'disabled'};
+ const fakePaged=async(url,opts)=>{
+  calls.push({url,opts});
+  if(url===host+'/rulesets?includes_parents=true&per_page=100&page=1')
+   return {ok:true,text:async()=>JSON.stringify([extra]),headers:{get:()=>'<'+host+'/rulesets?includes_parents=true&per_page=100&page=2>; rel="next"'}};
+  if(url===host+'/rulesets?includes_parents=true&per_page=100&page=2')
+   return {ok:true,text:async()=>JSON.stringify([summary]),headers:{get:()=>''}};
+  if(url===host+'/rulesets/'+extra.id)
+   return {ok:true,text:async()=>JSON.stringify({...detail,...extra})};
+  if(url===host+'/rulesets/'+id)
+   return {ok:true,text:async()=>JSON.stringify(detail)};
+  throw Error('Unknown Rulesets endpoint: '+url);
+ };
+ const result=await read({fetchImpl:fakePaged,token});
+ assert.equal(result.ok,true);
+ assert.equal(calls.length,4);
+ assert.equal(calls[1].url,host+'/rulesets?includes_parents=true&per_page=100&page=2');
+ assert.ok(calls.every(c=>c.opts.method==='GET'&&c.opts.redirect==='error'));
+});
+await test('Rulesets pagination rejects an external host or tampered page cursor',async()=>{
+ const host='https://api.github.com/repos/MeteoMartini/MID';
+ const external=async url=>({ok:true,text:async()=>JSON.stringify([summary]),headers:{get:()=>'<https://evil.invalid/rulesets?page=2>; rel="next"'}});
+ await assert.rejects(read({fetchImpl:external,token}),/LINK_INVALID/);
+ const unexpectedPage=async url=>({ok:true,text:async()=>JSON.stringify([summary]),headers:{get:()=>'<'+host+'/rulesets?includes_parents=true&per_page=100&page=99>; rel="next"'}});
+ await assert.rejects(read({fetchImpl:unexpectedPage,token}),/LINK_INVALID/);
 });
 await test('HTTP denied is blocked',async()=>{
  await assert.rejects(read({fetchImpl:fake([],'denied'),token}),/HTTP_ERROR/);
@@ -218,7 +249,7 @@ await test('malformed positive reader result cannot supply review proof',async()
 });
 
 
-const solo={...classicGood,
+const solo={...classicGood,lock_branch:{enabled:false},
  required_pull_request_reviews:null,required_status_checks:null,restrictions:null};
 await test('standalone conversation-only is metadata candidate, never release clearance',()=>{
  const x=conversation({protection:solo});
@@ -263,6 +294,13 @@ await test('standalone extra status checks may block ZIP push',()=>{
 await test('standalone push restrictions are not assumed ZIP compatible',()=>{
  const x=conversation({protection:{...solo,restrictions:{apps:[],users:[],teams:[]}}});
  assert.equal(x.ok,false);assert.equal(x.reason,'CONVERSATION_ZIP_PUSH_RESTRICTIONS_UNRESOLVED');
+});
+await test('standalone absent or unreadable branch lock blocks ZIP compatibility',()=>{
+ for(const lock of [undefined,null,{}, {enabled:null}]){
+  const x=conversation({protection:{...solo,lock_branch:lock}});
+  assert.equal(x.ok,false);
+  assert.equal(x.reason,'CONVERSATION_ZIP_BRANCH_LOCKED');
+ }
 });
 await test('standalone branch lock blocks ZIP push',()=>{
  const x=conversation({protection:{...solo,lock_branch:{enabled:true}}});

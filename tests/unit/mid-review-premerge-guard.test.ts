@@ -27,6 +27,17 @@ describe('SHA-bound MID merge-time review guard',()=>{
   expect(decide([review('CHANGES_REQUESTED'),review('APPROVED','r2','auditor','2026-11-11T15:01:00Z')])).toBe(true);
   expect(decide([review('CHANGES_REQUESTED'),review('APPROVED','r2','different','2026-11-11T15:01:00Z')])).toBe(false);
  });
+ it('fails closed when conflicting same-author reviews have the same submission timestamp',()=>{
+  const same='2026-11-11T15:00:00Z';
+  for(const latest of ['APPROVED','DISMISSED']){
+   const original=review('CHANGES_REQUESTED','changes','auditor',same);
+   const clearing=review(latest,'clear','auditor',same);
+   for(const order of [[original,clearing],[clearing,original]])
+    expect(check(input({data:{meta,threads:[],reviews:order,truncated:false}}))).toMatchObject({
+     ok:false,reason:'MID_REVIEW_AMBIGUOUS_REVIEW_ORDER'
+    });
+  }
+ });
  it('does not let an interleaved PENDING draft reorder submitted change requests',()=>{
   const reviews=[
    review('APPROVED','approved','auditor','2026-11-11T14:00:00Z'),

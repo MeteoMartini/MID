@@ -37,6 +37,19 @@ export function assessMidPremerge({before,after,main,stable,data,number,sha,bran
  // creates a NaN sort comparator and can reorder submitted change requests.
  const submitted=data.reviews.filter(r=>r.state!=='PENDING').sort((a,b)=>
   Date.parse(a.submittedAt)-Date.parse(b.submittedAt));
+ // GitHub timestamps may collide at second precision. If a reviewer's
+ // CHANGES_REQUESTED and clearing review share a timestamp, collection order
+ // is not authoritative and must never erase an active critical request.
+ const tied=new Map();
+ for(const r of submitted){
+  const key=r.author.login.toLowerCase()+'|'+r.submittedAt;
+  if(!tied.has(key))tied.set(key,new Set());
+  tied.get(key).add(r.state);
+ }
+ for(const states of tied.values())
+  if(states.has('CHANGES_REQUESTED')&&
+    (states.has('APPROVED')||states.has('DISMISSED')))
+   return block('AMBIGUOUS_REVIEW_ORDER');
  for(const r of submitted){
   const author=r.author.login.toLowerCase();
   if(r.state==='CHANGES_REQUESTED')requests.add(author);
