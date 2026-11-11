@@ -159,7 +159,8 @@ await test('classic no token cannot attest rules',async()=>{
 
 
 // Least-privilege default must never issue the Administration:read classic GET.
-// The owner UI (2026-11-11) shows no classic protection rules on MID.
+// A dated owner UI initially had no classic rules; subsequent metadata shows
+// main.protection.enabled=true. The default may never assume either state.
 await test('default checks only Rulesets and never calls classic',async()=>{
  let classicCalls=0;
  const x=await inspect({token,nativeReader:async()=>audit(data()),

@@ -203,8 +203,9 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   process.exitCode=2;
  }else{
   try{
-   // The owner confirmed no classic rules on 2026-11-11. Do not probe a
-   // restricted admin endpoint in the normal least-privilege Ruleset audit.
+   // On 2026-11-11, main protection.enabled later became true; the exact
+   // classic settings remain unreadable through the managed connector.
+   // Default to readable Rulesets; query the admin endpoint only on opt-in.
    // Explicit opt-in retains the classic route for privileged diagnostics.
    const includeClassic=process.env.MID_AUDIT_CLASSIC==='1';
    if(process.env.MID_AUDIT_CLASSIC&& !includeClassic)
