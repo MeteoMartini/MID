@@ -68,6 +68,7 @@ SAFE_DIAGNOSTIC_CODES = {
     'worker_pages_profile_invalid',
     'worker_payload_error',
     'worker_readiness_failed',
+    'worker_backend_invalid',
     'worker_run_mismatch',
     'worker_transport_error',
 }
@@ -411,7 +412,8 @@ def check(payload: dict, run: str, *, expected_contract: dict | None = None) -> 
                 f'Worker RUC readiness field {key} is not healthy',
                 code='worker_readiness_failed',
             )
-    if str(payload.get('run','')) != run:
+    # A non-string model run is not a proven UTC provenance identifier.
+    if not isinstance(payload.get('run'), str) or payload.get('run') != run:
         raise WorkerAdoptionError('Worker RUC run does not match the published run',
                                   code='worker_run_mismatch')
     objects = payload.get('objectsPresent') or {}
@@ -421,8 +423,12 @@ def check(payload: dict, run: str, *, expected_contract: dict | None = None) -> 
         if objects.get(key) is not True:
             raise WorkerAdoptionError(f'Worker RUC object {key} is not present',
                                       code='worker_object_missing')
-    backend_value = payload.get('backend')
-    backend = backend_value if isinstance(backend_value, str) else ''
+    backend = payload.get('backend')
+    # Only the two deployed Worker backends may pass a public health gate.
+    # Missing/unknown backends must not silently bypass EPS/profile checks.
+    if backend not in {'r2', 'pages'} or not isinstance(backend, str):
+        raise WorkerAdoptionError('Worker RUC backend is missing or unsupported',
+                                  code='worker_backend_invalid')
     if backend == 'r2' and objects.get('epsMembers') is not True:
         raise WorkerAdoptionError('Worker RUC native EPS object is not present for R2 backend',
                                   code='worker_eps_object_missing')

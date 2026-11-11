@@ -402,6 +402,30 @@ class SafeDiagnosticsTests(unittest.TestCase):
       self.assertNotIn('token=',stderr.getvalue())
       self.assertNotIn(json.dumps(payload),stderr.getvalue())
 
+
+ def test_health_rejects_unproven_backend_and_nonstring_run(self):
+  # Health metadata from the Worker explicitly supports only pages or r2.
+  # Unknown backends must not bypass the EPS20/native-members profile gate.
+  for backend in (None,'','unknown','static',True,7,{}):
+   with self.subTest(backend=repr(backend)):
+    with self.assertRaises(mod.WorkerAdoptionError) as caught:
+     mod.check({**good,'backend':backend},'2026082822')
+    self.assertEqual(caught.exception.code,'worker_backend_invalid')
+  with self.assertRaises(mod.WorkerAdoptionError) as caught:
+   mod.check({**good,'run':2026082822},'2026082822')
+  self.assertEqual(caught.exception.code,'worker_run_mismatch')
+  journal=mod.ProbeJournal()
+  with self.assertRaises(mod.WorkerAdoptionError) as rejected:
+   mod.probe_until_ready('https://host.invalid/','2026082822',
+                         attempts=1,fetcher=lambda *_:{**good,'backend':'unknown'},
+                         journal=journal)
+  self.assertEqual(rejected.exception.code,'worker_backend_invalid')
+  self.assertEqual(journal.records[0]['diagnosticCode'],'worker_backend_invalid')
+  # The expected official Worker backend semantics remain functional.
+  mod.check(good,'2026082822')
+  mod.check({**good,'backend':'pages','nativeEpsMembers':False},
+            '2026082822')
+
  def test_transport_and_unready_worker_are_not_codec_defects(self):
   with self.assertRaises(mod.WorkerTransportError) as transport:
    mod.probe_until_ready('https://host.invalid/','2026082822',attempts=1,
