@@ -163,6 +163,8 @@ jobs:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
           EXPECTED_HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
           EXPECTED_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          # Compare current main/Stable against the Source-PR gate's PR base.
+          EXPECTED_SOURCE_BASE_SHA: ${{ github.event.workflow_run.pull_requests[0].base.sha }}
           EXPECTED_WORKFLOW_SHA: ${{ github.workflow_sha }}
         run: |
           set -euo pipefail

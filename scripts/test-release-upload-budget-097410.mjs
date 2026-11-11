@@ -23,7 +23,7 @@ for(const workflow of [installCanonical,installActive]){
   assert.equal(blocks.length,4,'Installer muss drei Pages-Deployversuche plus den kurzen Stable-/Pages-Abschluss-Lock koordinieren.');
   assert.ok(blocks.every(match=>match[1]==='max'),'Installer muss wartende Pages-Publikationen verlustfrei per queue:max halten.');
   assert.ok(blocks.every(match=>match[2]==='false'),'Installer darf laufende RUC-/Pages-Publikation nicht abbrechen.');
-  assert.ok(workflow.includes("group: mid-install-${{ github.ref }}-${{ github.event_name == 'push' && github.actor == 'mid-release-bot-meteomartini[bot]' && 'internal-bot-push' || 'release' }}\n  cancel-in-progress: true"),'Release-Supersession bleibt aktiv; interne Bot-Pushes dürfen den laufenden Installer nicht abbrechen.');
+  assert.ok(workflow.includes("group: mid-install-${{ github.ref }}-${{ github.event_name == 'push' && github.actor == 'mid-release-bot-meteomartini[bot]' && 'internal-bot-push' || 'release' }}\n  # Serialize manual and bot-dispatched installers; never cancel a live\n  # authorized ZIP install because an identical manual/recovery event arrived.\n  # Push supersession retains its pre-existing branch safety behavior.\n  queue: max\n  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}"),'ZIP-installers serialize manual/recovery dispatches without cancellation; bot-push events retain isolated supersession.');
 }
 for(const workflow of [rucCanonical,rucActive]){
   assert.ok(workflow.includes("- cron: '11 * * * *'"));

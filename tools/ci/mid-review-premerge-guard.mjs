@@ -7,9 +7,10 @@ const BRANCH=/^(chatgpt|codex)\/[^/]+(?:\/[^/]+)*$/;
 const QUERY='query($owner:String!,$name:String!,$number:Int!,$threadAfter:String,$reviewAfter:String){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid headRefName baseRefName isDraft state reviewThreads(first:100,after:$threadAfter){nodes{id isResolved isOutdated}pageInfo{hasNextPage endCursor}} reviews(first:100,after:$reviewAfter){nodes{id state author{login} submittedAt}pageInfo{hasNextPage endCursor}}}}}';
 const block=reason=>({ok:false,reason:'MID_REVIEW_'+reason,mergeAuthorized:false,releaseAuthorized:false});
 
-export function assessMidPremerge({before,after,main,stable,data,number,sha,branch}={}){
+export function assessMidPremerge({before,after,main,stable,data,number,sha,branch,sourceBaseSha}={}){
  if(!Number.isSafeInteger(number)||number<1||!SHA.test(sha??'')||!BRANCH.test(branch??''))return block('BAD_INPUT');
- if(!SHA.test(main?.commit?.sha??'')||main.commit.sha!==stable?.commit?.sha)return block('SOURCE_DRIFT');
+ if(!SHA.test(sourceBaseSha??''))return block('SOURCE_BASE_UNVERIFIED');
+ if(!SHA.test(main?.commit?.sha??'')||main.commit.sha!==stable?.commit?.sha||main.commit.sha!==sourceBaseSha)return block('SOURCE_DRIFT');
  const match=p=>p?.number===number&&p.state==='open'&&p.draft===false&&
   p.base?.ref==='main'&&p.base?.sha===main.commit.sha&&p.head?.ref===branch&&
   p.head?.sha===sha&&p.head?.repo?.full_name===REPO;
@@ -107,9 +108,10 @@ function gh(args){
  try{return JSON.parse(result)}catch{throw Error('GITHUB_BAD_JSON')}
 }
 export async function runMidReviewGuard(env=process.env){
- const number=Number(env.PR_NUMBER),sha=env.EXPECTED_HEAD_SHA,branch=env.EXPECTED_BRANCH;
+ const number=Number(env.PR_NUMBER),sha=env.EXPECTED_HEAD_SHA,branch=env.EXPECTED_BRANCH,
+  sourceBaseSha=env.EXPECTED_SOURCE_BASE_SHA;
  if(env.GITHUB_REPOSITORY!==REPO||typeof env.GH_TOKEN!=='string'||env.GH_TOKEN.length<12||
-    !Number.isSafeInteger(number)||number<1||!SHA.test(sha??'')||!BRANCH.test(branch??''))
+    !Number.isSafeInteger(number)||number<1||!SHA.test(sha??'')||!BRANCH.test(branch??'')||!SHA.test(sourceBaseSha??''))
   throw Error('HOST_IDENTITY_INVALID');
  const get=path=>gh(['--method','GET',path]);
  const before=get('repos/'+REPO+'/pulls/'+number);
@@ -121,7 +123,7 @@ export async function runMidReviewGuard(env=process.env){
   return gh(args);
  },number,sha);
  const after=get('repos/'+REPO+'/pulls/'+number);
- return assessMidPremerge({before,after,main,stable,data,number,sha,branch});
+ return assessMidPremerge({before,after,main,stable,data,number,sha,branch,sourceBaseSha});
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  try{

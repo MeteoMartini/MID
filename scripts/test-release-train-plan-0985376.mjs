@@ -419,7 +419,13 @@ test('installer dispatch must pin expected release ZIP SHA while manual workflow
  assert.match(installer,/if: github\.event_name == 'workflow_dispatch' && inputs\.expected_package_sha != ''/);
  assert.match(installer,/\[ "\$EXPECTED_PACKAGE_SHA" != "\$EVENT_SHA" \]/);
 });
-test('failed Installer dispatch can recover only on exact ZIP SHA with independent proof',async()=>{
+// Native jq tests validate the actual workflow predicates, not a JS stand-in.
+// GitHub ubuntu-24.04 runners provide jq; a Node-only local environment may
+// skip this bounded native integration test until jq (>=1.6) is installed.
+// In GitHub Actions the test is mandatory and must fail when jq is absent.
+const jqPresent=spawnSync('jq',['--version'],{encoding:'utf8'}).status===0;
+const nativeJqTest=jqPresent||process.env.GITHUB_ACTIONS==='true'?test:test.skip;
+nativeJqTest('failed Installer dispatch can recover only on exact ZIP SHA with independent proof',async()=>{
  const active=await readRepositoryFile(new URL('../.github/workflows/agent-source-release.yml',import.meta.url),'utf8');
  const canonical=await readRepositoryFile(new URL('../ci/github/workflows/agent-source-release.yml',import.meta.url),'utf8');
  assert.equal(active,canonical);
@@ -449,6 +455,13 @@ test('failed Installer dispatch can recover only on exact ZIP SHA with independe
  assert.equal(jq(inventory,{total_count:0,workflow_runs:[]}),0);
  for(const bad of [{total_count:1,workflow_runs:[{id:1}]},{total_count:0,workflow_runs:[{id:1}]},{workflow_runs:[]}])
   assert.notEqual(jq(inventory,bad),0);
+});
+test('serialized workflow_dispatch prevents cancellation of a competing ZIP installer recovery',async()=>{
+ const installer=await readRepositoryFile(new URL('../ci/github/workflows/install-mid.yml',import.meta.url),'utf8');
+ const active=await readRepositoryFile(new URL('../.github/workflows/install-mid.yml',import.meta.url),'utf8');
+ assert.equal(installer,active);
+ assert.match(installer,/queue: max\n  cancel-in-progress: \$\{\{ github\.event_name != 'workflow_dispatch' \}\}/);
+ assert.match(installer,/group: mid-install-\$\{\{ github\.ref \}\}/);
 });
 test('established trusted SHA-bound bot release workflow mirrors and source-to-installer handoff remain intact',async()=>{
  const canonical=await readRepositoryFile(new URL('../ci/github/workflows/agent-source-release.yml',import.meta.url),'utf8');

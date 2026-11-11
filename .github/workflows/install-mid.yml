@@ -21,7 +21,11 @@ concurrency:
   # Interne Release-Bot-Pushes werden vom Job ohnehin übersprungen und dürfen
   # einen ausdrücklich gestarteten Installerlauf nicht per Concurrency abbrechen.
   group: mid-install-${{ github.ref }}-${{ github.event_name == 'push' && github.actor == 'mid-release-bot-meteomartini[bot]' && 'internal-bot-push' || 'release' }}
-  cancel-in-progress: true
+  # Serialize manual and bot-dispatched installers; never cancel a live
+  # authorized ZIP install because an identical manual/recovery event arrived.
+  # Push supersession retains its pre-existing branch safety behavior.
+  queue: max
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 jobs:
   prepare_release:

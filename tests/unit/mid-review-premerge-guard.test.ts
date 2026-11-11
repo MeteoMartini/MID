@@ -4,7 +4,7 @@ import {assessMidPremerge as check,collectMidReviews} from '../../tools/ci/mid-r
 const sha='a'.repeat(40),stable='b'.repeat(40),branch='chatgpt/v0.9.85.455-review-native-guard';
 const pr={number:777,state:'open',draft:false,base:{ref:'main',sha:stable},head:{ref:branch,sha,repo:{full_name:'MeteoMartini/MID'}}};
 const meta={number:777,headRefOid:sha,headRefName:branch,baseRefName:'main',state:'OPEN',isDraft:false};
-const input=(x:any={})=>({number:777,sha,branch,before:pr,after:pr,main:{commit:{sha:stable}},stable:{commit:{sha:stable}},data:{meta,threads:[],reviews:[],truncated:false},...x});
+const input=(x:any={})=>({number:777,sha,branch,sourceBaseSha:stable,before:pr,after:pr,main:{commit:{sha:stable}},stable:{commit:{sha:stable}},data:{meta,threads:[],reviews:[],truncated:false},...x});
 const thread=(isResolved:boolean,isOutdated=false,id='t1')=>({isResolved,isOutdated,id});
 const review=(state:string,id='r1',author='auditor',submittedAt='2026-11-11T15:00:00Z')=>({state,id,author:{login:author},submittedAt});
 const page=(t:any[]=[],r:any[]=[],tNext=false,rNext=false)=>({data:{repository:{pullRequest:{...meta,
@@ -12,6 +12,14 @@ const page=(t:any[]=[],r:any[]=[],tNext=false,rNext=false)=>({data:{repository:{
  reviews:{nodes:r,pageInfo:{hasNextPage:rNext,endCursor:rNext?'nextR':null as string|null}}
 }}}});
 describe('SHA-bound MID merge-time review guard',()=>{
+ it('source base must match both CURRENT protected refs, not just live main=Stable',()=>{
+  for(const sourceBaseSha of [undefined,'', 'c'.repeat(40)]){
+   const result=check(input({sourceBaseSha}));
+   expect(result.ok).toBe(false);
+   expect(result.reason).toMatch(/^MID_REVIEW_SOURCE_(BASE_UNVERIFIED|DRIFT)$/);
+  }
+  expect(check(input()).ok).toBe(true);
+ });
  it('does not claim a clean readback is merge or release authorization',()=>{
   expect(check(input())).toMatchObject({ok:true,mergeAuthorized:false,releaseAuthorized:false,nativeEnforcementRequired:true});
  });
