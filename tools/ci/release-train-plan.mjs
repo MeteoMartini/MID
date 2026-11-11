@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // MID release train preflight is read-only and NEVER authorizes or performs merging.
 import {readFile} from 'node:fs/promises';
+import {analyzeVerifiedReleaseVersion,parseMidVersion} from './mid-release-version-proposal.mjs';
 const SHA=/^[0-9a-f]{40}$/;
 const REPO=/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const validRepo = value => typeof value === 'string' && REPO.test(value) && !value.split('/').some(p=>p==='.'||p==='..');
@@ -66,7 +67,7 @@ async function api(repository,path,token) {
   if (!response.ok) throw Error('GitHub read failed: HTTP '+response.status);
   return response.json();
 }
-export async function inspectRemote(manifest,repository,token) {
+export async function inspectRemoteSnapshot(manifest,repository,token) {
   if (!validRepo(repository)) throw Error('Invalid repository');
   validateManifest(manifest);
   const [main,stable]=await Promise.all([
@@ -104,17 +105,51 @@ export async function inspectRemote(manifest,repository,token) {
         finalPr.base?.sha!==candidate.baseSha || finalPr.state!==candidate.state || finalPr.draft!==candidate.draft ||
         finalPr.merged!==candidate.merged) throw Error('PR changed before planning completed');
   }
-  return analyzeCandidates(manifest,{
-    mainSha:main.object?.sha,stableSha:stable.object?.sha,repository,
-  },data);
+  const current={mainSha:main.object?.sha,stableSha:stable.object?.sha,repository};
+  return {plan:analyzeCandidates(manifest,current,data),current,
+    verifiedCandidates:data.map(p=>({pr:p.number,headSha:p.headSha,files:p.files}))};
+}
+// Preserve the original read-only result schema for existing callers and tests.
+export async function inspectRemote(manifest,repository,token) {
+ const result=await inspectRemoteSnapshot(manifest,repository,token);
+ return result.plan;
+}
+// Read exact immutable Stable blobs, never a floating branch or PR-supplied version label.
+export async function inspectStableVersion(repository,stableSha,token) {
+ if(!validRepo(repository)||!SHA.test(stableSha))throw Error('Invalid immutable Stable version source');
+ const paths=['package.json','MID_BASELINE.json','contracts/index.json'];
+ const files=await Promise.all(paths.map(p=>api(repository,'contents/'+p+'?ref='+stableSha,token)));
+ const sources=files.map((file,i)=>{
+  if(file?.type!=='file'||file.encoding!=='base64'||!SHA.test(file.sha??'')||
+     typeof file.content!=='string'||!file.content.trim())throw Error('Missing Stable version mirror: '+paths[i]);
+  const buffer=Buffer.from(file.content.replace(/\s/g,''),'base64');
+  if(!buffer.length)throw Error('Empty Stable version mirror: '+paths[i]);
+  try{return JSON.parse(buffer.toString('utf8'))}
+  catch{throw Error('Invalid Stable version mirror: '+paths[i])}
+ });
+ const [pkg,baseline,contracts]=sources;
+ const v=pkg?.version;
+ parseMidVersion(v);
+ if(v!==baseline?.version||v!==baseline?.releaseVersion||v!==contracts?.releaseVersion)
+  throw Error('Stable version mirrors disagree; block release proposal');
+ return v;
 }
 async function main() {
   const [file,repository] = process.argv.slice(2);
   if (!file || !repository) throw Error('Usage: release-train-plan.mjs <manifest.json> <owner/repo>');
   const manifest=validateManifest(JSON.parse(await readFile(file,'utf8')));
-  const result=await inspectRemote(manifest,repository,process.env.GITHUB_TOKEN || '');
+  const token=process.env.GITHUB_TOKEN || '';
+  const snapshot=await inspectRemoteSnapshot(manifest,repository,token);
+  const result={...snapshot.plan};
+  if(Object.hasOwn(manifest,'versioning')){
+    const version=await inspectStableVersion(repository,manifest.stableSha,token);
+    result.versionProposal=analyzeVerifiedReleaseVersion(manifest.versioning,{
+      mainSha:snapshot.current.mainSha,stableSha:snapshot.current.stableSha,version,
+    },snapshot);
+  }
   process.stdout.write(JSON.stringify(result,null,2)+'\n');
-  if (!result.validForIntegrationReview) process.exitCode=1;
+  if(!result.validForIntegrationReview || (result.versionProposal && !result.versionProposal.readyForIntegrationReview))
+    process.exitCode=1;
 }
 if (process.argv[1]?.endsWith('release-train-plan.mjs')) {
   main().catch(error=>{console.error('Release train preflight blocked: '+error.message);process.exitCode=1;});
