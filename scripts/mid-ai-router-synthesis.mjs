@@ -60,13 +60,26 @@ export function summarizeMidAiBlend({plan,responses=[],sourceChecks=[]}={}){
    const matching=responses.filter(r=>r?.requestId===p.requestId);
    if(matching.length!==1)deny('DUPLICATE_OR_MISSING_MODEL_RESPONSE');
    const x=matching[0];
+   // Two explicitly different, untrusted evidence shapes are supported:
+   // legacy structured QA reports and actual one-shot executor receipts.
+   // The executor never extracts original-source claims. Do not synthesize
+   // such claims from free-form text or accept caller-injected claim arrays.
+   const fromExecutor=Object.hasOwn(x,'actualModel')||
+                      Object.hasOwn(x,'stableSha');
+   const servedModel=fromExecutor?x.actualModel:x.providerReportedModel;
+   const sourceSha=fromExecutor?x.stableSha:x.expectedStableSha;
+   const rawClaims=fromExecutor?[]:x.claims;
    if(x.status!=='UNTRUSTED_REVIEW_ONLY'||x.provider!==p.provider||
-     x.model!==p.model||x.providerReportedModel!==p.model||
-     x.expectedStableSha!==p.expectedStableSha||
-     !finiteText(x.text,16000)||!Array.isArray(x.claims)||x.claims.length>50)
+     x.model!==p.model||servedModel!==p.model||
+     sourceSha!==p.expectedStableSha||
+     !finiteText(x.text,16000)||!Array.isArray(rawClaims)||rawClaims.length>50||
+     (fromExecutor&&(Object.hasOwn(x,'claims')||
+       x.costStatus!=='NOT_VERIFIED'||x.cashSpendStatus!=='NOT_VERIFIED'||
+       (Object.hasOwn(x,'providerReportedModel')&&x.providerReportedModel!==x.actualModel)||
+       (Object.hasOwn(x,'expectedStableSha')&&x.expectedStableSha!==x.stableSha))))
       deny('MODEL_RESPONSE_UNTRUSTED_OR_MISMATCHED');
    const claims=new Map();
-   for(const c of x.claims){
+   for(const c of rawClaims){
      if(!yes(c)||!NAME.test(c.key||'')||
        !(c.value===null||typeof c.value==='string'&&c.value.length<=250)||
        !https(c.sourceUrl)||claims.has(c.key))
@@ -74,7 +87,7 @@ export function summarizeMidAiBlend({plan,responses=[],sourceChecks=[]}={}){
      claims.set(c.key,Object.freeze({value:c.value,sourceUrl:https(c.sourceUrl)}));
    }
    return {requestId:p.requestId,provider:p.provider,model:p.model,
-     claims,textExcerpt:x.text.slice(0,1200),
+     claims,textExcerpt:x.text.slice(0,1200),fromExecutor,
      usageStatus:x.usageStatus==='UPSTREAM_REPORTED_UNVERIFIED'?
         'UPSTREAM_REPORTED_UNVERIFIED':'NOT_VERIFIED',
      costStatus:'NOT_VERIFIED'};
@@ -105,6 +118,13 @@ export function summarizeMidAiBlend({plan,responses=[],sourceChecks=[]}={}){
    exactModels:Object.freeze(rows.map(x=>({requestId:x.requestId,provider:x.provider,
      model:x.model,usageStatus:x.usageStatus,costStatus:x.costStatus}))),
    findings:Object.freeze(findings),
+   // Text remains visible for side-by-side review without inventing claims.
+   // Nothing in this result verifies or endorses either model answer.
+   untrustedAnswerExcerpts:Object.freeze(rows.map(x=>Object.freeze({
+     requestId:x.requestId,provider:x.provider,model:x.model,
+     textExcerpt:x.textExcerpt,originalSourceVerified:false
+   }))),
+   nativeExecutorReceipts:rows.filter(x=>x.fromExecutor).length,
    sourceClaimsVerified:0, // Submitted review flags are NOT independent signed proof.
    cashCost:'UNKNOWN',extraModelCallsTriggered:0,blendAuthoritative:false,
    needIndependentOriginalSourceReview:true,
