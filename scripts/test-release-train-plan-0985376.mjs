@@ -354,3 +354,19 @@ test('Stable version comes from immutable GitHub SHA-pinned package/baseline/con
   await assert.rejects(inspectStableVersion('evil/../repository',a,''),/Invalid immutable/);
  }finally{globalThis.fetch=original}
 });
+
+test('established trusted SHA-bound bot release workflow mirrors and source-to-installer handoff remain intact',async()=>{
+ const canonical=await readRepositoryFile(new URL('../ci/github/workflows/agent-source-release.yml',import.meta.url),'utf8');
+ const active=await readRepositoryFile(new URL('../.github/workflows/agent-source-release.yml',import.meta.url),'utf8');
+ assert.equal(active,canonical,'The trusted release bot must use byte-identical checked-in workflow mirrors');
+ assert.match(canonical,/name: MID Agent Source Release/);
+ assert.match(canonical,/MID ChatGPT\/Codex Source-PR Gate/);
+ assert.match(canonical,/github\.event\.workflow_run\.conclusion == 'success'/);
+ assert.match(canonical,/github\.event\.workflow_run\.event == 'pull_request'/);
+ assert.match(canonical,/case "\$RUN_HEAD_BRANCH" in/);
+ assert.match(canonical,/chatgpt\/\*\|codex\/\*/);
+ assert.match(canonical,/gh api --method PUT "repos\/\$\{GITHUB_REPOSITORY\}\/pulls\/\$\{PR_NUMBER\}\/merge"/);
+ assert.match(canonical,/-f sha="\$\{EXPECTED_HEAD_SHA\}"/);
+ assert.match(canonical,/gh workflow run install-mid\.yml --ref main/);
+ assert.doesNotMatch(canonical,/pull_request_target:/);
+});

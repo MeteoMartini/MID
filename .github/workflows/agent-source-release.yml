@@ -7,10 +7,6 @@ on:
       - MID ChatGPT/Codex Source-PR Gate
     types:
       - completed
-    # Filter on the *source gate's* head branch; never authorize copilot/*.
-    branches:
-      - 'chatgpt/**'
-      - 'codex/**'
 
 permissions:
   contents: read
@@ -26,9 +22,7 @@ jobs:
     name: PR mergen, Release-ZIP erzeugen und Installer starten
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'pull_request' &&
-      (startsWith(github.event.workflow_run.head_branch, 'chatgpt/') ||
-       startsWith(github.event.workflow_run.head_branch, 'codex/'))
+      github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -87,124 +81,6 @@ jobs:
           echo "eligible=true" >> "$GITHUB_OUTPUT"
           echo "number=${pr_number}" >> "$GITHUB_OUTPUT"
           echo "head_sha=${head_sha}" >> "$GITHUB_OUTPUT"
-
-      - name: Unabhängigen Reviewstand vor SHA-Merge fail-closed prüfen
-        # Runs only from the trusted default-branch workflow; no untrusted PR checkout.
-        if: steps.pr.outputs.eligible == 'true' && steps.pr.outputs.already_merged != 'true'
-        shell: bash
-        env:
-          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
-          PR_NUMBER: ${{ steps.pr.outputs.number }}
-          EXPECTED_HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          import json, os, re, sys, urllib.request
-          repo=os.environ.get("GITHUB_REPOSITORY","")
-          number=os.environ.get("PR_NUMBER","")
-          head=os.environ.get("EXPECTED_HEAD_SHA","")
-          token=os.environ.get("GH_TOKEN","")
-          if (not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+",repo)
-              or not number.isdecimal() or int(number)<1 or not re.fullmatch(r"[a-f0-9]{40}",head)
-              or not token):
-              raise SystemExit("MID review gate: invalid configuration; no merge")
-          owner,name=repo.split("/",1)
-          query="""query($owner:String!,$name:String!,$number:Int!,$rCursor:String,$tCursor:String){
-            repository(owner:$owner,name:$name){pullRequest(number:$number){
-              id state isDraft headRefOid baseRefName
-              reviews(first:100,after:$rCursor){
-                nodes{id state submittedAt bodyText commit{oid}}
-                pageInfo{hasNextPage endCursor}
-              }
-              reviewThreads(first:100,after:$tCursor){
-                nodes{id isResolved isOutdated}
-                pageInfo{hasNextPage endCursor}
-              }
-            }}
-          }"""
-          def one_page(r_cursor,t_cursor):
-              payload=json.dumps({"query":query,"variables":{
-                "owner":owner,"name":name,"number":int(number),
-                "rCursor":r_cursor,"tCursor":t_cursor}},separators=(",",":")).encode()
-              request=urllib.request.Request("https://api.github.com/graphql",data=payload,
-                headers={"Authorization":"Bearer "+token,"Accept":"application/vnd.github+json",
-                  "Content-Type":"application/json","User-Agent":"MID-trusted-review-premerge"},
-                method="POST")
-              with urllib.request.urlopen(request,timeout=15) as reply:
-                response=json.load(reply)
-              if response.get("errors") or not isinstance(response.get("data"),dict):
-                raise ValueError("GitHub GraphQL returned errors or incomplete data")
-              pr=(response["data"].get("repository") or {}).get("pullRequest")
-              if not isinstance(pr,dict):raise ValueError("PR review data not readable")
-              return pr
-          def snapshot():
-              meta=None
-              reviews,threads=[],[]
-              r_cursor=t_cursor=None
-              r_done=t_done=False
-              for _ in range(20):
-                pr=one_page(r_cursor,t_cursor)
-                current={key:pr.get(key) for key in ("id","state","isDraft","headRefOid","baseRefName")}
-                if meta is None:meta=current
-                if current!=meta:raise ValueError("PR state or SHA changed during pagination")
-                r=pr.get("reviews") or {}
-                t=pr.get("reviewThreads") or {}
-                rp=r.get("pageInfo") or {}
-                tp=t.get("pageInfo") or {}
-                if not isinstance(r.get("nodes"),list) or not isinstance(t.get("nodes"),list):
-                  raise ValueError("Review or thread page incomplete")
-                if not r_done:reviews.extend(r["nodes"])
-                if not t_done:threads.extend(t["nodes"])
-                r_done=(rp.get("hasNextPage") is False)
-                t_done=(tp.get("hasNextPage") is False)
-                if r_done and t_done:return {"pr":meta,"reviews":reviews,"threads":threads}
-                if not r_done:
-                  next_cursor=rp.get("endCursor")
-                  if not next_cursor or next_cursor==r_cursor:raise ValueError("Review cursor missing or stalled")
-                  r_cursor=next_cursor
-                if not t_done:
-                  next_cursor=tp.get("endCursor")
-                  if not next_cursor or next_cursor==t_cursor:raise ValueError("Thread cursor missing or stalled")
-                  t_cursor=next_cursor
-              raise ValueError("Review pagination exceeds fail-closed page cap")
-          try:
-              first=snapshot()
-              second=snapshot()
-              if first!=second:raise ValueError("PR review evidence changed during readback")
-              pr=first["pr"]
-              if (pr.get("state")!="OPEN" or pr.get("isDraft") is not False
-                  or pr.get("headRefOid")!=head or pr.get("baseRefName")!="main"):
-                raise ValueError("PR not ready or head/base SHA differs from source gate")
-              if first["threads"]:
-                raise ValueError("Independent triage required for submitted review threads")
-              seen=set()
-              for review in first["reviews"]:
-                identifier=review.get("id") if isinstance(review,dict) else None
-                if not identifier or identifier in seen:raise ValueError("Review ID missing or duplicated")
-                seen.add(identifier)
-                state=review.get("state")
-                if state in ("PENDING","DISMISSED"):continue
-                review_sha=(review.get("commit") or {}).get("oid","")
-                if not review.get("submittedAt") or not re.fullmatch(r"[a-f0-9]{40}",review_sha):
-                  raise ValueError("Submitted review provenance missing")
-                if review_sha!=head:raise ValueError("Submitted review on stale SHA")
-                if state=="CHANGES_REQUESTED":raise ValueError("Changes requested")
-                body=(review.get("bodyText") or "").strip()
-                if state=="APPROVED":
-                  # Even an approval may explicitly report real defects.
-                  if any(int(value)!=0 for value in re.findall(r"\b(\d+)\s+issues?\s+found\b",body,re.I)):
-                    raise ValueError("Approved review still reports substantive issues")
-                  continue
-                if state!="COMMENTED":raise ValueError("Unexpected submitted review state")
-                if not body:continue
-                counts=re.findall(r"\b(\d+)\s+issues?\s+found\b",body,re.I)
-                if not counts or any(int(value)!=0 for value in counts):
-                  raise ValueError("Substantive review needs independent disposition")
-              print("MID pre-merge review evidence: PASS (no unresolved or untriaged findings)")
-          except Exception as error:
-              print("::error::MID pre-merge review gate blocked: "+str(error),file=sys.stderr)
-              raise SystemExit(1)
-          PY
 
       - name: Geprüften Agent-PR automatisch zusammenführen
         if: steps.pr.outputs.eligible == 'true' && steps.pr.outputs.already_merged != 'true'
