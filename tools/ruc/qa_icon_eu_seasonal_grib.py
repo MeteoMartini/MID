@@ -318,6 +318,7 @@ def run_qualification(run: str, leads: list[int]) -> dict:
             raise ContractError('DWD original directory redirected')
         catalogs[name] = enumerate_leads(res.text,run,name)
     entries = []
+    agreed_grid_id = None
     for lead in leads:
         paired = planned_pairs(catalogs, lead)
         fetched = {}
@@ -330,8 +331,13 @@ def run_qualification(run: str, leads: list[int]) -> dict:
                           allow_gust_interval_mismatch=(field=='vmax_10m'))
             validate_original_range(field,values)
             fetched[key] = (meta,values,grid_id,hashlib.sha256(payload).hexdigest())
-        if len({v[2] for v in fetched.values()}) != 1:
+        grid_ids = {v[2] for v in fetched.values()}
+        if len(grid_ids) != 1:
             raise ContractError('original grids/coordinates differ across paired fields')
+        grid_id = next(iter(grid_ids))
+        if agreed_grid_id is not None and agreed_grid_id != grid_id:
+            raise ContractError('original grid differs between qualified forecast leads')
+        agreed_grid_id = grid_id
         width = target_interval(lead)
         old = fetched[f'tot_prec:{lead-width}'][1]
         new = fetched[f'tot_prec:{lead}'][1]
@@ -348,7 +354,10 @@ def run_qualification(run: str, leads: list[int]) -> dict:
                         else np.zeros(values.shape,dtype=bool))
         if not valid_winter.any() or (gust_window_matches and not valid_summer.any()):
             raise ContractError('no valid temporal original-field pair cells')
-        entries.append({'lead':lead,'intervalHours':width,
+        valid_time = (datetime.strptime(run,'%Y%m%d%H').replace(tzinfo=timezone.utc)
+                      + timedelta(hours=lead)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        entries.append({'lead':lead,'validTimeUTC':valid_time,
+          'gridSha256':grid_id,'intervalHours':width,
           'precipitationIntervalHours':width,'gustIntervalHours':original_gust_hours,
           'winterPairStatus':'grib-pair-qualified',
           'summerPairStatus':('grib-pair-qualified' if gust_window_matches
