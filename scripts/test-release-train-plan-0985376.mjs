@@ -1,3 +1,4 @@
+import {access,readFile as readRepositoryFile} from 'node:fs/promises';
 import {parseMidVersion,makeProposedVersion,analyzeReleaseVersion,verifyProposedTarget} from '../tools/ci/mid-release-version-proposal.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -187,3 +188,21 @@ test('overflow is never silently wrapped',()=>{
  assert.throws(()=>makeProposedVersion('0.9.9007199254740991.5','feature'),/automatic version/);
 });
 }
+
+test('canonical Source gate identity and Draft guard are preserved by QA cleanup',async()=>{
+ const canonical=await readRepositoryFile(new URL('../ci/github/workflows/chatgpt-pr-gate.yml',import.meta.url),'utf8');
+ const active=await readRepositoryFile(new URL('../.github/workflows/chatgpt-pr-gate.yml',import.meta.url),'utf8');
+ assert.equal(active,canonical,'Official Source workflow mirrors must remain byte-identical');
+ assert.match(canonical,/name: MID ChatGPT\/Codex Source-PR Gate/);
+ assert.match(canonical,/run-name: MID-Agent-Quellstand prüfen/);
+ assert.match(canonical,/github\.event\.pull_request\.draft == false/);
+ assert.match(canonical,/ready_for_review/);
+});
+
+test('retired PR-only historical Draft workflows cannot reappear as generic skipped run noise',async()=>{
+ for(const leaf of ['mid-446-bundle-full-readonly-qa.yml','mid-683-draft-full-readonly-qa.yml']){
+  for(const prefix of ['../.github/workflows/','../ci/github/workflows/']){
+   await assert.rejects(access(new URL(prefix+leaf,import.meta.url)),{code:'ENOENT'},'Obsolete historical workflow must be retired together with its canonical mirror: '+prefix+leaf);
+  }
+ }
+});
