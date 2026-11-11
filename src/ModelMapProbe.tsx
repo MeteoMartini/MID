@@ -92,7 +92,7 @@ export default function ModelMapProbe<T extends number|string=number>(
  const coordinates=point?`${formatDecimal(Math.abs(point.latitude),2)}° ${point.latitude<0?'S':'N'} · ${formatDecimal(Math.abs(point.longitude),2)}° ${point.longitude<0?'W':'O'}`:'';
  return <>
   <button type="button" className="mid-model-map-probe-center"
-   title="Werte am Kartenmittelpunkt" aria-label="Werte am Kartenmittelpunkt anzeigen"
+   title="Wert am Kartenmittelpunkt" aria-label="Wert am Kartenmittelpunkt anzeigen" aria-haspopup="dialog"
    aria-expanded={Boolean(point)} disabled={!enabled}
    onClick={()=>{
     if(point)close();else if(map){const center=map.getCenter();show(center.lat,center.wrap().lng)}
