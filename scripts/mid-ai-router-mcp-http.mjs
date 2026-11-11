@@ -98,9 +98,36 @@ export function createMidAiMcpHttpHandler({verifiedAuth,readSource,execute,now=(
    headers:{allow:'POST','cache-control':'no-store'}});
   const type=(request.headers.get('content-type')||'').split(';')[0].trim().toLowerCase();
   if(type!=='application/json')return json(415,{status:'UNSUPPORTED_MEDIA_TYPE'});
+  // Never buffer an unbounded HTTP request before applying the byte limit.
+  const advertised=request.headers.get('content-length');
+  if(advertised!==null&&(!/^[0-9]+$/.test(advertised)||
+     !Number.isSafeInteger(Number(advertised))))
+   return json(400,{status:'INVALID_CONTENT_LENGTH'});
+  if(advertised!==null&&Number(advertised)>32768)
+   return json(413,{status:'REQUEST_TOO_LARGE'});
   let raw;
-  try{raw=await request.arrayBuffer()}catch{return json(400,{status:'BODY_UNREADABLE'})}
-  if(raw.byteLength>32768)return json(413,{status:'REQUEST_TOO_LARGE'});
+  try{
+   if(!request.body)return json(400,{status:'BODY_UNREADABLE'});
+   const reader=request.body.getReader(),parts=[];
+   let received=0;
+   try{
+    while(true){
+     const chunk=await reader.read();
+     if(chunk.done)break;
+     if(!(chunk.value instanceof Uint8Array))
+      return json(400,{status:'BODY_UNREADABLE'});
+     received+=chunk.value.byteLength;
+     if(received>32768){
+      await reader.cancel();
+      return json(413,{status:'REQUEST_TOO_LARGE'});
+     }
+     parts.push(chunk.value);
+    }
+   }finally{reader.releaseLock()}
+   raw=new Uint8Array(received);
+   let offset=0;
+   for(const part of parts){raw.set(part,offset);offset+=part.byteLength}
+  }catch{return json(400,{status:'BODY_UNREADABLE'})}
   let payload;
   try{payload=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(raw))}
   catch{return fault(null,-32700,'Parse error',400)}
@@ -145,6 +172,8 @@ export function createMidAiMcpHttpHandler({verifiedAuth,readSource,execute,now=(
   try{
    const response=await execute(p.arguments.task,auth);
    if(!plain(response)||response.status!=='UNTRUSTED_REVIEW_ONLY'||
+      response.requestId!==p.arguments.task.requestId||
+      response.stableSha!==p.arguments.task.expectedStableSha||
       !REQ.test(response.requestId||'')||!SHA.test(response.stableSha||'')||
       !CATALOG.some(x=>x.provider===response.provider&&x.model===response.model)||
       response.actualModel!==response.model||

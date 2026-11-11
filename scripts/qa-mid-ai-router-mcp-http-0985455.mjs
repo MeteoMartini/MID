@@ -14,8 +14,10 @@ let source={mainSha:sha,stableSha:sha,checkedAt:new Date(100000).toISOString(),
 const context={
  verifiedAuth:async()=>activeAuth,readSource:async()=>{readCount++;return source},
  execute:async(input)=>{execCount++;if(input?.fail)throw Object.assign(new Error('secret:never'),{reason:'SIGNED_GRANT_REQUIRED'});
-  return {status:'UNTRUSTED_REVIEW_ONLY',requestId:input.requestId,
-   stableSha:sha,provider:'groq',model:'openai/gpt-oss-20b',
+  return {status:'UNTRUSTED_REVIEW_ONLY',
+   requestId:input.wrongRequestId?'mid-mismatch-0001':input.requestId,
+   stableSha:input.wrongStable?'f'.repeat(40):sha,
+   provider:'groq',model:'openai/gpt-oss-20b',
    actualModel:'openai/gpt-oss-20b',text:'Untrusted model text',
    usageStatus:'NOT_REPORTED',costStatus:'NOT_VERIFIED',cashSpendStatus:'NOT_VERIFIED',
    automaticRetry:false,additionalCashAuthorizedUsd:0}},
@@ -55,10 +57,17 @@ await t(async()=>{const n=execCount;activeAuth={...auth,scopes:['mid-ai:read']};
  assert.equal(execCount,n);activeAuth=auth});
 await t(async()=>{const r=await tool('execute_public_review',{task:{requestId:'mid-mcp-exec-001',fail:true}});
  assert.equal(JSON.parse(r.body.result.content[0].text).reason,'SIGNED_GRANT_REQUIRED')});
-await t(async()=>{const r=await tool('execute_public_review',{task:{requestId:'mid-mcp-exec-002'}});
+await t(async()=>{const r=await tool('execute_public_review',{task:{
+ requestId:'mid-mcp-exec-002',expectedStableSha:sha}});
  const x=JSON.parse(r.body.result.content[0].text);
  assert.equal(x.status,'UNTRUSTED_REVIEW_ONLY');assert.equal(x.costStatus,'NOT_VERIFIED');
  assert.equal(x.text,'Untrusted model text');assert.equal(x.extraModelCallsTriggered,0)});
+await t(async()=>{const r=await tool('execute_public_review',{task:{
+ requestId:'mid-mcp-wrong-id',expectedStableSha:sha,wrongRequestId:true}});
+ assert.equal(JSON.parse(r.body.result.content[0].text).reason,'EXECUTOR_RESULT_INVALID')});
+await t(async()=>{const r=await tool('execute_public_review',{task:{
+ requestId:'mid-mcp-wrong-sha',expectedStableSha:sha,wrongStable:true}});
+ assert.equal(JSON.parse(r.body.result.content[0].text).reason,'EXECUTOR_RESULT_INVALID')});
 await t(async()=>{activeAuth={...auth,verified:false};const r=await call('tools/list');
  assert.equal(r.status,401);activeAuth=auth});
 await t(async()=>{activeAuth={...auth,principalSha256:'invalid'};const r=await call('tools/list');
@@ -88,5 +97,5 @@ await t(async()=>{source={...source,versionMirrors:{
  const r=await call('methods/unknown');assert.equal(r.body.error.code,-32601)});
 await t(async()=>{const r=await tool('execute_public_review',{task:{requestId:'mid-mcp-exec-003'},evil:true});
  assert.equal(JSON.parse(r.body.result.content[0].text).reason,'SIGNED_TASK_REQUIRED')});
-assert.ok(readCount>=4);assert.equal(execCount,2);
+assert.ok(readCount>=4);assert.equal(execCount,4);
 console.log('MID AI Router MCP protected HTTP offline QA OK; scenarios='+tests+'; no network, secrets or external inference.');
