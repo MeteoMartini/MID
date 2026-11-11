@@ -47,7 +47,7 @@ jobs:
           test "$stable" = 'ee7a55b5ece4d3d3687202a95caeb6c5ff615055'
           compare="$(gh api "repos/$GITHUB_REPOSITORY/compare/$stable...$EXPECTED_HEAD")"
           jq -e --arg stable "$stable" --arg head "$EXPECTED_HEAD" \
-            '.status == "ahead" and .base_commit.sha == $stable and .merge_base_commit.sha == $stable and .head_commit.sha == $head' \
+            '.status == "ahead" and .ahead_by > 0 and .behind_by == 0 and .base_commit.sha == $stable and .merge_base_commit.sha == $stable and .commits[-1].sha == $head' \
             <<< "$compare" >/dev/null
           echo "Exact source and Stable ancestry verified; observational QA only."
       - name: Python 3.12
