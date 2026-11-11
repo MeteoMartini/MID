@@ -55,20 +55,22 @@ export function summarizeWorkflowScanner(name,raw,exitCode){
  let items;
  try{items=JSON.parse(String(raw||''));}catch{return {valid:false,reason:'UNPARSEABLE_ZIZMOR_JSON'};}
  if(!Array.isArray(items))return {valid:false,reason:'NON_ARRAY_ZIZMOR_JSON'};
- const bySeverity={},byAudit={},byWorkflow={};
+ const bySeverity={},byAudit={},byWorkflow={},bySeverityAndAudit={};
  for(const item of items){
   if(!item||typeof item.ident!=='string'||typeof item.determinations?.severity!=='string')
    return {valid:false,reason:'MALFORMED_ZIZMOR_ITEM'};
   const severity=item.determinations.severity,audit=item.ident;
   bySeverity[severity]=(bySeverity[severity]||0)+1;
   byAudit[audit]=(byAudit[audit]||0)+1;
+  const pair=severity+' / '+audit;
+  bySeverityAndAudit[pair]=(bySeverityAndAudit[pair]||0)+1;
   const path=String(item.locations?.[0]?.symbolic?.key?.Local?.verbatim_path||'');
   const file=path.match(/\.github\/workflows\/[^/]+$/)?.[0]||'unknown';
   byWorkflow[file]=(byWorkflow[file]||0)+1;
  }
  const inconsistent=exitCode===0&&items.length>0||exitCode>=11&&exitCode<=14&&items.length===0;
  return {valid:!inconsistent,reason:inconsistent?'SCANNER_EXIT_FINDINGS_MISMATCH':null,
-  findings:items.length,bySeverity,byAudit,byWorkflow};
+  findings:items.length,bySeverity,byAudit,bySeverityAndAudit,byWorkflow};
 }
 
 const safeEnv=env=>({PATH:env.PATH||'/usr/bin:/bin',HOME:env.HOME||'/tmp',LANG:'C',LC_ALL:'C',ZIZMOR_OFFLINE:'true',ZIZMOR_NO_ONLINE_AUDITS:'true'});

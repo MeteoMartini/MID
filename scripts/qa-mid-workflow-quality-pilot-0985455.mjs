@@ -43,7 +43,8 @@ try{
   assert.deepEqual(summary.bySeverity,{High:1,Informational:1});
   assert.deepEqual(summary.byAudit,{'dangerous-triggers':1,'template-injection':1});
   assert.equal(summary.byWorkflow['.github/workflows/agent-source-release.yml'],1);
-  assert.equal(summary.valid,true);checks++;
+  assert.equal(summary.valid,true);
+  assert.deepEqual(summary.bySeverityAndAudit,{'High / dangerous-triggers':1,'Informational / template-injection':1});checks++;
   assert.equal(summarizeWorkflowScanner('zizmor','not-json',14).valid,false);checks++;
   assert.equal(summarizeWorkflowScanner('zizmor','[]',14).valid,false);checks++;
   const lag=summarizeWorkflowScanner('actionlint',
