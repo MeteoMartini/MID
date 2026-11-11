@@ -37,6 +37,26 @@ Once a version is independently approved and proposed, update `package.json` as 
 
 Before promoting this proposed governance: validate negative/adversarial unit cases (malformed versions/evidence, SHA drift, duplicated PR, major/generation attempts, spoofed targets, overflow), real PR diff inventory and all simultaneous work; confirm both canonical CI workflow mirrors if ever modified. No status is green merely because an offline test passes. The complete Source and Installer independent gates remain compulsory; there is **no** cross-gate reuse authorization under issue #526.
 
+## Workflow inventory and legacy-noise reduction (read-only audit, 2026-11-11)
+
+The actual established Source gate is still `MID ChatGPT/Codex Source-PR Gate` with `run-name: MID-Agent-Quellstand prüfen` in `chatgpt-pr-gate.yml`. It intentionally starts fully only for non-Draft `chatgpt/*`/`codex/*` PRs against `main`, and its jobs skip while Draft. Historical read-only QA workflow runs do **not** replace or prove this Source gate. Historical `skipped` in the Actions UI is not a passing check and does not authorize promotion.
+
+A verified Stable tree listed **44 active workflows** and **44 canonical mirrors**. Two broad-trigger but permanently PR-number-scoped QA workflows had outlived their original candidates:
+- `mid-446-bundle-full-readonly-qa.yml` targeted **only #701** at v0.9.85.446; #701 merged on 2026-11-08. The workflow also hardcoded outdated main/stable SHA/version.
+- `mid-683-draft-full-readonly-qa.yml` targeted **only #685** at v0.9.85.445; #685 closed unmerged on 2026-11-08. This workflow also hardcoded an outdated main/stable SHA/version.
+
+Both had generic `pull_request` event subscriptions but job-level `if` conditions restricted to one historic number and head branch. This triggered useless *skipped* run records for each new PR. Neither is required by the five live GitHub rulesets, present MID_BASELINE.json mandatory file/test lists, canonical workflow-sync source map or the current official Source/Installer release chain. Their source and history remain in Git at Stable SHA `ee7a55b5ece4d3d3687202a95caeb6c5ff615055`. **This same QA Draft proposes removal of both active files and both canonical mirrors** (44→42 of each only after actual deployment of the change). No operational RUC observer, DWD native qualification, global Source gate, Replit gate, installer or security check is removed.
+
+### Future-workflow discipline
+
+1. Reuse `chatgpt-pr-gate.yml`, `unit-coverage.yml`, `mid-code-revision.yml`, existing RUC-specific evidence/observer workflows, `release-train-preflight.yml` and `install-mid.yml` rather than automatically creating `mid-<issue>-<version>-<task>.yml` for each specialist Draft.
+2. For Draft QA, run scoped tests from an existing reusable, read-only task runner or manually selected existing workflow. Only introduce a new workflow for a demonstrated and documented unique original-data/provider/time/runtime boundary not safely covered by the existing gates; use fine-grained `paths`, tight GitHub permissions, exact SHA/provenance, bounded job budgets and a retirement issue/condition.
+3. Never change existing `MID-Agent-Quellstand prüfen` name, canonical file path, gate jobs, source trigger or verifier input contract casually: release evidence and trusted bot policy refer to that **exact identity**.
+4. Do not mark an integrated Draft Ready merely to generate CI if its provenance, meteorological proof, unresolved blockers or review state is not eligible. Once eligible, **Ready for review** deliberately enters the established full Source gate; independent Installer verification remains mandatory.
+5. Once the existing historical PR-targeted QA has no live consumer and GitHub rulesets/requirements have been checked, retire its active and canonical workflow copies together in a reviewable governance PR rather than leaving a permanently registered but skipped task. Before removal check open PRs, audit citations, both mirrors and required-status contexts. No bulk deletion of RUC safety/observability workflows.
+
+Historical logs, source hashes and the now-closed PRs remain accessible via Git history. This Draft is not a published cleanup until the normal reviewed versioned release completes.
+
 ## Open integration design decisions
 
 1. Exact trusted intake: a deliberately separate integration helper creates one authorized short-lived branch/PR, not the read-only preflight; first prove no race/overlap and permission/signed-contract violations.
