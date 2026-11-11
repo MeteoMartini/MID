@@ -244,7 +244,7 @@ jobs:
             echo "::error::Installer dispatch refused because main no longer equals the approved ZIP SHA."
             exit 1
           fi
-          gh workflow run install-mid.yml --ref main
+          gh workflow run install-mid.yml --ref main -f expected_package_sha="$EXPECTED_PACKAGE_SHA"
           {
             echo "### Automatischer MID-Release gestartet"
             echo

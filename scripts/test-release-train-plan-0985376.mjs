@@ -407,6 +407,17 @@ test('trusted bot never repackages another SHA after approved merge or stale Sou
  assert.match(canonical,/if \[ "\$current_main" != "\$EXPECTED_PACKAGE_SHA" \]/);
  assert.doesNotMatch(canonical,/Release-Paket wird aus dem neuesten main-Stand neu erzeugt/);
 });
+test('installer dispatch must pin expected release ZIP SHA while manual workflow stays optional',async()=>{
+ const bot=await readRepositoryFile(new URL('../ci/github/workflows/agent-source-release.yml',import.meta.url),'utf8');
+ const installer=await readRepositoryFile(new URL('../ci/github/workflows/install-mid.yml',import.meta.url),'utf8');
+ const installerActive=await readRepositoryFile(new URL('../.github/workflows/install-mid.yml',import.meta.url),'utf8');
+ assert.equal(installer,installerActive,'Installer mirrors must remain byte-identical');
+ assert.match(bot,/-f expected_package_sha="\$EXPECTED_PACKAGE_SHA"/);
+ assert.match(installer,/expected_package_sha:/);
+ assert.match(installer,/required: false/);
+ assert.match(installer,/if: github\.event_name == 'workflow_dispatch' && inputs\.expected_package_sha != ''/);
+ assert.match(installer,/\[ "\$EXPECTED_PACKAGE_SHA" != "\$EVENT_SHA" \]/);
+});
 test('established trusted SHA-bound bot release workflow mirrors and source-to-installer handoff remain intact',async()=>{
  const canonical=await readRepositoryFile(new URL('../ci/github/workflows/agent-source-release.yml',import.meta.url),'utf8');
  const active=await readRepositoryFile(new URL('../.github/workflows/agent-source-release.yml',import.meta.url),'utf8');
