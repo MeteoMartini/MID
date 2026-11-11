@@ -130,6 +130,20 @@ describe('MID map model identity: flag, family and fine-to-coarse ordering',()=>
   expect(mapModelDisplayLabel({id:'icon-d2',label:'DWD ICON-D2',sourceGrid:'wms'}))
    .toBe('🇩🇪 DWD ICON-D2');
  });
+ it('labels the verified gust interval separately from 10-m measurement height in popup source',()=>{
+  const root=fileURLToPath(new URL('../../',import.meta.url));
+  const map=readFileSync(root+'src/UnifiedWeatherMap.tsx','utf8');
+  const snippet=map.slice(map.indexOf("label={parameter==='winter-berge'?'Temperatur · 2 m':'Böen · 10 m'}"),map.indexOf("label={parameter==='winter-berge'?'Temperatur · 2 m':'Böen · 10 m'}")+1050);
+  expect(snippet).toContain("parameter==='sommer-gewitter'");
+  expect(snippet).toContain('Number.isFinite(gustFrameHours)');
+  expect(snippet).toContain('gustFrameHours!>0');
+  expect(snippet).toContain('Böenmaximum');
+  expect(snippet).toContain('Böenintervall nicht ausgewiesen');
+  expect(snippet).toContain('timeLabel(seasonalSecondary.time,props.timezone)');
+  expect(snippet).toContain('nativeAt(seasonalSecondary,lat,lon)');
+  // Unverified snapshot interval (0h) must NOT become a fictitious 1h maximum.
+  expect(snippet).not.toContain("gustFrameHours||1");
+ });
  it('avoids a competing line-only popup over seasonal paired-raster values',()=>{
   const root=fileURLToPath(new URL('../../',import.meta.url));
   const map=readFileSync(root+'src/UnifiedWeatherMap.tsx','utf8');
