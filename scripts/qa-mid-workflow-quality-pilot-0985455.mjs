@@ -21,7 +21,8 @@ try{
     calls.push({name,args,opts});return {status:0,stdout:'ok',stderr:''};}});
   assert.equal(good.status,'PILOT_PASS');assert.equal(good.releaseAuthorized,false);assert.equal(good.mergeAuthorized,false);
   assert.equal(calls.length,2);assert.equal(calls[0].opts.env.GITHUB_TOKEN,undefined);
-  assert.equal(calls[1].opts.env.MID_SECRET,undefined);assert.equal(calls[1].opts.env.ZIZMOR_OFFLINE,'1');checks++;
+  assert.equal(calls[1].opts.env.MID_SECRET,undefined);assert.equal(calls[1].opts.env.ZIZMOR_OFFLINE,'true');
+  assert.equal(calls[1].opts.env.ZIZMOR_NO_ONLINE_AUDITS,'true');checks++;
   const failed=runWorkflowQualityPilot({root,invoke:(name)=>name==='actionlint'?{status:1,stderr:'invalid workflow'}:{status:0}});
   assert.equal(failed.status,'PILOT_FINDINGS_OR_FAILURE');assert.equal(failed.results[0].verdict,'FINDINGS_OR_ERROR');checks++;
   const missing=runWorkflowQualityPilot({root,invoke:()=>({status:null,error:{code:'ENOENT'}})});

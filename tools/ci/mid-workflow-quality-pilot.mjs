@@ -41,7 +41,7 @@ export function makeWorkflowToolPlan(files){
   ];
 }
 
-const safeEnv=env=>({PATH:env.PATH||'/usr/bin:/bin',HOME:env.HOME||'/tmp',LANG:'C',LC_ALL:'C',ZIZMOR_OFFLINE:'1',ZIZMOR_NO_ONLINE_AUDITS:'1'});
+const safeEnv=env=>({PATH:env.PATH||'/usr/bin:/bin',HOME:env.HOME||'/tmp',LANG:'C',LC_ALL:'C',ZIZMOR_OFFLINE:'true',ZIZMOR_NO_ONLINE_AUDITS:'true'});
 export function runWorkflowQualityPilot({root=ROOT,read=readFileSync,invoke=spawnSync,env=process.env}={}){
   const inventory=collectWorkflowPilot(root,read);
   if(inventory.status!=='INVENTORY_OK')return inventory;

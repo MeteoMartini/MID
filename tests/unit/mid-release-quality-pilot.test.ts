@@ -38,5 +38,8 @@ describe('MID offline scanner diagnostic supply-chain and scope',()=>{
   expect(active).toContain("ZIZMOR_OFFLINE: '1'");
   expect(active).toContain('name: mid-offline-actionlint-zizmor-pilot');
   expect(active).toContain('retention-days: 7');
+  expect(active).toContain('set +e');
+  expect(active).toContain('cat "$report"');
+  expect(active).toContain('exit "$result"');
  });
 });

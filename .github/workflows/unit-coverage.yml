@@ -103,8 +103,17 @@ jobs:
           actionlint -version
           zizmor --version
           cd "$GITHUB_WORKSPACE"
+          # Always retain the full read-only finding inventory, even on nonzero
+          # security findings. The step remains explicitly non-gating.
+          set +e
           node tools/ci/mid-workflow-quality-pilot.mjs > "$report"
+          result=$?
+          set -e
           cat "$report"
+          if [ "$result" -ne 0 ]; then
+            echo "::warning::Optional offline QA reported findings or tool errors, NOT a release approval."
+          fi
+          exit "$result"
 
       - name: MID optionalen Offline-Scannerbericht sichern
         if: always() && github.event_name == 'pull_request' && github.head_ref == 'chatgpt/v0.9.85.455-release-quality-pilot-12'
