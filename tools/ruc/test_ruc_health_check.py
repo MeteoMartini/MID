@@ -403,6 +403,45 @@ class SafeDiagnosticsTests(unittest.TestCase):
       self.assertNotIn(json.dumps(payload),stderr.getvalue())
 
 
+
+ def test_pages_worker_profile_must_match_public_snapshot_and_native_eps_semantics(self):
+  # The public Pages pointer and Worker can transiently disagree even with
+  # the same UTC run and 27h/20-member dimensions. Never hide that split.
+  pages={**good,'backend':'pages','nativeEpsMembers':False,
+         'storageProfile':'pages-free-v1',
+         'objectsPresent':{**good['objectsPresent'],'epsMembers':False}}
+  mod.check(pages,'2026082822',expected_profile='pages-free-v1')
+  for modified,reason in (
+   ({'storageProfile':'pages-lossless-v1'},'worker_pages_profile_invalid'),
+   ({'storageProfile':None},'worker_pages_profile_invalid'),
+   ({'storageProfile':'pages-codec-staging-v1'},'worker_pages_profile_invalid'),
+   ({'nativeEpsMembers':True},'worker_pages_profile_invalid'),
+   ({'objectsPresent':{**pages['objectsPresent'],'epsMembers':True}},
+    'worker_pages_profile_invalid'),
+  ):
+   with self.subTest(modified=modified):
+    with self.assertRaises(mod.WorkerAdoptionError) as bad:
+     mod.check({**pages,**modified},'2026082822',
+               expected_profile='pages-free-v1')
+    self.assertEqual(bad.exception.code,reason)
+  for modified in (
+   {'nativeEpsMembers':False},
+   {'objectsPresent':{**good['objectsPresent'],'epsMembers':False}},
+  ):
+   with self.subTest(r2_modified=modified):
+    with self.assertRaises(mod.WorkerAdoptionError) as bad:
+     mod.check({**good,**modified},'2026082822')
+    self.assertEqual(bad.exception.code,'worker_eps_object_missing')
+  journal=mod.ProbeJournal()
+  with self.assertRaises(mod.WorkerAdoptionError) as bad:
+   mod.probe_until_ready(
+    'https://host.invalid/health','2026082822',
+    attempts=1,fetcher=lambda *_:{**pages,'storageProfile':'pages-lossless-v1'},
+    expected_profile='pages-free-v1',journal=journal)
+  self.assertEqual(bad.exception.code,'worker_pages_profile_invalid')
+  self.assertEqual(journal.records[0]['diagnosticCode'],
+                   'worker_pages_profile_invalid')
+
  def test_health_rejects_unproven_backend_and_nonstring_run(self):
   # Health metadata from the Worker explicitly supports only pages or r2.
   # Unknown backends must not bypass the EPS20/native-members profile gate.
@@ -423,7 +462,9 @@ class SafeDiagnosticsTests(unittest.TestCase):
   self.assertEqual(journal.records[0]['diagnosticCode'],'worker_backend_invalid')
   # The expected official Worker backend semantics remain functional.
   mod.check(good,'2026082822')
-  mod.check({**good,'backend':'pages','nativeEpsMembers':False},
+  mod.check({**good,'backend':'pages','nativeEpsMembers':False,
+             'storageProfile':'pages-free-v1',
+             'objectsPresent':{**good['objectsPresent'],'epsMembers':False}},
             '2026082822')
 
  def test_transport_and_unready_worker_are_not_codec_defects(self):

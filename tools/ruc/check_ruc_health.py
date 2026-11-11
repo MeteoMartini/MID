@@ -401,7 +401,8 @@ def verified_snapshot_contract(meta: dict, *, allow_legacy_rollback: bool = Fals
             'epsMemberCount': members, 'times': axis, 'grid': grid}
 
 
-def check(payload: dict, run: str, *, expected_contract: dict | None = None) -> None:
+def check(payload: dict, run: str, *, expected_contract: dict | None = None,
+          expected_profile: str | None = None) -> None:
     if not isinstance(payload, dict):
         raise WorkerPayloadError('Worker response is not a JSON object',
                                  code='payload_not_object')
@@ -429,12 +430,21 @@ def check(payload: dict, run: str, *, expected_contract: dict | None = None) -> 
     if not isinstance(backend, str) or backend not in {'r2', 'pages'}:
         raise WorkerAdoptionError('Worker RUC backend is missing or unsupported',
                                   code='worker_backend_invalid')
-    if backend == 'r2' and objects.get('epsMembers') is not True:
-        raise WorkerAdoptionError('Worker RUC native EPS object is not present for R2 backend',
+    if backend == 'r2' and (objects.get('epsMembers') is not True or
+                            payload.get('nativeEpsMembers') is not True):
+        raise WorkerAdoptionError('Worker RUC native EPS is not proven for R2 backend',
                                   code='worker_eps_object_missing')
-    if backend == 'pages' and payload.get('nativeEpsMembers') is not False:
-        raise WorkerAdoptionError('GitHub Pages free profile did not explicitly omit native EPS members',
-                                  code='worker_pages_profile_invalid')
+    if backend == 'pages':
+        if (payload.get('nativeEpsMembers') is not False or
+                objects.get('epsMembers') is not False):
+            raise WorkerAdoptionError('GitHub Pages profile did not explicitly omit native EPS members',
+                                      code='worker_pages_profile_invalid')
+        storage_profile = payload.get('storageProfile')
+        if (storage_profile not in {'pages-free-v1', 'pages-lossless-v1'} or
+                not isinstance(storage_profile, str) or
+                (expected_profile is not None and storage_profile != expected_profile)):
+            raise WorkerAdoptionError('Worker Pages storage profile differs from sealed publication',
+                                      code='worker_pages_profile_invalid')
     if expected_contract is None:
         counts = (payload.get('timeCount'), payload.get('pointCount'), payload.get('epsMemberCount'))
         if any(type(value) is not int for value in counts) or counts[0] < 4 or counts[1] < 1 or counts[2] < 2:
@@ -672,6 +682,7 @@ def probe_until_ready(
     fetcher=None,
     sleeper=time.sleep,
     expected_contract: dict | None = None,
+    expected_profile: str | None = None,
     journal: ProbeJournal | None = None,
     deadline: float | None = None,
     clock=time.monotonic,
@@ -702,7 +713,8 @@ def probe_until_ready(
                     'Combined RUC Pages/Worker health budget exhausted',
                     code='health_budget_exhausted', attempts=attempt,
                 )
-            check(response.payload, run, expected_contract=expected_contract)
+            check(response.payload, run, expected_contract=expected_contract,
+                  expected_profile=expected_profile)
             journal.record(attempt=attempt, phase='worker_adoption', run=run,
                            status=response.status, metadata=_response_metadata(response))
             return response.payload, attempt
@@ -803,6 +815,7 @@ def main(argv=None) -> int:
             retry_delay=a.retry_delay,
             max_retry_delay=a.max_retry_delay,
             expected_contract=expected_contract,
+            expected_profile=meta.get('storageProfile'),
             journal=journal,
             deadline=health_deadline,
         )
