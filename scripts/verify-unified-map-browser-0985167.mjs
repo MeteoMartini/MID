@@ -56,11 +56,39 @@ const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42
 let cases=0;
 const perfRows=[];
 const perfEnabled=process.env.GITHUB_ACTIONS==='true'||process.env.MID_MAP_PROFILE==='1';
-async function verifyAlphabeticalSelectors(page){
- const lists=await page.evaluate(()=>({models:[...document.querySelectorAll('select[aria-label="Modell für Parameter"] option')].filter(o=>!o.disabled).map(o=>o.textContent),groups:[...document.querySelectorAll('select[aria-label="Parameter-Layer"] optgroup')].map(g=>({label:g.label,options:[...g.querySelectorAll('option')].map(o=>o.textContent)}))}));
+async function verifyGroupedSelectors(page){
+ const lists=await page.evaluate(()=>({
+  modelGroups:[...document.querySelectorAll('select[aria-label="Modell für Parameter"] optgroup')].map(g=>({
+   label:g.label,models:[...g.querySelectorAll('option')].filter(o=>!o.disabled).map(o=>({id:o.value,text:(o.textContent||'').trim()})),
+  })),
+  groups:[...document.querySelectorAll('select[aria-label="Parameter-Layer"] optgroup')].map(g=>({
+   label:g.label,options:[...g.querySelectorAll('option')].map(o=>o.textContent),
+  })),
+ }));
  const compare=new Intl.Collator('de-DE',{usage:'sort',sensitivity:'base',numeric:true}).compare;
- assert.deepEqual(lists.models,[...lists.models].sort(compare),'visible model labels are alphabetic');
- for(const group of lists.groups)assert.deepEqual(group.options,[...group.options].sort(compare),`parameters within ${group.label} are alphabetic`);
+ for(const group of lists.groups)assert.deepEqual(group.options,[...group.options].sort(compare),'parameters within '+group.label+' remain alphabetic');
+ const knownFamily=['DWD · ICON','DWD · AICON','ECMWF · IFS','NOAA · GFS','ECCC · GDPS','DWD · Messdaten','DWD · Nowcasting','Weitere Modelle'];
+ const ranks=lists.modelGroups.map(g=>knownFamily.indexOf(g.label));
+ assert.ok(ranks.every(n=>n>=0),'every visible model grouped by a known family or explicit unknown');
+ assert.deepEqual(ranks,[...ranks].sort((a,b)=>a-b),'visible model groups ordered by family, not by label');
+ const flags={'icon-d2-ruc':'🇩🇪','icon-d2':'🇩🇪','icon-eu':'🇩🇪','icon':'🇩🇪','icon-eps':'🇩🇪',
+  'aicon':'🇩🇪','radolan':'🇩🇪','observations':'🇩🇪','nowcastmix':'🇩🇪','ifs':'🇪🇺','gfs':'🇺🇸','gdps':'🇨🇦'};
+ const seen=new Set();
+ for(const group of lists.modelGroups){
+  if(group.label==='DWD · ICON'){
+   const spacing={'icon-d2-ruc':2.2,'icon-d2':2.2,'icon-eu':7,icon:28,'icon-eps':28};
+   const sourceRanks=group.models.map(x=>spacing[x.id]);
+   assert.ok(sourceRanks.every(Number.isFinite),'DWD ICON family has verified model identities');
+   assert.deepEqual(sourceRanks,[...sourceRanks].sort((a,b)=>a-b),'ICON models are ordered from fine to coarse');
+  }
+  for(const model of group.models){
+   assert.ok(!seen.has(model.id),'map selector does not duplicate source IDs');
+   seen.add(model.id);
+   if(flags[model.id])assert.ok(model.text.startsWith(flags[model.id]+' '),'country/EU flag precedes model name');
+   if(model.id==='icon-eu')assert.ok(model.text.includes('0,0625° Kartenraster')||model.text.includes('km Raster'),'ICON-EU grid is explicitly identified');
+   if(model.id==='icon'||model.id==='icon-eps')assert.ok(model.text.includes('0,25° Kartenraster')||model.text.includes('km Raster'),'ICON published grid is distinct from native resolution');
+  }
+ }
 }
 
 async function waitForHeldSynoptic(pending){
@@ -272,7 +300,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
   await page.getByLabel('Parameter-Layer').selectOption('temperature');
   await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('Rastertermin'));
  }
- await verifyAlphabeticalSelectors(page);
+ await verifyGroupedSelectors(page);
  const mapIdentity=await page.locator('.maplibregl-map').evaluate(el=>{el.dataset.qaIdentity='original';return true});assert.ok(mapIdentity);
  if(width===390&&theme==='light')await page.screenshot({path:'/tmp/mid-unified-model-390.png',fullPage:true});
  await page.evaluate(()=>performance.clearResourceTimings());
@@ -284,7 +312,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  await page.getByRole('button',{name:'Flächen',exact:true}).click();
  assert.equal(await page.locator('.maplibregl-map').getAttribute('data-qa-identity'),'original','Changing model must not remount map');
  await page.getByRole('button',{name:'Modell zuerst',exact:true}).click();await page.getByLabel('Modell für Parameter').selectOption('icon-eps');
- const epsParameters=await page.getByLabel('Parameter-Layer').locator('option').evaluateAll(options=>options.map(o=>o.value));assert.ok(epsParameters.includes('gust-probability')&&!epsParameters.includes('gust')&&!epsParameters.includes('temperature'),'Model-first filters incompatible parameters');await verifyAlphabeticalSelectors(page);
+ const epsParameters=await page.getByLabel('Parameter-Layer').locator('option').evaluateAll(options=>options.map(o=>o.value));assert.ok(epsParameters.includes('gust-probability')&&!epsParameters.includes('gust')&&!epsParameters.includes('temperature'),'Model-first filters incompatible parameters');await verifyGroupedSelectors(page);
  await page.getByRole('button',{name:'Parameter zuerst',exact:true}).click();await page.getByLabel('Parameter-Layer').selectOption('synoptic');
  await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('INIT')).catch(async error=>{console.error('Synoptic selection',width,theme,design,{parameter:await page.getByLabel('Parameter-Layer').inputValue(),model:await page.getByLabel('Modell für Parameter').inputValue(),status:await page.locator('.unified-layer-status').innerText()},requests.filter(u=>u.includes('/ruc/')).slice(-12));throw error});
  await page.waitForFunction(()=>{const text=document.querySelector('.unified-layer-status')?.textContent||'';return text.includes('INIT')&&!text.includes('Rohdaten laden')}).catch(async error=>{console.error('Synoptic state',await page.locator('.unified-layer-status').innerText(),requests.filter(u=>u.includes('weather-map-wms')).slice(-10));throw error});await verifyPresentationHint('MSL-Isobaren');
@@ -340,7 +368,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  await page.waitForFunction(()=>{const text=document.querySelector('.unified-layer-status')?.textContent||'';return text.includes('ECCC-Originaldarstellung')&&!text.includes('Kacheln laden')});
  assert.ok(requests.some(u=>u.includes('provider=geomet')&&u.includes('layers=GDPS_15km_TotalCloudCover')),'GDPS uses only the approved GeoMet provider');
  failGdps=true;await page.getByLabel('Parameter-Layer').selectOption('sigwx');await page.getByRole('button',{name:'Wolken und Wetter erneut laden'}).waitFor();failGdps=false;const beforeRetry=requests.filter(u=>u.includes('layers=GDPS_15km_PrecipType-Instant')).length;await page.getByRole('button',{name:'Wolken und Wetter erneut laden'}).click();await page.waitForFunction(()=>{const text=document.querySelector('.unified-layer-status')?.textContent||'';return text.includes('INIT')&&!text.includes('wird geprüft')&&!text.includes('laden')});assert.ok(requests.filter(u=>u.includes('layers=GDPS_15km_PrecipType-Instant')).length>beforeRetry,'Retry requests a fresh failed GDPS source');assert.equal(await page.getByRole('button',{name:'Linien',exact:true}).isDisabled(),true);assert.ok(requests.some(u=>u.includes('layers=GDPS_15km_PrecipType-Instant')&&u.includes('dim_reference_time=')),'Combined GDPS uses instant precipitation type with explicit init');await page.locator('.cloud-weather-legend summary').click();assert.match(await page.locator('.cloud-weather-legend').innerText(),/Keine vollständige Nebel/);
- await page.getByLabel('Modell für Parameter').selectOption('icon-d2');await page.getByRole('button',{name:'Raster + Ortswerte · SVG'}).waitFor();await page.waitForFunction(()=>document.querySelector('.unified-favorites tbody')?.textContent.includes('15 % Wolken'));assert.match(await page.locator('.cloud-weather-legend').innerText(),/Modell-Wolkenbild/);assert.equal(await page.locator('.maplibregl-map').getAttribute('data-qa-identity'),'original');await verifyAlphabeticalSelectors(page);
+ await page.getByLabel('Modell für Parameter').selectOption('icon-d2');await page.getByRole('button',{name:'Raster + Ortswerte · SVG'}).waitFor();await page.waitForFunction(()=>document.querySelector('.unified-favorites tbody')?.textContent.includes('15 % Wolken'));assert.match(await page.locator('.cloud-weather-legend').innerText(),/Modell-Wolkenbild/);assert.equal(await page.locator('.maplibregl-map').getAttribute('data-qa-identity'),'original');await verifyGroupedSelectors(page);
  await page.getByLabel('Modell für Parameter').selectOption('icon-eu');await page.waitForFunction(()=>document.querySelector('.unified-favorites tbody')?.textContent.includes('75 % Wolken'));if(width===390&&theme==='light'&&design==='next')await page.screenshot({path:'/tmp/mid-cloud-weather-390.png',fullPage:true});
  // .437: phase markers require radar echoes; non-radar model/cloud views must have none.
  assert.equal(await page.locator('.mid-synop-symbol-button,.radar-phase-symbol').count(),0,'No unbacked phase marker on a cloud/model map');
