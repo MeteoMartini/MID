@@ -5,7 +5,7 @@ import {readFileSync} from 'node:fs';
 const astronomySource=readFileSync(new URL('../src/astronomy.ts',import.meta.url),'utf8');
 const curveSource=readFileSync(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8');
 assert.ok(!astronomySource.includes('dayOffset<=3'),'Astronomical 7-day windows must never retain the four-day cutoff');
-assert.ok(curveSource.includes('solarTimelineWindow(knownSkybarEpochs[0]')&&curveSource.includes('skybarEpochsValid?'),'The 7-day strip must use the common solar timeline');
+assert.ok(curveSource.includes('location&&skybarEpochsValid?solarTimelineWindow(knownSkybarEpochs[0]'),'The 7-day strip must guard the same solar call with a valid location and epochs');
 assert.ok(curveSource.includes('solarTimelineWindow(start,end,')&&curveSource.includes('cockpitDaySkybarNightBands('),'Day cards and weekly night masks must use the same solar core');
 
 const {outputFiles}=await build({entryPoints:['src/astronomy.ts'],bundle:true,platform:'node',format:'esm',write:false,logLevel:'silent'});

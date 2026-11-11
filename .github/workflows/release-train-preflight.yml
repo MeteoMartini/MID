@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       manifest:
-        description: 'Schema-1 manifest with candidate SHAs; optional versioning for verified X.Y.Z.W proposal (NO RELEASE)'
+        description: 'Schema-1 JSON: stableSha, mainSha, changes:[{pr,headSha}]; optional candidateMode/versioning; impact needs review (NO RELEASE)'
         required: true
         type: string
 
@@ -38,7 +38,11 @@ jobs:
         run: |
           set -euo pipefail
           printf '%s' "$PLAN_MANIFEST" > "$RUNNER_TEMP/mid-release-train-plan.json"
+          # Capture the result and publish its explanation EVEN when the advisory preflight blocks.
+          set +e
           node tools/ci/release-train-plan.mjs "$RUNNER_TEMP/mid-release-train-plan.json" "$GITHUB_REPOSITORY" > "$RUNNER_TEMP/mid-release-train-result.json"
+          preflight_status=$?
+          set -e
           {
             echo '### MID Release Train – rein lesende Vorprüfung'
             echo
@@ -48,3 +52,4 @@ jobs:
             cat "$RUNNER_TEMP/mid-release-train-result.json"
             echo '~~~'
           } >> "$GITHUB_STEP_SUMMARY"
+          exit "$preflight_status"

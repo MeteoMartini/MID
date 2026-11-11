@@ -34,6 +34,12 @@ function pollenLabel(entry:PollenForecastEntry|undefined):string{
 }
 function pollenLevel(entry:PollenForecastEntry|undefined):number{return Math.max(0,Math.min(3,Math.ceil(pollenSeverity(entry))))}
 
+// The 3-day view must disclose partial DWD coverage even when some types have load.
+function pollenForecastDetailStatus(relevantCount:number,displayedCount:number,hasMissing:boolean):string{
+ const count=relevantCount>displayedCount?`${relevantCount} relevant · ${displayedCount} angezeigt`:relevantCount===1?'1 relevante Pollenart':`${relevantCount} relevante Pollenarten`;
+ if(!relevantCount)return hasMissing?'DWD-Angaben unvollständig':'keine Belastung';
+ return hasMissing?`DWD-Angaben unvollständig · ${count}`:count;
+}
 function pointInPolygon(lat:number,lon:number,coordinates:any[]):boolean{
   const rings=Array.isArray(coordinates[0])&&Array.isArray(coordinates[0][0])?coordinates:[coordinates];
   for(const ring of rings){
@@ -168,7 +174,7 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
         {hiddenActiveCount>0&&<span className="pollen-chip pollen-chip-more">+{hiddenActiveCount}</span>}
       </div>}
       {expanded&&<div id={detailId} className="pollen-detail">
-        <header className="pollen-detail-head"><strong>3-Tage-Ausblick</strong><small>{relevantTypes.length?(relevantTypes.length>primaryTypes.length?`${relevantTypes.length} relevant · ${primaryTypes.length} angezeigt`:relevantTypes.length===1?'1 relevante Pollenart':`${relevantTypes.length} relevante Pollenarten`):forecastHasMissing?'DWD-Angaben unvollständig':'keine Belastung'}</small></header>
+        <header className="pollen-detail-head"><strong>3-Tage-Ausblick</strong><small>{pollenForecastDetailStatus(relevantTypes.length,primaryTypes.length,forecastHasMissing)}</small></header>
         {detailTypes.length>0?(
           <div className="pollen-grid" style={{'--pollen-days':Math.max(1,forecastDates.length)} as CSSProperties} role="table" aria-label="Pollenflug-Vorhersage ab heute">
             <div className="pollen-grid-header" role="row"><span role="columnheader">Pollenart</span>{forecastDates.map((date,i)=><span key={date} role="columnheader">{dateLabel(date)||`Tag ${i+1}`}</span>)}</div>

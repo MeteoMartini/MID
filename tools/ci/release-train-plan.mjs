@@ -155,8 +155,12 @@ async function main() {
     },snapshot);
   }
   process.stdout.write(JSON.stringify(result,null,2)+'\n');
-  if(!result.validForIntegrationReview || (result.versionProposal && !result.versionProposal.readyForIntegrationReview))
+  if(!result.validForIntegrationReview || (result.versionProposal && !result.versionProposal.readyForIntegrationReview)){
+    // A redirected machine-readable result must not suppress the fail-closed reason in CI logs.
+    const reasons=[...result.blockers,...(result.versionProposal?.blockers??[])];
+    process.stderr.write('Release train preflight BLOCKED: '+(reasons.length?reasons.join('; '):'candidate not eligible')+'\n');
     process.exitCode=1;
+  }
 }
 if (process.argv[1]?.endsWith('release-train-plan.mjs')) {
   main().catch(error=>{console.error('Release train preflight blocked: '+error.message);process.exitCode=1;});

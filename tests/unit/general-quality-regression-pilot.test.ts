@@ -46,3 +46,17 @@ describe('Optional DWD pollen chunk: keep responsive/offline contract',()=>{
   expect(pollen).toContain('export function PollenForecast(');
  },20_000);
 });
+
+describe('Read-only release-train fail-closed diagnostics',()=>{
+ it('keeps active/canonical workflow mirrors and publishes blocked results before a nonzero exit',()=>{
+  const active=readFileSync(resolve(root,'.github/workflows/release-train-preflight.yml'),'utf8');
+  const canonical=readFileSync(resolve(root,'ci/github/workflows/release-train-preflight.yml'),'utf8');
+  const cli=readFileSync(resolve(root,'tools/ci/release-train-plan.mjs'),'utf8');
+  expect(active).toBe(canonical);
+  expect(active).toContain('preflight_status=$?');
+  expect(active).toContain('cat "$RUNNER_TEMP/mid-release-train-result.json"');
+  expect(active.indexOf('} >> "$GITHUB_STEP_SUMMARY"')).toBeLessThan(active.indexOf('exit "$preflight_status"'));
+  expect(cli).toContain("process.stderr.write('Release train preflight BLOCKED:");
+  expect(cli).toContain('process.exitCode=1');
+ },20_000);
+});

@@ -10,7 +10,11 @@ const root=new URL('../',import.meta.url),read=file=>readFileSync(new URL(file,r
 const baseline=JSON.parse(read('scripts/fixtures/module-css-baseline-0985170.json'));
 const appSource=read('src/App.tsx');
 assert.ok(appSource.includes("const LazyPollenForecast=lazy(()=>import('./PollenForecast')"),'Optional Pollen CSS must keep the React lazy-loaded component boundary');
-assert.ok(!/^\s*import\s+[^;]*\s+from\s+['"]\.\/PollenForecast['"]/m.test(appSource),'Static PollenForecast import would re-introduce eager CSS loading');
+const staticPollenImport=/^\s*import\s+(?:[^'"\n]+\s+from\s+)?['"]\.\/PollenForecast(?:\.tsx?)?['"]/m;
+for(const bad of ["import './PollenForecast';",'import {PollenForecast} from "./PollenForecast";',"import type {PollenForecast} from './PollenForecast.tsx';"])
+ assert.ok(staticPollenImport.test(bad),'Regression: static Pollen import must be recognized');
+assert.ok(!staticPollenImport.test("const LazyPollenForecast=lazy(()=>import('./PollenForecast'))"),'React lazy import must remain permitted');
+assert.ok(!staticPollenImport.test(appSource),'Static PollenForecast import would re-introduce eager CSS loading');
 function declarations(file){const source=read(file),ast=ts.createSourceFile(file,source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX),result=new Map;for(const node of ast.statements){for(const name of node.name?[node.name.getText(ast)]:node.declarationList?.declarations.map(d=>d.name.getText(ast))||[])result.set(name,node.getText(ast));}return result;}
 // .365 intentionally changes only storage wiring in these three components.
 // Require each reviewed new expression, then restore only that expression on
