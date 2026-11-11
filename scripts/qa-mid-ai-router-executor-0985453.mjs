@@ -96,6 +96,7 @@ const executor=createMidAiOneShotExecutor({
  admission,readback:source,
  credentialFor:async provider=>{
   if(!['groq','openrouter','gemini'].includes(provider))throw new Error('unknown');
+  if(mode==='expireDuringCredential')clock+=130000;
   return 'FAKE_PROVIDER_KEY_123456';
  },fetchImpl:remote,now:()=>clock,cryptoImpl
 });
@@ -178,6 +179,18 @@ await test(async()=>{
  try{await bad(()=>executor.execute(t),'GRANT_EXPIRED_AFTER_RESPONSE');}
  finally{mode='ok';}
  assert.equal(fetchCalls,before+1);
+});
+await test(async()=>{
+ // A slow credential lookup must not turn a still-signed task into a late
+ // provider dispatch. The reserved request ID remains irreversibly spent.
+ const before=fetchCalls,t=await signed(task('grant-expired-before-dispatch'),
+  'openrouter','cohere/north-mini-code:free');
+ mode='expireDuringCredential';
+ try{await bad(()=>executor.execute(t),'GRANT_EXPIRED_BEFORE_DISPATCH');}
+ finally{mode='ok';}
+ assert.equal(fetchCalls,before);
+ const row=db.prepare('SELECT request_id FROM mid_ai_claims WHERE request_id=?').get(t.requestId);
+ assert.equal(row?.request_id,t.requestId);
 });
 await test(async()=>{mode='wrongModel';const before=fetchCalls;
  const t=await signed(task('wrong-model1'));

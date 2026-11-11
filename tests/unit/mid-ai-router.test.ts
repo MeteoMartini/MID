@@ -163,7 +163,7 @@ describe('MID AI Router: one-shot external executor with signed OAuth/SQLite gat
     });
     expect(r.error).toBeUndefined();
     expect(r.status, r.stderr || r.stdout).toBe(0);
-    expect(r.stdout).toMatch(/MID AI Router Worker one-shot end-to-end mock QA OK; scenarios=28; provider HTTP calls simulated, no external inference, credentials or billing\./);
+    expect(r.stdout).toMatch(/MID AI Router Worker one-shot end-to-end mock QA OK; scenarios=29; provider HTTP calls simulated, no external inference, credentials or billing\./);
     expect(r.stderr).toBe('');
   });
 });

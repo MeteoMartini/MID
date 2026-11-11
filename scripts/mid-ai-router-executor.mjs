@@ -203,6 +203,10 @@ export function createMidAiOneShotExecutor({
    try{credential=await credentialFor(task.grant.provider)}
    catch{deny('SERVER_CREDENTIAL_UNAVAILABLE')}
    const req=envelope(task.grant.provider,task.grant.model,task.prompt,credential);
+   // Credential lookup is asynchronous: the grant may have expired before
+   // the only allowed outbound request. Never dispatch after that boundary.
+   if(!Number.isSafeInteger(task.grant.expiresAtMs)||
+      task.grant.expiresAtMs<=now())deny('GRANT_EXPIRED_BEFORE_DISPATCH');
    let response;
    try{
     response=await fetchImpl(req.url,{method:'POST',headers:req.headers,
