@@ -3,7 +3,7 @@ import {execFileSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {groupedMapModelOptions,mapModelDisplayLabel,mapModelSourceGrid} from '../../src/mapModelPresentation';
-import {WEATHER_MAP_MODELS} from '../../src/WeatherMapsData';
+import {WEATHER_MAP_MODELS,weatherMapProductsForModel} from '../../src/WeatherMapsData';
 import {cloudWeatherSources} from '../../src/cloudWeatherData';
 import type {SynopticIndex} from '../../src/nativeSynopticFields';
 
