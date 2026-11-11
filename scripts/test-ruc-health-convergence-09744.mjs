@@ -18,7 +18,9 @@ for(const token of [
   "('mid_ruc_probe', str(attempt))",
   "'Cache-Control': 'no-cache'",
   "'Pragma': 'no-cache'",
-  "if str(payload.get('run','')) != run",
+  // Native Worker UTC run identity now requires a real string, never implicit coercion.
+  "not isinstance(payload.get('run'), str) or payload.get('run') != run",
+  "expected_profile=meta.get('storageProfile')",
   "worker RUC health did not converge after"
 ]) assert.ok(health.includes(token),`RUC convergence contract missing: ${token}`);
 const py=process.env.PYTHON || process.env.PYTHON3 || 'python3';

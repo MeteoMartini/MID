@@ -7,7 +7,13 @@ const guardTest=fs.readFileSync('tools/ruc/test_ruc_schedule_guard.py','utf8');
 const workflowContract=assertCanonicalRucWorkflow(canonical);
 assert.equal(workflowContract.state,'canonical','Catch-up-Fachvertrag muss auf der kanonischen Pipeline gültig sein; aktives .github wird separat durch Admin-Sync-Regressionen geprüft.');
 for(const token of RUC_CATCHUP_TOKENS)assert.ok(canonical.includes(token),`Kanonischer RUC-Catch-up-Workflow fehlt: ${token}`);
-assert.ok(canonical.indexOf('RUC-Schedulerlücke und Aktualität vorab prüfen')<canonical.indexOf('Freie DWD-Decodierwerkzeuge installieren'),'Freshness-Guard muss vor apt/pip laufen.');
+assert.ok(canonical.indexOf('RUC-Schedulerlücke und Aktualität vorab prüfen')<canonical.indexOf('Native Python-ecCodes-Wheel vor DWD-Decode prüfen'),'Freshness-Guard muss vor der nativen Python-ecCodes-Installation laufen.');
+assert.ok(!canonical.includes('sudo apt-get'),'RUC darf nicht von Ubuntu-apt-Netzausfällen abhängen.');
+assert.throws(
+  ()=>assertCanonicalRucWorkflow(canonical.replace('python -m eccodes selfcheck','echo unsafe-skip')),
+  /Catch-up-Vertrag/,
+  'Native ecCodes-Selbstprüfung darf nie stillschweigend entfallen.',
+);
 assert.equal((canonical.match(/cron:/g)||[]).length,2,'RUC braucht genau zwei versetzte Schedulerchancen pro Stunde.');
 for(const token of ['FORECAST_REQUIRED=','GRID_REQUIRED=','newest_common_run','published_meta','fail-open build','Catch-up erforderlich',"SCHEMA='mid.dwd.ruc.grid.v2'","STORAGE_PROFILE='pages-free-v1'",'DEFAULT_MAX_AGE_MINUTES=240'])assert.ok(guard.includes(token),`RUC-Guard-Vertrag fehlt: ${token}`);
 assert.ok(guardTest.includes('RUC schedule guard unit contract OK'),'Python-Unitregression für Schedulerguard fehlt.');

@@ -10,6 +10,10 @@ export const RUC_CATCHUP_TOKENS=[
   'tools/ruc/check_ruc_schedule_guard.py',
   "steps.freshness.outputs.should_run == 'true'",
   'Bereits aktuellen RUC-Lauf ohne Neubau bestätigen',
+  // The old apt CLI install has been removed; the Python wheel must supply
+  // a functioning native ecCodes GRIB decoder before any DWD preparation.
+  'Native Python-ecCodes-Wheel vor DWD-Decode prüfen',
+  'python -m eccodes selfcheck',
 ];
 
 export function isLegacyProtectedRucWorkflow(workflow){
@@ -24,7 +28,8 @@ export function isLegacyProtectedRucWorkflow(workflow){
 export function isCanonicalCatchupRucWorkflow(workflow){
   return includesAll(workflow,RUC_CATCHUP_TOKENS)
     && (workflow.match(/cron:/g)||[]).length===2
-    && workflow.indexOf('RUC-Schedulerlücke und Aktualität vorab prüfen')<workflow.indexOf('Freie DWD-Decodierwerkzeuge installieren');
+    && workflow.indexOf('RUC-Schedulerlücke und Aktualität vorab prüfen')<workflow.indexOf('Native Python-ecCodes-Wheel vor DWD-Decode prüfen')
+    && !workflow.includes('sudo apt-get');
 }
 
 export function isProtectedPreWatchdogCatchupRucWorkflow(workflow){
