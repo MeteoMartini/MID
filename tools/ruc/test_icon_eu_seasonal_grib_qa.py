@@ -206,6 +206,8 @@ class SourceContract(unittest.TestCase):
                 entry=out['entries'][0]
                 self.assertFalse(out['releaseApproved'])
                 self.assertEqual(entry['intervalHours'],3)
+                self.assertEqual(entry['validTimeUTC'],'2026-11-13T09:00:00Z')
+                self.assertEqual(entry['gridSha256'],'identical-verified-grid')
                 self.assertEqual(entry['winterPairStatus'],'grib-pair-qualified')
                 self.assertEqual(entry['validWinter'],3)
                 self.assertEqual(entry['gustIntervalHours'],81-gust_start)
