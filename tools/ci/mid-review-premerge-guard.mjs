@@ -57,6 +57,8 @@ export function assessMidPremerge({before,after,main,stable,data,number,sha,bran
  }
  if(requests.size)return block('CHANGES_REQUESTED');
  return {ok:true,reason:'READBACK_CLEAN',threadCount:data.threads.length,reviewCount:data.reviews.length,
+  // GitHub conversation state is not independent reviewer attestation.
+  independentlyReviewed:false,reviewDispositionAttested:false,
   mergeAuthorized:false,releaseAuthorized:false,nativeEnforcementRequired:true};
 }
 

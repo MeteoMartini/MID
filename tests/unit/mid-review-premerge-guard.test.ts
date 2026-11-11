@@ -18,8 +18,15 @@ describe('SHA-bound MID merge-time review guard',()=>{
  it.each([false,true])('blocks unresolved review thread, even outdated=%s',outdated=>{
   expect(check(input({data:{meta,threads:[thread(false,outdated)],reviews:[],truncated:false}})).ok).toBe(false);
  });
- it('accepts resolved threads, not auto approval',()=>{
-  expect(check(input({data:{meta,threads:[thread(true)],reviews:[],truncated:false}})).ok).toBe(true);
+ it('accepts a resolved GitHub conversation but never claims independent approval',()=>{
+  expect(check(input({data:{meta,threads:[thread(true)],reviews:[review('COMMENTED')],truncated:false}})))
+   .toMatchObject({ok:true,independentlyReviewed:false,reviewDispositionAttested:false,
+    mergeAuthorized:false,releaseAuthorized:false,nativeEnforcementRequired:true});
+ });
+ it('does not invent a required approval for a COMMENTED-only PR',()=>{
+  expect(check(input({data:{meta,threads:[],reviews:[review('COMMENTED')],truncated:false}})))
+   .toMatchObject({ok:true,independentlyReviewed:false,reviewDispositionAttested:false,
+    mergeAuthorized:false,releaseAuthorized:false});
  });
  it('requires real disposition of CHANGES_REQUESTED, not a later comment',()=>{
   const decide=(reviews:any[])=>check(input({data:{meta,threads:[],reviews,truncated:false}})).ok;
