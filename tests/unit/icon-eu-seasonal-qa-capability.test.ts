@@ -1,4 +1,6 @@
 import {describe,expect,it} from 'vitest';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
 import {iconEuQaExpectedPrecipHours,iconEuSeasonalQaCapability} from '../../src/iconEuSeasonalQaCapability';
 
 // Strictly synthetic adversarial report fixtures. Original authenticated GRIB
@@ -108,4 +110,32 @@ describe('ICON-EU independent original-GRIB QA capability (non-renderable)',()=>
   expect(()=>iconEuSeasonalQaCapability(mutate(x=>{x.entries[2].gridSha256=''}))).toThrow();
   expect(()=>iconEuSeasonalQaCapability(mutate(x=>{x.entries[2].gridSha256=hash('c')}))).toThrow();
  });
+ it('accepts actual DWD source hashes/grid from authenticated CI artifact only as non-publishable preview',()=>{
+  const path=fileURLToPath(new URL('../fixtures/mid-icon-eu-original-grib-readback-2026111100.json',import.meta.url));
+  const raw=JSON.parse(readFileSync(path,'utf8'));
+  const matrix=iconEuSeasonalQaCapability(raw);
+  expect(matrix.frames).toHaveLength(3);
+  expect(matrix.frames.map(x=>x.validTimeUTC)).toEqual([
+   '2026-11-11T01:00:00Z','2026-11-14T06:00:00Z','2026-11-14T09:00:00Z',
+  ]);
+  expect(new Set(matrix.frames.map(x=>x.gridSha256))).toEqual(new Set([
+   '47ec431f6ca26fea659270ae395b438ee7bf9fe1b1bbb1d35a3fcec7a5fd614e',
+  ]));
+  expect(matrix.frames[2].sourceFileSha256['tot_prec:78']).toBe(matrix.frames[1].sourceFileSha256['tot_prec:78']);
+  expect(matrix.frames[2].winter.label).toContain('3 h');
+  expect(matrix.frames[2].summer.reason).toBe('gust-period-mismatch');
+  expect(matrix.frames[2].summer.candidate).toBe(false);
+  expect(matrix.renderable).toBe(false);
+  expect(matrix.productionApproved).toBe(false);
+  expect(matrix.releaseApproved).toBe(false);
+ });
+ it('rejects original 1h gust at +81 relabelled as an invented 3h product',()=>{
+  const path=fileURLToPath(new URL('../fixtures/mid-icon-eu-original-grib-readback-2026111100.json',import.meta.url));
+  const raw=JSON.parse(readFileSync(path,'utf8'));
+  raw.entries[2].gustIntervalHours=3;
+  raw.entries[2].summerPairStatus='grib-pair-qualified';
+  raw.entries[2].validSummer=904689;
+  expect(()=>iconEuSeasonalQaCapability(raw)).toThrow('GRIB field/statistics mismatch');
+ });
+
 });
