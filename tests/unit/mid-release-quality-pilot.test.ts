@@ -43,3 +43,18 @@ describe('MID offline scanner diagnostic supply-chain and scope',()=>{
   expect(active).toContain('exit "$result"');
  });
 });
+
+describe('MID fast-check isolated integrity and scope',()=>{
+ it('pins independent fast-check 4.10.2 with integrity, without root dependency changes',()=>{
+  const pkg=JSON.parse(readFileSync('tools/qa/mid-fast-check/package.json','utf8'));
+  const lock=JSON.parse(readFileSync('tools/qa/mid-fast-check/package-lock.json','utf8'));
+  expect(pkg.devDependencies['fast-check']).toBe('4.10.2');
+  expect(lock.packages[''].devDependencies['fast-check']).toBe('4.10.2');
+  expect(lock.packages['node_modules/fast-check'].integrity).toMatch(/^sha512-/);
+  expect(lock.packages['node_modules/pure-rand'].integrity).toMatch(/^sha512-/);
+  expect(lock.packages['node_modules/fast-check'].dependencies['pure-rand']).toBe('^8.0.0');
+  const wf=readFileSync('ci/github/workflows/unit-coverage.yml','utf8');
+  expect(wf).toContain('npm ci --prefix tools/qa/mid-fast-check --ignore-scripts');
+  expect(wf).toContain('node --experimental-strip-types tools/qa/mid-fast-check/properties.mjs');
+ });
+});

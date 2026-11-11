@@ -124,6 +124,19 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
+      # Exact, independently locked dev tool in a separate prefix.
+      # No change to root package.json/lockfile or required Source/Installer gates.
+      - name: MID fast-check · isolierte meteorologische und Release-Properties (Pilot)
+        if: github.event_name == 'pull_request' && github.head_ref == 'chatgpt/v0.9.85.455-release-quality-pilot-12'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --prefix tools/qa/mid-fast-check --ignore-scripts --no-audit --no-fund --prefer-offline
+          node --experimental-strip-types tools/qa/mid-fast-check/properties.mjs
+          git diff --exit-code -- .
+          test -z "$(git status --porcelain)"
+
       - name: Coverage-Bericht sichern
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

@@ -1,0 +1,10 @@
+{
+  "name": "mid-fast-check-contract-probe",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "MID isolated reproducible weather and release property QA, non-gating",
+  "devDependencies": {
+    "fast-check": "4.10.2"
+  }
+}
