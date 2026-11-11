@@ -1,4 +1,4 @@
-import {access,readFile as readRepositoryFile} from 'node:fs/promises';
+import {access,readdir,readFile as readRepositoryFile} from 'node:fs/promises';
 import {parseMidVersion,makeProposedVersion,analyzeReleaseVersion,verifyProposedTarget} from '../tools/ci/mid-release-version-proposal.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -205,4 +205,71 @@ test('retired PR-only historical Draft workflows cannot reappear as generic skip
    await assert.rejects(access(new URL(prefix+leaf,import.meta.url)),{code:'ENOENT'},'Obsolete historical workflow must be retired together with its canonical mirror: '+prefix+leaf);
   }
  }
+});
+
+// Guard against the exact Actions noise pattern from retired #701/#685 workflows.
+// A generic pull_request subscription must not spawn an entirely PR-number-pinned job.
+// Path-scoped original-data QA and step-only optional probes remain supported.
+function unscopedPrNumberPinnedJobs(source) {
+ const lines=source.split(/\r?\n/);
+ const on=lines.findIndex(line=>/^(?:on|'on'|"on"):\s*$/.test(line));
+ if(on<0)return false;
+ const rootEnd=lines.findIndex((line,i)=>i>on && /^[A-Za-z_][\w-]*:\s*(?:#.*)?$/.test(line));
+ const events=lines.slice(on+1,rootEnd<0?lines.length:rootEnd);
+ const pr=events.findIndex(line=>/^  pull_request(?:_target)?:/.test(line));
+ if(pr<0)return false;
+ let until=events.findIndex((line,i)=>i>pr && /^  [A-Za-z_][\w-]*:/.test(line));
+ if(until<0)until=events.length;
+ // Only positive paths are an appropriate trigger scope, not paths-ignore.
+ if(events.slice(pr+1,until).some(line=>/^    paths:\s*(?:#.*)?$/.test(line)||/^    paths:\s*\[/.test(line)))return false;
+ const jobs=lines.findIndex(line=>/^jobs:\s*$/.test(line));
+ if(jobs<0)return false;
+ let insideJob=false;
+ for(let i=jobs+1;i<lines.length;i++){
+  const line=lines[i];
+  if(/^\S[^#]*:\s*$/.test(line))break; // End of top-level jobs block.
+  if(/^  [\w-]+:\s*(?:#.*)?$/.test(line)){insideJob=true;continue;}
+  if(!insideJob || !/^    if:\s*/.test(line))continue; // Job-level condition only.
+  const condition=[line];
+  for(let j=i+1;j<lines.length && /^ {6,}\S/.test(lines[j]);j++)condition.push(lines[j]);
+  if(/\bgithub\.event\.pull_request\.number\s*==\s*[1-9]\d*\b/.test(condition.join('\n')))
+   return true;
+ }
+ return false;
+}
+
+test('workflow-noise policy detects unscoped PR-number-only jobs without rejecting real Source or path-scoped QA',()=>{
+ const sample=[
+  'name: MID .455 Draft only',
+  'on:',
+  '  pull_request:',
+  '    branches: [main]',
+  'jobs:',
+  '  check:',
+  '    if: >-',
+  '      github.event.pull_request.number == 745 &&',
+  "      github.event.pull_request.draft == true",
+  '    runs-on: ubuntu-latest',
+  '    steps:',
+  '      - run: echo preflight'
+ ].join('\n');
+ assert.equal(unscopedPrNumberPinnedJobs(sample),true,'Unrestricted PR run events with #745-only job must be rejected');
+ assert.equal(unscopedPrNumberPinnedJobs(sample.replace('    branches: [main]',
+  "    branches: [main]\n    paths:\n      - 'tools/ruc/**'")),false,'Explicit positive paths scope is allowed');
+ assert.equal(unscopedPrNumberPinnedJobs(sample.replace('    if: >-','    if: >-')
+  .replace('github.event.pull_request.number == 745','github.event.pull_request.draft == false')),false,'Unpinned central Source gate is allowed');
+ const stepOnly=sample.replace('    if: >-','    name: Main CI\n    runs-on: ubuntu-latest\n    steps:\n      - name: Optional original-data QA\n        if: >-')
+  .replace('    runs-on: ubuntu-latest\n    steps:\n      - run: echo preflight','        run: echo optional');
+ assert.equal(unscopedPrNumberPinnedJobs(stepOnly),false,'Step-only optional checks are not workflow-level restriction');
+});
+
+test('current workflow registry does not use globally triggered per-PR-only jobs',async()=>{
+ const dir=new URL('../.github/workflows/',import.meta.url);
+ const names=(await readdir(dir)).filter(name=>/\.ya?ml$/.test(name));
+ const offenders=[];
+ for(const name of names){
+  const source=await readRepositoryFile(new URL(name,dir),'utf8');
+  if(unscopedPrNumberPinnedJobs(source))offenders.push(name);
+ }
+ assert.deepEqual(offenders,[],'Unscoped per-PR workflow noise must be removed or positively path-scoped');
 });
