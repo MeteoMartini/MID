@@ -21,11 +21,11 @@ concurrency:
   # Interne Release-Bot-Pushes werden vom Job ohnehin übersprungen und dürfen
   # einen ausdrücklich gestarteten Installerlauf nicht per Concurrency abbrechen.
   group: mid-install-${{ github.ref }}-${{ github.event_name == 'push' && github.actor == 'mid-release-bot-meteomartini[bot]' && 'internal-bot-push' || 'release' }}
-  # Serialize manual and bot-dispatched installers; never cancel a live
-  # authorized ZIP install because an identical manual/recovery event arrived.
-  # Push supersession retains its pre-existing branch safety behavior.
+  # Serialize installer events without canceling an active verified ZIP.
+  # Stale queued snapshots fail against current main before deployment.
+  # GitHub forbids queue:max together with cancel-in-progress:true.
   queue: max
-  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
+  cancel-in-progress: false
 
 jobs:
   prepare_release:
@@ -39,6 +39,19 @@ jobs:
       snapshot_sha: ${{ steps.snapshot.outputs.snapshot_sha }}
       snapshot_id: ${{ steps.snapshot_upload.outputs.artifact-id }}
     steps:
+      - name: Ereignis-SHA gegen aktuelles main verifizieren
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          current_main="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
+          if [[ ! "$EVENT_SHA" =~ ^[0-9a-f]{40}$ ]] || [ "$EVENT_SHA" != "$current_main" ]; then
+            echo "::error::Stale queued installer event: current main differs from immutable event SHA."
+            exit 1
+          fi
+
       - name: Bot-Installer gegen eventgebundene ZIP-Commit-SHA prüfen
         if: github.event_name == 'workflow_dispatch' && inputs.expected_package_sha != ''
         shell: bash
@@ -1459,6 +1472,11 @@ jobs:
             echo "::error::Release-Commit konnte nicht SHA-genau verifiziert werden."
             exit 1
           fi
+          current_main="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
+          if [ "$current_main" != "$release_sha" ]; then
+            echo "::error::main drifted during Installer; refuse stale Stable promotion."
+            exit 1
+          fi
           stable_before="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/mid-stable" --jq .object.sha)"
           compare_status="$(gh api "repos/${GITHUB_REPOSITORY}/compare/${stable_before}...${release_sha}" --jq .status)"
           if [ "$stable_before" != "$release_sha" ] && [ "$compare_status" != "ahead" ]; then
@@ -1519,6 +1537,11 @@ jobs:
         run: |
           set -euo pipefail
           release_sha="$RELEASE_SHA"
+          current_main="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
+          if [ "$current_main" != "$release_sha" ]; then
+            echo "::error::main drifted during Installer; refuse stale Stable promotion."
+            exit 1
+          fi
           stable_before="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/mid-stable" --jq .object.sha)"
           if [ "$stable_before" = "$release_sha" ]; then
             echo "mid-stable zeigt bereits auf den geprüften Release ${release_sha}."

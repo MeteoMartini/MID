@@ -460,7 +460,9 @@ test('serialized workflow_dispatch prevents cancellation of a competing ZIP inst
  const installer=await readRepositoryFile(new URL('../ci/github/workflows/install-mid.yml',import.meta.url),'utf8');
  const active=await readRepositoryFile(new URL('../.github/workflows/install-mid.yml',import.meta.url),'utf8');
  assert.equal(installer,active);
- assert.match(installer,/queue: max\n  cancel-in-progress: \$\{\{ github\.event_name != 'workflow_dispatch' \}\}/);
+ assert.match(installer,/queue: max\n  cancel-in-progress: false/);
+ assert.ok(installer.includes('Stale queued installer event: current main differs from immutable event SHA.'));
+ assert.ok(installer.includes('main drifted during Installer; refuse stale Stable promotion.'));
  assert.match(installer,/group: mid-install-\$\{\{ github\.ref \}\}/);
 });
 test('established trusted SHA-bound bot release workflow mirrors and source-to-installer handoff remain intact',async()=>{
