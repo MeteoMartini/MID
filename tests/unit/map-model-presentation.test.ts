@@ -1,4 +1,5 @@
 import {describe,expect,it} from 'vitest';
+import {execFileSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {groupedMapModelOptions,mapModelDisplayLabel} from '../../src/mapModelPresentation';
@@ -80,6 +81,13 @@ describe('MID map model identity: flag, family and fine-to-coarse ordering',()=>
   expect(flatten(list)).toEqual(['ifs','unlisted-b','unlisted-a']);
   expect(mapModelDisplayLabel(list[0])).toBe('Zeta');
  });
+ it('executes the established MID230 model/parameter/catalog regression on this exact PR code',()=>{
+  const root=fileURLToPath(new URL('../../',import.meta.url));
+  const output=execFileSync(process.execPath,['scripts/test-map-option-ordering-0985230.mjs'],{
+   cwd:root,encoding:'utf8',timeout:90_000,maxBuffer:2*1024*1024,
+  });
+  expect(output).toContain('MID230 maps: model family + fine-to-coarse grids');
+ },95_000);
  it('preserves model IDs for both existing selector surfaces and retains verified-only catalog eligibility',()=>{
   const map=readFileSync(fileURLToPath(new URL('../../src/UnifiedWeatherMap.tsx',import.meta.url)),'utf8');
   const panel=readFileSync(fileURLToPath(new URL('../../src/WeatherMapsPanel.tsx',import.meta.url)),'utf8');
