@@ -28,6 +28,23 @@ const MODELS:Readonly<Record<string,KnownModel>>={
  'observations':{family:'DWD · Messdaten',familyRank:5,flag:'🇩🇪',resolutionOrderKm:999,tieBreak:1},
  'nowcastmix':{family:'DWD · Nowcasting',familyRank:6,flag:'🇩🇪',resolutionOrderKm:999,tieBreak:0},
 };
+/**
+ * Classify the offered and catalog-qualified map products, not the model name.
+ * Undefined source means an established WMS product in WeatherMapsData.
+ * Any unexpected new source kind is deliberately treated as mixed/unknown,
+ * never inferred as a verified native or WMS resolution.
+ */
+export function mapModelSourceGrid(products:readonly {source?:string}[]):'native'|'wms'|'mixed'{
+ if(!products.length)return 'mixed';
+ let native=false,wms=false;
+ for(const item of products){
+  if(item.source===undefined||item.source==='wms')wms=true;
+  else if(['native','grid','totals','observed-totals'].includes(item.source))native=true;
+  else return 'mixed';
+  if(native&&wms)return 'mixed';
+ }
+ return native?'native':'wms';
+}
 const collator=new Intl.Collator('de-DE',{numeric:true,sensitivity:'base'});
 const recognizedResolution=(value:unknown)=>
  typeof value==='number'&&Number.isFinite(value)&&value>=1&&value<=100?value:undefined;
@@ -44,7 +61,8 @@ export function mapModelDisplayLabel(choice:MapModelChoice):string{
  const res=choice.sourceGrid==='mixed'?undefined:km!==undefined?
   new Intl.NumberFormat('de-DE',{maximumFractionDigits:1}).format(km)+' km Raster':
   choice.sourceGrid==='native'&&known.displayResolution?.includes('Kartenraster')?
-   undefined:known.displayResolution;
+   undefined:choice.sourceGrid==='wms'&&known.displayResolution?.startsWith('ca. 2 km')?
+    undefined:known.displayResolution;
  return known.flag+' '+choice.label+(res?' · '+res:'');
 }
 /** First: model family; inside family: finest verified/published map grid first. */
