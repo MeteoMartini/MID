@@ -317,7 +317,7 @@ jobs:
             echo
             echo "- PR: #${{ steps.pr.outputs.number }}"
             echo "- Merge: ${{ steps.merge.outputs.merge_sha || steps.pr.outputs.merge_sha }}"
-            echo "- Release-Paket: ${{ steps.package.outputs.package_sha }}"
+            echo "- Release-Paket: ${{ steps.package.outputs.package_sha || steps.pr.outputs.package_sha }}"
             echo "- Installer: install-mid.yml via workflow_dispatch"
           } >> "$GITHUB_STEP_SUMMARY"
 

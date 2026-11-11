@@ -26,6 +26,34 @@ for(const bad of [
 ]) assert.ok(hasStaticPollenImport(bad),'Regression: static multiline pollen imports must be rejected');
 assert.ok(!hasStaticPollenImport("const LazyPollenForecast=lazy(()=>import('./PollenForecast'))"),'React lazy import remains permitted');
 assert.ok(!hasStaticPollenImport(appSource),'Static PollenForecast import would reintroduce eager CSS loading');
+// The optional module may only be dynamically imported by its React.lazy callback.
+// A second top-level import() would eagerly load the module and CSS.
+const hasEagerPollenDynamicImport=source=>{
+ const ast=ts.createSourceFile('App.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+ let eager=false;
+ const visit=node=>{
+  if(ts.isCallExpression(node)&&node.expression.kind===ts.SyntaxKind.ImportKeyword&&
+     node.arguments.length===1&&ts.isStringLiteralLike(node.arguments[0])&&
+     /^\.\/PollenForecast(?:\.tsx?)?$/.test(node.arguments[0].text)){
+   const callback=node.parent,caller=callback?.parent;
+   const safe=ts.isArrowFunction(callback)&&callback.body===node&&
+    ts.isCallExpression(caller)&&ts.isIdentifier(caller.expression)&&
+    caller.expression.text==='lazy'&&caller.arguments[0]===callback;
+   if(!safe)eager=true;
+  }
+  ts.forEachChild(node,visit);
+ };
+ visit(ast);return eager;
+};
+for(const bad of [
+ "import('./PollenForecast')",
+ "void import('./PollenForecast')",
+ "const eager=import('./PollenForecast')",
+ "const LazyPollenForecast=lazy(()=>import('./PollenForecast')); import('./PollenForecast')",
+])assert.ok(hasEagerPollenDynamicImport(bad),'Top-level dynamic pollen import must be rejected');
+assert.ok(!hasEagerPollenDynamicImport("const LazyPollenForecast=lazy(()=>import('./PollenForecast'))"),'React.lazy callback remains accepted');
+assert.ok(!hasEagerPollenDynamicImport(appSource),'Eager dynamic pollen import would defeat CSS lazy loading');
+
 function declarations(file){const source=read(file),ast=ts.createSourceFile(file,source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX),result=new Map;for(const node of ast.statements){for(const name of node.name?[node.name.getText(ast)]:node.declarationList?.declarations.map(d=>d.name.getText(ast))||[])result.set(name,node.getText(ast));}return result;}
 // .365 intentionally changes only storage wiring in these three components.
 // Require each reviewed new expression, then restore only that expression on

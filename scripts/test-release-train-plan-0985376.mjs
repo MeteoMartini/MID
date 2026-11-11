@@ -532,14 +532,18 @@ test('release self-heal bootstrap rejects pre-promotion untrusted fallback',asyn
  assert.ok(active.includes('if [ ! -f tools/ci/release-self-heal-classify.mjs ]; then'));
  assert.match(active,/reason=trusted-classifier-not-yet-promoted/);
  assert.match(active,/retry=false/);
- assert.match(active,/ref: mid-stable/);
+ assert.ok(active.includes('ref: ${{ steps.trusted_stable.outputs.sha }}'));
+ assert.ok(active.includes('TRUSTED_STABLE_SHA: ${{ steps.trusted_stable.outputs.sha }}'));
+ assert.ok(active.includes('protected="$(jq -r'));
 });
 test('release self-heal continues through its existing workflow only and retains immutable Stable-sourced helper',async()=>{
  const canonical=await readRepositoryFile(new URL('../ci/github/workflows/release-self-heal.yml',import.meta.url),'utf8');
  const active=await readRepositoryFile(new URL('../.github/workflows/release-self-heal.yml',import.meta.url),'utf8');
  assert.equal(active,canonical,'Self-Heal active/canonical mirrors must be identical');
  assert.match(canonical,/name: MID Release Self-Heal/);
- assert.match(canonical,/ref: mid-stable/);
+ assert.ok(canonical.includes('ref: ${{ steps.trusted_stable.outputs.sha }}'));
+ assert.ok(canonical.includes('if [ "$(git rev-parse HEAD)" != "$TRUSTED_STABLE_SHA" ]; then'));
+ assert.ok(canonical.includes('Protected Stable SHA missing or inconsistent'));
  assert.match(canonical,/persist-credentials: false/);
  assert.match(canonical,/github\.event\.workflow_run\.conclusion == 'failure'/);
  assert.match(canonical,/github\.event\.workflow_run\.run_attempt < 3/);

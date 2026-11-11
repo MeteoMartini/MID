@@ -20,10 +20,10 @@ function verifyCase({extraSource=false,wrongParent=false,missingZipBlob=false}={
   writeFileSync(path.join(dir,'source.txt'),'approved source');
   git('add','source.txt');
   git('commit','-qm','approved source merge');
-  const approvedMerge=git('rev-parse','HEAD');
   writeFileSync(path.join(dir,'MID-professional-replacement.zip'),'test archive');
   git('add','MID-professional-replacement.zip');
   git('commit','-qm','bootstrap ZIP for removal probe');
+  const approvedMerge=git('rev-parse','HEAD');
   // A legitimate transport replaces the existing tracked ZIP artifact;
   // the deletion probe deletes it instead and must be rejected.
   if(missingZipBlob)unlinkSync(path.join(dir,'MID-professional-replacement.zip'));
@@ -31,7 +31,7 @@ function verifyCase({extraSource=false,wrongParent=false,missingZipBlob=false}={
   if(extraSource)writeFileSync(path.join(dir,'source.txt'),'unauthorized change');
   git('add','-A');
   git('commit','-qm','candidate ZIP transport');
-  const expectedParent=wrongParent?'f'.repeat(40):git('rev-parse','HEAD^');
+  const expectedParent=wrongParent?'f'.repeat(40):approvedMerge;
   const command='set -euo pipefail\n'+guard+'\nprintf "GUARD_PASS\\n"';
   const result=spawnSync('bash',['-c',command],{cwd:dir,encoding:'utf8',timeout:10000,
    env:{PATH:process.env.PATH||'/usr/bin:/bin',HOME:dir,EXPECTED_MERGE_SHA:expectedParent}});

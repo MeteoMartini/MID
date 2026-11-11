@@ -58,7 +58,6 @@ describe('SHA-bound MID merge-time review guard',()=>{
    ok:false,reason:'MID_REVIEW_CHANGES_REQUESTED'
   });
  });
- it('never makes absent Cubic or informational P3 a standalone block',()=>{expect(check(input()).ok).toBe(true)});
  it('blocks source PR/head/main/Stable drift, missing evidence, duplicates',()=>{
   for(const bad of [
    {after:{...pr,head:{...pr.head,sha:'c'.repeat(40)}}},

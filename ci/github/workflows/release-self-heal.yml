@@ -26,10 +26,26 @@ jobs:
     timeout-minutes: 8
 
     steps:
+      - name: Geschuetzte Stable-Provenienz und unveraenderlichen Classifier-SHA feststellen
+        id: trusted_stable
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          stable_meta="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/branches/mid-stable")"
+          trusted_sha="$(jq -r '.commit.sha // empty' <<<"$stable_meta")"
+          protected="$(jq -r '.protected' <<<"$stable_meta")"
+          if [[ ! "$trusted_sha" =~ ^[0-9a-f]{40}$ ]] || [ "$protected" != true ]; then
+            echo "::error::Protected Stable SHA missing or inconsistent; no self-heal."
+            exit 1
+          fi
+          echo "sha=$trusted_sha" >> "$GITHUB_OUTPUT"
+
       - name: Geprüften Release-Classifier von mid-stable laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: mid-stable
+          ref: ${{ steps.trusted_stable.outputs.sha }}
           persist-credentials: false
 
       - name: Node.js 22 für unveränderliche Retry-Klassifikation
@@ -44,8 +60,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ github.event.workflow_run.id }}
           RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          TRUSTED_STABLE_SHA: ${{ steps.trusted_stable.outputs.sha }}
         run: |
           set -euo pipefail
+          if [ "$(git rev-parse HEAD)" != "$TRUSTED_STABLE_SHA" ]; then
+            echo "::error::Classifier checkout differs from the exact protected Stable SHA."
+            exit 1
+          fi
           # Bootstrap before first Stable promotion: never run untrusted main/PR code.
           if [ ! -f tools/ci/release-self-heal-classify.mjs ]; then
             echo "retry=false" >> "$GITHUB_OUTPUT"
