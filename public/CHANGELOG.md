@@ -3,8 +3,10 @@
 - Der DWD-Pollenflug weist unvollständige Angaben im 3-Tage-Ausblick auch dann aus, wenn andere Pollenarten gleichzeitig bekannte Belastungswerte zeigen. Fehlende Angaben werden nicht als Null dargestellt.
 - Bestehende Funktionen bleiben erhalten. Zusätzliche Regressionstests schützen den Sonnenverlauf, die Pollenbeschriftung und das verzögerte Laden des optionalen Pollenmoduls.
 - Die ausschließlich lesende Release-Train-Vorprüfung zeigt bei einer Ablehnung die Gründe an. Die Ablehnung bleibt verbindlich und kann keine Veröffentlichung auslösen.
-- Die bestehende GitHub-Konversationsregel schützt PR-Merges; der zusätzliche SHA-gebundene GraphQL-Premerge-Guard wird erst nach erfolgreicher Stable-Promotion des neuen Botcodes aktiv. Der Production-Branch-Guard beschränkt direkte Updates bereits, seine tatsächliche Release-Bot-/ZIP-Kompatibilität wird gesondert geprüft. Die freiwillige Web-/PWA-Diagnostik nutzt nach Einwilligung eine kurzlebige Sitzungskennung statt einer dauerhaften Nutzerkennung.
-- Die 15-Minuten-Prognose kann unabhängig belegte RUC-Gewitterdiagnosen berücksichtigen, obwohl native Niederschlagsmengen fehlen. Missing bleibt Missing: weder Regen/Schnee noch eine unkalibrierte Niederschlagswahrscheinlichkeit werden ergänzt; MID-eigene Diagnose ist keine amtliche Gewitterwarnung.
+- Die Versionshinweise unterscheiden den tatsächlich vorhandenen Review-Schutz von einer noch nicht freigegebenen Erweiterung. Die freiwillige Web-/PWA-Diagnostik nutzt nach Einwilligung eine kurzlebige Sitzungskennung statt einer dauerhaften Nutzerkennung.
+- Die 15-Minuten-Prognose kann unabhängig belegte RUC-Gewittersignale berücksichtigen, auch wenn die native Niederschlagsmenge fehlt. Fehlende Regen- und Schneemengen bleiben unbekannt; dies ist keine amtliche Gewitterwarnung.
+- Der Release-Self-Heal ergänzt einen eng begrenzten Wiederholungsversuch für einen belegten Browser-Zeitüberschreitungsfall. Die bestehenden sicheren Retries bei temporären Transportfehlern bleiben erhalten; deterministische Test- und Sicherheitsfehler sperren weiterhin.
+- Der Kandidat ergänzt einen SHA-gebundenen Review-Readback im Release-Bot. Er wird erst nach Stable-Promotion aktiv; die erforderliche merge-zeitliche GitHub-Schutzregel und die Release-App-/ZIP-Kompatibilität müssen unabhängig bestätigt werden.
 
 # MID v0.9.85.455
 
