@@ -8,7 +8,7 @@ const defaultRoot=path.resolve(path.dirname(modulePath),'..');
 const CHECKOUT_V7_SHA='3d3c42e5aac5ba805825da76410c181273ba90b1';
 const SETUP_NODE_V7_SHA='949feb2413d6458794dcd2491c4babbbce0c15c1';
 const UPLOAD_ARTIFACT_V7_SHA='cf430e030ddbb5b0abf93d22962f4752f3646cd9';
-const DOWNLOAD_ARTIFACT_V8_SHA='3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c';
+const DOWNLOAD_ARTIFACT_V8_SHA='9000827ccba6bdab643e8b6fd33ac0654aef8333';
 const SETUP_PYTHON_V7_SHA='5fda3b95a4ea91299a34e894583c3862153e4b97';
 const CODEQL_V4_SHA='9b3254085494b55a0f7c4c2b3d2d52cc712ce370';
 const DEPLOY_PAGES_V5_SHA='368f82528645a54fb793d4d04e342629a3f51346';
@@ -17,7 +17,7 @@ function pinApprovedActions(source){
   .replace(/actions\/checkout@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/checkout@${CHECKOUT_V7_SHA} # v7.0.1`)
   .replace(/actions\/setup-node@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/setup-node@${SETUP_NODE_V7_SHA} # v7.1.0`)
   .replace(/actions\/upload-artifact@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/upload-artifact@${UPLOAD_ARTIFACT_V7_SHA} # v7.0.2`)
-  .replace(/actions\/download-artifact@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/download-artifact@${DOWNLOAD_ARTIFACT_V8_SHA} # v8.0.1`)
+  .replace(/actions\/download-artifact@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/download-artifact@${DOWNLOAD_ARTIFACT_V8_SHA} # v8.0.2`)
   .replace(/actions\/setup-python@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/setup-python@${SETUP_PYTHON_V7_SHA} # v7.0.0`)
   .replace(/github\/codeql-action\/(init|analyze)@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,(_match,action)=>`github/codeql-action/${action}@${CODEQL_V4_SHA} # v4.39.1`)
   .replace(/actions\/deploy-pages@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/deploy-pages@${DEPLOY_PAGES_V5_SHA} # v5.0.1`);

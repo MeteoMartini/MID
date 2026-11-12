@@ -50,10 +50,18 @@ assert.ok(!visual.includes('document.querySelector(${JSON.stringify(selector)})'
 const lock=JSON.parse(lockRaw),brace=lock.packages?.['node_modules/brace-expansion'];
 assert.equal(brace?.version,'5.0.12');
 assert.match(brace?.resolved||'',/brace-expansion-5\.0\.12\.tgz$/);
-const actionPin='actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1';
-assert.ok(canonicalWorkflow.includes(actionPin),'Kanonischer RUC-Workflow muss download-artifact v8.0.1 SHA-gepinnt verwenden.');
+const actionPin='actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2';
+assert.ok(canonicalWorkflow.includes(actionPin),'Kanonischer RUC-Workflow muss download-artifact v8.0.2 SHA-gepinnt verwenden.');
 assert.equal(activeWorkflow,canonicalWorkflow,'Aktiver und kanonischer RUC-Workflow müssen identisch bleiben.');
-assert.ok(workflowSync.includes("DOWNLOAD_ARTIFACT_V8_SHA='3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c'"),'Expliziter Workflow-Sync muss download-artifact v8 dauerhaft pinnen.');
+// The v8.0.2 action upgrade is atomic across all active/canonical workflow mirrors.
+for(const name of ["build-parity-qualification.yml","widget-export.yml","mid-d2-ruc-three-run-qa.yml","mid-d2-ruc-archive-qa.yml","install-mid.yml","mid-ruc-preprocess.yml","mid-d2-ruc-site-union-qa.yml","mid-ruc-fast-real-pilot.yml","mid-ruc-joint-site-real-pilot.yml","mid-d2-ruc-full-admission-qa.yml"]){
+ const source=await readFile(new URL('../ci/github/workflows/'+name,import.meta.url),'utf8');
+ const active=await readFile(new URL('../.github/workflows/'+name,import.meta.url),'utf8');
+ assert.equal(source,active,'Action-Upgrade darf keinen Workflowspiegel auseinanderlaufen lassen: '+name);
+ assert.ok(source.includes(actionPin),'Action-Upgrade muss SHA-gepinnt sein: '+name);
+}
+
+assert.ok(workflowSync.includes("DOWNLOAD_ARTIFACT_V8_SHA='9000827ccba6bdab643e8b6fd33ac0654aef8333'"),'Expliziter Workflow-Sync muss download-artifact v8 dauerhaft pinnen.');
 assert.ok(policy.includes('Wartungsreview 30.09.2026 · v0.9.85.128'));
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw);
 assert.ok(versionAtLeast(pkg.version,'0.9.85.128'),'v0.9.85.128-Sicherheitsvertrag muss vorwärtskompatibel bleiben.');
