@@ -6,6 +6,8 @@
 - Die rein diagnostische GitHub-Laufzeitmessung fängt vorübergehende HTTP 502/503/504 mit höchstens zwei begrenzten Wiederholungen ab. Fehlende Daten sowie Berechtigungs- und andere HTTP-Fehler bleiben Fehler.
 - Der historisch belegte Veröffentlichungsstand v0.9.85.459 ist in der Source-of-Truth-Dokumentation nachgetragen.
 
+- Die verpflichtende Karten-Browsermatrix wird nach realem GitHub-Source-Laufzeitnachweis ohne Testverlust von 10/6/8 auf 10/7/7 Fälle umverteilt. Alle 24 Geräte-/Theme-/Designfälle sowie die separaten 20 Speicherzyklen bleiben unter unveränderten Limits erforderlich.
+
 ## Unverändert
 Keine zusätzliche kostenpflichtige Infrastruktur, keine Änderung an den amtlichen Wetterwarnungen, NoData, Zeit-/Einheiten-/Akkumulationssemantik, erlaubten Lizenzen oder bestehenden Source-/Bot-/Installer-/Worker-/Pages-/Stable-Gates.
 

@@ -18,11 +18,16 @@ assert.equal(fullMap.length,24,'6 Breiten, zwei Themes und zwei Designs bleiben 
 assert.equal(partition.length,24,'Kein Karten-Browserfall darf beim Laufzeit-Balancing entfallen.');
 assert.equal(new Set(partition.map(mapKey)).size,24,'Alle Browserfälle müssen genau einem Job zugeordnet sein.');
 assert.deepEqual(new Set(partition.map(mapKey)),new Set(fullMap.map(mapKey)),'Vollständige Browsermatrix muss erhalten bleiben.');
-assert.deepEqual(groups.map(group=>mapBrowserCases(group).length),[10,6,8],'SHA-evidenzbasierte 10/6/8-Gruppierung bleibt verbindlich.');
+assert.deepEqual(groups.map(group=>mapBrowserCases(group).length),[10,7,7],'SHA-evidenzbasierte 10/7/7-Gruppierung bleibt verbindlich.');
 assert.deepEqual(mapBrowserRunPlan(),groups,'Alle drei Pflichtgruppen bleiben aktiv.');
 assert.equal(mapBrowserMemoryProbe('1/3'),true,'20 Reload-/GC-Memory-Zyklen bleiben zwingend vorhanden.');
 for(const group of ['2/3','3/3'])assert.equal(mapBrowserMemoryProbe(group),false,'Memory-Probe darf nicht doppelt laufen.');
 assert.equal(groups.filter(group=>mapBrowserMemoryProbe(group)).length,1,'Exactly one full 20-cycle memory probe, never omitted or duplicated');
+for(const [width,theme,design,from,to] of [[1440,'light','classic','1/3','2/3'],[844,'dark','classic','3/3','1/3']]){
+ const match=row=>row.width===width&&row.theme===theme&&row.design===design;
+ assert.ok(!mapBrowserCases(from).some(match),'Moved complete case must not stay on overloaded source shard: '+width+'/'+theme+'/'+design);
+ assert.equal(mapBrowserCases(to).filter(match).length,1,'Moved complete case must be tested once at destination: '+width+'/'+theme+'/'+design);
+}
 const movedCase={width:1024,theme:'light',design:'next'};
 assert.ok(mapBrowserCases('1/3').some(row=>mapKey(row)===mapKey(movedCase)),'Full 1024px light next must remain in qualified 1/3');
 assert.ok(!mapBrowserCases('2/3').some(row=>mapKey(row)===mapKey(movedCase)),'Donor 2/3 may not repeat transferred case');
