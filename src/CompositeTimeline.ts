@@ -62,6 +62,18 @@ export function preferForecastFrameIndex(frames:CompositeTimelineFrame[],forecas
  }).index;
 }
 
+/** Live observation overlays must stay on an actual observation timestamp. */
+export function preferLiveObservationIndex(frames:CompositeTimelineFrame[],observationTimes:number[],referenceSeconds:number){
+ const latest=observationTimes.reduce((best,time)=>
+  time>=referenceSeconds-75*60&&time<=referenceSeconds+90&&time>best?time:best,-Infinity);
+ return frames.findIndex(frame=>frame.time===latest);
+}
+
+/** A loaded radar stand can bridge a failed successor for a bounded period. */
+export function retainLoadedRadarStand(time:number|undefined,referenceSeconds:number,targetSeconds=referenceSeconds){
+ return time!==undefined&&time>=referenceSeconds-45*60&&time<=referenceSeconds+90&&Math.abs(targetSeconds-time)<=30*60;
+}
+
 export function uniqueTimedFrames<T extends TimedFrame>(frames:T[],minimum:number,maximum:number){
  return[...new Map(frames.filter(frame=>Number.isFinite(frame.time)&&frame.time>=minimum&&frame.time<=maximum).sort((a,b)=>a.time-b.time).map(frame=>[frame.time,frame])).values()];
 }

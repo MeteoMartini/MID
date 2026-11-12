@@ -37,7 +37,7 @@ import {
  type RainViewerFrame,
  type WmsProvider
 } from './CompositeData';
-import {blendOpacity,blendTimedFrames,buildAvailableCompositeTimeline,availableCompositeFutureMinutes,clamp,dominantBlendFrame,hasFreshRadarObservation,nearestAvailableFrameIndex,preferForecastFrameIndex,uniqueTimedFrames,type BlendFrame,type CompositeTimelineFrame,type TimedFrame} from './CompositeTimeline';
+import {blendOpacity,blendTimedFrames,buildAvailableCompositeTimeline,availableCompositeFutureMinutes,clamp,dominantBlendFrame,hasFreshRadarObservation,nearestAvailableFrameIndex,preferForecastFrameIndex,preferLiveObservationIndex,retainLoadedRadarStand,uniqueTimedFrames,type BlendFrame,type CompositeTimelineFrame,type TimedFrame} from './CompositeTimeline';
 import MapTimelineControls,{MapTimelineLiveButton,MapTimelineSpeedControl,MapTimelineTransport} from './MapTimelineControls';
 import {DEFAULT_RADAR_COLOR_TABLE,radarColorTable,type RadarColorTableId} from './radarColorTables';
 import {COMPOSITE_BASEMAPS as BASEMAPS,MODEL_LINE_MODES,readCompositeSettings as storedSettings,patchCompositeSettings,subscribeCompositeSettings,type BasemapId,type CompositeSettings,type CompositeViewMode,type ModelLineColor,type ModelLineMode,type ModelLineTone,type MotionTimeMode} from './compositeSettings';
@@ -317,7 +317,8 @@ export default function RadarPanel({lat,lon,timezone,analysis,thunder,isDay=true
   return uniqueTimedFrames<RadarFrame>([...frames,...productFrames],referenceSeconds-190*60,referenceSeconds+130*60);
  },[analysis?.timeline,analysis?.observedAt,productTimes.dwdRadar,dwdProductChecked,referenceSeconds]);
  const operaTimeline=useMemo(()=>uniqueTimedFrames(operaFrames.map(frame=>({time:Math.floor(Date.parse(frame.time)/1000),frame})),referenceSeconds-190*60,referenceSeconds+20*60),[operaFrames,referenceSeconds]);
- const dwdTemporarilyBlocked=Boolean(radarTileError)&&referenceMs<radarRetryAt;
+ const hasRetainedDwd=retainLoadedRadarStand(stableRadarTime,referenceSeconds)&&dwdTimeline.some(frame=>frame.time===stableRadarTime);
+ const dwdTemporarilyBlocked=Boolean(radarTileError)&&referenceMs<radarRetryAt&&!hasRetainedDwd;
  const dwdUsable=source==='dwd'&&!dwdTemporarilyBlocked&&hasFreshRadarObservation(dwdTimeline,referenceSeconds);
  const operaUsable=operaStatus==='ready'&&hasFreshRadarObservation(operaTimeline,referenceSeconds);
 
@@ -452,13 +453,19 @@ export default function RadarPanel({lat,lon,timezone,analysis,thunder,isDay=true
    return{source:highResolution?'Radar 250 m':activeSource==='dwd'?'DWD Radar':activeSource==='opera'?'OPERA Radar':activeSource==='rainviewer'?'RainViewer Radar · Fallback':'Radar nicht verfügbar',phaseSources,observations:highResolution&&Number.isFinite(pxObservedMs)?[Math.floor(pxObservedMs/1000)]:radarObservationTimes,nowcasts:highResolution?[]:radarNowcastTimes,forecasts:modelForecastTimes};
   },[viewMode,showRadar,showSatellite,highResolution,activeSource,pxObservedMs,radarObservationTimes.join('|'),radarNowcastTimes.join('|'),satelliteObservationTimes.join('|'),modelForecastTimes.join('|'),satelliteTimelineSource,modelTimelineSource]);
  const modelNeedsHistory=Boolean(unified?.enabled&&modelForecastTimes.some(time=>Number.isFinite(time)&&time<referenceSeconds-90*60&&time>=referenceSeconds-180*60));
- const frames=useMemo(()=>buildAvailableCompositeTimeline(referenceSeconds,timelineContract,modelNeedsHistory?180:90,unified?availableCompositeFutureMinutes(referenceSeconds,modelForecastTimes):120),[Math.floor(referenceSeconds/300),timelineContract,modelNeedsHistory]),liveIndex=unified?.enabled&&modelForecastTimes.length?preferForecastFrameIndex(frames,modelForecastTimes,referenceSeconds):Math.max(0,frames.findIndex(frame=>frame.live));
+ const frames=useMemo(()=>buildAvailableCompositeTimeline(referenceSeconds,timelineContract,modelNeedsHistory?180:90,unified?availableCompositeFutureMinutes(referenceSeconds,modelForecastTimes):120),[Math.floor(referenceSeconds/300),timelineContract,modelNeedsHistory]);
+ const observationLiveIndex=preferLiveObservationIndex(frames,[
+  ...(showRadar?radarObservationTimes:[]),...(showSatellite?satelliteObservationTimes:[]),
+ ],referenceSeconds);
+ const liveIndex=observationLiveIndex>=0?observationLiveIndex:unified?.enabled&&modelForecastTimes.length
+  ?preferForecastFrameIndex(frames,modelForecastTimes,referenceSeconds)
+  :Math.max(0,frames.findIndex(frame=>frame.live));
  useEffect(()=>{if(!frames.length){setIndex(0);setPlaying(false);return}const target=liveFollow?frames[liveIndex]?.time:(previousTimeline.current||frames[liveIndex]?.time),indexForTarget=nearestAvailableFrameIndex(frames,target);setIndex(clamp(indexForTarget,0,frames.length-1))},[frames,liveFollow,liveIndex]);
  const canAnimate=frames.length>1;
 
  const selectedFrame:CompositeTimelineFrame|undefined=frames[index],targetSeconds=selectedFrame?.time??referenceSeconds,targetMs=targetSeconds*1000;
  useEffect(()=>{unified?.onTimeChange(targetMs)},[targetMs,unified?.onTimeChange]);
- const requestedDwdBlend=blendTimedFrames(dwdTimeline,targetSeconds,{interpolationGapSeconds:12*60,earlyGraceSeconds:8*60,lateGraceSeconds:8*60,fadeSeconds:25*60}),requestedDwdFrame=dominantBlendFrame(requestedDwdBlend),stableDwdFrame=dwdTimeline.find(frame=>frame.time===stableRadarTime),dwdBlend=unified&&(!requestedDwdFrame||Math.abs(requestedDwdFrame.time-targetSeconds)>30*60)?[]:requestedDwdFrame&&loadedRadarFrames.has(requestedDwdFrame.time)?requestedDwdBlend:stableDwdFrame?[{frame:stableDwdFrame,weight:1}]:requestedDwdBlend,dwdRenderBlend=withAdjacentPreload(dwdBlend,dwdTimeline,targetSeconds),previousDwdFrame=dwdTimeline.find(frame=>frame.time===previousRadarTime),dwdVisualBlend=unified&&!dwdBlend.length?[]:previousDwdFrame&&stableDwdFrame&&previousRadarTime!==stableRadarTime?[{frame:previousDwdFrame,weight:radarFadeReady?.001:1},{frame:stableDwdFrame,weight:radarFadeReady?1:.001},...dwdRenderBlend.filter(item=>item.frame.time!==previousRadarTime&&item.frame.time!==stableRadarTime).map(item=>({...item,weight:.001,preload:true}))]:dwdRenderBlend;
+ const requestedDwdBlend=blendTimedFrames(dwdTimeline,targetSeconds,{interpolationGapSeconds:12*60,earlyGraceSeconds:8*60,lateGraceSeconds:8*60,fadeSeconds:25*60}),requestedDwdFrame=dominantBlendFrame(requestedDwdBlend),stableDwdFrame=dwdTimeline.find(frame=>frame.time===stableRadarTime),dwdBlend=requestedDwdFrame&&loadedRadarFrames.has(requestedDwdFrame.time)?requestedDwdBlend:stableDwdFrame&&retainLoadedRadarStand(stableDwdFrame.time,referenceSeconds,targetSeconds)?[{frame:stableDwdFrame,weight:1}]:unified&&(!requestedDwdFrame||Math.abs(requestedDwdFrame.time-targetSeconds)>30*60)?[]:requestedDwdBlend,dwdRenderBlend=withAdjacentPreload(dwdBlend,dwdTimeline,targetSeconds),previousDwdFrame=dwdTimeline.find(frame=>frame.time===previousRadarTime),dwdVisualBlend=unified&&!dwdBlend.length?[]:previousDwdFrame&&stableDwdFrame&&previousRadarTime!==stableRadarTime?[{frame:previousDwdFrame,weight:radarFadeReady?.001:1},{frame:stableDwdFrame,weight:radarFadeReady?1:.001},...dwdRenderBlend.filter(item=>item.frame.time!==previousRadarTime&&item.frame.time!==stableRadarTime).map(item=>({...item,weight:.001,preload:true}))]:dwdRenderBlend;
  const rainBlend=blendTimedFrames(rainViewerFrames,targetSeconds,{interpolationGapSeconds:15*60,earlyGraceSeconds:15*60,lateGraceSeconds:20*60,fadeSeconds:100*60}),rainRenderBlend=withAdjacentPreload(rainBlend,rainViewerFrames,targetSeconds);
  const operaBlend=blendTimedFrames(operaTimeline,targetSeconds,{interpolationGapSeconds:7*60,earlyGraceSeconds:7*60,lateGraceSeconds:7*60,fadeSeconds:35*60});
  const primaryRadarBlend=activeSource==='dwd'?dwdBlend:activeSource==='rainviewer'?rainBlend:operaBlend,primaryRadarFactor=showRadar&&!highResolution?blendOpacity(primaryRadarBlend as BlendFrame<TimedFrame>[]):0;
@@ -619,8 +626,9 @@ const applyLineTonePreset=(value:ModelLineTone)=>{setModelLineTone(value);if(val
   {highResolution&&pxStatus==='loading'&&<small className="source composite-source-note"><RadioTower size={12}/>DWD-250-m-HDF5-Daten werden geladen und dargestellt …</small>}
   {highResolution&&pxStatus==='error'&&<small className="source warning">Das 250-m-Radar konnte nicht dargestellt werden: {pxMessage}</small>}
   {radarModelPhaseRenderable&&radarModelPhaseStatus==='loading'&&<small className="source composite-source-note"><RadioTower size={12}/>OPERA-CIRRUS-Echomaske und Rapid-/Regionalmodell werden zur Niederschlagsart kombiniert …</small>}
-  {showPrecipitationType&&radarModelPhaseStatus==='ready'&&<small className="source composite-source-note"><RadioTower size={12}/>{radarModelPhaseMessage}</small>}
-  {showPrecipitationType&&radarModelPhaseStatus==='error'&&<small className="source warning">Niederschlagsart derzeit nicht belastbar darstellbar: {radarModelPhaseMessage}</small>}
+  {showPrecipitationType&&!radarModelPhaseRenderable&&<small className="source warning">Niederschlagsart für diesen Termin nicht verfügbar: passendes OPERA-Radarecho fehlt oder Radar ist ausgeblendet.</small>}
+  {radarModelPhaseRenderable&&radarModelPhaseStatus==='ready'&&<small className="source composite-source-note"><RadioTower size={12}/>{radarModelPhaseMessage}</small>}
+  {radarModelPhaseRenderable&&radarModelPhaseStatus==='error'&&<small className="source warning">Niederschlagsart derzeit nicht belastbar darstellbar: {radarModelPhaseMessage}</small>}
   {showRadar&&activeSource==='dwd'&&!highResolution&&!dwdTimeline.length&&<small className="source warning">Der MID-Datendienst meldet derzeit keine gültigen DWD-Radarzeitpunkte.</small>}
   {showRadar&&source==='dwd'&&radarTileError&&<small className="source warning">{radarTileError}</small>}
   {showRadar&&!highResolution&&operaStatus==='loading'&&activeSource==='opera'&&<small className="source composite-source-note"><RadioTower size={12}/>EUMETNET-OPERA-CIRRUS-Raster (1 km) wird geladen und dargestellt …</small>}
