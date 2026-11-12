@@ -254,6 +254,10 @@ export default{async fetch(request,env){
   try{return json({...await dwdLightningPoints(lat,lon),version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'public, max-age=60'})}
   catch(error){return json({points:[],provider:'DWD NowCastMIX Accumulated Flash Geometry',error:error instanceof Error?error.message:String(error),version:WORKER_VERSION,checkedAt:new Date().toISOString()},502,{'cache-control':'no-store'})}
  }
+ if(mode==='geosphere-inca-point'){
+  try{return json(await geoSphereIncaPrecipitation(lat,lon),200,{'cache-control':'public, max-age=120'})}
+  catch{return json({available:false,source:'GeoSphere Austria · INCA'},502,{'cache-control':'no-store'})}
+ }
  if(mode==='radar-nowcast'){
   try{const requestedStage=u.searchParams.get('stage')||'all',stage=['dwd','rainviewer'].includes(requestedStage)?requestedStage:'all',fast=u.searchParams.get('fast')==='1',result=await radarNowcastForPoint(lat,lon,u.searchParams.get('country')||'',stage,fast,env);return json({...result,version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'public, max-age=120'})}
   catch(error){return json({error:error instanceof Error?error.message:String(error),version:WORKER_VERSION,checkedAt:new Date().toISOString()},502,{'cache-control':'no-store'})}

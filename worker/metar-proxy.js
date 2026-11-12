@@ -2086,6 +2086,41 @@ async function radarNowcastForPoint(lat,lon,country='',stage='all',fast=false,en
 }
 
 
+
+// Separate official point forecast. It must not enter the radar observation pipeline.
+async function geoSphereIncaPrecipitation(lat,lon,now=Date.now()){
+ const source='GeoSphere Austria · INCA';
+ const unavailable={available:false,source,license:'CC BY 4.0'};
+ if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat<46||lat>49.2||lon<9||lon>17.3)return unavailable;
+ const url=new URL('https://dataset.api.hub.geosphere.at/v1/timeseries/forecast/nowcast-v1-15min-1km');
+ url.search=new URLSearchParams({lat_lon:`${lat.toFixed(3)},${lon.toFixed(3)}`,parameters:'rr',output_format:'geojson'});
+ const response=await fetchWithDeadline(url.toString(),{headers:{Accept:'application/json'},cf:{cacheTtl:120,cacheEverything:true}},7000);
+ if(!response.ok)return unavailable;
+ const data=await response.json();
+ const parseUtc=value=>typeof value==='string'&&/(?:Z|\+00:00)$/.test(value)?Date.parse(value):NaN;
+ const run=parseUtc(data?.reference_time);
+ const feature=data?.features?.[0];
+ const coordinates=feature?.geometry?.coordinates;
+ const rr=feature?.properties?.parameters?.rr,times=data?.timestamps;
+ if(data?.type!=='FeatureCollection'||data.features?.length!==1||feature?.geometry?.type!=='Point'||
+    !Array.isArray(coordinates)||coordinates.length!==2||!coordinates.every(Number.isFinite)||
+    Math.hypot((coordinates[0]-lon)*Math.cos(lat*Math.PI/180),coordinates[1]-lat)>.018||
+    !Number.isFinite(run)||run>now+60_000||run<now-60*60_000||
+    rr?.unit!=='kg m-2'||!Array.isArray(rr.data)||!Array.isArray(times)||
+    times.length!==rr.data.length||times.length>13)return unavailable;
+ const forecast=[];
+ let previous=run;
+ for(let i=0;i<times.length;i++){
+  const valid=parseUtc(times[i]),amount=rr.data[i],lead=valid-run;
+  if(!Number.isFinite(valid)||valid<=previous||lead>3*60*60_000||lead%900_000!==0||
+     (amount!==null&&(!Number.isFinite(amount)||amount<0)))return unavailable;
+  previous=valid;
+  if(valid>now)forecast.push({validAt:new Date(valid).toISOString(),amountMm:amount});
+ }
+ if(!forecast.some(row=>row.amountMm!==null))return unavailable;
+ return {available:true,source,license:'CC BY 4.0',kind:'forecast',run:new Date(run).toISOString(),
+  resolutionKm:1,stepMinutes:15,unit:'mm',forecast};
+}
 // --- Kompositbild-Daten v0.7.30 --------------------------------------------
 const DWD_PX250_ROOTS=['https://opendata.dwd.de/weather/radar/sites/px250','https://opendatao.dwd.de/weather/radar/sites/px250'];
 const DWD_HX_ROOTS=['https://opendata.dwd.de/weather/radar/composite/hx','https://opendatao.dwd.de/weather/radar/composite/hx'];
@@ -3900,6 +3935,10 @@ export default{async fetch(request,env){
  if(mode==='nowcastmix-points'){
   try{return json({...await dwdLightningPoints(lat,lon),version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'public, max-age=60'})}
   catch(error){return json({points:[],provider:'DWD NowCastMIX Accumulated Flash Geometry',error:error instanceof Error?error.message:String(error),version:WORKER_VERSION,checkedAt:new Date().toISOString()},502,{'cache-control':'no-store'})}
+ }
+ if(mode==='geosphere-inca-point'){
+  try{return json(await geoSphereIncaPrecipitation(lat,lon),200,{'cache-control':'public, max-age=120'})}
+  catch{return json({available:false,source:'GeoSphere Austria · INCA'},502,{'cache-control':'no-store'})}
  }
  if(mode==='radar-nowcast'){
   try{const requestedStage=u.searchParams.get('stage')||'all',stage=['dwd','rainviewer'].includes(requestedStage)?requestedStage:'all',fast=u.searchParams.get('fast')==='1',result=await radarNowcastForPoint(lat,lon,u.searchParams.get('country')||'',stage,fast,env);return json({...result,version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'public, max-age=120'})}
