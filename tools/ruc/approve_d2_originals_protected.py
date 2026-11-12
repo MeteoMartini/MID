@@ -33,7 +33,7 @@ def digest(raw: bytes) -> str:
 
 def prepare(original: Path, inventory_file: Path, output: Path, commit: str) -> dict:
     if (not SHA.fullmatch(commit or '') or
-        os.environ.get('GITHUB_EVENT_NAME') != 'workflow_dispatch' or
+        os.environ.get('GITHUB_EVENT_NAME') not in ('workflow_dispatch', 'schedule') or
         os.environ.get('GITHUB_REF') != 'refs/heads/main' or
         os.environ.get('GITHUB_SHA') != commit or
         os.environ.get('GITHUB_REPOSITORY') != 'MeteoMartini/MID'):

@@ -1,7 +1,10 @@
 name: MID D2 independent protected original-release approval
-# Only runs after full MID release on main. No PR or Pages/Worker publishing.
+# Protected main+stable source only. Scheduled every six hours; never deploys.
 on:
   workflow_dispatch:
+  schedule:
+    # Original DWD 3-hourly source; six-hourly independent re-attestation avoids stale maps.
+    - cron: '23 0,6,12,18 * * *'
 permissions:
   contents: read
 concurrency:
@@ -9,7 +12,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   sign_original:
-    if: github.ref == 'refs/heads/main' && github.repository == 'MeteoMartini/MID' && github.event_name == 'workflow_dispatch'
+    if: github.ref == 'refs/heads/main' && github.repository == 'MeteoMartini/MID' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
     name: Three original DWD cycles, 72 native fields, protected attestation
     runs-on: ubuntu-latest
     timeout-minutes: 110
