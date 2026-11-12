@@ -68,15 +68,16 @@ export function analyzeReleaseVersion(manifest,live) {
 // This checks *inventory* and arithmetic, NOT semantic impact, review or release authority.
 export function analyzeVerifiedReleaseVersion(manifest,live,snapshot) {
  const declared=analyzeReleaseVersion(manifest,live);
- const blockers=[...declared.blockers];
- if(!snapshot || snapshot.plan?.validForIntegrationReview!==true ||
-    snapshot.plan?.releaseAuthorized!==false ||
+ // File/HEAD provenance is independent of a product-impact classification.
+ // A complete GitHub diff stays verified even when approval is not granted.
+ const inventoryBlockers=[];
+ if(!snapshot || snapshot.plan?.releaseAuthorized!==false ||
     snapshot.current?.mainSha!==manifest.mainSha ||
     snapshot.current?.stableSha!==manifest.stableSha)
-   blockers.push('Remote PR/Stable preflight missing, stale or blocked');
+   inventoryBlockers.push('Remote PR/Stable inventory missing or stale');
  const actual=snapshot?.verifiedCandidates;
  if(!Array.isArray(actual)||actual.length!==manifest.candidates.length)
-   blockers.push('Remote PR inventory missing or incomplete');
+   inventoryBlockers.push('Remote PR inventory missing or incomplete');
  else {
    const lookup=new Map();
    for(const p of actual){
@@ -84,7 +85,7 @@ export function analyzeVerifiedReleaseVersion(manifest,live,snapshot) {
        !Array.isArray(p.files)||p.files.length===0||
        p.files.some(path=>typeof path!=='string'||!VALID_PATH.test(path))||
        new Set(p.files).size!==p.files.length||lookup.has(p.pr)){
-      blockers.push('Malformed or duplicated verified remote PR evidence');
+      inventoryBlockers.push('Malformed or duplicated verified remote PR evidence');
       continue;
     }
     lookup.set(p.pr,p);
@@ -92,16 +93,22 @@ export function analyzeVerifiedReleaseVersion(manifest,live,snapshot) {
    for(const candidate of manifest.candidates){
     const remote=lookup.get(candidate.pr);
     if(!remote||remote.headSha!==candidate.headSha)
-      blockers.push('PR #'+candidate.pr+' remote HEAD or identity mismatch');
+      inventoryBlockers.push('PR #'+candidate.pr+' remote HEAD or identity mismatch');
     else if(remote.files.length!==candidate.changedPaths.length ||
         remote.files.some(p=>!candidate.changedPaths.includes(p)))
-      blockers.push('PR #'+candidate.pr+' declared paths differ from complete GitHub diff inventory');
+      inventoryBlockers.push('PR #'+candidate.pr+' declared paths differ from complete GitHub diff inventory');
    }
  }
- const verifiedDiffInventory=blockers.length===0;
+ const verifiedDiffInventory=inventoryBlockers.length===0;
+ const blockers=[...declared.blockers,...inventoryBlockers];
+ // Remote preflight can fail due to overlap or other substantive blockers,
+ // independently of whether the actual per-PR paths were SHA-verified.
+ if(snapshot?.plan?.validForIntegrationReview!==true)
+  blockers.push('Remote PR/Stable preflight not eligible for integration');
+ const readyForIntegrationReview=blockers.length===0;
  return {...declared,
-   proposedVersion:verifiedDiffInventory?declared.proposedVersion:null,
-   readyForIntegrationReview:verifiedDiffInventory,
+   proposedVersion:readyForIntegrationReview?declared.proposedVersion:null,
+   readyForIntegrationReview,
    verifiedDiffInventory,
    blockers,
    observations:[...declared.observations,

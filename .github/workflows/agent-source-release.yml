@@ -44,6 +44,7 @@ jobs:
           GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
           RUN_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
           RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RELEASE_BOT_SLUG: ${{ steps.release_app_token.outputs.app-slug }}
         run: |
           set -euo pipefail
           case "$RUN_HEAD_BRANCH" in
@@ -73,14 +74,85 @@ jobs:
           pr_number="$(jq -r '.[0].number' <<<"$matches")"
           head_sha="$(jq -r '.[0].head.sha' <<<"$matches")"
           if [ "$(jq -r '.[0].merged_at != null' <<<"$matches")" = "true" ]; then
+            merge_sha="$(jq -r '.[0].merge_commit_sha // empty' <<<"$matches")"
+            if [[ ! "$merge_sha" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "::error::Previously merged PR has no valid merge SHA; no ZIP recovery."
+              exit 1
+            fi
+            current_main="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
+            if [ "$current_main" != "$merge_sha" ]; then
+              # Never replay an independent event. Only a bounded rerun whose
+              # previous attempt completed ZIP packaging but failed dispatch.
+              if [[ ! "${GITHUB_RUN_ATTEMPT:-}" =~ ^[23]$ ]]; then
+                echo "eligible=false" >> "$GITHUB_OUTPUT"
+                echo "::notice::Stale merged PR/source event skipped without re-dispatch."
+                exit 0
+              fi
+              previous_attempt="$((GITHUB_RUN_ATTEMPT - 1))"
+              previous_jobs="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${previous_attempt}/jobs?per_page=100")"
+              # MID_INSTALL_RECOVERY_PREVIOUS_JOB
+              if ! jq -e --arg name "PR mergen, Release-ZIP erzeugen und Installer starten" '
+                (.total_count == 1)
+                and ((.jobs | length) == 1)
+                and (.jobs[0].name == $name)
+                and (.jobs[0].conclusion == "failure")
+                and ([.jobs[0].steps[] | select(.name == "Release-ZIP aus dem aktuellen main-Quellstand erzeugen und committen" and .conclusion == "success")] | length == 1)
+                and ([.jobs[0].steps[] | select(.name == "Bewährten MID-Installer explizit starten" and .conclusion == "failure")] | length == 1)
+              ' <<<"$previous_jobs" >/dev/null; then
+                echo "eligible=false" >> "$GITHUB_OUTPUT"
+                echo "::notice::No verified previous Installer-dispatch failure; no replay."
+                exit 0
+              fi
+              live_package="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/commits/${current_main}")"
+              # MID_INSTALL_RECOVERY_ZIP_PROVENANCE
+              if ! jq -e --arg sha "$current_main" --arg merge "$merge_sha" --arg bot "${RELEASE_BOT_SLUG}[bot]" --arg title "Prepare MID agent release from PR #${pr_number}" '
+                (.sha == $sha)
+                and ((.parents | length) == 1)
+                and (.parents[0].sha == $merge)
+                and (.author.login == $bot)
+                and (.committer.login == $bot)
+                and (.commit.message == $title)
+                and ((.files | length) == 1)
+                and (.files[0].filename == "MID-professional-replacement.zip")
+                and ((.files[0].status == "added") or (.files[0].status == "modified"))
+              ' <<<"$live_package" >/dev/null; then
+                echo "::error::Foreign or incomplete ZIP commit cannot authorize recovery."
+                exit 1
+              fi
+              installer_runs="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/actions/workflows/install-mid.yml/runs?event=workflow_dispatch&head_sha=${current_main}&per_page=100")"
+              # MID_INSTALL_RECOVERY_NO_DUPLICATE
+              if ! jq -e '(.total_count == 0) and ((.workflow_runs | length) == 0)' <<<"$installer_runs" >/dev/null; then
+                echo "::error::Installer already exists or inventory incomplete; no duplicate dispatch."
+                exit 1
+              fi
+              echo "package_recovered=true" >> "$GITHUB_OUTPUT"
+              echo "package_sha=${current_main}" >> "$GITHUB_OUTPUT"
+              echo "::notice::Installer-only retry authorized for the exact GitHub ZIP commit."
+            fi
             echo "already_merged=true" >> "$GITHUB_OUTPUT"
-            echo "merge_sha=$(jq -r '.[0].merge_commit_sha // empty' <<<"$matches")" >> "$GITHUB_OUTPUT"
+            echo "merge_sha=${merge_sha}" >> "$GITHUB_OUTPUT"
           else
             echo "already_merged=false" >> "$GITHUB_OUTPUT"
           fi
           echo "eligible=true" >> "$GITHUB_OUTPUT"
           echo "number=${pr_number}" >> "$GITHUB_OUTPUT"
           echo "head_sha=${head_sha}" >> "$GITHUB_OUTPUT"
+
+      # workflow_run executes this workflow from the protected default branch.
+      # Pin the reviewguard to the workflow's immutable commit, never a PR head
+      # or the independently lagging mid-stable ref during Installer promotion.
+      - name: SHA-gebundenen Reviewguard des ausgeführten Workflows laden
+        if: steps.pr.outputs.eligible == 'true' && steps.pr.outputs.already_merged != 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+
+      - name: Node.js 22 für Review-Readback
+        if: steps.pr.outputs.eligible == 'true' && steps.pr.outputs.already_merged != 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
 
       - name: Geprüften Agent-PR automatisch zusammenführen
         if: steps.pr.outputs.eligible == 'true' && steps.pr.outputs.already_merged != 'true'
@@ -90,8 +162,22 @@ jobs:
           GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
           PR_NUMBER: ${{ steps.pr.outputs.number }}
           EXPECTED_HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
+          EXPECTED_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          # Compare current main/Stable against the Source-PR gate's PR base.
+          EXPECTED_SOURCE_BASE_SHA: ${{ github.event.workflow_run.pull_requests[0].base.sha }}
+          EXPECTED_WORKFLOW_SHA: ${{ github.workflow_sha }}
         run: |
           set -euo pipefail
+          # The trusted checker must match the immutable workflow code actually
+          # dispatched by GitHub, not a floating ref or a candidate PR checkout.
+          if [[ ! "$EXPECTED_WORKFLOW_SHA" =~ ^[0-9a-f]{40}$ ]] || [ "$(git rev-parse HEAD)" != "$EXPECTED_WORKFLOW_SHA" ] ||
+             [ ! -f tools/ci/mid-review-premerge-guard.mjs ]; then
+            echo "::error::Trusted workflow-SHA reviewguard absent or inconsistent; no bot merge."
+            exit 1
+          fi
+          # Native conversation/review enforcement, if configured, closes the
+          # final readback-to-merge race. The readback itself cannot do so.
+          node tools/ci/mid-review-premerge-guard.mjs
           response="$(gh api --method PUT "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/merge" -f merge_method=squash -f sha="${EXPECTED_HEAD_SHA}" -f commit_title="MID Agent-Release PR #${PR_NUMBER}")"
           if [ "$(jq -r '.merged' <<<"$response")" != "true" ]; then
             echo "::error::GitHub hat den geprüften Agent-PR nicht zusammengeführt."
@@ -101,21 +187,22 @@ jobs:
           echo "merge_sha=$(jq -r '.sha' <<<"$response")" >> "$GITHUB_OUTPUT"
 
       - name: Zusammengeführten main-Stand laden
-        if: steps.pr.outputs.eligible == 'true'
+        if: steps.pr.outputs.eligible == 'true' && steps.pr.outputs.package_recovered != 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: main
-          # Paketierung benötigt nur den aktuellen main-Snapshot.
+          ref: ${{ steps.merge.outputs.merge_sha || steps.pr.outputs.merge_sha }}
+          # Immutable, authorized squash merge SHA, not a floating main HEAD.
           fetch-depth: 1
           persist-credentials: false
 
       - name: Release-ZIP aus dem aktuellen main-Quellstand erzeugen und committen
-        if: steps.pr.outputs.eligible == 'true'
+        if: steps.pr.outputs.eligible == 'true' && steps.pr.outputs.package_recovered != 'true'
         id: package
         shell: bash
         env:
           GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
           RELEASE_BOT_SLUG: ${{ steps.release_app_token.outputs.app-slug }}
+          EXPECTED_MERGE_SHA: ${{ steps.merge.outputs.merge_sha || steps.pr.outputs.merge_sha }}
         run: |
           set -euo pipefail
           bot_user_id="$(gh api "/users/${RELEASE_BOT_SLUG}[bot]" --jq .id)"
@@ -161,20 +248,51 @@ jobs:
           print(f'Release-ZIP: {out.stat().st_size} Byte')
           PY
           }
+          if [[ ! "$EXPECTED_MERGE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::GitHub did not return a valid authorized merge SHA."
+            exit 1
+          fi
           pushed=false
           for attempt in 1 2 3; do
             git fetch --no-tags --depth=1 origin "+refs/heads/main:refs/remotes/origin/main"
-            git reset --hard origin/main
+            actual_main_sha="$(git rev-parse refs/remotes/origin/main)"
+            if [ "$actual_main_sha" != "$EXPECTED_MERGE_SHA" ]; then
+              echo "::error::main changed after approved merge; never package an unrelated source commit."
+              exit 1
+            fi
+            git reset --hard "$EXPECTED_MERGE_SHA"
             make_zip
             git add -f MID-professional-replacement.zip
             git commit -m "Prepare MID agent release from PR #${{ steps.pr.outputs.number }}"
             package_sha="$(git rev-parse HEAD)"
+            # The Release App's pre-existing update exception is necessary
+            # for the generated ZIP. Constrain THIS bot path to ZIP-only and
+            # the exact approved merge as parent; no source/config changes.
+            package_parent="$(git rev-parse HEAD^)"
+            changed_paths="$(git diff-tree --no-commit-id --name-only -r HEAD)"
+            if [ "$package_parent" != "$EXPECTED_MERGE_SHA" ] ||
+               [ "$changed_paths" != "MID-professional-replacement.zip" ] ||
+               ! git cat-file -e "HEAD:MID-professional-replacement.zip"; then
+              echo "::error::ZIP transport rejected: commit parent or changed paths violate the authorized package-only scope."
+              exit 1
+            fi
             if git push origin HEAD:main; then
               pushed=true
               echo "package_sha=${package_sha}" >> "$GITHUB_OUTPUT"
               break
             fi
-            echo "::warning::main wurde parallel fortgeführt; Release-Paket wird aus dem neuesten main-Stand neu erzeugt (Versuch ${attempt}/3)."
+            remote_main="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+            if [ "$remote_main" = "$package_sha" ]; then
+              echo "::notice::Exactly this ZIP commit reached GitHub despite lost push acknowledgement."
+              pushed=true
+              echo "package_sha=${package_sha}" >> "$GITHUB_OUTPUT"
+              break
+            fi
+            if [ "$remote_main" != "$EXPECTED_MERGE_SHA" ]; then
+              echo "::error::Remote main drifted; ZIP retry cannot rebuild from a foreign SHA."
+              exit 1
+            fi
+            echo "::warning::Retrying transport only for unchanged approved merge (${attempt}/3)."
             sleep $((attempt * 2))
           done
           if [ "$pushed" != true ]; then
@@ -187,15 +305,21 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          EXPECTED_PACKAGE_SHA: ${{ steps.package.outputs.package_sha || steps.pr.outputs.package_sha }}
         run: |
           set -euo pipefail
-          gh workflow run install-mid.yml --ref main
+          current_main="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
+          if [[ ! "$EXPECTED_PACKAGE_SHA" =~ ^[0-9a-f]{40}$ ]] || [ "$current_main" != "$EXPECTED_PACKAGE_SHA" ]; then
+            echo "::error::Installer dispatch refused because main no longer equals the approved ZIP SHA."
+            exit 1
+          fi
+          gh workflow run install-mid.yml --ref main -f expected_package_sha="$EXPECTED_PACKAGE_SHA"
           {
             echo "### Automatischer MID-Release gestartet"
             echo
             echo "- PR: #${{ steps.pr.outputs.number }}"
             echo "- Merge: ${{ steps.merge.outputs.merge_sha || steps.pr.outputs.merge_sha }}"
-            echo "- Release-Paket: ${{ steps.package.outputs.package_sha }}"
+            echo "- Release-Paket: ${{ steps.package.outputs.package_sha || steps.pr.outputs.package_sha }}"
             echo "- Installer: install-mid.yml via workflow_dispatch"
           } >> "$GITHUB_STEP_SUMMARY"
 

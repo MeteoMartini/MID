@@ -8,7 +8,7 @@ export function mapBrowserCases(shard=''){
  // Keep every 6x2x2 browser case; measured CI runtimes require balanced heavy shards.
  const caseGroup=row=>{
   if(row.width===844)return row.theme==='dark'&&row.design==='classic'?3:1;
-  if(row.width===1024)return row.design==='next'?2:row.theme==='dark'?1:3;
+  if(row.width===1024)return row.design==='next'?(row.theme==='light'?1:2):row.theme==='dark'?1:3;
   if(row.width===1440)return row.design==='next'?3:row.theme==='dark'?2:1;
   return MAP_BROWSER_WIDTHS.indexOf(row.width)%3+1;
  };
@@ -31,9 +31,13 @@ export function mapBrowserRunPlan(shard=''){
  return groups;
 }
 
-/** Keep all original 20 memory cycles once in 2/3: the observed 3/3 eight-case workload
- * already needs almost the 13-minute CI step budget. No coverage or timeout changes. */
+/** Source Gate #43074212691: the real 2/3 matrix passed seven complete cases
+ * in 11m23s, then the additional 20-cycle memory probe hit the 13m job limit.
+ * Run that unchanged probe once with the 1/3 matrix instead: 1/3 took 6m16s.
+ * Also move only the 1024px/light/next full case from 2/3 to 1/3 to balance
+ * real 13-minute loads. Exactly 24 canonical cases + one 20-cycle probe remain.
+ * No reduced browser assertions, missing values, timeouts, or altered gates. */
 export function mapBrowserMemoryProbe(shard=''){
  mapBrowserCases(shard); // reject unknown groups before selecting any work
- return shard===''||shard==='2/3';
+ return shard===''||shard==='1/3';
 }

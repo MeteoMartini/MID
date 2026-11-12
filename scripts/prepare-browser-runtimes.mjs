@@ -4,17 +4,34 @@ import {dirname,join} from 'node:path';
 import {realpath} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import {runBounded} from '../tools/ci/bounded-process.mjs';
+import {verifyMidBrowserEngines,midBrowserNeedsHostDependencies} from '../tools/ci/browser-runtime-admission.mjs';
+
 const cli=await realpath(process.env.MID_PLAYWRIGHT_CLI||execFileSync('npm',['exec','--yes','--package=playwright@1.56.1','--','which','playwright'],{encoding:'utf8',timeout:90000,stdio:['ignore','pipe','inherit']}).trim());
-assert.equal(createRequire(import.meta.url)(join(dirname(cli),'package.json')).version,'1.56.1','Pinned browser runner required');
+const require=createRequire(import.meta.url);
+assert.equal(require(join(dirname(cli),'package.json')).version,'1.56.1','Pinned browser runner required');
+const playwright=require(join(dirname(cli),'index.js'));
 console.log('[browser-setup] pinned Playwright 1.56.1; Chromium + WebKit required');
-// Run the root-owned apt process under a root-owned timeout, so its descendants
-// receive TERM/KILL too. Browser downloads stay under the unprivileged runner.
-if(process.platform==='linux'){
- // Azure's Ubuntu mirror stalled before downloading even the signed WebKit runtime packages
- // in Source Gate #491. Use Ubuntu's official HTTPS archive for the disposable CI runner.
- // apt continues to check repository signatures and every browser test stays mandatory.
- await runBounded('sudo',['-n','sed','-i','s#http://azure.archive.ubuntu.com/ubuntu#https://archive.ubuntu.com/ubuntu#g','/etc/apt/apt-mirrors.txt'],{timeoutMs:15000});
-}
-if(process.platform==='linux')await runBounded('sudo',['-n','timeout','--signal=TERM','--kill-after=10s','300s',process.execPath,cli,'install-deps','chromium','webkit'],{timeoutMs:320000,graceMs:15000});
+
+// The GitHub Ubuntu mirror DNS incident needlessly stalled multiple shards for
+// five minutes *before* the existing engines could be tested. Install the
+// pinned browser binaries first, then launch BOTH browsers and a real DOM.
 await runBounded(process.execPath,[cli,'install','chromium','webkit'],{timeoutMs:180000});
-console.log('[browser-setup] preparation completed; real engine launches remain mandatory in parity QA');
+
+let needsApt=false;
+try{
+ await verifyMidBrowserEngines(playwright);
+ console.log('[browser-setup] both pinned engines launched; apt not needed');
+}catch(error){
+ if(!midBrowserNeedsHostDependencies(error))throw error;
+ needsApt=true;
+}
+if(needsApt){
+ if(process.platform!=='linux')throw Error('MID_BROWSER_HOST_DEPENDENCIES_MISSING');
+ // Missing libraries are not suppressed. Keep signed Ubuntu packages and
+ // strict bounded, root-owned apt process. A DNS failure still fails closed.
+ await runBounded('sudo',['-n','sed','-i','s#http://azure.archive.ubuntu.com/ubuntu#https://archive.ubuntu.com/ubuntu#g','/etc/apt/apt-mirrors.txt'],{timeoutMs:15000});
+ await runBounded('sudo',['-n','timeout','--signal=TERM','--kill-after=10s','300s',process.execPath,cli,'install-deps','chromium','webkit'],{timeoutMs:320000,graceMs:15000});
+ await verifyMidBrowserEngines(playwright);
+ console.log('[browser-setup] signed system dependencies installed; both engines launched');
+}
+console.log('[browser-setup] Chromium/WebKit verified; full browser regression matrix remains mandatory');

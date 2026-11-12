@@ -23,8 +23,45 @@ for(const workflow of [installCanonical,installActive]){
   assert.equal(blocks.length,4,'Installer muss drei Pages-Deployversuche plus den kurzen Stable-/Pages-Abschluss-Lock koordinieren.');
   assert.ok(blocks.every(match=>match[1]==='max'),'Installer muss wartende Pages-Publikationen verlustfrei per queue:max halten.');
   assert.ok(blocks.every(match=>match[2]==='false'),'Installer darf laufende RUC-/Pages-Publikation nicht abbrechen.');
-  assert.ok(workflow.includes("group: mid-install-${{ github.ref }}-${{ github.event_name == 'push' && github.actor == 'mid-release-bot-meteomartini[bot]' && 'internal-bot-push' || 'release' }}\n  cancel-in-progress: true"),'Release-Supersession bleibt aktiv; interne Bot-Pushes dürfen den laufenden Installer nicht abbrechen.');
+  assert.ok(workflow.includes("group: mid-install-${{ github.ref }}-${{ github.event_name == 'push' && github.actor == 'mid-release-bot-meteomartini[bot]' && 'internal-bot-push' || 'release' }}\n  # Serialize installer events without canceling an active verified ZIP.\n  # Stale queued snapshots fail against current main before deployment.\n  # GitHub forbids queue:max together with cancel-in-progress:true.\n  queue: max\n  cancel-in-progress: false"),'Installers must queue without cancellation; stale event SHA fails closed before deployment.');
 }
+
+// Prevent stale candidates from reaching any external Worker/Pages mutation.
+// The prerequisite must immediately precede the action, use a fresh main
+// readback and be included explicitly in the action's fail-closed `if`.
+const deploySteps=installCanonical.split(/(?=^      - )/m);
+const stepFor=name=>deploySteps.find(s=>s.startsWith(`      - name: ${name}\n`));
+
+// A nameless YAML 'run' or 'uses' item must break immediate SHA-fence adjacency.
+const unnamedStepFixture=[
+ '      - name: Sha fence',
+ '        run: echo checked',
+ '      - run: echo unexpected-between-fence-and-deploy',
+ '      - name: Production publish',
+ '        uses: actions/deploy-pages@pinned'
+].join('\n');
+const unnamedItems=unnamedStepFixture.split(/(?=^      - )/m);
+assert.equal(unnamedItems.length,3,'Unnamed workflow steps must be detected as separate items');
+assert.match(unnamedItems[1],/unexpected-between-fence-and-deploy/);
+
+for(const [mutation,guard,id] of [
+  ['Neue Worker-Version nur hochladen, noch nicht live schalten','Unverändertes main vor Worker-Upload verifizieren','main_fence_worker_upload'],
+  ['Geprüfte Worker-Version auf 100 Prozent promoten','Unverändertes main unmittelbar vor Worker-Live-Promotion prüfen','main_fence_worker_live'],
+  ['GitHub-Pages-Deployment · Versuch 1','Unverändertes main unmittelbar vor Pages-Versuch 1 prüfen','main_fence_pages'],
+  ['GitHub-Pages-Deployment · Versuch 2','Unverändertes main unmittelbar vor Pages-Versuch 2 prüfen','main_fence_pages'],
+  ['GitHub-Pages-Deployment · Versuch 3','Unverändertes main unmittelbar vor Pages-Versuch 3 prüfen','main_fence_pages'],
+]){
+ const action=stepFor(mutation),check=stepFor(guard);
+ assert.ok(action&&check,`Required pre-publish SHA fence missing: ${mutation}`);
+ assert.equal(deploySteps.indexOf(check)+1,deploySteps.indexOf(action),`Fresh SHA check must be immediately before ${mutation}`);
+ assert.ok(check.includes(`id: ${id}`));
+ assert.ok(check.includes("GH_TOKEN: ${{ github.token }}"));
+ assert.ok(check.includes("RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}"));
+ assert.ok(check.includes("current_main=")&&check.includes("current_main\" != \"$RELEASE_SHA"),'Fresh protected main SHA comparison required');
+ assert.ok(check.includes("echo 'valid=true' >> \"$GITHUB_OUTPUT\""),'Fail-closed SHA fence must set valid only after check');
+ assert.ok(action.includes(`steps.${id}.outputs.valid == 'true'`),`External deployment missing positive SHA-fence predicate: ${mutation}`);
+}
+
 for(const workflow of [rucCanonical,rucActive]){
   assert.ok(workflow.includes("- cron: '11 * * * *'"));
   assert.ok(workflow.includes("- cron: '41 * * * *'"));

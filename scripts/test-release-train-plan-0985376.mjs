@@ -1,4 +1,6 @@
+import {spawnSync} from 'node:child_process';
 import {access,readdir,readFile as readRepositoryFile} from 'node:fs/promises';
+import {classifyReleaseFailure} from '../tools/ci/release-self-heal-classify.mjs';
 import {parseMidVersion,makeProposedVersion,analyzeReleaseVersion,analyzeVerifiedReleaseVersion,verifyProposedTarget} from '../tools/ci/mid-release-version-proposal.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -232,7 +234,7 @@ function unscopedPrNumberPinnedJobs(source) {
   if(!insideJob || !/^    if:\s*/.test(line))continue; // Job-level condition only.
   const condition=[line];
   for(let j=i+1;j<lines.length && /^ {6,}\S/.test(lines[j]);j++)condition.push(lines[j]);
-  if(/\bgithub\.event\.pull_request\.number\s*==\s*[1-9]\d*\b/.test(condition.join('\n')))
+  if(/\bgithub\.event\.pull_request\.number\s*==\s*(?:[1-9]\d*\b|'[1-9]\d*'|"[1-9]\d*")/.test(condition.join('\n')))
    return true;
  }
  return false;
@@ -254,6 +256,16 @@ test('workflow-noise policy detects unscoped PR-number-only jobs without rejecti
   '      - run: echo preflight'
  ].join('\n');
  assert.equal(unscopedPrNumberPinnedJobs(sample),true,'Unrestricted PR run events with #745-only job must be rejected');
+ for(const quoted of ["'745'",'"745"']){
+  const unscoped=sample.replace('github.event.pull_request.number == 745',
+   'github.event.pull_request.number == '+quoted);
+  assert.equal(unscopedPrNumberPinnedJobs(unscoped),true,
+   'Quoted PR-number pin without a positive path scope must also be rejected');
+  const pathScoped=unscoped.replace('    branches: [main]',
+   "    branches: [main]\n    paths:\n      - 'tools/ruc/**'");
+  assert.equal(unscopedPrNumberPinnedJobs(pathScoped),false,
+   'An explicitly path-scoped quoted PR number is not a global workflow trigger');
+ }
  assert.equal(unscopedPrNumberPinnedJobs(sample.replace('    branches: [main]',
   "    branches: [main]\n    paths:\n      - 'tools/ruc/**'")),false,'Explicit positive paths scope is allowed');
  assert.equal(unscopedPrNumberPinnedJobs(sample.replace('    if: >-','    if: >-')
@@ -288,6 +300,36 @@ test('verified GitHub files are required before proposing any MID version',()=>{
  assert.equal(result.proposedVersion,'0.9.85.455');
  assert.equal(result.releaseAuthorized,false);
  assert.match(result.notice,/no semantic-impact proof/);
+});
+test('remote inventory can be verified while update impact remains unapproved',()=>{
+ const unknown=versionEvidence();
+ unknown.candidates[0].impact='unknown';
+ const x=analyzeVerifiedReleaseVersion(unknown,pinnedLive,evidenceSnapshot());
+ assert.equal(x.verifiedDiffInventory,true,'Exact immutable GitHub files remain established');
+ assert.equal(x.readyForIntegrationReview,false,'Unknown impact still blocks integration');
+ assert.equal(x.proposedVersion,null,'No proposal without substantive classification');
+ assert.equal(x.releaseAuthorized,false);
+ assert.ok(x.blockers.some(t=>t.includes('unknown impact')));
+});
+test('unrelated remote plan blockers do not erase matching file evidence',()=>{
+ const snapshot=evidenceSnapshot();
+ snapshot.plan.validForIntegrationReview=false;
+ const x=analyzeVerifiedReleaseVersion(versionEvidence(),pinnedLive,snapshot);
+ assert.equal(x.verifiedDiffInventory,true,'Independent file identities remain matched');
+ assert.equal(x.readyForIntegrationReview,false);
+ assert.equal(x.proposedVersion,null);
+ assert.equal(x.releaseAuthorized,false);
+});
+test('no false verified inventory when impact and remote files both fail',()=>{
+ const unknown=versionEvidence();
+ unknown.candidates[0].impact='unknown';
+ const snapshot=evidenceSnapshot();
+ snapshot.verifiedCandidates[0].files=['src/foo.ts','docs/missing.md'];
+ const x=analyzeVerifiedReleaseVersion(unknown,pinnedLive,snapshot);
+ assert.equal(x.verifiedDiffInventory,false);
+ assert.equal(x.readyForIntegrationReview,false);
+ assert.equal(x.proposedVersion,null);
+ assert.equal(x.releaseAuthorized,false);
 });
 test('version verification fails closed on omitted, added, renamed or duplicated actual paths',()=>{
  const badVariants=[
@@ -355,6 +397,74 @@ test('Stable version comes from immutable GitHub SHA-pinned package/baseline/con
  }finally{globalThis.fetch=original}
 });
 
+test('trusted bot never repackages another SHA after approved merge or stale Source replay',async()=>{
+ const canonical=await readRepositoryFile(new URL('../ci/github/workflows/agent-source-release.yml',import.meta.url),'utf8');
+ const active=await readRepositoryFile(new URL('../.github/workflows/agent-source-release.yml',import.meta.url),'utf8');
+ assert.equal(active,canonical);
+ assert.match(canonical,/if \[ "\$actual_main_sha" != "\$EXPECTED_MERGE_SHA" \]/);
+ assert.match(canonical,/git reset --hard "\$EXPECTED_MERGE_SHA"/);
+ assert.match(canonical,/if \[ "\$remote_main" != "\$EXPECTED_MERGE_SHA" \]/);
+ assert.match(canonical,/if \[ "\$current_main" != "\$merge_sha" \]/);
+ assert.ok(canonical.includes('if [[ ! "$EXPECTED_PACKAGE_SHA" =~ ^[0-9a-f]{40}$ ]] || [ "$current_main" != "$EXPECTED_PACKAGE_SHA" ]'),'Installer dispatch must validate both the full SHA format and the current main SHA');
+ assert.doesNotMatch(canonical,/Release-Paket wird aus dem neuesten main-Stand neu erzeugt/);
+});
+test('installer dispatch must pin expected release ZIP SHA while manual workflow stays optional',async()=>{
+ const bot=await readRepositoryFile(new URL('../ci/github/workflows/agent-source-release.yml',import.meta.url),'utf8');
+ const installer=await readRepositoryFile(new URL('../ci/github/workflows/install-mid.yml',import.meta.url),'utf8');
+ const installerActive=await readRepositoryFile(new URL('../.github/workflows/install-mid.yml',import.meta.url),'utf8');
+ assert.equal(installer,installerActive,'Installer mirrors must remain byte-identical');
+ assert.match(bot,/-f expected_package_sha="\$EXPECTED_PACKAGE_SHA"/);
+ assert.match(installer,/expected_package_sha:/);
+ assert.match(installer,/required: false/);
+ assert.match(installer,/if: github\.event_name == 'workflow_dispatch' && inputs\.expected_package_sha != ''/);
+ assert.match(installer,/\[ "\$EXPECTED_PACKAGE_SHA" != "\$EVENT_SHA" \]/);
+});
+// Native jq tests validate the actual workflow predicates, not a JS stand-in.
+// GitHub ubuntu-24.04 runners provide jq; a Node-only local environment may
+// skip this bounded native integration test until jq (>=1.6) is installed.
+// In GitHub Actions the test is mandatory and must fail when jq is absent.
+const jqPresent=spawnSync('jq',['--version'],{encoding:'utf8'}).status===0;
+const nativeJqTest=jqPresent||process.env.GITHUB_ACTIONS==='true'?test:test.skip;
+nativeJqTest('failed Installer dispatch can recover only on exact ZIP SHA with independent proof',async()=>{
+ const active=await readRepositoryFile(new URL('../.github/workflows/agent-source-release.yml',import.meta.url),'utf8');
+ const canonical=await readRepositoryFile(new URL('../ci/github/workflows/agent-source-release.yml',import.meta.url),'utf8');
+ assert.equal(active,canonical);
+ for(const marker of ['GITHUB_RUN_ATTEMPT','MID_INSTALL_RECOVERY_PREVIOUS_JOB','MID_INSTALL_RECOVERY_ZIP_PROVENANCE','MID_INSTALL_RECOVERY_NO_DUPLICATE','package_recovered != \'true\'','steps.package.outputs.package_sha || steps.pr.outputs.package_sha'])
+  assert.ok(active.includes(marker),'Exact recovery protection missing: '+marker);
+ const match=(label,re)=>{const x=active.match(re);assert.ok(x,label+' predicate not found');return x[1];};
+ const prior=match('prior job',/if ! jq -e --arg name "[^"]+" '([\s\S]*?)' <<<"\$previous_jobs" >\/dev\/null; then/);
+ const commitRule=match('package lineage',/if ! jq -e --arg sha "[^"]+" --arg merge "[^"]+" --arg bot "[^"]+" --arg title "[^"]+" '([\s\S]*?)' <<<"\$live_package" >\/dev\/null; then/);
+ const inventory=match('no duplicate',/if ! jq -e '([^']+)' <<<"\$installer_runs" >\/dev\/null; then/);
+ const jq=(f,input,...args)=>spawnSync('jq',['-e',...args,f],{input:JSON.stringify(input),encoding:'utf8'}).status;
+ const title='PR mergen, Release-ZIP erzeugen und Installer starten';
+ const good={total_count:1,jobs:[{name:title,conclusion:'failure',steps:[
+  {name:'Release-ZIP aus dem aktuellen main-Quellstand erzeugen und committen',conclusion:'success'},
+  {name:'Bewährten MID-Installer explizit starten',conclusion:'failure'}]}]};
+ const args=['--arg','name',title];
+ assert.equal(jq(prior,good,...args),0);
+ for(const bad of [{...good,total_count:2},{...good,jobs:[good.jobs[0],good.jobs[0]]},{...good,jobs:[{...good.jobs[0],conclusion:'success'}]},{...good,jobs:[{...good.jobs[0],steps:good.jobs[0].steps.slice(0,1)}]}])
+  assert.notEqual(jq(prior,bad,...args),0);
+ const merge='a'.repeat(40),zip='b'.repeat(40),bot='mid-release-bot-meteomartini[bot]',msg='Prepare MID agent release from PR #754';
+ const zipArgs=['--arg','sha',zip,'--arg','merge',merge,'--arg','bot',bot,'--arg','title',msg];
+ const valid={sha:zip,parents:[{sha:merge}],author:{login:bot},committer:{login:bot},commit:{message:msg},files:[{filename:'MID-professional-replacement.zip',status:'modified'}]};
+ assert.equal(jq(commitRule,valid,...zipArgs),0);
+ assert.equal(jq(commitRule,{...valid,files:[{filename:'MID-professional-replacement.zip',status:'added'}]},...zipArgs),0);
+ assert.notEqual(jq(commitRule,{...valid,files:[{filename:'MID-professional-replacement.zip',status:'removed'}]},...zipArgs),0);
+ for(const bad of [{...valid,parents:[{sha:zip}]},{...valid,author:{login:'other'}},{...valid,committer:{login:'other'}},{...valid,files:[...valid.files,{filename:'src/main.ts'}]},{...valid,commit:{message:'wrong'}},{...valid,sha:merge}])
+  assert.notEqual(jq(commitRule,bad,...zipArgs),0);
+ assert.equal(jq(inventory,{total_count:0,workflow_runs:[]}),0);
+ for(const bad of [{total_count:1,workflow_runs:[{id:1}]},{total_count:0,workflow_runs:[{id:1}]},{workflow_runs:[]}])
+  assert.notEqual(jq(inventory,bad),0);
+});
+test('serialized workflow_dispatch prevents cancellation of a competing ZIP installer recovery',async()=>{
+ const installer=await readRepositoryFile(new URL('../ci/github/workflows/install-mid.yml',import.meta.url),'utf8');
+ const active=await readRepositoryFile(new URL('../.github/workflows/install-mid.yml',import.meta.url),'utf8');
+ assert.equal(installer,active);
+ assert.match(installer,/queue: max\n  cancel-in-progress: false/);
+ assert.ok(installer.includes('Stale queued installer event: current main differs from immutable event SHA.'));
+ assert.ok(installer.includes('main drifted during Installer; refuse stale Stable promotion.'));
+ assert.match(installer,/group: mid-install-\$\{\{ github\.ref \}\}/);
+});
 test('established trusted SHA-bound bot release workflow mirrors and source-to-installer handoff remain intact',async()=>{
  const canonical=await readRepositoryFile(new URL('../ci/github/workflows/agent-source-release.yml',import.meta.url),'utf8');
  const active=await readRepositoryFile(new URL('../.github/workflows/agent-source-release.yml',import.meta.url),'utf8');
@@ -369,4 +479,90 @@ test('established trusted SHA-bound bot release workflow mirrors and source-to-i
  assert.match(canonical,/-f sha="\$\{EXPECTED_HEAD_SHA\}"/);
  assert.match(canonical,/gh workflow run install-mid\.yml --ref main/);
  assert.doesNotMatch(canonical,/pull_request_target:/);
+});
+
+const selfHealBrowserJobs=()=>({total_count:2,jobs:[
+ {name:'Release-Heavy · heavy-unified-map · 2/3',conclusion:'failure'},
+ {name:'Release-Core',conclusion:'success'},
+]});
+const selfHealTimeoutLog=[
+ 'page.waitForFunction: Timeout 30000ms exceeded.',
+ '  at verifyCase (/home/runner/work/MID/MID/scripts/verify-unified-map-browser-0985167.mjs:283:70)',
+ '1 von 1 Regressionstests fehlgeschlagen: test-unified-map-layers-0985167.mjs',
+].join('\n');
+const selfHealClassify=(overrides={})=>classifyReleaseFailure({
+ failedLog:selfHealTimeoutLog,jobs:selfHealBrowserJobs(),attempt:1,...overrides,
+});
+test('release retry classifier permits only one exact known installer map-browser timeout',()=>{
+ assert.deepEqual(selfHealClassify(),{retry:true,reason:'one-time-map-browser-timeout'});
+ for(const attempt of [2,3,0]){
+  assert.equal(selfHealClassify({attempt}).retry,false,'No repeated or invalid browser-timeout retry');
+ }
+ for(const altered of [
+  selfHealTimeoutLog+' AssertionError',
+  selfHealTimeoutLog+'\nRegressionstests fehlgeschlagen: unrelated-test.mjs\nHTTP 503 upstream',
+  selfHealTimeoutLog+'\nTest unrelated deterministic check failed',
+  selfHealTimeoutLog.replace('verify-unified-map-browser','other-browser'),
+  selfHealTimeoutLog.replace('Timeout 30000ms','Timeout 40000ms'),
+  selfHealTimeoutLog.replace('1 von 1','2 von 2'),
+  selfHealTimeoutLog.replace('test-unified-map-layers-0985167.mjs','other-test.mjs'),
+ ]){
+  assert.equal(selfHealClassify({failedLog:altered}).retry,false,'Nonmatching/explicit deterministic evidence blocks');
+ }
+});
+test('release self-heal refuses multiple failed jobs, altered job identity or truncated run inventory',()=>{
+ assert.equal(selfHealClassify({jobs:{total_count:2,jobs:[
+  {name:'Release-Heavy · heavy-unified-map · 2/3',conclusion:'failure'},
+  {name:'Another',conclusion:'failure'},
+ ]}}).retry,false);
+ assert.equal(selfHealClassify({jobs:{total_count:2,jobs:[
+  {name:'Another',conclusion:'failure'},{name:'Release-Core',conclusion:'success'},
+ ]}}).retry,false);
+ assert.equal(selfHealClassify({jobs:{total_count:3,jobs:selfHealBrowserJobs().jobs}}).retry,false);
+ assert.equal(selfHealClassify({failedLog:''}).retry,false);
+});
+test('browser attempt two never retries via a stray HTTP status',()=>{
+ assert.equal(selfHealClassify({attempt:2,failedLog:selfHealTimeoutLog+'\nHTTP 503 upstream'}).retry,false);
+});
+test('a routine codeload URL is not an outage classification',()=>{
+ assert.equal(selfHealClassify({failedLog:'Downloaded source from https://codeload.github.com/org/repo/archive.zip'}).retry,false);
+ assert.equal(selfHealClassify({failedLog:'codeload.github.com HTTP 503 upstream'}).retry,true);
+});
+test('release retry preserves existing deterministic-before-network precedence',()=>{
+ assert.deepEqual(selfHealClassify({failedLog:'HTTP 503 upstream',attempt:2}),
+  {retry:true,reason:'transient'});
+ assert.equal(selfHealClassify({failedLog:'TypeError: HTTP 503',attempt:1}).retry,false);
+ assert.equal(selfHealClassify({failedLog:'unknown failure'}).retry,false);
+});
+test('trusted release classifier cannot inherit a write-capable GitHub token',async()=>{
+ const active=await readRepositoryFile(new URL('../.github/workflows/release-self-heal.yml',import.meta.url),'utf8');
+ const canonical=await readRepositoryFile(new URL('../ci/github/workflows/release-self-heal.yml',import.meta.url),'utf8');
+ assert.equal(active,canonical);
+ assert.match(active,/env -u GH_TOKEN node tools\/ci\/release-self-heal-classify\.mjs/);
+});
+test('release self-heal bootstrap rejects pre-promotion untrusted fallback',async()=>{
+ const active=await readRepositoryFile(new URL('../.github/workflows/release-self-heal.yml',import.meta.url),'utf8');
+ const mirror=await readRepositoryFile(new URL('../ci/github/workflows/release-self-heal.yml',import.meta.url),'utf8');
+ assert.equal(active,mirror);
+ assert.ok(active.includes('if [ ! -f tools/ci/release-self-heal-classify.mjs ]; then'));
+ assert.match(active,/reason=trusted-classifier-not-yet-promoted/);
+ assert.match(active,/retry=false/);
+ assert.ok(active.includes('ref: ${{ steps.trusted_stable.outputs.sha }}'));
+ assert.ok(active.includes('TRUSTED_STABLE_SHA: ${{ steps.trusted_stable.outputs.sha }}'));
+ assert.ok(active.includes('protected="$(jq -r'));
+});
+test('release self-heal continues through its existing workflow only and retains immutable Stable-sourced helper',async()=>{
+ const canonical=await readRepositoryFile(new URL('../ci/github/workflows/release-self-heal.yml',import.meta.url),'utf8');
+ const active=await readRepositoryFile(new URL('../.github/workflows/release-self-heal.yml',import.meta.url),'utf8');
+ assert.equal(active,canonical,'Self-Heal active/canonical mirrors must be identical');
+ assert.match(canonical,/name: MID Release Self-Heal/);
+ assert.ok(canonical.includes('ref: ${{ steps.trusted_stable.outputs.sha }}'));
+ assert.ok(canonical.includes('if [ "$(git rev-parse HEAD)" != "$TRUSTED_STABLE_SHA" ]; then'));
+ assert.ok(canonical.includes('Protected Stable SHA missing or inconsistent'));
+ assert.match(canonical,/persist-credentials: false/);
+ assert.match(canonical,/github\.event\.workflow_run\.conclusion == 'failure'/);
+ assert.match(canonical,/github\.event\.workflow_run\.run_attempt < 3/);
+ assert.match(canonical,/release-self-heal-classify\.mjs/);
+ assert.match(canonical,/rerun-failed-jobs/);
+ assert.doesNotMatch(canonical,/force-push|pull_request_target|--force/);
 });

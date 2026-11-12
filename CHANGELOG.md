@@ -1,3 +1,13 @@
+# MID v0.9.85.456
+
+- Der DWD-Pollenflug weist unvollständige Angaben im 3-Tage-Ausblick auch dann aus, wenn andere Pollenarten gleichzeitig bekannte Belastungswerte zeigen. Fehlende Angaben werden nicht als Null dargestellt.
+- Bestehende Funktionen bleiben erhalten. Zusätzliche Regressionstests schützen den Sonnenverlauf, die Pollenbeschriftung und das verzögerte Laden des optionalen Pollenmoduls.
+- Die ausschließlich lesende Release-Train-Vorprüfung zeigt bei einer Ablehnung die Gründe an. Die Ablehnung bleibt verbindlich und kann keine Veröffentlichung auslösen.
+- Die Versionshinweise unterscheiden den tatsächlich vorhandenen Review-Schutz von einer noch nicht freigegebenen Erweiterung. Die freiwillige Web-/PWA-Diagnostik nutzt nach Einwilligung eine kurzlebige Sitzungskennung statt einer dauerhaften Nutzerkennung.
+- Die 15-Minuten-Prognose kann unabhängig belegte RUC-Gewittersignale berücksichtigen, auch wenn die native Niederschlagsmenge fehlt. Fehlende Regen- und Schneemengen bleiben unbekannt; dies ist keine amtliche Gewitterwarnung.
+- Der Release-Self-Heal ergänzt einen eng begrenzten Wiederholungsversuch für einen belegten Browser-Zeitüberschreitungsfall. Die bestehenden sicheren Retries bei temporären Transportfehlern bleiben erhalten; deterministische Test- und Sicherheitsfehler sperren weiterhin.
+- Der Kandidat ergänzt einen SHA-gebundenen Review-Readback im Release-Bot. Er wird erst nach Stable-Promotion aktiv; die erforderliche merge-zeitliche GitHub-Schutzregel und die Release-App-/ZIP-Kompatibilität müssen unabhängig bestätigt werden.
+
 # MID v0.9.85.455
 
 - Die Stunden- und 3-Stunden-Ansichten berücksichtigen fehlende Daten, unvollständige Sonnenscheindauer und lokale Kalender-/Sommerzeitwechsel genauer. Fehlende Werte werden nicht als Null oder als sichere Entwarnung dargestellt.
@@ -6,7 +16,7 @@
 - Im DWD-Pollenflug werden fehlende oder ungültige Belastungswerte erkennbar als unvollständige Angaben dargestellt, statt unbegründet „keine Belastung“ zu melden.
 - Das Pollenmodul lädt seine Styles erst bei Bedarf; die optionale Darstellung bleibt im Offline-Paket enthalten. Die bestehenden JS-/CSS-Grenzen werden nicht angehoben.
 - Die freiwillige Web-/PWA-Diagnostik erhält verständlichere Hinweise bei Speicherproblemen. Ohne wirksame Einwilligung findet keine PostHog-Übertragung statt.
-- Die GitHub-Releaseprüfung erhält eine zusätzliche SHA-gebundene, fehlerschließende Prüfung eingereichter Reviews und Reviewthreads vor dem geschützten Merge. Alle offiziellen Warnungen, Modellwerte und der vorhandene Releaseweg bleiben erhalten.
+- Der GitHub-Release-Train hat eine rein lesende SHA-/Diff-/Versions-Vorprüfung erhalten. Eine zusätzliche technisch erzwungene Prüfung offener Reviewthreads unmittelbar vor dem Bot-Merge ist in dieser Version ausdrücklich **nicht** aktiviert; bestehende Review-Verträge und der bewährte Source-/Installer-/Stable-Pfad bleiben verbindlich.
 - Die eigenständigen DWD-ICON-D2-Saisonkarten „Winter & Berge“ und „Sommer“ stellen den 1-h-Gesamtniederschlag mit 2-m-Temperatur-Isothermen beziehungsweise 10-m-Böen desselben Modelllaufs und Gültigkeitstermins zusammen.
 - NoData in einem der beiden Originalfelder bleibt in der gemeinsamen Karte und beim SVG-/PNG-Export transparent; wirkliche Nullwerte werden erhalten, Böenintervalle nur mit nachgewiesener Quelleninformation bezeichnet. Keine eigenständigen Schnee-/Glätte-, Gewitter- oder amtlichen Warnprodukte.
 

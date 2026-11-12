@@ -48,5 +48,22 @@ assert.equal(pollenHasMissing('2026-11-11',['Hasel','Erle'],map),true,'Missing e
 assert.equal(pollenHasMissing('2026-11-10',[],map),true,'Missing pollen inventory remains unknown');
 assert.ok(pollen.includes("todayHasMissing?'DWD-Angaben unvollständig':'keine Belastung'"));
 assert.ok(pollen.includes("forecastHasMissing?'Pollenangaben teilweise nicht verfügbar.'"));
+assert.ok(pollen.includes('pollenForecastDetailStatus(relevantTypes.length,primaryTypes.length,forecastHasMissing)'),'The visible 3-day header must retain the independent missing-data status');
+const detailStart=pollen.indexOf('function pollenForecastDetailStatus('),detailEnd=pollen.indexOf('function pointInPolygon(',detailStart);
+assert.ok(detailStart>=0&&detailEnd>detailStart,'DWD detail status helper is missing');
+const detailSource=pollen.slice(detailStart,detailEnd)
+ .replace('function pollenForecastDetailStatus(relevantCount:number,displayedCount:number,hasMissing:boolean):string',
+          'function pollenForecastDetailStatus(relevantCount,displayedCount,hasMissing)');
+const detailStatus=new Function(detailSource+';return pollenForecastDetailStatus')();
+for(const [relevant,shown,missing,expected] of [
+ [0,0,true,'DWD-Angaben unvollständig'],
+ [0,0,false,'keine Belastung'],
+ [1,1,true,'DWD-Angaben unvollständig · 1 relevante Pollenart'],
+ [1,1,false,'1 relevante Pollenart'],
+ [3,3,true,'DWD-Angaben unvollständig · 3 relevante Pollenarten'],
+ [5,4,true,'DWD-Angaben unvollständig · 5 relevant · 4 angezeigt'],
+ [5,4,false,'5 relevant · 4 angezeigt']
+])assert.equal(detailStatus(relevant,shown,missing),expected,'DWD 3-day partial-coverage summary');
+
 assert.ok(pollen.includes("entry&&pollenSeverity(entry)>=0?<span"),'DWD -1 grid cell must not inherit green level 0');
 console.log(`MID v${pkg.version}: kompakte Pollenhierarchie und siebenstufige DWD-Zwischenwerte ab v0.9.85.129 geschützt.`);

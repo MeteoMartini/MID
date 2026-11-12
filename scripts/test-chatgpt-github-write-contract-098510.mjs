@@ -49,18 +49,23 @@ function zipFixture({baseZip=false,headZip=false,tamperMerge=false}={}){
  git('add','.');git('commit','-qm','agent source');const head=git('rev-parse','HEAD');
  git('switch','-q','main');git('merge','-q','--no-ff','-m','synthetic source merge','chatgpt/recovery');
  if(tamperMerge){writeFileSync(join(dir,'MID-professional-replacement.zip'),'modified-merge-archive');git('add','MID-professional-replacement.zip');git('commit','-q','--amend','--no-edit');}
- return{dir,head};
+ // Bind the test to the actual first parent of GitHub's synthetic merge.
+ const base=git('rev-parse','HEAD^1');
+ return{dir,head,base};
 }
 for(const scenario of [
  {name:'no ZIP at either side',baseZip:false,headZip:false,success:true},
  {name:'old main-only ZIP',baseZip:true,headZip:false,success:true},
  {name:'agent ZIP forbidden',baseZip:false,headZip:true,success:false},
  {name:'modified synthetic merge ZIP forbidden',baseZip:true,headZip:false,tamperMerge:true,success:false},
- {name:'wrong PR SHA forbidden',baseZip:true,headZip:false,wrongSha:true,success:false}
+ {name:'wrong PR SHA forbidden',baseZip:true,headZip:false,wrongSha:true,success:false},
+ {name:'wrong tested main base SHA forbidden',baseZip:true,headZip:false,wrongBase:true,success:false}
 ]){
  const fixture=zipFixture(scenario);
  try{
-  const run=spawnSync('bash',['-c',zipGuard],{cwd:fixture.dir,encoding:'utf8',env:{...process.env,EXPECTED_PR_HEAD_SHA:scenario.wrongSha?'0000000000000000000000000000000000000000':fixture.head}});
+  const run=spawnSync('bash',['-c',zipGuard],{cwd:fixture.dir,encoding:'utf8',env:{...process.env,
+   EXPECTED_PR_HEAD_SHA:scenario.wrongSha?'0000000000000000000000000000000000000000':fixture.head,
+   EXPECTED_PR_BASE_SHA:scenario.wrongBase?'0000000000000000000000000000000000000000':fixture.base}});
   assert.equal(run.status===0,scenario.success,`${scenario.name}: PR-ZIP-Gate ${run.status}, stderr=${run.stderr}, stdout=${run.stdout}`);
   if(scenario.success)assert.equal(existsSync(join(fixture.dir,'MID-professional-replacement.zip')),false,`${scenario.name}: keine ZIP-Datei darf im CI-Testarbeitsbaum bleiben`);
  }finally{rmSync(fixture.dir,{recursive:true,force:true,maxRetries:5,retryDelay:30});}

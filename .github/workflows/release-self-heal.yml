@@ -26,28 +26,59 @@ jobs:
     timeout-minutes: 8
 
     steps:
-      - name: Fehlgeschlagene Logs abrufen und Fehlerklasse bestimmen
+      - name: Geschuetzte Stable-Provenienz und unveraenderlichen Classifier-SHA feststellen
+        id: trusted_stable
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          stable_meta="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/branches/mid-stable")"
+          trusted_sha="$(jq -r '.commit.sha // empty' <<<"$stable_meta")"
+          protected="$(jq -r '.protected' <<<"$stable_meta")"
+          if [[ ! "$trusted_sha" =~ ^[0-9a-f]{40}$ ]] || [ "$protected" != true ]; then
+            echo "::error::Protected Stable SHA missing or inconsistent; no self-heal."
+            exit 1
+          fi
+          echo "sha=$trusted_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Geprüften Release-Classifier von mid-stable laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.trusted_stable.outputs.sha }}
+          persist-credentials: false
+
+      - name: Node.js 22 für unveränderliche Retry-Klassifikation
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+
+      - name: Fehlgeschlagene Jobs und Logs ohne Codeänderung klassifizieren
         id: classify
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          TRUSTED_STABLE_SHA: ${{ steps.trusted_stable.outputs.sha }}
         run: |
           set -euo pipefail
-          gh run view "$RUN_ID" --repo "$GITHUB_REPOSITORY" --log-failed > /tmp/mid-failed.log 2>&1 || true
-          cat /tmp/mid-failed.log
-          deterministic='TS[0-9]{4}:|AssertionError|SyntaxError|ReferenceError|TypeError|Regression|Tests? failed|Test .* failed|build failed|nicht bestanden|Capacitor-iOS-Web-Bundle .* != Release|Dependency-Audit konnte|high severity|critical severity|ERESOLVE'
-          transient='ECONNRESET|ETIMEDOUT|EAI_AGAIN|ENETUNREACH|ECONNREFUSED|socket hang up|TLS handshake|temporarily unavailable|Temporary failure|HTTP (429|500|502|503|504)|status code (429|500|502|503|504)|rate limit|codeload|network timeout|upstream.*(502|503|504)|Cloudflare.*(429|500|502|503|504)|Pages.*(429|500|502|503|504)'
-          if grep -Eiq "$deterministic" /tmp/mid-failed.log; then
-            echo "retry=false" >> "$GITHUB_OUTPUT"
-            echo "reason=deterministic" >> "$GITHUB_OUTPUT"
-          elif grep -Eiq "$transient" /tmp/mid-failed.log; then
-            echo "retry=true" >> "$GITHUB_OUTPUT"
-            echo "reason=transient" >> "$GITHUB_OUTPUT"
-          else
-            echo "retry=false" >> "$GITHUB_OUTPUT"
-            echo "reason=unknown" >> "$GITHUB_OUTPUT"
+          if [ "$(git rev-parse HEAD)" != "$TRUSTED_STABLE_SHA" ]; then
+            echo "::error::Classifier checkout differs from the exact protected Stable SHA."
+            exit 1
           fi
+          # Bootstrap before first Stable promotion: never run untrusted main/PR code.
+          if [ ! -f tools/ci/release-self-heal-classify.mjs ]; then
+            echo "retry=false" >> "$GITHUB_OUTPUT"
+            echo "reason=trusted-classifier-not-yet-promoted" >> "$GITHUB_OUTPUT"
+            echo "::notice::Trusted classifier is not yet in Stable; no automatic retry."
+            exit 0
+          fi
+          gh run view "$RUN_ID" --repo "$GITHUB_REPOSITORY" --log-failed > /tmp/mid-failed.log 2>&1 || true
+          gh api --method GET "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/jobs?per_page=100" > /tmp/mid-failed-jobs.json
+          # Trusted Stable classifier never approves a release: it only retries
+          # exactly the failed jobs on the same SHA, once for one known browser timeout.
+          env -u GH_TOKEN node tools/ci/release-self-heal-classify.mjs /tmp/mid-failed.log /tmp/mid-failed-jobs.json "$RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
 
       - name: Nur temporär klassifizierte Fehler automatisch erneut ausführen
         if: steps.classify.outputs.retry == 'true'
