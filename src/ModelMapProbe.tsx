@@ -43,6 +43,7 @@ export default function ModelMapProbe<T extends number|string=number>(
  }){
  const map=useMidMap(),tooltipId=useId(),idRef=useRef(Symbol('mid-model-map-probe'));
  const [view,setView]=useState<MapProbeSnapshot>({owner:false,point:null});
+ const [statusSafeTop,setStatusSafeTop]=useState<number|null>(null);
  const anchorRef=useRef<HTMLElement|null>(null),storeRef=useRef<MapProbeStore|null>(null);
  const latest=useRef({label,unit,source,sample,format,unavailableNote});
  latest.current={label,unit,source,sample,format,unavailableNote};
@@ -69,6 +70,33 @@ export default function ModelMapProbe<T extends number|string=number>(
    if(storeRef.current===store)storeRef.current=null;
   };
  },[map,enabled,contextKey,label,unit,source,unavailableNote]);
+ // The forecast badge can grow differently in Classic and Next.
+ // Size the point-button offset against the actual badge, not a pixel guess.
+ useLayoutEffect(()=>{
+  if(!map||!view.owner)return;
+  const mapNode=map.getContainer();
+  const frame=mapNode.closest('.radarmap');
+  const badge=frame?.querySelector<HTMLElement>('.composite-map-status');
+  if(!badge)return;
+  const update=()=>{
+   const mapRect=mapNode.getBoundingClientRect();
+   const badgeRect=badge.getBoundingClientRect();
+   const overlapsX=badgeRect.width>0&&badgeRect.height>0&&
+    badgeRect.left<mapRect.left+56&&badgeRect.right>mapRect.left+12;
+   const wanted=overlapsX?Math.max(12,Math.ceil(badgeRect.bottom-mapRect.top+8)):null;
+   const top=wanted===null?null:Math.min(wanted,Math.max(12,Math.floor(mapRect.height-56)));
+   setStatusSafeTop(previous=>previous===top?previous:top);
+  };
+  update();
+  const size=new ResizeObserver(update);
+  size.observe(mapNode);size.observe(badge);
+  const badgeContent=new MutationObserver(update);
+  badgeContent.observe(badge,{childList:true,characterData:true,subtree:true});
+  const mode=new MutationObserver(update);
+  mode.observe(document.documentElement,{attributes:true,attributeFilter:['data-mid-design']});
+  window.addEventListener('resize',update);
+  return()=>{size.disconnect();badgeContent.disconnect();mode.disconnect();window.removeEventListener('resize',update)};
+ },[map,view.owner]);
  const point=view.point;
  useLayoutEffect(()=>{
   if(!map||!view.owner||!point)return;
@@ -93,9 +121,12 @@ export default function ModelMapProbe<T extends number|string=number>(
  const coordinates=point?`${formatDecimal(Math.abs(point.latitude),2)}° ${point.latitude<0?'S':'N'} · ${formatDecimal(Math.abs(point.longitude),2)}° ${point.longitude<0?'W':'O'}`:'';
  const centerControl=(
   <button type="button" className="mid-model-map-probe-center"
-   title="Wert am Kartenmittelpunkt" aria-label="Wert am Kartenmittelpunkt anzeigen" aria-haspopup="dialog"
-   aria-expanded={Boolean(point)} disabled={!enabled}
+   style={statusSafeTop===null?undefined:{top:statusSafeTop}}
+   title={enabled?'Wert am Kartenmittelpunkt':'Kartenwert während Animation oder ohne verifiziertes Feld nicht verfügbar'}
+   aria-label="Wert am Kartenmittelpunkt anzeigen" aria-haspopup="dialog"
+   aria-expanded={Boolean(point)} aria-disabled={!enabled}
    onClick={()=>{
+    if(!enabled)return;
     if(point)close();else if(map){const center=map.getCenter();show(center.lat,center.wrap().lng)}
    }}>
    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"

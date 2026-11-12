@@ -253,6 +253,18 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
    const centerProbe=page.getByRole('button',{name:'Wert am Kartenmittelpunkt anzeigen',exact:true});
    await centerProbe.waitFor();
    assert.equal(await page.locator('.mid-model-map-probe-center').count(),1,'One map center probe for both model layers');
+   const hit=await centerProbe.evaluate(button=>{
+    const rect=button.getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2;
+    const element=document.elementFromPoint(x,y);
+    const badge=button.closest('.radarmap')?.querySelector('.composite-map-status');
+    const bounds=badge?.getBoundingClientRect();
+    return {ok:element===button||button.contains(element),at:{x,y},
+     button:{top:rect.top,bottom:rect.bottom},badge:bounds?{top:bounds.top,bottom:bounds.bottom}:null,
+     interceptedBy:element?.className?.toString().slice(0,100)};
+   });
+   assert.ok(hit.ok,'Map probe hit-target must not be covered in '+width+'px '+theme+' '+design+': '+JSON.stringify(hit));
+   await centerProbe.focus();
+   assert.equal(await centerProbe.evaluate(el=>document.activeElement===el),true,'Active map point button retains keyboard focus');
    await centerProbe.click();
    const groupedProbe=page.getByRole('dialog',{name:/^Kartenwerte ·/});
    await groupedProbe.waitFor();

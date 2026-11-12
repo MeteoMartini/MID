@@ -149,7 +149,7 @@ describe('MID map popover: one map event, several separately labelled original-f
   const map=readFileSync(root+'src/ModelMapProbe.tsx','utf8');
   const browser=readFileSync(root+'scripts/verify-native-model-browser-0985141.mjs','utf8');
   expect(browser).toContain("name:'Wert am Kartenmittelpunkt anzeigen',exact:true");
-  expect(map).toContain('title="Wert am Kartenmittelpunkt" aria-label="Wert am Kartenmittelpunkt anzeigen" aria-haspopup="dialog"');
+  expect(map).toContain('aria-label="Wert am Kartenmittelpunkt anzeigen" aria-haspopup="dialog"');
   expect(map).toContain('role="dialog" className="mid-model-map-probe"');
   expect(map).toContain('if(!view.owner)return !enabled&&showDisabledButton?centerControl:null');
  });
@@ -160,7 +160,11 @@ describe('MID map popover: one map event, several separately labelled original-f
   const css=readFileSync(root+'src/modelMapProbe.css','utf8');
   expect(native).toContain('<ModelMapProbe<string> showDisabledButton');
   expect(native).toContain('<ModelMapProbe showDisabledButton');
-  expect(probe).toContain('disabled={!enabled}');
+  expect(probe).toContain('aria-disabled={!enabled}');
+  expect(probe).toContain('if(!enabled)return;');
+  expect(probe).not.toMatch(/\sdisabled=\{!enabled\}/);
+  expect(probe).toContain('badgeRect.bottom-mapRect.top+8');
+  expect(probe).toContain("badgeContent.observe(badge,{childList:true,characterData:true,subtree:true})");
   expect(probe).toContain('!enabled&&showDisabledButton?centerControl:null');
   expect(css).toContain('.unified-weather-map .mid-model-map-probe-center{top:clamp(68px,9vh,88px);z-index:9}');
  });
