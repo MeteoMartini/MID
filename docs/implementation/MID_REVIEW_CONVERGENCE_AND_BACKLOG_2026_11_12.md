@@ -40,7 +40,10 @@ oder dauerhaften Cloud-Dienste. Quelländerungen nur auf chatgpt/*-Branch.
   `mergeAuthorized:false`, `sourceGateAuthorized:false`,
   `autoCloseThreads:false` zurück.
 - `tools/ci/mid-pr-backlog.mjs`: lesende PR-Planung aus gelieferten GitHub-
-  Metadaten und verifizierten Dateipfaden; Baseline-Drift, überlappende Pfade,
+  Metadaten und vom Aufrufer angegebenen Dateipfaden. Der Planer prüft nur deren Form,
+  attestiert weder GitHub-Herkunft noch Vollständigkeit; beides muss extern
+  am exakten GitHub-Commit und an der vollständigen paginierten Dateiliste
+  geprüft werden. Baseline-Drift, überlappende Pfade,
   erste Gruppen, max. fünf **potenzielle** PRs gemäß vorhandenem Release-Train-
   Vertrag. Geteilte Dateinamen sind keine Beweise einer früheren Übernahme.
   Keine PRs automatisch schließen, kein Merge, keine Regeln ändern.

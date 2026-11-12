@@ -63,15 +63,18 @@ export function assessMidPrBacklog({mainSha,stableSha,pullRequests,maxBatch=5,al
        e.checksRequired.includes('CHANGED_FILES_NOT_VERIFIED'))continue;
     const conflicts=[];
     const pr=pullRequests.find(x=>x.number===e.number);
-    for(const path of new Set(pr.files)){
+    const uniquePaths=[...new Set(pr.files)];
+    for(const path of uniquePaths){
       if(allSeen.has(path))conflicts.push({path,withPr:allSeen.get(path)});
       else allSeen.set(path,e.number);
     }
-    if(conflicts.length){pathCollisions.push({pr:e.number,conflicts});continue;}
+    // Diagnostic overlaps include rejected candidates, but only paths in
+    // the SELECTED batch can reserve a slot in the proposed integration.
+    if(conflicts.length)pathCollisions.push({pr:e.number,conflicts});
     if(candidateNumbers.length>=maxBatch)continue;
-    if([...new Set(pr.files)].some(path=>claimed.has(path)))continue;
+    if(uniquePaths.some(path=>claimed.has(path)))continue;
     candidateNumbers.push(e.number);
-    for(const path of new Set(pr.files))claimed.set(path,e.number);
+    for(const path of uniquePaths)claimed.set(path,e.number);
   }
   return {schema:'mid.pr-backlog.v1',valid:true,stableSha,
     entries,groups,pathCollisions,

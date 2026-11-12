@@ -138,6 +138,18 @@ describe('MID PR backlog: read-only path and lineage triage',()=>{
   expect(o.pathCollisions[0].pr).toBe(757);
   expect(assessMidPrBacklog({mainSha:stable,stableSha:stable,maxBatch:6,pullRequests:[]}).valid).toBe(false);
  });
+ it('does not let rejected overlapping PRs shadow later disjoint batch candidates',()=>{
+  // {x}, {x,y}, {y}: middle candidate is rejected; {x} and {y} can co-exist.
+  const o=assessMidPrBacklog({mainSha:stable,stableSha:stable,pullRequests:[
+   pr(750,stable,['src/x.ts']),
+   pr(751,stable,['src/x.ts','src/y.ts']),
+   pr(752,stable,['src/y.ts']),
+  ]});
+  expect(o.valid).toBe(true);
+  expect(o.proposedReviewBatch).toEqual([750,752]);
+  expect(o.pathCollisions.map((x:any)=>x.pr)).toEqual([751,752]);
+  expect(o.mergeAuthorized).toBe(false);
+ });
  it('does not invent self-conflicts for repeated paths or reject harmless literal double dots',()=>{
   const o=assessMidPrBacklog({mainSha:stable,stableSha:stable,pullRequests:[
    pr(755,stable,['src/model..old.ts','src/model..old.ts']),

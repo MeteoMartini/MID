@@ -24,8 +24,31 @@ test('offline RUC ecCodes regressions request Python scientific preparation only
   ['scripts/test-ruc-composites-horizons-0985308.mjs']);
  assert.equal(scientific.requiresScientificPython,true);
  assert.equal(scientific.releaseAuthorized,false);
+ const numeric=planDraftRegression(['src/unknown.ts'],['scripts/test-ruc-map-pipeline-0985305.mjs']);
+ assert.equal(numeric.requiresScientificPython,true, 'RUC original map pipeline also imports numpy in Python');
  const basic=planDraftRegression(['ci/github/workflows/unit-coverage.yml']);
  assert.equal(basic.requiresScientificPython,false);
+});
+
+test('CI helper changes select referenced, registered regression instead of version-only',()=>{
+ const repo=mkdtempSync(join(tmpdir(),'mid-ci-qa-'));
+ const git=(...args)=>execFileSync('git',['-C',repo,...args],{encoding:'utf8'}).trim();
+ try{
+  git('init','-q');git('config','user.name','MID QA');git('config','user.email','qa@example.invalid');
+  mkdirSync(join(repo,'scripts'));mkdirSync(join(repo,'tools','ci'),{recursive:true});
+  const ci=join(repo,'tools','ci','bounded-process.mjs');
+  writeFileSync(ci,'export const timeout=100;\n');
+  writeFileSync(join(repo,'scripts','test-bounded-process.mjs'),"const source = 'tools/ci/bounded-process.mjs';\n");
+  writeFileSync(join(repo,'scripts','test-versioning.mjs'),'// offline version fixture\n');
+  writeFileSync(join(repo,'MID_BASELINE.json'),JSON.stringify({requiredRegressionTests:['scripts/test-bounded-process.mjs','scripts/test-versioning.mjs']}));
+  git('add','.');git('commit','-qm','base');const base=git('rev-parse','HEAD');
+  writeFileSync(ci,'export const timeout=200;\n');
+  git('add','.');git('commit','-qm','new CI implementation');const head=git('rev-parse','HEAD');
+  const plan=inspectDraftRegression(repo,base,head);
+  assert.ok(plan.selected.includes('scripts/test-bounded-process.mjs'));
+  assert.ok(plan.selected.includes('scripts/test-versioning.mjs'));
+  assert.deepEqual(plan.unavailable,[]);
+ }finally{rmSync(repo,{force:true,recursive:true})}
 });
 
 test('unknown scope is explicitly unresolved and direct matches are unique',()=>{

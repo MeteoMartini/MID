@@ -47,14 +47,15 @@ describe('MID map popover: one map event, several separately labelled original-f
   const group=new MapProbeGroup();
   const rain=watch(group,'Niederschlag',{sample:()=>null});
   watch(group,'Temperatur',{sample:()=>Number.NaN});
+  watch(group,'Extremwert',{unit:'°C',sample:()=>Number.POSITIVE_INFINITY});
   watch(group,'Böen',{unit:'km/h',sample:()=>Promise.reject(new Error('unavailable'))});
   group.show(51,8);
   await Promise.resolve();await Promise.resolve();await Promise.resolve();
   const rows=rain.snapshot.point!.rows;
-  expect(rows.map(row=>row.value)).toEqual([null,null,null]);
+  expect(rows.map(row=>row.value)).toEqual([null,null,null,null]);
   expect(rows.every(row=>row.pending===false)).toBe(true);
   expect(rows.map(row=>row.unavailableNote)).toEqual([
-   'Originalwert fehlt','Originalwert fehlt','Originalwert fehlt',
+   'Originalwert fehlt','Originalwert fehlt','Originalwert fehlt','Originalwert fehlt',
   ]);
  });
  it('fails closed on unexpected API return types without inventing dry weather or suppressing a real zero',()=>{

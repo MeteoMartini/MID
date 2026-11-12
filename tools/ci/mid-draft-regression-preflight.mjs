@@ -27,7 +27,8 @@ export function planDraftRegression(paths, directMatches=[]){
  // job must prepare those exact offline dependencies before executing them;
  // a missing decoder is not a weather-code regression or an authorized skip.
  const requiresScientificPython=selected.some(file=>
-  file==='scripts/test-ruc-composites-horizons-0985308.mjs');
+  file==='scripts/test-ruc-composites-horizons-0985308.mjs'||
+  file==='scripts/test-ruc-map-pipeline-0985305.mjs');
  return {
   schema:1,selected,requiresScientificPython,releaseAuthorized:false,
   browserPilot:map?{
@@ -58,7 +59,7 @@ export function inspectDraftRegression(repo,base,head){
  const paths=git(repo,['diff','--name-only','-z','--no-renames',base,head,'--']).split('\0').filter(Boolean);
  const baseline=JSON.parse(git(repo,['show',head+':MID_BASELINE.json']));
  const registered=new Set(baseline.requiredRegressionTests);
- const terms=paths.filter(path=>/^(?:src|tools\/ruc)\//.test(path)&&
+ const terms=paths.filter(path=>/^(?:src|tools\/ruc|tools\/ci)\//.test(path)&&
    !/[\r\n]/.test(path)).flatMap(path=>[path,basename(path)]);
  const matches=terms.length?git(repo,['grep','-l','-z','-F','-f','-',head,'--','scripts/test-*.mjs'],{
   input:[...new Set(terms)].join('\n')+'\n',allowNoMatch:true
