@@ -1,3 +1,11 @@
+# MID v0.9.85.459 · veröffentlicht am 12.11.2026 (Originaldaten-Liveabnahme separat)
+
+**Live-verifizierter Release-Stand:** `main=mid-stable=30b0be2b95f7b59119fa524c339ab43443c62186`, Version `0.9.85.459` in `package.json`, `MID_BASELINE.json` und `contracts/index.json`. [Source-PR #770](https://github.com/MeteoMartini/MID/pull/770) wurde nach Source-Core-/Heavy-/DWD-Prüfungen durch [SHA-gebundenen Release-Bot #43267446131](https://github.com/MeteoMartini/MID/actions/runs/43267446131) kontrolliert gemergt; der reguläre [Installer #43267552269](https://github.com/MeteoMartini/MID/actions/runs/43267552269) ist `completed/success`, einschließlich Release-ZIP, Core/Heavy, Worker, Pages, Finalisierung und Stable-Promotion. Das ist ein belegter App-/Quellrelease, **keine** pauschale D2-Produktionsdatenfreigabe.
+
+**Noch offen:** Der echte RUC-Lauf [#43275325822](https://github.com/MeteoMartini/MID/actions/runs/43275325822) meldet `D2 PROTECTED SIGNER: no eligible original DWD artifact; no native publication` auf der neuen Stable-SHA. Im unabhängig gelesenen öffentlichen `/ruc/latest.json` vom 12.11.2026 (RUC-Lauf 17:00 UTC) fehlt `modelFieldsNative`. Die Originaldaten-SLSA-Freigabe, physische 73-Objekt-Publikation und Sölden/Köln/Rand-/NoData-Endclientabnahme zu #446 bleiben deshalb fail-closed. #750 bleibt separater RUC-Draft; kein iOS-/VoiceOver-Gerätenachweis und keine ungeprüfte RainViewer-Lizenzfreigabe.
+
+## Historische Vorbereitungsnotizen zu .459 vor dem erfolgreich abgeschlossenen Release
+
 # MID v0.9.85.459 · Integrationskandidat – noch nicht veröffentlicht
 
 **Veröffentlichte Basis:** v0.9.85.458, main=mid-stable ef585fdbbfe475146d68868a6b671057f8b52e0d, Installer #43217173776 einschließlich Worker/Pages erfolgreich. Die Version 0.9.85.459 ist weiterhin ein unveröffentlichter Integrationskandidat.
