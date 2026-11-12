@@ -151,7 +151,18 @@ describe('MID map popover: one map event, several separately labelled original-f
   expect(browser).toContain("name:'Wert am Kartenmittelpunkt anzeigen',exact:true");
   expect(map).toContain('title="Wert am Kartenmittelpunkt" aria-label="Wert am Kartenmittelpunkt anzeigen" aria-haspopup="dialog"');
   expect(map).toContain('role="dialog" className="mid-model-map-probe"');
-  expect(map).toContain('if(!view.owner)return null');
+  expect(map).toContain('if(!view.owner)return !enabled&&showDisabledButton?centerControl:null');
+ });
+ it('keeps a disabled native map point control during playback without duplicating composite popups',()=>{
+  const root=fileURLToPath(new URL('../../',import.meta.url));
+  const probe=readFileSync(root+'src/ModelMapProbe.tsx','utf8');
+  const native=readFileSync(root+'src/NativeModelMap.tsx','utf8');
+  const css=readFileSync(root+'src/modelMapProbe.css','utf8');
+  expect(native).toContain('<ModelMapProbe<string> showDisabledButton');
+  expect(native).toContain('<ModelMapProbe showDisabledButton');
+  expect(probe).toContain('disabled={!enabled}');
+  expect(probe).toContain('!enabled&&showDisabledButton?centerControl:null');
+  expect(css).toContain('.unified-weather-map .mid-model-map-probe-center{top:clamp(68px,9vh,88px);z-index:9}');
  });
  it('resubscribes rather than showing old displayed values after a unit, source or label change',()=>{
   const root=fileURLToPath(new URL('../../',import.meta.url));
@@ -163,7 +174,7 @@ describe('MID map popover: one map event, several separately labelled original-f
   const map=readFileSync(root+'src/ModelMapProbe.tsx','utf8');
   const unified=readFileSync(root+'src/UnifiedWeatherMap.tsx','utf8');
   expect(map).toContain('new MapProbeGroup()');
-  expect(map).toContain('if(!view.owner)return null');
+  expect(map).toContain('if(!view.owner)return !enabled&&showDisabledButton?centerControl:null');
   expect(map).toContain('row.label');
   expect(map).toContain('row.unit');
   expect(map).toContain('row.source');

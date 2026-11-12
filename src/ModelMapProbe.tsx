@@ -36,8 +36,8 @@ function releaseStore(map:MapLibreMap,store:MapProbeStore){
  * No field blending, spatial interpolation or missing-to-zero substitution.
  */
 export default function ModelMapProbe<T extends number|string=number>(
- {label,unit,source,enabled,contextKey,sample,format,unavailableNote='Keine geprüfte Rasterabdeckung.'}:{
- label:string;unit:string;source:string;enabled:boolean;contextKey:string;
+ {label,unit,source,enabled,showDisabledButton=false,contextKey,sample,format,unavailableNote='Keine geprüfte Rasterabdeckung.'}:{
+ label:string;unit:string;source:string;enabled:boolean;showDisabledButton?:boolean;contextKey:string;
  sample:(latitude:number,longitude:number,signal:AbortSignal)=>T|null|Promise<T|null>;
  format:(value:T|null)=>string;unavailableNote?:string;
  }){
@@ -87,10 +87,11 @@ export default function ModelMapProbe<T extends number|string=number>(
  },[map,view.owner,point?.latitude,point?.longitude,close,tooltipId]);
  // Followers register their numerical fields, but never create duplicate
  // buttons, markers, popover focus traps or overlapping portal overlays.
- if(!view.owner)return null;
+ // Standalone native maps keep one disabled, keyboard-discoverable 44px control
+ // during animation or an unverified/temporarily missing model field.
  const rows=point?.rows??[],multiple=rows.length>1;
  const coordinates=point?`${formatDecimal(Math.abs(point.latitude),2)}° ${point.latitude<0?'S':'N'} · ${formatDecimal(Math.abs(point.longitude),2)}° ${point.longitude<0?'W':'O'}`:'';
- return <>
+ const centerControl=(
   <button type="button" className="mid-model-map-probe-center"
    title="Wert am Kartenmittelpunkt" aria-label="Wert am Kartenmittelpunkt anzeigen" aria-haspopup="dialog"
    aria-expanded={Boolean(point)} disabled={!enabled}
@@ -102,6 +103,10 @@ export default function ModelMapProbe<T extends number|string=number>(
     <circle cx="12" cy="12" r="7"/><path d="M12 2v6m0 8v6M2 12h6m8 0h6"/>
    </svg>
   </button>
+ );
+ if(!view.owner)return !enabled&&showDisabledButton?centerControl:null;
+ return <>
+  {centerControl}
   <AppPortalPopover anchorRef={anchorRef} open={Boolean(point)} onClose={close}
    role="dialog" className="mid-model-map-probe" width={multiple?285:240}
    ariaLabel={multiple?`Kartenwerte · ${rows.map(row=>row.label).join(' und ')}`:`Kartenwert · ${label}`}

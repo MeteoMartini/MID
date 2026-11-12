@@ -21,3 +21,7 @@
 .mid-model-map-probe__row+.mid-model-map-probe__row .mid-model-map-probe__row-label{margin-top:0}
 .mid-model-map-probe__row .mid-model-map-probe__value{margin:6px 0;font-size:22px}
 .mid-model-map-probe__row .mid-model-map-probe__source{margin:0}
+
+/* Unified seasonal maps have a top-left forecast badge. Keep the 44px
+   point-probe control below that badge, not hidden beneath its hitbox. */
+.unified-weather-map .mid-model-map-probe-center{top:clamp(68px,9vh,88px);z-index:9}

@@ -261,8 +261,19 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
    const probeLabels=await groupedProbe.locator('.mid-model-map-probe__row-label').allTextContents();
    assert.deepEqual(probeLabels.map(x=>x.trim()),['Niederschlag · 1 h',secondary],'Neither precipitation nor companion may be dropped');
    assert.equal(await groupedProbe.locator('.mid-model-map-probe__source').count()>=2,true,'Each field retains visible provenance');
+   // Synthetic original ICON-D2 seasonal fields: 1-h precipitation = 1 mm;
+   // paired 2-m temperature or 10-m gust = 15 °C / 15 km/h at every cell.
+   await page.waitForFunction(()=>{
+    const rows=[...document.querySelectorAll('.mid-model-map-probe__row')];
+    return rows.length===2&&rows.every(row=>row.querySelector('.mid-model-map-probe__value')?.getAttribute('aria-busy')==='false');
+   });
+   const probeValues=(await groupedProbe.locator('.mid-model-map-probe__value').allTextContents()).map(x=>x.replace(/\s+/g,' ').trim());
+   assert.match(probeValues[0],/(?:^|\s)1(?:[,.]0+)?\s*mm\b/,'The first original value is the 1-h fixture precipitation, not pending or NoData');
+   assert.match(probeValues[1],id==='winter-berge'?/(?:^|\s)15(?:[,.]0+)?\s*°C\b/:/(?:^|\s)15(?:[,.]0+)?\s*km\/h\b/,'The paired original value retains its numerical reading and displayed unit');
    const probeBounds=await groupedProbe.boundingBox(),probeViewport=page.viewportSize();
-   assert.ok(probeBounds&&probeBounds.x>=-1&&probeBounds.x+probeBounds.width<=probeViewport.width+1,'Combined popup does not overflow small or landscape viewports');
+   assert.ok(probeBounds&&probeBounds.x>=-1&&probeBounds.x+probeBounds.width<=probeViewport.width+1&&
+    probeBounds.y>=-1&&probeBounds.y+probeBounds.height<=probeViewport.height+1,
+    'Combined popup must fit horizontally and vertically on mobile and landscape');
    await page.keyboard.press('Escape');
    await groupedProbe.waitFor({state:'hidden'});
 
