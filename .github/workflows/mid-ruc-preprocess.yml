@@ -79,10 +79,12 @@ jobs:
           PY
       - name: RUC-Auslöser protokollieren
         shell: bash
+        env:
+          RUC_TRIGGER_SOURCE: ${{ inputs.trigger_source || 'manual' }}
         run: |
           set -euo pipefail
           if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
-            echo "RUC trigger source: ${{ inputs.trigger_source || 'manual' }}"
+            printf 'RUC trigger source: %q\n' "$RUC_TRIGGER_SOURCE"
           else
             echo "RUC trigger source: schedule"
           fi
