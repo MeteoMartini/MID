@@ -53,9 +53,13 @@ def attach(snapshot: Path, approval: Path, source_commit_sha: str,
     protected, signer-specific GitHub Actions run on main == mid-stable;
     admit() rechecks that identity cryptographically against the actual index.
     """
+    if snapshot.is_symlink() or approval.is_symlink():
+        raise ValueError('Untrusted or missing approved RUC staging directories')
     snapshot = snapshot.resolve(strict=True)
     approval = approval.resolve(strict=True)
-    if not snapshot.is_dir() or not approval.is_dir() or snapshot.is_symlink():
+    if any(p.is_symlink() for p in approval.rglob('*')):
+        raise ValueError('Untrusted signer artifact contains a symlink')
+    if not snapshot.is_dir() or not approval.is_dir():
         raise ValueError('Untrusted or missing approved RUC staging directories')
     if not isinstance(source_commit_sha, str) or len(source_commit_sha) != 40 or any(c not in '0123456789abcdef' for c in source_commit_sha):
         raise ValueError('Authenticated protected main release SHA absent')
