@@ -1528,6 +1528,7 @@
     "scripts/test-full-calendar-skybar-0985282.mjs",
     "scripts/test-full-twin-archive-sync-netatmo-0850.mjs",
     "scripts/test-geomet-wms-time-0985234.mjs",
+    "scripts/test-geosphere-inca-nowcast.mjs",
     "scripts/test-german-format-layout.mjs",
     "scripts/test-german-weather-terminology-performance-098461.mjs",
     "scripts/test-github-actions-runtime.mjs",
