@@ -4,6 +4,7 @@ import {type WeatherMapFavoriteLocation} from './PrecipitationTotalsMap';
 import {MAP_WORKSPACE_VIEW_KEY,readMapWorkspaceView,saveMapWorkspaceView} from './mapWorkspaceState';
 import type {RadarNowcast,ThunderstormNowcast,WindUnit} from './weather';
 import './MapWorkspace.css';
+import GeoSphereIncaNowcast from './GeoSphereIncaNowcast';
 
 const LazyUnifiedWeatherMap=lazy(()=>import('./UnifiedWeatherMap'));
 const MemoLazyUnifiedWeatherMap=memo(LazyUnifiedWeatherMap);
@@ -34,5 +35,6 @@ export default function MapWorkspacePanel(props:MapWorkspacePanelProps){
 
  return <section className={`map-workspace-shell${props.focusMode?' focus':''}`} aria-label="Kartenarbeitsbereich">
   <Suspense fallback={<LoadingMapPanel/>}><MemoLazyUnifiedWeatherMap {...props} requestedProductId={requestedProductId}/></Suspense>
+  <GeoSphereIncaNowcast lat={props.lat} lon={props.lon} timezone={props.timezone}/>
  </section>
 }

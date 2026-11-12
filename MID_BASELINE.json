@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.458",
+  "releaseVersion": "0.9.85.459",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -438,6 +438,7 @@
     "scripts/test-full-calendar-skybar-0985282.mjs",
     "scripts/test-full-twin-archive-sync-netatmo-0850.mjs",
     "scripts/test-geomet-wms-time-0985234.mjs",
+    "scripts/test-geosphere-inca-nowcast.mjs",
     "scripts/test-german-format-layout.mjs",
     "scripts/test-german-weather-terminology-performance-098461.mjs",
     "scripts/test-github-actions-runtime.mjs",
@@ -1527,6 +1528,7 @@
     "scripts/test-full-calendar-skybar-0985282.mjs",
     "scripts/test-full-twin-archive-sync-netatmo-0850.mjs",
     "scripts/test-geomet-wms-time-0985234.mjs",
+    "scripts/test-geosphere-inca-nowcast.mjs",
     "scripts/test-german-format-layout.mjs",
     "scripts/test-german-weather-terminology-performance-098461.mjs",
     "scripts/test-github-actions-runtime.mjs",
@@ -3955,7 +3957,7 @@
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
-  "version": "0.9.85.458",
+  "version": "0.9.85.459",
   "updatedAt": "2026-11-12",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",

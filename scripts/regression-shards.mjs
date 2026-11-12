@@ -3,7 +3,8 @@ import {regressionSuite} from './regression-suite.mjs';
 export const REGRESSION_HEAVY_SHARDS=Object.freeze({
  'heavy-browser-state':Object.freeze(['test-favorite-selection-browser-0985189.mjs','test-forecast-display-persistence-0985166.mjs','test-fourteen-css-lazy-0985339.mjs']),
  'heavy-native-map':Object.freeze(['test-adaptive-native-maps-0985141.mjs']),
- 'heavy-unified-map':Object.freeze(['test-unified-map-layers-0985167.mjs']),
+ // INCA is a map-domain regression: keep every existing measured Core shard assignment intact.
+ 'heavy-unified-map':Object.freeze(['test-unified-map-layers-0985167.mjs','test-geosphere-inca-nowcast.mjs']),
  'heavy-mountain-visual':Object.freeze(['test-mountain-visual-acceptance-18213.mjs']),
 });
 

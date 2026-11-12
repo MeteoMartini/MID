@@ -1,5 +1,18 @@
 name: MID D2 native eight-kind physical/NoData contract (read-only)
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/mid-ruc-preprocess.yml'
+      - 'ci/github/workflows/mid-ruc-preprocess.yml'
+      - '.github/workflows/mid-d2-original-release-approval.yml'
+      - 'ci/github/workflows/mid-d2-original-release-approval.yml'
+      - 'tools/ruc/augment_compressed_native_d2.py'
+      - 'tools/ruc/select_protected_d2_approval.py'
+      - 'tools/ruc/test_augment_compressed_native_d2.py'
+      - 'tools/ruc/test_select_protected_d2_approval.py'
+      - 'tools/ruc/approve_d2_originals_protected.py'
+      - '.github/workflows/mid-d2-native-eight-field-qa.yml'
+      - 'ci/github/workflows/mid-d2-native-eight-field-qa.yml'
   push:
     branches:
       - chatgpt/v0.9.85.412-d2-ruc-native-qa-from411
@@ -49,3 +62,10 @@ jobs:
           python -m unittest discover -s tools/ruc -p test_stage_d2_native_full_domain.py -v
           python -m unittest discover -s tools/ruc -p test_admit_d2_native_pages.py -v
           python tools/ruc/test_prepare_ruc_pages.py
+      - name: Signed D2 + RUC Pages integration contract (offline only, no publish)
+        run: |
+          python -m unittest discover -s tools/ruc -p test_d2_release_attestation.py -v
+          python -m unittest discover -s tools/ruc -p test_approve_d2_originals_protected.py -v
+          python -m unittest discover -s tools/ruc -p test_d2_protected_signer_workflow.py -v
+          python -m unittest discover -s tools/ruc -p test_select_protected_d2_approval.py -v
+          python -m unittest discover -s tools/ruc -p test_augment_compressed_native_d2.py -v
