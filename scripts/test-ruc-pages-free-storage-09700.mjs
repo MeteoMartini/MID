@@ -1,3 +1,4 @@
+import {inspectRucPagesArtifact,waitForRucPagesArtifact} from '../tools/ci/ruc-pages-artifact-readiness.mjs';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import {assertCanonicalRucWorkflow} from './ruc-workflow-sync-contract.mjs';
@@ -12,6 +13,39 @@ const readActive=(path,canonical)=>fs.readFileSync(fs.existsSync(path)?path:cano
 for(const token of ["const DWD_RUC_STATIC_DEFAULT='https://midwx.app/ruc/'",'dwdRucStaticPointPayload','dwdRucEpsSummaryStaticPayload','dwdRucStorageHealth','pages-free-v1','GitHub Pages',"Accept-Encoding':'identity'"])assert.ok(workerSource.includes(token),`static RUC worker token missing: ${token}`);
 assert.ok(router.includes("mode==='ruc-health')return json({...await dwdRucStorageHealth(env)"));
 const workflowContract=assertCanonicalRucWorkflow(workflow);
+
+assert.match(workflow,/node tools\/ci\/ruc-pages-artifact-readiness\.mjs normal/);
+assert.match(workflow,/node tools\/ci\/ruc-pages-artifact-readiness\.mjs rollback/);
+assert.match(workflow,/steps\.pages_artifact_readiness\.outcome == 'success'/);
+assert.match(workflow,/steps\.rollback_artifact_readiness\.outcome == 'success'/);
+const artifactName='mid-ruc-pages-43315778438-1';
+const goodArtifact={id:13991150239,name:artifactName,size_in_bytes:603787176,
+ digest:'sha256:8bebb64ee86d6a52ca72ae540429e20b7d90e73c9571eb36eda0063c4264accd',
+ expired:false};
+const readyIndex={total_count:1,artifacts:[goodArtifact]};
+const absentIndex={total_count:0,artifacts:[]};
+assert.equal(inspectRucPagesArtifact(absentIndex,artifactName),null);
+assert.equal(inspectRucPagesArtifact(readyIndex,artifactName)?.id,goodArtifact.id);
+for(const invalid of [
+ {...readyIndex,artifacts:[goodArtifact,goodArtifact]},
+ {...readyIndex,artifacts:[{...goodArtifact,expired:true}]},
+ {...readyIndex,artifacts:[{...goodArtifact,digest:'sha256:bad'}]},
+ {...readyIndex,artifacts:[{...goodArtifact,size_in_bytes:0}]},
+ {artifacts:[goodArtifact]},
+ {total_count:101,artifacts:[goodArtifact]}
+])assert.throws(()=>inspectRucPagesArtifact(invalid,artifactName));
+let polls=0;
+const found=await waitForRucPagesArtifact({name:artifactName,maxReads:4,
+ read:()=>{polls++;return polls<3?absentIndex:readyIndex},
+ pauseBetween:async()=>{}});
+assert.equal(polls,4);assert.equal(found.digest,goodArtifact.digest);
+await assert.rejects(waitForRucPagesArtifact({name:artifactName,maxReads:2,
+ read:()=>absentIndex,pauseBetween:async()=>{}}),/PAGES_ARTIFACT_NOT_VISIBLE/);
+let saw=0;await assert.rejects(waitForRucPagesArtifact({name:artifactName,maxReads:3,
+ read:()=>++saw===1?readyIndex:absentIndex,pauseBetween:async()=>{}}),/PAGES_ARTIFACT_VISIBILITY_DRIFT/);
+await assert.rejects(waitForRucPagesArtifact({name:artifactName,maxReads:2,
+ read:()=>{throw Error('HTTP 403')},pauseBetween:async()=>{}}),/HTTP 403/);
+
 assert.equal(workflowContract.state,'canonical','Der fachliche RUC-Pages-Test validiert die kanonische Release-Pipeline; aktives .github wird separat durch Admin-Sync-Regressionen geschützt.');
 // Der ZIP-Installer ersetzt .github absichtlich nicht. Während eines Release-Runs darf die aktive
 // Workflowdatei deshalb älter als die neu installierte kanonische Kopie sein. Bytegleichheit wäre
