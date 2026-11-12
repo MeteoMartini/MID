@@ -1,3 +1,11 @@
+## MID v0.9.85.460 · 12.11.2026 · RUC P4 Recovery und zuverlässige Release-Diagnose
+
+- Ausgangsbasis: main=mid-stable 30b0be2b95f7b59119fa524c339ab43443c62186 (v0.9.85.459), fünf aktive GitHub-Rulesets.
+- Quellpakete: #750 a6ee0904fc3869b88070231eace82e77279b1ee2 (16 RUC-Dateien und Tests) plus #771 01253a0f1f8b49291cc56e30abef50278ae95667 (3 QA-/Dokumentdateien).
+- Etablierte RUC-/D2-Signer-Integration bleibt in beiden Workflowspiegeln erhalten; nur P4-Freshness, ecCodes-Nativprobe und atomarer Pages-/SHA-Drift-Schutz ergänzt. Keine ungetestete Direktintegration aus alten Draft-Branchheads.
+- Release-Laufzeitdiagnose: begrenzte GET-only 502/503/504-Retries sowie negative 401/403/404/429-Kontrollen; keine neue Releasefreigabeberechtigung.
+- Neue Releaseversion erst nach kombiniertem GitHub Source-Gate, regulärem SHA-Bot, ZIP, Installer, Worker/Pages und Stable; bisher nur Source-Kandidat.
+- Originaldaten-E2E von #446 mit 72 Feldern, 73 Objekten und NoData-Readback ist hiervon ausdrücklich getrennt und noch offen.
 ## MID v0.9.85.459 · 2026-11-12 · DWD ICON-D2-Vollgebiet, alpine Radarbeobachtungen und RUC-Sicherheit, GeoSphere-INCA-Punktnowcast
 
 - Published base ef585fdbbfe475146d68868a6b671057f8b52e0d, v0.9.85.458

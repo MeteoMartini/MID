@@ -1,14 +1,13 @@
-# MID v0.9.85.459
+# MID v0.9.85.460
 
 ## Änderungen
-- GeoSphere Austria INCA wird als eigenständig gekennzeichnete 15-Minuten-Niederschlags-Punktprognose für Österreich ergänzt (kg/m² Wasseräquivalent = mm). Modelllauf, UTC-Gültigkeit, Rasterpunkt und Quellen-/CC-BY-4.0-Namensnennung sind getrennt von Radar-Beobachtungen und amtlichen Warnungen angegeben.
-- Die vollständige ICON-D2-Abdeckung wird mit 542.040 nativen Rasterzellen und 72 Originalfeldern über einen geschützten DWD-SLSA-Signaturpfad technisch vorbereitet. Sie wird erst nach echter Original-, Pages- und Client-Abnahme aktiviert.
-- Radar und Satellit im Alpenraum unterscheiden frische DWD-/OPERA-Beobachtungen von überalterten Bildern; ein gültiges IR-Produkt kann bei ausgefallenem VIS-Produkt einspringen.
-- RainViewer bleibt ohne dokumentierte Betreiberfreigabe für öffentliche MID-Proxy-Nutzung gesperrt, einschließlich Kacheln und Punktauswertung.
-- Die RUC-Dispatch-Protokollierung ist vor Shell-Einschleusung über frei eingegebene Parameter geschützt.
+- RUC: Für die sichere Produktivverarbeitung werden die native Vierstunden-Frischeprüfung, nachvollziehbarer Rollback/Health-Status und identische geschützte main-/mid-stable-SHAs vor einer Veröffentlichung geprüft.
+- Der offizielle Python-ecCodes-Decoder wird in beiden RUC-Jobs über seinen nativen Selbsttest verifiziert. Der bisherige zusätzliche Ubuntu-apt-Netzabruf entfällt; die Meteorologiedaten bleiben unverändert.
+- Die rein diagnostische GitHub-Laufzeitmessung fängt vorübergehende HTTP 502/503/504 mit höchstens zwei begrenzten Wiederholungen ab. Fehlende Daten sowie Berechtigungs- und andere HTTP-Fehler bleiben Fehler.
+- Der historisch belegte Veröffentlichungsstand v0.9.85.459 ist in der Source-of-Truth-Dokumentation nachgetragen.
 
 ## Unverändert
-WMO-/DWD-Warnungen, NoData und echte Null, Quellenherkunft, Modelllauf- und UTC-Termine sowie physikalische Originalwerte bleiben geschützt. Keine weiteren kostenpflichtigen Dienste oder Berechtigungen.
+Keine zusätzliche kostenpflichtige Infrastruktur, keine Änderung an den amtlichen Wetterwarnungen, NoData, Zeit-/Einheiten-/Akkumulationssemantik, erlaubten Lizenzen oder bestehenden Source-/Bot-/Installer-/Worker-/Pages-/Stable-Gates.
 
-## Qualität und Freigabe
-Der gemeinsame QA-Kandidat übernimmt #765, #766, #767, #768 und #769. Die RUC-P4-Arbeit #750 bleibt ausgenommen, bis ihre separaten Originaldaten-/Rollback-Gates nachgewiesen sind. Erst die vollständigen Source-/Bot-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates und der echte signierte öffentliche Vollgebiets-Readback erlauben eine Freigabe.
+## Freigabe und noch offene Punkte
+Aus den SHA-verifizierten QA-Drafts #750 (RUC P4) und #771 (Release-Diagnostik) auf Basis der veröffentlichten .459 zusammengestellt. Vollständig native ICON-D2-Vollgebietsdaten erfordern weiterhin einen echten geschützten DWD-SLSA-Signer-Lauf, 73 SHA-geprüfte Dateien, öffentliche Pages-/Kartenabnahme und Sölden/Köln/NoData-Verifikation. Keine reale iOS-/VoiceOver-Abnahme behauptet. Veröffentlichung erst nach sämtlichen Release-Gates.
