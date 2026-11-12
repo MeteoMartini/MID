@@ -2,11 +2,12 @@
   "schema": "mid.release-notes.v1",
   "version": "0.9.85.459",
   "date": "2026-11-12",
-  "title": "DWD ICON-D2-Vollgebiet, alpine Radarbeobachtungen und RUC-Sicherheit",
+  "title": "DWD ICON-D2-Vollgebiet, alpine Radarbeobachtungen und RUC-Sicherheit, GeoSphere-INCA-Punktnowcast",
   "external": [
     "Vollständige ICON-D2-Originalmodellkarten werden für den signierten Publisher vorbereitet und erst nach echter Abnahme aktiviert.",
     "Radar-/Satellitenanzeige in Alpenregionen mit strenger Zeitprüfung und IR-Fallback.",
-    "RainViewer ist ohne belegte MID-Proxy-Nutzungsfreigabe gesperrt."
+    "RainViewer ist ohne belegte MID-Proxy-Nutzungsfreigabe gesperrt.",
+    "GeoSphere Austria INCA ergänzt eine separat ausgewiesene 15-Minuten-Punktprognose für Österreich mit Modelllauf/UTC-Gültigkeit, überprüfter Niederschlagseinheit und CC-BY-4.0-Namensnennung; Radar und amtliche Warnungen bleiben unabhängig."
   ],
   "internal": [
     "Published base ef585fdbbfe475146d68868a6b671057f8b52e0d, v0.9.85.458",
@@ -15,7 +16,8 @@
     "PR #767 4f33379666e1b1c0721d5e7e053bd92386020db8",
     "PR #768 d0f20ba6a27a21089ca4261a8c89d62a1d9a4b94",
     "Exact #766 Bash-injection hardening merged in both #767 original-signature pipeline workflow mirrors.",
-    "PR #750 and PR #769 excluded; license rights unverified, do not activate RainViewer.",
-    "Required: combined QA, reviews, Source-Gate, bot ZIP, installer, Worker/Pages, Stable and real signed public DWD index/73-object/Client readback."
+    "PR #750 RUC-P4 recovery remains excluded; PR #769 INCA point forecast selected with mandatory baseline registry correction; RainViewer access remains disabled without operator approval.",
+    "Required: combined QA, reviews, Source-Gate, bot ZIP, installer, Worker/Pages, Stable and real signed public DWD index/73-object/Client readback.",
+    "Input PR #769: 62eaf652bc571726a766d11da5ce3f2f98f86f7a (7 original paths; four additive Worker fragments merged with #768, source/test files SHA-preserved)."
   ]
 }

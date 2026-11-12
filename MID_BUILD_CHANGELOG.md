@@ -5,7 +5,7 @@
 - Für 542.040 Zellen, 72 Felder, 73 SHA-bilanzierte Objekte und signierten Originalindex fehlen noch authentischer Signer-Produktivlauf und echte Live-Kartenabnahme. NoData wird nicht interpoliert und der alte 8×9-Crop nicht als Vollgebiet etikettiert.
 - #765 frische Produktquellen und Sölden VIS/IR-Fallback; #768 RainViewer ohne Betreiberfreigabe standardmäßig gesperrt. Gemeinsame Browser- und Worker-Tests stehen aus.
 - 19 Version-/iOS-/Web-/Worker-/Changelog-Spiegel auf 0.9.85.459 synchronisiert. Release-Dossier und Nutzerhinweise ergänzt; kein Source-/Installer-/Stable-PASS behauptet.
-- #769 INCA bleibt getrennt, weil CI #43246828346 ein nicht registriertes test-geosphere-inca-nowcast.mjs im Pflichtinventar meldete. Fachliche Review-Disposition #740 ebenfalls offen.
+- INCA-Ergänzung (#769 @ 62eaf652bc571726a766d11da5ce3f2f98f86f7a): Der zuvor identifizierte Baseline-Regressioninventarfehler #43246828346 wird durch explizite Registrierung `scripts/test-geosphere-inca-nowcast.mjs` korrigiert. Sölden-Punktforecast als GeoSphere-CC-BY-4.0-Nowcast, kein Radar-Layer, keine amtliche Warnung. Worker-/Aggregate-Hunks mit RainViewer-Sperre aus #768 kontrolliert kombiniert. Kombinierte CI/Review/#740 und alle Produktionsgates müssen am neuen Gesamt-HEAD erneut laufen.
 
 ## MID v0.9.85.458 · 2026-11-12 · CodeQL-Sicherheitsanalyse und Release-Provenienz
 

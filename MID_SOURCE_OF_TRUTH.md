@@ -2,9 +2,9 @@
 
 **Veröffentlichte Basis:** v0.9.85.458, main=mid-stable ef585fdbbfe475146d68868a6b671057f8b52e0d, Installer #43217173776 einschließlich Worker/Pages erfolgreich. Die Version 0.9.85.459 ist weiterhin ein unveröffentlichter Integrationskandidat.
 
-Vier SHA-verifizierte Draft-Quellen: #765 559d0507e6a63f7f8fa2d73e669b43e2ec5bf08e; #766 6382c1d9553269ec920d73221771ea0f5a1321ef; #767 4f33379666e1b1c0721d5e7e053bd92386020db8; #768 d0f20ba6a27a21089ca4261a8c89d62a1d9a4b94. Die #766-Sicherheitskorrektur ist mit #767 in beiden RUC-Workflowspiegeln integriert. #750 (Recovery), #769 (INCA) und nicht lizenzierte RainViewer-Nutzung sind ausdrücklich nicht mit freigegeben. Vollgebiet nur nach echtem SHA-/SLSA-/73-Objekt-/542040-Zellen-/72-Felder-/Karten-Ende-zu-Ende-Readback.
+Fünf SHA-verifizierte Draft-Quellen: #765 559d0507e6a63f7f8fa2d73e669b43e2ec5bf08e; #766 6382c1d9553269ec920d73221771ea0f5a1321ef; #767 4f33379666e1b1c0721d5e7e053bd92386020db8; #768 d0f20ba6a27a21089ca4261a8c89d62a1d9a4b94; #769 62eaf652bc571726a766d11da5ce3f2f98f86f7a. Die #766-Sicherheitskorrektur ist mit #767 in beiden RUC-Workflowspiegeln integriert. #750 (RUC-Recovery) bleibt separat; RainViewer ohne belegte Betreiberfreigabe bleibt gesperrt. INCA ist ausschließlich eine getrennte österreichische Punktprognose, keine Radar-Beobachtung, mit GeoSphere-CC-BY-4.0-Namensnennung. Vollgebiet nur nach echtem SHA-/SLSA-/73-Objekt-/542040-Zellen-/72-Felder-/Karten-Ende-zu-Ende-Readback.
 
-**Gates offen:** kombinierte Draft-QA, unabhängige Reviews und #740-Disposition, Source-/DWD-/Heavy-/Browser-Tests, Bot-ZIP, Installer, Worker, Pages und Stable. Keine reale iOS- oder VoiceOver-Abnahme behauptet.
+**Gates offen:** aktualisierte kombinierte Draft-QA einschließlich INCA-Regression, unabhängige Reviews und #740-Disposition, Source-/DWD-/Heavy-/Browser-Tests, Bot-ZIP, Installer, Worker, Pages und Stable. Keine reale iOS- oder VoiceOver-Abnahme behauptet.
 
 # MID v0.9.85.458 · CodeQL-Pflege und verifizierte Release-Provenienz
 
