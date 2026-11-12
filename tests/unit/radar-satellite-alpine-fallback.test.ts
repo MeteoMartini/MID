@@ -14,8 +14,8 @@ describe('Sölden and Alpine map observation source fallback',()=>{
   expect(source).toContain("operaUsable=operaStatus==='ready'&&operaTimeline.some");
   expect(source).toContain("frame.time>=referenceSeconds-45*60");
   expect(source).toContain("const freshOpera=operaStatus==='ready'&&operaFrames.some");
-  expect(source).toContain("stamp>=Date.now()-90*60000");
-  expect(source).toContain("rainViewerUsable=Boolean(host&&rainViewerFrames.length)");
+  expect(source).toContain("stamp>=Date.now()-45*60000");
+  expect(source).toContain("rainViewerUsable=Boolean(host&&rainViewerFrames.some");
  });
  it('keeps RainViewer frames distinct from DWD timestamps and renders verified fallback in the unified map',()=>{
   expect(source).toContain('[rainViewerFrames,setRainViewerFrames]=useState<RadarFrame[]>([])');
