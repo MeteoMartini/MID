@@ -3,7 +3,7 @@
 const SHA=/^[0-9a-f]{40}$/;
 const DOMAINS=Object.freeze(['release-security','meteorology-ruc','maps-ui','dependency-quality','other']);
 const safeFiles=arr=>Array.isArray(arr)&&arr.length>0&&arr.length<=200&&arr.every(x=>
-  typeof x==='string'&&x.length>0&&x.length<300&&!x.includes('..')&&!x.startsWith('/'));
+  typeof x==='string'&&x.length>0&&x.length<300&&!x.startsWith('/')&&!x.includes('\\')&&!x.split('/').some(part=>part===''||part==='.'||part==='..'));
 export function classifyMidPrPaths(paths){
   if(!safeFiles(paths))return 'unknown-paths';
   if(paths.some(x=>/(^\.github\/|^ci\/|^tools\/ci\/|^contracts\/|release|security|codeql)/i.test(x)))
@@ -63,15 +63,15 @@ export function assessMidPrBacklog({mainSha,stableSha,pullRequests,maxBatch=5,al
        e.checksRequired.includes('CHANGED_FILES_NOT_VERIFIED'))continue;
     const conflicts=[];
     const pr=pullRequests.find(x=>x.number===e.number);
-    for(const path of pr.files){
+    for(const path of new Set(pr.files)){
       if(allSeen.has(path))conflicts.push({path,withPr:allSeen.get(path)});
       else allSeen.set(path,e.number);
     }
     if(conflicts.length){pathCollisions.push({pr:e.number,conflicts});continue;}
     if(candidateNumbers.length>=maxBatch)continue;
-    if(pr.files.some(path=>claimed.has(path)))continue;
+    if([...new Set(pr.files)].some(path=>claimed.has(path)))continue;
     candidateNumbers.push(e.number);
-    for(const path of pr.files)claimed.set(path,e.number);
+    for(const path of new Set(pr.files))claimed.set(path,e.number);
   }
   return {schema:'mid.pr-backlog.v1',valid:true,stableSha,
     entries,groups,pathCollisions,

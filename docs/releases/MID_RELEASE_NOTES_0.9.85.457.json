@@ -2,12 +2,12 @@
   "schema": "mid.release-notes.v1",
   "version": "0.9.85.457",
   "date": "2026-11-12",
-  "title": "Gemeinsame Kartenwertanzeige, klarere Modellwahl und sichere Review-Konvergenz",
+  "title": "Karten-Popup, Modellwahl und beratende Review-Konvergenz (Release-Train-Kandidat)",
   "external": [
     "Winter- und Sommerkarten: Ein gemeinsames Karten-Popup zeigt für denselben Punkt mehrere aktive Modellfelder getrennt an, beispielsweise Niederschlag und Temperatur beziehungsweise Böen. Einheit, Quelle, fehlende Werte und gültige Nullwerte bleiben unterscheidbar.",
     "Die Modellwahl der Karten ist nach Modellfamilie und – soweit fachlich belegt – nach Rasterauflösung geordnet. Länder- und EU-Kennzeichen erscheinen nur bei bekannter Herkunft; ungesicherte Rasterangaben werden nicht erfunden.",
-    "Neue, ausschließlich beratende Werkzeuge erleichtern die Priorisierung paralleler Pull Requests und begrenzen automatische Review-Nachbesserungen auf höchstens zwei Runden. Sicherheits- und Fachmängel sowie echte GitHub-Reviews bleiben verbindliche Freigabevoraussetzungen.",
-    "Amtliche Warnungen, Wettermodell-Originalwerte, Datenquellen und Niederschlagsakkumulationen werden durch diese Änderungen nicht neu berechnet."
+    "Neue ausschließlich beratende Werkzeuge unterstützen die Priorisierung paralleler Pull Requests und empfehlen höchstens zwei automatische Review-Nachbesserungsrunden. Sie setzen selbst keine Durchsetzung oder Freigabe um; Sicherheits- und Fachmängel sowie echte GitHub-Reviews bleiben verbindlich.",
+    "Amtliche Warnungen und Datenquellen bleiben unverändert. Wettermodell-Originalwerte und Niederschlagsakkumulationen werden durch diese Darstellungsänderungen nicht neu berechnet."
   ],
   "internal": [
     "Verifizierte Integrationsbasis: main=mid-stable 78409f80bfea5112700ff4a119b7c8bd46090c22 (v0.9.85.456), fünf aktive GitHub-Rulesets und synchronisierte Versionsspiegel. Neuer autorisierter chatgpt/* Release-Train; unveröffentlichter Quellkandidat bis vollständigem Gate.",
@@ -17,6 +17,7 @@
     "Dateipfad- und Abstammungsprüfung: alle 18 selektierten Quelldateien untereinander überschneidungsfrei; die älteren bestehenden Dateipfade sind im Stable-Diff .455→.456 nicht geändert. Sämtliche Quellblob-SHAs wurden gegen die jeweiligen PR-HEADs gelesen; kein ungeprüfter Merge oder Rebase.",
     "Vorqualifikation auf Einzel-HEAD: #761 Vitest/Coverage Run 43169666982 SUCCESS; #755 Vitest/Coverage Run 43064440788 SUCCESS; #757 Vitest/Coverage Run 43080896179 SUCCESS. Diese Runs belegen NICHT die kombinierte Integration; vollständiges Source-/Core-/Heavy-/Browser-/ZIP-/Installer-/Pages-/Stable-Gate muss auf exaktem neuem Integrations-HEAD folgen.",
     "RUC #750/#541, weitere DWD-Originaldaten-/ICON-EU-Kartenqualifikation, externer MID AI Router #728, CodeQL-/CI-Upgrades #759/#760 und ältere Drafts bewusst nicht mitintegriert. Keine kostenpflichtigen Dienste, Secrets-, Ruleset- oder Schutzänderungen.",
-    "Build/Installer/Worker/Pages/Stable sowie reale Geräte- und VoiceOver-Abnahme erst nach tatsächlich grünen SHA-gebundenen Gates behaupten; NoData niemals zu Null konvertieren. Keine eigenständige amtliche Warnklassifikation."
+    "Build/Installer/Worker/Pages/Stable sowie reale Geräte- und VoiceOver-Abnahme erst nach tatsächlich grünen SHA-gebundenen Gates behaupten; NoData niemals zu Null konvertieren. Keine eigenständige amtliche Warnklassifikation.",
+    "QA-Triage: Der read-only Planer verwendet ausschließlich ungeprüfte Aufrufereingaben für Review-/Evidenzstatus; die tatsächlich verbindlichen GitHub-Review- und Source-Gates müssen separat authentisiert werden. Der Modellwahl-Fallback für nicht verfügbare Quellen enthält keine unbelegte Auflösung."
   ]
 }

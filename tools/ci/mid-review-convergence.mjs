@@ -59,7 +59,10 @@ export function assessMidReviewConvergence(input={}){
       // Reviewer comments can contradict themselves; do not silently discard
       // an apparent duplicate with stricter severity or changed disposition.
       if(prior.severity!==f.severity||prior.disposition!==f.disposition||
-         prior.domainCritical!==f.domainCritical)
+         prior.domainCritical!==f.domainCritical||
+         (prior.ownerRiskAccepted===true)!==(f.ownerRiskAccepted===true)||
+         prior.independentVerified!==f.independentVerified||
+         prior.evidenceSha!==f.evidenceSha||prior.evidenceRef!==f.evidenceRef)
         findingsErrors.push('CONFLICTING_REPEAT');
       continue;
     }
@@ -81,7 +84,7 @@ export function assessMidReviewConvergence(input={}){
     }
     if(f.disposition==='deferred'){
       if(material)critical.push(f.id);
-      else if(f.severity==='P2'&&(!f.ownerRiskAccepted||!independentlyQualified))
+      else if(f.severity==='P2'&&(f.ownerRiskAccepted!==true||!independentlyQualified))
         needsTriage.push(f.id);
       else backlog.push(f.id);
       continue;
@@ -95,7 +98,7 @@ export function assessMidReviewConvergence(input={}){
     uniqueFindings:unique.length,duplicateFindings:duplicates,
     unresolvedCritical:critical,needsEvidence,needsTriage,backlog,
     openReviewThreads,changesRequested,
-    note:'Finding evidence is user-supplied and NOT independently authenticated by this planner.'};
+    note:'Review counts, GitHub states, independentVerified and evidenceRef are all caller-provided inputs. This planner does not authenticate evidence and never authorizes merges, releases, native-thread closure, or source gates.'};
   const blocked=[...critical,...needsEvidence,...needsTriage].length>0||
     openReviewThreads>0||changesRequested>0;
   if(blocked){

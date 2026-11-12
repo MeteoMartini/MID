@@ -183,6 +183,7 @@ describe('MID map model identity: flag, family and fine-to-coarse ordering',()=>
   const panel=readFileSync(fileURLToPath(new URL('../../src/WeatherMapsPanel.tsx',import.meta.url)),'utf8');
   expect(map).toContain('groupedMapModelOptions(');
   expect(panel).toContain('groupedMapModelOptions(modelOptions)');
+  expect(panel).toContain("mapModelDisplayLabel({...model,sourceGrid:'mixed'})"); // unavailable option has no verified grid
   expect(map).toContain('value={c.id}>{c.displayLabel}');
   expect(panel).toContain('value={item.id}>{item.displayLabel}');
   expect(map).toContain('unifiedSources(');

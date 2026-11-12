@@ -247,6 +247,25 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
    if(seasonalExportPilot&&await fav.getAttribute('open')===null)await fav.locator(':scope > summary').click();
    assert.ok((await fav.locator('thead').textContent()||'').includes(secondary),'Original companion appears as second numeric field');
    assert.equal(await fav.locator('thead th').count(),3,'Seasonal native pair has both variable columns');
+   // Real Chrome verifies the shared map dialog, not merely the 2-column
+   // point-value table. Check each assigned device/theme for one focusable
+   // dialog and two separately sourced original values at one coordinate.
+   const centerProbe=page.getByRole('button',{name:'Wert am Kartenmittelpunkt anzeigen',exact:true});
+   await centerProbe.waitFor();
+   assert.equal(await page.locator('.mid-model-map-probe-center').count(),1,'One map center probe for both model layers');
+   await centerProbe.click();
+   const groupedProbe=page.getByRole('dialog',{name:/^Kartenwerte ·/});
+   await groupedProbe.waitFor();
+   const probeRows=groupedProbe.locator('.mid-model-map-probe__row');
+   assert.equal(await probeRows.count(),2,'Seasonal overlay exposes both original fields in one popup');
+   const probeLabels=await groupedProbe.locator('.mid-model-map-probe__row-label').allTextContents();
+   assert.deepEqual(probeLabels.map(x=>x.trim()),['Niederschlag · 1 h',secondary],'Neither precipitation nor companion may be dropped');
+   assert.equal(await groupedProbe.locator('.mid-model-map-probe__source').count()>=2,true,'Each field retains visible provenance');
+   const probeBounds=await groupedProbe.boundingBox(),probeViewport=page.viewportSize();
+   assert.ok(probeBounds&&probeBounds.x>=-1&&probeBounds.x+probeBounds.width<=probeViewport.width+1,'Combined popup does not overflow small or landscape viewports');
+   await page.keyboard.press('Escape');
+   await groupedProbe.waitFor({state:'hidden'});
+
    if(seasonalExportPilot){
    // A real installed Chrome may expose native Web Share. Explicitly test the
    // ordinary fallback-download path; native iOS sharing needs a device check.

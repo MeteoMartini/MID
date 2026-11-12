@@ -75,6 +75,19 @@ describe('MID review convergence without review/release bypass',()=>{
   expect(assessMidReviewConvergence(input({findings:[f,{...same,disposition:'fixed'}]})).action)
    .toBe('BLOCK_INVALID_EVIDENCE');
  });
+ it('rejects a string risk-acceptance flag and conflicting same-fingerprint acceptance evidence',()=>{
+  const base=finding({severity:'P2',disposition:'deferred',
+   independentVerified:true,evidenceSha:head,evidenceRef:'https://github.com/example/proof',
+   ownerRiskAccepted:'false'});
+  const invalid=assessMidReviewConvergence(input({findings:[base]}));
+  expect(invalid.needsTriage).toEqual(['review-1']);
+  const proven={...base,ownerRiskAccepted:true};
+  const sameFingerprint={...proven,id:'review-2',ownerRiskAccepted:false};
+  expect(assessMidReviewConvergence(input({findings:[proven,sameFingerprint]})).action)
+   .toBe('BLOCK_INVALID_EVIDENCE');
+  expect(assessMidReviewConvergence(input({findings:[proven]})).backlog)
+   .toEqual(['review-1']); // Merely caller-supplied triage, no real review authentication.
+ });
  it('tracks noncritical P3 and requires disposition for noncritical P2',()=>{
   expect(assessMidReviewConvergence(input({findings:[finding({severity:'P3'})]})).action)
     .toBe('FREEZE_HEAD_AND_RUN_SOURCE');
@@ -124,6 +137,22 @@ describe('MID PR backlog: read-only path and lineage triage',()=>{
   expect(o.pathCollisions).toHaveLength(1);
   expect(o.pathCollisions[0].pr).toBe(757);
   expect(assessMidPrBacklog({mainSha:stable,stableSha:stable,maxBatch:6,pullRequests:[]}).valid).toBe(false);
+ });
+ it('does not invent self-conflicts for repeated paths or reject harmless literal double dots',()=>{
+  const o=assessMidPrBacklog({mainSha:stable,stableSha:stable,pullRequests:[
+   pr(755,stable,['src/model..old.ts','src/model..old.ts']),
+   pr(757,stable,['src/map-popup.ts']),
+  ]});
+  expect(o.valid).toBe(true);
+  expect(o.entries.find((p:any)=>p.number===755).changedPaths).toBe(1);
+  expect(o.proposedReviewBatch).toContain(755);
+  expect(o.proposedReviewBatch).toContain(757);
+  expect(o.pathCollisions).toHaveLength(0);
+  const unsafe=assessMidPrBacklog({mainSha:stable,stableSha:stable,pullRequests:[
+   pr(760,stable,['src/../secrets.ts']),
+  ]});
+  expect(unsafe.entries[0].checksRequired).toContain('CHANGED_FILES_NOT_VERIFIED');
+  expect(unsafe.proposedReviewBatch).toEqual([]);
  });
  it('classifies by real paths, not misleading PR titles',()=>{
   expect(classifyMidPrPaths(['ci/github/workflows/install-mid.yml'])).toBe('release-security');

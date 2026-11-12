@@ -29,15 +29,12 @@ oder dauerhaften Cloud-Dienste. Quelländerungen nur auf chatgpt/*-Branch.
 5. **Source grün → Bot → ZIP → Installer → Worker/Pages → Stable** bleibt der einzige
    Veröffentlichungsweg. Native GitHub-Conversation/Review, Rulesets, Versions-,
    Meteorologie-, Browser-/Geräte- und Security-Gates gelten weiterhin.
-6. **P2/P3:** nach tatsächlicher Risikoklassifikation und unabhängiger Evidenz
-   darf unkritischer, dokumentierter Scope in den Backlog. Eine noch offene native
-   Reviewkonversation bleibt trotzdem ein GitHub-Mergeblocker und muss auf
-   sachlicher Grundlage abgeschlossen werden.
+6. **P2/P3:** Offene, unkritische P3 dürfen lediglich als **unverbindliche Backlog-Kandidaten** markiert werden. Eine endgültige Disposition erfordert dokumentierte fachliche Risikoentscheidung und außerhalb dieses Planers unabhängig validierte Evidenz; auch P2-Risikoakzeptanz muss explizit boolesch `true` und unabhängig belegt sein. Eine noch offene native Reviewkonversation bleibt trotzdem ein GitHub-Mergeblocker und muss auf sachlicher Grundlage abgeschlossen werden.
 
 ## Implementierung
 
 - `tools/ci/mid-review-convergence.mjs`: pure, deterministische Statusmaschine,
-  SHA-/Freeze-/Review-/Quellenprüfung, höchstens zwei automatische Fixrunden,
+  SHA-/Freeze-/Review-**Eingabeplausibilität** (keine GitHub-Authentisierung), beratende Obergrenze von zwei automatischen Fixrunden,
   Doppelmeldungen und Konflikte, evidenzgebundene Disposition, echte kritische
   Blocker, P2-Risikotriage. Gibt **immer** `releaseAuthorized:false`,
   `mergeAuthorized:false`, `sourceGateAuthorized:false`,
@@ -47,12 +44,16 @@ oder dauerhaften Cloud-Dienste. Quelländerungen nur auf chatgpt/*-Branch.
   erste Gruppen, max. fünf **potenzielle** PRs gemäß vorhandenem Release-Train-
   Vertrag. Geteilte Dateinamen sind keine Beweise einer früheren Übernahme.
   Keine PRs automatisch schließen, kein Merge, keine Regeln ändern.
-- `tests/unit/mid-review-convergence.test.ts`: verbindliche Negativfälle
-  (kritische P0/P1, fachkritische P2, Konflikte, SHA-Drift, Review-Thread offen,
-  echte `CHANGES_REQUESTED`, 2-Runden-Grenze, falsche Reviewer-Evidenz,
-  keine Authentisierung durch beliebiges JSON), ohne neue Workflow-ID.
-- Der Status wird nur als **Planungsevidenz** an den Leitchat übergeben. Weder
-  eigenmächtige Auto-PR-Änderungen noch automatische Stable-Promotion.
+- `tests/unit/mid-review-convergence.test.ts`: deterministische Negativfälle
+  für übergebene **simulierte** P0/P1/P2- und GitHub-Zustandsangaben,
+  widersprüchliche Doppelmeldungen, SHA-/Rundengrenzen und abgelehnte
+  P2-Strings als Risikoakzeptanz. Die Tests lesen keine echten GitHub-Reviews
+  und authentisieren weder `independentVerified` noch beliebige JSON-Claims.
+- Der Status basiert ausschließlich auf vom Aufrufer gelieferten Eingaben und
+  ist **nicht** selbst unabhängig verifizierte GitHub- oder Reviewer-Evidenz.
+  Echte native Review-/Conversation- und Source-Gates müssen extern aus GitHub
+  SHA-genau gelesen und unabhängig bestätigt werden. Weder eigenmächtige
+  Auto-PR-Änderungen noch automatische Stable-Promotion.
 
 ## Erste Backlog-Reihenfolge auf .456-Basis
 
