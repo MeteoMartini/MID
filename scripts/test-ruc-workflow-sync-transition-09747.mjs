@@ -24,9 +24,12 @@ steps:
       else
         python tools/ruc/check_ruc_schedule_guard.py
       fi
-  - name: Freie DWD-Decodierwerkzeuge installieren
+  - name: Native Python-ecCodes-Wheel vor DWD-Decode prüfen
     if: \${{ steps.freshness.outputs.should_run == 'true' }}
+    run: python -m eccodes selfcheck
   - name: Bereits aktuellen RUC-Lauf ohne Neubau bestätigen
+  - name: Native Python-ecCodes-Wheel vor RUC-Aufbereitung prüfen
+    run: python -m eccodes selfcheck
 `;
 const preWatchdogCatchup=`name: MID DWD RUC preprocessing
 on:
@@ -46,9 +49,12 @@ steps:
       else
         python tools/ruc/check_ruc_schedule_guard.py
       fi
-  - name: Freie DWD-Decodierwerkzeuge installieren
+  - name: Native Python-ecCodes-Wheel vor DWD-Decode prüfen
     if: \${{ steps.freshness.outputs.should_run == 'true' }}
+    run: python -m eccodes selfcheck
   - name: Bereits aktuellen RUC-Lauf ohne Neubau bestätigen
+  - name: Native Python-ecCodes-Wheel vor RUC-Aufbereitung prüfen
+    run: python -m eccodes selfcheck
 `;
 const legacy=`name: MID DWD RUC preprocessing
 on:
@@ -61,6 +67,11 @@ steps:
   - name: Freie DWD-Decodierwerkzeuge installieren
 `;
 assert.equal(rucWorkflowSyncState(canonical,canonical).state,'synced');
+assert.equal(
+  rucWorkflowSyncState(canonical,canonical.replace('python -m eccodes selfcheck','echo unsafe-skip')).state,
+  'invalid-canonical',
+  'A native ecCodes proof removed from the canonical workflow must fail closed.'
+);
 assert.deepEqual(rucWorkflowSyncState(preWatchdogCatchup,canonical),{
   ok:true,
   state:'pending-admin-sync',
