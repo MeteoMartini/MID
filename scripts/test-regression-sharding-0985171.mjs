@@ -29,7 +29,7 @@ assert.ok(!mapBrowserCases('2/3').some(row=>mapKey(row)===mapKey(movedCase)),'Do
 
 assert.deepEqual(REGRESSION_HEAVY_SHARDS['heavy-browser-state'],['test-favorite-selection-browser-0985189.mjs','test-forecast-display-persistence-0985166.mjs','test-fourteen-css-lazy-0985339.mjs']);
 assert.deepEqual(REGRESSION_HEAVY_SHARDS['heavy-native-map'],['test-adaptive-native-maps-0985141.mjs']);
-assert.deepEqual(REGRESSION_HEAVY_SHARDS['heavy-unified-map'],['test-unified-map-layers-0985167.mjs']);
+assert.deepEqual(REGRESSION_HEAVY_SHARDS['heavy-unified-map'],['test-unified-map-layers-0985167.mjs','test-geosphere-inca-nowcast.mjs']);
 assert.deepEqual(REGRESSION_HEAVY_SHARDS['heavy-mountain-visual'],['test-mountain-visual-acceptance-18213.mjs']);
 for(const name of Object.values(REGRESSION_HEAVY_SHARDS).flat())assert.ok(!plan.shards.core.includes(name),name+' darf nicht zusätzlich im Core-Shard laufen.');
 
