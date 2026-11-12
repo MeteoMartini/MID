@@ -1,7 +1,11 @@
-# MID v0.9.85.457
+# MID v0.9.85.458
 
-- Winter- und Sommerkarten: Ein gemeinsames Karten-Popup zeigt für denselben Punkt mehrere aktive Modellfelder getrennt an, beispielsweise Niederschlag und Temperatur beziehungsweise Böen. Einheit, Quelle, fehlende Werte und gültige Nullwerte bleiben unterscheidbar.
-- Die Modellwahl der Karten ist nach Modellfamilie und – soweit fachlich belegt – nach Rasterauflösung geordnet. Länder- und EU-Kennzeichen erscheinen nur bei bekannter Herkunft; ungesicherte Rasterangaben werden nicht erfunden.
-- Neue ausschließlich beratende Werkzeuge unterstützen die Priorisierung paralleler Pull Requests und empfehlen höchstens zwei automatische Review-Nachbesserungsrunden. Sie setzen selbst keine Durchsetzung oder Freigabe um; Sicherheits- und Fachmängel sowie echte GitHub-Reviews bleiben verbindlich.
-- Amtliche Warnungen und Datenquellen bleiben unverändert. Wettermodell-Originalwerte und Niederschlagsakkumulationen werden durch diese Darstellungsänderungen nicht neu berechnet.
-- Für künftige Spezial- und Sammeländerungen gibt es eine gezielte, SHA-gebundene Vorprüfung der betroffenen Regressionen bereits im Draft. Sie ergänzt, ersetzt aber nicht die vollständigen Veröffentlichungstests.
+## Änderungen
+- Die GitHub-CodeQL-Sicherheitsanalyse verwendet jetzt einheitlich die verifizierte Action v4.39.1 für Initialisierung und Auswertung. Beide Aufrufe sind auf denselben unveränderlichen Commit-SHA festgelegt.
+- Der Quellstand dokumentiert die inzwischen tatsächlich veröffentlichte Vorgängerversion v0.9.85.457 mit ihrer vollständigen Source-/Installer-/Worker-/Pages-Provenienz korrekt.
+
+## Unverändert
+Wettermodelle, DWD-/WMO-Warnungen, Niederschlagswerte, Karten, Benutzeroberfläche und Nutzerdatenverarbeitung bleiben funktional unverändert. Es entstehen keine zusätzlichen kostenpflichtigen Dienste, Secrets, Rechte oder verpflichtenden Freigabeschritte.
+
+## Qualität und Freigabe
+Der CodeQL-Pin aus QA-Draft #759 ist gegenüber der unveränderten Stable-Dateibasis übernommen und hatte im Original-PR einen erfolgreichen echten CodeQL-JavaScript/TypeScript-Lauf sowie die vorhandene Revisionsmatrix. Die vollständigen neuen MID Source-, Bot-, ZIP-, Installer-, Worker-, Pages- und Stable-Gates bleiben Voraussetzung. Diese Release-Notiz allein belegt keine Veröffentlichung.
