@@ -187,7 +187,7 @@ assert.ok(panel.includes("weatherMapFrameReady(wmsProduct,metadata,wmsTime??'',w
 for(const token of ['loadNativeField','loadTotals','ModelMapProbe','synopticAt','exportNativeField','exportTotals','writeDurableStorageValue','fieldCache.current.size>8'])assert.ok(panel.includes(token),token);
 assert.ok(radar.includes('unified?.overlay')&&radar.includes('unified?.controls'),'Single unified map and its verified controls must remain');
 assert.ok(radar.includes('if(!fallbackNeeded||!showRadar||highResolution)')&&radar.includes("activeSource==='rainviewer'&&rainRenderBlend.map"),'Unified observations must keep an existing licensed, age-bounded RainViewer fallback when DWD/OPERA cannot provide a real frame');
-assert.ok(radar.includes('productTimes.checkedAt&&productTimes.dwdRadar?.length===0?[]')&&radar.includes("operaUsable=operaStatus==='ready'&&operaTimeline.some"),'Provider selection must use local availability and a timely OPERA frame, never stale inventory');
+assert.ok(radar.includes('dwdProductChecked&&Array.isArray(productTimes.dwdRadar)')&&radar.includes("operaUsable=operaStatus==='ready'&&hasFreshRadarObservation"),'Provider selection must use local availability and a timely OPERA frame, never stale inventory');
 assert.ok(radar.includes("visibleModelLines:ModelLineMode=unified?'off'"),'Old synoptic must be absent in unified route');
 assert.ok(radar.includes('unified?availableCompositeFutureMinutes(referenceSeconds,modelForecastTimes):120')&&radar.includes('unified.times.map'),'Only actual model terms, not fabricated interpolations');
 assert.ok(read('src/UnifiedVectorBasemap.tsx').includes('VectorTileLayers'),'Vector geography replaces pixel base');

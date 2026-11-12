@@ -37,7 +37,7 @@ import {
  type RainViewerFrame,
  type WmsProvider
 } from './CompositeData';
-import {blendOpacity,blendTimedFrames,buildAvailableCompositeTimeline,availableCompositeFutureMinutes,clamp,dominantBlendFrame,nearestAvailableFrameIndex,preferForecastFrameIndex,uniqueTimedFrames,type BlendFrame,type CompositeTimelineFrame,type TimedFrame} from './CompositeTimeline';
+import {blendOpacity,blendTimedFrames,buildAvailableCompositeTimeline,availableCompositeFutureMinutes,clamp,dominantBlendFrame,hasFreshRadarObservation,nearestAvailableFrameIndex,preferForecastFrameIndex,uniqueTimedFrames,type BlendFrame,type CompositeTimelineFrame,type TimedFrame} from './CompositeTimeline';
 import MapTimelineControls,{MapTimelineLiveButton,MapTimelineSpeedControl,MapTimelineTransport} from './MapTimelineControls';
 import {DEFAULT_RADAR_COLOR_TABLE,radarColorTable,type RadarColorTableId} from './radarColorTables';
 import {COMPOSITE_BASEMAPS as BASEMAPS,MODEL_LINE_MODES,readCompositeSettings as storedSettings,patchCompositeSettings,subscribeCompositeSettings,type BasemapId,type CompositeSettings,type CompositeViewMode,type ModelLineColor,type ModelLineMode,type ModelLineTone,type MotionTimeMode} from './compositeSettings';
@@ -261,7 +261,7 @@ const MemoPressureCenters=memo(PressureCenters);
 export type UnifiedRadarWorkspace={controls:ReactNode;overlay:ReactNode;times:string[];forecastOverlay?:ReactNode;enabled?:boolean;run?:string;cloudContrast?:boolean;sourceLabel:string;ready:boolean;onTimeChange:(time:number)=>void;onObservationLayersChange?:(active:boolean)=>void};
 export default function RadarPanel({lat,lon,timezone,analysis,thunder,isDay=true,actualLocation=false,focusMode=false,unified}:{lat:number;lon:number;timezone?:string;analysis?:RadarNowcast|null;thunder?:ThunderstormNowcast|null;isDay?:boolean;actualLocation?:boolean;focusMode?:boolean;unified?:UnifiedRadarWorkspace}){
  const initial=useMemo(storedSettings,[]),source=sourceForLocation(analysis,lat,lon),touchDevice=useMemo(isCoarsePointer,[]),deviceHeading=useDeviceHeading(actualLocation),headingIcon=useMemo(()=>actualLocation?locationHeadingIcon(deviceHeading.heading):selectedPlaceIcon(),[actualLocation,deviceHeading.heading]);
- const[nowMs,setNowMs]=useState(Date.now()),[clockOffsetMs,setClockOffsetMs]=useState(0),[radarFrames,setRadarFrames]=useState<RadarFrame[]>([]),[rainViewerFrames,setRainViewerFrames]=useState<RadarFrame[]>([]),[host,setHost]=useState(''),[index,setIndex]=useState(0),[playing,setPlaying]=useState(false),[playbackSeconds,setPlaybackSeconds]=useState(initial.playbackSeconds),[playbackMessage,setPlaybackMessage]=useState(''),[playbackProbe,setPlaybackProbe]=useState(0),[previousSatelliteKey,setPreviousSatelliteKey]=useState(''),[satelliteFadeReady,setSatelliteFadeReady]=useState(true),[previousRadarTime,setPreviousRadarTime]=useState<number|undefined>(),[radarFadeReady,setRadarFadeReady]=useState(true),[liveFollow,setLiveFollow]=useState(true),[locateRequest,setLocateRequest]=useState(0);
+ const[nowMs,setNowMs]=useState(Date.now()),[clockOffsetMs,setClockOffsetMs]=useState(0),[rainViewerFrames,setRainViewerFrames]=useState<RadarFrame[]>([]),[host,setHost]=useState(''),[index,setIndex]=useState(0),[playing,setPlaying]=useState(false),[playbackSeconds,setPlaybackSeconds]=useState(initial.playbackSeconds),[playbackMessage,setPlaybackMessage]=useState(''),[playbackProbe,setPlaybackProbe]=useState(0),[previousSatelliteKey,setPreviousSatelliteKey]=useState(''),[satelliteFadeReady,setSatelliteFadeReady]=useState(true),[previousRadarTime,setPreviousRadarTime]=useState<number|undefined>(),[radarFadeReady,setRadarFadeReady]=useState(true),[liveFollow,setLiveFollow]=useState(true),[locateRequest,setLocateRequest]=useState(0);
  const[viewMode,setViewMode]=useState<CompositeViewMode>(unified?'radar':initial.viewMode);
  const[focusLayersOpen,setFocusLayersOpen]=useState(false),focusLayersButtonRef=useRef<HTMLButtonElement>(null);
  const[compactLayersOpen,setCompactLayersOpen]=useDisplayPreference('RadarPanel.layers.expanded',typeof window==='undefined'||!window.matchMedia?.('(max-width: 850px)')?.matches,displayBoolean);
@@ -306,6 +306,21 @@ export default function RadarPanel({lat,lon,timezone,analysis,thunder,isDay=true
  const referenceMs=nowMs+clockOffsetMs,referenceSeconds=Math.floor(referenceMs/1000);
  const pxObservedMs=pxMeta?.observedAt?epochMs(pxMeta.observedAt):NaN,pxFresh=px250FreshForLocation(Boolean(pxMeta?.available),pxObservedMs,pxLocation,`${lat},${lon}`,referenceMs);
  const highResolution=selectedHighResolution&&pxFresh;
+ const dwdProductChecked=Boolean(productTimes.checkedAt);
+ const dwdTimeline=useMemo(()=>{
+  const productFrames=toFrames(productTimes.dwdRadar,referenceSeconds);
+  if(dwdProductChecked&&Array.isArray(productTimes.dwdRadar))return productFrames;
+  const supplied=(Array.isArray(analysis?.timeline)?analysis.timeline:[]).map(epochMs).filter(Number.isFinite);
+  const observed=epochMs(analysis?.observedAt);
+  const times=supplied.length?supplied:Number.isFinite(observed)?[observed]:[];
+  const frames=times.map(time=>({time:Math.floor(time/1000),path:''}));
+  return uniqueTimedFrames<RadarFrame>([...frames,...productFrames],referenceSeconds-190*60,referenceSeconds+130*60);
+ },[analysis?.timeline,analysis?.observedAt,productTimes.dwdRadar,dwdProductChecked,referenceSeconds]);
+ const operaTimeline=useMemo(()=>uniqueTimedFrames(operaFrames.map(frame=>({time:Math.floor(Date.parse(frame.time)/1000),frame})),referenceSeconds-190*60,referenceSeconds+20*60),[operaFrames,referenceSeconds]);
+ const dwdTemporarilyBlocked=Boolean(radarTileError)&&referenceMs<radarRetryAt;
+ const dwdUsable=source==='dwd'&&!dwdTemporarilyBlocked&&hasFreshRadarObservation(dwdTimeline,referenceSeconds);
+ const operaUsable=operaStatus==='ready'&&hasFreshRadarObservation(operaTimeline,referenceSeconds);
+
  const panelRef=useRef<HTMLElement>(null),[panelVisible,setPanelVisible]=useState(true);
 
  useEffect(()=>{const node=panelRef.current;if(!node||typeof IntersectionObserver==='undefined')return;const observer=new IntersectionObserver(entries=>setPanelVisible(Boolean(entries[0]?.isIntersecting)),{rootMargin:'300px 0px',threshold:0});observer.observe(node);return()=>observer.disconnect()},[]);
@@ -319,15 +334,10 @@ export default function RadarPanel({lat,lon,timezone,analysis,thunder,isDay=true
  useEffect(()=>{const flush=()=>flushCompositeSettings(),onVisibility=()=>{if(document.visibilityState==='hidden')flush()};window.addEventListener('pagehide',flush);document.addEventListener('visibilitychange',onVisibility);return()=>{flush();window.removeEventListener('pagehide',flush);document.removeEventListener('visibilitychange',onVisibility)}},[flushCompositeSettings]);
  useEffect(()=>{
   if(!panelVisible)return;let alive=true;
-  if(source==='dwd'){
-   const supplied=(Array.isArray(analysis?.timeline)?analysis.timeline:[]).map(epochMs).filter(Number.isFinite).map(value=>Math.floor(value/1000)).sort((a,b)=>a-b),observed=epochMs(analysis?.observedAt),single=Number.isFinite(observed)?[Math.floor(observed/1000)]:[];
-   setRadarFrames((supplied.length?supplied:single).map(time=>({time,path:'',future:time>Math.floor(Date.now()/1000)+90})));
-  }else setRadarFrames([]);
-  const freshOpera=operaStatus==='ready'&&operaFrames.some(frame=>{const stamp=Date.parse(frame.time);return Number.isFinite(stamp)&&stamp>=Date.now()-45*60000&&stamp<=Date.now()+10*60000});
-  const fallbackNeeded=source==='rainviewer'||!freshOpera&&(operaStatus==='error'||source==='opera'||source==='dwd'&&(productTimes.dwdRadar?.length===0||Boolean(radarTileError)));
+  const fallbackNeeded=!dwdUsable&&!operaUsable&&(source==='rainviewer'||operaStatus==='ready'||operaStatus==='error'||source==='opera'||dwdProductChecked||dwdTemporarilyBlocked);
   if(!fallbackNeeded||!showRadar||highResolution){setHost('');setRainViewerFrames([]);return()=>{alive=false}}
   const controller=new AbortController(),load=()=>{if(document.visibilityState==='hidden')return Promise.resolve();return loadRainViewer(lat,lon,controller.signal).then(data=>{if(!alive)return;setHost(data.host);setRainViewerFrames([...(data.radar?.past??[]),...(data.radar?.nowcast??[]).map(item=>({...item,future:true}))])}).catch(()=>{if(alive){setRainViewerFrames([]);setHost('')}})};void load();const timer=window.setInterval(load,300000);return()=>{alive=false;controller.abort();window.clearInterval(timer)};
- },[lat,lon,source,showRadar,highResolution,analysis?.observedAt,analysis?.timeline?.join('|'),operaStatus,radarTileError,operaFrames.length,operaFrames.at(-1)?.time,productTimes.dwdRadar?.length,panelVisible]);
+ },[lat,lon,source,showRadar,highResolution,operaStatus,dwdUsable,operaUsable,dwdProductChecked,dwdTemporarilyBlocked,panelVisible]);
  useEffect(()=>{
   if(!panelVisible)return;
   const eligible=lat>=31.5&&lat<=72.5&&lon>=-30.5&&lon<=50.5;
@@ -420,8 +430,6 @@ export default function RadarPanel({lat,lon,timezone,analysis,thunder,isDay=true
  const candidateSatellite:CompositeProduct|undefined=(isDay&&!satelliteFallback&&(productTimes.satelliteDayProduct||legacyDay))||(productTimes.satelliteIrProduct||legacyIr),satelliteProduct=unified&&(!candidateSatellite?.resolutionKm||candidateSatellite.resolutionKm>1)?undefined:candidateSatellite,satellitePrecipProduct=productTimes.satellitePrecipProduct;
  const satelliteAvailableTimes=normalisedIsoTimes(satelliteProduct?.times,referenceMs),satelliteLatestIso=Number.isFinite(epochMs(satelliteProduct?.latestTime))?new Date(epochMs(satelliteProduct?.latestTime)).toISOString():'',satelliteLayer=satelliteProduct?.layer||'',satelliteProvider=satelliteProduct?.provider||'eumetsat',satelliteName=satelliteProduct?.label||(isDay&&!satelliteFallback?'Satellit Tag':'Satellit IR'),satelliteResolution=satelliteProduct?.resolutionKm?`${satelliteProduct.resolutionKm.toLocaleString('de-DE')} km`:'';
  const satPrecipTimes=normalisedIsoTimes(satellitePrecipProduct?.times,referenceMs),satPrecipLayer=satellitePrecipProduct?.layer||'',satPrecipProvider=satellitePrecipProduct?.provider||'eumetsat';
- const dwdTimeline=useMemo(()=>productTimes.checkedAt&&productTimes.dwdRadar?.length===0?[]:uniqueTimedFrames<RadarFrame>([...radarFrames,...toFrames(productTimes.dwdRadar,referenceSeconds)],referenceSeconds-190*60,referenceSeconds+130*60),[radarFrames,productTimes.dwdRadar,productTimes.checkedAt,referenceSeconds]);
- const operaTimeline=useMemo(()=>uniqueTimedFrames(operaFrames.map(frame=>({time:Math.floor(Date.parse(frame.time)/1000),frame})),referenceSeconds-190*60,referenceSeconds+20*60),[operaFrames,referenceSeconds]);
  useEffect(()=>{setStableSatelliteKey('');setPreviousSatelliteKey('');setSatelliteFadeReady(true);setLoadedSatelliteFrames(new Set());satelliteTileFailures.current.clear()},[satelliteProvider,satelliteLayer,tileRevision]);
  const satelliteTimeline=useMemo(()=>satelliteAvailableTimes.map(value=>({time:Math.floor(Date.parse(value)/1000),iso:value})),[satelliteAvailableTimes.join('|')]);
  const satellitePrecipTimeline=useMemo(()=>satPrecipTimes.map(value=>({time:Math.floor(Date.parse(value)/1000),iso:value})),[satPrecipTimes.join('|')]);
@@ -429,7 +437,7 @@ export default function RadarPanel({lat,lon,timezone,analysis,thunder,isDay=true
  const modelTimeline=useMemo(()=>(modelData.frames??[]).map(frame=>({time:Math.floor(Date.parse(frame.time)/1000),frame})).filter(item=>Number.isFinite(item.time)),[modelData.frames]);
  const modelGridTimeline=useMemo(()=>(modelGridData.frames??[]).map(frame=>({time:Math.floor(Date.parse(frame.time)/1000),frame})).filter(item=>Number.isFinite(item.time)),[modelGridData.frames]);
 
- const dwdTemporarilyBlocked=Boolean(radarTileError)&&referenceMs<radarRetryAt,dwdUnavailable=dwdTemporarilyBlocked||!dwdTimeline.length,operaUsable=operaStatus==='ready'&&operaTimeline.some(frame=>frame.time>=referenceSeconds-45*60&&frame.time<=referenceSeconds+90),rainViewerUsable=Boolean(host&&rainViewerFrames.some(frame=>frame.time>=referenceSeconds-45*60&&frame.time<=referenceSeconds+90)),activeSource:CompositeSource=source==='dwd'&&!dwdUnavailable?'dwd':operaUsable?'opera':rainViewerUsable?'rainviewer':'model';
+ const rainViewerUsable=Boolean(host&&hasFreshRadarObservation(rainViewerFrames,referenceSeconds)),activeSource:CompositeSource=dwdUsable?'dwd':operaUsable?'opera':rainViewerUsable?'rainviewer':'model';
  const selectedRadarTimeline=unified&&activeSource==='model'?[]:activeSource==='dwd'?dwdTimeline:activeSource==='opera'?operaTimeline:rainViewerFrames,radarObservationTimes=selectedRadarTimeline.filter(frame=>frame.time<=referenceSeconds+90&&!('future'in frame&&frame.future===true)).map(frame=>frame.time),radarNowcastTimes=selectedRadarTimeline.filter(frame=>frame.time>referenceSeconds+90||('future'in frame&&frame.future===true)).map(frame=>frame.time),satelliteObservationTimes=(satelliteProduct?.latestOnly?[Math.floor(epochMs(satelliteProduct?.latestTime)/1000)]:satelliteTimeline.map(frame=>frame.time)).filter(time=>Number.isFinite(time)&&time<=referenceSeconds+90),modelForecastTimes=unified?(unified.enabled?unified.times.map(time=>Math.floor(Date.parse(time)/1000)):[]):modelTimeline.map(frame=>frame.time);
   const satelliteTimelineSource=`${satelliteProvider==='dwd'?'DWD':'EUMETSAT'} · ${satelliteName}`,modelTimelineSource=unified?unified.sourceLabel:modelData.provider||modelData.model||'MID-Modellkonturen';
   const timelineContract=useMemo(()=>{

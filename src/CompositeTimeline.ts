@@ -90,3 +90,11 @@ export function blendTimedFrames<T extends TimedFrame>(frames:T[],target:number,
 
 export function blendOpacity<T extends TimedFrame>(blend:BlendFrame<T>[]){return clamp(blend.reduce((sum,item)=>sum+item.weight,0),0,1)}
 export function dominantBlendFrame<T extends TimedFrame>(blend:BlendFrame<T>[]){return blend.reduce<BlendFrame<T>|undefined>((best,item)=>!best||item.weight>best.weight?item:best,undefined)?.frame}
+
+/** A provider needs a recent observation before it can drive the live radar. */
+export function hasFreshRadarObservation(
+ frames:readonly {time:number;future?:boolean}[],
+ referenceSeconds:number,
+):boolean{
+ return frames.some(({time,future})=>!future&&time>=referenceSeconds-45*60&&time<=referenceSeconds+90);
+}
