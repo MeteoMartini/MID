@@ -7,7 +7,9 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const health=await readFile(path.join(root,'tools/ruc/check_ruc_health.py'),'utf8');
 for(const token of [
   "attempts: int = 7",
-  "MAX_PAGES_PROBE_ATTEMPTS = 12",
+  // Exact current upper bound is covered independently by the Python
+  // stale-pointer and thirteenth-probe recovery regressions executed below.
+  "MAX_PAGES_PROBE_ATTEMPTS = 18",
   "'--pages-attempts'",
   "MID RUC Pages not converged",
   "retry_delay: float = 8",
@@ -16,7 +18,9 @@ for(const token of [
   "('mid_ruc_probe', str(attempt))",
   "'Cache-Control': 'no-cache'",
   "'Pragma': 'no-cache'",
-  "if str(payload.get('run','')) != run",
+  // Native Worker UTC run identity now requires a real string, never implicit coercion.
+  "not isinstance(payload.get('run'), str) or payload.get('run') != run",
+  "expected_profile=meta.get('storageProfile')",
   "worker RUC health did not converge after"
 ]) assert.ok(health.includes(token),`RUC convergence contract missing: ${token}`);
 const py=process.env.PYTHON || process.env.PYTHON3 || 'python3';

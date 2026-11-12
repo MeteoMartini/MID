@@ -207,3 +207,38 @@ test('an incomplete success sample is an explicit error, not an invented green P
 await import('../tools/ci/release-phase-observation.test.mjs');
 // Verify the complete read-only Source/Bot/ZIP/Installer/Stable lineage as one gate-safe observation.
 await import('../tools/ci/release-chain-integrity.test.mjs');
+
+test('temporary GitHub 502/503/504 metadata errors have bounded GET-only recovery', async () => {
+  const original=globalThis.fetch, calls=[];
+  const map=new Map([['install-mid.yml','workflow_dispatch']]);
+  const run={...sample(901,'MID installer'),path:'.github/workflows/install-mid.yml',event:'workflow_dispatch',status:'completed'};
+  try{
+    globalThis.fetch=async url=>{
+      const path=String(url); calls.push(path);
+      if(path.includes('/actions/workflows/install-mid.yml/runs?')){
+        const hits=calls.filter(x=>x.includes('/actions/workflows/install-mid.yml/runs?')).length;
+        if(hits<3) return {ok:false,status:hits===1?502:504};
+        return {ok:true,json:async()=>({workflow_runs:[run]})};
+      }
+      if(path.includes('/actions/runs/901/jobs?')) return {ok:true,json:async()=>({jobs:run.jobs})};
+      throw Error('Unexpected request '+path);
+    };
+    const runs=await githubRuns('MeteoMartini/MID',1,'',map);
+    assert.equal(runs.length,1);
+    assert.equal(runs[0].id,901);
+    assert.equal(calls.filter(x=>x.includes('/actions/workflows/install-mid.yml/runs?')).length,3);
+  }finally{globalThis.fetch=original}
+});
+
+test('persistent 502 and authorization/rate-limit failures cannot become green timing samples', async () => {
+  const original=globalThis.fetch;
+  const map=new Map([['install-mid.yml','workflow_dispatch']]);
+  try{
+    for(const [status,maxCalls] of [[502,3],[503,3],[504,3],[401,1],[403,1],[404,1],[429,1]]){
+      let calls=0;
+      globalThis.fetch=async()=>{calls++;return {ok:false,status}};
+      await assert.rejects(githubRuns('MeteoMartini/MID',1,'',map),new RegExp('HTTP '+status));
+      assert.equal(calls,maxCalls,'status '+status+' has a strict call limit');
+    }
+  }finally{globalThis.fetch=original}
+});

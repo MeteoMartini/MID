@@ -1,3 +1,19 @@
+# MID v0.9.85.460 · Release-Train-Integrationsnachweis vom 12.11.2026
+
+**Quellbasis zur Erstellung:** main=mid-stable=30b0be2b95f7b59119fa524c339ab43443c62186 (veröffentlichte v0.9.85.459; Installer #43267552269 einschließlich Worker/Pages/Stable).
+**Originalquellen:** PR #750 HEAD a6ee0904fc3869b88070231eace82e77279b1ee2, PR #771 HEAD 01253a0f1f8b49291cc56e30abef50278ae95667. Beide Drafts wurden selektiv über einen autorisierten chatgpt/v0.9.85.460-Integrationsbranch statt direkt gemergt. Ein P4-Overlap pro RUC-Workflow wurde bewusst mit dem bereits veröffentlichten geschützten DWD-Original-/SLSA-Publisher reconciliert; aktive und kanonische Workflow-Dateien stimmen überein.
+**Freigabe:** Ein Source-PR ist ausschließlich nach combined Source-/DWD-/Heavy-/Browser-/Review-Gates und dem etablierten SHA-Bot-Merge → serverseitigem Release-ZIP → install-mid.yml → Worker-/Pages-Gates → Stable-Promotion veröffentlichbar. Weder dieser Eintrag noch ein isolierter grüner Draft oder erfolgreicher RUC-Job begründen eine Freigabe.
+**Datenstatus:** #446 native ICON-D2-Vollgebietspublikation bleibt separat und unfreigegeben, solange der 72-Felder-Signer/73-Objekt-Bestand samt echtem öffentlichen Readback und Sölden/Köln-/NoData-Abnahme fehlt. Keine unlizenzierte RainViewer-Proxy-Nutzung, kein fingierter Wert 0, keine behauptete reale iOS-/VoiceOver-Abnahme.
+
+## Historische v0.9.85.459-Dokumentation und QA-Provenienz
+# MID v0.9.85.459 · veröffentlicht am 12.11.2026 (Originaldaten-Liveabnahme separat)
+
+**Live-verifizierter Release-Stand:** `main=mid-stable=30b0be2b95f7b59119fa524c339ab43443c62186`, Version `0.9.85.459` in `package.json`, `MID_BASELINE.json` und `contracts/index.json`. [Source-PR #770](https://github.com/MeteoMartini/MID/pull/770) wurde nach Source-Core-/Heavy-/DWD-Prüfungen durch [SHA-gebundenen Release-Bot #43267446131](https://github.com/MeteoMartini/MID/actions/runs/43267446131) kontrolliert gemergt; der reguläre [Installer #43267552269](https://github.com/MeteoMartini/MID/actions/runs/43267552269) ist `completed/success`, einschließlich Release-ZIP, Core/Heavy, Worker, Pages, Finalisierung und Stable-Promotion. Das ist ein belegter App-/Quellrelease, **keine** pauschale D2-Produktionsdatenfreigabe.
+
+**Noch offen:** Der echte RUC-Lauf [#43275325822](https://github.com/MeteoMartini/MID/actions/runs/43275325822) meldet `D2 PROTECTED SIGNER: no eligible original DWD artifact; no native publication` auf der neuen Stable-SHA. Im unabhängig gelesenen öffentlichen `/ruc/latest.json` vom 12.11.2026 (RUC-Lauf 17:00 UTC) fehlt `modelFieldsNative`. Die Originaldaten-SLSA-Freigabe, physische 73-Objekt-Publikation und Sölden/Köln/Rand-/NoData-Endclientabnahme zu #446 bleiben deshalb fail-closed. #750 bleibt separater RUC-Draft; kein iOS-/VoiceOver-Gerätenachweis und keine ungeprüfte RainViewer-Lizenzfreigabe.
+
+## Historische Vorbereitungsnotizen zu .459 vor dem erfolgreich abgeschlossenen Release
+
 # MID v0.9.85.459 · Integrationskandidat – noch nicht veröffentlicht
 
 **Veröffentlichte Basis:** v0.9.85.458, main=mid-stable ef585fdbbfe475146d68868a6b671057f8b52e0d, Installer #43217173776 einschließlich Worker/Pages erfolgreich. Die Version 0.9.85.459 ist weiterhin ein unveröffentlichter Integrationskandidat.

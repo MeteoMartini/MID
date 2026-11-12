@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 import json
+import os
 import re
 import socket
 import sys
@@ -21,19 +22,30 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-MAX_PAGES_PROBE_ATTEMPTS = 12
+# Public Pages edges can still serve the preceding run after deploy-pages
+# succeeds (observed in the 16Z/19Z incidents on 2026-11-10). Allow bounded
+# propagation time before declaring non-convergence; never accept a stale run.
+MAX_PAGES_PROBE_ATTEMPTS = 18
 MAX_WORKER_PROBE_ATTEMPTS = 7
+# The Pages publish job allows 15 minutes total. Keep the combined Pages
+# and Worker checks inside ten minutes, with time reserved for other steps.
+MAX_HEALTH_BUDGET_SECONDS = 600
+# The HTTP health endpoints return JSON metadata, never binary GRIB/products.
+# Bound each untrusted response independently of Content-Length headers.
+MAX_PROBE_PAYLOAD_BYTES = 8 * 1024 * 1024
 MAX_PROBE_JOURNAL_RECORDS = 64
 SAFE_DIAGNOSTIC_CODES = {
     'codec_defect_proven',
     'codec_evidence_unclassified',
     'invalid_json',
+    'health_budget_exhausted',
     'pages_convergence_timeout',
     'pages_http_error',
     'pages_pointer_not_converged',
     'pages_profile_mismatch',
     'pages_run_mismatch',
     'payload_not_object',
+    'probe_payload_too_large',
     'probe_timeout',
     'probe_transport_failed',
     'ruc_health_error',
@@ -41,6 +53,8 @@ SAFE_DIAGNOSTIC_CODES = {
     'snapshot_grid_invalid',
     'snapshot_member_or_point_count_invalid',
     'snapshot_pages_dimensions_mismatch',
+    'snapshot_pages_manifest_mismatch',
+    'snapshot_pages_proof_missing',
     'snapshot_profile_inactive',
     'snapshot_rollback_profile_invalid',
     'snapshot_run_invalid',
@@ -58,6 +72,7 @@ SAFE_DIAGNOSTIC_CODES = {
     'worker_pages_profile_invalid',
     'worker_payload_error',
     'worker_readiness_failed',
+    'worker_backend_invalid',
     'worker_run_mismatch',
     'worker_transport_error',
 }
@@ -114,6 +129,28 @@ class CodecDefectError(RucHealthError):
     default_code = 'codec_defect_proven'
 
 
+def _emit_rollback_admission(error: RucHealthError | None, *,
+                             pages_verified: bool, full_profile: bool) -> None:
+    """Fail-closed, runner-local verdict. Never infer codec failure from a stale URL."""
+    target = os.environ.get('GITHUB_OUTPUT')
+    if not target:
+        return
+    code = (error.code if isinstance(error, RucHealthError) and
+            error.code in SAFE_DIAGNOSTIC_CODES else 'unclassified_probe_error')
+    # Only an independently raised, typed and proven codec defect *after*
+    # strict public same-run Pages convergence may admit legacy raw recovery.
+    # No current probe raises this class merely from worker non-readiness.
+    allowed = (pages_verified is True and full_profile is True and
+               type(error) is CodecDefectError and code == 'codec_defect_proven')
+    try:
+        with open(target, 'a', encoding='utf-8') as out:
+            out.write('health_failure_code=' + code + '\n')
+            out.write('rollback_admitted=' + ('true' if allowed else 'false') + '\n')
+    except OSError:
+        # Missing output itself prevents rollback. Preserve the health exit 2.
+        pass
+
+
 class _HTTPProbeFailure(Exception):
     def __init__(self, status: int, metadata: dict):
         self.status = status
@@ -122,6 +159,12 @@ class _HTTPProbeFailure(Exception):
 
 class _InvalidProbePayload(Exception):
     pass
+
+
+class _OversizedProbePayload(Exception):
+    def __init__(self, status: int, metadata: dict):
+        self.status = status
+        self.metadata = metadata
 
 
 class ProbeResponse:
@@ -232,6 +275,11 @@ def _response_metadata(response: ProbeResponse) -> dict:
 def _fetch_for_probe(fetcher, url: str, timeout: float, phase: str) -> ProbeResponse:
     try:
         result = fetcher(url, timeout)
+    except _OversizedProbePayload as error:
+        error_type = PagesConvergenceError if phase == 'pages_pointer' else WorkerPayloadError
+        raise error_type('Probe JSON metadata exceeds the bounded response size',
+                         code='probe_payload_too_large', http_status=error.status,
+                         metadata=error.metadata) from None
     except _InvalidProbePayload:
         error_type = PagesConvergenceError if phase == 'pages_pointer' else WorkerPayloadError
         raise error_type('Probe response is not valid JSON', code='invalid_json') from None
@@ -368,7 +416,8 @@ def verified_snapshot_contract(meta: dict, *, allow_legacy_rollback: bool = Fals
             'epsMemberCount': members, 'times': axis, 'grid': grid}
 
 
-def check(payload: dict, run: str, *, expected_contract: dict | None = None) -> None:
+def check(payload: dict, run: str, *, expected_contract: dict | None = None,
+          expected_profile: str | None = None) -> None:
     if not isinstance(payload, dict):
         raise WorkerPayloadError('Worker response is not a JSON object',
                                  code='payload_not_object')
@@ -379,7 +428,8 @@ def check(payload: dict, run: str, *, expected_contract: dict | None = None) -> 
                 f'Worker RUC readiness field {key} is not healthy',
                 code='worker_readiness_failed',
             )
-    if str(payload.get('run','')) != run:
+    # A non-string model run is not a proven UTC provenance identifier.
+    if not isinstance(payload.get('run'), str) or payload.get('run') != run:
         raise WorkerAdoptionError('Worker RUC run does not match the published run',
                                   code='worker_run_mismatch')
     objects = payload.get('objectsPresent') or {}
@@ -389,14 +439,27 @@ def check(payload: dict, run: str, *, expected_contract: dict | None = None) -> 
         if objects.get(key) is not True:
             raise WorkerAdoptionError(f'Worker RUC object {key} is not present',
                                       code='worker_object_missing')
-    backend_value = payload.get('backend')
-    backend = backend_value if isinstance(backend_value, str) else ''
-    if backend == 'r2' and objects.get('epsMembers') is not True:
-        raise WorkerAdoptionError('Worker RUC native EPS object is not present for R2 backend',
+    backend = payload.get('backend')
+    # Only the two deployed Worker backends may pass a public health gate.
+    # Missing/unknown backends must not silently bypass EPS/profile checks.
+    if not isinstance(backend, str) or backend not in {'r2', 'pages'}:
+        raise WorkerAdoptionError('Worker RUC backend is missing or unsupported',
+                                  code='worker_backend_invalid')
+    if backend == 'r2' and (objects.get('epsMembers') is not True or
+                            payload.get('nativeEpsMembers') is not True):
+        raise WorkerAdoptionError('Worker RUC native EPS is not proven for R2 backend',
                                   code='worker_eps_object_missing')
-    if backend == 'pages' and payload.get('nativeEpsMembers') is not False:
-        raise WorkerAdoptionError('GitHub Pages free profile did not explicitly omit native EPS members',
-                                  code='worker_pages_profile_invalid')
+    if backend == 'pages':
+        if (payload.get('nativeEpsMembers') is not False or
+                objects.get('epsMembers') is not False):
+            raise WorkerAdoptionError('GitHub Pages profile did not explicitly omit native EPS members',
+                                      code='worker_pages_profile_invalid')
+        storage_profile = payload.get('storageProfile')
+        if (not isinstance(storage_profile, str) or
+                storage_profile not in {'pages-free-v1', 'pages-lossless-v1'} or
+                (expected_profile is not None and storage_profile != expected_profile)):
+            raise WorkerAdoptionError('Worker Pages storage profile differs from sealed publication',
+                                      code='worker_pages_profile_invalid')
     if expected_contract is None:
         counts = (payload.get('timeCount'), payload.get('pointCount'), payload.get('epsMemberCount'))
         if any(type(value) is not int for value in counts) or counts[0] < 4 or counts[1] < 1 or counts[2] < 2:
@@ -423,6 +486,10 @@ def fetch_payload(url: str, timeout: float) -> dict:
         raise WorkerHTTPError('Worker request returned a non-success HTTP status',
                               http_status=error.status,
                               metadata=error.metadata) from None
+    except _OversizedProbePayload as error:
+        raise WorkerPayloadError('Worker JSON metadata exceeds the bounded response size',
+                                 code='probe_payload_too_large',
+                                 http_status=error.status, metadata=error.metadata) from None
     except _InvalidProbePayload:
         raise WorkerPayloadError('Worker response is not valid JSON',
                                  code='invalid_json') from None
@@ -444,7 +511,11 @@ def fetch_probe(url: str, timeout: float) -> ProbeResponse:
             metadata = _safe_response_metadata(response.headers)
             if status != 200:
                 raise _HTTPProbeFailure(status, metadata)
-            body = response.read()
+            # Never trust Content-Length, nor allocate an unbounded upstream
+            # payload while the GitHub Pages/Worker publish lock is held.
+            body = response.read(MAX_PROBE_PAYLOAD_BYTES + 1)
+            if len(body) > MAX_PROBE_PAYLOAD_BYTES:
+                raise _OversizedProbePayload(status, metadata)
     except urllib.error.HTTPError as error:
         raise _HTTPProbeFailure(error.code, _safe_response_metadata(error.headers)) from None
     try:
@@ -525,7 +596,7 @@ def full_codec_evidence(payload:dict,meta:dict)->dict:
             'advertised':advertised if type(advertised) is bool else None,
             'rawRetained':raw_retained if type(raw_retained) is bool else None}
 
-def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetcher=None, sleeper=time.sleep, expected_profile='pages-free-v1', expected_contract: dict | None = None, allow_legacy_rollback: bool = False, journal: ProbeJournal | None = None) -> int:
+def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetcher=None, sleeper=time.sleep, expected_profile='pages-free-v1', expected_contract: dict | None = None, expected_manifest: dict | None = None, allow_legacy_rollback: bool = False, journal: ProbeJournal | None = None, deadline: float | None = None, clock=time.monotonic) -> int:
     """Prove public Pages convergence separately from Worker adoption."""
     url = urllib.parse.urljoin(base.rstrip('/') + '/', 'latest.json')
     last_error = None
@@ -535,9 +606,22 @@ def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetch
     for attempt in range(1, attempts + 1):
         response = None
         try:
+            remaining = None if deadline is None else deadline - clock()
+            if remaining is not None and remaining <= 0:
+                raise PagesConvergenceError(
+                    'Combined RUC Pages/Worker health budget exhausted',
+                    code='health_budget_exhausted', attempts=attempt,
+                )
             response = _fetch_for_probe(
-                fetcher, probe_url(url, run, attempt), 15, 'pages_pointer'
+                fetcher, probe_url(url, run, attempt),
+                min(15, remaining) if remaining is not None else 15,
+                'pages_pointer',
             )
+            if deadline is not None and clock() >= deadline:
+                raise PagesConvergenceError(
+                    'Combined RUC Pages/Worker health budget exhausted',
+                    code='health_budget_exhausted', attempts=attempt,
+                )
             meta = response.payload
             if meta.get('schema') != 'mid.dwd.ruc.grid.v2' or meta.get('storageProfile') != expected_profile or (expected_profile == 'pages-lossless-v1' and not active_profile_valid(meta)):
                 raise PagesConvergenceError('Pages RUC metadata schema/profile is invalid',
@@ -550,6 +634,26 @@ def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetch
                     raise SnapshotContractError(
                         'Pages RUC dimensions or validity axes differ from the sealed snapshot',
                         code='snapshot_pages_dimensions_mismatch',
+                    )
+            # Dimensions alone do not bind the original object SHA inventory,
+            # codec proof, or Pages byte budget. Compare the complete sealed
+            # JSON manifest after public convergence, not merely its model run.
+            # Canonical typed JSON avoids false passes for e.g. 1 == True.
+            if expected_manifest is not None:
+                try:
+                    published_json = json.dumps(meta, sort_keys=True, separators=(',', ':'),
+                                                allow_nan=False)
+                    sealed_json = json.dumps(expected_manifest, sort_keys=True,
+                                             separators=(',', ':'), allow_nan=False)
+                except (TypeError, ValueError):
+                    raise SnapshotContractError(
+                        'Pages RUC manifest is not canonical JSON',
+                        code='snapshot_pages_manifest_mismatch',
+                    ) from None
+                if published_json != sealed_json:
+                    raise SnapshotContractError(
+                        'Pages RUC manifest differs from the sealed snapshot',
+                        code='snapshot_pages_manifest_mismatch',
                     )
             journal.record(attempt=attempt, phase='pages_pointer', run=run,
                            status=response.status, metadata=_response_metadata(response),
@@ -567,8 +671,12 @@ def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetch
                 observed_run=observed.get('run'),
                 observed_profile=observed.get('storageProfile'),
             )
+            if error.code == 'health_budget_exhausted':
+                raise error
             if attempt < attempts:
                 delay = min(30, 8 * 1.5 ** (attempt - 1))
+                if deadline is not None:
+                    delay = min(delay, max(0.0, deadline - clock()))
                 print(
                     f'MID RUC Pages not converged ({attempt}/{attempts}) [{error.code}]; '
                     f'retry in {delay:.0f}s',
@@ -597,7 +705,10 @@ def probe_until_ready(
     fetcher=None,
     sleeper=time.sleep,
     expected_contract: dict | None = None,
+    expected_profile: str | None = None,
     journal: ProbeJournal | None = None,
+    deadline: float | None = None,
+    clock=time.monotonic,
 ) -> tuple[dict, int]:
     attempts = min(MAX_WORKER_PROBE_ATTEMPTS, max(1, int(attempts)))
     retry_delay = max(0.0, float(retry_delay))
@@ -609,10 +720,24 @@ def probe_until_ready(
     for attempt in range(1, attempts + 1):
         response = None
         try:
+            remaining = None if deadline is None else deadline - clock()
+            if remaining is not None and remaining <= 0:
+                raise WorkerAdoptionError(
+                    'Combined RUC Pages/Worker health budget exhausted',
+                    code='health_budget_exhausted', attempts=attempt,
+                )
             response = _fetch_for_probe(
-                fetcher, probe_url(url, run, attempt), timeout, 'worker_adoption'
+                fetcher, probe_url(url, run, attempt),
+                min(timeout, remaining) if remaining is not None else timeout,
+                'worker_adoption',
             )
-            check(response.payload, run, expected_contract=expected_contract)
+            if deadline is not None and clock() >= deadline:
+                raise WorkerAdoptionError(
+                    'Combined RUC Pages/Worker health budget exhausted',
+                    code='health_budget_exhausted', attempts=attempt,
+                )
+            check(response.payload, run, expected_contract=expected_contract,
+                  expected_profile=expected_profile)
             journal.record(attempt=attempt, phase='worker_adoption', run=run,
                            status=response.status, metadata=_response_metadata(response))
             return response.payload, attempt
@@ -624,9 +749,13 @@ def probe_until_ready(
                 metadata=_response_metadata(response) if response else error.metadata,
                 diagnostic_code=error.code,
             )
+            if error.code == 'health_budget_exhausted':
+                raise error
             if attempt >= attempts:
                 break
             delay = min(max_retry_delay, retry_delay * (1.5 ** (attempt - 1)))
+            if deadline is not None:
+                delay = min(delay, max(0.0, deadline - clock()))
             print(
                 f'MID RUC health not converged ({attempt}/{attempts}) [{error.code}]; '
                 f'retry in {delay:.0f}s',
@@ -666,6 +795,11 @@ def main(argv=None) -> int:
     if not 1 <= a.attempts <= MAX_WORKER_PROBE_ATTEMPTS:
         p.error(f'--attempts must be between 1 and {MAX_WORKER_PROBE_ATTEMPTS}')
     journal = ProbeJournal()
+    pages_verified = False
+    full_profile = False
+    # Shared wall-clock deadline: strict failure before GitHub cancels the
+    # whole publish job, so the typed journal and rollback=false are retained.
+    health_deadline = time.monotonic() + MAX_HEALTH_BUDGET_SECONDS
     try:
         run = expected_run(a.meta)
         try:
@@ -673,17 +807,28 @@ def main(argv=None) -> int:
         except (OSError, UnicodeDecodeError, json.JSONDecodeError):
             raise SnapshotContractError('Local RUC metadata is unavailable or invalid') from None
         expected_contract = verified_snapshot_contract(meta, allow_legacy_rollback=a.legacy_rollback)
+        full_profile = (meta.get('storageProfile') == 'pages-lossless-v1' and active_profile_valid(meta))
         if meta.get('storageProfile') == 'pages-lossless-v1' and not active_profile_valid(meta):
             raise SnapshotContractError('Full RUC profile has not been explicitly activated',
                                         code='snapshot_profile_inactive')
+        # A healthy Worker response alone cannot prove public same-run Pages
+        # convergence. Full-codec publication must never pass without the
+        # independently checked Pages pointer and sealed dimensions.
+        if full_profile and not a.pages_base:
+            raise SnapshotContractError(
+                'Active full RUC profile requires public Pages pointer verification',
+                code='snapshot_pages_proof_missing',
+            )
         url = health_url(a.url)
         if a.pages_base:
             page_attempt = probe_pages(
                 a.pages_base, run, attempts=a.pages_attempts,
                 expected_profile=meta.get('storageProfile', 'pages-free-v1'),
-                expected_contract=expected_contract,
+                expected_contract=expected_contract, expected_manifest=meta,
                 allow_legacy_rollback=a.legacy_rollback, journal=journal,
+                deadline=health_deadline,
             )
+            pages_verified = True
             print(f'MID RUC Pages publication OK: run={run}, probe={page_attempt}')
         payload, attempt = probe_until_ready(
             url,
@@ -693,7 +838,9 @@ def main(argv=None) -> int:
             retry_delay=a.retry_delay,
             max_retry_delay=a.max_retry_delay,
             expected_contract=expected_contract,
+            expected_profile=meta.get('storageProfile'),
             journal=journal,
+            deadline=health_deadline,
         )
         backend = payload.get('backend')
         backend = backend if isinstance(backend, str) and backend in {'pages', 'r2'} else 'unavailable'
@@ -717,11 +864,13 @@ def main(argv=None) -> int:
         print('MID RUC probe journal: ' + json.dumps(journal.as_dict(), sort_keys=True))
         return 0
     except RucHealthError as error:
+        _emit_rollback_admission(error, pages_verified=pages_verified, full_profile=full_profile)
         print('MID RUC probe journal: ' + json.dumps(journal.as_dict(), sort_keys=True),
               file=sys.stderr)
         print(f'MID RUC health FAILED: {error.code}', file=sys.stderr)
         return 2
     except Exception:
+        _emit_rollback_admission(None, pages_verified=pages_verified, full_profile=full_profile)
         print('MID RUC probe journal: ' + json.dumps(journal.as_dict(), sort_keys=True),
               file=sys.stderr)
         print('MID RUC health FAILED: unclassified', file=sys.stderr)

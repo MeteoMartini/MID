@@ -15,6 +15,7 @@ from urllib.parse import urljoin,urlparse,unquote
 import requests
 import threading
 from run_progress import report_run
+from check_ruc_schedule_guard import DEFAULT_MAX_AGE_MINUTES, run_time
 from native_cadence import is_native_at
 from grib_stream import open_grib_stream
 from grib_metadata import inspect_grib_header
@@ -341,12 +342,41 @@ def build_candidate(s,run,stage_root,output,hours):
  if missing:raise RuntimeError('builder output incomplete: '+','.join(missing))
  shutil.rmtree(output,ignore_errors=True);os.replace(tmp,output);return run
 
-def main():
+def candidate_within_publication_window(run, *, now=None):
+ """Negative-only DWD fallback filter; final seal still enforces this SLA.
+
+ The public DWD directory can advertise incomplete EPS20 runs. Once a
+ previously advertised fallback is already >240 min old before download,
+ no amount of successful decoding can make it publishable. Avoid consuming
+ another 500+ original GRIBs and native-builder minutes for that candidate.
+ Unknown/invalid run or clock never authorizes a live fallback.
+ """
+ try:
+  if not isinstance(run,str) or not RUN_RE.fullmatch(run+'/'):return False
+  clock=datetime.now(timezone.utc) if now is None else now
+  if not isinstance(clock,datetime) or clock.tzinfo is None:return False
+  age=(clock.astimezone(timezone.utc)-run_time(run)).total_seconds()
+  return -300<=age<=DEFAULT_MAX_AGE_MINUTES*60
+ except (ValueError,TypeError,OverflowError):
+  return False
+
+
+def main(*,now=None):
  p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--stage',type=Path,default=Path('.ruc-stage'));p.add_argument('--run');p.add_argument('--candidate-count',type=int,default=4);p.add_argument('--hours',type=int,default=int(os.getenv('MID_RUC_FORECAST_HOURS','14')));a=p.parse_args();s=session()
  candidates=[a.run] if a.run else common_runs(s)[:max(1,a.candidate_count)]
  if not candidates:raise SystemExit('No common DWD RUC/RUC-EPS run directories found')
  errors=[]
  for run in candidates:
+  # The scheduler remains fail-open on uncertain discovery. Only the live,
+  # automatically discovered candidates are pruned when *provably* expired.
+  # Explicit --run is retained for isolated historical/original-data QA,
+  # never a bypass of the independent seal + publish freshness gates.
+  if a.run is None and not candidate_within_publication_window(run,now=now):
+   msg=f'Candidate {run} already outside established {DEFAULT_MAX_AGE_MINUTES}min publication window; no download'
+   report_run('abgelaufener Kandidat verworfen',run)
+   print(msg,file=sys.stderr,flush=True)
+   errors.append(msg)
+   continue
   report_run('wird geprüft und aufbereitet',run);print(f'Trying DWD common RUC/RUC-EPS run: {run}',flush=True)
   try:
    selected=build_candidate(s,run,a.stage,a.output,a.hours);print(f'Selected complete DWD RUC/RUC-EPS run: {selected}',flush=True);report_run('vollständig aufbereitet · noch nicht veröffentlicht',selected);return

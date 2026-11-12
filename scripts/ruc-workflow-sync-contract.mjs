@@ -10,6 +10,11 @@ export const RUC_CATCHUP_TOKENS=[
   'tools/ruc/check_ruc_schedule_guard.py',
   "steps.freshness.outputs.should_run == 'true'",
   'Bereits aktuellen RUC-Lauf ohne Neubau bestätigen',
+  // The old apt CLI install has been removed; the Python wheel must supply
+  // a functioning native ecCodes GRIB decoder before any DWD preparation.
+  'Native Python-ecCodes-Wheel vor DWD-Decode prüfen',
+  'Native Python-ecCodes-Wheel vor RUC-Aufbereitung prüfen',
+  'python -m eccodes selfcheck',
 ];
 
 export function isLegacyProtectedRucWorkflow(workflow){
@@ -22,9 +27,18 @@ export function isLegacyProtectedRucWorkflow(workflow){
 }
 
 export function isCanonicalCatchupRucWorkflow(workflow){
+  const calculate=workflow.indexOf('Native Python-ecCodes-Wheel vor DWD-Decode prüfen');
+  const prepare=workflow.indexOf('Native Python-ecCodes-Wheel vor RUC-Aufbereitung prüfen');
+  const checks=[...workflow.matchAll(/python -m eccodes selfcheck/g)].map(row=>row.index);
   return includesAll(workflow,RUC_CATCHUP_TOKENS)
     && (workflow.match(/cron:/g)||[]).length===2
-    && workflow.indexOf('RUC-Schedulerlücke und Aktualität vorab prüfen')<workflow.indexOf('Freie DWD-Decodierwerkzeuge installieren');
+    && workflow.indexOf('RUC-Schedulerlücke und Aktualität vorab prüfen')<calculate
+    && prepare>calculate
+    // A single selfcheck in just one job is NOT sufficient. Each native GRIB
+    // stage must prove its own installed ECMWF decoder, without Ubuntu apt.
+    && checks.length===2 && checks[0]>calculate && checks[0]<prepare
+    && checks[1]>prepare
+    && !workflow.includes('sudo apt-get');
 }
 
 export function isProtectedPreWatchdogCatchupRucWorkflow(workflow){

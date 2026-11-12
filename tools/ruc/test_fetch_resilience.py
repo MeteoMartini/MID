@@ -351,5 +351,68 @@ class FetchResilience(unittest.TestCase):
             self.assertEqual(target.read_bytes(),content)
 
 
+
+class ExpiredDwdCandidateSafety(unittest.TestCase):
+    """Offline replay of observed 00Z/01Z stale fallback, no network or GRIB."""
+
+    def test_exact_four_hour_boundary_and_five_minute_future_tolerance(self):
+        clock=lambda hour,minute,second=0:datetime(2026,11,11,hour,minute,second,tzinfo=timezone.utc)
+        self.assertTrue(fetch.candidate_within_publication_window('2026-11-11T00:00',now=clock(4,0)))
+        self.assertFalse(fetch.candidate_within_publication_window('2026-11-11T00:00',now=clock(4,0,1)))
+        self.assertFalse(fetch.candidate_within_publication_window('2026-11-11T00:00',now=clock(4,12)))
+        self.assertTrue(fetch.candidate_within_publication_window('2026-11-11T01:00',now=clock(4,12)))
+        self.assertFalse(fetch.candidate_within_publication_window('2026-11-11T01:00',now=clock(5,2)))
+        self.assertTrue(fetch.candidate_within_publication_window('2026-11-11T02:00',now=clock(5,2)))
+        self.assertTrue(fetch.candidate_within_publication_window('2026-11-11T00:00',
+            now=datetime(2026,11,10,23,55,tzinfo=timezone.utc)))
+        self.assertFalse(fetch.candidate_within_publication_window('2026-11-11T00:00',
+            now=datetime(2026,11,10,23,54,59,tzinfo=timezone.utc)))
+        for bad in (None,'','2026-11-11T99:00','2026-02-30T00:00','../path','2026-11-11T00:00?token=x'):
+            with self.subTest(bad=bad):
+                self.assertFalse(fetch.candidate_within_publication_window(bad,now=clock(4,0)))
+        self.assertFalse(fetch.candidate_within_publication_window(
+            '2026-11-11T00:00',now=datetime(2026,11,11,4,0)))
+
+    def test_incomplete_newest_eps20_never_triggers_expired_older_download(self):
+        # 04:12 UTC: 01Z incomplete EPS20, 00Z is already too old.
+        # Verify the actual automatic CLI selection rather than only a helper.
+        current=datetime(2026,11,11,4,12,tzinfo=timezone.utc)
+        with tempfile.TemporaryDirectory() as directory:
+            with patch('sys.argv',['ruc','--output',str(Path(directory)/'out')]), \
+                 patch.object(fetch,'session',return_value=Mock()), \
+                 patch.object(fetch,'common_runs',
+                     return_value=['2026-11-11T01:00','2026-11-11T00:00']), \
+                 patch.object(fetch,'build_candidate',side_effect=RuntimeError('EPS20 incomplete')) as build, \
+                 patch.object(fetch,'report_run'), \
+                 patch('sys.stderr',new_callable=io.StringIO) as errors:
+                with self.assertRaises(SystemExit) as failed:
+                    fetch.main(now=current)
+            self.assertIn('outside established',str(failed.exception))
+            self.assertIn('2026-11-11T00:00',errors.getvalue())
+            self.assertEqual(build.call_count,1)
+            self.assertEqual(build.call_args.args[1],'2026-11-11T01:00')
+
+    def test_valid_fallback_and_explicit_historical_replay_remain_intact(self):
+        current=datetime(2026,11,11,3,59,tzinfo=timezone.utc)
+        with tempfile.TemporaryDirectory() as directory:
+            with patch('sys.argv',['ruc','--output',str(Path(directory)/'out')]), \
+                 patch.object(fetch,'session',return_value=Mock()), \
+                 patch.object(fetch,'common_runs',
+                     return_value=['2026-11-11T01:00','2026-11-11T00:00']), \
+                 patch.object(fetch,'build_candidate',
+                     side_effect=[RuntimeError('EPS20 incomplete'),'2026-11-11T00:00']) as build, \
+                 patch.object(fetch,'report_run'):
+                self.assertIsNone(fetch.main(now=current))
+            self.assertEqual(build.call_count,2)
+            with patch('sys.argv',['ruc','--output',str(Path(directory)/'out'),
+                                   '--run','2026-10-05T18:00']), \
+                 patch.object(fetch,'session',return_value=Mock()), \
+                 patch.object(fetch,'build_candidate',
+                     return_value='2026-10-05T18:00') as build, \
+                 patch.object(fetch,'report_run'):
+                self.assertIsNone(fetch.main(now=current))
+            build.assert_called_once()
+
+
 if __name__ == '__main__':
     unittest.main()

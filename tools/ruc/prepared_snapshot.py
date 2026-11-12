@@ -172,6 +172,26 @@ def core_checkpoint(root,repo,create,expected_run_id=None):
     if value.get('schema')!='mid.ruc.prepared-core.v1' or value.get('compatibilitySha256')!=compatibility(repo) or value.get('core')!=report or value.get('producer',{}).get('sourceSha')!=source or value['producer'].get('runId')!=int(expected_run_id):raise ValueError('core producer/contract/bytes mismatch')
     return report
 
+def verified_core_freshness(report, *, now=None):
+    """Bound expensive post-core preparation to the established 240-minute SLA.
+
+    Only call *after* core_checkpoint(..., create=False) re-verified every
+    original SHA byte and the producer/consumer contract. An expired core
+    remains a valid historical artifact, but is NOT admitted to live publish.
+    """
+    if not isinstance(report, dict) or not isinstance(report.get('run'), str):
+        raise ValueError('verified RUC core run metadata missing')
+    stamp = run_time(report['run'])
+    clock = dt.datetime.now(dt.timezone.utc) if now is None else now
+    if not isinstance(clock, dt.datetime) or clock.tzinfo is None:
+        raise ValueError('verified RUC core freshness clock invalid')
+    age_seconds = (clock.astimezone(dt.timezone.utc) - stamp).total_seconds()
+    if age_seconds < -300 or age_seconds > DEFAULT_MAX_AGE_MINUTES * 60:
+        raise ValueError('verified RUC core outside established freshness window')
+    return {'run': report['run'], 'ageSeconds': round(age_seconds, 3),
+            'maxAgeMinutes': DEFAULT_MAX_AGE_MINUTES}
+
+
 def api(path):
     token=os.environ['GITHUB_TOKEN']
     request=urllib.request.Request('https://api.github.com/repos/'+REPOSITORY+'/'+path,headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'})
@@ -197,12 +217,14 @@ def resolve_reuse(run_id):
     return out
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('mode',choices=['seal','admit','resolve','seal-core','admit-core','stage-core-cache']);p.add_argument('--snapshot',type=Path);p.add_argument('--repo',type=Path,default=Path('.'));p.add_argument('--run-id');p.add_argument('--pages-base');p.add_argument('--event-sha');p.add_argument('--attempt');p.add_argument('--grib-source',type=Path);a=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('mode',choices=['seal','admit','resolve','seal-core','admit-core','stage-core-cache']);p.add_argument('--snapshot',type=Path);p.add_argument('--repo',type=Path,default=Path('.'));p.add_argument('--run-id');p.add_argument('--pages-base');p.add_argument('--event-sha');p.add_argument('--attempt');p.add_argument('--grib-source',type=Path);p.add_argument('--require-fresh',action='store_true',help='admit-core only; preserve the established 240-minute limit');a=p.parse_args()
     if a.mode=='admit' and (not a.event_sha or not a.attempt):p.error('authenticated --event-sha and --attempt required for admission')
+    if a.require_fresh and a.mode!='admit-core':p.error('--require-fresh is only valid after authenticated admit-core')
     published=None
     if a.pages_base:
         try:published=published_meta(a.pages_base)
         except urllib.error.HTTPError as error:
             if error.code!=404:raise
     result=resolve_reuse(a.run_id) if a.mode=='resolve' else stage_core_cache(a.snapshot,a.grib_source) if a.mode=='stage-core-cache' else core_checkpoint(a.snapshot,a.repo,a.mode=='seal-core',a.run_id) if a.mode.endswith('-core') else seal(a.snapshot,a.repo) if a.mode=='seal' else admit(a.snapshot,a.repo,a.run_id,published=published,expected_event_sha=a.event_sha,expected_attempt=a.attempt)
+    if a.require_fresh:result['freshness']=verified_core_freshness(result)
     print(json.dumps(result,indent=2))

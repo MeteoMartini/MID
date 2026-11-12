@@ -117,17 +117,19 @@ jobs:
           else
             python tools/ruc/check_ruc_schedule_guard.py --pages-base "$MID_RUC_PAGES_BASE_URL" --github-output "$GITHUB_OUTPUT"
           fi
-      - name: Freie DWD-Decodierwerkzeuge installieren
+      - name: Native Python-ecCodes-Wheel vor DWD-Decode prüfen
         if: ${{ steps.freshness.outputs.should_run == 'true' }}
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libeccodes-tools
+          set -euo pipefail
+          # Python ecCodes ships the native ECMWF library; no CLI tools needed.
+          # Fail closed on an unavailable wheel or native decoder.
           requirements='tools/ruc/requirements-pages.txt'
           if [ ! -f "$requirements" ]; then
             echo '::notice::Lean Pages requirements not present on this older stable source; using compatible full RUC requirements once.'
             requirements='tools/ruc/requirements.txt'
           fi
           python -m pip install --disable-pip-version-check -r "$requirements"
+          python -m eccodes selfcheck
       - name: RUC-Downloadfehler und frühe Vollständigkeitsprüfung offline testen
         if: ${{ steps.freshness.outputs.should_run == 'true' }}
         run: python tools/ruc/timed_command.py download-tests -- python tools/ruc/test_fetch_resilience.py
@@ -235,7 +237,7 @@ jobs:
       - name: Kernbytes und Berechnungsquelle nach dem Jobwechsel erneut prüfen
         if: inputs.reuse_run_id == ''
         run: |
-          python tools/ruc/timed_command.py check-core-handoff -- python tools/ruc/prepared_snapshot.py admit-core --snapshot .ruc-out --run-id "$GITHUB_RUN_ID"
+          python tools/ruc/timed_command.py check-core-handoff -- python tools/ruc/prepared_snapshot.py admit-core --snapshot .ruc-out --run-id "$GITHUB_RUN_ID" --require-fresh
           test ! -e .ruc-stage
           mv .ruc-out/prepared-map-grib .ruc-stage
       - name: Explizite native DWD-Freigabe mit altem RUC-Reuse-Modus verbieten
@@ -243,12 +245,12 @@ jobs:
         run: |
           echo '::error::Eine neue DWD-Originalfreigabe erfordert neue Snapshot-Vorbereitung, kein altes RUC-Reuse-Artefakt.'
           exit 1
-      - name: Etablierte native Aufbereitungsabhängigkeiten installieren
+      - name: Native Python-ecCodes-Wheel vor RUC-Aufbereitung prüfen
         if: inputs.reuse_run_id == ''
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libeccodes-tools
+          set -euo pipefail
           python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+          python -m eccodes selfcheck
       - name: RUC-Wire- und Pages-Free-Profil prüfen
         env:
           PYTHONFAULTHANDLER: '1'
@@ -488,6 +490,12 @@ jobs:
           git fetch --no-tags --depth=1 origin +refs/heads/main:refs/remotes/origin/main
           stable_version="$(python3 -c 'import json; print(json.load(open("package.json"))["version"])')"
           main_version="$(git show refs/remotes/origin/main:package.json | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')"
+          main_sha="$(git rev-parse refs/remotes/origin/main)"
+          if [ "${main_sha}" != "${actual_sha}" ]; then
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::MID main/mid-stable SHA drift (${main_sha} != ${actual_sha}); RUC-Publish übersprungen, um einen parallelen Release nicht zu überschreiben."
+            exit 0
+          fi
           if [ -z "${stable_version}" ] || [ -z "${main_version}" ]; then
             echo "allowed=false" >> "$GITHUB_OUTPUT"
             echo "::warning::MID-Releaseversion konnte für den RUC-Publish nicht eindeutig bestimmt werden; Publish wird fail-closed übersprungen."
@@ -590,9 +598,15 @@ jobs:
           actual_sha="$(git rev-parse refs/remotes/origin/mid-stable)"
           stable_version="$(python3 -c 'import json; print(json.load(open("package.json"))["version"])')"
           main_version="$(git show refs/remotes/origin/main:package.json | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')"
+          main_sha="$(git rev-parse refs/remotes/origin/main)"
           if [ "${actual_sha}" != "${EXPECTED_STABLE_SHA}" ]; then
             echo "allowed=false" >> "$GITHUB_OUTPUT"
             echo "::notice::MID-Stable änderte sich während der RUC-Publish-Vorbereitung (${EXPECTED_STABLE_SHA} → ${actual_sha}). Kein veraltetes RUC-Artefakt wird veröffentlicht."
+            exit 0
+          fi
+          if [ "${main_sha}" != "${actual_sha}" ]; then
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::MID main/mid-stable SHA drift unmittelbar vor RUC-Publish (${main_sha} != ${actual_sha}); Veröffentlichung unterdrückt."
             exit 0
           fi
           if [ -z "${stable_version}" ] || [ -z "${main_version}" ] || [ "${main_version}" != "${stable_version}" ]; then
@@ -629,7 +643,7 @@ jobs:
         run: python tools/ruc/check_ruc_health.py --url "$MID_RUC_WORKER_HEALTH_URL" --meta ./.ruc-pages/ruc/latest.json --pages-base "${MID_RUC_PAGES_BASE_URL:-https://midwx.app/ruc/}"
 
       - name: RUC-Rohsnapshot bei Codec-Ausfall wiederherstellen
-        if: ${{ failure() && steps.deployment.outcome == 'success' && steps.worker_health.outcome == 'failure' }}
+        if: ${{ failure() && steps.deployment.outcome == 'success' && steps.worker_health.outcome == 'failure' && steps.worker_health.outputs.rollback_admitted == 'true' }}
         id: rollback_raw
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:

@@ -65,7 +65,7 @@ def pages_late(url, timeout):
  pages_requests.append(q)
  run = old_pages_run if len(pages_requests) < 9 else expected_pages_run
  return {'schema': 'mid.dwd.ruc.grid.v2', 'storageProfile': 'pages-free-v1', 'run': run}
-assert mod.MAX_PAGES_PROBE_ATTEMPTS == 12
+assert mod.MAX_PAGES_PROBE_ATTEMPTS == 18
 assert mod.probe_pages('https://mid.example/ruc/', expected_pages_run, attempts=12,
                        fetcher=pages_late, sleeper=lambda _: None) == 9
 assert len(pages_requests) == 9
@@ -74,7 +74,7 @@ assert all(row['mid_ruc_expected'] == [expected_pages_run] for row in pages_requ
 
 def pages_stale(url, timeout):
  return {'schema': 'mid.dwd.ruc.grid.v2', 'storageProfile': 'pages-free-v1', 'run': old_pages_run}
-for attempts in (1, 7, 12):
+for attempts in (1, 7, 12, 18):
  try:
   mod.probe_pages('https://mid.example/ruc/', expected_pages_run, attempts=attempts,
                   fetcher=pages_stale, sleeper=lambda _: None)
@@ -327,7 +327,7 @@ class SafeDiagnosticsTests(unittest.TestCase):
    headers=fake_headers
    def __enter__(self):return self
    def __exit__(self,*_):return False
-   def read(self):return b'{bad json'
+   def read(self,size=-1):return b'{bad json'[:size]
   with mock.patch.object(mod.urllib.request,'urlopen',return_value=Response()):
    with self.assertRaises(mod.WorkerPayloadError) as invalid_json:
     mod.probe_until_ready('https://host.invalid/','2026082822',attempts=1)
@@ -336,6 +336,54 @@ class SafeDiagnosticsTests(unittest.TestCase):
    mod.probe_until_ready('https://host.invalid/','2026082822',attempts=1,
                          fetcher=lambda *_:['not','an','object'])
   self.assertEqual(unusable.exception.code,'payload_not_object')
+
+
+ def test_http_metadata_payload_is_size_bounded_for_pages_and_worker(self):
+  # A 200 status and JSON content type are insufficient if a malicious or
+  # broken endpoint streams an oversized manifest or Worker health payload.
+  # The actual response read must request at most MAX+1, regardless of headers.
+  class OversizedResponse:
+   status=200
+   def __init__(self):
+    self.headers=Message()
+    self.headers['Content-Type']='application/json'
+    self.headers['Age']='7'
+    self.read_sizes=[]
+   def __enter__(self):return self
+   def __exit__(self,*_):return False
+   def read(self,size=-1):
+    self.read_sizes.append(size)
+    return b'X'*size
+  expected=mod.MAX_PROBE_PAYLOAD_BYTES+1
+  self.assertEqual(mod.MAX_PROBE_PAYLOAD_BYTES,8*1024*1024)
+  for phase in ('pages','worker'):
+   response=OversizedResponse()
+   journal=mod.ProbeJournal()
+   with self.subTest(phase=phase),mock.patch.object(
+       mod.urllib.request,'urlopen',return_value=response):
+    with self.assertRaises(mod.RucHealthError) as caught:
+     if phase=='pages':
+      mod.probe_pages('https://host.invalid/ruc/',
+                      '2026-11-07T18:00',attempts=1,journal=journal)
+     else:
+      mod.probe_until_ready('https://host.invalid/',
+                            '2026082822',attempts=1,journal=journal)
+   self.assertEqual(response.read_sizes,[expected])
+   self.assertEqual(journal.records[0]['diagnosticCode'],
+                    'probe_payload_too_large')
+   self.assertEqual(journal.records[0]['httpStatus'],200)
+   self.assertEqual(journal.records[0]['metadata'],
+                    {'ageSeconds':7,'contentType':'json'})
+   if phase=='worker':
+    self.assertEqual(caught.exception.code,'probe_payload_too_large')
+   else:
+    self.assertEqual(caught.exception.code,'pages_convergence_timeout')
+  response=OversizedResponse()
+  with mock.patch.object(mod.urllib.request,'urlopen',return_value=response):
+   with self.assertRaises(mod.WorkerPayloadError) as rejected:
+    mod.fetch_payload('https://host.invalid/',15)
+  self.assertEqual(rejected.exception.code,'probe_payload_too_large')
+  self.assertEqual(response.read_sizes,[expected])
 
  def test_real_http_non_object_json_is_payload_failure_for_pages_and_worker(self):
   class Response:
@@ -348,7 +396,7 @@ class SafeDiagnosticsTests(unittest.TestCase):
     self.headers['CF-Cache-Status']='MISS'
    def __enter__(self):return self
    def __exit__(self,*_):return False
-   def read(self):return self.body
+   def read(self,size=-1):return self.body[:size]
 
   for payload in ([],None,'private-token-fragment'):
    with self.subTest(payload_type=type(payload).__name__):
@@ -402,6 +450,72 @@ class SafeDiagnosticsTests(unittest.TestCase):
       self.assertNotIn('token=',stderr.getvalue())
       self.assertNotIn(json.dumps(payload),stderr.getvalue())
 
+
+
+ def test_pages_worker_profile_must_match_public_snapshot_and_native_eps_semantics(self):
+  # The public Pages pointer and Worker can transiently disagree even with
+  # the same UTC run and 27h/20-member dimensions. Never hide that split.
+  pages={**good,'backend':'pages','nativeEpsMembers':False,
+         'storageProfile':'pages-free-v1',
+         'objectsPresent':{**good['objectsPresent'],'epsMembers':False}}
+  mod.check(pages,'2026082822',expected_profile='pages-free-v1')
+  for modified,reason in (
+   ({'storageProfile':'pages-lossless-v1'},'worker_pages_profile_invalid'),
+   ({'storageProfile':None},'worker_pages_profile_invalid'),
+   ({'storageProfile':{}},'worker_pages_profile_invalid'),
+   ({'storageProfile':'pages-codec-staging-v1'},'worker_pages_profile_invalid'),
+   ({'nativeEpsMembers':True},'worker_pages_profile_invalid'),
+   ({'objectsPresent':{**pages['objectsPresent'],'epsMembers':True}},
+    'worker_pages_profile_invalid'),
+  ):
+   with self.subTest(modified=modified):
+    with self.assertRaises(mod.WorkerAdoptionError) as bad:
+     mod.check({**pages,**modified},'2026082822',
+               expected_profile='pages-free-v1')
+    self.assertEqual(bad.exception.code,reason)
+  for modified in (
+   {'nativeEpsMembers':False},
+   {'objectsPresent':{**good['objectsPresent'],'epsMembers':False}},
+  ):
+   with self.subTest(r2_modified=modified):
+    with self.assertRaises(mod.WorkerAdoptionError) as bad:
+     mod.check({**good,**modified},'2026082822')
+    self.assertEqual(bad.exception.code,'worker_eps_object_missing')
+  journal=mod.ProbeJournal()
+  with self.assertRaises(mod.WorkerAdoptionError) as bad:
+   mod.probe_until_ready(
+    'https://host.invalid/health','2026082822',
+    attempts=1,fetcher=lambda *_:{**pages,'storageProfile':'pages-lossless-v1'},
+    expected_profile='pages-free-v1',journal=journal)
+  self.assertEqual(bad.exception.code,'worker_pages_profile_invalid')
+  self.assertEqual(journal.records[0]['diagnosticCode'],
+                   'worker_pages_profile_invalid')
+
+ def test_health_rejects_unproven_backend_and_nonstring_run(self):
+  # Health metadata from the Worker explicitly supports only pages or r2.
+  # Unknown backends must not bypass the EPS20/native-members profile gate.
+  for backend in (None,'','unknown','static',True,7,{}):
+   with self.subTest(backend=repr(backend)):
+    with self.assertRaises(mod.WorkerAdoptionError) as caught:
+     mod.check({**good,'backend':backend},'2026082822')
+    self.assertEqual(caught.exception.code,'worker_backend_invalid')
+  with self.assertRaises(mod.WorkerAdoptionError) as caught:
+   mod.check({**good,'run':2026082822},'2026082822')
+  self.assertEqual(caught.exception.code,'worker_run_mismatch')
+  journal=mod.ProbeJournal()
+  with self.assertRaises(mod.WorkerAdoptionError) as rejected:
+   mod.probe_until_ready('https://host.invalid/','2026082822',
+                         attempts=1,fetcher=lambda *_:{**good,'backend':'unknown'},
+                         journal=journal)
+  self.assertEqual(rejected.exception.code,'worker_backend_invalid')
+  self.assertEqual(journal.records[0]['diagnosticCode'],'worker_backend_invalid')
+  # The expected official Worker backend semantics remain functional.
+  mod.check(good,'2026082822')
+  mod.check({**good,'backend':'pages','nativeEpsMembers':False,
+             'storageProfile':'pages-free-v1',
+             'objectsPresent':{**good['objectsPresent'],'epsMembers':False}},
+            '2026082822')
+
  def test_transport_and_unready_worker_are_not_codec_defects(self):
   with self.assertRaises(mod.WorkerTransportError) as transport:
    mod.probe_until_ready('https://host.invalid/','2026082822',attempts=1,
@@ -429,8 +543,58 @@ class SafeDiagnosticsTests(unittest.TestCase):
   self.assertEqual(result['records'][0]['metadata'],
                    {'ageSeconds':120,'cacheStatus':'hit'})
 
- def test_probe_budgets_remain_bounded_at_twelve_and_seven(self):
-  self.assertEqual(mod.MAX_PAGES_PROBE_ATTEMPTS,12)
+
+ def test_combined_health_deadline_bounds_both_retry_phases(self):
+  class FakeClock:
+   def __init__(self):self.now=0.0
+   def read(self):return self.now
+   def sleep(self,seconds):self.now+=seconds
+  for phase in ('pages','worker'):
+   with self.subTest(phase=phase):
+    clock=FakeClock()
+    journal=mod.ProbeJournal()
+    responses=[]
+    def fetch(url,timeout):
+     responses.append(timeout)
+     if phase=='pages':
+      return {'schema':'mid.dwd.ruc.grid.v2',
+              'storageProfile':'pages-free-v1','run':'2026-11-07T17:00'}
+     return {**good,'ready':False}
+    with self.assertRaises(mod.RucHealthError) as caught:
+     if phase=='pages':
+      mod.probe_pages('https://host.invalid/ruc/','2026-11-07T18:00',
+                      attempts=18,fetcher=fetch,sleeper=clock.sleep,
+                      deadline=17.0,clock=clock.read,journal=journal)
+     else:
+      mod.probe_until_ready('https://host.invalid/','2026082822',
+                            attempts=7,fetcher=fetch,sleeper=clock.sleep,
+                            deadline=17.0,clock=clock.read,journal=journal)
+    self.assertEqual(caught.exception.code,'health_budget_exhausted')
+    self.assertLessEqual(clock.now,17.0)
+    self.assertEqual(len(responses),2)
+    self.assertEqual(journal.records[-1]['diagnosticCode'],
+                     'health_budget_exhausted')
+    self.assertLessEqual(len(journal.records),3)
+
+ def test_cli_shares_health_deadline_between_pages_and_worker(self):
+  with tempfile.TemporaryDirectory() as directory:
+   metadata=Path(directory)/'latest.json'
+   metadata.write_text(json.dumps(sealed),encoding='utf-8')
+   with (mock.patch.object(mod.time,'monotonic',return_value=1000.0),
+         mock.patch.object(mod,'probe_pages',return_value=1) as pages,
+         mock.patch.object(mod,'probe_until_ready',
+                           return_value=({**worker,'run':MODEL_RUN},1)) as adopted,
+         contextlib.redirect_stdout(io.StringIO())):
+    result=mod.main(['--url','https://host.invalid/',
+                     '--pages-base','https://host.invalid/ruc/',
+                     '--meta',str(metadata)])
+   self.assertEqual(result,0)
+   self.assertEqual(pages.call_args.kwargs['deadline'],1600.0)
+   self.assertEqual(adopted.call_args.kwargs['deadline'],1600.0)
+   self.assertEqual(mod.MAX_HEALTH_BUDGET_SECONDS,600)
+
+ def test_probe_budgets_remain_bounded_at_eighteen_and_seven(self):
+  self.assertEqual(mod.MAX_PAGES_PROBE_ATTEMPTS,18)
   self.assertEqual(mod.MAX_WORKER_PROBE_ATTEMPTS,7)
   self.assertEqual(mod.MAX_PROBE_JOURNAL_RECORDS,64)
   with self.assertRaises(mod.PagesConvergenceError) as pages:
@@ -439,12 +603,42 @@ class SafeDiagnosticsTests(unittest.TestCase):
     fetcher=lambda *_:{'schema':'mid.dwd.ruc.grid.v2',
                        'storageProfile':'pages-free-v1','run':'stale'},
     sleeper=lambda _:None)
-  self.assertEqual(pages.exception.attempts,12)
+  self.assertEqual(pages.exception.attempts,18)
   with self.assertRaises(mod.WorkerAdoptionError) as worker:
    mod.probe_until_ready(
     'https://host.invalid/','2026082822',attempts=99,
     fetcher=lambda *_:{**good,'ready':False},sleeper=lambda _:None)
   self.assertEqual(worker.exception.attempts,7)
+
+ def test_full_pages_recovers_at_thirteenth_probe_only_on_exact_run(self):
+  # Synthetic timing replay of the public 16Z/19Z 2026-11-10 late-pointer
+  # incidents: historic twelve-probe limit must not be mistaken for a codec
+  # failure. The new bound remains finite and cannot accept a stale pointer.
+  expected='2026-11-10T19:00'
+  prior='2026-11-10T18:00'
+  fresh=copy.deepcopy(full_meta)
+  fresh['run']=expected
+  stale=copy.deepcopy(fresh)
+  stale['run']=prior
+  journal=mod.ProbeJournal()
+  calls=[]
+  def delayed(url,timeout):
+   calls.append(url)
+   return mod.ProbeResponse(copy.deepcopy(stale if len(calls)<=12 else fresh),
+                            200,{'ageSeconds':0,'cacheStatus':'dynamic',
+                                 'contentType':'json'})
+  self.assertEqual(mod.probe_pages(
+   'https://host.invalid/ruc/',expected,attempts=18,
+   expected_profile='pages-lossless-v1',
+   fetcher=delayed,sleeper=lambda _:None,journal=journal),13)
+  self.assertEqual(len(calls),13)
+  self.assertEqual(len(journal.records),13)
+  self.assertEqual([r['diagnosticCode'] for r in journal.records[:12]],
+                   ['pages_run_mismatch']*12)
+  self.assertEqual(journal.records[-1]['observedRun'],expected)
+  self.assertEqual(journal.records[-1]['observedStorageProfile'],
+                   'pages-lossless-v1')
+  self.assertEqual(journal.records[-1]['phase'],'pages_pointer')
 
  def test_observed_04z_twelve_stale_pages_is_not_codec_defect(self):
   # 08.11.2026 public Pages incident, *offline synthetic replay* based on
@@ -615,12 +809,138 @@ class SafeDiagnosticsTests(unittest.TestCase):
    metadata.write_text(json.dumps(active),encoding='utf-8')
    stderr=io.StringIO()
    with contextlib.redirect_stderr(stderr),mock.patch.object(
+    mod,'probe_pages',return_value=1
+   ),mock.patch.object(
     mod,'probe_until_ready',return_value=(worker,1)
    ):
-    result=mod.main(['--url','https://host.invalid/','--meta',str(metadata)])
+    result=mod.main(['--url','https://host.invalid/',
+                     '--pages-base','https://host.invalid/ruc/',
+                     '--meta',str(metadata)])
    self.assertEqual(result,2)
    self.assertIn('codec_evidence_unclassified',stderr.getvalue())
    self.assertNotIn('codec_defect_proven',stderr.getvalue())
+
+
+
+
+ def test_same_run_pages_manifest_must_match_sealed_object_inventory(self):
+  # Same UTC run, grid, EPS20 and full time axis must NOT mask changed
+  # compressed Pages SHA/object metadata or invalid typed JSON values.
+  expected=copy.deepcopy(sealed)
+  expected['pages']={'objects':[{'key':'runs/demo/object',
+                                 'sha256':'a'*64,'bytes':123}]}
+  contract=mod.verified_snapshot_contract(expected)
+  base_args=('https://host.invalid/ruc/',MODEL_RUN)
+  self.assertEqual(mod.probe_pages(
+   *base_args,attempts=1,expected_profile='pages-free-v1',
+   expected_contract=contract,expected_manifest=expected,
+   fetcher=lambda *_:copy.deepcopy(expected),sleeper=lambda _:None),1)
+  for corrupt in ('digest','bytes_type','missing_object','extra_object','nan'):
+   public=copy.deepcopy(expected)
+   if corrupt=='digest':
+    public['pages']['objects'][0]['sha256']='b'*64
+   elif corrupt=='bytes_type':
+    public['pages']['objects'][0]['bytes']=123.0
+   elif corrupt=='missing_object':
+    public['pages']['objects']=[]
+   elif corrupt=='extra_object':
+    public['pages']['objects'].append({'key':'runs/demo/extra',
+                                       'sha256':'c'*64,'bytes':0})
+   else:
+    public['pages']['objects'][0]['bytes']=float('nan')
+   with self.subTest(corrupt=corrupt):
+    journal=mod.ProbeJournal()
+    with self.assertRaises(mod.SnapshotContractError) as caught:
+     mod.probe_pages(
+      *base_args,attempts=1,expected_profile='pages-free-v1',
+      expected_contract=contract,expected_manifest=expected,
+      fetcher=lambda *_, public=public:public,
+      sleeper=lambda _:None,journal=journal)
+    self.assertEqual(caught.exception.code,
+                     'snapshot_pages_manifest_mismatch')
+    self.assertEqual(journal.records[0]['diagnosticCode'],
+                     'snapshot_pages_manifest_mismatch')
+    self.assertEqual(journal.records[0]['observedRun'],MODEL_RUN)
+
+ def test_full_codec_never_passes_without_independent_pages_pointer_proof(self):
+  # A successful Worker alone cannot prove the active full-codec run is
+  # publicly visible. A missing Pages endpoint must fail before Worker I/O.
+  active=copy.deepcopy(sealed)
+  active.update({'storageProfile':'pages-lossless-v1',
+                 'migration':{'schema':'mid.ruc.migration-active.v1',
+                              'productionEnabled':True},
+                 'pages':{'profile':'pages-lossless-v1',
+                          'losslessTransport':{
+                           'profile':'mid.ruc.compressed-pages.v1',
+                           'mode':'replacement','rawRetained':False}}})
+  self.assertTrue(mod.active_profile_valid(active))
+  with tempfile.TemporaryDirectory() as directory:
+   metadata=Path(directory)/'latest.json'
+   metadata.write_text(json.dumps(active),encoding='utf-8')
+   output=Path(directory)/'github-output'
+   stderr=io.StringIO()
+   with (mock.patch.dict(mod.os.environ,{'GITHUB_OUTPUT':str(output)}),
+         contextlib.redirect_stderr(stderr),
+         mock.patch.object(mod,'probe_until_ready',return_value=(
+          {'ready':True,'fullCodec':{'verified':True}},1)) as worker_probe,
+         mock.patch.object(mod,'probe_pages') as pages_probe):
+    result=mod.main(['--url','https://host.invalid/',
+                     '--meta',str(metadata)])
+   self.assertEqual(result,2)
+   self.assertIn('snapshot_pages_proof_missing',stderr.getvalue())
+   worker_probe.assert_not_called()
+   pages_probe.assert_not_called()
+   self.assertEqual(output.read_text(encoding='utf-8').splitlines(),[
+    'health_failure_code=snapshot_pages_proof_missing',
+    'rollback_admitted=false'])
+
+ def test_raw_rollback_admission_is_bound_to_proven_post_pages_codec_defect(self):
+  # Synthetic replay of the 16Z failure class; not an actual codec proof.
+  active=copy.deepcopy(sealed)
+  active['storageProfile']='pages-lossless-v1'
+  active['migration']={'schema':'mid.ruc.migration-active.v1','productionEnabled':True}
+  active['pages']={'profile':'pages-lossless-v1','losslessTransport':{
+   'profile':'mid.ruc.compressed-pages.v1','mode':'replacement','rawRetained':False}}
+  self.assertTrue(mod.active_profile_valid(active))
+  with tempfile.TemporaryDirectory() as directory:
+   metadata=Path(directory)/'latest.json'
+   metadata.write_text(json.dumps(active),encoding='utf-8')
+   output=Path(directory)/'github-output'
+   argv=['--url','https://host.invalid/','--pages-base',
+         'https://host.invalid/ruc/','--meta',str(metadata)]
+   for failed,pages_ok,expected in (
+    (mod.PagesConvergenceError('16Z not visible; old 15Z only',
+       code='pages_convergence_timeout',attempts=12),False,'false'),
+    (mod.WorkerAdoptionError('not ready',
+       code='codec_evidence_unclassified'),True,'false'),
+    (mod.WorkerAdoptionError('spoofed defect',
+       code='codec_defect_proven'),True,'false'),
+    (mod.CodecDefectError('independently proved codec defect',
+       code='codec_defect_proven'),False,'false'),
+    (mod.CodecDefectError('independently proved codec defect',
+       code='codec_defect_proven'),True,'true'),
+   ):
+    with self.subTest(code=failed.code,pages_verified=pages_ok):
+     output.write_text('',encoding='utf-8')
+     with mock.patch.dict(mod.os.environ,{'GITHUB_OUTPUT':str(output)}),\
+          contextlib.redirect_stderr(io.StringIO()),\
+          mock.patch.object(mod,'probe_pages',
+            side_effect=None if pages_ok else failed,
+            return_value=1),\
+          mock.patch.object(mod,'probe_until_ready',side_effect=failed):
+      self.assertEqual(mod.main(argv),2)
+     lines=output.read_text(encoding='utf-8').splitlines()
+     self.assertEqual(lines,['health_failure_code='+failed.code,
+                             'rollback_admitted='+expected])
+     self.assertNotIn('old 15Z',output.read_text(encoding='utf-8'))
+   output.write_text('',encoding='utf-8')
+   with mock.patch.dict(mod.os.environ,{'GITHUB_OUTPUT':str(output)}),\
+        contextlib.redirect_stderr(io.StringIO()),\
+        mock.patch.object(mod,'probe_until_ready',
+          side_effect=mod.CodecDefectError('fake proof')):
+    self.assertEqual(mod.main(['--url','https://host.invalid/',
+                               '--meta',str(metadata)]),2)
+   self.assertIn('rollback_admitted=false',output.read_text(encoding='utf-8'))
 
 
 if __name__=='__main__':

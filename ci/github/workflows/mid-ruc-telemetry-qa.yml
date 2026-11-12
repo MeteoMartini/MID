@@ -17,6 +17,8 @@ on:
       - 'tools/ruc/optional_stage_parallel.py'
       - 'tools/ruc/test_optional_stage_parallel.py'
       - 'tools/ruc/test_fetch_resilience.py'
+      - 'tools/ruc/check_ruc_health.py'
+      - 'tools/ruc/test_ruc_health_check.py'
       - 'ci/github/workflows/mid-ruc-availability-observer.yml'
       - '.github/workflows/mid-ruc-availability-observer.yml'
       - 'ci/github/workflows/mid-ruc-telemetry-qa.yml'
@@ -87,6 +89,9 @@ jobs:
           for source in sorted(Path('tools/ruc').glob('*.py')):
               ast.parse(source.read_text(encoding='utf-8'),filename=str(source))
           PY
+          # Stdlib-only live-health and rollback-cause negative fixtures:
+          # previously these ran in the production preparer, not PR CI.
+          python3 tools/ruc/test_ruc_health_check.py -v
           for test in test_dwd_availability_observer.py test_dwd_availability_report.py test_ruc_freshness_shadow_gate.py test_ruc_e2e_readback.py test_ruc_weekly_e2e_observations.py; do
             python3 "tools/ruc/$test" -v
           done
@@ -97,7 +102,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y libeccodes-tools
           python3 -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+          # Native C decoder must be usable, never silently substituted.
+          python3 -m eccodes selfcheck
           python3 tools/ruc/test_fetch_resilience.py -v

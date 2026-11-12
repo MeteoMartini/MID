@@ -7,9 +7,13 @@ export function mapBrowserCases(shard=''){
  const group=Number(match[1]);
  // Keep every 6x2x2 browser case; measured CI runtimes require balanced heavy shards.
  const caseGroup=row=>{
-  if(row.width===844)return row.theme==='dark'&&row.design==='classic'?3:1;
+  // Move 844px dark/classic into 1/3: it shares the already bounded two-case
+  // dark batch with 844px dark/next, preserving full per-case assertions.
+  if(row.width===844)return 1;
   if(row.width===1024)return row.design==='next'?(row.theme==='light'?1:2):row.theme==='dark'?1:3;
-  if(row.width===1440)return row.design==='next'?3:row.theme==='dark'?2:1;
+  // Source #43297946239: 1440px light/classic passed individually in
+  // 162.5s on overloaded 1/3; move that exact full case to spare 2/3.
+  if(row.width===1440)return row.design==='next'?3:2;
   return MAP_BROWSER_WIDTHS.indexOf(row.width)%3+1;
  };
  return cases.filter(row=>caseGroup(row)===group);
@@ -31,12 +35,12 @@ export function mapBrowserRunPlan(shard=''){
  return groups;
 }
 
-/** Source Gate #43074212691: the real 2/3 matrix passed seven complete cases
- * in 11m23s, then the additional 20-cycle memory probe hit the 13m job limit.
- * Run that unchanged probe once with the 1/3 matrix instead: 1/3 took 6m16s.
- * Also move only the 1024px/light/next full case from 2/3 to 1/3 to balance
- * real 13-minute loads. Exactly 24 canonical cases + one 20-cycle probe remain.
- * No reduced browser assertions, missing values, timeouts, or altered gates. */
+/** Source #43297946239: full 1/3 functional cases reached the 13m cap
+ * before the 20-cycle 390px memory probe; 2/3 passed in 446.5 seconds,
+ * 3/3 in 705.0 seconds. Two exact FULL cases are reassigned above,
+ * leaving 10/7/7 and preserving the original 20 memory cycles on 1/3.
+ * No removed viewport, reduced assertions, changed browser timeout,
+ * synthetic success, or removed release/installer gate. */
 export function mapBrowserMemoryProbe(shard=''){
  mapBrowserCases(shard); // reject unknown groups before selecting any work
  return shard===''||shard==='1/3';
