@@ -2,7 +2,7 @@
 import sys,copy,datetime as dt,hashlib,json,os,subprocess,tempfile,unittest
 from pathlib import Path
 from unittest.mock import patch
-from prepared_snapshot import compatibility,seal,admit,verify_bytes,resolve_reuse,RECEIPT,core_checkpoint,stage_core_cache
+from prepared_snapshot import compatibility,seal,admit,verify_bytes,resolve_reuse,RECEIPT,core_checkpoint,stage_core_cache,verified_core_freshness
 from prepare_lossless_snapshot import prepare_snapshot
 from activate_lossless_snapshot import activate_snapshot
 ROOT=Path(__file__).resolve().parents[2]
@@ -111,6 +111,29 @@ class PreparedTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'regress'):admit(self.snapshot,self.repo,123,published=published)
         with self.assertRaisesRegex(ValueError,'attempt'):admit(self.snapshot,self.repo,123,expected_attempt=2)
         with self.assertRaisesRegex(ValueError,'event SHA'):admit(self.snapshot,self.repo,123,expected_event_sha='e'*40)
+    def test_early_core_handoff_freshness_boundaries_are_identical_to_seal(self):
+        # The real 2026-11-10 23Z source was refused at 03:08 and 04:08 UTC.
+        # Detect it before expensive ecCodes/maps/codec, without new source data.
+        fixture={'run':'2026-11-10T23:00'}
+        utc=dt.timezone.utc
+        at=lambda h,m,s=0:dt.datetime(2026,11,11,h,m,s,tzinfo=utc)
+        self.assertEqual(verified_core_freshness(fixture,now=at(2,59))['maxAgeMinutes'],240)
+        self.assertEqual(verified_core_freshness(fixture,now=at(3,0))['ageSeconds'],14400)
+        for observation in (at(3,0,1),at(3,8),at(4,8)):
+            with self.subTest(observed=observation):
+                with self.assertRaisesRegex(ValueError,'outside established freshness window'):
+                    verified_core_freshness(fixture,now=observation)
+        self.assertEqual(verified_core_freshness(fixture,now=dt.datetime(
+            2026,11,10,22,55,tzinfo=utc))['ageSeconds'],-300)
+        with self.assertRaisesRegex(ValueError,'outside established freshness window'):
+            verified_core_freshness(fixture,now=dt.datetime(
+                2026,11,10,22,54,59,tzinfo=utc))
+        for report in ({}, {'run':None}, {'run':'2026-99-99T99:99'}):
+            with self.assertRaises((ValueError,TypeError)):
+                verified_core_freshness(report,now=at(2,0))
+        with self.assertRaisesRegex(ValueError,'clock invalid'):
+            verified_core_freshness(fixture,now=dt.datetime(2026,11,11,3,0))
+
     def test_raw_checkpoint_is_exact_and_not_publishable(self):
         core=self.root/'core';core.mkdir();data=b'original core bytes';(core/'data.bin').write_bytes(data)
         times=[(self.now+dt.timedelta(hours=h)).strftime('%Y-%m-%dT%H:%M') for h in range(28)]
@@ -124,7 +147,7 @@ class PreparedTests(unittest.TestCase):
         self.assertEqual(core_checkpoint(core,self.repo,False,123)['objects'],1)
         self.assertEqual(len(core_checkpoint(core,self.repo,False,123)['mapGribCache']),2)
         # Core handoff runs before native/pip setup in the next job. It must be stdlib-only.
-        subprocess.run([sys.executable,'-S','tools/ruc/prepared_snapshot.py','admit-core','--snapshot',str(core),'--repo',str(self.repo),'--run-id','123'],cwd=ROOT,check=True,capture_output=True,text=True)
+        subprocess.run([sys.executable,'-S','tools/ruc/prepared_snapshot.py','admit-core','--snapshot',str(core),'--repo',str(self.repo),'--run-id','123','--require-fresh'],cwd=ROOT,check=True,capture_output=True,text=True)
         with self.assertRaisesRegex(ValueError,'producer'):core_checkpoint(core,self.repo,False,999)
         with self.assertRaises(ValueError):verify_bytes(core)
         (core/'data.bin').write_bytes(b'corrupt')
