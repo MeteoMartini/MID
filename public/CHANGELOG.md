@@ -11,4 +11,3 @@ Keine zusätzliche kostenpflichtige Infrastruktur, keine Änderung an den amtlic
 
 ## Freigabe und noch offene Punkte
 Aus den SHA-verifizierten QA-Drafts #750 (RUC P4) und #771 (Release-Diagnostik) auf Basis der veröffentlichten .459 zusammengestellt. Vollständig native ICON-D2-Vollgebietsdaten erfordern weiterhin einen echten geschützten DWD-SLSA-Signer-Lauf, 73 SHA-geprüfte Dateien, öffentliche Pages-/Kartenabnahme und Sölden/Köln/NoData-Verifikation. Keine reale iOS-/VoiceOver-Abnahme behauptet. Veröffentlichung erst nach sämtlichen Release-Gates.
-
