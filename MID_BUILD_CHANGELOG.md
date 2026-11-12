@@ -1,3 +1,13 @@
+## MID v0.9.85.458 · 2026-11-12 · CodeQL-Sicherheitsanalyse und Release-Provenienz
+
+- Baseline: published main=mid-stable d8ffd44f0cc2f2c9ec1025d28d813fb2fa6d051a (v0.9.85.457), source PR #762 merged, bot #43210338178 success, installer #43210420801 success, active protected rulesets unchanged.
+- Input: isolated QA-Draft PR #759 @ 42078f60dda467a88f52556477078c120e97e5b9 (8 paths) selected after exact GitHub diff proved none of those paths changed from parent v0.9.85.455 to published v0.9.85.457.
+- Vendor: annotated tag github/codeql-action v4.39.1 resolves to verified commit 9b3254085494b55a0f7c4c2b3d2d52cc712ce370. init/analyze workflow mirror byte-identical; sync script and existing regression expectations updated together. Vendor also has newer tags, intentionally not silently selected.
+- QA evidence of isolated input: #43091134402 completed success, including real CodeQL JavaScript/TypeScript and full revision shards. This alone does not authorize integrated .458 release.
+- Project review: the read-only quality pilot #760 contains optional actionlint/zizmor findings in its actual CI run #43113814578, despite green outer job via continue-on-error. It is explicitly excluded pending independent findings disposition and scope QA; no weakening of release reviews.
+- Provenance correction: previous v0.9.85.457 MID_SOURCE_OF_TRUTH.md retained historical 'unpublished candidate' wording after full promotion. Correct that heading and first preface, preserve historical original SHA details in clearly marked history. No meteorological algorithms, warnings, RUC fields, worker behavior or UI code altered.
+- New candidate: v0.9.85.458 with 19 synchronized version mirrors, technical & user-facing notes; must pass full version/Build/regression/security/native review gates before controlled bot merge, ZIP, installer and Stable promotion.
+
 ## MID v0.9.85.458 · 2026-11-12 · CodeQL v4.39.1 und korrigierte Release-Provenienz
 
 - Quelle: v0.9.85.457 main=mid-stable `d8ffd44f0cc2f2c9ec1025d28d813fb2fa6d051a`, Merge #762 via Bot #43210338178, Installer #43210420801 vollständig erfolgreich inklusive Worker/Pages. Kein ungesicherter Arbeitsstand übernommen.
