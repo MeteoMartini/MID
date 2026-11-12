@@ -628,8 +628,24 @@ jobs:
         with:
           name: mid-ruc-pages-${{ github.run_id }}-${{ github.run_attempt }}
           path: ./.ruc-site
-      - name: MID + RUC kostenfrei auf GitHub Pages veröffentlichen
+      - name: Hochgeladenes Pages-Artefakt SHA-/Run-gebunden zweimal sichtbar prüfen
         if: steps.predownload_guard.outputs.allowed == 'true' && steps.publish_guard.outputs.allowed == 'true'
+        id: pages_artifact_readiness
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_STABLE_SHA: ${{ steps.stable_guard.outputs.consumer_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/ci/ruc-pages-artifact-readiness.mjs normal
+          stable="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/git/ref/heads/mid-stable" --jq .object.sha)"
+          main="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
+          if [ "$stable" != "$EXPECTED_STABLE_SHA" ] || [ "$main" != "$EXPECTED_STABLE_SHA" ]; then
+            echo "::error::Stable/main drift after artifact visibility preflight; RUC publish remains blocked."
+            exit 1
+          fi
+      - name: MID + RUC kostenfrei auf GitHub Pages veröffentlichen
+        if: steps.predownload_guard.outputs.allowed == 'true' && steps.publish_guard.outputs.allowed == 'true' && steps.pages_artifact_readiness.outcome == 'success'
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
@@ -687,8 +703,24 @@ jobs:
         with:
           name: mid-ruc-pages-rollback-${{ github.run_id }}-${{ github.run_attempt }}
           path: ./.ruc-rollback-site
-      - name: Nach fehlgeschlagenem Codec-Healthcheck RUC-Rohsnapshot zurückveröffentlichen
+      - name: Hochgeladenen Rohdaten-Rollback SHA-/Run-gebunden sichtbar prüfen
         if: ${{ failure() && steps.rollback_raw.outcome == 'success' }}
+        id: rollback_artifact_readiness
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_STABLE_SHA: ${{ steps.stable_guard.outputs.consumer_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/ci/ruc-pages-artifact-readiness.mjs rollback
+          stable="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/git/ref/heads/mid-stable" --jq .object.sha)"
+          main="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
+          if [ "$stable" != "$EXPECTED_STABLE_SHA" ] || [ "$main" != "$EXPECTED_STABLE_SHA" ]; then
+            echo "::error::Stable/main drift after rollback artifact visibility; no stale raw overwrite."
+            exit 1
+          fi
+      - name: Nach fehlgeschlagenem Codec-Healthcheck RUC-Rohsnapshot zurückveröffentlichen
+        if: ${{ failure() && steps.rollback_raw.outcome == 'success' && steps.rollback_artifact_readiness.outcome == 'success' }}
         id: rollback_pages
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:

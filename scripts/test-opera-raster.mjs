@@ -115,3 +115,38 @@ try{
  }
  console.log('OPERA-Fallback geprüft: S3-Indexausfall wird durch bestätigte HDF5-Range-Probes aufgefangen.');
 }finally{globalThis.fetch=fallbackFetch}
+
+const backupHost='object-store.os-api.cci1.ecmwf.int';
+const liveKey=objectKey(nominal-5*60_000);
+const expiredKey=objectKey(nominal-25*3600_000);
+let onlyExpired=false;
+globalThis.fetch=async input=>{
+ const url=new URL(input);
+ if(url.hostname==='api.meteogate.eu'){
+  const links=[{href:`https://${backupHost}/openradar-24h-backup/${onlyExpired?expiredKey:liveKey}`},
+   {href:`https://untrusted.example/openradar-24h-backup/${objectKey(nominal)}`}];
+  return Response.json({type:'Coverage',links});
+ }
+ if(url.hostname==='s3.waw3-1.cloudferro.com'){
+  if(url.searchParams.has('list-type'))return new Response(`<ListBucketResult><Key>${expiredKey}</Key></ListBucketResult>`);
+  return new Response(null,{status:404});
+ }
+ if(url.hostname===backupHost&&decodeURIComponent(url.pathname)===`/openradar-24h-backup/${liveKey}`)
+  return new Response(Uint8Array.of(137,72,68,70,13,10,26,10),{headers:{'content-type':'application/x-hdf5'}});
+ throw new Error('Unexpected OPERA request: '+url);
+};
+try{
+ const {default:worker}=await import('../worker/metar-proxy.js?opera-backup-test');
+ const request=new Request('https://mid.test/?mode=opera-raster-meta&lat=46.969&lon=11.01');
+ const response=await worker.fetch(request,{}),catalog=await response.json();
+ if(!response.ok||catalog.frames.length!==1)throw new Error('Only official fresh backup frame expected: '+JSON.stringify(catalog));
+ const fileUrl=new URL(catalog.frames[0].fileUrl);
+ if(fileUrl.hostname!=='mid.test'||fileUrl.searchParams.get('storage')!=='backup'||fileUrl.searchParams.get('key')!==liveKey)
+  throw new Error('OPERA backup must be proxied using its verified key and storage');
+ const file=await worker.fetch(new Request(fileUrl),{});
+ if(!file.ok||(await file.arrayBuffer()).byteLength!==8)throw new Error('Backup HDF5 did not pass through');
+ onlyExpired=true;
+ const expired=await worker.fetch(request,{});
+ if(expired.ok)throw new Error('An expired OPERA catalogue must not report live radar');
+ console.log('OPERA backup: official ECMWF links accepted, arbitrary hosts and stale-only catalogues rejected.');
+}finally{globalThis.fetch=originalFetch}

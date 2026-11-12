@@ -1,3 +1,13 @@
+# MID v0.9.85.461 · Versionierter Source-/Release-Train-Kandidat, 12.11.2026
+
+**Maßgebliche Quellbasis:** main=mid-stable=`e84d2d2418cc9f1c190fd95539fb8335960c9d93`, veröffentlichte v0.9.85.460, fünf aktive Rulesets. Importierte SHA-verifizierte Spezial-PRs: #774 HEAD `d98e9b0516614bbe9f7e5c7fc714440bf5e60d9f` und #776 HEAD `b49d09a06677f1b42e1935f2a40e567aef7d2299`. Keine unverifizierten Chat-/ZIP-/Replit-Codequellen.
+
+**Korrekturen:** OPERA-DBZH über offiziellen MeteoGate-/ECMWF-Speicher bei CloudFerro-Ausfall, EUMETNET CC BY 4.0, klare Radar-/Modell-/Satelliten-Provenienz; begrenzter Current-Run-SHA-Artefaktindex-Readback und erneute main-/mid-stable-Freigabe vor RUC-Pages-Publish. Weder DWD-Daten/NoData noch signierte D2-Originalfreigabe, Warnregeln, Hauptbranch-Rechte oder Release-Rulesets werden geändert.
+
+**Nicht behauptet:** v0.9.85.461 ist bis zum belegten Source-PR-Gate → kontrollierter SHA-Bot-Merge → ZIP → Installer → Worker/Pages → Stable-Promotion nur ein Kandidat. #446 Original-Vollgebiet (72 Felder, 73 signierte Objekte) und #740 Reviewregeln bleiben gesonderte offen dokumentierte Punkte. #773 ist noch nicht integrationsbereit; EUMETSAT-Satelliten-502 und reale iOS-/VoiceOver-Gerätetests sind von diesem Patch nicht gelöst.
+
+## Historische Version v0.9.85.460
+
 # MID v0.9.85.460 · Release-Train-Integrationsnachweis vom 12.11.2026
 
 **Quellbasis zur Erstellung:** main=mid-stable=30b0be2b95f7b59119fa524c339ab43443c62186 (veröffentlichte v0.9.85.459; Installer #43267552269 einschließlich Worker/Pages/Stable).

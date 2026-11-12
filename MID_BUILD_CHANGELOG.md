@@ -1,3 +1,13 @@
+## MID v0.9.85.461 · 12.11.2026 · OPERA-Radar-Fallback und RUC-Pages-Artefaktsichtbarkeit
+
+- Basis: main=mid-stable `e84d2d2418cc9f1c190fd95539fb8335960c9d93`, veröffentlicht v0.9.85.460; fünf aktive Rulesets.
+- Quellimporte: Radar-PR #774 `d98e9b0516614bbe9f7e5c7fc714440bf5e60d9f` (7 Dateien); RUC-Pages-PR #776 `b49d09a06677f1b42e1935f2a40e567aef7d2299` (5 Dateien), ursprünglich SHA-exakte Git-Blobs.
+- EUMETNET-OPERA-Komposit (MeteoGate/ECMWF Backup) CC BY 4.0 mit Lizenz- und Umrechnungsangabe im Karten-Detail; freier, bekannter Host und strikte DBZH-Schlüssel. Keine RainViewer-Proxy-Freigabe.
+- GitHub-RUC-Pages-Indexrace (RUC-Run 43315778438): endlich begrenzter zweiwertiger Current-Run-Artefakt-Readback nach Upload, danach Main-/Stable-Gate, keine Neuberechnung der Original-Daten; raw rollback separat geschützt.
+- #773 Action-Upgrade wegen unabhängig nicht grüner Paritäts-/27h-Gates nicht integriert; #775 bleibt eigenständiger Review-Ruleset-Pilot und verändert hier keine GitHub-Schutzregeln.
+- D2-native FullDomain #446 weiterhin unfreigegeben, solange echter Signer/SLSA/73 Dateien/Browser-/Ortsreadback fehlt.
+- Diese Build-/Release-Dokumentation ist ein Kandidaten-Nachweis. Quelle→Bot→ZIP→Installer→Worker/Pages→Stable und Review-/Browser-/RUC-/Security-Gates sind weiterhin verpflichtend.
+
 ## MID v0.9.85.460 · 12.11.2026 · RUC P4 Recovery und zuverlässige Release-Diagnose
 
 - Ausgangsbasis: main=mid-stable 30b0be2b95f7b59119fa524c339ab43443c62186 (v0.9.85.459), fünf aktive GitHub-Rulesets.
