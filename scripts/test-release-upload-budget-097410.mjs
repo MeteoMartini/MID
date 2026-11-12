@@ -29,8 +29,21 @@ for(const workflow of [installCanonical,installActive]){
 // Prevent stale candidates from reaching any external Worker/Pages mutation.
 // The prerequisite must immediately precede the action, use a fresh main
 // readback and be included explicitly in the action's fail-closed `if`.
-const deploySteps=installCanonical.split(/(?=^      - name: )/m);
+const deploySteps=installCanonical.split(/(?=^      - )/m);
 const stepFor=name=>deploySteps.find(s=>s.startsWith(`      - name: ${name}\n`));
+
+// A nameless YAML 'run' or 'uses' item must break immediate SHA-fence adjacency.
+const unnamedStepFixture=[
+ '      - name: Sha fence',
+ '        run: echo checked',
+ '      - run: echo unexpected-between-fence-and-deploy',
+ '      - name: Production publish',
+ '        uses: actions/deploy-pages@pinned'
+].join('\n');
+const unnamedItems=unnamedStepFixture.split(/(?=^      - )/m);
+assert.equal(unnamedItems.length,3,'Unnamed workflow steps must be detected as separate items');
+assert.match(unnamedItems[1],/unexpected-between-fence-and-deploy/);
+
 for(const [mutation,guard,id] of [
   ['Neue Worker-Version nur hochladen, noch nicht live schalten','Unverändertes main vor Worker-Upload verifizieren','main_fence_worker_upload'],
   ['Geprüfte Worker-Version auf 100 Prozent promoten','Unverändertes main unmittelbar vor Worker-Live-Promotion prüfen','main_fence_worker_live'],
