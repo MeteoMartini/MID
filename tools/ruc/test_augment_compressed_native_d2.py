@@ -97,6 +97,14 @@ class SignedNativeD2CompressedAdmissionTests(unittest.TestCase):
             attach(self.snap, self.approval, RELEASE, now=CLOCK)
         self.assertEqual(original, (self.snap / 'latest.json').read_bytes())
 
+    def test_symlinked_approval_root_is_untrusted_even_if_target_files_exist(self):
+        redirect = self.root / 'redirect'
+        redirect.symlink_to(self.approval, target_is_directory=True)
+        original = (self.snap / 'latest.json').read_bytes()
+        with self.assertRaisesRegex(ValueError, 'Untrusted'):
+            attach(self.snap, redirect, RELEASE, now=CLOCK)
+        self.assertEqual(original, (self.snap / 'latest.json').read_bytes())
+
     def test_utc_and_sha_contracts_fail_closed(self):
         for value in ('2026-11-12T12:00:00', '2026-11-12T13:00:00+01:00', 'garbage', None):
             with self.subTest(value=value), self.assertRaises(ValueError):
