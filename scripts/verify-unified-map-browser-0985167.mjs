@@ -253,6 +253,9 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
    const centerProbe=page.getByRole('button',{name:'Wert am Kartenmittelpunkt anzeigen',exact:true});
    await centerProbe.waitFor();
    assert.equal(await page.locator('.mid-model-map-probe-center').count(),1,'One map center probe for both model layers');
+   // DOM hit-testing is viewport-relative; verify actual overlap only after
+   // the control is scrolled into the visible browser viewport.
+   await centerProbe.scrollIntoViewIfNeeded();
    const hit=await centerProbe.evaluate(button=>{
     const rect=button.getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2;
     const element=document.elementFromPoint(x,y);
