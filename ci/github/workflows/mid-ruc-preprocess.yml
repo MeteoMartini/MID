@@ -180,6 +180,7 @@ jobs:
     permissions:
       contents: read
       actions: read
+      attestations: read # Only verify the protected DWD SLSA artifact; no signing/deploy rights.
     steps:
       - name: Producer-Stable oder aktuellen Stable für explizite Wiederverwendung laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
