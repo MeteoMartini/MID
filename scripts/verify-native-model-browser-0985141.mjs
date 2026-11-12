@@ -97,7 +97,14 @@ try{if(!process.argv.includes('--navigation-only')){for(const [width,height] of 
   await page.waitForFunction(()=>document.querySelector('.mid-model-map-legend__mode[aria-pressed="true"]')?.textContent.includes('Feste Skala'));
   assert.equal(await page.getByRole('button',{name:'Wertebereich',exact:true}).isDisabled(),true,'Animation locks the relative scale');
   assert.equal(await page.getByRole('button',{name:'Feste Skala',exact:true}).isDisabled(),true,'Animation scale cannot flicker');
-  assert.equal(await page.getByRole('button',{name:'Wert am Kartenmittelpunkt anzeigen'}).isDisabled(),true,'Animated frames cannot leave a stale point value');
+  const idleProbe=page.getByRole('button',{name:'Wert am Kartenmittelpunkt anzeigen'});
+  assert.equal(await idleProbe.isDisabled(),true,'Animated frames cannot leave a stale point value');
+  await idleProbe.focus();
+  assert.equal(await idleProbe.evaluate(element=>document.activeElement===element),true,
+   'Animated map point control must remain discoverable by keyboard with aria-disabled');
+  await page.keyboard.press('Enter');
+  assert.equal(await page.getByRole('dialog',{name:/^Kartenwert/}).count(),0,
+   'aria-disabled animated control must not open or sample a stale map point');
   await page.getByRole('button',{name:'Animation pausieren',exact:true}).click();
   const downloaded=page.waitForEvent('download');await page.getByRole('button',{name:'PNG herunterladen'}).click();assert.match((await downloaded).suggestedFilename(),/\.png$/);
   assert.equal(errors.length,0,errors.join('; '));await page.close();

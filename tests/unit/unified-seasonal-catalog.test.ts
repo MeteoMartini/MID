@@ -32,7 +32,8 @@ describe('seasonal WXCharts-inspired cards stay inside the original MID map sele
  const isMapAudit=process.env.GITHUB_ACTIONS==='true'&&
   process.env.GITHUB_EVENT_NAME==='pull_request'&&
   new Set(['chatgpt/v0.9.85.454-seasonal-interval-qa',
-   'chatgpt/v0.9.85.455-general-integrity-review-integration'])
+   'chatgpt/v0.9.85.455-general-integrity-review-integration',
+   'chatgpt/v0.9.85.455-map-model-flags-family-resolution'])
    .has(process.env.GITHUB_HEAD_REF);
  (isMapAudit?it:it.skip)('runs four real Chrome MapLibre viewport/theme/design probes with both seasonal PNG and SVG exports',()=>{
   const repoRoot=fileURLToPath(new URL('../../',import.meta.url));

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {transform} from 'esbuild';
 import {readFileSync} from 'node:fs';
 const worker=await import('../worker/metar-proxy.js?point149='+Date.now()),originalFetch=globalThis.fetch;
 const run=new Date(Math.floor(Date.now()/3600000)*3600000).toISOString(),time=new Date(Date.parse(run)+3600000).toISOString();
@@ -21,6 +22,31 @@ try{
  properties={'Total_precipitation-1h_ground_or_water_surface':0,TIME:time,REFERENCE_TIME:run};result=await point({layer:'dwd:Icon-eu_reg00625_fd_sl_TOTPREC01H',elevation:undefined});assert.equal(result.data.available,true);assert.equal(result.data.value,0,'Verified dry zero is not a missing value');assert.equal(result.data.unit,'mm');
  globalThis.fetch=async()=>new Response(`<WMS_Capabilities><Capability><Layer><Layer queryable="1"><Name>Icon_reg025_fd_sl_T2M</Name><Dimension name="time">${time}</Dimension><Dimension name="reference_time">${run}</Dimension></Layer></Layer></Capability></WMS_Capabilities>`,{headers:{'content-type':'application/xml'}});
  const metadataResponse=await worker.default.fetch(new Request('https://mid.test/?mode=weather-map-metadata&layer=dwd:Icon_reg025_fd_sl_T2M'),{});const metadata=await metadataResponse.json();assert.equal(metadata.pointUnit,'°C','Queryable metadata exposes only the verified scalar unit, including unprefixed workspace catalogs');
- const probe=readFileSync('src/ModelMapProbe.tsx','utf8');assert.ok(probe.includes('AppPortalPopover'));assert.ok(probe.includes('requestRef.current?.abort()'));assert.ok(probe.includes('controller.signal.aborted'));assert.ok(probe.includes('role="dialog"'));assert.ok(!probe.includes('window.setTimeout'));assert.ok(probe.includes("map.on('movestart',close)"));assert.ok(!probe.includes("document.addEventListener"),'No copied generic portal/dismiss engine');
+ const probe=readFileSync('src/ModelMapProbe.tsx','utf8'),coordinator=readFileSync('src/mapProbeGroup.ts','utf8');
+ assert.ok(probe.includes('AppPortalPopover')&&probe.includes('role="dialog"'));
+ assert.ok(probe.includes('new MapProbeGroup()')&&probe.includes("map.on('movestart',move)")&&probe.includes('const move=()=>group.close()'),'One per-map coordinator closes on map moves');
+ assert.ok(probe.includes("map.off('movestart',store.move)"),'Every map listener must be removed after the last layer');
+ assert.ok(coordinator.includes('this.pending?.abort()')&&coordinator.includes('controller.signal.aborted||this.point?.revision!==revision'),'Abort and revision fence must survive moving sampling out of the React component');
+ assert.ok(!probe.includes('window.setTimeout')&&!probe.includes('document.addEventListener'),'No copied generic portal/dismiss engine');
+ // Execute the current coordinator as well: a stale first response cannot
+ // overwrite the new coordinate or silently turn an observed zero into NoData.
+ const {code:coordinatorJs}=await transform(coordinator,{loader:'ts',format:'esm',target:'es2022'});
+ const {MapProbeGroup}=await import('data:text/javascript;base64,'+Buffer.from(coordinatorJs).toString('base64'));
+ const group=new MapProbeGroup();
+ let oldResolve,oldSignal,view,first=true;
+ group.add({id:Symbol('DWD-point'),read:()=>({
+  label:'Niederschlag',unit:'mm',source:'DWD ICON-D2',unavailableNote:'Originalwert fehlt',
+  format:value=>String(value),
+  sample:(_lat,_lon,signal)=>{
+   if(first){first=false;oldSignal=signal;return new Promise(resolve=>{oldResolve=resolve})}
+   return 0;
+  }
+ }),notify:state=>{view=state}});
+ group.show(50.8,7);assert.equal(view.point.rows[0].pending,true);
+ group.show(50.9,7.1);assert.equal(oldSignal.aborted,true);
+ assert.equal(view.point.latitude,50.9);assert.equal(view.point.rows[0].value,0);
+ oldResolve(99);await Promise.resolve();await Promise.resolve();
+ assert.equal(view.point.rows[0].value,0,'Stale previous coordinate cannot overwrite genuine dry zero');
+ group.close();assert.equal(view.point,null,'Closing map dialog clears the active point');
  console.log('MID149: bounded, whitelisted DWD scalar point queries; exact time/run/level, dry/missing distinction, unsupported units and abort/portal contracts verified.');
 }finally{globalThis.fetch=originalFetch}

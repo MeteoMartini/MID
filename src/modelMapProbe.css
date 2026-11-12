@@ -1,5 +1,5 @@
 .mid-model-map-probe-center{position:absolute;top:12px;left:12px;z-index:3;display:grid;place-items:center;width:44px;height:44px;min-height:44px!important;padding:0;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);box-shadow:0 2px 8px #0002;touch-action:manipulation;cursor:pointer}
-.mid-model-map-probe-center:disabled{opacity:.55;cursor:default}
+.mid-model-map-probe-center[aria-disabled="true"]{opacity:.55;cursor:not-allowed}
 .mid-model-map-probe-center:focus-visible,.mid-model-map-probe button:focus-visible,.mid-model-map-probe-pin:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 .mid-model-map-probe-pin{width:44px;height:44px;min-height:44px!important;padding:0;border:0;border-radius:50%;background:radial-gradient(circle,var(--primary) 0 5px,var(--surface) 6px 8px,transparent 9px);cursor:pointer;touch-action:manipulation}
 .mid-model-map-probe.app-portal-popover{padding:12px;border:1px solid var(--border);border-radius:14px;background:var(--surface);color:var(--text);box-shadow:0 8px 28px #0003}
@@ -13,3 +13,15 @@
 .mid-model-map-probe__coordinates,.mid-model-map-probe__source{margin:4px 0;color:var(--muted);font-size:11px;line-height:1.45;overflow-wrap:anywhere}
 
 .mid-map-export-status{grid-column:1/-1;color:var(--muted);font-size:11px;line-height:1.4}
+
+/* Multiple sampled layers share one popup, with their own units and source status. */
+.mid-model-map-probe__row{min-width:0}
+.mid-model-map-probe__row+.mid-model-map-probe__row{border-top:1px solid var(--border);padding-top:8px;margin-top:8px}
+.mid-model-map-probe__row-label{display:block;margin-top:8px;font-size:12px;line-height:1.4}
+.mid-model-map-probe__row+.mid-model-map-probe__row .mid-model-map-probe__row-label{margin-top:0}
+.mid-model-map-probe__row .mid-model-map-probe__value{margin:6px 0;font-size:22px}
+.mid-model-map-probe__row .mid-model-map-probe__source{margin:0}
+
+/* Unified seasonal maps have a top-left forecast badge. Keep the 44px
+   point-probe control below that badge, not hidden beneath its hitbox. */
+.unified-weather-map .mid-model-map-probe-center{top:clamp(68px,9vh,88px);z-index:9}

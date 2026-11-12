@@ -56,11 +56,44 @@ const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42
 let cases=0;
 const perfRows=[];
 const perfEnabled=process.env.GITHUB_ACTIONS==='true'||process.env.MID_MAP_PROFILE==='1';
-async function verifyAlphabeticalSelectors(page){
- const lists=await page.evaluate(()=>({models:[...document.querySelectorAll('select[aria-label="Modell für Parameter"] option')].filter(o=>!o.disabled).map(o=>o.textContent),groups:[...document.querySelectorAll('select[aria-label="Parameter-Layer"] optgroup')].map(g=>({label:g.label,options:[...g.querySelectorAll('option')].map(o=>o.textContent)}))}));
+async function verifyGroupedSelectors(page){
+ const lists=await page.evaluate(()=>({
+  modelFirst:document.querySelector('.unified-selection-mode button:last-child[aria-pressed="true"]')!==null,
+  modelGroups:[...document.querySelectorAll('select[aria-label="Modell für Parameter"] optgroup')].map(g=>({
+   label:g.label,models:[...g.querySelectorAll('option')].filter(o=>!o.disabled).map(o=>({id:o.value,text:(o.textContent||'').trim()})),
+  })),
+  groups:[...document.querySelectorAll('select[aria-label="Parameter-Layer"] optgroup')].map(g=>({
+   label:g.label,options:[...g.querySelectorAll('option')].map(o=>o.textContent),
+  })),
+ }));
  const compare=new Intl.Collator('de-DE',{usage:'sort',sensitivity:'base',numeric:true}).compare;
- assert.deepEqual(lists.models,[...lists.models].sort(compare),'visible model labels are alphabetic');
- for(const group of lists.groups)assert.deepEqual(group.options,[...group.options].sort(compare),`parameters within ${group.label} are alphabetic`);
+ for(const group of lists.groups)assert.deepEqual(group.options,[...group.options].sort(compare),'parameters within '+group.label+' remain alphabetic');
+ const knownFamily=['DWD · ICON','DWD · AICON','ECMWF · IFS','NOAA · GFS','ECCC · GDPS','DWD · Messdaten','DWD · Nowcasting','Weitere Modelle'];
+ const ranks=lists.modelGroups.map(g=>knownFamily.indexOf(g.label));
+ assert.ok(ranks.every(n=>n>=0),'every visible model grouped by a known family or explicit unknown');
+ assert.deepEqual(ranks,[...ranks].sort((a,b)=>a-b),'visible model groups ordered by family, not by label');
+ const flags={'icon-d2-ruc':'🇩🇪','icon-d2':'🇩🇪','icon-eu':'🇩🇪','icon':'🇩🇪','icon-eps':'🇩🇪',
+  'aicon':'🇩🇪','radolan':'🇩🇪','observations':'🇩🇪','nowcastmix':'🇩🇪','ifs':'🇪🇺','gfs':'🇺🇸','gdps':'🇨🇦'};
+ const seen=new Set();
+ for(const group of lists.modelGroups){
+  if(group.label==='DWD · ICON'){
+   const spacing={'icon-d2-ruc':2.2,'icon-d2':2.2,'icon-eu':7,icon:28,'icon-eps':28};
+   const sourceRanks=group.models.map(x=>spacing[x.id]);
+   assert.ok(sourceRanks.every(Number.isFinite),'DWD ICON family has verified model identities');
+   assert.deepEqual(sourceRanks,[...sourceRanks].sort((a,b)=>a-b),'ICON models are ordered from fine to coarse');
+  }
+  for(const model of group.models){
+   assert.ok(!seen.has(model.id),'map selector does not duplicate source IDs');
+   seen.add(model.id);
+   if(flags[model.id])assert.ok(model.text.startsWith(flags[model.id]+' '),'country/EU flag precedes model name');
+   if(lists.modelFirst){
+    assert.doesNotMatch(model.text,/\d+(?:,\d+)?\s*(?:km Raster|° Kartenraster)/,'model-first multi-source choice must not claim one product grid');
+   }else{
+    if(model.id==='icon-eu')assert.ok(model.text.includes('0,0625° Kartenraster')||model.text.includes('km Raster'),'known ICON-EU parameter grid is explicitly identified');
+    if(model.id==='icon'||model.id==='icon-eps')assert.ok(model.text.includes('0,25° Kartenraster')||model.text.includes('km Raster'),'known ICON field grid is distinguished from native resolution');
+   }
+  }
+ }
 }
 
 async function waitForHeldSynoptic(pending){
@@ -214,6 +247,51 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
    if(seasonalExportPilot&&await fav.getAttribute('open')===null)await fav.locator(':scope > summary').click();
    assert.ok((await fav.locator('thead').textContent()||'').includes(secondary),'Original companion appears as second numeric field');
    assert.equal(await fav.locator('thead th').count(),3,'Seasonal native pair has both variable columns');
+   // Real Chrome verifies the shared map dialog, not merely the 2-column
+   // point-value table. Check each assigned device/theme for one focusable
+   // dialog and two separately sourced original values at one coordinate.
+   const centerProbe=page.getByRole('button',{name:'Wert am Kartenmittelpunkt anzeigen',exact:true});
+   await centerProbe.waitFor();
+   assert.equal(await page.locator('.mid-model-map-probe-center').count(),1,'One map center probe for both model layers');
+   // DOM hit-testing is viewport-relative; verify actual overlap only after
+   // the control is scrolled into the visible browser viewport.
+   await centerProbe.scrollIntoViewIfNeeded();
+   const hit=await centerProbe.evaluate(button=>{
+    const rect=button.getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2;
+    const element=document.elementFromPoint(x,y);
+    const badge=button.closest('.radarmap')?.querySelector('.composite-map-status');
+    const bounds=badge?.getBoundingClientRect();
+    return {ok:element===button||button.contains(element),at:{x,y},
+     button:{top:rect.top,bottom:rect.bottom},badge:bounds?{top:bounds.top,bottom:bounds.bottom}:null,
+     interceptedBy:element?.className?.toString().slice(0,100)};
+   });
+   assert.ok(hit.ok,'Map probe hit-target must not be covered in '+width+'px '+theme+' '+design+': '+JSON.stringify(hit));
+   await centerProbe.focus();
+   assert.equal(await centerProbe.evaluate(el=>document.activeElement===el),true,'Active map point button retains keyboard focus');
+   await centerProbe.click();
+   const groupedProbe=page.getByRole('dialog',{name:/^Kartenwerte ·/});
+   await groupedProbe.waitFor();
+   const probeRows=groupedProbe.locator('.mid-model-map-probe__row');
+   assert.equal(await probeRows.count(),2,'Seasonal overlay exposes both original fields in one popup');
+   const probeLabels=await groupedProbe.locator('.mid-model-map-probe__row-label').allTextContents();
+   assert.deepEqual(probeLabels.map(x=>x.trim()),['Niederschlag · 1 h',secondary],'Neither precipitation nor companion may be dropped');
+   assert.equal(await groupedProbe.locator('.mid-model-map-probe__source').count()>=2,true,'Each field retains visible provenance');
+   // Synthetic original ICON-D2 seasonal fields: 1-h precipitation = 1 mm;
+   // paired 2-m temperature or 10-m gust = 15 °C / 15 km/h at every cell.
+   await page.waitForFunction(()=>{
+    const rows=[...document.querySelectorAll('.mid-model-map-probe__row')];
+    return rows.length===2&&rows.every(row=>row.querySelector('.mid-model-map-probe__value')?.getAttribute('aria-busy')==='false');
+   });
+   const probeValues=(await groupedProbe.locator('.mid-model-map-probe__value').allTextContents()).map(x=>x.replace(/\s+/g,' ').trim());
+   assert.match(probeValues[0],/(?:^|\s)1(?:[,.]0+)?\s*mm\b/,'The first original value is the 1-h fixture precipitation, not pending or NoData');
+   assert.match(probeValues[1],id==='winter-berge'?/(?:^|\s)15(?:[,.]0+)?\s*°C\b/:/(?:^|\s)15(?:[,.]0+)?\s*km\/h\b/,'The paired original value retains its numerical reading and displayed unit');
+   const probeBounds=await groupedProbe.boundingBox(),probeViewport=page.viewportSize();
+   assert.ok(probeBounds&&probeBounds.x>=-1&&probeBounds.x+probeBounds.width<=probeViewport.width+1&&
+    probeBounds.y>=-1&&probeBounds.y+probeBounds.height<=probeViewport.height+1,
+    'Combined popup must fit horizontally and vertically on mobile and landscape');
+   await page.keyboard.press('Escape');
+   await groupedProbe.waitFor({state:'hidden'});
+
    if(seasonalExportPilot){
    // A real installed Chrome may expose native Web Share. Explicitly test the
    // ordinary fallback-download path; native iOS sharing needs a device check.
@@ -272,7 +350,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
   await page.getByLabel('Parameter-Layer').selectOption('temperature');
   await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('Rastertermin'));
  }
- await verifyAlphabeticalSelectors(page);
+ await verifyGroupedSelectors(page);
  const mapIdentity=await page.locator('.maplibregl-map').evaluate(el=>{el.dataset.qaIdentity='original';return true});assert.ok(mapIdentity);
  if(width===390&&theme==='light')await page.screenshot({path:'/tmp/mid-unified-model-390.png',fullPage:true});
  await page.evaluate(()=>performance.clearResourceTimings());
@@ -280,11 +358,11 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  await page.getByLabel('Modell für Parameter').selectOption('icon');await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('ICON Global'));
  await page.getByRole('button',{name:'Linien',exact:true}).click();await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('DWD-Originaleinheit'));
  await page.waitForFunction(()=>performance.getEntriesByType('resource').some(e=>e.name.includes('styles=qa_isoline_label'))).catch(async error=>{console.error('WMS line request failure',{width,theme,design,status:await page.locator('.unified-layer-status').innerText(),requests:requests.filter(u=>u.includes('weather-map-wms')).slice(-12),resourceCount:await page.evaluate(()=>performance.getEntriesByType('resource').length)});throw error});
- await page.locator('.unified-favorites summary').click();await page.waitForFunction(()=>document.querySelector('.unified-favorites tbody')?.textContent.includes('12,4'));assert.equal(await page.locator('.unified-favorites thead th').count(),2,'Compact selected-layer point table');
+ const favoriteWmsPanel=page.locator('.unified-favorites');if(await favoriteWmsPanel.getAttribute('open')===null)await favoriteWmsPanel.locator(':scope > summary').click();await page.waitForFunction(()=>document.querySelector('.unified-favorites tbody')?.textContent.includes('12,4'));assert.equal(await page.locator('.unified-favorites thead th').count(),2,'Compact selected-layer point table');
  await page.getByRole('button',{name:'Flächen',exact:true}).click();
  assert.equal(await page.locator('.maplibregl-map').getAttribute('data-qa-identity'),'original','Changing model must not remount map');
  await page.getByRole('button',{name:'Modell zuerst',exact:true}).click();await page.getByLabel('Modell für Parameter').selectOption('icon-eps');
- const epsParameters=await page.getByLabel('Parameter-Layer').locator('option').evaluateAll(options=>options.map(o=>o.value));assert.ok(epsParameters.includes('gust-probability')&&!epsParameters.includes('gust')&&!epsParameters.includes('temperature'),'Model-first filters incompatible parameters');await verifyAlphabeticalSelectors(page);
+ const epsParameters=await page.getByLabel('Parameter-Layer').locator('option').evaluateAll(options=>options.map(o=>o.value));assert.ok(epsParameters.includes('gust-probability')&&!epsParameters.includes('gust')&&!epsParameters.includes('temperature'),'Model-first filters incompatible parameters');await verifyGroupedSelectors(page);
  await page.getByRole('button',{name:'Parameter zuerst',exact:true}).click();await page.getByLabel('Parameter-Layer').selectOption('synoptic');
  await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('INIT')).catch(async error=>{console.error('Synoptic selection',width,theme,design,{parameter:await page.getByLabel('Parameter-Layer').inputValue(),model:await page.getByLabel('Modell für Parameter').inputValue(),status:await page.locator('.unified-layer-status').innerText()},requests.filter(u=>u.includes('/ruc/')).slice(-12));throw error});
  await page.waitForFunction(()=>{const text=document.querySelector('.unified-layer-status')?.textContent||'';return text.includes('INIT')&&!text.includes('Rohdaten laden')}).catch(async error=>{console.error('Synoptic state',await page.locator('.unified-layer-status').innerText(),requests.filter(u=>u.includes('weather-map-wms')).slice(-10));throw error});await verifyPresentationHint('MSL-Isobaren');
@@ -331,7 +409,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
   }finally{try{if(tracing)await browser.stopTracing();}finally{await session.detach();}}
  }
  assert.equal(await page.locator('.maplibregl-map').getAttribute('data-qa-identity'),'original');
- await page.getByRole('button',{name:'Parameter zuerst',exact:true}).click();await page.getByLabel('Parameter-Layer').selectOption('thetae');assert.deepEqual(await page.getByLabel('Modell für Parameter').locator('option').allTextContents(),['DWD ICON Global','DWD ICON-D2','DWD ICON-D2-RUC','DWD ICON-EU','ECMWF IFS','NOAA GFS'],'ThetaE offers only complete native providers in alphabetic label order');
+ await page.getByRole('button',{name:'Parameter zuerst',exact:true}).click();await page.getByLabel('Parameter-Layer').selectOption('thetae');assert.deepEqual(await page.getByLabel('Modell für Parameter').locator('option').evaluateAll(options=>options.filter(o=>!o.disabled).map(o=>o.value)),['icon-d2-ruc','icon-d2','icon-eu','icon','ifs','gfs'],'ThetaE offers only qualified native provider IDs, grouped by family and fine-to-coarse raster resolution');await verifyGroupedSelectors(page);
  await page.getByLabel('Parameter-Layer').selectOption('geopotential');await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('INIT')&&!document.querySelector('.unified-layer-status')?.textContent.includes('Rohdaten laden')&&window.__qaMap.getStyle().layers.some(layer=>layer.id.startsWith('synoptic-height')));await verifyPresentationHint('Höhenlinien');assert.equal(await page.getByRole('button',{name:'Flächen',exact:true}).isDisabled(),true);assert.ok(!requests.some(u=>u.includes('layers=dwd%3AIcon_reg025_fd_pl_GH')),'500hPa uses native contours, never stepped WMS');
  const timeline=page.getByLabel('Verfügbaren Produktstand auswählen');await timeline.fill(await timeline.getAttribute('max'));await timeline.dispatchEvent('change');await page.waitForFunction(()=>document.querySelector('.composite-map-status')?.textContent.includes('Modellprognose'));
  await page.getByRole('button',{name:'Jetzt',exact:true}).click();
@@ -340,8 +418,8 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  await page.waitForFunction(()=>{const text=document.querySelector('.unified-layer-status')?.textContent||'';return text.includes('ECCC-Originaldarstellung')&&!text.includes('Kacheln laden')});
  assert.ok(requests.some(u=>u.includes('provider=geomet')&&u.includes('layers=GDPS_15km_TotalCloudCover')),'GDPS uses only the approved GeoMet provider');
  failGdps=true;await page.getByLabel('Parameter-Layer').selectOption('sigwx');await page.getByRole('button',{name:'Wolken und Wetter erneut laden'}).waitFor();failGdps=false;const beforeRetry=requests.filter(u=>u.includes('layers=GDPS_15km_PrecipType-Instant')).length;await page.getByRole('button',{name:'Wolken und Wetter erneut laden'}).click();await page.waitForFunction(()=>{const text=document.querySelector('.unified-layer-status')?.textContent||'';return text.includes('INIT')&&!text.includes('wird geprüft')&&!text.includes('laden')});assert.ok(requests.filter(u=>u.includes('layers=GDPS_15km_PrecipType-Instant')).length>beforeRetry,'Retry requests a fresh failed GDPS source');assert.equal(await page.getByRole('button',{name:'Linien',exact:true}).isDisabled(),true);assert.ok(requests.some(u=>u.includes('layers=GDPS_15km_PrecipType-Instant')&&u.includes('dim_reference_time=')),'Combined GDPS uses instant precipitation type with explicit init');await page.locator('.cloud-weather-legend summary').click();assert.match(await page.locator('.cloud-weather-legend').innerText(),/Keine vollständige Nebel/);
- await page.getByLabel('Modell für Parameter').selectOption('icon-d2');await page.getByRole('button',{name:'Raster + Ortswerte · SVG'}).waitFor();await page.waitForFunction(()=>document.querySelector('.unified-favorites tbody')?.textContent.includes('15 % Wolken'));assert.match(await page.locator('.cloud-weather-legend').innerText(),/Modell-Wolkenbild/);assert.equal(await page.locator('.maplibregl-map').getAttribute('data-qa-identity'),'original');await verifyAlphabeticalSelectors(page);
- await page.getByLabel('Modell für Parameter').selectOption('icon-eu');await page.waitForFunction(()=>document.querySelector('.unified-favorites tbody')?.textContent.includes('75 % Wolken'));if(width===390&&theme==='light'&&design==='next')await page.screenshot({path:'/tmp/mid-cloud-weather-390.png',fullPage:true});
+ await page.getByLabel('Modell für Parameter').selectOption('icon-d2');await page.getByRole('button',{name:'Raster + Ortswerte · SVG'}).waitFor();await page.waitForFunction(()=>document.querySelector('.unified-favorites tbody')?.textContent.includes('15 % Wolken'));assert.match(await page.locator('.cloud-weather-legend').innerText(),/Modell-Wolkenbild/);assert.equal(await page.locator('.maplibregl-map').getAttribute('data-qa-identity'),'original');await verifyGroupedSelectors(page);
+ await page.getByLabel('Modell für Parameter').selectOption('icon-eu');await page.waitForFunction(()=>document.querySelector('.unified-favorites tbody')?.textContent.includes('75 % Wolken'));const euCloudLabel=await page.getByLabel('Modell für Parameter').locator('option[value="icon-eu"]').innerText();assert.match(euCloudLabel,/🇩🇪 DWD ICON-EU · 14 km Raster/,'ICON-EU cloud/WW selector uses verified native 14 km grid, never WMS 0,0625°');if(width===390&&theme==='light'&&design==='next')await page.screenshot({path:'/tmp/mid-cloud-weather-390.png',fullPage:true});
  // .437: phase markers require radar echoes; non-radar model/cloud views must have none.
  assert.equal(await page.locator('.mid-synop-symbol-button,.radar-phase-symbol').count(),0,'No unbacked phase marker on a cloud/model map');
 

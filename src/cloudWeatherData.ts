@@ -45,10 +45,18 @@ export const SIGNIFICANT_WEATHER_STYLES=[
 export function significantWeatherStyle(code:number|null|undefined){return typeof code==='number'&&Number.isInteger(code)?SIGNIFICANT_WEATHER_STYLES.find(s=>s.codes.includes(code)):undefined}
 export function cloudWeatherDescription(code:number|null){return code===null?'Wetter nicht verfügbar':significantWeatherStyle(code)?.label??(code<=3?'Keine signifikante Erscheinung':`Wettercode ${code}`)}
 export function cloudWeatherSources(native:NativeIndex|null,synoptic:SynopticIndex|null){
- const choices:{id:string;label:string}[]=[];
- if(synoptic?.models['icon-d2']?.cloudWeatherFrames?.length||native?.products.sigwx?.frames.some(w=>native.products.cloud?.frames.some(c=>c.time===w.time)))choices.push({id:'icon-d2',label:'DWD ICON-D2'});
- for(const id of ['icon-d2-ruc','icon-eu','icon']){const m=synoptic?.models[id];if(m?.cloudWeatherFrames?.length||m?.frames.some(f=>f.cloudWeather===true))choices.push({id,label:m!.label});}
- choices.push({id:'gdps',label:'ECCC GDPS Global'});return choices;
+ const choices:{id:string;label:string;resolutionKm?:number;sourceGrid?:'native'|'wms'}[]=[];
+ const d2=synoptic?.models['icon-d2'];
+ // The cloud/WW native fields do not use the DWD WMS "reg00625" grid.
+ if(d2?.cloudWeatherFrames?.length||native?.products.sigwx?.frames.some(w=>native.products.cloud?.frames.some(c=>c.time===w.time)))
+  choices.push({id:'icon-d2',label:'DWD ICON-D2',resolutionKm:d2?.cloudWeatherFrames?.length?d2.resolutionKm:undefined,sourceGrid:'native'});
+ for(const id of ['icon-d2-ruc','icon-eu','icon']){
+  const m=synoptic?.models[id];
+  if(m?.cloudWeatherFrames?.length||m?.frames.some(f=>f.cloudWeather===true))
+   choices.push({id,label:m!.label,resolutionKm:m!.resolutionKm,sourceGrid:'native'});
+ }
+ choices.push({id:'gdps',label:'ECCC GDPS Global',sourceGrid:'wms'});
+ return choices;
 }
 /** Only physically paired native frames can fill a missing independent cloud/WW hour. */
 export function pairedNativeCloudWeatherTimes(index:NativeIndex|null):string[]{

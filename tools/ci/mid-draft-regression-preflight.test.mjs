@@ -1,0 +1,76 @@
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {mkdirSync,mkdtempSync,rmSync,writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {test} from 'node:test';
+import {inspectDraftRegression,planDraftRegression} from './mid-draft-regression-preflight.mjs';
+
+test('maps select the pre-build and the actual narrow browser regressions',()=>{
+ const plan=planDraftRegression(['src/ModelMapProbe.tsx','src/styles-src/28-maps.css']);
+ assert.ok(plan.selected.includes('scripts/test-adaptive-native-maps-0985141.mjs'));
+ assert.ok(plan.selected.includes('scripts/test-unified-map-layers-0985167.mjs'));
+ assert.ok(plan.browserPilot.cases.includes('320/light/classic'));
+ assert.match(plan.browserPilot.native,/verify-native-model-browser/);
+ assert.equal(plan.releaseAuthorized,false);
+});
+test('workflow pins select the real synchronization regression without a browser run',()=>{
+ const plan=planDraftRegression(['ci/github/workflows/mid-code-revision.yml']);
+ assert.ok(plan.selected.includes('scripts/test-github-workflow-bootstrap-08263.mjs'));
+ assert.equal(plan.browserPilot,null);
+});
+test('offline RUC ecCodes regressions request Python scientific preparation only when selected',()=>{
+ const scientific=planDraftRegression(['src/UnifiedWeatherMap.tsx'],
+  ['scripts/test-ruc-composites-horizons-0985308.mjs']);
+ assert.equal(scientific.requiresScientificPython,true);
+ assert.equal(scientific.releaseAuthorized,false);
+ const numeric=planDraftRegression(['src/unknown.ts'],['scripts/test-ruc-map-pipeline-0985305.mjs']);
+ assert.equal(numeric.requiresScientificPython,true, 'RUC original map pipeline also imports numpy in Python');
+ const basic=planDraftRegression(['ci/github/workflows/unit-coverage.yml']);
+ assert.equal(basic.requiresScientificPython,false);
+});
+
+test('CI helper changes select referenced, registered regression instead of version-only',()=>{
+ const repo=mkdtempSync(join(tmpdir(),'mid-ci-qa-'));
+ const git=(...args)=>execFileSync('git',['-C',repo,...args],{encoding:'utf8'}).trim();
+ try{
+  git('init','-q');git('config','user.name','MID QA');git('config','user.email','qa@example.invalid');
+  mkdirSync(join(repo,'scripts'));mkdirSync(join(repo,'tools','ci'),{recursive:true});
+  const ci=join(repo,'tools','ci','bounded-process.mjs');
+  writeFileSync(ci,'export const timeout=100;\n');
+  writeFileSync(join(repo,'scripts','test-bounded-process.mjs'),"const source = 'tools/ci/bounded-process.mjs';\n");
+  writeFileSync(join(repo,'scripts','test-versioning.mjs'),'// offline version fixture\n');
+  writeFileSync(join(repo,'MID_BASELINE.json'),JSON.stringify({requiredRegressionTests:['scripts/test-bounded-process.mjs','scripts/test-versioning.mjs']}));
+  git('add','.');git('commit','-qm','base');const base=git('rev-parse','HEAD');
+  writeFileSync(ci,'export const timeout=200;\n');
+  git('add','.');git('commit','-qm','new CI implementation');const head=git('rev-parse','HEAD');
+  const plan=inspectDraftRegression(repo,base,head);
+  assert.ok(plan.selected.includes('scripts/test-bounded-process.mjs'));
+  assert.ok(plan.selected.includes('scripts/test-versioning.mjs'));
+  assert.deepEqual(plan.unavailable,[]);
+ }finally{rmSync(repo,{force:true,recursive:true})}
+});
+
+test('unknown scope is explicitly unresolved and direct matches are unique',()=>{
+ assert.equal(planDraftRegression(['src/unknown.ts']).coverage,'MANUAL_SELECTION_REQUIRED');
+ assert.deepEqual(planDraftRegression(['src/unknown.ts'],['scripts/test-x.mjs','scripts/test-x.mjs']).selected,['scripts/test-x.mjs']);
+});
+test('selection reads immutable candidate blobs and follows removed file references',()=>{
+ const repo=mkdtempSync(join(tmpdir(),'mid-draft-qa-'));
+ const git=(...args)=>execFileSync('git',['-C',repo,...args],{encoding:'utf8'}).trim();
+ try{
+  git('init','-q');git('config','user.name','MID QA');git('config','user.email','qa@example.invalid');
+  mkdirSync(join(repo,'scripts'));mkdirSync(join(repo,'src'));
+  const file=join(repo,'src','status.ts');
+  writeFileSync(file,'export const ok = true;\n');
+  writeFileSync(join(repo,'scripts','test-status.mjs'),"const source = 'src/status.ts';\n");
+  writeFileSync(join(repo,'MID_BASELINE.json'),JSON.stringify({requiredRegressionTests:['scripts/test-status.mjs']}));
+  git('add','.');git('commit','-qm','base');const base=git('rev-parse','HEAD');
+  rmSync(file);git('add','-u');git('commit','-qm','head');const head=git('rev-parse','HEAD');
+  writeFileSync(join(repo,'scripts','test-status.mjs'),"const source = 'unrelated';\n");
+  const plan=inspectDraftRegression(repo,base,head);
+  assert.deepEqual(plan.selected,['scripts/test-status.mjs']);
+  assert.deepEqual(plan.unavailable,[]);
+  assert.throws(()=>inspectDraftRegression(repo,'HEAD',head),/full base and head/);
+ }finally{rmSync(repo,{force:true,recursive:true})}
+});
