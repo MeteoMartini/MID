@@ -19,6 +19,15 @@ test('workflow pins select the real synchronization regression without a browser
  assert.ok(plan.selected.includes('scripts/test-github-workflow-bootstrap-08263.mjs'));
  assert.equal(plan.browserPilot,null);
 });
+test('offline RUC ecCodes regressions request Python scientific preparation only when selected',()=>{
+ const scientific=planDraftRegression(['src/UnifiedWeatherMap.tsx'],
+  ['scripts/test-ruc-composites-horizons-0985308.mjs']);
+ assert.equal(scientific.requiresScientificPython,true);
+ assert.equal(scientific.releaseAuthorized,false);
+ const basic=planDraftRegression(['ci/github/workflows/unit-coverage.yml']);
+ assert.equal(basic.requiresScientificPython,false);
+});
+
 test('unknown scope is explicitly unresolved and direct matches are unique',()=>{
  assert.equal(planDraftRegression(['src/unknown.ts']).coverage,'MANUAL_SELECTION_REQUIRED');
  assert.deepEqual(planDraftRegression(['src/unknown.ts'],['scripts/test-x.mjs','scripts/test-x.mjs']).selected,['scripts/test-x.mjs']);

@@ -23,8 +23,13 @@ export function planDraftRegression(paths, directMatches=[]){
  }
  if(paths.some(path=>RELEASE.test(path)))tests.add('scripts/test-versioning.mjs');
  const selected=[...tests].sort();
+ // Some JS regressions call native Python GRIB/ecCodes fixtures. The Draft
+ // job must prepare those exact offline dependencies before executing them;
+ // a missing decoder is not a weather-code regression or an authorized skip.
+ const requiresScientificPython=selected.some(file=>
+  file==='scripts/test-ruc-composites-horizons-0985308.mjs');
  return {
-  schema:1,selected,releaseAuthorized:false,
+  schema:1,selected,requiresScientificPython,releaseAuthorized:false,
   browserPilot:map?{
    file:'scripts/verify-unified-map-browser-0985167.mjs',
    native:'scripts/verify-native-model-browser-0985141.mjs',
