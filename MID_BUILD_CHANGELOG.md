@@ -1,3 +1,12 @@
+## MID v0.9.85.458 · 2026-11-12 · CodeQL v4.39.1 und korrigierte Release-Provenienz
+
+- Quelle: v0.9.85.457 main=mid-stable `d8ffd44f0cc2f2c9ec1025d28d813fb2fa6d051a`, Merge #762 via Bot #43210338178, Installer #43210420801 vollständig erfolgreich inklusive Worker/Pages. Kein ungesicherter Arbeitsstand übernommen.
+- Acht unveränderte Git-Blobs aus QA-PR #759 @ `42078f60dda467a88f52556477078c120e97e5b9`; kein einziger dieser Pfade zwischen Baseline .455 und Stable .457 verändert. GitHub-CodeQL-Tag v4.39.1 verweist nachweislich auf Commit `9b3254085494b55a0f7c4c2b3d2d52cc712ce370`. Beide CodeQL-Skripts (init/analyze), Pin-Synchronisation und vier registrierte Regressionen atomar.
+- Input-QA: MID Revision/CodeQL #43091134402 completed/success. Auf neuem .458-HEAD alle Source-/Review-/Ruleset-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates erneut erforderlich; alter Input-Erfolg keine Releasefreigabe.
+- Das .457-Dossier enthielt noch den vor der Veröffentlichung gültigen Status 'unveröffentlichter Kandidat'; diese Passage ist nun klar als historischer Stand vor ihrer tatsächlichen Promotion abgegrenzt.
+- QA-PR #760 bleibt wegen nachweisbarer Scanner-Findings aus dem optionalen actionlint/zizmor-Pilot #43113814578 ausgenommen. Grüner Outer-Job ist kein grüner Security-Scanner. Kein Rule-Bypass und keine neuen Required-Checks.
+- Alle 19 Versionsspiegel einschließlich iOS-Build, PWA/Worker-Cacheversionen und Changelogs synchronisiert. Keine Wettermodelle, amtlichen Warnungen, RUC-Felder, Rendering oder Produktionslogik verändert.
+
 ## MID v0.9.85.457 · 2026-11-12 · Karten-Popup, Modellwahl und beratende Review-Konvergenz (Release-Train-Kandidat)
 
 - Nach vollständig grünem Source-PR-Gate #43197076142 stoppte der reale SHA-gebundene Bot #43200353617 korrekt vor Merge: `MID_REVIEW_OPEN_THREAD` (sechs nachträglich eingetroffene Reviewthreads; fünf P2, ein P3). Kein Source-/Installer-/Stable-Bypass und kein manueller Merge.

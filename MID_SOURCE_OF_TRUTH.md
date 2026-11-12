@@ -1,4 +1,12 @@
-# MID v0.9.85.457 · Geprüfter Karten-/Review-Train als **unveröffentlichter Integrationskandidat**
+# MID v0.9.85.458 · CodeQL-Pflege und verifizierte Release-Provenienz
+
+**Verifizierter veröffentlichter Ausgangsstand:** v0.9.85.457, `main=mid-stable=d8ffd44f0cc2f2c9ec1025d28d813fb2fa6d051a`. Agent-PR #762 wurde am 12.11.2026 kontrolliert gemergt; Source-Gate #43207200356, Release-Bot #43210338178 und Installer #43210420801 einschließlich Worker/Pages erfolgreich. Die vorherige .457-Kandidatenbeschreibung ist damit historisch, **kein aktueller Veröffentlichungsstatus**.
+
+**Für v0.9.85.458 ausgewählt:** QA-PR #759 @ `42078f60dda467a88f52556477078c120e97e5b9`, acht unveränderte Quellblobs. CodeQL init/analyze v4.39.1 ist unveränderlich auf Hersteller-SHA `9b3254085494b55a0f7c4c2b3d2d52cc712ce370` gepinnt (GitHub-Tag nachgeprüft). Isolationslauf inklusive CodeQL-Analyse #43091134402 bestanden. Die Veröffentlichung von .458 gilt **erst** nach den regulären Source-PR-, Bot-ZIP-, Installer-, Worker-/Pages- und Stable-Gates als belegt; dieser Dokumententext allein erteilt keine Freigabe.
+
+**Nicht integriert:** #760 (Offline actionlint/zizmor/fast-check) bleibt wegen im optionalen Scanner gemeldeter Befunde separat in QA. #750 (RUC) erfordert eigene Originaldaten-/Rollback-Qualifikation. QA-Drafts #755/#757/#761/#763 wurden bereits mit Korrekturen über #762 übernommen; niemals erneut unabhängig veröffentlichen.
+
+## Historischer Entstehungsstand der v0.9.85.457, vor ihrer inzwischen erfolgten Promotion
 
 **Kanonische Basis:** Veröffentlichtes main=mid-stable v0.9.85.456 `78409f80bfea5112700ff4a119b7c8bd46090c22`. Nachweis des vorausgegangenen Installers: GitHub Actions #43164968254 completed/success. Hier wird keine bereits erfolgte Veröffentlichung .457 behauptet.
 
