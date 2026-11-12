@@ -129,17 +129,24 @@ export function renderMarkdown(report) {
 }
 
 async function api(path, token) {
-  const response = await fetch('https://api.github.com/'+path, {
-    headers: {
-      Accept:'application/vnd.github+json',
-      'X-GitHub-Api-Version':'2022-11-28',
-      'User-Agent':'MID-readonly-release-timing',
-      ...(token ? {Authorization:'Bearer '+token} : {}),
-    },
-    signal:AbortSignal.timeout(20000),
-  });
-  if (!response.ok) throw new Error('GitHub read failed: HTTP '+response.status+' for action metadata');
-  return response.json();
+  // Read-only GET: bounded retry for transient GitHub upstream responses only.
+  // Auth, rate-limit, client, malformed JSON and provenance failures stay fatal.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const response = await fetch('https://api.github.com/'+path, {
+      headers: {
+        Accept:'application/vnd.github+json',
+        'X-GitHub-Api-Version':'2022-11-28',
+        'User-Agent':'MID-readonly-release-timing',
+        ...(token ? {Authorization:'Bearer '+token} : {}),
+      },
+      signal:AbortSignal.timeout(20000),
+    });
+    if (response.ok) return response.json();
+    if (![502,503,504].includes(response.status) || attempt === 2) {
+      throw new Error('GitHub read failed: HTTP '+response.status+' for action metadata');
+    }
+    await new Promise(resolve => setTimeout(resolve, 250 * (2 ** attempt)));
+  }
 }
 export async function githubRuns(repository, count, token, workflowNames=DEFAULT_WORKFLOWS) {
   if (!/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(repository) || repository.split('/').some(p => p==='.' || p==='..')) throw new Error('Invalid repository');
