@@ -13,3 +13,11 @@
 .mid-model-map-probe__coordinates,.mid-model-map-probe__source{margin:4px 0;color:var(--muted);font-size:11px;line-height:1.45;overflow-wrap:anywhere}
 
 .mid-map-export-status{grid-column:1/-1;color:var(--muted);font-size:11px;line-height:1.4}
+
+/* Multiple sampled layers share one popup, with their own units and source status. */
+.mid-model-map-probe__row{min-width:0}
+.mid-model-map-probe__row+.mid-model-map-probe__row{border-top:1px solid var(--border);padding-top:8px;margin-top:8px}
+.mid-model-map-probe__row-label{display:block;margin-top:8px;font-size:12px;line-height:1.4}
+.mid-model-map-probe__row+.mid-model-map-probe__row .mid-model-map-probe__row-label{margin-top:0}
+.mid-model-map-probe__row .mid-model-map-probe__value{margin:6px 0;font-size:22px}
+.mid-model-map-probe__row .mid-model-map-probe__source{margin:0}

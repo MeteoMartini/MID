@@ -1,3 +1,14 @@
+## MID v0.9.85.457 · 2026-11-12 · Karten-Popup, Modellwahl und beratende Review-Konvergenz (Release-Train-Kandidat)
+
+- Verifizierte Ausgangsbasis: main=mid-stable v0.9.85.456 @ 78409f80bfea5112700ff4a119b7c8bd46090c22. Der neue Integrationsbranch ist nicht selbst veröffentlicht.
+- SHA-exakte, nicht überlappende Quellübernahme: #761 @ 3652fa42b4da27a01cdf414d457c8a896e72b56a (4 Dateien); #755 @ 6e8258de19ab06f1fab1b33024bbc3703b7e2ae4 (9 Dateien); #757 @ 3d5a2a4e334afc1eb3c2d34dc4c49d6f50c34ab6 (5 Dateien). Die betroffenen bestehenden Quellpfade wurden zwischen .455 und .456 nicht verändert.
+- #757: eine statt zweier überlappender Karten-Popups, getrennte Originalwerte von Niederschlag und Begleitfeld für denselben Klick, einheitliche Einheit/Quelle/NoData/0-Darstellung, Abort/Revision-Schutz und fokussierbarer Dialog.
+- #755: Modellfamilien und belegte Rasterinformationen; keine zusätzliche Datenquelle, keine modellübergreifende Wetterwert-Fusion, keine spekulativen Länder-/Auflösungskennzeichnungen.
+- #761: ausschließlich lesende Zustandsmaschine mit höchstens zwei automatischen Review-Korrekturrunden sowie SHA-/Dateipfad-basierte PR-Backlog-Planung. Bestehende native GitHub-Reviews/Source-/Bot-/ZIP-/Installer-/Pages-/Stable-Gates bleiben unberührt.
+- Individuelle GitHub-Vorqualifikation: #761 Vitest/Coverage #43169666982 success, #755 #43064440788 success, #757 #43080896179 success; **kombinierte Source-, Core-, Heavy-, Browser- und Installergates ausstehend**. Einzel-PR-Ergebnisse sind keine Releasefreigabe.
+- Version W+1 = 0.9.85.457; synchronisierte Client-, Worker-, iOS-, Web-/PWA- und Vertragsspiegel nach unverändertem versionsgebundenem MID-Verfahren. Neue JSON-Release-Notizen in docs/releases/MID_RELEASE_NOTES_0.9.85.457.json.
+- Bewusst ausgelassen: RUC #750/#541, AI Router #728, ICON-EU-Originaldaten #748, CI-Vendor-Upgrades #759/#760 und alte überschneidende Drafts. Fachliche DWD-/WMO- und Original-/NoData-Semantik unverändert. Reale iOS-/VoiceOver-Abnahme nicht behauptet.
+
 ## MID v0.9.85.456 · 2026-11-11 · DWD-Pollen-NoData, allgemeine Qualitätsregressionen und Release-Train-Diagnostik
 
 - Ausgangsbasis: veröffentlichter main=mid-stable SHA 7272a54ef9a9bd02fa1b6523f0cbf352b9412963 · v0.9.85.455; allgemeiner Integrations-Draft #754 ursprünglicher geprüfter HEAD 88f8c7bb810c1a1bad4af4c3e6de113acc351000, ohne Direktübernahme alter #745-Quellen.

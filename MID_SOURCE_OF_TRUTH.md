@@ -1,3 +1,17 @@
+# MID v0.9.85.457 · Geprüfter Karten-/Review-Train als **unveröffentlichter Integrationskandidat**
+
+**Kanonische Basis:** Veröffentlichtes main=mid-stable v0.9.85.456 `78409f80bfea5112700ff4a119b7c8bd46090c22`. Nachweis des vorausgegangenen Installers: GitHub Actions #43164968254 completed/success. Hier wird keine bereits erfolgte Veröffentlichung .457 behauptet.
+
+**Selektiv integrierte Quellen und Provenienz:** #761 HEAD `3652fa42b4da27a01cdf414d457c8a896e72b56a` (4 neue, ausschließlich beratende Review-/Backlog-Dateien), #755 HEAD `6e8258de19ab06f1fab1b33024bbc3703b7e2ae4` (9 Dateien zur Kartenmodellwahl), #757 HEAD `3d5a2a4e334afc1eb3c2d34dc4c49d6f50c34ab6` (5 Dateien zur gemeinsamen Kartenwertanzeige). Keine Dateipfadüberschneidungen; bestehende Quellpfade seit .455 unverändert. Keine Rücknahme oder forcierte Synchronisation dieser separaten Drafts.
+
+**Meteorologische Semantik:** Die Karte zeigt weiterhin separat geprüfte Originalmodellfelder; je aktiver Layer ein Eintrag, zeitlich und räumlich nicht erfundene Angaben, 0 ≠ NoData, keine nachträgliche Akkumulation, keine automatische Niederschlagsphasen-/Schneefall-/Warnklassifikation. Rastergrößen sind nur bei geprüfter Produktquelle ausgewiesen.
+
+**Governance:** Die neue Review-Konvergenz ist ein rein beratendes Hilfswerkzeug. P0/P1 und fachkritische P2, native GitHub-Konversationen und echte CHANGES_REQUESTED können nicht umgangen werden; maximal zwei automatische Nachbesserungsrunden eröffnen keine neue Veröffentlichungsberechtigung. Source-/Bot-Merge-/ZIP-/Installer-/Worker-/Pages-/Stablepfad bleibt unverändert.
+
+**Gates:** Erfolgreich waren ausschließlich die jeweils isolierten PR-Unit-/Coverage-Läufe #43169666982, #43064440788 und #43080896179 auf ihren jeweiligen Original-HEADs. Zusammengeführte QA, GitHub Source-PR-Gate, Browser-/Responsivitätsprüfung, Installer/Pages/Worker/Stable sowie reale iOS- und VoiceOver-Abnahme sind noch nicht nachgewiesen. Bei einem Gate-Fehler fail-closed stoppen.
+
+**Abgrenzung paralleler Arbeiten:** Keine Übernahme von RUC #750, externem AI Router #728, ICON-EU-Originaldaten #748, Vendor-Actions-Upgrades #759/#760 oder historisch teils schon integrierten Release-Guards. Fachliche Spezialchats bleiben zuständig; nie ohne SHA-/Pfad-/Regressionstest erneut übernehmen.
+
 # MID v0.9.85.456 · Allgemeine Integritätskorrekturen im Release-Train-Kandidaten
 
 **Provenienz:** Quellenbasis ist v0.9.85.455 `main=mid-stable=7272a54ef9a9bd02fa1b6523f0cbf352b9412963`; der autorisierte, noch nicht veröffentlichte allgemeine Integrations-PR #754 ist daraus abgeleitet. Das Dokument belegt keine bereits erfolgte Stable-Promotion.
