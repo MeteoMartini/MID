@@ -21,15 +21,24 @@ for(const token of [
 for(const token of ['SATELLITE_LATEST_DAY','SATELLITE_LATEST_IR'])if(worker.includes(token))failures.push(`Veralteter unzeitgestempelter Satelliten-Fallback bleibt aktiv: ${token}`);
 if(!worker.includes("candidate.provider==='dwd'")||!worker.includes('timeVerified:false')||!worker.includes('snapshotRevision'))failures.push('Kontrollierter DWD-only Live-Snapshot ohne TIME-Dimension ist nicht ausreichend begrenzt.');
 if(/provider:\s*'eumetsat'[^\n]{0,300}latestOnly:true/.test(worker))failures.push('EUMETSAT darf nicht unzeitgestempelt als latestOnly-Fallback freigegeben werden.');
-const originalFetch=globalThis.fetch,tinyPng=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAF/gL+5qJ3WQAAAABJRU5ErkJggg==','base64'),captured=[];
+const originalFetch=globalThis.fetch,tinyPng=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAF/gL+5qJ3WQAAAABJRU5ErkJggg==','base64'),captured=[],rainViewerRequests=[];
 const now=Date.now(),stamp=offset=>new Date(now+offset*60000).toISOString().replace('.000Z','Z');
 const eumetsatXml=`<WMS_Capabilities><Capability><Layer><Layer><Name>mtg_fd:rgb_geocolour</Name><Dimension name="time">${stamp(-30)},${stamp(-20)},${stamp(-10)}</Dimension></Layer><Layer><Name>mtg_fd:ir105_hrfi</Name><Dimension name="time">${stamp(-30)},${stamp(-20)},${stamp(-10)}</Dimension></Layer></Layer></Capability></WMS_Capabilities>`;
 const dwdXml=`<WMS_Capabilities><Capability><Layer><Layer><Name>dwd:Radar_rv_product_1x1km_ger</Name><Dimension name="time">${stamp(-15)},${stamp(-10)},${stamp(-5)}</Dimension></Layer><Layer><Name>dwd:Niederschlagsradar</Name><Dimension name="time">${stamp(-15)},${stamp(-10)},${stamp(-5)}</Dimension></Layer></Layer></Capability></WMS_Capabilities>`;
-globalThis.fetch=async(input,init={})=>{const url=new URL(typeof input==='string'?input:input.url),request=String(url.searchParams.get('request')||'').toLowerCase();if(request==='getcapabilities'){if(url.hostname.includes('eumetsat'))return new Response(eumetsatXml,{status:200,headers:{'content-type':'application/xml'}});if(url.hostname.includes('dwd.de'))return new Response(dwdXml,{status:200,headers:{'content-type':'application/xml'}})}if(request==='getmap'){captured.push({url:url.toString(),init});return new Response(tinyPng,{status:200,headers:{'content-type':'image/png'}})}throw new Error(`Unerwarteter Testabruf: ${url}`)};
+globalThis.fetch=async(input,init={})=>{const url=new URL(typeof input==='string'?input:input.url),request=String(url.searchParams.get('request')||'').toLowerCase();if(url.hostname.endsWith('.rainviewer.com'))rainViewerRequests.push(url.hostname);if(request==='getcapabilities'){if(url.hostname.includes('eumetsat'))return new Response(eumetsatXml,{status:200,headers:{'content-type':'application/xml'}});if(url.hostname.includes('dwd.de'))return new Response(dwdXml,{status:200,headers:{'content-type':'application/xml'}})}if(request==='getmap'){captured.push({url:url.toString(),init});return new Response(tinyPng,{status:200,headers:{'content-type':'image/png'}})}throw new Error(`Unerwarteter Testabruf: ${url}`)};
 try{
  const module=await import('../worker/metar-proxy.js?composite-live-test='+Date.now());
+ for(const mode of ['rainviewer-meta','rainviewer-tile']){
+  const response=await module.default.fetch(new Request('https://mid.test/?mode='+mode),{});
+  if(response.status!==403||response.headers.get('cache-control')!=='no-store'||
+    (await response.json()).code!=='RAINVIEWER_USE_NOT_APPROVED')failures.push('RainViewer muss ohne Freigabe vor dem Upstream blockieren: '+mode);
+ }
+ const unapprovedPoint=await module.default.fetch(new Request('https://mid.test/?mode=radar-nowcast&stage=rainviewer&lat=-30&lon=-30'),{});
+ if((await unapprovedPoint.json()).coverage!==false)failures.push('RainViewer-Punktauswertung meldet ohne Freigabe Radar-Abdeckung.');
+
  const timesResponse=await module.default.fetch(new Request('https://mid.test/?mode=composite-times&lat=50.82&lon=7.04'),{}),times=await timesResponse.json();
  if(!timesResponse.ok||times.satelliteDayProduct?.layer!=='mtg_fd:rgb_geocolour'||times.satelliteDayProduct?.latestOnly!==false||!times.satelliteDayProduct?.latestTime||times.dwdRadarLatestOnly!==true||!times.dwdRadar?.length||times.dwdRadarLayer!=='dwd:Niederschlagsradar')failures.push(`Exakte aktuelle Produktzeiten werden nicht korrekt gemeldet: ${JSON.stringify(times)}`);
+ if(rainViewerRequests.length)failures.push('RainViewer-Upstream wurde ohne Freigabe aufgerufen.');
  if(captured.length)failures.push('composite-times darf keine WMS-GetMap-Probe benötigen; Capabilities genügen.');
  const diagnostic=await module.default.fetch(new Request('https://mid.test/?mode=composite-diagnostics'),{}),diagnosticData=await diagnostic.json();
  if(!diagnostic.ok||diagnosticData.checks?.length!==3||!diagnosticData.checks.every(item=>item.ok))failures.push(`Quellendiagnose fehlgeschlagen: ${JSON.stringify(diagnosticData)}`);
