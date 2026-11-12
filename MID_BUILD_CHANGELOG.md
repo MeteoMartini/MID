@@ -1,3 +1,15 @@
+## MID v0.9.85.459 · 2026-11-12 · DWD ICON-D2-Vollgebiet, alpine Radarbeobachtungen und RUC-Sicherheit, GeoSphere-INCA-Punktnowcast
+
+- Published base ef585fdbbfe475146d68868a6b671057f8b52e0d, v0.9.85.458
+- PR #765 559d0507e6a63f7f8fa2d73e669b43e2ec5bf08e
+- PR #766 6382c1d9553269ec920d73221771ea0f5a1321ef
+- PR #767 4f33379666e1b1c0721d5e7e053bd92386020db8
+- PR #768 d0f20ba6a27a21089ca4261a8c89d62a1d9a4b94
+- Exact #766 Bash-injection hardening merged in both #767 original-signature pipeline workflow mirrors.
+- PR #750 RUC-P4 recovery remains excluded; PR #769 INCA point forecast selected with mandatory baseline registry correction; RainViewer access remains disabled without operator approval.
+- Required: combined QA, reviews, Source-Gate, bot ZIP, installer, Worker/Pages, Stable and real signed public DWD index/73-object/Client readback.
+- Input PR #769: 62eaf652bc571726a766d11da5ce3f2f98f86f7a (7 original paths; four additive Worker fragments merged with #768, source/test files SHA-preserved).
+
 ## MID v0.9.85.459 · 2026-11-12 · ICON-D2-Vollgebiet und Alpen-Radar-/RUC-Sicherheit
 
 - GitHub-Basis v0.9.85.458 main=mid-stable ef585fdbbfe475146d68868a6b671057f8b52e0d; SHA-geprüfte Original-Drafts: #765 559d0507e6a63f7f8fa2d73e669b43e2ec5bf08e; #766 6382c1d9553269ec920d73221771ea0f5a1321ef; #767 4f33379666e1b1c0721d5e7e053bd92386020db8; #768 d0f20ba6a27a21089ca4261a8c89d62a1d9a4b94.
