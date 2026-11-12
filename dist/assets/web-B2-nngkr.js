@@ -1,0 +1,1 @@
+import{Li as e}from"./index-KwT_vCgl.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};
