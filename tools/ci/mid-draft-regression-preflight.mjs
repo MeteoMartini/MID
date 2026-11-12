@@ -44,8 +44,12 @@ function git(repo,args,{input,allowNoMatch=false}={}){
  const result=spawnSync('git',['-C',repo,...args],{
   input,encoding:'utf8',maxBuffer:16*1024*1024
  });
- if(result.error||result.status!==0&&!(allowNoMatch&&result.status===1))
-  throw Error(result.error?.message||result.stderr.trim()||'Git read failed');
+ if(result.error||result.status!==0&&!(allowNoMatch&&result.status===1)){
+  // Expose the failed Git operation without logging repository contents or credentials.
+  const operation=args.slice(0,2).join(' '),status=result.status??'spawn-error';
+  const checkOutput=args[0]==='diff'&&args[1]==='--check'?result.stdout.trim().slice(0,1800):'';
+  throw Error('Git '+operation+' failed (exit '+status+'): '+(result.error?.message||result.stderr.trim()||checkOutput||'no diagnostic output'));
+ }
  return result.stdout;
 }
 
