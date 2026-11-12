@@ -11,4 +11,3 @@ EUMETNET-OPERA-Kompositprodukte: CC BY 4.0 (https://www.eumetnet.eu/data-access/
 
 ## Freigabe und Einschränkungen
 Erst nach dem regulären Source-PR-Gate, SHA-gebundenem Bot-Merge, serverseitigem Release-ZIP, Installer, Worker-/Pages-Checks und Stable-Promotion veröffentlicht. Native ICON-D2-Vollgebietsdaten (#446) benötigen weiterhin echte geschützte SLSA-/73-Objekt-/NoData-Publikationsnachweise. OPERA-Radar ersetzt keine getrennt fehlschlagenden EUMETSAT-Satellitenbilder. Keine reale iOS-/VoiceOver-Abnahme behauptet.
-
