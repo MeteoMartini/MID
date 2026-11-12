@@ -901,8 +901,28 @@ jobs:
           print('RUC-R2-Binding im geplanten Deployment:', meta['rucBindingPresent'])
           PY
 
-      - name: Neue Worker-Version nur hochladen, noch nicht live schalten
+      - name: Unverändertes main vor Worker-Upload verifizieren
+        id: main_fence_worker_upload
         if: needs.install_build.outputs.worker_changed == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Fehlende/ungültige Release-SHA vor Produktiv-Publish."
+            exit 1
+          fi
+          current_main="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
+          if [ "$current_main" != "$RELEASE_SHA" ]; then
+            echo "::error::main drifted before production publish; stale release must not deploy."
+            exit 1
+          fi
+          echo 'valid=true' >> "$GITHUB_OUTPUT"
+
+      - name: Neue Worker-Version nur hochladen, noch nicht live schalten
+        if: needs.install_build.outputs.worker_changed == 'true' && steps.main_fence_worker_upload.outputs.valid == 'true'
         id: worker_upload
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
         with:
@@ -956,8 +976,28 @@ jobs:
           if [ "$REQUIRE_RUC" = "true" ]; then args+=(--require-ruc-ready); fi
           node tools/cloudflare/check_worker_health.mjs "${args[@]}"
 
-      - name: Geprüfte Worker-Version auf 100 Prozent promoten
+      - name: Unverändertes main unmittelbar vor Worker-Live-Promotion prüfen
+        id: main_fence_worker_live
         if: needs.install_build.outputs.worker_changed == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Fehlende/ungültige Release-SHA vor Produktiv-Publish."
+            exit 1
+          fi
+          current_main="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
+          if [ "$current_main" != "$RELEASE_SHA" ]; then
+            echo "::error::main drifted before production publish; stale release must not deploy."
+            exit 1
+          fi
+          echo 'valid=true' >> "$GITHUB_OUTPUT"
+
+      - name: Geprüfte Worker-Version auf 100 Prozent promoten
+        if: needs.install_build.outputs.worker_changed == 'true' && steps.main_fence_worker_live.outputs.valid == 'true'
         id: promoted_worker
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
         with:
@@ -1145,9 +1185,28 @@ jobs:
           RUC_ENABLED: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
           RUC_EXPECTED: ${{ needs.prepare_pages_artifact.outputs.ruc_run }}
         run: python3 tools/ruc/check_ruc_snapshot_current.py --base "$RUC_BASE" --enabled "$RUC_ENABLED" --expected "$RUC_EXPECTED"
+      - name: Unverändertes main unmittelbar vor Pages-Versuch 1 prüfen
+        id: main_fence_pages
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Fehlende/ungültige Release-SHA vor Produktiv-Publish."
+            exit 1
+          fi
+          current_main="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
+          if [ "$current_main" != "$RELEASE_SHA" ]; then
+            echo "::error::main drifted before production publish; stale release must not deploy."
+            exit 1
+          fi
+          echo 'valid=true' >> "$GITHUB_OUTPUT"
+
       - name: GitHub-Pages-Deployment · Versuch 1
         id: deployment
-        if: needs.prepare_pages_artifact.outputs.artifact_ready == 'true' && steps.ruc_guard.outputs.current == 'true'
+        if: needs.prepare_pages_artifact.outputs.artifact_ready == 'true' && steps.ruc_guard.outputs.current == 'true' && steps.main_fence_pages.outputs.valid == 'true'
         continue-on-error: true
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
@@ -1287,9 +1346,28 @@ jobs:
           fi
           python3 tools/ruc/check_ruc_snapshot_current.py --base "$RUC_BASE" --enabled "$RUC_ENABLED" --expected "$RUC_EXPECTED"
 
+      - name: Unverändertes main unmittelbar vor Pages-Versuch 2 prüfen
+        id: main_fence_pages
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Fehlende/ungültige Release-SHA vor Produktiv-Publish."
+            exit 1
+          fi
+          current_main="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
+          if [ "$current_main" != "$RELEASE_SHA" ]; then
+            echo "::error::main drifted before production publish; stale release must not deploy."
+            exit 1
+          fi
+          echo 'valid=true' >> "$GITHUB_OUTPUT"
+
       - name: GitHub-Pages-Deployment · Versuch 2
         id: deployment
-        if: always() && steps.artifact_state.outputs.ready == 'true' && steps.ruc_guard.outputs.current == 'true'
+        if: always() && steps.artifact_state.outputs.ready == 'true' && steps.ruc_guard.outputs.current == 'true' && steps.main_fence_pages.outputs.valid == 'true'
         continue-on-error: true
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
@@ -1409,8 +1487,27 @@ jobs:
           fi
           python3 tools/ruc/check_ruc_snapshot_current.py --base "$RUC_BASE" --enabled "$RUC_ENABLED" --expected "$RUC_EXPECTED"
 
+      - name: Unverändertes main unmittelbar vor Pages-Versuch 3 prüfen
+        id: main_fence_pages
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Fehlende/ungültige Release-SHA vor Produktiv-Publish."
+            exit 1
+          fi
+          current_main="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
+          if [ "$current_main" != "$RELEASE_SHA" ]; then
+            echo "::error::main drifted before production publish; stale release must not deploy."
+            exit 1
+          fi
+          echo 'valid=true' >> "$GITHUB_OUTPUT"
+
       - name: GitHub-Pages-Deployment · Versuch 3
-        if: steps.ruc_guard.outputs.current == 'true'
+        if: steps.ruc_guard.outputs.current == 'true' && steps.main_fence_pages.outputs.valid == 'true'
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
