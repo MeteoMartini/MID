@@ -11,7 +11,8 @@ describe('Sölden and Alpine map observation source fallback',()=>{
   expect(source).toContain('dwdUnavailable=dwdTemporarilyBlocked||!dwdTimeline.length');
  });
  it('does not advertise archived OPERA frames as a currently usable radar',()=>{
-  expect(source).toContain("operaUsable=operaStatus==='ready'&&operaTimeline.length>0");
+  expect(source).toContain("operaUsable=operaStatus==='ready'&&operaTimeline.some");
+  expect(source).toContain("frame.time>=referenceSeconds-45*60");
   expect(source).toContain("const freshOpera=operaStatus==='ready'&&operaFrames.some");
   expect(source).toContain("stamp>=Date.now()-90*60000");
   expect(source).toContain("rainViewerUsable=Boolean(host&&rainViewerFrames.length)");
@@ -19,6 +20,8 @@ describe('Sölden and Alpine map observation source fallback',()=>{
  it('keeps RainViewer frames distinct from DWD timestamps and renders verified fallback in the unified map',()=>{
   expect(source).toContain('[rainViewerFrames,setRainViewerFrames]=useState<RadarFrame[]>([])');
   expect(source).toContain('setRainViewerFrames([...(data.radar?.past??[])');
+  expect(source).toContain('rainViewerUsable=Boolean(host&&rainViewerFrames.some');
+  expect(source).toContain("activeSource==='rainviewer'?'RainViewer Radar · Fallback':'Radar nicht verfügbar'");
   expect(source).toContain('const rainBlend=blendTimedFrames(rainViewerFrames,targetSeconds');
   expect(source).toContain("activeSource==='rainviewer'&&rainRenderBlend.map");
   expect(source).not.toContain("{!unified&&!rasterZooming&&showRadar&&!highResolution&&activeSource==='rainviewer'");
