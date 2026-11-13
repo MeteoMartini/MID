@@ -45,7 +45,19 @@ class Tests(unittest.TestCase):
         self.assertFalse(inspect_readback(p,worker(),'2026-10-31T11:00:00Z')['pagesValid'])
     def test_worker_stale(self):
         w=worker();w['fresh']=False
-        self.assertFalse(inspect_readback(pages(),w,'2026-10-31T11:00:00Z')['workerValid'])
+        result=inspect_readback(pages(),w,'2026-10-31T11:00:00Z')
+        self.assertFalse(result['workerValid'])
+        self.assertEqual(result['workerReadbackIssue'],'worker status not verified: fresh')
+    def test_worker_issue_is_precise_not_remote_content(self):
+        w=worker();w['configured']=False;w['run']='untrusted-message'
+        result=inspect_readback(pages(),w,'2026-10-31T11:00:00Z')
+        self.assertFalse(result['sameRun'])
+        self.assertEqual(result['workerReadbackIssue'],'worker status not verified: configured')
+        self.assertNotIn('untrusted-message',result['workerReadbackIssue'])
+    def test_missing_worker_reason_is_unknown_not_zero(self):
+        result=inspect_readback(pages(),None,'2026-10-31T11:00:00Z')
+        self.assertEqual(result['workerReadbackIssue'],'worker response missing or invalid')
+        self.assertFalse(result['sameRun'])
     def test_run_mismatch(self):
         w=worker();w['run']='2026-10-31T09:00'
         self.assertFalse(inspect_readback(pages(),w,'2026-10-31T11:00:00Z')['sameRun'])
