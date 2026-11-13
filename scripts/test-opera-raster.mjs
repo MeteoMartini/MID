@@ -119,7 +119,7 @@ try{
 const backupHost='object-store.os-api.cci1.ecmwf.int';
 const liveKey=objectKey(nominal-5*60_000);
 const expiredKey=objectKey(nominal-25*3600_000);
-let onlyExpired=false;
+let onlyExpired=false, primaryFails=false, backupFails=false;
 globalThis.fetch=async input=>{
  const url=new URL(input);
  if(url.hostname==='api.meteogate.eu'){
@@ -128,11 +128,12 @@ globalThis.fetch=async input=>{
   return Response.json({type:'Coverage',links});
  }
  if(url.hostname==='s3.waw3-1.cloudferro.com'){
-  if(url.searchParams.has('list-type'))return new Response(`<ListBucketResult><Key>${expiredKey}</Key></ListBucketResult>`);
+  if(url.searchParams.has('list-type'))return new Response(`<ListBucketResult><Key>${onlyExpired?expiredKey:liveKey}</Key></ListBucketResult>`);
+  if(primaryFails)return new Response('storage error',{status:500});
   return new Response(null,{status:404});
  }
  if(url.hostname===backupHost&&decodeURIComponent(url.pathname)===`/openradar-24h-backup/${liveKey}`)
-  return new Response(Uint8Array.of(137,72,68,70,13,10,26,10),{headers:{'content-type':'application/x-hdf5'}});
+  return backupFails?new Response('<Error/>',{headers:{'content-type':'application/xml'}}):new Response(Uint8Array.of(137,72,68,70,13,10,26,10),{headers:{'content-type':'application/x-hdf5'}});
  throw new Error('Unexpected OPERA request: '+url);
 };
 try{
@@ -145,6 +146,15 @@ try{
   throw new Error('OPERA backup must be proxied using its verified key and storage');
  const file=await worker.fetch(new Request(fileUrl),{});
  if(!file.ok||(await file.arrayBuffer()).byteLength!==8)throw new Error('Backup HDF5 did not pass through');
+ fileUrl.searchParams.delete('storage');
+ primaryFails=true;
+ const mirror=await worker.fetch(new Request(fileUrl),{});
+ if(!mirror.ok||mirror.headers.get('x-mid-opera-storage')!=='backup'||(await mirror.arrayBuffer()).byteLength!==8)
+  throw new Error('Primary HTTP 500 must fall back to the exact backup object');
+ backupFails=true;
+ const unavailable=await worker.fetch(new Request(fileUrl),{});
+ if(unavailable.status!==502||unavailable.headers.get('cache-control')!=='no-store')
+  throw new Error('Both mirrors failed but proxy advertised a usable image');
  onlyExpired=true;
  const expired=await worker.fetch(request,{});
  if(expired.ok)throw new Error('An expired OPERA catalogue must not report live radar');

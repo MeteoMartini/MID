@@ -1,3 +1,15 @@
+# MID v0.9.85.463 · OPERA-HDF5-Resilienz und optionaler D2-Signer-Frischeschutz (Source-Kandidat, 13.11.2026)
+
+**Maßgebliche Ausgangsbasis:** main=mid-stable=`1d492743f1d2c38028dae9a01be24e65643537e7`, veröffentlicht v0.9.85.462, Installer [#43381596669](https://github.com/MeteoMartini/MID/actions/runs/43381596669) completed/success mit Core/Heavy, Worker, Pages und Stable. Fünf aktive Rulesets. Kein Direktwrite auf main/stable.
+
+**SHA-verifizierter Partner-Handoff:** OPERA Draft [#779](https://github.com/MeteoMartini/MID/pull/779), HEAD `e7b303c57ab31fa06c1a9ab78698e4354b6017f2`; zwei exakt überprüfte Funktionen im kanonischen `worker-src/20-composite-models.js`, identisch generierte Worker-Spiegel, bestehender OPERA-Negativtest. Kein alter .461-Worker oder veraltete Release-Version wird blind übernommen.
+
+**Zusätzlicher RUC-P1-Korrekturpfad:** Die D2-SLSA-Signer-/73-Originalartefakt-Brücke ist bereits produktiv; RUC [#43378017097](https://github.com/MeteoMartini/MID/actions/runs/43378017097) scheiterte bei optionaler Kartenanreicherung an korrekt erkannter 12-h-Überschreitung. Ein authentisches *abgelaufenes* optionales Modell darf mit unverändertem `latest.json` und explizitem NoData für Native D2 ausgelassen werden, sodass der geprüfte 27-h-RUC-Kern weiter publizierbar ist. Nur automatisch ausgewählte, regulär geplante Originalsigner dürfen dies; ausdrücklich per Run-ID angeforderte Signer, Zukunftszeiten, Manifest-/SHA-/SLSA-/Geo-/Bitmap-/Budgetfehler bleiben fatal. `MAX_AGE=12 h` unverändert.
+
+**Freigabe offen:** Keine Behauptung einer .463-Publikation ohne vollgrünen exakten Source-Gate-HEAD, notwendigen Review-/Securitystatus, SHA-gebundenen kontrollierten Bot-Merge, serverseitiges ZIP, Installer, betroffene Worker/Pages und Stable-Promotion. RUC-full-domain-Browser/Export-E2E, Review-Race-Policy, Multimodell-Saisonfelder, AI Router, iOS-Gerätetest bleiben offen.
+
+## Historischer veröffentlichter Stand v0.9.85.462
+
 # MID v0.9.85.462 · Source-Integrationskandidat vom 13.11.2026 (NO RELEASE)
 
 **Veröffentlichte Basis:** main=mid-stable=`91d8eff4126a928d601dede75c121d8b284b790d`, v0.9.85.461, fünf aktive Rulesets. installer [#43328314344](https://github.com/MeteoMartini/MID/actions/runs/43328314344) `completed/success`; die alte .461-Kandidatenbeschreibung weiter unten ist historisch und belegt nicht den Stand dieses neuen Source-PR.

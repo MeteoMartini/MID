@@ -401,26 +401,37 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           MID_EXPECTED_SIGNER_SHA: ${{ steps.native_d2_approval.outputs.source_sha }}
+          MID_EXPLICIT_D2_RUN: ${{ inputs.native_d2_approval_run_id || '' }}
         run: |
           set -euo pipefail
+          native_options=()
+          # Never silently skip an explicitly pinned original-signature request.
+          if [[ -z "$MID_EXPLICIT_D2_RUN" ]]; then native_options+=(--skip-stale); fi
           python tools/ruc/augment_compressed_native_d2.py \
             --snapshot .ruc-pages/ruc \
             --approval .d2-approved \
-            --source-commit-sha "$MID_EXPECTED_SIGNER_SHA" > .d2-native-pages-admission.json
+            --source-commit-sha "$MID_EXPECTED_SIGNER_SHA" "${native_options[@]}" > .d2-native-pages-admission.json
           python - <<'PY'
-          import json
+          import json,os
           from pathlib import Path
           proof=json.loads(Path('.d2-native-pages-admission.json').read_text())
           latest=json.loads(Path('.ruc-pages/ruc/latest.json').read_text())
-          native=latest.get('modelFieldsNative',{})
-          assert proof['schema']=='mid.d2.native-publisher-admission.v1'
-          assert proof['nativePoints']==native['nativePoints']==542040
-          assert proof['frames']==native['frameCount']==72
-          assert proof['nativeObjectCount']==73
-          assert proof['sha256']==native['indexSha256']
-          assert proof['totalRucBytes']==latest['pages']['publishedBytes']<900000000
-          assert native['productionApproved'] is True
-          print('SIGNED_DWD_72_NATIVE_MAPS_ADMITTED_TO_UNPUBLISHED_SNAPSHOT')
+          if proof.get('status')=='skipped-stale-attestation':
+              assert proof.get('nativeAdmitted') is False
+              assert proof['sourceReleaseSha']==os.environ['MID_EXPECTED_SIGNER_SHA']
+              assert 'modelFieldsNative' not in latest
+              assert latest['storageProfile']=='pages-lossless-v1'
+              print('::notice::Authentic DWD native model expired; validated 27h RUC core continues without native D2')
+          else:
+              native=latest.get('modelFieldsNative',{})
+              assert proof['schema']=='mid.d2.native-publisher-admission.v1'
+              assert proof['nativePoints']==native['nativePoints']==542040
+              assert proof['frames']==native['frameCount']==72
+              assert proof['nativeObjectCount']==73
+              assert proof['sha256']==native['indexSha256']
+              assert proof['totalRucBytes']==latest['pages']['publishedBytes']<900000000
+              assert native['productionApproved'] is True
+              print('SIGNED_DWD_72_NATIVE_MAPS_ADMITTED_TO_UNPUBLISHED_SNAPSHOT')
           PY
       - name: Geprüften Snapshot für spätere kompatible Releasewechsel versiegeln
         if: inputs.reuse_run_id == ''
