@@ -1,3 +1,7 @@
+# MID v0.9.85.468 · OPERA-Weiterleitungsmodus im Wetter-Worker
+
+Basis: v0.9.85.467, `eaa1cc3870974a08122a9dcbb6b363ed5a17fbd1`. Zu #782: In Köln lieferte MID für drei aktuelle OPERA-Objekte HTTP 502 (Transport beider Spiegel). Dieselben ECMWF-Objekte waren mit gültiger HDF5-Signatur direkt abrufbar. Cloudflare Workers lehnen `redirect: 'error'` bereits vor dem Abruf ab. Der Worker verwendet `manual`, akzeptiert weiterhin ausschließlich HTTP 200 mit erwartetem Dateityp und folgt keinen Umleitungen. Die Produktionsabnahme über MID ist nach der Veröffentlichung erforderlich.
+
 # MID v0.9.85.467 · OPERA-Abruf im Wetter-Worker
 
 Stable-Basis `74579ca5de14aa903269060768ae4f7a3f9b1af5` (.466). Live-Probe #782: drei OPERA-Dateiabrufe via MID lieferten 502/Transport auf beiden Spiegeln, das identische jüngste ECMWF-Objekt war direkt als HDF5 abrufbar. Der Kandidat vermeidet die kompatibilitätsabhängige Fetch-Option.

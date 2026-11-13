@@ -102,7 +102,8 @@ async function operaRasterFileResponse(request){const url=new URL(request.url),k
   const mirror=root===OPERA_BACKUP_ROOT?'backup':'primary';
   try{
    const response=await fetchWithDeadline(`${root}/${resolvedKey}`,{
-    redirect:'error',
+    // Workers reject redirect:'error' before sending the request. Only HTTP 200 is accepted below.
+    redirect:'manual',
     headers:{Accept:'application/octet-stream,*/*','Cache-Control':'no-cache'},
     cf:{cacheTtlByStatus:{'200-599':-1}}
    },5500);
