@@ -377,18 +377,36 @@ export default function RadarPanel({lat:placeLat,lon:placeLon,timezone,analysis:
    try{
     const data=await loadOperaRaster(lat,lon,controller.signal);
     if(!data.frames?.length)throw new Error(data.error||'OPERA liefert derzeit keine Rasterstände.');
-    const latest=[...data.frames].sort((a,b)=>Date.parse(a.time)-Date.parse(b.time)).at(-1);
-    if(!latest)throw new Error('OPERA liefert keinen aktuellen Rasterstand.');
-    const raster=await loadOperaRasterData(latest.fileUrl,controller.signal);
-    if(!raster.width||!raster.height||!raster.values?.length)throw new Error('OPERA lieferte kein auswertbares Raster.');
+    const now=Date.now();
+    const candidates=data.frames.filter(frame=>{
+     const time=Date.parse(frame.time);
+     return time>=now-30*60000&&time<=now+90000;
+    }).sort((a,b)=>Date.parse(b.time)-Date.parse(a.time));
+    let accepted:OperaRasterFrame|undefined;
+    let lastError:unknown;
+    for(const frame of candidates.slice(0,3)){
+     try{
+      const raster=await loadOperaRasterData(frame.fileUrl,controller.signal);
+      if(!raster.width||!raster.height||!raster.values?.length)throw new Error('OPERA lieferte kein auswertbares Raster.');
+      accepted=frame;
+      break;
+     }catch(error){
+      if(controller.signal.aborted)return;
+      lastError=error;
+     }
+    }
+    if(!accepted)throw lastError??new Error('OPERA liefert keinen aktuellen Rasterstand.');
     if(controller.signal.aborted)return;
-    setOperaLocation(observationLocation);setOperaFrames(data.frames);setOperaError('');setOperaMessage('');setOperaStatus('ready');
+    const acceptedTime=Date.parse(accepted.time);
+    setOperaLocation(observationLocation);
+    setOperaFrames(candidates.filter(frame=>Date.parse(frame.time)<=acceptedTime));
+    setOperaError('');setOperaMessage('');setOperaStatus('ready');
     lastSuccess=Date.now();failures=0;window.clearTimeout(retryTimer);
    }catch(error){
     if(!controller.signal.aborted){
      const message=error instanceof Error?error.message:String(error);
-     // Retain last timestamped source inventory, but status=error forces fallback.
-     setOperaError(message);setOperaMessage(message);setOperaStatus('error');
+     // Keep the last decoded observation while its timestamp remains fresh.
+     setOperaError(message);setOperaMessage(message);setOperaStatus(current=>current==='ready'?'ready':'error');
      const delay=compositeMetadataRetryDelayMs(failures);
      if(delay!==null){failures+=1;window.clearTimeout(retryTimer);retryTimer=window.setTimeout(()=>{void load()},delay)}
     }

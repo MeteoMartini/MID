@@ -32,9 +32,9 @@ describe('Sölden and Alpine map observation source fallback',()=>{
   expect(source).not.toContain("if(unified||!fallbackNeeded");
  });
  it('falls back from unavailable daytime VIS to sourced IR without inventing a satellite timestamp',()=>{
-  expect(source).toContain("const candidateSatellite:CompositeProduct|undefined=(isDay&&!satelliteFallback&&");
+  expect(source).toContain("const candidateSatellite:CompositeProduct|undefined=(!satelliteFallback&&");
   expect(source).toContain("(productTimes.satelliteIrProduct||legacyIr)");
-  expect(source).toContain("setSatelliteTileError(message);if(isDay&&!satelliteFallback&&");
+  expect(source).toContain("setSatelliteTileError(message);if((isDay||satelliteLayer==='mtg_fd:rgb_geocolour')&&!satelliteFallback&&");
   expect(source).toContain('setSatelliteFallback(true)');
   expect(source).toContain("satelliteProvider==='dwd'?'Satellit &copy; DWD':'Satellit &copy; EUMETSAT'");
  });
