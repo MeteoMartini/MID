@@ -1,10 +1,10 @@
 import './RadarPhaseSymbols.css';
 import {useEffect,useMemo,useState} from 'react';
-import {HtmlMarker} from './MapLibreCore';
+import {CanvasOverlay,HtmlMarker,type MidMap} from './MapLibreCore';
 import type {OperaRasterFrame} from './CompositeData';
 import {loadOperaRasterData,operaRasterPoint,type OperaRaster} from './OperaRasterSource';
 import {loadWeatherPhaseGrid,type WeatherPhaseGridData,type WeatherPhaseGridFrame} from './WeatherMapsData';
-import type {RadarPhase} from './radarColorTables';
+import {PRECIPITATION_TYPE_COLORS,radarDbzColor,type RadarPhase} from './radarColorTables';
 import {precipitationTypeSymbolSvg,type PrecipitationSymbolPhase} from './precipitationTypeSymbols';
 
 export type RadarModelPhaseStatus='idle'|'loading'|'ready'|'error';
@@ -12,6 +12,7 @@ type OverlayPhase=RadarPhase|'hail'|'graupel'|'graupel-hail'|'snow-grains'|'snow
 type PhaseResult={phase:OverlayPhase;label:string;confidence:'hoch'|'mittel'|'eingeschränkt';modelEvidence:boolean};
 type EchoSummary={covered:boolean;hits:number;maxDbz:number;meanDbz:number;maxRate:number};
 type SymbolPhase=PrecipitationSymbolPhase;
+const EMPTY_SYMBOLS:PhaseSymbol[]=[];
 type PhaseSymbol={id:string;lat:number;lon:number;phase:SymbolPhase;label:string;dbz:number;source:string;run:string;valid:string;intervalMinutes:number};
 
 function finite(value:unknown){if(value==null||typeof value==='boolean'||(typeof value==='string'&&!value.trim()))return NaN;const number=Number(value);return Number.isFinite(number)?number:NaN}
@@ -87,14 +88,18 @@ function distanceKm(a:PhaseSymbol,b:PhaseSymbol){const latKm=(a.lat-b.lat)*111.2
 function phaseMinimumDbz(phase:SymbolPhase){return phase==='hail'?15:phase==='graupel-hail'?12:phase==='graupel'?9:['snow-grains','snow-stars','ice-crystals','ice-pellets'].includes(phase)?4:(phase==='freezing'?9:phase==='snow'?6:7)}
 function asSymbolPhase(phase:OverlayPhase):SymbolPhase|null{return['mixed','snow','snow-grains','snow-stars','ice-crystals','ice-pellets','freezing','hail','graupel','graupel-hail'].includes(phase)?phase as SymbolPhase:null}
 
-function buildPhaseSymbols(data:WeatherPhaseGridData,raster:OperaRaster):PhaseSymbol[]{
+function buildPhaseDisplay(data:WeatherPhaseGridData,raster:OperaRaster){
+ const colors=new Map<number,string>();
  const frame=data.frame,latStep=data.lats.length>1?Math.abs(data.lats[1]-data.lats[0]):.05,lonStep=data.lons.length>1?Math.abs(data.lons[1]-data.lons[0]):.05,candidates:PhaseSymbol[]=[];
  for(let row=0;row<data.lats.length;row++)for(let col=0;col<data.lons.length;col++){
   const index=row*data.lons.length+col,lat=data.lats[row],lon=data.lons[col],source=data.phaseSourceByCell?.[index];if(!source)continue;const valid=data.phaseValidTimeByCell?.[index],run=data.phaseRunByCell?.[index],intervalMinutes=data.phaseIntervalMinutesByCell?.[index],validMs=Date.parse(valid||''),runMs=Date.parse(run||''),targetMs=Date.parse(data.targetTime);if(!Number.isFinite(validMs)||(source==='dwd-icon-d2-ruc'?(!Number.isFinite(runMs)||runMs>validMs):(run!=null&&(!Number.isFinite(runMs)||runMs>validMs)))||!Number.isFinite(targetMs)||Math.abs(validMs-targetMs)>(intervalMinutes===15?90000:3600000)||![15,60].includes(intervalMinutes||0))continue;const echo=cellEchoSummary(raster,lat-latStep/2,lat+latStep/2,lon-lonStep/2,lon+lonStep/2,3);if(!echo.covered||!Number.isFinite(echo.maxDbz))continue;
-  const temperature=finite(frame.temperature2m[index]),humidity=finite(frame.relativeHumidity2m[index]),directWetBulb=finite(frame.wetBulbTemperature2m[index]),wetBulb=Number.isFinite(directWetBulb)?directWetBulb:wetBulbStull(temperature,humidity),phase=radarBackedThermalPhase(phaseFor(frame,index,source),frame,index,echo),typed=asSymbolPhase(phase.phase);if(!typed||phase.confidence==='eingeschränkt')continue;
+  const temperature=finite(frame.temperature2m[index]),humidity=finite(frame.relativeHumidity2m[index]),directWetBulb=finite(frame.wetBulbTemperature2m[index]),wetBulb=Number.isFinite(directWetBulb)?directWetBulb:wetBulbStull(temperature,humidity),phase=radarBackedThermalPhase(phaseFor(frame,index,source),frame,index,echo),typed=asSymbolPhase(phase.phase);if(phase.modelEvidence&&phase.phase==='rain'&&phase.confidence!=='eingeschränkt'&&echo.maxDbz>=7)colors.set(index,PRECIPITATION_TYPE_COLORS.rain);
+  if(!typed||phase.confidence==='eingeschränkt')continue;
   if(typed==='freezing'&&(!coldSupport(temperature,wetBulb)||(Number.isFinite(temperature)&&temperature>2.5)||(Number.isFinite(wetBulb)&&wetBulb>.8)))continue;
   if((typed==='snow'||typed==='mixed')&&(Number.isFinite(temperature)&&temperature>4)&&(Number.isFinite(wetBulb)&&wetBulb>1.5))continue;
   if(echo.maxDbz<phaseMinimumDbz(typed))continue;
+  const family=typed==='graupel-hail'?'hail':typed in PRECIPITATION_TYPE_COLORS?typed as keyof typeof PRECIPITATION_TYPE_COLORS:'snow';
+  colors.set(index,PRECIPITATION_TYPE_COLORS[family]);
   const runEvidence=source==='dwd-icon-d2-ruc'?`Original-RUC-Lauf ${run}`:'Open-Meteo-Feldlauf nicht nachgewiesen (Modellmetadaten separat)';
   candidates.push({id:`${row}:${col}:${typed}`,lat,lon,phase:typed,label:`${phase.label} · ${Math.round(echo.maxDbz)} dBZ · ${source} · ${runEvidence} · Feld ${valid} · Intervall ${intervalMinutes} min`,dbz:echo.maxDbz,source,run:run||'',valid:valid||'',intervalMinutes:intervalMinutes||0});
  }
@@ -103,7 +108,7 @@ function buildPhaseSymbols(data:WeatherPhaseGridData,raster:OperaRaster):PhaseSy
   const spacing=item.phase==='hail'?18:item.phase==='graupel'||item.phase==='graupel-hail'?15:14;
   if(selected.some(existing=>distanceKm(existing,item)<spacing))continue;selected.push(item);if(selected.length>=90)break
  }
- return selected;
+ return {symbols:selected,colors,latStep,lonStep};
 }
 
 function phaseSummary(symbols:PhaseSymbol[]){
@@ -125,13 +130,48 @@ function phaseSummary(symbols:PhaseSymbol[]){
 
 function phaseRateLimit(message:string){return /(?:request|rate|minute|minutes|429).*limit|limit.*(?:request|rate|minute|minutes)|too many requests/i.test(message)}
 
-export default function RadarModelPrecipTypeOverlay({latitude,longitude,targetTime,operaFrame,opacity=.9,onStatus}:{latitude:number;longitude:number;targetTime?:string;operaFrame?:OperaRasterFrame|null;opacity?:number;onStatus?:(status:RadarModelPhaseStatus,message?:string)=>void}){
+function drawPhaseRaster(map:MidMap,canvas:HTMLCanvasElement,raster:OperaRaster,grid:WeatherPhaseGridData,display:ReturnType<typeof buildPhaseDisplay>){
+ const {width,height}=map.getContainer().getBoundingClientRect();
+ if(width<1||height<1)return;
+ canvas.width=Math.min(480,Math.ceil(width/2));
+ canvas.height=Math.min(480,Math.ceil(height/2));
+ canvas.style.width=width+'px';
+ canvas.style.height=height+'px';
+ const context=canvas.getContext('2d');
+ if(!context)return;
+ const image=context.createImageData(canvas.width,canvas.height);
+ const latDirection=Math.sign((grid.lats[1]??grid.lats[0]+1)-grid.lats[0]);
+ const lonDirection=Math.sign((grid.lons[1]??grid.lons[0]+1)-grid.lons[0]);
+ const rgb=new Map([...new Set([...display.colors.values(),PRECIPITATION_TYPE_COLORS.uncertain])].map(color=>{
+  const value=parseInt(color.slice(1),16);
+  return [color,[value>>16,(value>>8)&255,value&255]];
+ }));
+ for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){
+  const {lat,lng}=map.unproject([(x+.5)*width/canvas.width,(y+.5)*height/canvas.height]);
+  const {dbz}=operaRasterPoint(raster,lat,lng);
+  if(dbz===undefined)continue;
+  const alpha=radarDbzColor(dbz)[3];
+  if(!alpha)continue;
+  const row=Math.round((lat-grid.lats[0])/(display.latStep*latDirection));
+  const col=Math.round((lng-grid.lons[0])/(display.lonStep*lonDirection));
+  const color=row>=0&&row<grid.lats.length&&col>=0&&col<grid.lons.length
+   ?display.colors.get(row*grid.lons.length+col):undefined;
+  const offset=(y*canvas.width+x)*4;
+  image.data.set(rgb.get(color??PRECIPITATION_TYPE_COLORS.uncertain)!,offset);
+  image.data[offset+3]=alpha;
+ }
+ context.putImageData(image,0,0);
+}
+
+export default function RadarModelPrecipTypeOverlay({latitude,longitude,targetTime,operaFrame,opacity=.9,showArea=false,onStatus}:{latitude:number;longitude:number;targetTime?:string;operaFrame?:OperaRasterFrame|null;opacity?:number;showArea?:boolean;onStatus?:(status:RadarModelPhaseStatus,message?:string)=>void}){
  const[data,setData]=useState<WeatherPhaseGridData|null>(null),[raster,setRaster]=useState<OperaRaster|null>(null),[retryTick,setRetryTick]=useState(0);
  useEffect(()=>{const controller=new AbortController();let retryTimer:number|undefined;setData(null);setRaster(null);if(!operaFrame?.fileUrl){onStatus?.('error','OPERA-CIRRUS-Echomaske fehlt; die Niederschlagsart bleibt aus.');return()=>controller.abort()}const targetIso=targetTime||operaFrame.time,targetMs=Date.parse(targetIso),operaMs=Date.parse(operaFrame.time);if(!Number.isFinite(targetMs)||!Number.isFinite(operaMs)||Math.abs(targetMs-operaMs)>12*60000){onStatus?.('error','OPERA-CIRRUS liegt zeitlich zu weit vom gewählten Radarstand entfernt.');return()=>controller.abort()}onStatus?.('loading','OPERA-CIRRUS-Echomaske und Rapid-/Regionalmodell werden für die Symbolklassifikation geprüft.');Promise.all([loadWeatherPhaseGrid(latitude,longitude,targetIso,controller.signal),loadOperaRasterData(operaFrame.fileUrl,controller.signal)]).then(([grid,nextRaster])=>{if(controller.signal.aborted)return;if(grid.error)throw new Error(grid.error);const modelMs=Date.parse(grid.frame?.time||''),maxTimeDelta=grid.stale?45*60000:20*60000;if(!Number.isFinite(modelMs)||Math.abs(modelMs-targetMs)>maxTimeDelta)throw new Error('Kein ausreichend zeitnahes Rapid-/Regionalmodell-Phasenfeld.');if(typeof grid.modelAgeHours==='number'&&Number.isFinite(grid.modelAgeHours)&&grid.modelAgeHours>16)throw new Error('Der ausgewählte Modelllauf ist für eine belastbare Radarphase zu alt.');setData(grid);setRaster(nextRaster)}).catch(error=>{if(controller.signal.aborted)return;const message=error instanceof Error?error.message:String(error);if(phaseRateLimit(message)){onStatus?.('error','Rapid-/Regionalmodell-Phasenfeld vorübergehend durch das Open-Meteo-Minutenlimit blockiert. Radar bleibt aktiv; automatischer neuer Versuch in etwa 60 s.');retryTimer=window.setTimeout(()=>setRetryTick(value=>value+1),65000)}else onStatus?.('error',message)});return()=>{controller.abort();if(retryTimer!==undefined)window.clearTimeout(retryTimer)}},[latitude,longitude,targetTime,operaFrame?.fileUrl,operaFrame?.time,onStatus,retryTick]);
- const symbols=useMemo(()=>data&&raster?buildPhaseSymbols(data,raster):[],[data,raster]);
+ const display=useMemo(()=>data&&raster?buildPhaseDisplay(data,raster):null,[data,raster]);
+ const symbols=display?.symbols??EMPTY_SYMBOLS;
+ const draw=useMemo(()=>showArea&&data&&raster&&display?(map:MidMap,canvas:HTMLCanvasElement)=>drawPhaseRaster(map,canvas,raster,data,display):null,[showArea,data,raster,display]);
  useEffect(()=>{if(!data||!raster)return;const staleNote=data.stale?' · Ersatzfeld wegen temporärem API-Limit':'';const source=`OPERA-Echo getrennt · Zellquellen ${Object.entries(data.sourceCounts||{}).map(([id,n])=>id+':'+n).join(', ')} · ${data.provider||'Modellphase'}`;if(symbols.length){onStatus?.('ready',`${source} · ${symbols.length} Symbole im aktuellen Ausschnitt · ${phaseSummary(symbols)}${staleNote}`);return}onStatus?.('ready',`${source} · Layer aktiv · aktuell keine festen, gemischten oder gefrierenden Niederschlagsarten im sichtbaren Ausschnitt${staleNote}`)},[data,raster,symbols,onStatus]);
- if(!symbols.length||opacity<=0)return null;
+ if((!draw&&!symbols.length)||opacity<=0)return null;
  const safeOpacity=Math.max(.2,Math.min(1,opacity));
  const escapeHtml=(value:string)=>value.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
- return <>{symbols.map(item=>{const label=escapeHtml(item.label),detail=escapeHtml(`${item.label} · Radar + modellgestützte Phase · keine Stationsmeldung oder amtliche Warnung`);return <HtmlMarker key={item.id} latitude={item.lat} longitude={item.lon} anchor="center" className={`radar-phase-symbol radar-phase-${item.phase}`} zIndex={450} html={`<button type="button" class="radar-phase-symbol-shape" aria-label="${label}" title="${label}">${precipitationTypeSymbolSvg(item.phase).replace('<g color=',`<g style="opacity:${safeOpacity.toFixed(2)}" color=`)}</button>`} popupHtml={detail}/>})}</>;
+ return <>{draw&&<CanvasOverlay id="radar-phase-area" opacity={safeOpacity} zIndex={361} render={draw}/>} {symbols.map(item=>{const label=escapeHtml(item.label),detail=escapeHtml(`${item.label} · Radar + modellgestützte Phase · keine Stationsmeldung oder amtliche Warnung`);return <HtmlMarker key={item.id} latitude={item.lat} longitude={item.lon} anchor="center" className={`radar-phase-symbol radar-phase-${item.phase}`} zIndex={450} html={`<button type="button" class="radar-phase-symbol-shape" aria-label="${label}" title="${label}">${precipitationTypeSymbolSvg(item.phase).replace('<g color=',`<g style="opacity:${safeOpacity.toFixed(2)}" color=`)}</button>`} popupHtml={detail}/>})}</>;
 }

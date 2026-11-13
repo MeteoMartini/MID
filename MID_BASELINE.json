@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.470",
+  "releaseVersion": "0.9.85.471",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -777,6 +777,7 @@
     "scripts/test-radar-nowcast-ref.mjs",
     "scripts/test-radar-nowcast-sum-wording-071051.mjs",
     "scripts/test-radar-period-wording-08222.mjs",
+    "scripts/test-radar-phase-areas-0985471.mjs",
     "scripts/test-radar-phase-echo-recovery-09406.mjs",
     "scripts/test-radar-phase-solid-symbols-09414.mjs",
     "scripts/test-radar-scrub-history-performance.mjs",
@@ -840,6 +841,7 @@
     "scripts/test-ruc-parameter-audit-097311.mjs",
     "scripts/test-ruc-precip-amplitude-guard-09787.mjs",
     "scripts/test-ruc-rapid-update-policy-09400.mjs",
+    "scripts/test-ruc-restore-http520-0985471.mjs",
     "scripts/test-ruc-resume-watchdog-0985370.mjs",
     "scripts/test-ruc-schedule-catchup-09745.mjs",
     "scripts/test-ruc-scheduler-resilience-097624.mjs",
@@ -3960,7 +3962,7 @@
     "scripts/test-skybar-solid-colors-0985358.mjs",
     "scripts/test-current-moisture-0985462.mjs"
   ],
-  "version": "0.9.85.470",
+  "version": "0.9.85.471",
   "updatedAt": "2026-11-12",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",
