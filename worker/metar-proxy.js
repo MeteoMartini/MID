@@ -52,7 +52,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.85.466';
+const WORKER_VERSION='0.9.85.467';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
@@ -2230,8 +2230,8 @@ async function operaRasterFileResponse(request){const url=new URL(request.url),k
   try{
    const response=await fetchWithDeadline(`${root}/${resolvedKey}`,{
     redirect:'error',
-    headers:{Accept:'application/octet-stream,*/*'},
-    cache:'no-store'
+    headers:{Accept:'application/octet-stream,*/*','Cache-Control':'no-cache'},
+    cf:{cacheTtlByStatus:{'200-599':-1}}
    },5500);
    const type=response.headers.get('content-type')?.split(';')[0].trim().toLowerCase();
    if(response.status===200&&response.body&&['application/x-hdf5','application/hdf5','application/octet-stream','binary/octet-stream'].includes(type)){

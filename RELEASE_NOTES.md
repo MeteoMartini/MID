@@ -1,4 +1,3 @@
-# MID v0.9.85.466
+# MID v0.9.85.467
 
-- Die Karte wählt Radar- und Satellitenquellen anhand ihrer Mitte. Der Favorit bleibt der Rücksprungpunkt.
-- Für Meteosat haben verfügbare GeoColour-Aufnahmen Vorrang. Bei Ausfällen prüft MID zeitlich passende Ersatzbilder.
+- Der Radar-Worker verwendet für OPERA mit älteren Cloudflare-Laufzeitprofilen kompatible Abrufoptionen. Beide offiziellen Speicher bleiben als Quellen verfügbar.

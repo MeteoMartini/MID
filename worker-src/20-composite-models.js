@@ -103,8 +103,8 @@ async function operaRasterFileResponse(request){const url=new URL(request.url),k
   try{
    const response=await fetchWithDeadline(`${root}/${resolvedKey}`,{
     redirect:'error',
-    headers:{Accept:'application/octet-stream,*/*'},
-    cache:'no-store'
+    headers:{Accept:'application/octet-stream,*/*','Cache-Control':'no-cache'},
+    cf:{cacheTtlByStatus:{'200-599':-1}}
    },5500);
    const type=response.headers.get('content-type')?.split(';')[0].trim().toLowerCase();
    if(response.status===200&&response.body&&['application/x-hdf5','application/hdf5','application/octet-stream','binary/octet-stream'].includes(type)){
