@@ -29,7 +29,7 @@ try{
  memory.set('mid:forecastCockpit:profileLegendVisible','0');assert.equal(legend.readProfileLegendVisible(),false);memory.set('mid:forecastCockpit:profileLegendVisible','1');assert.equal(legend.readProfileLegendVisible(),true);memory.delete('mid:forecastCockpit:profileLegendVisible');assert.equal(legend.readProfileLegendVisible(),true);
  const radar=await readFile('src/RadarPanel.tsx','utf8');
  assert.ok(radar.includes('highResolution:selectedHighResolution'),'persist requested resolution');assert.ok(radar.includes('const highResolution=selectedHighResolution&&pxFresh;'),'effective product requires fresh current-location metadata');
- const metadataEffect=radar.slice(radar.indexOf("useEffect(()=>{if(!panelVisible)return;let alive=true,controller"),radar.indexOf("useEffect(()=>{setSatelliteFallback(false)"));assert.ok(metadataEffect.includes('loadPx250Metadata'));assert.ok(!metadataEffect.includes('setHighResolution('),'metadata errors must never write the resolution preference');
+ const metadataEffect=radar.split("\n").find(line=>line.includes("useEffect(")&&line.includes("loadPx250Metadata"))??"";assert.ok(metadataEffect.includes('loadPx250Metadata'));assert.ok(!metadataEffect.includes('setHighResolution('),'metadata errors must never write the resolution preference');
  assert.ok(!/if\(!normalised.available\)setHighResolution/.test(radar));assert.ok(!/if\(highResolution&&pxMeta&&!pxFresh\)/.test(radar));
  assert.ok(radar.includes("persistCompositePatch({viewMode:'radar',showRadar:true,highResolution:mode==='px250'})"));
  assert.ok(radar.includes('useSyncExternalStore(subscribeMapReferenceSettings,readMapReferenceSettings'));
