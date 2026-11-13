@@ -1,14 +1,12 @@
-# MID v0.9.85.462
+# MID v0.9.85.463
 
 ## Änderungen
-- Wissenschaftlicher Feuchtecheck auf „Aktuell“: Temperatur, Taupunkt und relative Luftfeuchte werden als gemeinsame, DWD-konforme Zustandsgröße überprüft. Der zuvor mögliche Widerspruch –1 °C Lufttemperatur / +1 °C Taupunkt / 95 % RH wird verhindert.
-- Bei widersprüchlichen oder gemischten Quellen berechnet MID den Taupunkt aus der tatsächlich angezeigten Lufttemperatur und relativen Feuchte (mit sichtbarem ≈ und der Kennzeichnung „berechnet“). Bei unzureichenden, über 30 Minuten auseinanderliegenden oder fehlenden Eingangsdaten zeigt MID „–“ statt eines erfundenen Taupunkts.
-- Der lokale Prognoseanker nutzt dieselbe Feuchteprüfung und kennzeichnet rechnerisch abgeleitete Taupunkte nicht als Messwerte.
-- Die amtliche DWD-Formel unterscheidet 0 °C als Schwelle und verwendet unter dem Gefrierpunkt eigene Konstanten; bei über 0 °C mit errechnetem Taupunkt unter null erfolgt eine zweite Inversion. Relative Feuchte ist auch bei Frost über Wasser definiert.
-- Neue verbindliche Fach-/UI-Regressionen für Rheidt, Sättigung, Quellenmix, Messzeitversatz, extreme Feuchte, NoData und Rundung.
+- Das europäische OPERA-Radar kann ein echtes DBZH-HDF5-Bild auch dann laden, wenn einer der beiden offiziellen Speicher vorübergehend HTTP 500 oder andere Netzwerk-/Inhaltstypfehler liefert. MID versucht denselben originalen Zeit-/Objektschlüssel am zweiten Speicher und zeigt die tatsächliche Quelle an.
+- Fallen beide offiziellen Speicher aus, zeigt MID die Radardaten korrekt als derzeit nicht verfügbar an. Es wird kein Regenbild, keine Niederschlagsart und kein Nullniederschlag erfunden.
+- Ein nachweislich signiertes, aber überaltertes optionales DWD-ICON-D2-Vollgebietsartefakt kann die gesonderte 27-h-RUC-Kernveröffentlichung nicht mehr allein blockieren. Das abgelaufene Kartenartefakt wird ausdrücklich ausgelassen; ein neuer gültiger, SHA-gebundener DWD-Signer bleibt Voraussetzung für volle native ICON-D2-Karten.
+- Signatur-/SHA-/Inventarfehler, Manipulationen, Zukunftszeitstempel und ausdrücklich ausgewählte Originaldatensätze bleiben harte Fehler. WMO/DWD-Daten-, NoData- und Warnverträge bleiben unverändert.
 
-## Fachliche Quellen und Abgrenzung
-Deutscher Wetterdienst, Handbuch Flugwetterdienste, Band Tech v4.0, Abschnitt 6.3, S. 43: https://www.dwd.de/DE/leistungen/lf_11_flugwetterbetriebsdienste/handbuch_band_tech_v4.0_mod.pdf. MID führt eine eigene Qualitätskorrektur auf ausgewählten Daten durch; Originalbeobachtungen, Modellraster, amtliche Warnungen und Rohdaten bleiben unverändert. Ein abgeleiteter Taupunkt ist weder eine gemessene Stationsgröße noch eine amtliche Warnung.
+## Qualität und Abgrenzung
+Erweitert sind die OPERA-Integrationstests für Primär-500, Ersatzquelle und Ausfall beider Spiegel sowie die RUC-Negativtests für echte Ablauffälle, explizit gepinnte Freigaben, Zukunftszeiten und manipulierte Originalindizes. Der optionale Auslassungspfad ändert keine Snapshots und behauptet keine native D2-Verfügbarkeit.
 
-## Freigabe und offene Themen
-Dies ist zunächst ein versionierter Source-Kandidat, keine neue Stable-Veröffentlichung. Vollständiger Source-PR-Gate → SHA-gebundener Bot-Merge → serverseitiges Release-ZIP → install-mid.yml → Worker/Pages → Stable-Promotion bleibt verpflichtend. P0 #446 (geschütztes originales DWD-ICON-D2-Vollgebiet/SLSA/73 Objekte), #541 (RUC-Fast-Lane), #740 (Review-Policy), AI Router und Karten-Mehrmodellqualifikation bleiben getrennte, prüfpflichtige Arbeitsstränge. Keine echte iOS-/VoiceOver-Geräteabnahme behauptet.
+Dies ist zunächst ein **Source-/Release-Kandidat**. Erst der vollständige Source-PR-Gate, SHA-gebundene Bot-Merge, serverseitiges Release-ZIP, install-mid.yml, Worker-/Pages-Gates und die erfolgreiche Stable-Promotion erlauben eine Veröffentlichungsmeldung. Die offene browserseitige FullDomain-Abnahme für Sölden (#446), RUC-P1–P5 (#541), Multimodellkomposite (#724), Review-Schutz (#740) und realer iOS-/VoiceOver-Gerätetest sind dadurch nicht vorweggenommen.

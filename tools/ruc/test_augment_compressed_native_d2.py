@@ -4,7 +4,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from augment_compressed_native_d2 import attach, file_sha, utc_time
+from augment_compressed_native_d2 import attach, attach_or_skip_stale, file_sha, utc_time
 
 
 RELEASE = 'a' * 40
@@ -77,6 +77,37 @@ class SignedNativeD2CompressedAdmissionTests(unittest.TestCase):
         self.approved_candidate('2026-11-11T11:00:00Z')
         with self.assertRaisesRegex(ValueError, 'stale'):
             attach(self.snap, self.approval, RELEASE, now=CLOCK)
+
+    def test_expired_optional_original_is_skipped_without_mutating_snapshot(self):
+        self.approved_candidate('2026-11-11T11:00:00Z')
+        before = (self.snap / 'latest.json').read_bytes()
+        result = attach_or_skip_stale(self.snap, self.approval, RELEASE,
+                                      now=CLOCK, skip_stale=True)
+        self.assertEqual(result['status'], 'skipped-stale-attestation')
+        self.assertIs(result['nativeAdmitted'], False)
+        self.assertEqual(result['sourceReleaseSha'], RELEASE)
+        self.assertEqual(before, (self.snap / 'latest.json').read_bytes())
+        self.assertNotIn('modelFieldsNative', json.loads(before))
+        with self.assertRaisesRegex(ValueError, 'stale'):
+            attach_or_skip_stale(self.snap, self.approval, RELEASE,
+                                 now=CLOCK, skip_stale=False)
+
+    def test_future_signed_original_is_never_optional(self):
+        self.approved_candidate('2026-11-12T13:00:00Z')
+        before = (self.snap / 'latest.json').read_bytes()
+        with self.assertRaisesRegex(ValueError, 'future-dated'):
+            attach_or_skip_stale(self.snap, self.approval, RELEASE,
+                                 now=CLOCK, skip_stale=True)
+        self.assertEqual(before, (self.snap / 'latest.json').read_bytes())
+
+    def test_expired_tampered_original_still_fails_closed(self):
+        index = self.approved_candidate('2026-11-11T11:00:00Z')
+        index.write_text(index.read_text().replace('542040', '542041'))
+        before = (self.snap / 'latest.json').read_bytes()
+        with self.assertRaisesRegex(ValueError, 'signed DWD source/report mismatch'):
+            attach_or_skip_stale(self.snap, self.approval, RELEASE,
+                                 now=CLOCK, skip_stale=True)
+        self.assertEqual(before, (self.snap / 'latest.json').read_bytes())
 
     def test_current_unsigned_pilot_cannot_enter_pages(self):
         index = self.approved_candidate()

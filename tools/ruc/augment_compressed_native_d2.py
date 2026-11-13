@@ -25,6 +25,11 @@ NATIVE = 542040
 MAX_AGE = timedelta(hours=12)
 
 
+class ExpiredOriginalD2Run(ValueError):
+    """Authentic but too-old optional native DWD model source."""
+
+
+
 def file_sha(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open('rb') as handle:
@@ -106,8 +111,10 @@ def attach(snapshot: Path, approval: Path, source_commit_sha: str,
     if clock.tzinfo is None or clock.utcoffset() != timedelta(0):
         raise ValueError('Admission clock must be UTC')
     age = clock - instant
-    if age < -timedelta(minutes=30) or age > MAX_AGE:
-        raise ValueError('Attested ICON-D2 model run is stale or future-dated')
+    if age < -timedelta(minutes=30):
+        raise ValueError('Attested ICON-D2 model run is future-dated')
+    if age > MAX_AGE:
+        raise ExpiredOriginalD2Run('Attested ICON-D2 model run is stale')
     # The signed verifier accepts only the exact immutable original index, not
     # an untrusted candidate that flips productionApproved and rehashes itself.
     with tempfile.TemporaryDirectory(prefix='.mid-native-d2-admission-', dir=snapshot.parent) as temp:
@@ -167,13 +174,32 @@ def attach(snapshot: Path, approval: Path, source_commit_sha: str,
     }
 
 
+def attach_or_skip_stale(snapshot: Path, approval: Path, source_commit_sha: str,
+                         *, skip_stale: bool = False,
+                         now: datetime | None = None) -> dict:
+    """Fail-closed except a verified optional DWD model that is simply expired."""
+    try:
+        return attach(snapshot, approval, source_commit_sha, now=now)
+    except ExpiredOriginalD2Run:
+        if not skip_stale:
+            raise
+        return {
+            'schema': 'mid.d2.native-publisher-admission.v1',
+            'sourceReleaseSha': source_commit_sha,
+            'status': 'skipped-stale-attestation',
+            'nativeAdmitted': False,
+        }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--snapshot', type=Path, required=True)
     parser.add_argument('--approval', type=Path, required=True)
     parser.add_argument('--source-commit-sha', required=True)
+    parser.add_argument('--skip-stale', action='store_true', help='Optional scheduled native D2 admission only')
     args = parser.parse_args()
-    print(json.dumps(attach(args.snapshot, args.approval, args.source_commit_sha), sort_keys=True))
+    print(json.dumps(attach_or_skip_stale(args.snapshot, args.approval, args.source_commit_sha,
+                                    skip_stale=args.skip_stale), sort_keys=True))
 
 
 if __name__ == '__main__':

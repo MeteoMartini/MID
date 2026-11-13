@@ -1,3 +1,12 @@
+## MID v0.9.85.463 · 13.11.2026 · Original-OPERA-Objektfallback und RUC-Signer-Ablaufisolation
+
+- Verifizierte Stable-Basis: main=mid-stable `1d492743f1d2c38028dae9a01be24e65643537e7`, v0.9.85.462, Installer #43381596669 SUCCESS; fünf Rulesets unverändert.
+- Vorhandener OPERA-Handoff #779 @ e7b303c57ab31fa06c1a9ab78698e4354b6017f2 ohne Versionsrückfall übernommen: offizielle Primär-/Ersatzquelle gleicher HDF5-DBZH-Objektschlüssel, 5,5-s-Deadline, NoData/HTTP502 bei beidseitigem Fehler, keine Fehlercache-Veröffentlichung, Quellenheader.
+- Wiederhergestellte Versionierung 0.9.85.463 (Web/PWA/Worker/Contracts/Changelog/Package/Lock/Status/iOS-Metadaten Build 464). Kanonische Worker-Module und beide generierten Worker bleiben bytegleich; Release-ZIP ausschließlich serverseitig.
+- RUC-Fehlerquelle: Signer-Ablauf in Produktiv-Run 43378017097, keine DWD-Pipeline-/Codec-Integritätsfreigabe. Zulassung darf überalterte *automatisch selektierte* D2-Karten nach bereits geprüfter SHA/Inventarprovenienz optional auslassen; Zukunftszeit, Explizit-Run, SLSA-/NoData-/Vertragsfehler bleiben fatal. 27h-Kern/Originalsnapshot bleibt unverändert. Beide Workflowspiegel synchron.
+- Tests: bestehender OPERA-End-to-End-Regressionstest für primär 500, Backup, beidseitigen 502; drei neue RUC-Python-Negativfälle zusätzlich zu bisherigen Gating-/SLSA-Tests. Keine 168h-Wartefrist als allgemeines Release-Gate.
+- Noch kein Release-PASS: vollständiges Source-/Core-/Heavy-/Browser-/RUC-/Worker-/Pages-/Stable-Gate und tatsächlicher öffentlicher Original-D2/Sölden-Readback bleiben ausstehend.
+
 ## MID v0.9.85.462 · 13.11.2026 · DWD-konforme Taupunkt-/Feuchte-Kohärenz und lokaler Prognoseanker
 
 - Live Source of Truth vor Umsetzung: main=mid-stable `91d8eff4126a928d601dede75c121d8b284b790d`, veröffentlichte v0.9.85.461; fünf aktive GitHub-Rulesets. Installer #43328314344 `completed/success` mit Core/Heavy/Pages/Worker/Stable.
