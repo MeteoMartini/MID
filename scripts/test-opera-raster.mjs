@@ -43,7 +43,7 @@ need('weather','loadOperaRaster','OPERA-Rastermetadaten werden nicht für den No
 need('weather','mergeDwdOperaNowcast','DWD-Ergebnis wird nicht mit OPERA CIRRUS gegengeprüft.');
 need('weather','Promise.allSettled','DWD und OPERA werden für die aktuelle Niederschlagswahrscheinlichkeit nicht parallel geprüft.');
 need('weather','operaCrossCheck','OPERA-Kontrollsignal wird nicht im Radarergebnis dokumentiert.');
-need('panel','loadOperaRasterData(latest.fileUrl','Kompositbild prüft die tatsächliche OPERA-HDF5-Datei nicht vor Verwendung.');
+need('panel','loadOperaRasterData(frame.fileUrl','Kompositbild prüft die tatsächliche OPERA-HDF5-Datei nicht vor Verwendung.');
 need('panel',"if(!raster.width||!raster.height||!raster.values?.length)",'Kompositbild validiert das reale OPERA-HDF5-Raster nicht.');
 if(files.panel.includes('sampleOperaRaster(raster,lat,lon,3)'))failures.push('Kompositbild verwirft OPERA weiterhin fälschlich wegen einer lokalen NoData-/Trockenstichprobe.');
 need('panel',"activeSource==='opera'&&operaDisplayFrame",'OPERA wird nicht ausschließlich dann sichtbar gerendert, wenn es selbst die aktive Radarquelle ist.');
@@ -155,6 +155,12 @@ try{
  const unavailable=await worker.fetch(new Request(fileUrl),{});
  if(unavailable.status!==502||unavailable.headers.get('cache-control')!=='no-store')
   throw new Error('Both mirrors failed but proxy advertised a usable image');
+ const {diagnostics}=await unavailable.json();
+ if(JSON.stringify(diagnostics)!==JSON.stringify([
+  {mirror:'primary',status:500,reason:'http'},
+  {mirror:'backup',status:200,reason:'invalid-response'}
+ ]))throw new Error('OPERA error must distinguish upstream failure from invalid HTTP 200');
+
  onlyExpired=true;
  const expired=await worker.fetch(request,{});
  if(expired.ok)throw new Error('An expired OPERA catalogue must not report live radar');

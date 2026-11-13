@@ -1,3 +1,7 @@
+# MID v0.9.85.466 · Kandidat für Beobachtungsquellen nach Kartenausschnitt
+
+Stable-Basis: `ec0fd4c122eefb6e26ab882d7eccc5cfe353c64d` (.465). Übernahme aus #786 @ `8ebf094368c288f63a04b84d7f6c058b3d90e3e3` über #789. Frische und Provenienz der OPERA-Aufnahmen bleiben erforderlich. Weltweite Quellenabdeckung bleibt in #782 offen.
+
 # MID v0.9.85.465 · Quellkandidat für Kartenregression #787
 
 **Stable-Basis:** `main=mid-stable=f6277014ff239992c0581ab6bd6b0f39202d589d` / v0.9.85.464. [Installer #43395404395](https://github.com/MeteoMartini/MID/actions/runs/43395404395) erfolgreich. [Post-Release-Revision #43397283278](https://github.com/MeteoMartini/MID/actions/runs/43397283278) fehlgeschlagen. Der Kandidat trennt die Modelltermine für Wolken und Wetter sichtbar von Beobachtung und Nowcast. Der [Beobachtungsquellen-Draft #786](https://github.com/MeteoMartini/MID/pull/786) ist eine separate Änderung mit gemeinsamer Datei RadarPanel.tsx. Freigabe nach vollständigem Source- und Installer-Gate mit erfolgreicher Stable-Promotion.

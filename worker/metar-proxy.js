@@ -52,7 +52,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.85.465';
+const WORKER_VERSION='0.9.85.466';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
@@ -2224,12 +2224,14 @@ async function operaRasterMetadata(request){let frames=[],discovery='ORD API + S
 async function operaRasterFileResponse(request){const url=new URL(request.url),key=String(url.searchParams.get('key')||''),legacyTime=Date.parse(String(url.searchParams.get('time')||'')),resolvedKey=key||(Number.isFinite(legacyTime)?operaObjectKey(legacyTime):'');if(!resolvedKey||!validOperaKey(resolvedKey))return json({error:'Ungültiger oder veralteter OPERA-Objektschlüssel.',version:WORKER_VERSION},400,{'cache-control':'no-store'});const time=operaTimeFromKey(resolvedKey);
  const roots=url.searchParams.get('storage')==='backup'?[OPERA_BACKUP_ROOT,OPERA_S3_ROOT]:[OPERA_S3_ROOT,OPERA_BACKUP_ROOT];
  let upstream,usedRoot;
+ const diagnostics=[];
  for(const root of roots){
+  const mirror=root===OPERA_BACKUP_ROOT?'backup':'primary';
   try{
    const response=await fetchWithDeadline(`${root}/${resolvedKey}`,{
     redirect:'error',
     headers:{Accept:'application/octet-stream,*/*'},
-    cf:{cacheEverything:true,cacheTtlByStatus:{'200-299':300,'300-599':0}}
+    cache:'no-store'
    },5500);
    const type=response.headers.get('content-type')?.split(';')[0].trim().toLowerCase();
    if(response.status===200&&response.body&&['application/x-hdf5','application/hdf5','application/octet-stream','binary/octet-stream'].includes(type)){
@@ -2237,10 +2239,13 @@ async function operaRasterFileResponse(request){const url=new URL(request.url),k
     usedRoot=root;
     break;
    }
+   diagnostics.push({mirror,status:response.status,reason:response.status===200?'invalid-response':'http'});
    await response.body?.cancel().catch(()=>undefined);
-  }catch{ /* The other official mirror can still serve this exact object. */ }
+  }catch(error){
+   diagnostics.push({mirror,reason:error==='timeout'||error?.name==='AbortError'?'timeout':'transport'});
+  }
  }
- if(!upstream)return json({error:'OPERA-HDF5 auf beiden offiziellen Speichern nicht verfügbar.',version:WORKER_VERSION,requestedTime:new Date(time).toISOString(),key:resolvedKey},502,{'cache-control':'no-store'});
+ if(!upstream)return json({error:'OPERA-HDF5 auf beiden offiziellen Speichern nicht verfügbar.',version:WORKER_VERSION,requestedTime:new Date(time).toISOString(),key:resolvedKey,diagnostics},502,{'cache-control':'no-store'});
  const headers=new Headers();headers.set('content-type',upstream.headers.get('content-type')||'application/x-hdf5');headers.set('cache-control','public, max-age=300, stale-while-revalidate=120');headers.set('access-control-allow-origin','*');headers.set('access-control-allow-methods','GET,OPTIONS');headers.set('x-mid-radar-provider','EUMETNET OPERA CIRRUS');headers.set('x-mid-radar-product','DBZH');headers.set('x-mid-opera-key',resolvedKey);headers.set('x-mid-opera-storage',usedRoot===OPERA_BACKUP_ROOT?'backup':'primary');headers.set('x-mid-worker-version',WORKER_VERSION);const length=upstream.headers.get('content-length');if(length)headers.set('content-length',length);return new Response(upstream.body,{status:200,headers})}
 
 function eeaStationQuery(endpoint,lat,lon,strategy='distance'){
@@ -2381,6 +2386,7 @@ async function compositeTimes(lat,lon){
  if(tasks.length)await Promise.all(tasks);
  if(mtgLightningApplies(lat,lon)){
   result.satelliteDayProduct=satelliteProduct(capabilities,SATELLITE_DAY_CANDIDATES,now);
+  result.satelliteRgbProduct=satelliteProduct(capabilities,SATELLITE_DAY_CANDIDATES.filter(candidate=>candidate.layer==='mtg_fd:rgb_geocolour'),now);
   result.satelliteIrProduct=satelliteProduct(capabilities,SATELLITE_IR_CANDIDATES,now);
   result.dwdReferenceSatelliteProduct=satelliteProduct(capabilities,DWD_REFERENCE_SATELLITE_CANDIDATES,now)||result.satelliteDayProduct;
   if([result.satelliteDayProduct,result.satelliteIrProduct,result.dwdReferenceSatelliteProduct].some(product=>product?.provider==='dwd'&&product?.latestOnly))try{const sourceTime=await latestDwdSatelliteProductTime();result.satelliteDayProduct=enrichUntimedDwdSatellite(result.satelliteDayProduct,sourceTime);result.satelliteIrProduct=enrichUntimedDwdSatellite(result.satelliteIrProduct,sourceTime);result.dwdReferenceSatelliteProduct=enrichUntimedDwdSatellite(result.dwdReferenceSatelliteProduct,sourceTime)}catch(error){result.errors.push(`DWD Satellitenzeit: ${error instanceof Error?error.message:String(error)}`)}

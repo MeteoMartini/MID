@@ -1,3 +1,7 @@
+## MID v0.9.85.466 · Beobachtungsquellen nach Kartenausschnitt
+
+Stable-Basis: `ec0fd4c122eefb6e26ab882d7eccc5cfe353c64d` (.465). Übernahme aus #786 @ `8ebf094368c288f63a04b84d7f6c058b3d90e3e3` über #789. Frische und Provenienz der OPERA-Aufnahmen bleiben erforderlich. Weltweite Quellenabdeckung bleibt in #782 offen.
+
 ## MID v0.9.85.465 · 13.11.2026 · Wolken- und Wetterlayer an bestätigten Modelltermin binden
 
 - #787: Beobachtung und Nowcast behalten ihre Zeitachse. Der Modellstatus bietet einen Sprung auf einen bestätigten Modelltermin; der GDPS-Kacheltimer läuft nur bei ausgewählter Prognose. Die Browserregression verlangt tatsächliche GetMap-Anfragen vor und nach Retry.
