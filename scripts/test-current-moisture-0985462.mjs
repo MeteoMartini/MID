@@ -1,11 +1,10 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import ts from 'typescript';
-const {transpileModule,ModuleKind,ScriptTarget}=ts;
+import {transform} from 'esbuild';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
-const code=transpileModule(read('src/currentMoistureConsistency.ts'),{
- compilerOptions:{module:ModuleKind.ESNext,target:ScriptTarget.ES2022}
-}).outputText;
+const code=(await transform(read('src/currentMoistureConsistency.ts'),{
+ loader:'ts',format:'esm',target:'es2022'
+})).code;
 const {reconcileCurrentMoisture,dwdDewPointFromHumidity,dwdHumidityFromDewPoint}=
  await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
 const station={temperatureOrigin:'station',humidityOrigin:'station',dewPointOrigin:'station'};
