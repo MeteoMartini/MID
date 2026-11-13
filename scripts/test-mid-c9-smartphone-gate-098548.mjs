@@ -67,7 +67,7 @@ for(const token of [
  ".warning-event-tab",
  ".water-metric-group"
 ])assert.ok(polish.includes(token),`MID-18-Mobile-/Hierarchie-Polish fehlt: ${token}`);
-assert.ok(app.includes('Taupunkt / Feuchte</small><b>{Math.round(dew)} °C</b><em>{Math.round(hum)} %</em>'),'Kanonische echte Taupunkt-/Feuchtedaten dürfen nicht durch Demo-Daten ersetzt werden.');
+assert.ok(app.includes('<small>Taupunkt / Feuchte</small><b>{moistureDewLabel}</b><em>{moistureHumidityLabel}')&&app.includes('reconcileCurrentMoisture({')&&app.includes('moistureDewLabel'),'Die Hauptkarte muss physikalisch geprüften Original- oder als berechnet markierten Taupunkt und echte Feuchte ausweisen, nie Demo- oder Missing-zu-Null-Werte.');
 assert.ok(app.includes('displayHours={shortDisplayHours}')||app.includes('displayHours'),'Die echte stündliche Kurzfristreihe muss erhalten bleiben.');
 assert.ok(app.includes('<small>Hoher Kontrast</small>')&&!app.includes('Hoher Kontrast (WCAG AA)'),'DA19-16: kontrastverbesserter Modus darf ohne vollständigen Konformitätsnachweis nicht WCAG AA zertifiziert heißen');
 assert.ok(!css.includes('previewFixture'),'Replit-Vorschau-Fixtures dürfen nicht in den Produktionsstil gelangen.');

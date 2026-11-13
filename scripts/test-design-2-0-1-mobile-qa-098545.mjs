@@ -8,7 +8,7 @@ const [app,main,css]=await Promise.all([
  readFile('src/midDesign201MobileQa.css','utf8')
 ]);
 
-assert.ok(app.includes('<span className="humidity"><i className="current-weather-fact-icon" aria-hidden="true"><Droplets size={14}/></i><small>Taupunkt / Feuchte</small><b>{Math.round(dew)} °C</b><em>{Math.round(hum)} %</em></span>'),'Taupunkt muss in der aktuellen Kernanzeige vor relativer Feuchte stehen.');
+assert.ok(app.includes('<span className="humidity" aria-label=')&&app.includes('<small>Taupunkt / Feuchte</small><b>{moistureDewLabel}</b><em>{moistureHumidityLabel}')&&app.includes('title={moistureDetail}'),'Taupunkt muss im responsiven Current-Feld vor relativer Feuchte und mit transparenter physikalischer Herkunft stehen.');
 
 for(const token of [
  "visibilityCard=x.label==='Sichtweite'",

@@ -92,7 +92,7 @@ export function reconcileCurrentMoisture(input:CurrentMoistureInput):CurrentMois
  const rhOriginMatches=rh===undefined||input.temperatureOrigin===undefined||input.humidityOrigin===undefined||
   input.temperatureOrigin==='unknown'||input.humidityOrigin==='unknown'||
   input.temperatureOrigin===input.humidityOrigin;
- if(validRaw&&coherentDewTime&&rawOriginMatches&&rhOriginMatches){
+ if(validRaw&&coherentDewTime&&coherentRhTime&&rawOriginMatches&&rhOriginMatches){
   return{dewPoint:td,relativeHumidity:rh,source:'reported',reason:'consistent',mixedSources,expectedHumidityFromReported:reportedRh};
  }
  if(rh===undefined||rh===0)return blank('insufficient-data');

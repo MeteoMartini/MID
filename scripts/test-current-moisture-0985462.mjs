@@ -25,6 +25,8 @@ assert.equal(dwdDewPointFromHumidity(-1,0),undefined);
 const split=reconcileCurrentMoisture({...station,temperature:-1,relativeHumidity:95,dewPoint:1,temperatureEpochMs:0,humidityEpochMs:31*60*1000});
 assert.equal(split.dewPoint,undefined);
 assert.equal(split.reason,'time-mismatch');
+const validTdStaleRh=reconcileCurrentMoisture({...station,temperature:0,dewPoint:-.6,relativeHumidity:96,temperatureEpochMs:1_000_000,dewPointEpochMs:1_000_000,humidityEpochMs:1_000_000+31*60_000});
+assert.equal(validTdStaleRh.dewPoint,undefined,'Even an apparently valid measured dew requires time-aligned relative humidity');
 for(const value of [null,undefined,NaN,'',101,-1]){
  assert.equal(reconcileCurrentMoisture({...station,temperature:-1,relativeHumidity:value,dewPoint:1}).dewPoint,undefined);
 }

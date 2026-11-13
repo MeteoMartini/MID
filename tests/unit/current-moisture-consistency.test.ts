@@ -34,6 +34,8 @@ describe('MID current dew-point thermodynamics (DWD 6.3)',()=>{
   const x=reconcileCurrentMoisture({...station,temperature:0,dewPoint:5,relativeHumidity:94,
    temperatureEpochMs:1_000_000,humidityEpochMs:1_000_000+31*60_000});
   expect(x.dewPoint).toBeUndefined();expect(x.reason).toBe('time-mismatch');
+  const coherentTdButStaleRh=reconcileCurrentMoisture({...station,temperature:0,dewPoint:-.6,relativeHumidity:96,temperatureEpochMs:1_000_000,dewPointEpochMs:1_000_000,humidityEpochMs:1_000_000+31*60_000});
+  expect(coherentTdButStaleRh.dewPoint).toBeUndefined();expect(coherentTdButStaleRh.reason).toBe('time-mismatch');
  });
  it('does not convert null, NaN, empty, invalid RH or a genuine zero RH to dew=0',()=>{
   for(const bad of [null,undefined,'',NaN,101,-1]){
