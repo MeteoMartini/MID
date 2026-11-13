@@ -429,6 +429,7 @@ nativeJqTest('failed Installer dispatch can recover only on exact ZIP SHA with i
  const active=await readRepositoryFile(new URL('../.github/workflows/agent-source-release.yml',import.meta.url),'utf8');
  const canonical=await readRepositoryFile(new URL('../ci/github/workflows/agent-source-release.yml',import.meta.url),'utf8');
  assert.equal(active,canonical);
+ assert.ok(active.includes('gh workflow run install-mid.yml --repo "$GITHUB_REPOSITORY" --ref main'), 'Installer recovery must dispatch without a local checkout');
  for(const marker of ['GITHUB_RUN_ATTEMPT','MID_INSTALL_RECOVERY_PREVIOUS_JOB','MID_INSTALL_RECOVERY_ZIP_PROVENANCE','MID_INSTALL_RECOVERY_NO_DUPLICATE','package_recovered != \'true\'','steps.package.outputs.package_sha || steps.pr.outputs.package_sha'])
   assert.ok(active.includes(marker),'Exact recovery protection missing: '+marker);
  const match=(label,re)=>{const x=active.match(re);assert.ok(x,label+' predicate not found');return x[1];};
@@ -477,7 +478,7 @@ test('established trusted SHA-bound bot release workflow mirrors and source-to-i
  assert.match(canonical,/chatgpt\/\*\|codex\/\*/);
  assert.match(canonical,/gh api --method PUT "repos\/\$\{GITHUB_REPOSITORY\}\/pulls\/\$\{PR_NUMBER\}\/merge"/);
  assert.match(canonical,/-f sha="\$\{EXPECTED_HEAD_SHA\}"/);
- assert.match(canonical,/gh workflow run install-mid\.yml --ref main/);
+ assert.match(canonical,/gh workflow run install-mid\.yml --repo "\$GITHUB_REPOSITORY" --ref main/);
  assert.doesNotMatch(canonical,/pull_request_target:/);
 });
 

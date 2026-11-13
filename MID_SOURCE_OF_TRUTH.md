@@ -1,3 +1,15 @@
+# MID v0.9.85.464 · Checkoutunabhängiger Installer-Wiederanlauf (Source-Kandidat, 13.11.2026)
+
+**Verifizierte Stable-Basis:** `main=mid-stable=8754f589c7c998a6da6f459f0a33235153704dd8` / v0.9.85.463, Installer [#43390443252](https://github.com/MeteoMartini/MID/actions/runs/43390443252) vollständig Success (Core/Heavy, Worker, Pages, Stable-Promotion). Die fünf aktiven Rulesets bleiben unverändert.
+
+**Spezial-Handoff:** [PR #784](https://github.com/MeteoMartini/MID/pull/784) HEAD `e9d5934dc0bc860a6071672c8bd208cd84abe59e` liefert exakt vier Quell-/Teständerungen. Diese wurden ohne alten Versionsrückfall auf v0.9.85.463 adaptiert. Der Release-Bot startet im checkoutlosen Recovery das offizielle `install-mid.yml` mit explizitem `--repo "$GITHUB_REPOSITORY"`; SHA-/ZIP-/Review-/Bot-/No-Duplicate-Gates bleiben verbindlich.
+
+**Abgrenzung:** Karten #782, ICON-D2-FullDomain #446, Review-Race #740, RUC-P1–P5 #541, Saisonkomposite #724 und reale iOS-/VoiceOver-Abnahme bleiben offen und werden durch diesen Wartungspatch nicht als erledigt ausgewiesen.
+
+**Freigabe:** v0.9.85.464 ist erst nach voller Source-PR-Prüfung, kontrolliertem SHA-Bot-Merge, serverseitigem Release-ZIP, offiziellem Installer mit Worker-/Pages-Gates und erfolgreicher Stable-Promotion veröffentlicht.
+
+## Historischer veröffentlichter Stand v0.9.85.463
+
 # MID v0.9.85.463 · OPERA-HDF5-Resilienz und optionaler D2-Signer-Frischeschutz (Source-Kandidat, 13.11.2026)
 
 **Maßgebliche Ausgangsbasis:** main=mid-stable=`1d492743f1d2c38028dae9a01be24e65643537e7`, veröffentlicht v0.9.85.462, Installer [#43381596669](https://github.com/MeteoMartini/MID/actions/runs/43381596669) completed/success mit Core/Heavy, Worker, Pages und Stable. Fünf aktive Rulesets. Kein Direktwrite auf main/stable.

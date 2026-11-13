@@ -112,7 +112,7 @@ describe('SHA-bound MID merge-time review guard',()=>{
   expect(a).toContain('git rev-parse HEAD');
   expect(a).not.toContain('ref: mid-stable');
   expect(a).toContain('git push origin HEAD:main');
-  expect(a).toContain('gh workflow run install-mid.yml --ref main');
+  expect(a).toContain('gh workflow run install-mid.yml --repo "$GITHUB_REPOSITORY" --ref main');
   expect(a).toContain('package_parent="$(git rev-parse HEAD^)"');
   expect(a).toContain('changed_paths="$(git diff-tree --no-commit-id --name-only -r HEAD)"');
   expect(a).toContain('[ "$changed_paths" != "MID-professional-replacement.zip" ]');
