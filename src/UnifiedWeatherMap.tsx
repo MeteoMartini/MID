@@ -1,3 +1,4 @@
+import type {SurroundingsBounds} from './CurrentSurroundings';
 import {useDisplayPreference,useRawDisplayPreference,displayBoolean,displayChoice} from './useDisplayPreference';
 import {NativeScalarOverlay,NativeScalarControls} from './NativeScalarMapOverlay';
 import {nativeScalarLines,scalarLineFeatures} from './nativeScalarAnnotations';
@@ -38,7 +39,7 @@ import {loadWeatherMapMetadata,loadWeatherMapCatalog,weatherMapAvailableTimes,we
 import './UnifiedWeatherMap.css';
 import './weatherMapsTotals.css';
 
-type Props={lat:number;lon:number;timezone:string;locationName:string;analysis:RadarNowcast|null;thunder:ThunderstormNowcast|null;isDay:boolean;actualLocation:boolean;focusMode:boolean;favorites:WeatherMapFavoriteLocation[];unit?:WindUnit;requestedProductId?:string};
+type Props={lat:number;lon:number;timezone:string;locationName:string;analysis:RadarNowcast|null;thunder:ThunderstormNowcast|null;isDay:boolean;actualLocation:boolean;focusMode:boolean;favorites:WeatherMapFavoriteLocation[];unit?:WindUnit;requestedProductId?:string;observationRequest?:{lat:number;lon:number;time?:number;id:number;bounds:SurroundingsBounds}};
 const timeLabel=(time:string,timezone:string)=>new Intl.DateTimeFormat('de-DE',{timeZone:timezone,weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}).format(new Date(time));
 const htmlEscape=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 

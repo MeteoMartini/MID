@@ -1,3 +1,7 @@
+## MID v0.9.85.472 · Wetter im Umfeld (QA-Kandidat)
+
+Stable-Basis `987841ec2e077daa5a7bd07e861e5d9a76dc3ed7`. #795/#797: Lazy-Vorschau für Aktuell mit DWD-RV, OPERA-Ersatzquelle und separat datierter Satellitenbeobachtung. Der angezeigte Radarzeitpunkt wird an die Detailkarte übergeben. Die vollständige Fach-, Browser- und Live-Abnahme steht aus.
+
 ## MID v0.9.85.471 · OPERA-Echophasenflächen und RUC-Snapshot-Transport
 
 Stable-Basis: `820ca417f0467a0bdede5d48da7a646d700efbd4` / v0.9.85.470. Übernahme aus Spezial-Draft #794 @ `051fdccbb08ccec39b78b1687a66dec3c5356681` exakt in den zwei unüberlappten Quellpfaden `src/RadarModelPrecipTypeOverlay.tsx` und `src/RadarPanel.tsx`; die Dateiblobs sind gegenüber dessen ursprünglicher .469-Basis unverändert auf .470 übertragbar. Keine anderen Karten- oder Workerfachänderungen. Nur bei echtem OPERA-Echo und passend zeitgestützter Modellphase werden Flächen eingefärbt; Unsicherheiten bleiben als solche erkennbar. Vorhersagephasen werden nicht aus Beobachtungen extrapoliert. DWD-WMS bleibt separat.

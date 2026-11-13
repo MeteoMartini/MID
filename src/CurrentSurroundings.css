@@ -1,0 +1,15 @@
+.current-surroundings { min-width: 0; }
+.current-surroundings header,.current-surroundings-controls { display:flex; flex-wrap:wrap; align-items:center; gap:.65rem; margin-block-end:.55rem; }
+.current-surroundings header { justify-content:space-between; }
+.current-surroundings h2,.current-surroundings p { margin:0; overflow-wrap:anywhere; }
+.current-surroundings p { margin-block-start:.35rem; font-size:.85rem; }
+.current-surroundings button,.current-surroundings select { min-height:44px; max-width:100%; }
+.current-surroundings-map { position:relative; min-height:190px; height:clamp(190px,35vw,220px); overflow:hidden; border-radius:.6rem; background:var(--panel, Canvas); }
+.current-surroundings-map img { position:absolute; width:100%; height:100%; object-fit:fill; inset:0; }
+.current-surroundings-site { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); max-width:70%; padding:.2rem .4rem; border-radius:.3rem; color:CanvasText; background:Canvas; overflow-wrap:anywhere; }
+
+.current-surroundings-phase { display:inline-block; margin-inline-start:.55rem; }
+.current-surroundings-temperature { position:absolute; transform:translate(-50%,-50%); padding:.15rem .35rem; border-radius:.3rem; color:CanvasText; background:Canvas; white-space:nowrap; font-size:.82rem; }
+.current-surroundings-orientation { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+.current-surroundings-orientation path { fill:none; stroke:CanvasText; stroke-opacity:.55; stroke-width:1; vector-effect:non-scaling-stroke; }
+.current-surroundings-place { position:absolute; transform:translate(-50%,-50%); color:CanvasText; background:Canvas; border-radius:.2rem; padding:0 .2rem; font-size:.72rem; max-width:22%; text-align:center; overflow-wrap:anywhere; }

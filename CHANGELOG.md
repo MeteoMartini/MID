@@ -1,3 +1,7 @@
+# MID v0.9.85.472
+
+- Unter Aktuell zeigt „Wetter im Umfeld“ eine kompakte Radar- und Satellitenvorschau. Bestätigte DWD-Nowcast-Termine sind auswählbar.
+
 # MID v0.9.85.471
 
 - Niederschlagsarten erscheinen bei vorhandenen, zeitlich passenden OPERA-Radarechos zusätzlich als farbige Flächen. Unklare Phasen bleiben grau; die bestehenden Symbole und die Legende bleiben erhalten.
