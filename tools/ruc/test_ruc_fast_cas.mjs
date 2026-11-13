@@ -31,3 +31,52 @@ test('simulated concurrent conflicting conditional write loses',async()=>{const 
 test('rollback requires exact ETag and preserves monotonic generation',async()=>{const store=new Bucket();await casFastPointer(store,row(),{verifyGrant:grant});const change=await casFastPointer(store,row('2026-11-02T09:00'),{verifyGrant:grant});const reverted=await casRollbackFastPointer(store,change,{verifyGrant:grant});assert.equal(reverted.rolledBack,true);assert.equal(reverted.pointer.generation,3);assert.equal(reverted.pointer.fastRun,'2026-11-02T08:00');});
 test('stale rollback refuses newer writer',async()=>{const store=new Bucket();await casFastPointer(store,row(),{verifyGrant:grant});const change=await casFastPointer(store,row('2026-11-02T09:00'),{verifyGrant:grant});await casFastPointer(store,row('2026-11-02T10:00'),{verifyGrant:grant});const revert=await casRollbackFastPointer(store,change,{verifyGrant:grant});assert.equal(revert.rolledBack,false);assert.match(revert.reason,/newer/);});
 test('first pointer cannot fabricate rollback target',async()=>{const store=new Bucket();const p=await casFastPointer(store,row(),{verifyGrant:grant});await assert.rejects(casRollbackFastPointer(store,p,{verifyGrant:grant}),/no safe older/);});
+
+
+test('activation never swaps the SHA-bound shadow original, even with permissive caller grant',async()=>{
+ const base=row();
+ const store=new Bucket();
+ await casFastPointer(store,base,{verifyGrant:grant});
+ const initialRevision=store.revision;
+ for(const wrong of [
+  {...base,siteSha256:'e'.repeat(64)},
+  {...base,primaryManifestSha256:'e'.repeat(64)},
+  {...base,fastManifestSha256:'e'.repeat(64)},
+  row('2026-11-02T09:00'),
+  {...base,primaryRun:'2026-11-02T08:00'}
+ ]){
+   let grantCalled=false;
+   await assert.rejects(
+     casFastPointer(store,{...wrong,mode:'active'},{
+       verifyGrant:async()=>{grantCalled=true;return true;}
+     }),/identical admitted shadow candidate|stable changed/);
+   assert.equal(grantCalled,false,'drift rejected before any external grant');
+   assert.equal(store.revision,initialRevision,'never write an unadmitted activation');
+   assert.equal(JSON.parse(store.current.text).mode,'shadow');
+ }
+ const allowed=await casFastPointer(store,{...base,mode:'active'},{verifyGrant:grant});
+ assert.equal(allowed.committed,true);
+ assert.equal(allowed.current.siteSha256,base.siteSha256);
+});
+
+test('an active source cannot directly advance to a different active site without a shadow stage',async()=>{
+ const store=new Bucket();
+ await casFastPointer(store,row(),{verifyGrant:grant});
+ await casFastPointer(store,{...row(),mode:'active'},{verifyGrant:grant});
+ const old=JSON.parse(store.current.text);
+ const rev=store.revision;
+ await assert.rejects(casFastPointer(store,{...row('2026-11-02T09:00'),siteSha256:'e'.repeat(64),mode:'active'},{verifyGrant:grant}),/identical admitted shadow candidate/);
+ assert.equal(store.revision,rev);
+ assert.deepEqual(JSON.parse(store.current.text),old);
+ const candidate={...row('2026-11-02T09:00'),siteSha256:'e'.repeat(64)};
+ const staging=await casFastPointer(store,candidate,{verifyGrant:grant});
+ assert.equal(staging.current.mode,'shadow');
+ const activated=await casFastPointer(store,{...candidate,mode:'active'},{verifyGrant:grant});
+ assert.equal(activated.current.fastRun,candidate.fastRun);
+ assert.equal(activated.current.siteSha256,candidate.siteSha256);
+ const rolledBack=await casRollbackFastPointer(store,activated,{verifyGrant:grant});
+ assert.equal(rolledBack.rolledBack,true);
+ assert.equal(rolledBack.pointer.mode,'shadow');
+ assert.equal(rolledBack.pointer.siteSha256,candidate.siteSha256);
+ assert.equal(rolledBack.pointer.generation,5);
+});
