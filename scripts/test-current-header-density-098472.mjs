@@ -15,10 +15,12 @@ assert.match(modern,/\.navigation-bottom-tabs \.settings-header \.brand-version\
 assert.match(modern,/@media\(max-width:430px\)\{[\s\S]*grid-template-columns:max-content max-content!important;[\s\S]*justify-content:space-between!important/,'Schmaler iPhone-Header reserviert Version und Aktionen nicht getrennt');
 assert.match(modern,/@media\(max-width:360px\)\{[\s\S]*grid-template-areas:'brand brand' 'actions actions' 'search search'!important/,'Sehr schmale Geräte besitzen keinen dreizeiligen Header-Fallback');
 assert.match(modern,/\.current-weather-facts>\.humidity small\{[\s\S]*white-space:normal!important;[\s\S]*text-wrap:balance/,'Feuchte-/Taupunkt-Beschriftung darf mobil nicht umbrechen');
-assert.match(app,/className="humidity">(?:<i[^>]*>[\s\S]*?<\/i>)?<small>Taupunkt \/ Feuchte<\/small>/,'Feuchte-/Taupunkt-Feld fehlt');
+assert.ok(app.includes("className=\"humidity\" aria-label={`Taupunkt ${moistureDewLabel}, relative Feuchte ${moistureHumidityLabel}."), "ARIA-Label must expose the same reconciled air-moisture display values");
+assert.ok(app.includes("<small>Taupunkt / Feuchte</small><b>{moistureDewLabel}</b><em>{moistureHumidityLabel}"), "Compact header must render reconciled dew point and humidity together");
 
 assert.match(app,/const metricMore=\(detail:ReactNode,sourceInfo\?:ReactNode\)=>/,'Detail-/Info-Helfer für Istwetter-Karten fehlt');
-assert.match(app,/label:'Taupunkt',[\s\S]*?detail:`Feuchte \$\{Math\.round\(hum\)\} %`[\s\S]*?info:metricMore/,'Taupunkt-Karte ist nicht auf eine kurze sichtbare Zusammenfassung reduziert');
+assert.ok(app.includes("label:'Taupunkt',value:moistureDewLabel,detail:`Feuchte ${moistureHumidityLabel}"), "The dew point metric must retain the short reconciled value, not raw conflicting humidity");
+assert.ok(app.includes("info:metricMore(`${moistureDetail} · Relative Feuchte ${moistureHumidityLabel}"), "Dew point metric must preserve source and method information");
 assert.match(app,/label:'Wind \/ Böen',[\s\S]*?detail:`\$\{formatWeatherValue\(windDirection,'windDirection'\)\}° · \$\{cardinalDirection\(windDirection\)\}`[\s\S]*?info:metricMore/,'Windkarte hält Quellen-/Langtext nicht hinter (i)');
 assert.match(app,/label:'Niederschlag',[\s\S]*?detail:precipitationCompactDetail\|\|undefined[\s\S]*?info:metricMore\(precipitationDetail/,'Niederschlagskarte ist nicht auf den kompakten Primärtext reduziert');
 assert.match(app,/label:'Sichtweite',[\s\S]*?checked:[\s\S]*?info:metricMore\(`Meteorologische Sichtweite/,'Sichtweitenbeschreibung wurde nicht hinter (i) verschoben');
