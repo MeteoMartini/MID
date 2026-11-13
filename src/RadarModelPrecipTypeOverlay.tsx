@@ -88,7 +88,7 @@ function distanceKm(a:PhaseSymbol,b:PhaseSymbol){const latKm=(a.lat-b.lat)*111.2
 function phaseMinimumDbz(phase:SymbolPhase){return phase==='hail'?15:phase==='graupel-hail'?12:phase==='graupel'?9:['snow-grains','snow-stars','ice-crystals','ice-pellets'].includes(phase)?4:(phase==='freezing'?9:phase==='snow'?6:7)}
 function asSymbolPhase(phase:OverlayPhase):SymbolPhase|null{return['mixed','snow','snow-grains','snow-stars','ice-crystals','ice-pellets','freezing','hail','graupel','graupel-hail'].includes(phase)?phase as SymbolPhase:null}
 
-function buildPhaseDisplay(data:WeatherPhaseGridData,raster:OperaRaster){
+export function buildPhaseDisplay(data:WeatherPhaseGridData,raster:OperaRaster){
  const colors=new Map<number,string>();
  const frame=data.frame,latStep=data.lats.length>1?Math.abs(data.lats[1]-data.lats[0]):.05,lonStep=data.lons.length>1?Math.abs(data.lons[1]-data.lons[0]):.05,candidates:PhaseSymbol[]=[];
  for(let row=0;row<data.lats.length;row++)for(let col=0;col<data.lons.length;col++){
@@ -139,6 +139,11 @@ function drawPhaseRaster(map:MidMap,canvas:HTMLCanvasElement,raster:OperaRaster,
  canvas.style.height=height+'px';
  const context=canvas.getContext('2d');
  if(!context)return;
+ paintPhaseRaster(context,raster,grid,display,(x,y)=>map.unproject([x*width/canvas.width,y*height/canvas.height]));
+}
+
+export function paintPhaseRaster(context:CanvasRenderingContext2D,raster:OperaRaster,grid:WeatherPhaseGridData,display:ReturnType<typeof buildPhaseDisplay>,position:(x:number,y:number)=>{lat:number;lng:number}){
+ const canvas=context.canvas;
  const image=context.createImageData(canvas.width,canvas.height);
  const latDirection=Math.sign((grid.lats[1]??grid.lats[0]+1)-grid.lats[0]);
  const lonDirection=Math.sign((grid.lons[1]??grid.lons[0]+1)-grid.lons[0]);
@@ -147,7 +152,7 @@ function drawPhaseRaster(map:MidMap,canvas:HTMLCanvasElement,raster:OperaRaster,
   return [color,[value>>16,(value>>8)&255,value&255]];
  }));
  for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){
-  const {lat,lng}=map.unproject([(x+.5)*width/canvas.width,(y+.5)*height/canvas.height]);
+  const {lat,lng}=position(x+.5,y+.5);
   const {dbz}=operaRasterPoint(raster,lat,lng);
   if(dbz===undefined)continue;
   const alpha=radarDbzColor(dbz)[3];

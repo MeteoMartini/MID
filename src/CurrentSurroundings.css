@@ -7,3 +7,6 @@
 .current-surroundings-map { position:relative; min-height:190px; height:clamp(190px,35vw,220px); overflow:hidden; border-radius:.6rem; background:var(--panel, Canvas); }
 .current-surroundings-map img { position:absolute; width:100%; height:100%; object-fit:fill; inset:0; }
 .current-surroundings-site { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); max-width:70%; padding:.2rem .4rem; border-radius:.3rem; color:CanvasText; background:Canvas; overflow-wrap:anywhere; }
+
+.current-surroundings-phase { display:inline-block; margin-inline-start:.55rem; }
+.current-surroundings-temperature { position:absolute; transform:translate(-50%,-50%); padding:.15rem .35rem; border-radius:.3rem; color:CanvasText; background:Canvas; white-space:nowrap; font-size:.82rem; }
