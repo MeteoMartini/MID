@@ -3,7 +3,7 @@ import {compositeWmsProxy,loadCompositeTimes,type CompositeProductTimes,type Pro
 import {formatWeatherValue} from "./weatherValueFormat";
 import './CurrentSurroundings.css';
 
-type Props={lat:number;lon:number;name:string;timezone:string;temperature:number;temperatureTime:string;onOpen:()=>void};
+type Props={lat:number;lon:number;name:string;timezone:string;temperature:number;temperatureTime:string;onOpen:(time?:number)=>void};
 const rvLayer='dwd:Radar_rv_product_1x1km_ger';
 
 function validTimes(values:ProductTime[]|undefined){
@@ -51,7 +51,7 @@ export default function CurrentSurroundings(props:Props){
   return ()=>{img.onload=null;img.onerror=null};
  },[radar,target]);
  return <section className="card current-surroundings" aria-labelledby={heading}>
-  <header><h2 id={heading}>Wetter im Umfeld</h2><button type="button" onClick={onOpen}>Karte öffnen</button></header>
+  <header><h2 id={heading}>Wetter im Umfeld</h2><button type="button" onClick={()=>onOpen(loaded?.time)}>Karte öffnen</button></header>
   <div className="current-surroundings-controls">
    <button type="button" aria-pressed={selection===undefined} onClick={()=>setSelection(undefined)}>Jetzt</button>
    <label>Nächste 2 h <select aria-label="Radar-Nowcast-Termin" value={selection??''} disabled={!future.length} onChange={event=>setSelection(event.target.value?Number(event.target.value):undefined)}>

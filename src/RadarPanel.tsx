@@ -269,7 +269,7 @@ const MemoContours=memo(Contours);
 const MemoPressureCenters=memo(PressureCenters);
 
 export type UnifiedRadarWorkspace={controls:ReactNode;overlay:ReactNode;times:string[];forecastOverlay?:ReactNode;enabled?:boolean;run?:string;cloudContrast?:boolean;sourceLabel:string;ready:boolean;onTimeChange:(time:number,phase:CompositeTimelineFrame['phase']|undefined)=>void;forecastSelectionRequest?:number;onObservationLayersChange?:(active:boolean)=>void};
-export default function RadarPanel({lat:placeLat,lon:placeLon,timezone,analysis:placeAnalysis,thunder:placeThunder,isDay:placeIsDay=true,actualLocation=false,focusMode=false,unified}:{lat:number;lon:number;timezone?:string;analysis?:RadarNowcast|null;thunder?:ThunderstormNowcast|null;isDay?:boolean;actualLocation?:boolean;focusMode?:boolean;unified?:UnifiedRadarWorkspace}){
+export default function RadarPanel({lat:placeLat,lon:placeLon,timezone,analysis:placeAnalysis,thunder:placeThunder,isDay:placeIsDay=true,actualLocation=false,focusMode=false,unified,observationRequest}:{lat:number;lon:number;timezone?:string;analysis?:RadarNowcast|null;thunder?:ThunderstormNowcast|null;isDay?:boolean;actualLocation?:boolean;focusMode?:boolean;unified?:UnifiedRadarWorkspace;observationRequest?:{lat:number;lon:number;time:number;id:number}}){
  const [viewport,setViewport]=useState<{lat:number;lon:number}>();
  const updateViewport=useCallback((latitude:number,longitude:number)=>{
   const lat=Math.round(latitude*20)/20;
@@ -522,6 +522,20 @@ export default function RadarPanel({lat:placeLat,lon:placeLon,timezone,analysis:
 
  const selectedFrame:CompositeTimelineFrame|undefined=frames[index],targetSeconds=selectedFrame?.time??referenceSeconds,targetMs=targetSeconds*1000;
  useEffect(()=>{unified?.onTimeChange(targetMs,selectedFrame?.phase)},[targetMs,selectedFrame?.phase,unified?.onTimeChange]);
+ const handledObservationRequest=useRef(0);
+ useEffect(()=>{
+  if(!observationRequest||observationRequest.id===handledObservationRequest.current||
+     observationRequest.lat!==placeLat||observationRequest.lon!==placeLon)return;
+  const time=observationRequest.time/1000;
+  if(!selectedRadarTimeline.some(frame=>frame.time===time))return;
+  const next=frames.findIndex(frame=>frame.time===time);
+  if(next<0)return;
+  handledObservationRequest.current=observationRequest.id;
+  previousTimeline.current=time;
+  setPlaying(false);
+  setLiveFollow(false);
+  setIndex(next);
+ },[observationRequest,placeLat,placeLon,frames,selectedRadarTimeline]);
  const handledForecastSelection=useRef(0);
  useEffect(()=>{
   const request=unified?.forecastSelectionRequest;

@@ -20,6 +20,7 @@ type MapWorkspacePanelProps={
  actualLocation:boolean;
  focusMode:boolean;
  favorites:WeatherMapFavoriteLocation[];
+ observationRequest?:{lat:number;lon:number;time:number;id:number};
  unit?:WindUnit;
 };
 
