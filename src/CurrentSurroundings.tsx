@@ -29,7 +29,8 @@ export default function CurrentSurroundings(props:Props){
  const [catalog,setCatalog]=useState<CompositeProductTimes>();
  const [failed,setFailed]=useState(false);
  const [selection,setSelection]=useState<number>();
- const [loaded,setLoaded]=useState<{url:string;time:number}>();
+ const [loaded,setLoaded]=useState<{url:string;time:number;kind:'Beobachtung'|'Nowcast'}>();
+ const [now,setNow]=useState(Date.now);
  const [opera,setOpera]=useState<{url:string;time:number}>();
  const [operaFinished,setOperaFinished]=useState(false);
  const [imageError,setImageError]=useState('');
@@ -39,10 +40,30 @@ export default function CurrentSurroundings(props:Props){
  const [phaseLoading,setPhaseLoading]=useState(false);
  useEffect(()=>{
   const controller=new AbortController();
-  loadCompositeTimes(lat,lon,controller.signal).then(data=>{if(!controller.signal.aborted)setCatalog(data)}).catch(()=>{if(!controller.signal.aborted)setFailed(true)});
-  return ()=>controller.abort();
+  let loading=false;
+  const refresh=()=>{
+   if(loading||document.visibilityState==='hidden')return;
+   loading=true;
+   void loadCompositeTimes(lat,lon,controller.signal).then(data=>{
+    if(!controller.signal.aborted){setCatalog(data);setFailed(false)}
+   }).catch(()=>{if(!controller.signal.aborted)setFailed(true)}).finally(()=>{loading=false});
+  };
+  refresh();
+  const timer=window.setInterval(refresh,5*60000);
+  document.addEventListener('visibilitychange',refresh);
+  return ()=>{
+   controller.abort();
+   window.clearInterval(timer);
+   document.removeEventListener('visibilitychange',refresh);
+  };
  },[lat,lon]);
- const now=catalog?Date.now():NaN;
+ useEffect(()=>{
+  const timer=window.setInterval(()=>setNow(Date.now()),30000);
+  return ()=>window.clearInterval(timer);
+ },[]);
+ useEffect(()=>{
+  if(selection!==undefined&&selection<=now+90000)setSelection(undefined);
+ },[selection,now]);
  // Same admission bounds as the DWD RV point service. An empty WMS image
  // inside these bounds still needs the independent OPERA check.
  const dwdArea=lat>=47&&lat<=55.3&&lon>=5.4&&lon<=15.7;
@@ -81,6 +102,7 @@ export default function CurrentSurroundings(props:Props){
  useEffect(()=>{
   if(!radar||target===undefined)return;
   const img=new Image();
+  img.crossOrigin='anonymous';
   img.onload=()=>{
    const canvas=document.createElement('canvas');
    canvas.width=img.naturalWidth;
@@ -90,7 +112,7 @@ export default function CurrentSurroundings(props:Props){
     if(context&&canvas.width&&canvas.height){
      context.drawImage(img,0,0);
      if(context.getImageData(0,0,canvas.width,canvas.height).data.some((value,index)=>index%4===3&&value>0)){
-      setLoaded({url:radar,time:target});
+      setLoaded({url:radar,time:target,kind:selection===undefined?'Beobachtung':'Nowcast'});
       return;
      }
     }
@@ -100,7 +122,7 @@ export default function CurrentSurroundings(props:Props){
   img.onerror=()=>setImageError(radar);
   img.src=radar;
   return ()=>{img.onload=null;img.onerror=null};
- },[radar,target]);
+ },[radar,target,selection]);
  const needsOpera=selection===undefined&&Boolean(showPhase||(catalog&&!radar)||failed||(radar&&imageError===radar));
  useEffect(()=>{
   if(!needsOpera)return;
@@ -151,13 +173,14 @@ export default function CurrentSurroundings(props:Props){
   }
   void load().catch(()=>{}).finally(()=>{if(!controller.signal.aborted){setOperaFinished(true);setPhaseLoading(false)}});
   return ()=>controller.abort();
- },[needsOpera,showPhase,lat,lon,bounds]);
- const displayedOpera=needsOpera?opera:undefined;
+ },[needsOpera,showPhase,lat,lon,bounds,catalog?.checkedAt]);
+ const displayedOpera=needsOpera&&opera&&opera.time>=now-45*60000?opera:undefined;
+ const displayedRadar=loaded&&loaded.time>=now-45*60000?loaded:undefined;
  const displayedPhase=showPhase&&displayedOpera&&phaseImage?.time===displayedOpera.time?phaseImage:undefined;
- const displayTime=displayedOpera?.time??loaded?.time;
+ const displayTime=displayedOpera?.time??displayedRadar?.time;
  const [temperatureGrid,setTemperatureGrid]=useState<{time:number;values:{x:number;y:number;value:number}[]}>();
  useEffect(()=>{
-  if(selection!==undefined||displayTime===undefined||displayTime>Date.now()+90000)return;
+  if(selection!==undefined||displayTime===undefined||(!displayedOpera&&displayedRadar?.kind!=='Beobachtung'))return;
   const controller=new AbortController();
   const time=displayTime;
   void import('./WeatherMapsData').then(({loadWeatherPhaseGrid})=>loadWeatherPhaseGrid(lat,lon,new Date(time).toISOString(),controller.signal)).then(grid=>{
@@ -175,7 +198,7 @@ export default function CurrentSurroundings(props:Props){
    setTemperatureGrid({time,values});
   }).catch(()=>{});
   return ()=>controller.abort();
- },[selection,displayTime,lat,lon,west,south,east,north]);
+ },[selection,displayTime,displayedOpera,displayedRadar,lat,lon,west,south,east,north]);
  const temperatures=selection===undefined&&temperatureGrid?.time===displayTime?temperatureGrid?.values:undefined;
  const visibleClouds=Boolean(clouds&&cloudError!==clouds);
  return <section className="card current-surroundings" aria-labelledby={heading}>
@@ -190,14 +213,14 @@ export default function CurrentSurroundings(props:Props){
   </div>
   <div className="current-surroundings-map" aria-label={`Wetterbild um ${name}`}>
    {visibleClouds&&<img src={clouds} alt="" onError={()=>setCloudError(clouds)}/>}
-   {(displayedOpera??loaded)&&<img src={displayedPhase?.url??(displayedOpera??loaded)?.url} alt="" />}
+   {(displayedOpera??displayedRadar)&&<img src={displayedPhase?.url??(displayedOpera??displayedRadar)?.url} alt="" />}
    <svg className="current-surroundings-orientation" viewBox="0 0 512 256" preserveAspectRatio="none" aria-hidden="true"><path d={orientation.paths}/></svg>
    {orientation.places.filter(place=>!temperatures?.some(({x,y})=>Math.abs(place.x-x*512)<85&&Math.abs(place.y-y*256)<30)).map(place=><span key={place.name} className="current-surroundings-place" style={{left:place.x/5.12+'%',top:place.y/2.56+'%'}}>{place.name}</span>)}
    <span className="current-surroundings-site" style={{left:orientation.center[0]/5.12+'%',top:orientation.center[1]/2.56+'%'}}>{name}{Number.isFinite(temperature)&&<> · {formatWeatherValue(temperature,'temperature','overview')} °C</>}</span>
    {temperatures?.map(({x,y,value})=><span key={x+':'+y} className="current-surroundings-temperature" style={{left:x*100+'%',top:y*100+'%'}} aria-label={`Modelltemperatur ${formatWeatherValue(value,'temperature','overview')} Grad Celsius`}>{formatWeatherValue(value,'temperature','overview')}°</span>)}
   </div>
   {geography&&<p>Kartengrundlage · Natural Earth</p>}
-  <p role="status">{displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr</>:needsOpera&&!operaFinished&&!loaded?'Europäisches Radar wird geladen …':loaded?<>DWD-Radar · {loaded.time>now+90000?'Nowcast':'Beobachtung'} {clock(loaded.time)} Uhr{loaded.url!==radar?(imageError===radar?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</p>
+  <p role="status">{displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</p>
   {visibleClouds&&satelliteTime!==undefined&&<p>Bewölkung · {satellite?.provider==='dwd'?'DWD':'EUMETSAT'} · Beobachtung {clock(satelliteTime)} Uhr</p>}
   {Number.isFinite(temperature)&&temperatureTime&&<p>Temperatur am gewählten Ort · {temperatureTime.slice(11,16)} Uhr</p>}
   {Boolean(temperatures?.length)&&<p>Umfeldtemperaturen · Modellwerte zum Radarstand</p>}
