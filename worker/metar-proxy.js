@@ -52,7 +52,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.85.469';
+const WORKER_VERSION='0.9.85.470';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
@@ -1828,7 +1828,7 @@ function xmlLayerBlock(xml,layer){
 function wmsLayerNameMatches(value,target){const a=String(value||'').trim().toLowerCase(),b=String(target||'').trim().toLowerCase();return a===b||a.replace(/^dwd:/,'')===b.replace(/^dwd:/,'')}
 function parseWmsTimeContent(block){const times=[];for(const match of String(block||'').matchAll(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?Z/gi)){const t=Date.parse(match[0]);if(Number.isFinite(t))times.push(t)}for(const part of String(block||'').split(',')){const fields=part.trim().split('/');if(fields.length!==3)continue;const start=Date.parse(fields[0]),end=Date.parse(fields[1]),step=parseIsoDurationMs(fields[2]);if(!Number.isFinite(start)||!Number.isFinite(end)||step<60000||step>6*3600000)continue;const steps=Math.floor((end-start)/step),first=Math.max(0,steps-2497);for(let index=first;index<=steps;index++)times.push(start+index*step)}return[...new Set(times)].sort((a,b)=>a-b)}
 function dwdTimesFromCapabilities(xml,layer=''){
- const source=String(xml||'');if(!layer){const blocks=[...source.matchAll(/<(?:\w+:)?(?:Dimension|Extent)\b([^>]*)>([\s\S]*?)<\/(?:\w+:)?(?:Dimension|Extent)>/gi)].filter(match=>/\bname\s*=\s*["']time["']/i.test(match[1]||''));return[...new Set(blocks.flatMap(match=>parseWmsTimeContent(match[2])))].sort((a,b)=>a-b)}
+ const source=String(xml||'').replace(/<(?:\w+:)?(?:Dimension|Extent)\b[^>]*\/\s*>/gi,'');if(!layer){const blocks=[...source.matchAll(/<(?:\w+:)?(?:Dimension|Extent)\b([^>]*)>([\s\S]*?)<\/(?:\w+:)?(?:Dimension|Extent)>/gi)].filter(match=>/\bname\s*=\s*["']time["']/i.test(match[1]||''));return[...new Set(blocks.flatMap(match=>parseWmsTimeContent(match[2])))].sort((a,b)=>a-b)}
  // WMS-Zeitdimensionen dürfen vererbt werden. Der Parser sammelt deshalb nur
  // die Dimensionen des Ziel-Layers und seiner tatsächlichen Eltern. Ein
  // früherer Rückfall auf die gesamte Capabilities-Datei vermischte Zeitachsen
@@ -2383,7 +2383,15 @@ async function compositeTimes(lat,lon){
  const now=Date.now(),serverTime=new Date(now).toISOString(),result={satelliteDay:[],satelliteIr:[],satellitePrecip:[],mtgLightning:[],dwdLightning:[],dwdRadar:[],dwdRadarNowcast:[],dwdRadarLayer:'',dwdRadarLatestOnly:false,dwdReferenceSatelliteProduct:undefined,mtgLightningLatestOnly:false,checkedAt:serverTime,serverTime,errors:[]},capabilities={};
  const tasks=[];
  if(mtgLightningApplies(lat,lon))tasks.push(firstWmsCapabilities([EUMETSAT_WMS],'EUMETSAT Satellit').then(xml=>{capabilities.eumetsat=xml}).catch(error=>{result.errors.push(`EUMETSAT: ${error instanceof Error?error.message:String(error)}`)}));
- if(inGermanyBounds(lat,lon)||mtgLightningApplies(lat,lon))tasks.push(Promise.any([DWD_RADAR_WMS_WORKSPACE,DWD_RADAR_WMS_BACKUP_WORKSPACE].map(base=>wmsCapabilitiesText(base,'DWD Geodienst','1.1.1'))).then(xml=>{capabilities.dwd=xml}).catch(()=>{result.errors.push('DWD: Dienstmetadaten derzeit nicht verfügbar.')}));
+ if(mtgLightningApplies(lat,lon))tasks.push(wmsCapabilitiesText(DWD_RADAR_WMS_WORKSPACE,'DWD Satellit').then(xml=>{capabilities.dwd=xml}).catch(()=>{}));
+ let dwdRvXml='';
+ if(inGermanyBounds(lat,lon))tasks.push(Promise.any([DWD_RADAR_WMS_WORKSPACE,DWD_RADAR_WMS_BACKUP_WORKSPACE].map(async base=>{
+  const endpoint=base.replace(/\/wms$/,`/${DWD_RADAR_LAYERS[0].split(':')[1]}/wms`);
+  const xml=await wmsCapabilitiesText(endpoint,'DWD Radar RV','1.1.1');
+  if(!dwdTimesFromCapabilities(xml,DWD_RADAR_LAYERS[0]).some(time=>time>=now-45*60000&&time<=now+90000))
+   throw new Error('Keine aktuelle DWD-RV-Zeitdimension.');
+  return xml;
+ })).then(xml=>{dwdRvXml=xml}).catch(()=>{result.errors.push('DWD: Radar-Zeitdaten derzeit nicht verfügbar.')}));
  if(tasks.length)await Promise.all(tasks);
  if(mtgLightningApplies(lat,lon)){
   result.satelliteDayProduct=satelliteProduct(capabilities,SATELLITE_DAY_CANDIDATES,now);
@@ -2394,12 +2402,12 @@ async function compositeTimes(lat,lon){
   const liTimes=recentObservedTimes(dwdTimesFromCapabilities(capabilities.eumetsat||'','mtg_fd:li_afa'),now,135,28,10);result.satelliteDay=result.satelliteDayProduct?.times||[];result.satelliteIr=result.satelliteIrProduct?.times||[];result.mtgLightning=liTimes.map(time=>new Date(time).toISOString());result.mtgLightningLatestOnly=!liTimes.length;
  }
  if(inGermanyBounds(lat,lon)){
-  const dwdXml=capabilities.dwd||'',alias='dwd:Niederschlagsradar',timingLayer=hasWmsLayer(dwdXml,'dwd:Radar_rv_product_1x1km_ger')?'dwd:Radar_rv_product_1x1km_ger':hasWmsLayer(dwdXml,alias)?alias:'',all=timingLayer?dwdTimesFromCapabilities(dwdXml,timingLayer):[],observed=recentObservedTimes(all.filter(time=>time<=now+90000),now,75,20,2);
+  const dwdXml=dwdRvXml||'',alias='dwd:Niederschlagsradar',timingLayer=hasWmsLayer(dwdXml,'dwd:Radar_rv_product_1x1km_ger')?'dwd:Radar_rv_product_1x1km_ger':hasWmsLayer(dwdXml,alias)?alias:'',all=timingLayer?dwdTimesFromCapabilities(dwdXml,timingLayer):[],observed=recentObservedTimes(all.filter(time=>time<=now+90000),now,75,20,2);
   // Der DWD empfiehlt den stabilen Alias Niederschlagsradar ausdrücklich für Anwendungen.
   // Er rendert immer das aktuell nutzerfreundlichste Radarprodukt (derzeit RV). Die
   // explizite RV-Zeitdimension dient nur zur Zeitangabe; beim Alias wird bewusst kein
   // TIME-Parameter erzwungen, damit der aktuelle Default-Frame sicher sichtbar bleibt.
-  result.dwdRadarLayer=hasWmsLayer(dwdXml,alias)?alias:(timingLayer||alias);result.dwdRadar=observed.map(time=>new Date(time).toISOString());result.dwdRadarLatestOnly=result.dwdRadarLayer===alias||!observed.length;
+  result.dwdRadarLayer=alias;result.dwdRadar=observed.map(time=>new Date(time).toISOString());result.dwdRadarLatestOnly=result.dwdRadarLayer===alias||!observed.length;
   // Only the explicit RV layer qualifies forecast terms for the radar map.
   if(timingLayer===DWD_RADAR_LAYERS[0]){
    result.dwdRadarNowcast=all.filter(time=>time>now+90000&&time<=now+120*60000).map(time=>new Date(time).toISOString());
