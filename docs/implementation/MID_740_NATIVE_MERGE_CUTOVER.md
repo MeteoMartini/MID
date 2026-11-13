@@ -48,3 +48,9 @@ Der Leitchat braucht daher zuerst einen transportseitigen Integrationskandidaten
 Die Datei und der Prüfer ändern keine GitHub-Einstellungen. #740 ist abgeschlossen, wenn die native Regel auf main nachgewiesen ist, der verspätete Negativfall am Mergepunkt reproduzierbar abgewiesen wird und ein vollständiger regulärer Release auf Stable gelingt.
 
 GitHub-Dokumentation: https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets
+
+## ZIP-Prototyp auf veröffentlichter Basis .461
+
+`tools/ci/verify-source-release-zip.py` vergleicht das vollständige ZIP-Inventar, Dateitypen, Ausführungsbits und Git-Blob-IDs mit einem unabhängig aus GitHub ermittelten Source-Merge-Commit, vor jedem Entpacken. Der Checkout und der Prüfer müssen aus einer vertrauenswürdigen Revision stammen. Für .461 wurden 3666 Einträge des tatsächlichen GitHub-Release-ZIPs gegen Source-Merge `532a2400e05ee9d95243e05958063943e5fa3e0a` geprüft. Veränderungen am Inhalt, fehlende und doppelte Dateien, abweichende Dateimodi, symbolische Revision und falscher Commit wurden zurückgewiesen.
+
+Der Installer-Commit `91d8eff4126a928d601dede75c121d8b284b790d` änderte 72 Dateien unter dist und entfernte die ZIP-Datei. Der nächste Integrationsschritt muss daher neben der Artefaktübergabe auch einen geschützten Pfad für die Build-Ausgabe oder eine vertraglich geprüfte Entkopplung von dist nachweisen. Den Prototyp erst nach Prüfung von Producer-Run, Artifact-ID, SHA-256, Quellcommit und Installer-Abstammung einbinden. Die vorhandene Release-Chain-Prüfung erwartet heute die zwei Zwischencommits und muss zusammen mit dem Transport migriert werden.
