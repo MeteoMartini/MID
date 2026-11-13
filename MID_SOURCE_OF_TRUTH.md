@@ -1,3 +1,7 @@
+# MID v0.9.85.465 · Quellkandidat für Kartenregression #787
+
+**Stable-Basis:** `main=mid-stable=f6277014ff239992c0581ab6bd6b0f39202d589d` / v0.9.85.464. [Installer #43395404395](https://github.com/MeteoMartini/MID/actions/runs/43395404395) erfolgreich. [Post-Release-Revision #43397283278](https://github.com/MeteoMartini/MID/actions/runs/43397283278) fehlgeschlagen. Der Kandidat trennt die Modelltermine für Wolken und Wetter sichtbar von Beobachtung und Nowcast. Der [Beobachtungsquellen-Draft #786](https://github.com/MeteoMartini/MID/pull/786) ist eine separate Änderung mit gemeinsamer Datei RadarPanel.tsx. Freigabe nach vollständigem Source- und Installer-Gate mit erfolgreicher Stable-Promotion.
+
 # MID v0.9.85.464 · Checkoutunabhängiger Installer-Wiederanlauf (Source-Kandidat, 13.11.2026)
 
 **Verifizierte Stable-Basis:** `main=mid-stable=8754f589c7c998a6da6f459f0a33235153704dd8` / v0.9.85.463, Installer [#43390443252](https://github.com/MeteoMartini/MID/actions/runs/43390443252) vollständig Success (Core/Heavy, Worker, Pages, Stable-Promotion). Die fünf aktiven Rulesets bleiben unverändert.

@@ -1,3 +1,7 @@
+## MID v0.9.85.465 · 13.11.2026 · Wolken- und Wetterlayer an bestätigten Modelltermin binden
+
+- #787: Beobachtung und Nowcast behalten ihre Zeitachse. Der Modellstatus bietet einen Sprung auf einen bestätigten Modelltermin; der GDPS-Kacheltimer läuft nur bei ausgewählter Prognose. Die Browserregression verlangt tatsächliche GetMap-Anfragen vor und nach Retry.
+
 ## MID v0.9.85.464 · 13.11.2026 · SHA-sicherer Installer-Wiederanlauf ohne Git-Checkout
 
 - Verifizierte Basis: main=mid-stable `8754f589c7c998a6da6f459f0a33235153704dd8` / v0.9.85.463; Installer #43390443252 completed/success einschließlich Source-Gate, Core/Heavy, Worker, Pages und Stable-Promotion. Fünf Branch-Rulesets aktiv und unverändert.
