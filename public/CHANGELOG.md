@@ -1,3 +1,7 @@
+# MID v0.9.85.470
+
+- MID lädt die Zeitliste des DWD-Radarprodukts direkt vom produktspezifischen Dienst. Dadurch kann die Karte bestätigte Radar-Nowcast-Termine auch dann laden, wenn das vollständige DWD-Dienstverzeichnis zu langsam antwortet.
+
 # MID v0.9.85.469
 
 - Die Wetterkarte bietet bestätigte DWD-Radar-Nowcasts wieder zur Auswahl an. Die Vorhersagetermine reichen je nach Datenlage bis zu zwei Stunden und bleiben von Radar-Beobachtungen getrennt.

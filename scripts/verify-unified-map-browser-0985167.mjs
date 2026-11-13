@@ -135,7 +135,20 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  if(width<=850)assert.equal(await page.locator('.composite-primary-layers').getAttribute('open'),null,'Schmale Kartenansicht beginnt ohne großes Bedienelement');
  await openMapLayers();
  assert.equal(await page.getByRole('button',{name:'Automatisch',exact:true}).getAttribute('aria-pressed'),'true');
- const direct=page.getByLabel('Kartentermin auswählen');await direct.selectOption('0');assert.equal(await page.getByRole('button',{name:'Vorheriger Kartentermin',exact:true}).isDisabled(),true);await page.getByRole('button',{name:'Nächster Kartentermin',exact:true}).click();assert.equal(await direct.inputValue(),'1');await page.getByRole('button',{name:'Aktuell',exact:true}).click();
+ const direct=page.getByLabel('Kartentermin auswählen');
+ await direct.selectOption('0');
+ assert.equal(await page.getByRole('button',{name:'Vorheriger Kartentermin',exact:true}).isDisabled(),true);
+ const nextTerm=page.getByRole('button',{name:'Nächster Kartentermin',exact:true});
+ await nextTerm.evaluate(button=>button.addEventListener('click',()=>{
+  const select=document.querySelector('select[aria-label="Kartentermin auswählen"]');
+  button.dataset.qaNextValidTime=select?.options[select.selectedIndex+1]?.dataset.validTime??'';
+ },{capture:true,once:true}));
+ await nextTerm.click();
+ const expectedValidTime=await nextTerm.getAttribute('data-qa-next-valid-time');
+ assert.ok(expectedValidTime,'A next confirmed term exists when the button is clicked');
+ assert.equal(await direct.locator('option:checked').getAttribute('data-valid-time'),expectedValidTime,
+  'One click selects the next valid time even if metadata inserts earlier entries');
+ await page.getByRole('button',{name:'Aktuell',exact:true}).click();
  for(const box of await page.locator('.composite-direct-time button,.composite-direct-time select').evaluateAll(nodes=>nodes.map(el=>({height:el.getBoundingClientRect().height,overflow:el.scrollWidth>el.clientWidth+1})))){assert.ok(box.height>=44);assert.equal(box.overflow,false)}
  // Regression .212: actual rendered theme contrast, not just static CSS tokens.
  // Verify native <select>, action buttons and disabled controls on every

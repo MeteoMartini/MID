@@ -1,3 +1,7 @@
+## MID v0.9.85.470 · DWD-RV-Zeitkatalog direkt abrufen
+
+Basis .469: `14a98ce740d4463e9ae44d28006fc7deb535af00`. #782: Live-Proben Köln/Münster ohne Radarzeiten. Vollständiges DWD-Dienstverzeichnis ca. 1,9 MB, Primärabruf 16 s. Die produktspezifischen offiziellen WMS-1.1.1-Endpunkte lieferten 49.883 und 36.715 Bytes mit RV-Terminen. Der Worker akzeptiert einen Spiegel erst mit frischem Beobachtungstermin. Der Parser verarbeitet selbstschließende Dimension-Deklarationen vor den WMS-1.1.1-Extent-Blöcken. Lokales Replay mit amtlichem Original: 16 Beobachtungs- und 22 Nowcast-Termine. Gezielte Tests decken die WMS-Route, Quellenzeiten und sichere Fehlertexte ab.
+
 ## MID v0.9.85.469 · DWD-Radar-Nowcast in der Kartenzeitachse
 
 Basis: `4fcca5dd8b458e3fc45577beeadc228adcc5bb83` (.468), zu #782. Am 13.11.2026 lieferten DWD und MID für 16:15 UTC byteidentische RV-GetMap-PNGs. Der bisherige Katalog verwarf Zukunftstermine, die geprüfte WMS-1.3.0-Antwort listete nur Beobachtungen, und der serielle Katalogabruf lief bei Köln in Timeouts. Der RV-Katalog verwendet beide offiziellen DWD-Workspace-Endpunkte parallel mit WMS 1.1.1. Nur bestätigte RV-Termine bis +2 h werden separat gemeldet und als RV-Kacheln angefordert. Lokal: Typprüfung, WMS-Katalog-/Karten-/OPERA-Regression und Versionsprüfung bestanden. Produktivabnahme nach Release.
