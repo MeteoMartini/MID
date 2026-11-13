@@ -1,3 +1,4 @@
+import CurrentSurroundings from '../../src/CurrentSurroundings';
 import React from 'react';
 import {Map as MapLibreMap} from 'maplibre-gl';
 const originalAddSource=MapLibreMap.prototype.addSource;MapLibreMap.prototype.addSource=function(...args:Parameters<typeof originalAddSource>){(window as any).__qaMap=this;return originalAddSource.apply(this,args)};
@@ -8,4 +9,6 @@ import '../../src/midPresentation.css';
 document.documentElement.dataset.midDesign=new URLSearchParams(location.search).get('design')||'next';
 document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
 const now=new Date(Math.floor(Date.now()/3600000)*3600000).toISOString();
-createRoot(document.getElementById('root')!).render(<MapWorkspacePanel lat={50.82} lon={7.14} timezone="Europe/Berlin" locationName="Niederkassel" analysis={{source:'dwd',observedAt:now,timeline:[now]} as any} thunder={null} isDay actualLocation={false} focusMode unit="kmh" favorites={[{id:'nk',name:'Niederkassel-Rheidt',latitude:50.82,longitude:7.14},{id:'outside',name:'Kürecik',latitude:38.35,longitude:38.79}]}/>);
+createRoot(document.getElementById('root')!).render(new URLSearchParams(location.search).has('surroundings')
+ ? <CurrentSurroundings lat={50.82} lon={7.14} timezone="Europe/Berlin" name="Niederkassel-Rheidt am Rhein" temperature={8} temperatureTime={now} onOpen={(time,bounds)=>{document.body.dataset.surroundingsHandoff=JSON.stringify({time,bounds})}}/>
+ : <MapWorkspacePanel lat={50.82} lon={7.14} timezone="Europe/Berlin" locationName="Niederkassel" analysis={{source:'dwd',observedAt:now,timeline:[now]} as any} thunder={null} isDay actualLocation={false} focusMode unit="kmh" favorites={[{id:'nk',name:'Niederkassel-Rheidt',latitude:50.82,longitude:7.14},{id:'outside',name:'Kürecik',latitude:38.35,longitude:38.79}]}/>);

@@ -490,9 +490,47 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
    perfRows.push({width,theme,design,caseKind:profileMemory?'isolated-memory-cycles':'functional-matrix',memoryProfile,readyMs:readyMs===null?null:Math.round(readyMs*100)/100,...summarizePhases(perfPhases)});
   }cases++;console.log(`Map case ${cases}: ${width}px ${theme} ${design} passed · ${((performance.now()-caseStarted)/1000).toFixed(1)} s`);await context.close();
 }
+async function verifySurroundings(width,theme){
+ const context=await browser.newContext({viewport:{width,height:780},colorScheme:theme});
+ try{
+  const page=await context.newPage();
+  const now=Date.now(),observed=new Date(now-5*60000).toISOString(),future=new Date(now+15*60000).toISOString();
+  const errors=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  await page.route('**/__qa-worker?**',async route=>{
+   const url=new URL(route.request().url()),mode=url.searchParams.get('mode');
+   if(mode==='composite-times')return route.fulfill({json:{dwdRadar:[observed],dwdRadarNowcast:[future]}});
+   if(mode==='composite-wms')return route.fulfill({body:png,contentType:'image/png'});
+   return route.fulfill({json:{error:'Unavailable in surroundings fixture'}});
+  });
+  await page.goto(base+'/__map-qa?surroundings');
+  await page.getByRole('status').filter({hasText:'DWD-Radar · Beobachtung'}).waitFor();
+  await page.waitForFunction(()=>Boolean(document.querySelector('.current-surroundings-orientation path')?.getAttribute('d')));
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
+  const select=page.getByLabel('Radar-Nowcast-Termin');
+  for(const control of [select,page.getByRole('button',{name:'Jetzt',exact:true}),page.getByRole('button',{name:'Karte öffnen',exact:true})]){
+   assert.ok((await control.boundingBox())?.height>=44,'Umfeld controls require a 44px hit area');
+  }
+  const map=page.locator('.current-surroundings-map');
+  const before=await map.boundingBox();
+  await select.selectOption(String(Date.parse(future)));
+  await page.getByRole('status').filter({hasText:'DWD-Radar · Nowcast'}).waitFor();
+  assert.deepEqual(await map.boundingBox(),before,'Nowcast preserves the preview extent');
+  await page.getByRole('button',{name:'Karte öffnen',exact:true}).click();
+  const handoff=await page.evaluate(()=>JSON.parse(document.body.dataset.surroundingsHandoff));
+  assert.equal(handoff.time,Date.parse(future));
+  assert.equal(handoff.bounds.west,7.14-1.4);
+  assert.equal(handoff.bounds.south,50.82-.65);
+  await page.getByRole('button',{name:'Jetzt',exact:true}).click();
+  await page.getByRole('status').filter({hasText:'DWD-Radar · Beobachtung'}).waitFor();
+  assert.deepEqual(errors,[]);
+  console.log(`Surroundings: ${width}px ${theme} passed`);
+ }finally{await context.close()}
+}
+
 const focusedCases=process.env.GITHUB_ACTIONS!=='true'&&process.env.MID_MAP_QA_FOCUSED==='1'?[320,390,430,1024,1440].flatMap(width=>['light','dark'].map(theme=>({width,theme,design:'next'}))):null;
 const assignedCases=seasonalDraftPilot?seasonalDraftKeys.map(key=>seasonalDraftAllowed.get(key)):focusedCases??mapBrowserCases(process.env.MID_MAP_QA_SHARD);
-try{for(const width of [...new Set(assignedCases.map(row=>row.width))]){const variants=assignedCases.filter(row=>row.width===width),concurrency=mapBrowserCaseConcurrency(width);/* Bound synthetic MapLibre software-GPU contention; all cases and all assertions remain mandatory. */for(let offset=0;offset<variants.length;offset+=concurrency){const results=await Promise.allSettled(variants.slice(offset,offset+concurrency).map(({theme,design})=>verifyCase(width,theme,design)));for(const result of results)if(result.status==='rejected')throw result.reason;}}assert.equal(cases,assignedCases.length,'Complete assigned viewport/theme/design coverage');if(perfEnabled&&mapBrowserMemoryProbe(process.env.MID_MAP_QA_SHARD))await verifyCase(390,'light','next',true);if(perfRows.length){
+try{for(const width of [...new Set(assignedCases.map(row=>row.width))]){const variants=assignedCases.filter(row=>row.width===width),concurrency=mapBrowserCaseConcurrency(width);/* Bound synthetic MapLibre software-GPU contention; all cases and all assertions remain mandatory. */for(let offset=0;offset<variants.length;offset+=concurrency){const results=await Promise.allSettled(variants.slice(offset,offset+concurrency).map(({theme,design})=>verifyCase(width,theme,design)));for(const result of results)if(result.status==='rejected')throw result.reason;}}assert.equal(cases,assignedCases.length,'Complete assigned viewport/theme/design coverage');for(const {width,theme,design} of assignedCases)if(design==='next'&&[320,390,430,834].includes(width))await verifySurroundings(width,theme);if(perfEnabled&&mapBrowserMemoryProbe(process.env.MID_MAP_QA_SHARD))await verifyCase(390,'light','next',true);if(perfRows.length){
  const rows=perfRows.sort((a,b)=>a.width-b.width||a.theme.localeCompare(b.theme)||a.design.localeCompare(b.design));
  const report={schema:'mid.map.runtime.fixture.v2',version:JSON.parse(readFileSync(new URL('../package.json',import.meta.url))).version,commit:process.env.GITHUB_SHA||null,shard:process.env.MID_MAP_QA_SHARD||'all',kind:'synthetic-Vite-MapLibre-fixture-not-user-CWV',cases:rows};
  const serialized=JSON.stringify(report),safeShard=String(report.shard).replace(/[^A-Za-z0-9_-]/g,'_');
