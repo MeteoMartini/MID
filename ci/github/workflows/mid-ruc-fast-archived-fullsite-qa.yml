@@ -1,0 +1,428 @@
+name: MID RUC 13Z-full + 14Z-original-Fast offline site QA (NO DEPLOY)
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - '.github/workflows/mid-ruc-fast-archived-fullsite-qa.yml'
+      - 'ci/github/workflows/mid-ruc-fast-archived-fullsite-qa.yml'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: mid-ruc-fast-archived-fullsite-qa-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+jobs:
+  archived-original:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (startsWith(github.head_ref, 'chatgpt/v') || startsWith(github.head_ref, 'codex/v'))
+    name: Recombine SHA-pinned original 27h/EPS20 and 0–6h (offline only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out exact untrusted QA HEAD without persistent credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Verify SHA, current stable, workflow mirror and immutable historic sources
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmp .github/workflows/mid-ruc-fast-archived-fullsite-qa.yml ci/github/workflows/mid-ruc-fast-archived-fullsite-qa.yml
+          test "$(git rev-parse HEAD)" = "$PR_HEAD"
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          test "$stable" = "$main"
+          test "$stable" = ee7a55b5ece4d3d3687202a95caeb6c5ff615055
+          lineage="$(gh api "repos/$GITHUB_REPOSITORY/compare/$stable...$PR_HEAD")"
+          jq -e --arg base "$stable" '.status=="ahead" and .base_commit.sha==$base and .merge_base_commit.sha==$base' <<< "$lineage" >/dev/null
+          for source in '13776461827|42833012096|mid-ruc-pages-42833012096-1|sha256:4ccf09fc1a034b27aacc5e816d6d1f56d311c680870cb8f2bacfa305b9f0e20e|ee7a55b5ece4d3d3687202a95caeb6c5ff615055' '13775407795|42841267953|mid-ruc-native-fast-real-42841267953-1|sha256:cbaa8b7b6d7942a08fefd78a0fb2f53f4a7281ce246cda32885b9ea45d65be28|7f06336fdcd6eba12b7d2f490db486e332a0791a'; do
+            IFS='|' read -r id run name digest source_sha <<< "$source"
+            record="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$id")"
+            jq -e --argjson id "$id" --argjson run "$run" --arg name "$name" --arg digest "$digest" --arg sha "$source_sha" '.id==$id and .name==$name and .digest==$digest and .expired==false and .workflow_run.id==$run and .workflow_run.head_sha==$sha' <<< "$record" >/dev/null
+          done
+          echo 'SHA-bound historical artifact identities verified; read-only QA, no publish grants.'
+      - name: Python 3.12 and minimal native byte-reader prerequisite
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Install only existing NumPy scientific requirement
+        run: python -m pip install --disable-pip-version-check 'numpy>=2.0,<3'
+      - name: Retrieve immutable 13Z full Pages archive (NO deploy)
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: 13776461827
+          run-id: 42833012096
+          github-token: ${{ github.token }}
+          digest-mismatch: error
+          path: full-pages-artifact
+      - name: Retrieve already verified 14Z original Fast archive (NO DWD request)
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: 13775407795
+          run-id: 42841267953
+          github-token: ${{ github.token }}
+          digest-mismatch: error
+          path: fast-original-artifact
+      - name: Safely unpack official Pages archive and prove full-site plus paged Fast
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, os, shutil, sys, tarfile
+          from pathlib import Path, PurePosixPath
+          sys.path.insert(0,str(Path('tools/ruc').resolve()))
+          from ruc_fast_pages_overlay import assemble_overlay, file_sha
+          from ruc_fast_pages_chunker import partition_native_fast
+          from ruc_fast_pointer_staging import count_files, strict_budget
+
+          zipped=[p for p in Path('full-pages-artifact').rglob('*') if p.is_file()]
+          assert len(zipped)==1 and zipped[0].name in ('artifact.tar','artifact.tar.gz'), 'unexpected Pages archive type'
+          full=Path('real-fullsite-13Z');full.mkdir()
+          with tarfile.open(zipped[0],mode='r:*') as pack:
+              members=pack.getmembers()
+              assert members and len(members)<20000,'untrusted Pages file inventory'
+              total=0
+              for member in members:
+                  name=PurePosixPath(member.name)
+                  assert not name.is_absolute() and '..' not in name.parts,'unsafe archive path'
+                  assert member.isfile() or member.isdir(), 'unexpected non-regular Pages object'
+                  if member.isfile():total+=member.size
+              assert 100_000_000<total<900_000_000,'unqualified full Pages source size'
+              pack.extractall(full,filter='data')
+
+          fast=Path('fast-original-artifact/ruc-fast-native-shadow')
+          assert fast.is_dir() and (fast/'ruc/fast/latest.json').is_file()
+          original_manifest=full/'ruc/latest.json'
+          assert original_manifest.is_file()
+          original_sha=file_sha(original_manifest)
+          original=json.loads(original_manifest.read_text(encoding='utf-8'))
+          assert original['run']=='2026-11-10T13:00','historical original model run mismatch'
+          assert original['storageProfile']=='pages-lossless-v1','lossless RUC original missing'
+          assert len(original['deterministic']['times'])==28
+          assert original['eps']['memberCount']==20 and len(original['eps']['times'])==28
+          assert not (full/'ruc/fast').exists(),'full source already includes Fast'
+
+          # The existing strict original-byte and UTC comparison must admit
+          # the *real* original Pages + original native Fast source together.
+          raw=assemble_overlay(full,fast,Path('real-inactive-raw-combined'))
+          assert raw['primaryRun']=='2026-11-10T13:00'
+          assert raw['fastRun']=='2026-11-10T14:00'
+          assert raw['full27hOriginalBytesIntact'] is True and raw['fastNativeObjectHashesRechecked'] is True
+          assert raw['productionEnabled'] is False and raw['publicationAuthorized'] is False
+          shutil.rmtree('real-inactive-raw-combined')
+
+          # Pages-point transport must be physically partitioned, unlike the
+          # unchunked native Fast source in the intermediate comparator.
+          partition=partition_native_fast(fast,Path('real-inactive-fast-partition'))
+          assert partition['publicationAuthorized'] is False and partition['chunkFiles']==4300
+          paged=Path('real-inactive-paged-combined')
+          shutil.copytree(full,paged,symlinks=False)
+          shutil.copytree(Path('real-inactive-fast-partition/ruc/fast'),paged/'ruc/fast',symlinks=False)
+          assert file_sha(paged/'ruc/latest.json')==original_sha,'primary pointer modified'
+          fullbytes=count_files(full)
+          fastbytes=count_files(Path('real-inactive-fast-partition'))
+          combinedbytes=count_files(paged)
+          assert combinedbytes==fullbytes+fastbytes,'combined full site changed files/bytes'
+          remaining=strict_budget(fullbytes,fastbytes)
+          # Verify all copied full-product bytes independently, not only pointer.
+          originals=[p for p in full.rglob('*') if p.is_file()]
+          assert originals and all(not p.is_symlink() for p in originals)
+          for source in originals:
+              dest=paged/source.relative_to(full)
+              assert dest.is_file() and not dest.is_symlink(),'full source absent from paged site'
+              assert source.stat().st_size==dest.stat().st_size and file_sha(source)==file_sha(dest),'original full-site byte changed'
+          # Verify every paged chunk after relocation against the SHA list.
+          index=json.loads((paged/'ruc/fast/paged-shadow.json').read_text(encoding='utf-8'))
+          assert index['run']=='2026-11-10T14:00' and index['nativePoints']==542040
+          assert index['sourceNativeBytes']==253804736 and index['epsAvailable'] is False
+          for k in ('productionEnabled','publicationAuthorized','realtimeConsumerEnabled'):
+              assert index[k] is False, 'untrusted activation'
+          for row in index['objects'].values():
+              for part in row['parts']:
+                  entry=paged/'ruc'/part['key']
+                  assert entry.is_file() and not entry.is_symlink()
+                  assert entry.stat().st_size==part['bytes'] and file_sha(entry)==part['sha256'], 'paged chunk lost integrity'
+          assert not (paged/'ruc/fast/latest.json').exists(),'must not expose activation pointer'
+          proof={
+            'schema':'mid.ruc.fast-archived-fullsite-pair.qa.v1',
+            'fullRun':'2026-11-10T13:00','fastRun':'2026-11-10T14:00',
+            'fullSourceProducerRunId':42833012096,'fastOriginalPilotRunId':42841267953,
+            'fullSiteBytes':fullbytes,'fastPagedBytes':fastbytes,
+            'combinedOfflineSiteBytes':combinedbytes,'remainingMID900MBBytes':remaining,
+            'fastChunks':partition['chunkFiles'],'nativePoints':542040,'epsMembersFull':20,
+            'originalArchiveDigestVerified':True,'primaryPointerUnchanged':True,
+            'allFullSiteFilesByteExact':True,'allFastPartsByteExact':True,
+            'runPairWithinAllowedSixHours':True,'modelRunsIdentical':False,
+            'publishedToPages':False,'workerConsumerVerified':False,'clientAdoptionVerified':False,
+            'globalPublisherCASVerified':False,'productionEnabled':False
+          }
+          print('MID_RUC_REAL_ARCHIVED_FULLSITE_FAST_OFFLINE_PROOF '+json.dumps(proof,sort_keys=True))
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as out:
+              out.write('### Historic genuine DWD 13Z full + 14Z native Fast inactive combined site\n\n')
+              out.write(f'Offline combined source + manifest/chunks: **{combinedbytes:,} B**, '
+                        f'MID 900MB remainder **{remaining:,} B**; '
+                        f'{partition["chunkFiles"]} verified Fast chunks.\n\n')
+              out.write('Original full 27h/EPS20 and 0–6h/5–15m Fast sources are SHA-bound to '
+                        'two different model runs one hour apart. This is a **reproducible '
+                        'archived offline pairing, not an actual Pages deploy, P4 CAS, '
+                        'live Worker or native end-device acceptance**.\n')
+          PY
+      - name: Pin Node 22 for real Fast Pages-point and canonical shape readback
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+      - name: Read exact original 13Z/14Z paired site through SHA-verified native point consumer (NO CLIENT ACTIVATION)
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {createHash} from 'node:crypto';
+          import {readFile} from 'node:fs/promises';
+          import {resolve,sep} from 'node:path';
+          import {readPagedFastPointShadow} from './tools/ruc/ruc_fast_paged_point_shadow.mjs';
+          import {inspectFastToCommonForecastShadow} from './tools/ruc/ruc_fast_canonical_bridge_shadow.mjs';
+          const root=resolve('real-inactive-paged-combined/ruc');
+          const manifestBytes=new Uint8Array(await readFile(resolve(root,'fast/paged-shadow.json')));
+          const manifestSha256=createHash('sha256').update(manifestBytes).digest('hex');
+          const file=async key=>{
+            const path=resolve(root,key);
+            assert(path.startsWith(root+sep),'Fast candidate attempted directory traversal');
+            return new Uint8Array(await readFile(path));
+          };
+          let reads=0,bytesRead=0;
+          const boundedReader=async key=>{
+            const data=await file(key);
+            reads++;bytesRead+=data.byteLength;
+            return data;
+          };
+          const cell=await readPagedFastPointShadow(manifestBytes,manifestSha256,boundedReader,300*964+520);
+          assert.equal(cell.available,true,'real DWD native center cell must be available');
+          assert.equal(reads,4,'single point must read one SHA checked chunk per native product');
+          assert(bytesRead>0 && bytesRead<=4*512*168,'unbounded Fast native point read');
+          assert.equal(cell.epsAvailable,false,'no synthetic Fast EPS20');
+          assert.equal(cell.productionAuthorized,false,'do not activate Fast producer');
+          assert.equal(cell.modelRunUtc,'2026-11-10T14:00:00.000Z');
+          assert.equal(cell.hours.length,7);
+          assert.equal(cell.rapid5Minutes.length,73);
+          assert.equal(cell.rapid15Minutes.length,25);
+          assert.equal(cell.hours[0].fields.precipitation,null,'initial hourly accumulation is Missing');
+          assert.equal(cell.rapid5Minutes[0].precipitationMm,null,'initial five minute accumulation is Missing');
+          assert.equal(cell.rapid15Minutes[0].precipitationMm,null,'initial fifteen minute accumulation is Missing');
+          const full=JSON.parse(await readFile(resolve(root,'latest.json'),'utf8'));
+          assert.equal(full.run,'2026-11-10T13:00');
+          assert.equal(full.eps.memberCount,20,'original 27h EPS20 absent');
+          const combined=inspectFastToCommonForecastShadow(full,cell);
+          assert.equal(combined.primary,full);
+          assert.equal(combined.full27hEps20Unchanged,true);
+          assert.equal(combined.fastCandidate.mid_ruc.underlyingFullRun,full.run);
+          assert.equal(combined.fastCandidate.hourly.time.length,7);
+          assert.equal(combined.fastCandidate.rapid.precip5.time.length,73);
+          assert.equal(combined.fastCandidate.rapid.convection15.time.length,25);
+          assert.equal(combined.fastCandidate.rapid.precip5.precipitation[0],null);
+          assert.equal(combined.selectedForForecast,false);
+          assert.equal(combined.releaseAuthorized,false);
+          assert.equal(combined.usedByWebIosWidgetsExports,false);
+          // Negative tests on the REAL archive bytes and model object, without file mutation.
+          const wrongSha='0'.repeat(64);
+          await assert.rejects(readPagedFastPointShadow(manifestBytes,wrongSha,file,300*964+520),
+            /manifest not SHA admitted/);
+          let mutated=false;
+          await assert.rejects(readPagedFastPointShadow(manifestBytes,manifestSha256,async key=>{
+            const data=await file(key);
+            if(!mutated){data[data.length-1]^=1;mutated=true;}
+            return data;
+          },300*964+520),/chunk SHA mismatch/);
+          assert.equal(mutated,true);
+          const fakeInitial={...cell,rapid5Minutes:cell.rapid5Minutes.map((v,i)=>i===0?{...v,precipitationMm:0}:v)};
+          assert.throws(()=>inspectFastToCommonForecastShadow(full,fakeInitial),/initial accumulation is not zero/);
+          const fakeFull={...full,run:'2026-11-10T15:00',times:full.times.map(t=>new Date(Date.parse(t+'Z')+2*3600000).toISOString().slice(0,16))};
+          assert.throws(()=>inspectFastToCommonForecastShadow(fakeFull,cell),/model runs unrelated/);
+          const proof={
+            schema:'mid.ruc.fast-original-archived-paged-client-shadow.v1',
+            fullRunUtc:full.run,fastRunUtc:cell.modelRunUtc,originalFullEpsMembers:20,
+            hourlyHours:7,rapid5Count:73,rapid15Count:25,
+            fourOriginalChunksShaVerified:reads===4,nativeBytesRead:bytesRead,
+            sourceNoDataNotZero:true,realManifestSha256:manifestSha256,
+            forgedManifestRejected:true,tamperedNativeChunkRejected:true,
+            fakeInitialZeroRejected:true,staleFastRunRejected:true,
+            underlyingFullPreserved:true,
+            publicPagesFastVerified:false,liveWorkerFastVerified:false,
+            appOrWidgetAdoptionVerified:false,realIOSVerified:false,
+            releaseAuthorized:false
+          };
+          console.log('MID_RUC_FAST_REAL_CLIENT_SHADOW_PROOF '+JSON.stringify(proof));
+          NODE
+          echo 'Native original point and canonical shared-client SHADOW readback passed. Not a public Pages, Worker, Web, iOS, Widget or Export acceptance.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Admit newest original 14Z full 27h/EPS20 archive and exact SHA (NO DEPLOY)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          artifact="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/13786745090")"
+          jq -e '
+            .id==13786745090
+            and .name=="mid-ruc-pages-42855140112-1"
+            and .digest=="sha256:326b40c097a0c4a08fdb2249d01c277f59ba5edef5930ab6a80f5a2fdf85646a"
+            and .expired==false
+            and .workflow_run.id==42855140112
+            and .workflow_run.head_sha=="ee7a55b5ece4d3d3687202a95caeb6c5ff615055"
+          ' <<< "$artifact" >/dev/null
+          producer="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/42855140112")"
+          jq -e '.status=="completed" and .conclusion=="success" and .head_sha=="ee7a55b5ece4d3d3687202a95caeb6c5ff615055"' <<< "$producer" >/dev/null
+          echo 'Original published 14Z full-run source is SHA-bound, unexpired and from successful stable producer.'
+      - name: Download exact 14Z original full Pages artifact (no DWD or Pages publish)
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: 13786745090
+          run-id: 42855140112
+          github-token: ${{ github.token }}
+          digest-mismatch: error
+          path: genuine-full-pages-14Z
+      - name: Materialize and hash-check matching original 14Z full 27h/EPS20 + Fast site
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,sys,shutil,tarfile
+          from pathlib import Path,PurePosixPath
+          sys.path.insert(0,str(Path('tools/ruc').resolve()))
+          from ruc_fast_pages_overlay import file_sha
+          from ruc_fast_pointer_staging import count_files,strict_budget
+          tarballs=[p for p in Path('genuine-full-pages-14Z').rglob('*') if p.is_file()]
+          assert len(tarballs)==1 and tarballs[0].name in ('artifact.tar','artifact.tar.gz'),'unexpected original Pages archive'
+          full=Path('genuine-fullsite-14Z');full.mkdir()
+          with tarfile.open(tarballs[0],'r:*') as archive:
+              members=archive.getmembers()
+              assert 0<len(members)<20000,'invalid Pages inventory count'
+              total=0
+              for member in members:
+                  name=PurePosixPath(member.name)
+                  assert not name.is_absolute() and '..' not in name.parts,'unsafe original Pages path'
+                  assert member.isfile() or member.isdir(),'unsafe original Pages link or special object'
+                  if member.isfile():total+=member.size
+              assert 100_000_000<total<900_000_000,'implausible original full site size'
+              archive.extractall(full,filter='data')
+          primary=full/'ruc/latest.json'
+          assert primary.is_file() and not primary.is_symlink()
+          origin=primary.read_bytes()
+          meta=json.loads(origin)
+          assert meta['schema']=='mid.dwd.ruc.grid.v2' and meta['storageProfile']=='pages-lossless-v1'
+          assert meta['run']=='2026-11-10T14:00','wrong 14Z official primary run'
+          assert meta['pointCount']==542040
+          assert len(meta['deterministic']['times'])==28
+          assert meta['eps']['memberCount']==20 and len(meta['eps']['times'])==28
+          assert not (full/'ruc/fast').exists(),'original full-site already contains Fast namespace'
+          parts=Path('real-inactive-fast-partition/ruc/fast')
+          assert parts.is_dir(),'original SHA-verified 14Z Fast native partition not staged'
+          paged=Path('genuine-14Z-samerun-offline-paged')
+          shutil.copytree(full,paged,symlinks=False)
+          shutil.copytree(parts,paged/'ruc/fast',symlinks=False)
+          fullbytes=count_files(full)
+          pagedbytes=count_files(paged)
+          fastbytes=count_files(Path('real-inactive-fast-partition'))
+          assert pagedbytes==fullbytes+fastbytes
+          left=strict_budget(fullbytes,fastbytes)
+          assert file_sha(paged/'ruc/latest.json')==file_sha(primary),'original 14Z primary pointer changed'
+          originals=[p for p in full.rglob('*') if p.is_file()]
+          assert originals
+          for f in originals:
+              dest=paged/f.relative_to(full)
+              assert not f.is_symlink() and dest.is_file() and not dest.is_symlink()
+              assert f.stat().st_size==dest.stat().st_size and file_sha(f)==file_sha(dest),'original 14Z full-site byte drift'
+          fast_index=json.loads((paged/'ruc/fast/paged-shadow.json').read_text(encoding='utf-8'))
+          assert fast_index['schema']=='mid.ruc.fast-paged-shadow.v1'
+          assert fast_index['run']==meta['run'],'Full/Fast same DWD model run required'
+          assert fast_index['nativePoints']==542040 and fast_index['sourceNativeBytes']==253804736
+          assert fast_index['epsAvailable'] is False
+          for flag in ('productionEnabled','publicationAuthorized','realtimeConsumerEnabled'):
+              assert fast_index[flag] is False,'accidental Fast activation'
+          numparts=0
+          for obj in fast_index['objects'].values():
+              for row in obj['parts']:
+                  f=paged/'ruc'/row['key']
+                  assert f.is_file() and not f.is_symlink()
+                  assert f.stat().st_size==row['bytes'] and file_sha(f)==row['sha256'],'Fast original chunk corrupted'
+                  numparts+=1
+          assert numparts==4300
+          assert not (paged/'ruc/fast/latest.json').exists(),'unapproved Fast production pointer'
+          proof={
+              'schema':'mid.ruc.same-modelrun-original-14Z-full-fast-offline.v1',
+              'fullRun':'2026-11-10T14:00','fastRun':'2026-11-10T14:00','sameRun':True,
+              'originalFullArtifactId':13786745090,'originalFastArtifactId':13775407795,
+              'fullSiteBytes':fullbytes,'fastPartitionedBytes':fastbytes,
+              'combinedOfflineSiteBytes':pagedbytes,'remainingMID900MBBytes':left,
+              'fastParts':numparts,'epsMembersFull':20,'nativePoints':542040,
+              'original14ZFullPrimarySha256':file_sha(primary),
+              'allFull14ZSiteFilesByteExact':True,'allFast14ZPartsByteExact':True,
+              'publicFastDeployVerified':False,'liveFastWorkerVerified':False,
+              'crossPublisherCASVerified':False,'realIOSVerified':False,
+              'productionEnabled':False
+          }
+          print('MID_RUC_REAL_14Z_SAMERUN_FAST_PROOF '+json.dumps(proof,sort_keys=True))
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as out:
+              out.write('### Real genuine DWD 14Z +14Z full 27h/EPS20 and Fast original SHA/byte proof\n\n')
+              out.write(f'Full {fullbytes:,} B + Fast chunks {fastbytes:,} B = {pagedbytes:,} B; MID 900MB remainder {left:,} B.\n\n')
+              out.write('Same UTC 14Z model run, original 20 EPS preserved, byte-exact 4300 native Fast chunks. '
+                        '**Offline only; no new public Fast Pages/Worker/Client/CAS activation.**\n')
+          PY
+      - name: Decode same-run original 14Z full+Fast native point through JavaScript bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {createHash} from 'node:crypto';
+          import {readFile} from 'node:fs/promises';
+          import {resolve,sep} from 'node:path';
+          import {readPagedFastPointShadow} from './tools/ruc/ruc_fast_paged_point_shadow.mjs';
+          import {inspectFastToCommonForecastShadow} from './tools/ruc/ruc_fast_canonical_bridge_shadow.mjs';
+          const root=resolve('genuine-14Z-samerun-offline-paged/ruc');
+          const manifestBytes=new Uint8Array(await readFile(resolve(root,'fast/paged-shadow.json')));
+          const manifestSha=createHash('sha256').update(manifestBytes).digest('hex');
+          let reads=0,byteCount=0;
+          const read=async key=>{
+            const path=resolve(root,key);
+            assert(path.startsWith(root+sep),'untrusted native path');
+            const bytes=new Uint8Array(await readFile(path));
+            reads++;byteCount+=bytes.byteLength;
+            return bytes;
+          };
+          const cell=await readPagedFastPointShadow(manifestBytes,manifestSha,read,300*964+520);
+          assert.equal(cell.available,true);
+          assert.equal(reads,4);
+          assert.equal(byteCount,239616);
+          assert.equal(cell.hours.length,7);
+          assert.equal(cell.rapid5Minutes.length,73);
+          assert.equal(cell.rapid15Minutes.length,25);
+          assert.equal(cell.hours[0].fields.precipitation,null);
+          assert.equal(cell.rapid5Minutes[0].precipitationMm,null);
+          assert.equal(cell.rapid15Minutes[0].precipitationMm,null);
+          const full=JSON.parse(await readFile(resolve(root,'latest.json'),'utf8'));
+          const both=inspectFastToCommonForecastShadow(full,cell);
+          assert.equal(full.run,'2026-11-10T14:00');
+          assert.equal(cell.modelRunUtc,'2026-11-10T14:00:00.000Z');
+          assert.equal(full.eps.memberCount,20);
+          assert.equal(both.primary,full);
+          assert.equal(both.fastCandidate.mid_ruc.underlyingFullRun,full.run);
+          assert.equal(both.full27hEps20Unchanged,true);
+          assert.equal(both.selectedForForecast,false);
+          assert.equal(both.releaseAuthorized,false);
+          assert.equal(both.usedByWebIosWidgetsExports,false);
+          console.log('MID_RUC_SAMERUN_ORIGINAL_JS_READER_PROOF '+JSON.stringify({
+            schema:'mid.ruc.same-run-js-point-shadow.v1',
+            fullRun:full.run,fastRun:cell.modelRunUtc,
+            identicalDwdRun:true,nativeChunkReads:reads,verifiedOriginalBytes:byteCount,
+            epsMembersFull:20,hourlyHours:7,rapid5Count:73,rapid15Count:25,
+            originalMissingIntervalsNotZero:true,shaVerifiedReader:true,
+            publicFastPagesVerified:false,liveWorkerFastVerified:false,
+            realDeviceAcceptance:false,releaseAuthorized:false
+          }));
+          NODE
