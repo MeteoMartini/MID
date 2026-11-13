@@ -1,3 +1,9 @@
+## MID v0.9.85.468 · OPERA-Weiterleitungsmodus
+
+- Basis: `eaa1cc3870974a08122a9dcbb6b363ed5a17fbd1` (.467), Issue #782. Drei aktuelle OPERA-Frames über MID mit HTTP 502, identische Originalobjekte am ECMWF-Spiegel mit HTTP 200 und HDF5-Signatur.
+- Worker: Cloudflare-kompatibles `redirect: 'manual'`; Antworten mit Umleitung werden verworfen. Der bestehende Test prüft beide offiziellen Spiegel, die Laufzeitbeschränkung und die Ablehnung einer Weiterleitung zu einem fremden Host.
+- Lokal bestanden: TypeScript, Produktionsbuild, Worker-Syntax, OPERA-Regression und Diffprüfung. Source-/Installer-Gates und Produktionsabruf sind im Release-Train zu belegen.
+
 ## MID v0.9.85.467 · OPERA-Abruf im Wetter-Worker
 
 Stable-Basis `74579ca5de14aa903269060768ae4f7a3f9b1af5` (.466). Live-Probe #782: drei OPERA-Dateiabrufe via MID lieferten 502/Transport auf beiden Spiegeln, das identische jüngste ECMWF-Objekt war direkt als HDF5 abrufbar. Der Kandidat vermeidet die kompatibilitätsabhängige Fetch-Option.

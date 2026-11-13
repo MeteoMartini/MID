@@ -1,3 +1,7 @@
+# MID v0.9.85.468
+
+- Der Wetter-Worker verwendet beim Abruf des europäischen OPERA-Radars einen von Cloudflare unterstützten Weiterleitungsmodus. Die beiden offiziellen Speicher bleiben die einzigen zulässigen Quellen.
+
 # MID v0.9.85.467
 
 - Der Radar-Worker verwendet für OPERA mit älteren Cloudflare-Laufzeitprofilen kompatible Abrufoptionen. Beide offiziellen Speicher bleiben als Quellen verfügbar.

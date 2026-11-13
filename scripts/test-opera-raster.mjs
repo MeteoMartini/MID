@@ -119,10 +119,17 @@ try{
 const backupHost='object-store.os-api.cci1.ecmwf.int';
 const liveKey=objectKey(nominal-5*60_000);
 const expiredKey=objectKey(nominal-25*3600_000);
-let onlyExpired=false, primaryFails=false, backupFails=false;
+let onlyExpired=false, primaryFails=false, backupFails=false, backupRedirects=false;
 globalThis.fetch=async (input,init={})=>{
  const url=new URL(input);
- if(url.pathname.endsWith(".h5")&&"cache" in init)throw new TypeError("Request cache option unavailable on this runtime");
+ if(url.pathname.endsWith('.h5')){
+  if('cache' in init)throw new TypeError('Request cache option unavailable on this runtime');
+  if(init.redirect==='error')throw new TypeError('Workers do not implement redirect mode error');
+  if(backupRedirects&&url.hostname===backupHost){
+   if(init.redirect!=='manual')throw new Error('OPERA subrequest would follow an untrusted redirect');
+   return Response.redirect('https://untrusted.example/radar.h5',302);
+  }
+ }
  if(url.hostname==='api.meteogate.eu'){
   const links=[{href:`https://${backupHost}/openradar-24h-backup/${onlyExpired?expiredKey:liveKey}`},
    {href:`https://untrusted.example/openradar-24h-backup/${objectKey(nominal)}`}];
@@ -161,6 +168,13 @@ try{
   {mirror:'primary',status:500,reason:'http'},
   {mirror:'backup',status:200,reason:'invalid-response'}
  ]))throw new Error('OPERA error must distinguish upstream failure from invalid HTTP 200');
+
+ backupRedirects=true;
+ const redirected=await worker.fetch(new Request(fileUrl),{});
+ const redirectError=await redirected.json();
+ if(redirected.status!==502||redirected.headers.has('location')||
+    !redirectError.diagnostics?.some(entry=>entry.mirror==='backup'&&entry.status===302&&entry.reason==='http'))
+  throw new Error('A storage redirect must be rejected without leaving the official mirrors');
 
  onlyExpired=true;
  const expired=await worker.fetch(request,{});
