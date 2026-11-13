@@ -23,6 +23,18 @@ function imageUrl(provider:WmsProvider,layer:string,time:number,bounds:string){
  return url.href;
 }
 
+export function CurrentSurroundingsEntry({location,current,timezone,onOpen}:{
+ location:{latitude:number;longitude:number;name:string};
+ current:{temperature_2m?:unknown;time?:unknown};
+ timezone:string;
+ onOpen:(request:{lat:number;lon:number;time?:number;bounds:SurroundingsBounds;id:number})=>void;
+}){
+ const {latitude:lat,longitude:lon,name}=location;
+ return <CurrentSurroundings key={lat+':'+lon} lat={lat} lon={lon} name={name} timezone={timezone}
+  temperature={typeof current.temperature_2m==='number'?current.temperature_2m:NaN}
+  temperatureTime={String(current.time??'')} onOpen={(time,bounds)=>onOpen({lat,lon,time,bounds,id:Date.now()})}/>;
+}
+
 export default function CurrentSurroundings(props:Props){
  const {lat,lon,name,timezone,temperature,temperatureTime,onOpen}=props;
  const heading=useId();
