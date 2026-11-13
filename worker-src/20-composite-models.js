@@ -256,7 +256,7 @@ async function compositeTimes(lat,lon){
  const now=Date.now(),serverTime=new Date(now).toISOString(),result={satelliteDay:[],satelliteIr:[],satellitePrecip:[],mtgLightning:[],dwdLightning:[],dwdRadar:[],dwdRadarNowcast:[],dwdRadarLayer:'',dwdRadarLatestOnly:false,dwdReferenceSatelliteProduct:undefined,mtgLightningLatestOnly:false,checkedAt:serverTime,serverTime,errors:[]},capabilities={};
  const tasks=[];
  if(mtgLightningApplies(lat,lon))tasks.push(firstWmsCapabilities([EUMETSAT_WMS],'EUMETSAT Satellit').then(xml=>{capabilities.eumetsat=xml}).catch(error=>{result.errors.push(`EUMETSAT: ${error instanceof Error?error.message:String(error)}`)}));
- if(inGermanyBounds(lat,lon)||mtgLightningApplies(lat,lon))tasks.push(Promise.any([DWD_RADAR_WMS_WORKSPACE,DWD_RADAR_WMS_BACKUP_WORKSPACE].map(base=>wmsCapabilitiesText(base,'DWD Geodienst','1.1.1'))).then(xml=>{capabilities.dwd=xml}).catch(error=>{result.errors.push(`DWD: ${error instanceof AggregateError?error.errors.map(item=>item instanceof Error?item.message:String(item)).join(' | '):String(error)}`)}));
+ if(inGermanyBounds(lat,lon)||mtgLightningApplies(lat,lon))tasks.push(Promise.any([DWD_RADAR_WMS_WORKSPACE,DWD_RADAR_WMS_BACKUP_WORKSPACE].map(base=>wmsCapabilitiesText(base,'DWD Geodienst','1.1.1'))).then(xml=>{capabilities.dwd=xml}).catch(()=>{result.errors.push('DWD: Dienstmetadaten derzeit nicht verfügbar.')}));
  if(tasks.length)await Promise.all(tasks);
  if(mtgLightningApplies(lat,lon)){
   result.satelliteDayProduct=satelliteProduct(capabilities,SATELLITE_DAY_CANDIDATES,now);
