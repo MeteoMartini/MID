@@ -9,7 +9,7 @@ import {nearestUnifiedTime} from './unifiedMapCatalog';
 import {CLOUD_WEATHER_LABEL,GDPS_CLOUD_LAYER,GDPS_WEATHER_LAYER,SIGNIFICANT_WEATHER_STYLES,loadCloudWeatherField,cloudWeatherAt,cloudWeatherDescription,cloudWeatherRaster,gdpsCloudWeatherCatalog,gdpsCloudWeatherPlan,nativeCloudWeatherPair,pairedNativeCloudWeatherTimes,retainSameModelCloudWeatherFrame,synopticCloudWeather,type CloudWeatherData,type CloudWeatherRenderMode} from './cloudWeatherData';
 import './CloudSignificantWeather.css';
 
-export function useCloudWeatherMap(enabled:boolean,target:number,modelId:string,revision:number,native:{index:NativeIndex;base:string}|null,synoptic:{index:SynopticIndex;base:string}|null,mode:CloudWeatherRenderMode='pseudo'){
+export function useCloudWeatherMap(enabled:boolean,target:number,modelId:string,revision:number,native:{index:NativeIndex;base:string}|null,synoptic:{index:SynopticIndex;base:string}|null,forecastSelected:boolean,mode:CloudWeatherRenderMode='pseudo'){
  const [gdpsDisplayed,setGdpsDisplayed]=useState<{run:string;time:string}|null>(null),[data,setData]=useState<CloudWeatherData|null>(null),[metadata,setMetadata]=useState<WeatherMapMetadata[]>([]),[loading,setLoading]=useState(false),[error,setError]=useState(''),[tiles,setTiles]=useState<Set<string>>(()=>new Set());
  const [displayedNative,setDisplayedNative]=useState<CloudWeatherData|null>(null);
  // The rendered frame is independent of the next fully verified model dataset.
@@ -44,7 +44,7 @@ export function useCloudWeatherMap(enabled:boolean,target:number,modelId:string,
  useEffect(()=>{if(!enabled||modelId!=='gdps'){setGdpsDisplayed(null);return}if(ready&&gdpsPlan)setGdpsDisplayed({run:gdpsPlan.run,time:gdpsPlan.time})},[enabled,modelId,ready,context]);
  const displayedTime=modelId==='gdps'?(ready?gdpsPlan?.time:gdpsDisplayed&&gdpsDisplayed.run===run?gdpsDisplayed.time:undefined):displayedNative?.model===modelId?displayedNative.time:undefined;
  const displayedRun=modelId==='gdps'?(ready?gdpsPlan?.run:gdpsDisplayed&&gdpsDisplayed.run===run?gdpsDisplayed.run:undefined):displayedNative?.model===modelId?displayedNative.run:undefined;
- useEffect(()=>{if(!enabled||modelId!=='gdps'||!gdpsPlan||ready||error)return;const timer=window.setTimeout(()=>setError('GDPS-Kombination nicht vollständig geladen. Erneut laden oder einen gültigen Termin wählen.'),30000);return()=>window.clearTimeout(timer)},[enabled,modelId,context,Boolean(gdpsPlan),ready,error]);
+ useEffect(()=>{if(!enabled||!forecastSelected||modelId!=='gdps'||!gdpsPlan||ready||error)return;const timer=window.setTimeout(()=>setError('GDPS-Kombination nicht vollständig geladen. Erneut laden oder einen gültigen Termin wählen.'),30000);return()=>window.clearTimeout(timer)},[enabled,forecastSelected,modelId,context,Boolean(gdpsPlan),ready,error]);
  const markTile=(role:string)=>{const key=`${context}:${role}`;if(currentContext.current!==context)return;setTiles(current=>{if(current.has(key))return current;const next=new Set(current);next.add(key);while(next.size>12)next.delete(next.values().next().value!);return next})};
  const markDisplayed=(value:CloudWeatherData)=>{if(value.model===modelId)setDisplayedNative(current=>current===value?current:value)};
  const failTile=()=>{if(currentContext.current===context)setError('Wolken oder Niederschlagsart sind nicht vollständig erreichbar. Der bisherige vollständige Stand bleibt sichtbar.')};

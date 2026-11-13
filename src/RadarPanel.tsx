@@ -258,7 +258,7 @@ const MemoKonradNowcastObjects=memo(KonradNowcastObjects);
 const MemoContours=memo(Contours);
 const MemoPressureCenters=memo(PressureCenters);
 
-export type UnifiedRadarWorkspace={controls:ReactNode;overlay:ReactNode;times:string[];forecastOverlay?:ReactNode;enabled?:boolean;run?:string;cloudContrast?:boolean;sourceLabel:string;ready:boolean;onTimeChange:(time:number)=>void;onObservationLayersChange?:(active:boolean)=>void};
+export type UnifiedRadarWorkspace={controls:ReactNode;overlay:ReactNode;times:string[];forecastOverlay?:ReactNode;enabled?:boolean;run?:string;cloudContrast?:boolean;sourceLabel:string;ready:boolean;onTimeChange:(time:number,phase:CompositeTimelineFrame['phase']|undefined)=>void;forecastSelectionRequest?:number;onObservationLayersChange?:(active:boolean)=>void};
 export default function RadarPanel({lat,lon,timezone,analysis,thunder,isDay=true,actualLocation=false,focusMode=false,unified}:{lat:number;lon:number;timezone?:string;analysis?:RadarNowcast|null;thunder?:ThunderstormNowcast|null;isDay?:boolean;actualLocation?:boolean;focusMode?:boolean;unified?:UnifiedRadarWorkspace}){
  const initial=useMemo(storedSettings,[]),source=sourceForLocation(analysis,lat,lon),touchDevice=useMemo(isCoarsePointer,[]),deviceHeading=useDeviceHeading(actualLocation),headingIcon=useMemo(()=>actualLocation?locationHeadingIcon(deviceHeading.heading):selectedPlaceIcon(),[actualLocation,deviceHeading.heading]);
  const[nowMs,setNowMs]=useState(Date.now()),[clockOffsetMs,setClockOffsetMs]=useState(0),[rainViewerFrames,setRainViewerFrames]=useState<RadarFrame[]>([]),[host,setHost]=useState(''),[index,setIndex]=useState(0),[playing,setPlaying]=useState(false),[playbackSeconds,setPlaybackSeconds]=useState(initial.playbackSeconds),[playbackMessage,setPlaybackMessage]=useState(''),[playbackProbe,setPlaybackProbe]=useState(0),[previousSatelliteKey,setPreviousSatelliteKey]=useState(''),[satelliteFadeReady,setSatelliteFadeReady]=useState(true),[previousRadarTime,setPreviousRadarTime]=useState<number|undefined>(),[radarFadeReady,setRadarFadeReady]=useState(true),[liveFollow,setLiveFollow]=useState(true),[locateRequest,setLocateRequest]=useState(0);
@@ -464,7 +464,19 @@ export default function RadarPanel({lat,lon,timezone,analysis,thunder,isDay=true
  const canAnimate=frames.length>1;
 
  const selectedFrame:CompositeTimelineFrame|undefined=frames[index],targetSeconds=selectedFrame?.time??referenceSeconds,targetMs=targetSeconds*1000;
- useEffect(()=>{unified?.onTimeChange(targetMs)},[targetMs,unified?.onTimeChange]);
+ useEffect(()=>{unified?.onTimeChange(targetMs,selectedFrame?.phase)},[targetMs,selectedFrame?.phase,unified?.onTimeChange]);
+ const handledForecastSelection=useRef(0);
+ useEffect(()=>{
+  const request=unified?.forecastSelectionRequest;
+  if(!request||request===handledForecastSelection.current||!modelForecastTimes.length)return;
+  const next=preferForecastFrameIndex(frames,modelForecastTimes,targetSeconds);
+  if(frames[next]?.phase!=='forecast')return;
+  handledForecastSelection.current=request;
+  previousTimeline.current=frames[next].time;
+  setPlaying(false);
+  setLiveFollow(false);
+  setIndex(next);
+ },[unified?.forecastSelectionRequest,frames,targetSeconds,modelForecastTimes.join('|')]);
  const requestedDwdBlend=blendTimedFrames(dwdTimeline,targetSeconds,{interpolationGapSeconds:12*60,earlyGraceSeconds:8*60,lateGraceSeconds:8*60,fadeSeconds:25*60}),requestedDwdFrame=dominantBlendFrame(requestedDwdBlend),stableDwdFrame=dwdTimeline.find(frame=>frame.time===stableRadarTime),dwdBlend=requestedDwdFrame&&loadedRadarFrames.has(requestedDwdFrame.time)?requestedDwdBlend:stableDwdFrame&&retainLoadedRadarStand(stableDwdFrame.time,referenceSeconds,targetSeconds)?[{frame:stableDwdFrame,weight:1}]:unified&&(!requestedDwdFrame||Math.abs(requestedDwdFrame.time-targetSeconds)>30*60)?[]:requestedDwdBlend,dwdRenderBlend=withAdjacentPreload(dwdBlend,dwdTimeline,targetSeconds),previousDwdFrame=dwdTimeline.find(frame=>frame.time===previousRadarTime),dwdVisualBlend=unified&&!dwdBlend.length?[]:previousDwdFrame&&stableDwdFrame&&previousRadarTime!==stableRadarTime?[{frame:previousDwdFrame,weight:radarFadeReady?.001:1},{frame:stableDwdFrame,weight:radarFadeReady?1:.001},...dwdRenderBlend.filter(item=>item.frame.time!==previousRadarTime&&item.frame.time!==stableRadarTime).map(item=>({...item,weight:.001,preload:true}))]:dwdRenderBlend;
  const rainBlend=blendTimedFrames(rainViewerFrames,targetSeconds,{interpolationGapSeconds:15*60,earlyGraceSeconds:15*60,lateGraceSeconds:20*60,fadeSeconds:100*60}),rainRenderBlend=withAdjacentPreload(rainBlend,rainViewerFrames,targetSeconds);
  const operaBlend=blendTimedFrames(operaTimeline,targetSeconds,{interpolationGapSeconds:7*60,earlyGraceSeconds:7*60,lateGraceSeconds:7*60,fadeSeconds:35*60});
