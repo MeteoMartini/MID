@@ -1,3 +1,15 @@
+# MID v0.9.85.462 · Source-Integrationskandidat vom 13.11.2026 (NO RELEASE)
+
+**Veröffentlichte Basis:** main=mid-stable=`91d8eff4126a928d601dede75c121d8b284b790d`, v0.9.85.461, fünf aktive Rulesets. installer [#43328314344](https://github.com/MeteoMartini/MID/actions/runs/43328314344) `completed/success`; die alte .461-Kandidatenbeschreibung weiter unten ist historisch und belegt nicht den Stand dieses neuen Source-PR.
+
+**P0-Korrektur:** Nutzer-Screenshot Rheidt: T −1 °C, Td +1 °C, RH 95 %. Ursache ist der zuvor unabhängige Stations-/Modell-/Feld-Fallback in `src/App.tsx` und `src/forecastLocalAnchor.ts`, besonders bei getrennt gewichtetem Stationsblend. `src/currentMoistureConsistency.ts` prüft alle drei Größen DWD-konform (Band Tech 4.0, 6.3, S. 43; Wasser-Sättigung auch bei Frost). Widersprüche erzeugen gekennzeichnete rechnerische Werte aus tatsächlich angezeigter T und RH, Zeit-/MissingData-Konflikte erzeugen `undefined`/„–“, nie 0. Rohdaten und amtliche Warnungen bleiben unverändert.
+
+**Qualitätsgates:** neuer Pflichtregressionstest, neue Vitest-Fachmatrix, 1088 Scripts im vollständigen Baseline-Inventar, sämtliche Browser/Responsive-, physikalischen und bestehenden CI-/DWD-Gates unverändert. v0.9.85.462 erst nach exakt SHA-gebundenem Source-PR → geprüftem Bot-Merge → serverseitigem ZIP → Installer → Worker-/Pages-Proof → erfolgreicher Stable-Promotion publizieren.
+
+**Parallelabgrenzung:** Die bereits ausgelieferten OPERA-/RUC-Änderungen #774/#776 dürfen nicht erneut integriert werden. D2 FullDomain #446 (73 Originalobjekte, SLSA, NoData-Livekarten), RUC Fast-Lane #541, Review #740, Karten-Multimodell und AI Router bleiben eigene Prüfpfade. Keine unbewiesene reale iOS-/VoiceOver-Abnahme.
+
+## Historischer veröffentlichter Stand v0.9.85.461
+
 # MID v0.9.85.461 · Versionierter Source-/Release-Train-Kandidat, 12.11.2026
 
 **Maßgebliche Quellbasis:** main=mid-stable=`e84d2d2418cc9f1c190fd95539fb8335960c9d93`, veröffentlichte v0.9.85.460, fünf aktive Rulesets. Importierte SHA-verifizierte Spezial-PRs: #774 HEAD `d98e9b0516614bbe9f7e5c7fc714440bf5e60d9f` und #776 HEAD `b49d09a06677f1b42e1935f2a40e567aef7d2299`. Keine unverifizierten Chat-/ZIP-/Replit-Codequellen.

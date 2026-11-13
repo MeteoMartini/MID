@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.461",
+  "releaseVersion": "0.9.85.462",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -195,6 +195,7 @@
     "scripts/test-current-hyperlocal-sky-083311.mjs",
     "scripts/test-current-layout-module-controls-071080.mjs",
     "scripts/test-current-metrics-collapse-08240.mjs",
+    "scripts/test-current-moisture-0985462.mjs",
     "scripts/test-current-more-hazard-caption-08242.mjs",
     "scripts/test-current-nowcards-responsive-096612.mjs",
     "scripts/test-current-observation-multisource-cloud-098460.mjs",
@@ -599,8 +600,8 @@
     "scripts/test-mid-24h-favorites-consistency-093216.mjs",
     "scripts/test-mid-c9-smartphone-gate-098548.mjs",
     "scripts/test-mid-collaboration-hardening-0985106.mjs",
-    "scripts/test-mid-followups-095323.mjs",
     "scripts/test-mid-copilot-handoff.mjs",
+    "scripts/test-mid-followups-095323.mjs",
     "scripts/test-mid-kilo-handoff-0985429.mjs",
     "scripts/test-mid-nine-step-integration-09530.mjs",
     "scripts/test-mid-original-dwd-weather-profile-09310.mjs",
@@ -1285,6 +1286,7 @@
     "scripts/test-current-hyperlocal-sky-083311.mjs",
     "scripts/test-current-layout-module-controls-071080.mjs",
     "scripts/test-current-metrics-collapse-08240.mjs",
+    "scripts/test-current-moisture-0985462.mjs",
     "scripts/test-current-more-hazard-caption-08242.mjs",
     "scripts/test-current-nowcards-responsive-096612.mjs",
     "scripts/test-current-observation-multisource-cloud-098460.mjs",
@@ -1689,8 +1691,8 @@
     "scripts/test-mid-24h-favorites-consistency-093216.mjs",
     "scripts/test-mid-c9-smartphone-gate-098548.mjs",
     "scripts/test-mid-collaboration-hardening-0985106.mjs",
-    "scripts/test-mid-followups-095323.mjs",
     "scripts/test-mid-copilot-handoff.mjs",
+    "scripts/test-mid-followups-095323.mjs",
     "scripts/test-mid-kilo-handoff-0985429.mjs",
     "scripts/test-mid-nine-step-integration-09530.mjs",
     "scripts/test-mid-original-dwd-weather-profile-09310.mjs",
@@ -3955,9 +3957,10 @@
     "scripts/test-ruc-inventory-0985264.mjs",
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-location-mountain-resilience-0985283.mjs",
-    "scripts/test-skybar-solid-colors-0985358.mjs"
+    "scripts/test-skybar-solid-colors-0985358.mjs",
+    "scripts/test-current-moisture-0985462.mjs"
   ],
-  "version": "0.9.85.461",
+  "version": "0.9.85.462",
   "updatedAt": "2026-11-12",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",

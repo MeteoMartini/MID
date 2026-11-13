@@ -1,13 +1,14 @@
-# MID v0.9.85.461
+# MID v0.9.85.462
 
 ## Änderungen
-- Europäisches OPERA-Radar: Die aktuellen EUMETNET-Originalkomposite werden bei Ausfall des primären Speichers über den in der offiziellen MeteoGate-Antwort benannten ECMWF-Ersatzspeicher bezogen. Fremde Speicherhosts, ungültige DBZH-Dateischlüssel und Weiterleitungen werden abgelehnt.
-- Radar-Karten: Der Live-Zeitpunkt orientiert sich an tatsächlichen Beobachtungen. Ein bereits korrekt geladener Radarstand kann bei einem kurzzeitigen Fehler des Nachfolgeframes begrenzt sichtbar bleiben, statt abrupt zu verschwinden.
-- Niederschlagsart: Fehlende passende Radarechos bleiben als fehlende Beobachtung kenntlich und werden von Modellprognosen unterschieden.
-- RUC: Vor dem GitHub-Pages-Deployment wird das aktuelle Pages-Artefakt zweimal zeitversetzt SHA-256-/Run-gebunden sichtbar geprüft. Diese Prüfung gilt auch für zulässige Rohdaten-Rollbacks; Main-/Stable-SHAs werden unmittelbar davor erneut verglichen.
+- Wissenschaftlicher Feuchtecheck auf „Aktuell“: Temperatur, Taupunkt und relative Luftfeuchte werden als gemeinsame, DWD-konforme Zustandsgröße überprüft. Der zuvor mögliche Widerspruch –1 °C Lufttemperatur / +1 °C Taupunkt / 95 % RH wird verhindert.
+- Bei widersprüchlichen oder gemischten Quellen berechnet MID den Taupunkt aus der tatsächlich angezeigten Lufttemperatur und relativen Feuchte (mit sichtbarem ≈ und der Kennzeichnung „berechnet“). Bei unzureichenden, über 30 Minuten auseinanderliegenden oder fehlenden Eingangsdaten zeigt MID „–“ statt eines erfundenen Taupunkts.
+- Der lokale Prognoseanker nutzt dieselbe Feuchteprüfung und kennzeichnet rechnerisch abgeleitete Taupunkte nicht als Messwerte.
+- Die amtliche DWD-Formel unterscheidet 0 °C als Schwelle und verwendet unter dem Gefrierpunkt eigene Konstanten; bei über 0 °C mit errechnetem Taupunkt unter null erfolgt eine zweite Inversion. Relative Feuchte ist auch bei Frost über Wasser definiert.
+- Neue verbindliche Fach-/UI-Regressionen für Rheidt, Sättigung, Quellenmix, Messzeitversatz, extreme Feuchte, NoData und Rundung.
 
-## Quellen, Sicherheit und Qualität
-EUMETNET-OPERA-Kompositprodukte: CC BY 4.0 (https://www.eumetnet.eu/data-access/; https://creativecommons.org/licenses/by/4.0/). MID-Darstellungen und abgeleitete Niederschlagsraten sind keine amtlichen Warnungen. Keine neuen kostenpflichtigen Dienste, Secrets oder Produktionsrechte; bestehende DWD-/WMO-, 27h/EPS20-, NoData-, Akkumulations-, Frische- und Release-Gates bleiben bestehen.
+## Fachliche Quellen und Abgrenzung
+Deutscher Wetterdienst, Handbuch Flugwetterdienste, Band Tech v4.0, Abschnitt 6.3, S. 43: https://www.dwd.de/DE/leistungen/lf_11_flugwetterbetriebsdienste/handbuch_band_tech_v4.0_mod.pdf. MID führt eine eigene Qualitätskorrektur auf ausgewählten Daten durch; Originalbeobachtungen, Modellraster, amtliche Warnungen und Rohdaten bleiben unverändert. Ein abgeleiteter Taupunkt ist weder eine gemessene Stationsgröße noch eine amtliche Warnung.
 
-## Freigabe und Einschränkungen
-Erst nach dem regulären Source-PR-Gate, SHA-gebundenem Bot-Merge, serverseitigem Release-ZIP, Installer, Worker-/Pages-Checks und Stable-Promotion veröffentlicht. Native ICON-D2-Vollgebietsdaten (#446) benötigen weiterhin echte geschützte SLSA-/73-Objekt-/NoData-Publikationsnachweise. OPERA-Radar ersetzt keine getrennt fehlschlagenden EUMETSAT-Satellitenbilder. Keine reale iOS-/VoiceOver-Abnahme behauptet.
+## Freigabe und offene Themen
+Dies ist zunächst ein versionierter Source-Kandidat, keine neue Stable-Veröffentlichung. Vollständiger Source-PR-Gate → SHA-gebundener Bot-Merge → serverseitiges Release-ZIP → install-mid.yml → Worker/Pages → Stable-Promotion bleibt verpflichtend. P0 #446 (geschütztes originales DWD-ICON-D2-Vollgebiet/SLSA/73 Objekte), #541 (RUC-Fast-Lane), #740 (Review-Policy), AI Router und Karten-Mehrmodellqualifikation bleiben getrennte, prüfpflichtige Arbeitsstränge. Keine echte iOS-/VoiceOver-Geräteabnahme behauptet.
