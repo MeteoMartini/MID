@@ -27,6 +27,7 @@ export type CompositeProductTimes={
  dwdRadarLatestOnly?:boolean;
  dwdReferenceSatelliteProduct?:CompositeProduct;
  satelliteDayProduct?:CompositeProduct;
+ satelliteRgbProduct?:CompositeProduct;
  satelliteIrProduct?:CompositeProduct;
  satellitePrecipProduct?:CompositeProduct;
  checkedAt?:string;

@@ -31,11 +31,12 @@ describe('Sölden and Alpine map observation source fallback',()=>{
   expect(source).not.toContain("{!unified&&!rasterZooming&&showRadar&&!highResolution&&activeSource==='rainviewer'");
   expect(source).not.toContain("if(unified||!fallbackNeeded");
  });
- it('falls back from unavailable daytime VIS to sourced IR without inventing a satellite timestamp',()=>{
-  expect(source).toContain("const candidateSatellite:CompositeProduct|undefined=(!satelliteFallback&&");
-  expect(source).toContain("(productTimes.satelliteIrProduct||legacyIr)");
-  expect(source).toContain("setSatelliteTileError(message);if((isDay||satelliteLayer==='mtg_fd:rgb_geocolour')&&!satelliteFallback&&");
-  expect(source).toContain('setSatelliteFallback(true)');
+ it('prioritizes timestamped RGB and recovers from failed tiles during day or night',()=>{
+  expect(source.indexOf('productTimes.satelliteRgbProduct,')).toBeLessThan(source.indexOf('productTimes.satelliteIrProduct||legacyIr,'));
+  expect(source).toContain("productTimes.dwdReferenceSatelliteProduct?.provider==='dwd'");
+  expect(source).toContain('normalisedIsoTimes(product.times,referenceMs).length>0');
+  expect(source).toContain('if(failures>=2)setSatelliteFailures');
+  expect(source).toContain('satelliteFailures[`${product.provider}:${product.layer}`]');
   expect(source).toContain("satelliteProvider==='dwd'?'Satellit &copy; DWD':'Satellit &copy; EUMETSAT'");
  });
 });

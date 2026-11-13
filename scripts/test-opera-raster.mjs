@@ -155,6 +155,12 @@ try{
  const unavailable=await worker.fetch(new Request(fileUrl),{});
  if(unavailable.status!==502||unavailable.headers.get('cache-control')!=='no-store')
   throw new Error('Both mirrors failed but proxy advertised a usable image');
+ const {diagnostics}=await unavailable.json();
+ if(JSON.stringify(diagnostics)!==JSON.stringify([
+  {mirror:'primary',status:500,reason:'http'},
+  {mirror:'backup',status:200,reason:'invalid-response'}
+ ]))throw new Error('OPERA error must distinguish upstream failure from invalid HTTP 200');
+
  onlyExpired=true;
  const expired=await worker.fetch(request,{});
  if(expired.ok)throw new Error('An expired OPERA catalogue must not report live radar');
