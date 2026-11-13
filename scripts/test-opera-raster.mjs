@@ -120,8 +120,9 @@ const backupHost='object-store.os-api.cci1.ecmwf.int';
 const liveKey=objectKey(nominal-5*60_000);
 const expiredKey=objectKey(nominal-25*3600_000);
 let onlyExpired=false, primaryFails=false, backupFails=false;
-globalThis.fetch=async input=>{
+globalThis.fetch=async (input,init={})=>{
  const url=new URL(input);
+ if(url.pathname.endsWith(".h5")&&"cache" in init)throw new TypeError("Request cache option unavailable on this runtime");
  if(url.hostname==='api.meteogate.eu'){
   const links=[{href:`https://${backupHost}/openradar-24h-backup/${onlyExpired?expiredKey:liveKey}`},
    {href:`https://untrusted.example/openradar-24h-backup/${objectKey(nominal)}`}];

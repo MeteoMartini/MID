@@ -1,3 +1,7 @@
+# MID v0.9.85.467 · OPERA-Abruf im Wetter-Worker
+
+Stable-Basis `74579ca5de14aa903269060768ae4f7a3f9b1af5` (.466). Live-Probe #782: drei OPERA-Dateiabrufe via MID lieferten 502/Transport auf beiden Spiegeln, das identische jüngste ECMWF-Objekt war direkt als HDF5 abrufbar. Der Kandidat vermeidet die kompatibilitätsabhängige Fetch-Option.
+
 # MID v0.9.85.466 · Kandidat für Beobachtungsquellen nach Kartenausschnitt
 
 Stable-Basis: `ec0fd4c122eefb6e26ab882d7eccc5cfe353c64d` (.465). Übernahme aus #786 @ `8ebf094368c288f63a04b84d7f6c058b3d90e3e3` über #789. Frische und Provenienz der OPERA-Aufnahmen bleiben erforderlich. Weltweite Quellenabdeckung bleibt in #782 offen.
