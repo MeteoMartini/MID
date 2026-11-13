@@ -1,3 +1,12 @@
+## MID v0.9.85.464 · 13.11.2026 · SHA-sicherer Installer-Wiederanlauf ohne Git-Checkout
+
+- Verifizierte Basis: main=mid-stable `8754f589c7c998a6da6f459f0a33235153704dd8` / v0.9.85.463; Installer #43390443252 completed/success einschließlich Source-Gate, Core/Heavy, Worker, Pages und Stable-Promotion. Fünf Branch-Rulesets aktiv und unverändert.
+- Spezial-Draft #784, HEAD `e9d5934dc0bc860a6071672c8bd208cd84abe59e`, für zwei Release-Workflowspiegel und zwei bestehende Regressionstests selektiv wiederverwendet. Keine ungesicherte Cherry-Pick-Übernahme des alten .462-Drafts.
+- Fehler #783: `gh workflow run install-mid.yml` konnte im erlaubten Recovery-Job ohne Checkout kein Git-Repository ermitteln. Explizites `--repo "$GITHUB_REPOSITORY"` sichert den bekannten Zielpfad auch bei checkoutlosem Wiederanlauf.
+- SHA-Fence, genau ein GitHub-ZIP-Commit, Bot-/PR-Provenienz und No-Duplicate-Installer-Gates bleiben im Quelltext unverändert. Version v0.9.85.464 in Package/Lock/Baseline/Vertragsregister, PWA, Worker, Changelog und iOS-Build 465 synchronisiert.
+- Bestehende Vitest-/Node-Regressionsprüfungen auf das neue Recovery-Kommando ergänzt. Keine neuen Wetterdaten, Kosten, Rechte oder Produktions-Governance; keine Livekarte/realen iOS-Gerätetest vorgetäuscht.
+- Source-/Release-Kandidat; kein behaupteter Release vor vollständig grünem Source-PR → Bot → ZIP → Installer → Worker/Pages → Stable-Promotion.
+
 ## MID v0.9.85.463 · 13.11.2026 · Original-OPERA-Objektfallback und RUC-Signer-Ablaufisolation
 
 - Verifizierte Stable-Basis: main=mid-stable `1d492743f1d2c38028dae9a01be24e65643537e7`, v0.9.85.462, Installer #43381596669 SUCCESS; fünf Rulesets unverändert.
