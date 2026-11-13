@@ -1,10 +1,13 @@
-import {useEffect,useId,useState} from 'react';
+import {useEffect,useId,useMemo,useState} from 'react';
 import {compositeWmsProxy,loadCompositeTimes,loadOperaRaster,type CompositeProductTimes,type ProductTime,type WmsProvider} from './CompositeData';
 import {formatWeatherValue} from "./weatherValueFormat";
 import {PRECIPITATION_TYPE_COLORS,radarDbzColor} from './radarColorTables';
+import {loadModelMapGeography,type ModelMapGeography} from './modelMapGeography';
 import './CurrentSurroundings.css';
 
-type Props={lat:number;lon:number;name:string;timezone:string;temperature:number;temperatureTime:string;onOpen:(time?:number)=>void};
+export type SurroundingsBounds={west:number;south:number;east:number;north:number};
+
+type Props={lat:number;lon:number;name:string;timezone:string;temperature:number;temperatureTime:string;onOpen:(time:number|undefined,bounds:SurroundingsBounds)=>void};
 const rvLayer='dwd:Radar_rv_product_1x1km_ger';
 
 function validTimes(values:ProductTime[]|undefined){
@@ -32,7 +35,7 @@ export default function CurrentSurroundings(props:Props){
  const [imageError,setImageError]=useState('');
  const [cloudError,setCloudError]=useState('');
  const [showPhase,setShowPhase]=useState(false);
- const [phaseImage,setPhaseImage]=useState<{url?:string;time:number;temperatures:{x:number;y:number;value:number}[]}>();
+ const [phaseImage,setPhaseImage]=useState<{url?:string;time:number}>();
  const [phaseLoading,setPhaseLoading]=useState(false);
  useEffect(()=>{
   const controller=new AbortController();
@@ -45,8 +48,31 @@ export default function CurrentSurroundings(props:Props){
  const dwdArea=lat>=47&&lat<=55.3&&lon>=5.4&&lon<=15.7;
  const observed=dwdArea?validTimes(catalog?.dwdRadar).filter(time=>time>=now-45*60000&&time<=now+90000).at(-1):undefined;
  const future=dwdArea?validTimes(catalog?.dwdRadarNowcast).filter(time=>time>now+90000&&time<=now+120*60000):[];
- const target=selection??observed;
- const bounds=[Math.max(-180,lon-1.4),Math.max(-90,lat-.65),Math.min(180,lon+1.4),Math.min(90,lat+.65)].join(',');
+ const target=selection===undefined?observed:future.includes(selection)?selection:undefined;
+ const west=Math.max(-180,Math.min(177.2,lon-1.4)),south=Math.max(-85,Math.min(83.7,lat-.65));
+ const east=west+2.8,north=south+1.3;
+ const bounds=[west,south,east,north].join(',');
+ const [geography,setGeography]=useState<ModelMapGeography>();
+ useEffect(()=>{
+  let active=true;
+  void loadModelMapGeography().then(value=>{if(active)setGeography(value)}).catch(()=>{});
+  return ()=>{active=false};
+ },[]);
+ const orientation=useMemo(()=>{
+  const project=(lng:number,latitude:number)=>[(lng-west)/(east-west)*512,(north-latitude)/(north-south)*256];
+  const rings=[...(geography?.countries??[]),...(geography?.states.flatMap(state=>state.rings)??[])];
+  const paths=rings.filter(ring=>ring.some(([lng,latitude])=>lng>=west-3&&lng<=east+3&&latitude>=south-2&&latitude<=north+2))
+   .map(ring=>ring.map(([lng,latitude],index)=>(index?'L':'M')+project(lng,latitude).map(value=>value.toFixed(1)).join(' ')).join('')).join('');
+  const places:{name:string;x:number;y:number}[]=[];
+  for(const place of geography?.places??[]){
+   const [x,y]=project(place.lon,place.lat);
+   if(x<55||x>457||y<25||y>231||(Math.abs(x-256)<145&&Math.abs(y-128)<32))continue;
+   if(places.some(other=>Math.abs(other.x-x)<125&&Math.abs(other.y-y)<32))continue;
+   places.push({name:place.name,x,y});
+   if(places.length===4)break;
+  }
+  return {paths,places,center:project(lon,lat)};
+ },[geography,west,south,east,north,lat,lon]);
  const radar=target===undefined?'':imageUrl('dwd',rvLayer,target,bounds);
  const satellite=catalog?.satelliteRgbProduct??catalog?.satelliteIrProduct;
  const satelliteTime=validTimes(satellite?.times).filter(time=>time>=now-75*60000&&time<=now+90000).at(-1);
@@ -121,26 +147,39 @@ export default function CurrentSurroundings(props:Props){
     lat:north-y*(north-south)/canvas.height,
     lng:west+x*(east-west)/canvas.width
    }));
-   const temperatures=[];
-   for(const [x,y] of [[.23,.27],[.77,.27],[.23,.73],[.77,.73]]){
-    const sampleLat=north-y*(north-south),sampleLon=west+x*(east-west);
-    const row=grid.lats.findIndex(value=>Math.abs(value-sampleLat)<=phase.latStep/2);
-    const col=grid.lons.findIndex(value=>Math.abs(value-sampleLon)<=phase.lonStep/2);
-    if(row<0||col<0)continue;
-    const index=row*grid.lons.length+col;
-    const value=grid.frame.temperature2m[index],valid=Date.parse(grid.phaseValidTimeByCell?.[index]??'');
-    if(grid.phaseSourceByCell?.[index]&&Number.isFinite(value)&&Math.abs(valid-time)<=20*60000)temperatures.push({x,y,value});
-   }
-   setPhaseImage({url:phase.colors.size?canvas.toDataURL():undefined,time,temperatures});
+   setPhaseImage({url:phase.colors.size?canvas.toDataURL():undefined,time});
   }
   void load().catch(()=>{}).finally(()=>{if(!controller.signal.aborted){setOperaFinished(true);setPhaseLoading(false)}});
   return ()=>controller.abort();
  },[needsOpera,showPhase,lat,lon,bounds]);
  const displayedOpera=needsOpera?opera:undefined;
  const displayedPhase=showPhase&&displayedOpera&&phaseImage?.time===displayedOpera.time?phaseImage:undefined;
+ const displayTime=displayedOpera?.time??loaded?.time;
+ const [temperatureGrid,setTemperatureGrid]=useState<{time:number;values:{x:number;y:number;value:number}[]}>();
+ useEffect(()=>{
+  if(selection!==undefined||displayTime===undefined||displayTime>Date.now()+90000)return;
+  const controller=new AbortController();
+  const time=displayTime;
+  void import('./WeatherMapsData').then(({loadWeatherPhaseGrid})=>loadWeatherPhaseGrid(lat,lon,new Date(time).toISOString(),controller.signal)).then(grid=>{
+   if(controller.signal.aborted||grid.error||grid.stale||(grid.modelAgeHours??0)>16)return;
+   const latStep=Math.abs(grid.lats[1]-grid.lats[0]),lonStep=Math.abs(grid.lons[1]-grid.lons[0]);
+   const values=[];
+   for(const [x,y] of [[.23,.27],[.77,.27],[.23,.73],[.77,.73]]){
+    const row=grid.lats.findIndex(value=>Math.abs(value-(north-y*(north-south)))<=latStep/2);
+    const col=grid.lons.findIndex(value=>Math.abs(value-(west+x*(east-west)))<=lonStep/2);
+    if(row<0||col<0)continue;
+    const index=row*grid.lons.length+col;
+    const value=grid.frame.temperature2m[index],valid=Date.parse(grid.phaseValidTimeByCell?.[index]??'');
+    if(grid.phaseSourceByCell?.[index]&&Number.isFinite(value)&&Math.abs(valid-time)<=20*60000)values.push({x,y,value});
+   }
+   setTemperatureGrid({time,values});
+  }).catch(()=>{});
+  return ()=>controller.abort();
+ },[selection,displayTime,lat,lon,west,south,east,north]);
+ const temperatures=selection===undefined&&temperatureGrid?.time===displayTime?temperatureGrid?.values:undefined;
  const visibleClouds=Boolean(clouds&&cloudError!==clouds);
  return <section className="card current-surroundings" aria-labelledby={heading}>
-  <header><h2 id={heading}>Wetter im Umfeld</h2><button type="button" onClick={()=>onOpen(displayedOpera?.time??loaded?.time)}>Karte öffnen</button></header>
+  <header><h2 id={heading}>Wetter im Umfeld</h2><button type="button" onClick={()=>onOpen(displayTime,{west,south,east,north})}>Karte öffnen</button></header>
   <div className="current-surroundings-controls">
    <button type="button" aria-pressed={selection===undefined} onClick={()=>setSelection(undefined)}>Jetzt</button>
    <button type="button" aria-pressed={showPhase} disabled={selection!==undefined} onClick={()=>setShowPhase(value=>!value)}>Niederschlagsart</button>
@@ -152,13 +191,16 @@ export default function CurrentSurroundings(props:Props){
   <div className="current-surroundings-map" aria-label={`Wetterbild um ${name}`}>
    {visibleClouds&&<img src={clouds} alt="" onError={()=>setCloudError(clouds)}/>}
    {(displayedOpera??loaded)&&<img src={displayedPhase?.url??(displayedOpera??loaded)?.url} alt="" />}
-   <span className="current-surroundings-site">{name}{Number.isFinite(temperature)&&<> · {formatWeatherValue(temperature,'temperature','overview')} °C</>}</span>
-   {displayedPhase?.temperatures.map(({x,y,value})=><span key={x+':'+y} className="current-surroundings-temperature" style={{left:x*100+'%',top:y*100+'%'}} aria-label={`Modelltemperatur ${formatWeatherValue(value,'temperature','overview')} Grad Celsius`}>{formatWeatherValue(value,'temperature','overview')}°</span>)}
+   <svg className="current-surroundings-orientation" viewBox="0 0 512 256" preserveAspectRatio="none" aria-hidden="true"><path d={orientation.paths}/></svg>
+   {orientation.places.filter(place=>!temperatures?.some(({x,y})=>Math.abs(place.x-x*512)<85&&Math.abs(place.y-y*256)<30)).map(place=><span key={place.name} className="current-surroundings-place" style={{left:place.x/5.12+'%',top:place.y/2.56+'%'}}>{place.name}</span>)}
+   <span className="current-surroundings-site" style={{left:orientation.center[0]/5.12+'%',top:orientation.center[1]/2.56+'%'}}>{name}{Number.isFinite(temperature)&&<> · {formatWeatherValue(temperature,'temperature','overview')} °C</>}</span>
+   {temperatures?.map(({x,y,value})=><span key={x+':'+y} className="current-surroundings-temperature" style={{left:x*100+'%',top:y*100+'%'}} aria-label={`Modelltemperatur ${formatWeatherValue(value,'temperature','overview')} Grad Celsius`}>{formatWeatherValue(value,'temperature','overview')}°</span>)}
   </div>
+  {geography&&<p>Kartengrundlage · Natural Earth</p>}
   <p role="status">{displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr</>:needsOpera&&!operaFinished&&!loaded?'Europäisches Radar wird geladen …':loaded?<>DWD-Radar · {loaded.time>now+90000?'Nowcast':'Beobachtung'} {clock(loaded.time)} Uhr{loaded.url!==radar?(imageError===radar?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</p>
   {visibleClouds&&satelliteTime!==undefined&&<p>Bewölkung · {satellite?.provider==='dwd'?'DWD':'EUMETSAT'} · Beobachtung {clock(satelliteTime)} Uhr</p>}
   {Number.isFinite(temperature)&&temperatureTime&&<p>Temperatur am gewählten Ort · {temperatureTime.slice(11,16)} Uhr</p>}
-  {Boolean(displayedPhase?.temperatures.length)&&<p>Umfeldtemperaturen · Modellwerte zum Radarstand</p>}
+  {Boolean(temperatures?.length)&&<p>Umfeldtemperaturen · Modellwerte zum Radarstand</p>}
   {selection===undefined&&showPhase&&(displayedPhase?.url
    ?<p>Radar + Modellphase · {([
     ['rain','Regen'],['mixed','Schneeregen'],['snow','Schnee'],['freezing','Gefrierend'],

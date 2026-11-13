@@ -1,3 +1,4 @@
+import type {SurroundingsBounds} from './CurrentSurroundings';
 import {ModuleLoadingState} from './ModuleLoadingState';
 import {lazy,memo,Suspense,useEffect,useState} from 'react';
 import {type WeatherMapFavoriteLocation} from './PrecipitationTotalsMap';
@@ -20,7 +21,7 @@ type MapWorkspacePanelProps={
  actualLocation:boolean;
  focusMode:boolean;
  favorites:WeatherMapFavoriteLocation[];
- observationRequest?:{lat:number;lon:number;time:number;id:number};
+ observationRequest?:{lat:number;lon:number;time?:number;id:number;bounds:SurroundingsBounds};
  unit?:WindUnit;
 };
 

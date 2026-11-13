@@ -10,3 +10,6 @@
 
 .current-surroundings-phase { display:inline-block; margin-inline-start:.55rem; }
 .current-surroundings-temperature { position:absolute; transform:translate(-50%,-50%); padding:.15rem .35rem; border-radius:.3rem; color:CanvasText; background:Canvas; white-space:nowrap; font-size:.82rem; }
+.current-surroundings-orientation { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+.current-surroundings-orientation path { fill:none; stroke:CanvasText; stroke-opacity:.55; stroke-width:1; vector-effect:non-scaling-stroke; }
+.current-surroundings-place { position:absolute; transform:translate(-50%,-50%); color:CanvasText; background:Canvas; border-radius:.2rem; padding:0 .2rem; font-size:.72rem; max-width:22%; text-align:center; overflow-wrap:anywhere; }
