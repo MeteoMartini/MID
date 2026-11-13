@@ -1,3 +1,7 @@
+## MID v0.9.85.469 · DWD-Radar-Nowcast in der Kartenzeitachse
+
+Basis: `4fcca5dd8b458e3fc45577beeadc228adcc5bb83` (.468), zu #782. Am 13.11.2026 lieferten DWD und MID für 16:15 UTC byteidentische RV-GetMap-PNGs. Der bisherige Katalog verwarf Zukunftstermine, die geprüfte WMS-1.3.0-Antwort listete nur Beobachtungen, und der serielle Katalogabruf lief bei Köln in Timeouts. Der RV-Katalog verwendet beide offiziellen DWD-Workspace-Endpunkte parallel mit WMS 1.1.1. Nur bestätigte RV-Termine bis +2 h werden separat gemeldet und als RV-Kacheln angefordert. Lokal: Typprüfung, WMS-Katalog-/Karten-/OPERA-Regression und Versionsprüfung bestanden. Produktivabnahme nach Release.
+
 ## MID v0.9.85.468 · OPERA-Weiterleitungsmodus
 
 - Basis: `eaa1cc3870974a08122a9dcbb6b363ed5a17fbd1` (.467), Issue #782. Drei aktuelle OPERA-Frames über MID mit HTTP 502, identische Originalobjekte am ECMWF-Spiegel mit HTTP 200 und HDF5-Signatur.

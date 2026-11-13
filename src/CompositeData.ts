@@ -23,6 +23,7 @@ export type CompositeProductTimes={
  mtgLightning:ProductTime[];
  dwdLightning:ProductTime[];
  dwdRadar?:ProductTime[];
+ dwdRadarNowcast?:ProductTime[];
  dwdRadarLayer?:string;
  dwdRadarLatestOnly?:boolean;
  dwdReferenceSatelliteProduct?:CompositeProduct;
