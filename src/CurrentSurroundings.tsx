@@ -1,6 +1,7 @@
 import {useEffect,useId,useState} from 'react';
-import {compositeWmsProxy,loadCompositeTimes,type CompositeProductTimes,type ProductTime,type WmsProvider} from './CompositeData';
+import {compositeWmsProxy,loadCompositeTimes,loadOperaRaster,type CompositeProductTimes,type ProductTime,type WmsProvider} from './CompositeData';
 import {formatWeatherValue} from "./weatherValueFormat";
+import {radarDbzColor} from './radarColorTables';
 import './CurrentSurroundings.css';
 
 type Props={lat:number;lon:number;name:string;timezone:string;temperature:number;temperatureTime:string;onOpen:(time?:number)=>void};
@@ -26,6 +27,8 @@ export default function CurrentSurroundings(props:Props){
  const [failed,setFailed]=useState(false);
  const [selection,setSelection]=useState<number>();
  const [loaded,setLoaded]=useState<{url:string;time:number}>();
+ const [opera,setOpera]=useState<{url:string;time:number}>();
+ const [operaFinished,setOperaFinished]=useState(false);
  const [imageError,setImageError]=useState('');
  useEffect(()=>{
   const controller=new AbortController();
@@ -50,8 +53,43 @@ export default function CurrentSurroundings(props:Props){
   img.src=radar;
   return ()=>{img.onload=null;img.onerror=null};
  },[radar,target]);
+ const needsOpera=selection===undefined&&Boolean((catalog&&!radar)||failed||(radar&&imageError===radar));
+ useEffect(()=>{
+  if(!needsOpera)return;
+  const controller=new AbortController();
+  async function load(){
+   const metadata=await loadOperaRaster(lat,lon,controller.signal);
+   const reference=Date.now();
+   const frame=metadata.frames.filter(item=>{
+    const time=Date.parse(item.time);
+    return time>=reference-45*60000&&time<=reference+90000;
+   }).sort((a,b)=>Date.parse(b.time)-Date.parse(a.time))[0];
+   if(!frame)return;
+   const {loadOperaRasterData,operaRasterPoint}=await import('./OperaRasterSource');
+   const raster=await loadOperaRasterData(frame.fileUrl,controller.signal);
+   if(controller.signal.aborted)return;
+   const canvas=document.createElement('canvas');
+   canvas.width=256;canvas.height=128;
+   const context=canvas.getContext('2d');
+   if(!context)return;
+   const [west,south,east,north]=bounds.split(',').map(Number);
+   const image=context.createImageData(canvas.width,canvas.height);
+   let covered=false;
+   for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){
+    const point=operaRasterPoint(raster,north-(y+.5)*(north-south)/canvas.height,west+(x+.5)*(east-west)/canvas.width);
+    covered ||= point.covered;
+    if(point.dbz!==undefined)image.data.set(radarDbzColor(point.dbz),(y*canvas.width+x)*4);
+   }
+   if(!covered)return;
+   context.putImageData(image,0,0);
+   setOpera({url:canvas.toDataURL(),time:Date.parse(frame.time)});
+  }
+  void load().catch(()=>{}).finally(()=>{if(!controller.signal.aborted)setOperaFinished(true)});
+  return ()=>controller.abort();
+ },[needsOpera,lat,lon,bounds]);
+ const displayedOpera=needsOpera?opera:undefined;
  return <section className="card current-surroundings" aria-labelledby={heading}>
-  <header><h2 id={heading}>Wetter im Umfeld</h2><button type="button" onClick={()=>onOpen(loaded?.time)}>Karte öffnen</button></header>
+  <header><h2 id={heading}>Wetter im Umfeld</h2><button type="button" onClick={()=>onOpen(displayedOpera?.time??loaded?.time)}>Karte öffnen</button></header>
   <div className="current-surroundings-controls">
    <button type="button" aria-pressed={selection===undefined} onClick={()=>setSelection(undefined)}>Jetzt</button>
    <label>Nächste 2 h <select aria-label="Radar-Nowcast-Termin" value={selection??''} disabled={!future.length} onChange={event=>setSelection(event.target.value?Number(event.target.value):undefined)}>
@@ -61,10 +99,10 @@ export default function CurrentSurroundings(props:Props){
   </div>
   <div className="current-surroundings-map" aria-label={`Wetterbild um ${name}`}>
    {clouds&&<img src={clouds} alt="" onError={event=>{event.currentTarget.hidden=true}}/>}
-   {loaded&&<img src={loaded.url} alt="" />}
+   {(displayedOpera??loaded)&&<img src={(displayedOpera??loaded)?.url} alt="" />}
    <span className="current-surroundings-site">{name}{Number.isFinite(temperature)&&<> · {formatWeatherValue(temperature,'temperature','overview')} °C</>}</span>
   </div>
-  <p role="status">{loaded?<>DWD-Radar · {loaded.time>now+90000?'Nowcast':'Beobachtung'} {clock(loaded.time)} Uhr{loaded.url!==radar?(imageError===radar?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</p>
+  <p role="status">{displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr</>:needsOpera&&!operaFinished&&!loaded?'Europäisches Radar wird geladen …':loaded?<>DWD-Radar · {loaded.time>now+90000?'Nowcast':'Beobachtung'} {clock(loaded.time)} Uhr{loaded.url!==radar?(imageError===radar?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</p>
   {clouds&&satelliteTime!==undefined&&<p>Bewölkung · {satellite?.provider==='dwd'?'DWD':'EUMETSAT'} · Beobachtung {clock(satelliteTime)} Uhr</p>}
   {Number.isFinite(temperature)&&temperatureTime&&<p>Temperatur am gewählten Ort · {temperatureTime.slice(11,16)} Uhr</p>}
   <p>Niederschlagsart und Radarlegende in der Detailkarte.</p>
