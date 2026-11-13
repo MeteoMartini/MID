@@ -4,7 +4,7 @@ from __future__ import annotations
 import argparse,concurrent.futures,hashlib,http.client,json,shutil,time,urllib.error,urllib.parse,urllib.request
 from pathlib import Path
 
-TRANSIENT_HTTP_CODES={429,500,502,503,504}
+TRANSIENT_HTTP_CODES={429,500,502,503,504,520}
 MAX_RESTORE_WORKERS=8
 DEFAULT_FETCH_RETRIES=4
 
