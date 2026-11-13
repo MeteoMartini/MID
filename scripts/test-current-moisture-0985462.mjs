@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {transpileModule,ModuleKind,ScriptTarget} from 'typescript';
+import ts from 'typescript';
+const {transpileModule,ModuleKind,ScriptTarget}=ts;
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const code=transpileModule(read('src/currentMoistureConsistency.ts'),{
  compilerOptions:{module:ModuleKind.ESNext,target:ScriptTarget.ES2022}

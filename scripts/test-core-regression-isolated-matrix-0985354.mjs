@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {regressionSuite} from './regression-suite.mjs';
-import {REGRESSION_CORE_SUBSHARDS,REGRESSION_CORE_BALANCE_SWAPS,REGRESSION_SHARD_NAMES,regressionCoreSubshards,regressionShard,regressionShardPlan} from './regression-shards.mjs';
+import {REGRESSION_CORE_SUBSHARDS,REGRESSION_CORE_BALANCE_SWAPS,REGRESSION_CORE_STABLE_ADDITIONS,REGRESSION_SHARD_NAMES,regressionCoreSubshards,regressionShard,regressionShardPlan} from './regression-shards.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const file='scripts/test-core-regression-isolated-matrix-0985354.mjs';
@@ -36,16 +36,20 @@ const expectedSwaps=[
  {slow:'test-module-css-consolidation-0985170.mjs',destination:'core-4/4',light:'test-mid-weather-profile-axes-09322.mjs'},
 ];
 assert.deepEqual(REGRESSION_CORE_BALANCE_SWAPS,expectedSwaps,'Only the independently reviewed three cost-balancing swaps are authorized.');
-const expected=Object.fromEntries(REGRESSION_CORE_SUBSHARDS.map((name,index)=>[name,full.filter((_,i)=>i%REGRESSION_CORE_SUBSHARDS.length===index)]));
+assert.deepEqual(REGRESSION_CORE_STABLE_ADDITIONS,[{test:'test-current-moisture-0985462.mjs',destination:'core-4/4'}],'New meteorology regression must run in exactly one qualified mandatory Core job');
+const additions=new Set(REGRESSION_CORE_STABLE_ADDITIONS.map(row=>row.test));
+const previous=full.filter(name=>!additions.has(name));
+const expected=Object.fromEntries(REGRESSION_CORE_SUBSHARDS.map((name,index)=>[name,previous.filter((_,i)=>i%REGRESSION_CORE_SUBSHARDS.length===index)]));
 for(const {slow,destination,light} of expectedSwaps){
  const overloaded=expected['core-2/4'],spare=expected[destination],sourceIndex=overloaded.indexOf(slow),destIndex=spare.indexOf(light);
  assert.notEqual(sourceIndex,-1,'Original slow test must belong to core-2/4: '+slow);
  assert.notEqual(destIndex,-1,'Lightweight donor must belong to original destination: '+light);
  overloaded[sourceIndex]=light;spare[destIndex]=slow;
 }
+for(const {test,destination} of REGRESSION_CORE_STABLE_ADDITIONS)expected[destination].push(test);
 for(const [index,name] of REGRESSION_CORE_SUBSHARDS.entries()){
  assert.deepEqual(parts[name],expected[name].sort(),'Shard membership or deterministic execution order drift: '+name);
- assert.equal(parts[name].length,full.filter((_,i)=>i%REGRESSION_CORE_SUBSHARDS.length===index).length,'Balancing may not change mandated Core test counts: '+name);
+ assert.equal(parts[name].length,previous.filter((_,i)=>i%REGRESSION_CORE_SUBSHARDS.length===index).length+REGRESSION_CORE_STABLE_ADDITIONS.filter(x=>x.destination===name).length,'Balancing and new scientific regression must preserve per-shard test counts: '+name);
  assert.ok(parts[name].length>0,`Core subshard empty: ${name}`);
 }
 await assert.rejects(regressionShard(root,'core-0/4'),/Unknown MID regression shard/);
