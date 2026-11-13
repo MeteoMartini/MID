@@ -61,6 +61,42 @@ if(!baseline.regressionTests?.includes('scripts/test-github-workflow-bootstrap-0
 const managed=managedFiles.map(([sourceRelative])=>sourceRelative);
 for(const relative of managed)await readFile(path.join(root,'ci','github',relative),'utf8');
 const sourceRelease=await readFile(path.join(root,'ci','github','workflows','agent-source-release.yml'),'utf8');
+const activeSourceRelease=await readFile(path.join(root,'.github','workflows','agent-source-release.yml'),'utf8');
+if(activeSourceRelease!==sourceRelease)failures.push('MID Source-Release: kanonischer und aktiver Workflow müssen bytegleich sein.');
+function trustedSourceReleaseTriggerValid(text){
+ const event=text.split('\npermissions:')[0]??'';
+ const body=text.split('\n  merge_package_dispatch:')[1]?.split('\n    runs-on:')[0]??'';
+ const branches=event.split('\n    branches:\n')[1]?.match(/^      - '([^']+)'$/gm)??[];
+ return event.includes("  workflow_run:\n") &&
+   event.includes("      - MID ChatGPT/Codex Source-PR Gate\n") &&
+   event.includes("      - completed\n") &&
+   branches.length===2 &&
+   branches[0]==="      - 'chatgpt/**'" &&
+   branches[1]==="      - 'codex/**'" &&
+   body.includes("github.event.workflow_run.conclusion == 'success'") &&
+   body.includes("github.event.workflow_run.event == 'pull_request'") &&
+   body.includes("startsWith(github.event.workflow_run.head_branch, 'chatgpt/')") &&
+   body.includes("startsWith(github.event.workflow_run.head_branch, 'codex/')") &&
+   text.includes('case "$RUN_HEAD_BRANCH" in') &&
+   text.includes('chatgpt/*|codex/*)') &&
+   text.includes("steps.pr.outputs.already_merged != 'true'") &&
+   text.includes('sha="${EXPECTED_HEAD_SHA}"') &&
+   text.includes('gh workflow run install-mid.yml --ref main');
+}
+if(!trustedSourceReleaseTriggerValid(sourceRelease))failures.push('Release-Folgeworkflow darf nur von erfolgreichen Source-PR-Gates auf chatgpt/* oder codex/* ausgelöst werden.');
+const hostileReleaseVariants=[
+ ['Copilot-Release-Freigabe',sourceRelease.replace("      - 'codex/**'","      - 'copilot/**'")],
+ ['ungeschützter Release-Trigger',sourceRelease.replace("    branches:\n      - 'chatgpt/**'\n      - 'codex/**'\n",'')],
+ ['zu enger Branch-Glob',sourceRelease.replace("      - 'chatgpt/**'","      - 'chatgpt/*'")],
+ ['Release-Job für Copilot',sourceRelease.replace("startsWith(github.event.workflow_run.head_branch, 'codex/')","startsWith(github.event.workflow_run.head_branch, 'copilot/')")],
+ ['ohne Source-Gate-Success',sourceRelease.replace("github.event.workflow_run.conclusion == 'success'","github.event.workflow_run.conclusion != 'cancelled'")],
+ ['ohne PR-Vertrag',sourceRelease.replace("github.event.workflow_run.event == 'pull_request'","github.event.workflow_run.event != 'push'")],
+ ['ohne SHA-Merge',sourceRelease.replace('sha="${EXPECTED_HEAD_SHA}"','sha="$RUN_HEAD_SHA"')],
+ ['ohne Installer',sourceRelease.replace('gh workflow run install-mid.yml --ref main','echo no-installer')]
+];
+for(const [name,mutant] of hostileReleaseVariants){
+ if(mutant===sourceRelease||trustedSourceReleaseTriggerValid(mutant))failures.push('MID Source-Release: adversariale Negativprobe nicht zurückgewiesen: '+name);
+}
 for(const token of [
   '-f state=all',
   '.state == "open" or .merged_at != null',

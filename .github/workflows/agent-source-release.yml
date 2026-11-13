@@ -7,6 +7,12 @@ on:
       - MID ChatGPT/Codex Source-PR Gate
     types:
       - completed
+    # GitHub filters on the *triggering Source-PR Gate run head branch*,
+    # not this workflow's own default-branch GITHUB_REF (main).
+    # In particular, never enqueue release runs for untrusted copilot/* PRs.
+    branches:
+      - 'chatgpt/**'
+      - 'codex/**'
 
 permissions:
   contents: read
@@ -22,7 +28,9 @@ jobs:
     name: PR mergen, Release-ZIP erzeugen und Installer starten
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'pull_request'
+      github.event.workflow_run.event == 'pull_request' &&
+      (startsWith(github.event.workflow_run.head_branch, 'chatgpt/') ||
+       startsWith(github.event.workflow_run.head_branch, 'codex/'))
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
