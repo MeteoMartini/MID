@@ -17,7 +17,7 @@ assert.ok(app.includes('currentThreadTemperatures=useMemo(()=>currentThreadSerie
 assert.ok(app.includes('currentThreadTrendLabel=useMemo(()=>currentTemperatureRangeLabel(currentThreadTemperatures)'),'MID244: Spanne aus allen tatsächlich angezeigten Stundenwerten.');
 assert.ok(!app.includes("function currentTemperatureTrendSummary(values:number[])")&&!app.includes("danach ↗")&&!app.includes("danach ↘"),'Mehrphasige Trendtexte müssen entfernt sein.');
 assert.ok(app.includes("minimumSpan={4}"),'Die Sparkline muss mindestens 4 K Darstellungsbereich verwenden, damit kleine Änderungen nicht übertrieben werden.');
-assert.ok(app.includes("Taupunkt / Feuchte</small><b>{Math.round(dew)} °C</b><em>{Math.round(hum)} %</em>"),'Taupunkt muss primär, relative Feuchte sekundär bleiben.');
+assert.ok(app.includes("Taupunkt / Feuchte</small><b>{moistureDewLabel}</b><em>{moistureHumidityLabel}")&&app.includes('reconcileCurrentMoisture({')&&app.includes('moisture.source===\'calculated\''),'Taupunkt muss primär, relative Feuchte sekundär bleiben; Werte sind physikalisch geprüft und berechnete Größen gekennzeichnet.');
 
 assert.ok(design.includes("minimumSpan=4"),'MidWeatherThread braucht einen wissenschaftlich konservativen Mindestbereich.');
 assert.ok(design.includes("span=Math.max(Math.max(.1,minimumSpan),rawRange*1.18)"),'Vertikalskala muss kleine Temperaturspannen begrenzen.');

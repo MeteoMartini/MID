@@ -1,3 +1,12 @@
+## MID v0.9.85.462 · 13.11.2026 · DWD-konforme Taupunkt-/Feuchte-Kohärenz und lokaler Prognoseanker
+
+- Live Source of Truth vor Umsetzung: main=mid-stable `91d8eff4126a928d601dede75c121d8b284b790d`, veröffentlichte v0.9.85.461; fünf aktive GitHub-Rulesets. Installer #43328314344 `completed/success` mit Core/Heavy/Pages/Worker/Stable.
+- Reproduktion: Rheidt am 13.11.2026, Bildschirm Aktuell −1 °C, Taupunkt +1 °C, rel. Feuchte 95 %. Fehlendes gemeinsames Gating bei unabhängiger Station-/Modell-Auswahl und stationärer Einzelparametergewichtung identifiziert.
+- DWD-Fachquelle: Band Tech v4.0, 6.3, S. 43, Sättigungsdampfdruck C1=6,10780, warme/kalte c2/c3-Werte und Kalt-Inversionssonderfall. Kein erfundener Messwert, keine Rundungs-/NoData-Manipulation.
+- Neuer reiner Integritätsalgorithmus im Current-/ForecastLocalAnchor-Pfad: 5 Prozentpunkte RH-Toleranz, originäre Quellenpaar-Prüfung, zeitlicher Versatz ≤30 min sofern bekannt, echte 0 % RH als definierte RH ohne endlichen Taupunkt; keine Änderung der zugrundeliegenden Originaldaten.
+- Neue Vitest-Matrix plus neuer verbindlicher Core-Regressionstest `test-current-moisture-0985462.mjs`, synchronisiertes MID_BASELINE-Register und alle Versionsspiegel. iOS Build 463; keine Änderungen an Warn- oder Release-Gates.
+- Parallel-PRs #774/#776 bereits via .461 publiziert, keine redundante erneute Integration. #775 und #773 weiterhin qualifikationspflichtige Spezial-Drafts; kein blindes Mergen.
+- Erst nach vollem Source-/Core-/Heavy-/Browser-/Release-/Worker-/Pages-Gate als veröffentlicht melden.
 ## MID v0.9.85.461 · 12.11.2026 · OPERA-Radar-Fallback und RUC-Pages-Artefaktsichtbarkeit
 
 - Basis: main=mid-stable `e84d2d2418cc9f1c190fd95539fb8335960c9d93`, veröffentlicht v0.9.85.460; fünf aktive Rulesets.

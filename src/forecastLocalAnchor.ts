@@ -1,11 +1,12 @@
 import {precipitationParts} from './precipitation';
 import {stationFieldObservationUsable,type Station,type Weather} from './weather';
+import {reconcileCurrentMoisture} from './currentMoistureConsistency';
 import type {ForecastLocalAnchor,ForecastLocalAnchorField} from './forecastFusion';
 import type {StationAnalysisField} from './sourceQuality';
 import {classifyVisibilityPhenomenon,parseReportedVisibilityPhenomenon} from './visibilityPhenomena';
 import {observedPrecipitationForecastCode} from './observationPresentWeather';
 
-function finite(value:unknown){const number=Number(value);return Number.isFinite(number)?number:undefined}
+function finite(value:unknown){return typeof value==='number'&&Number.isFinite(value)?value:undefined}
 function currentNumber(current:Weather['current'],key:string){return finite(current[key])}
 function stationFieldObservedEpoch(station:Station|null|undefined,field:StationAnalysisField){
  const candidates=[station?.fieldObservedAt?.[field],station?.fieldSources?.[field]?.[0]?.observedAt,station?.timestamp];
@@ -44,8 +45,20 @@ export function forecastLocalAnchorFromCurrent(station:Station|null|undefined,cu
  const observed:Partial<Record<ForecastLocalAnchorField,boolean>>={},usable=(field:Parameters<typeof stationFieldObservationUsable>[1])=>stationFieldObservationUsable(station,field,now,elevation),useStation=(displayField:ForecastLocalAnchorField,analysisField:Parameters<typeof stationFieldObservationUsable>[1],value:unknown)=>{const available=usable(analysisField)&&finite(value)!==undefined;observed[displayField]=available;return available?finite(value):undefined};
  const modelTemperature=currentNumber(current,'temperature_2m'),stationTemperature=useStation('temperature','temperature',station?.temperature),temperature=stationTemperature??modelTemperature;
  const apparent=currentNumber(current,'apparent_temperature');observed.apparent=false;
- const stationHumidity=useStation('humidity','humidity',station?.humidity),humidity=stationHumidity??currentNumber(current,'relative_humidity_2m');
- const stationDewPoint=useStation('dewPoint','dewPoint',station?.dewPoint),dewPoint=stationDewPoint??currentNumber(current,'dew_point_2m');
+ const stationHumidity=useStation('humidity','humidity',station?.humidity),selectedHumidity=stationHumidity??currentNumber(current,'relative_humidity_2m');
+ const stationDewPoint=useStation('dewPoint','dewPoint',station?.dewPoint),selectedDewPoint=stationDewPoint??currentNumber(current,'dew_point_2m');
+ const moisture=reconcileCurrentMoisture({
+  temperature,relativeHumidity:selectedHumidity,dewPoint:selectedDewPoint,
+  temperatureOrigin:stationTemperature!==undefined?'station':'model',
+  humidityOrigin:stationHumidity!==undefined?'station':'model',
+  dewPointOrigin:stationDewPoint!==undefined?'station':'model',
+  temperatureEpochMs:stationTemperature!==undefined?stationFieldObservedEpoch(station,'temperature'):undefined,
+  humidityEpochMs:stationHumidity!==undefined?stationFieldObservedEpoch(station,'humidity'):undefined,
+  dewPointEpochMs:stationDewPoint!==undefined?stationFieldObservedEpoch(station,'dewPoint'):undefined
+ });
+ const humidity=moisture.relativeHumidity,dewPoint=moisture.dewPoint;
+ observed.humidity=Boolean(observed.humidity&&humidity!==undefined);
+ observed.dewPoint=Boolean(observed.dewPoint&&moisture.source==='reported');
  const qffPressure=Boolean(usable('pressure')&&(station?.pressureReference==='QFF'||station?.pressureReference==='MSL')&&Number(station?.pressure)>=870&&Number(station?.pressure)<=1085),pressure=qffPressure?Number(station?.pressure):currentNumber(current,'pressure_msl');observed.pressure=qffPressure;
  const stationWind=stationWindKnots(station?.windSpeed,station?.windUnit),stationGust=stationWindKnots(station?.windGust,station?.windUnit),windUsable=usable('windSpeed'),gustUsable=usable('windGust'),wind=windUsable&&stationWind!==undefined?stationWind:currentNumber(current,'wind_speed_10m'),gust=gustUsable&&stationGust!==undefined?stationGust:currentNumber(current,'wind_gusts_10m');observed.wind=Boolean(windUsable&&stationWind!==undefined);observed.gust=Boolean(gustUsable&&stationGust!==undefined);
  const stationDirection=useStation('direction','windDirection',station?.windDirection),direction=stationDirection??currentNumber(current,'wind_direction_10m');

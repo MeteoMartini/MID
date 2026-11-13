@@ -17,7 +17,7 @@ assert.ok(app.includes('Temperaturspanne · 12 h'),'Eindeutige +12-h-Beschriftun
 assert.ok(app.includes('current-weather-thread-axis'),'Zeit-/Temperaturachse für den 12-h-Faden fehlt.');
 assert.ok(app.includes('currentThreadAxisTicks=useMemo(()=>currentThreadSeries.map')&&app.includes('index%3===0||index===currentThreadSeries.length-1'),'3-stündliche Zeitanker plus Endzeit fehlen.');
 assert.ok(app.includes('<small>{hourDisplayClock(tick.hour,w.timezone)}</small>'),'Zeitanker müssen ausschließlich echte volle lokale Uhrzeiten verwenden.');
-assert.ok(app.includes('<small>Taupunkt / Feuchte</small><b>{Math.round(dew)} °C</b><em>{Math.round(hum)} %</em>'),'Taupunkt muss in der Hauptansicht vor relativer Feuchte stehen.');
+assert.ok(app.includes('<small>Taupunkt / Feuchte</small><b>{moistureDewLabel}</b><em>{moistureHumidityLabel}')&&app.includes('reconcileCurrentMoisture({')&&app.includes("moisture.source==='calculated'"),'Taupunkt muss vor relativer Feuchte stehen, aus physikalisch konsistenten Original- oder als berechnet gekennzeichneten Werten.');
 assert.ok(app.includes("dryNow=confirmedLowPrecipitationProbability(probability)&&!radarSignalDetected(radar)&&!thunderInfo&&!heavyRainInfo")&&app.includes("typeof value==='number'&&Number.isFinite(value)&&value>=0&&value<10"),'Kompakter trockener Nowcast ist nur für belegtes endliches Niederschlagsrisiko unter 10 % zulässig; Missing nie trocken.');
 assert.ok(app.includes('data-scroll-hidden="false"'),'Bottom-Bar muss im obligatorischen Design dauerhaft sichtbar gehalten werden.');
 assert.ok(!app.includes('bottomBarHidden')&&!app.includes('setBottomBarHidden'),'Scrollabhängiger Bottom-Bar-State darf nicht zurückkehren.');
