@@ -27,8 +27,9 @@ function MapCityInventory({onChange}:{onChange:(values:SurroundingsCityCandidate
  const map=useMidMap();
  useEffect(()=>{if(!map)return;
   const collect=()=>{try{if(!map.getSource('unified-vector-base-source'))return;const cities=citiesFromMapFeatures(map.querySourceFeatures('unified-vector-base-source',{sourceLayer:'place'}));if(cities.length)onChange(cities)}catch{/* Never fabricate geographic inventory. */}};
-  map.on('idle',collect);map.on('sourcedata',collect);collect();
-  return()=>{map.off('idle',collect);map.off('sourcedata',collect)};
+  // Re-evaluate once tiles settle; sourcedata fires per tile and would trigger redundant model requests.
+  map.on('idle',collect);collect();
+  return()=>{map.off('idle',collect)};
  },[map,onChange]);
  return null;
 }
