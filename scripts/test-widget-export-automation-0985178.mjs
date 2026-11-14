@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile,writeFile,mkdtemp,rm,readdir,stat,rename,symlink} from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import {publishAtomicPng} from '../tools/widget-export/atomic-png.mjs';
 
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 const [pkgRaw,baselineRaw,canonical,active,renderer,downloader,sync,runtimeTest]=await Promise.all([
@@ -48,10 +51,16 @@ for(const token of [
  'const captureAttempts=3',
  'const captureTimeoutSeconds=180',
  'for(let attempt=1;attempt<=captureAttempts;attempt++)',
- "await rm(target,{force:true})",
- "await rm(`${target}.part.png`,{force:true})",
  'Widget-Rendering endgültig fehlgeschlagen'
 ])assert.ok(renderer.includes(token),`Renderer-Retryvertrag fehlt: ${token}`);
+assert.ok(!renderer.includes('await rm(target,{force:true})'),'Ein alter erfolgreicher Screenshot darf vor einem Retry nicht entfernt werden.');
+assert.ok(!renderer.includes('await rm(`\  await rm(target,{force:true});
+  await rm(`${target}.part.png`,{force:true});.part.png`,{force:true})'),'Alte Partdateien dürfen kein gemeinsamer Stagingpfad sein.');
+const captureSource=await read('tools/widget-export/capture-widget.mjs');
+const atomicSource=await read('tools/widget-export/atomic-png.mjs');
+assert.ok(captureSource.includes('publishAtomicPng(output,bytes)'),'Capture verwendet atomaren Screenshot-Publish.');
+assert.ok(!captureSource.includes('await rm(output,{force:true})'),'Capture darf den letzten erfolgreichen Screenshot nicht löschen.');
+assert.ok(atomicSource.includes('await mkdtemp(')&&atomicSource.includes('await renameFile(staged,output)'),'Pro Versuch ist private Stagingdatei + Rename vorgeschrieben.');
 assert.ok(canonical.includes('timeout-minutes: 45'),'Widget-Workflow lässt den begrenzten Retryspielraum nicht zu.');
 
 assert.ok(downloader.includes('releases/download/widget-latest/mid-widget-export-latest.zip'),'Windows-Downloader nutzt nicht den festen rollierenden Download.');
@@ -63,4 +72,32 @@ assert.equal(pkg.scripts?.['test:widget-export-automation'],`node ${test}`);
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}.`);
 for(const file of ['ci/github/workflows/widget-export.yml','tools/widget-export/render-widget-matrix.mjs','tools/widget-export/Download-MID-Widgets.ps1','tools/widget-export/README.md'])assert.ok(baseline.requiredFiles?.includes(file),`${file} fehlt in requiredFiles.`);
 
+// Negative and concurrency tests use isolated filesystem fixtures, not a browser.
+const atomicFixture=await mkdtemp(path.join(os.tmpdir(),'mid-atomic-png-test-'));
+try{
+ const target=path.join(atomicFixture,'widget.png');
+ await writeFile(target,'verified-previous-image');
+ await assert.rejects(publishAtomicPng(target,Buffer.from('new-image'),async()=>{throw Error('test atomic rename failed')}),/test atomic rename failed/);
+ assert.equal(await readFile(target,'utf8'),'verified-previous-image','A failed replacement must not remove or truncate the last good image');
+ assert.deepEqual(await readdir(atomicFixture),['widget.png'],'Private staging must be removed even when rename fails');
+ let privateStageMode;
+ const newer=Buffer.from('complete-new-image');
+ const info=await publishAtomicPng(target,newer,async(from,to)=>{privateStageMode=(await stat(from)).mode&0o777;await rename(from,to)});
+ assert.equal(info.size,newer.length);
+ assert.equal(privateStageMode,0o600,'Staging image must be private');
+ assert.deepEqual(await readFile(target),newer);
+ const values=Array.from({length:24},(_,index)=>Buffer.from('png-content-'+index+'-'.repeat(2000)));
+ await Promise.all(values.map(data=>publishAtomicPng(target,data)));
+ const published=await readFile(target);
+ assert.ok(values.some(value=>value.equals(published)),'Concurrent outputs must be one complete image, never truncated/interleaved');
+ assert.deepEqual(await readdir(atomicFixture),['widget.png'],'Concurrent attempts must clean all staging directories');
+ if(process.platform!=='win32'){
+  const victim=path.join(atomicFixture,'victim.png'),link=path.join(atomicFixture,'link.png');
+  await writeFile(victim,'original-victim');
+  await symlink(victim,link);
+  await publishAtomicPng(link,Buffer.from('new-safe-content'));
+  assert.equal(await readFile(victim,'utf8'),'original-victim','Replacement must not follow a symlink to overwrite its victim');
+  assert.equal(await readFile(link,'utf8'),'new-safe-content');
+ }
+}finally{await rm(atomicFixture,{recursive:true,force:true})}
 console.log(`MID v${pkg.version}: serverseitiger Widget-Export, rollierendes geprüftes ZIP und adminfreier Windows-Downloader sind vertraglich abgesichert.`);
