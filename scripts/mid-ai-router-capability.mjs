@@ -1,0 +1,220 @@
+/**
+ * MID AI Router 1.2 – task-to-surface orchestration policy.
+ *
+ * NONPRODUCTION pure planner. Host capabilities and quality evidence are
+ * untrusted input until independently verified. No SDK invocation, mode
+ * switch, GitHub issue, external inference, billing or network is performed.
+ * Outputs NEVER constitute a dispatch grant or authority to spend.
+ */
+const SHA40 = /^[a-f0-9]{40}$/;
+const VERSION = /^0\.\d+\.\d+\.\d+$/;
+const INTENTS = new Set([
+  'repo-readback','source-code-change','research','multi-step-work',
+  'ux-audit','telemetry-audit','weather-science','independent-review'
+]);
+const MODE = new Set(['chat','work','codex']);
+const CANDIDATE_AGE_MS=14*24*60*60*1000;
+const COPILOT_CREDIT_MAX_AGE_MS=15*60*1000;
+const REQUEST_ID=/^[A-Za-z0-9][A-Za-z0-9_-]{7,79}$/;
+const make = (lane,status,reason,additional={})=>Object.freeze({
+  lane,status,reason,dispatchPerformed:false,dispatchAuthorized:false,
+  externalCallsMade:0,additionalCashAuthorizedUsd:0,...additional
+});
+const toolReady=(tools,id,operation='read')=>{
+  const t=tools?.[id];
+  return t?.connected===true && t?.authenticated===true &&
+    (operation==='write' ? t?.canWrite===true : t?.canRead===true);
+};
+const toolsUsed=(tools,names)=>Object.freeze(names.filter(x=>toolReady(tools,x)));
+const candidateReady=(p,task,now)=>{
+  const q=p?.quality;
+  return typeof p?.provider==='string' && typeof p?.model==='string' &&
+    p?.freeAccountVerified===true && p?.zeroPriceVerified===true &&
+    p?.noPaidOverageVerified===true && p?.privacyApproved===true &&
+    p?.exactModelAvailable===true && p?.remainingRequests>0 &&
+    Array.isArray(p?.taskKinds) && p.taskKinds.includes(task.intent) &&
+    q?.source==='independent-task-evaluation' &&
+    q?.taskKind===task.intent && Number.isFinite(q?.score) &&
+    q.score>=0 && q.score<=1 && Number.isSafeInteger(q?.samples) &&
+    q.samples>=10 && Number.isFinite(Date.parse(q?.checkedAt)) &&
+    Date.parse(q.checkedAt)<=now && now-Date.parse(q.checkedAt)<=CANDIDATE_AGE_MS;
+};
+/** Ranks only supplied independently evaluated, screened FREE candidates.
+ * Source/provider claims are *not* authenticated by this function.
+ * A winning score is NEVER proof that this model actually ran or is "best".
+ */
+export function rankMidAiFreeCandidates({task,candidates=[],now=Date.now()}={}){
+  if(!task||task.dataClass!=='public-redacted'||!INTENTS.has(task.intent)||
+     !['research','weather-science','independent-review'].includes(task.intent))
+    return Object.freeze([]);
+  if(!Array.isArray(candidates)||!Number.isFinite(now))return Object.freeze([]);
+  const eligible=candidates.filter(p=>candidateReady(p,task,now)).sort((a,b)=>
+    b.quality.score-a.quality.score || b.quality.samples-a.quality.samples ||
+    a.provider.localeCompare(b.provider) || a.model.localeCompare(b.model));
+  return Object.freeze(eligible.map(p=>Object.freeze({
+    provider:p.provider,model:p.model,foundationPublisher:p.foundationPublisher??null,
+    foundationFamily:p.foundationFamily??null,
+    score:p.quality.score,samples:p.quality.samples,
+    evaluationCheckedAt:p.quality.checkedAt,dispatchAuthorized:false
+  })));
+}
+export function planMidAiTaskSurface({
+  task,snapshot,host={mode:'chat',tools:{}},candidates=[],now=Date.now()
+}={}){
+  if(task?.userInitiated!==true || !INTENTS.has(task?.intent))
+    return make(null,'BLOCKED','INVALID_OR_UNAUTHORIZED_TASK');
+  if(!SHA40.test(task.expectedStableSha||'') ||
+     !SHA40.test(snapshot?.mainSha||'') ||
+     !SHA40.test(snapshot?.stableSha||'') ||
+     !VERSION.test(snapshot?.version||''))
+    return make(null,'BLOCKED','UNVERIFIED_SOURCE_OR_VERSION');
+  if(!host || typeof host!=='object' || !MODE.has(host.mode))
+    return make(null,'BLOCKED','INVALID_HOST_MODE');
+  const sourceAligned=snapshot.mainSha===snapshot.stableSha &&
+                      task.expectedStableSha===snapshot.stableSha;
+  const t=host.tools??{};
+  const intent=task.intent;
+  const sensitive=task.dataClass!=='public-redacted';
+  const externalAllowed=!sensitive && sourceAligned &&
+     task.allowExternalInference===true &&
+     (task.maxExternalCalls===1 || task.maxExternalCalls===2);
+  const evidence=()=>Object.freeze({
+    sourceSha:snapshot.stableSha,sourceAligned,
+    providerProofIsNotIndependentlyAuthenticated:true
+  });
+  // Source browsing stays useful even during release drift, but reports it.
+  // Copilot cloud agent is reached through the existing GitHub Issue assignee
+  // action, NOT through an independently connected Copilot tool or API token.
+  // This is a pure plan; host must verify the *real* signed-in quota, ensure a
+  // single already-authorized issue request, and read back a Copilot draft.
+  // The user's explicit preferredMode prevents an unrequested agent dispatch.
+  if(task.preferredMode==='copilot'){
+    const copy={...evidence(),retryAllowed:false,
+      sessionStarted:false,dispatchPerformed:false,dispatchAuthorized:false};
+    if(!['source-code-change','independent-review'].includes(intent))
+      return make('copilot-issue','BLOCKED','COPILOT_TASK_KIND_NOT_ALLOWED',copy);
+    if(!sourceAligned)return make('copilot-issue','BLOCKED','SOURCE_DRIFT',copy);
+    if(sensitive)return make('copilot-issue','BLOCKED','PUBLIC_REDACTED_ONLY',copy);
+    if(host.mode!=='chat')return make('copilot-issue','BLOCKED','COPILOT_REQUIRES_CHAT_COORDINATOR',copy);
+    if(task.copilotIssueAlreadyCreated===true)
+      return make('copilot-issue','BLOCKED','COPILOT_REQUEST_ALREADY_SUBMITTED',copy);
+    // A missing issue-state or request ID cannot prove an assignment is unique.
+    if(task.copilotIssueAlreadyCreated!==false||
+       !REQUEST_ID.test(task.requestId||''))
+      return make('copilot-issue','BLOCKED','COPILOT_IDEMPOTENCY_UNVERIFIED',copy);
+    if(!Object.is(task.maxAdditionalCashUsd,0)||task.maxCopilotSessions!==1)
+      return make('copilot-issue','BLOCKED','COPILOT_ONE_SHOT_ZERO_CASH_REQUIRED',copy);
+    if(!toolReady(t,'github','write')||t.github?.copilotIssueAssignSupported!==true)
+      return make('copilot-issue','BLOCKED','GITHUB_COPILOT_ASSIGNMENT_NOT_VERIFIED',copy);
+    if(t.github?.copilotCreditState==='exhausted')
+      return make('copilot-issue','BLOCKED','COPILOT_AI_CREDITS_EXHAUSTED',copy);
+    if(t.github?.copilotCreditState!=='verified-available'||
+       t.github?.copilotPaidOverageDisabled!==true)
+      return make('copilot-issue','BLOCKED','COPILOT_CREDIT_LIMITS_UNVERIFIED',copy);
+    // Historic "available" flags can outlive the real entitlement. A
+    // bounded, SHA-matched, authenticated account readback is mandatory.
+    // This *input* is still not proof until independently checked by host.
+    const credit=t.github?.copilotCreditEvidence;
+    const checked=typeof credit?.checkedAt==='string'?
+      Date.parse(credit.checkedAt):NaN;
+    if(credit?.source!=='github-account-quota-readback'||
+       credit?.expectedStableSha!==snapshot.stableSha||
+       credit?.paidOverageDisabled!==true||
+       !Number.isSafeInteger(credit?.remainingIncludedSessions)||
+       credit.remainingIncludedSessions<1||
+       !Number.isFinite(now)||!Number.isFinite(checked)||
+       checked>now||now-checked>COPILOT_CREDIT_MAX_AGE_MS)
+      return make('copilot-issue','BLOCKED','COPILOT_QUOTA_EVIDENCE_UNVERIFIED_OR_STALE',copy);
+    return make('copilot-issue','CONNECTED_TOOL_PLAN',
+      'GITHUB_ISSUE_ASSIGNMENT_UNTRUSTED_DRAFT_ONLY',{
+        ...copy,requiredTools:toolsUsed(t,['github']),
+        issueAssignmentTool:'github.add_issue_assignees',
+        requestedAssignee:'copilot-swe-agent[bot]',
+        requestId:task.requestId,maxCopilotSessions:1,
+        maxAdditionalCashUsd:0,issueCreated:false,
+        noReleaseAuthority:true
+      });
+  }
+  if(intent==='repo-readback'){
+    if(!toolReady(t,'github'))return make(null,'BLOCKED','GITHUB_CONNECTOR_UNAVAILABLE',{sourceAligned});
+    return make('github','CONNECTED_TOOL_PLAN','READ_ONLY_GITHUB_READBACK',{
+      requiredTools:toolsUsed(t,['github']),...evidence()
+    });
+  }
+  if(intent==='source-code-change'){
+    if(!sourceAligned)return make(null,'BLOCKED','SOURCE_DRIFT');
+    if(host.mode==='codex' && toolReady(t,'codex','write') &&
+       t.codex?.includedQuotaVerified===true)
+      return make('codex','CONNECTED_TOOL_PLAN','CODEX_AUTHORIZED_SANDBOX_REQUIRED',{
+        requiredTools:toolsUsed(t,['codex','github']),...evidence()
+      });
+    if(task.preferredMode==='codex')
+      return make('codex','MODE_SWITCH_REQUIRED','CODEX_HOST_MUST_BE_SELECTED_BY_USER',{
+        ...evidence()
+      });
+    if(toolReady(t,'github','write'))
+      return make('chatgpt-github','CONNECTED_TOOL_PLAN','AUTHORIZED_INTEGRATION_BRANCH_ONLY',{
+        requiredTools:toolsUsed(t,['github']),...evidence()
+      });
+    return make('codex','MODE_SWITCH_REQUIRED','CODEX_OR_CONNECTED_GITHUB_REQUIRED');
+  }
+  if(intent==='multi-step-work'){
+    if(host.mode==='work' && toolReady(t,'work','write'))
+      return make('work','CONNECTED_TOOL_PLAN','WORK_CURRENT_HOST',{
+        requiredTools:toolsUsed(t,['work','github']),...evidence()
+      });
+    return make('work','MODE_SWITCH_REQUIRED','USER_MUST_SELECT_WORK_MODE',{
+      ...evidence()
+    });
+  }
+  if(intent==='ux-audit'){
+    if(toolReady(t,'product-design'))
+      return make('product-design','CONNECTED_TOOL_PLAN','UX_AUDIT_WITH_SNAPSHOT',{
+        requiredTools:toolsUsed(t,['product-design','github']),...evidence()
+      });
+    return make('work','MODE_SWITCH_REQUIRED','PRODUCT_DESIGN_UNAVAILABLE');
+  }
+  if(intent==='telemetry-audit'){
+    if(task.telemetryConsent!==true)
+      return make(null,'BLOCKED','TELEMETRY_CONSENT_NOT_VERIFIED');
+    if(toolReady(t,'posthog'))
+      return make('posthog','CONNECTED_TOOL_PLAN','CONSENT_BOUND_READ_ONLY_TELEMETRY',{
+        requiredTools:toolsUsed(t,['posthog']),...evidence()
+      });
+    return make(null,'BLOCKED','POSTHOG_NOT_CONNECTED');
+  }
+  const nativeNames=intent==='research'?
+    ['firecrawl','context7','github']:['github','firecrawl','context7'];
+  const nativeTools=toolsUsed(t,nativeNames);
+  // Do not fake a model call: no backend tool means no API execution.
+  if(externalAllowed && toolReady(t,'mid-ai-mcp','write') &&
+     t['mid-ai-mcp']?.signedGrantRunnerVerified===true &&
+     t['mid-ai-mcp']?.globalAtomicLedgerVerified===true &&
+     t['mid-ai-mcp']?.zeroAdditionalCashVerified===true){
+    const ranked=rankMidAiFreeCandidates({task,candidates,now});
+    const need=task.maxExternalCalls===2?2:1;
+    const selected=[];
+    for(const p of ranked){
+      if(selected.length===need)break;
+      if(need===2 && (!p.foundationPublisher || !p.foundationFamily))continue;
+      if(selected.some(s=>s.provider===p.provider ||
+          s.foundationPublisher===p.foundationPublisher ||
+          s.foundationFamily===p.foundationFamily))continue;
+      selected.push(p);
+    }
+    if(selected.length===need)
+      return make('mid-ai-mcp','SIGNED_EXECUTOR_REQUIRED','QUALITY_RANKED_FREE_CANDIDATE_PLAN',{
+        selected:Object.freeze(selected),plannedExternalCalls:need,
+        requiredTools:toolsUsed(t,['mid-ai-mcp']),...evidence()
+      });
+  }
+  if(nativeTools.length)
+    return make('chatgpt-native','CONNECTED_TOOL_PLAN',
+      externalAllowed?'NATIVE_PRIMARY_SOURCES_EXTERNAL_NOT_ATTESTED':'NATIVE_PRIMARY_SOURCES_FIRST',{
+      requiredTools:nativeTools,
+      requestedExternalButUnavailable:task.allowExternalInference===true,
+      ...evidence()
+    });
+  return make(null,'BLOCKED',
+    externalAllowed?'NO_VERIFIED_MODEL_OR_SOURCE_TOOL':'NO_APPROVED_EXECUTION_SURFACE');
+}

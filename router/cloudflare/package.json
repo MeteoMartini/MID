@@ -1,0 +1,9 @@
+{
+  "name": "mid-ai-router-cloudflare-runtime",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {"node": ">=22"},
+  "dependencies": {"@cloudflare/workers-oauth-provider": "1.2.4"},
+  "scripts": {"check": "node --check mcp-worker.mjs && node --check oauth-server.mjs"}
+}
