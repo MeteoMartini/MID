@@ -1,3 +1,7 @@
+# MID v0.9.85.478 · authentische MID-Vektorbasiskarte und ortsgebundene Umfeldtemperaturen (Source-Kandidat)
+
+Ausgangspunkt v0.9.85.477, Stable `4f6c167cc41ab588dfeb2e512ad17a8683a99096`. Das in MID-Karten 1.6 angeforderte Umfeldwetter nutzt nun denselben MapLibre/OpenFreeMap-Renderer, Länderkonturen, Städte-, Fluss- und Wasserflächenebenen wie der Kartenbereich. Namens- und Populationsdaten stammen ausschließlich aus real verorteten Kartenquellen. Prognosetemperaturen aus Open-Meteo Best Match werden nicht aus zufälligen Rasterproben abgeleitet; Orts-/Zeit-/Einheiten-/Plausibilitätsprüfungen sowie NoData-Status bleiben bestehen. GIS- und meteorologischer Nachweis sowie noch offene Gates siehe `MID_BUILD_CHANGELOG.md`; kein Release ohne den vollständigen etablierten ZIP-/Installer-/Worker-/Pages-/Stable-Prozess.
+
 # MID v0.9.85.477 · download-artifact v8.0.2 (Source-Kandidat)
 
 Verifizierte Ausgangsbasis `main=mid-stable=8547d4a8420c648e0c28685ea7a5c3bb4b62baa7`, v0.9.85.476, fünf aktive Rulesets. Offizieller Upstream `actions/download-artifact v8.0.2`: GitHub Tag `v8.0.2` zeigt auf signierten Commit `9000827ccba6bdab643e8b6fd33ac0654aef8333` (07.10.2026), Vergleichsstand v8.0.1 `3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c`. Änderung verbessert HTTP-429-/Retry-After-Retry; vorhandene Digest-Mismatch-Errors dürfen nicht abgeschwächt werden.
