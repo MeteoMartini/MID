@@ -58,6 +58,7 @@ assert.ok(component.includes('<ImageQuadLayer id="surroundings-radar"'),'Radar s
 assert.ok(component.includes('nearbyCities.map((place,index)=>'),'Temperatures bind to ranked named settlements');
 assert.ok(component.includes('current-surroundings-city-marker'),'Use MapLibre HTML markers');
 assert.ok(css.includes('.current-surroundings-city-value'),'Readable city labels');
+assert.ok(css.includes('text-overflow:ellipsis')&&css.includes('max-width:min(124px,38vw)'),'Long named places cannot overflow narrow map labels');
 assert.ok(!css.includes('.current-surroundings-orientation'),'No parallel SVG border renderer');
 const citySource=await read('src/surroundingsCitySelection.ts');
 const cityJs=ts.transpileModule(citySource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022},reportDiagnostics:true});
