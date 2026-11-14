@@ -285,9 +285,9 @@ export default function CurrentSurroundings(props:Props){
       html={`<span class="current-surroundings-city-value" role="img" aria-label="${mapSafe(place.name)}: ${degrees} Grad Celsius, Open-Meteo Best Match"><b>${mapSafe(place.name)}</b><strong style="color:${ecmwfTemperatureColor(value)}">${degrees}°</strong></span>`}/>;
     })}
     <HtmlMarker latitude={lat} longitude={lon} anchor="center" className="current-surroundings-center-marker" zIndex={920}
-     html={`<span class="current-surroundings-center-dot" role="img" aria-label="Gewählter Ort: ${mapSafe(name)}"></span>`}/>
+     html={`<span class="current-surroundings-center-dot" role="img" aria-label="Gewählter Ort: ${mapSafe(name)}${Number.isFinite(temperature)?`, ${formatWeatherValue(temperature,'temperature','overview')} Grad Celsius`:''}">${Number.isFinite(temperature)?`<strong style="color:${ecmwfTemperatureColor(temperature)}">${formatWeatherValue(temperature,'temperature','overview')}°</strong>`:''}</span>`}/>
    </MidMapLibre>
-   <figcaption className="current-surroundings-map-caption">Standort: {name}{selection===undefined&&Number.isFinite(temperature)?` · ${formatWeatherValue(temperature,'temperature','overview')}°`:''}</figcaption>
+   <figcaption className="current-surroundings-map-caption">Standort: {name}</figcaption>
   </figure>
   <p role="status" className="current-surroundings-data-status">{mode==='cloud'
    ?cloudForecast.image?<>Modellbild · {cloudForecast.image.model} · gültig {datedClock(Date.parse(cloudForecast.image.validTime))} · INIT {datedClock(Date.parse(cloudForecast.image.run))} · schematische Wolken + SigWx, keine Beobachtung</>
