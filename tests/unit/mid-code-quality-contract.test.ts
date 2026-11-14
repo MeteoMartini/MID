@@ -75,4 +75,41 @@ describe('MID registered code-quality contract and workflow admission',()=>{
   expect(analyze?.[1]).toBe(init?.[1]);
   expect(yaml).toContain('security-extended');
  });
+ it('keeps privileged workflow_run release and retry jobs on immutable trusted code',()=>{
+  const bot=mirror('agent-source-release.yml');
+  const retry=mirror('release-self-heal.yml');
+  const safeBot=(yaml:string)=>{
+   const checkout=segment(yaml,'- name: SHA-gebundenen Reviewguard des ausgeführten Workflows laden','- name: Node.js 22 für Review-Readback');
+   const merge=segment(yaml,'- name: Geprüften Agent-PR automatisch zusammenführen','- name: Zusammengeführten main-Stand laden');
+   return yaml.includes('workflow_run:')&&
+    yaml.includes("github.event.workflow_run.conclusion == 'success'")&&
+    yaml.includes(".head.repo.full_name == $repo and .head.sha == $sha and .draft == false")&&
+    checkout.includes('ref: ${{ github.workflow_sha }}')&&
+    checkout.includes('persist-credentials: false')&&
+    merge.includes('EXPECTED_HEAD_SHA: ${{ steps.pr.outputs.head_sha }}')&&
+    merge.includes('EXPECTED_WORKFLOW_SHA: ${{ github.workflow_sha }}')&&
+    merge.includes('node tools/ci/mid-review-premerge-guard.mjs')&&
+    merge.includes('sha="${EXPECTED_HEAD_SHA}"');
+  };
+  const safeRetry=(yaml:string)=>{
+   const stable=segment(yaml,'- name: Geschuetzte Stable-Provenienz und unveraenderlichen Classifier-SHA feststellen','- name: Geprüften Release-Classifier von mid-stable laden');
+   const checkout=segment(yaml,'- name: Geprüften Release-Classifier von mid-stable laden','- name: Node.js 22 für unveränderliche Retry-Klassifikation');
+   const classify=segment(yaml,'- name: Fehlgeschlagene Jobs und Logs ohne Codeänderung klassifizieren','- name: Nur temporär klassifizierte Fehler automatisch erneut ausführen');
+   return yaml.includes('workflow_run:')&&
+    yaml.includes("github.event.workflow_run.conclusion == 'failure'")&&
+    yaml.includes('github.event.workflow_run.run_attempt < 3')&&
+    stable.includes('repos/${GITHUB_REPOSITORY}/branches/mid-stable')&&
+    stable.includes('if [[ ! "$trusted_sha" =~ ^[0-9a-f]{40}$ ]] || [ "$protected" != true ]')&&
+    checkout.includes('ref: ${{ steps.trusted_stable.outputs.sha }}')&&
+    checkout.includes('persist-credentials: false')&&
+    classify.includes('env -u GH_TOKEN node tools/ci/release-self-heal-classify.mjs')&&
+    yaml.includes('/rerun-failed-jobs');
+  };
+  expect(safeBot(bot)).toBe(true);
+  expect(safeRetry(retry)).toBe(true);
+  expect(safeBot(bot.replace('ref: ${{ github.workflow_sha }}','ref: ${{ github.event.workflow_run.head_sha }}'))).toBe(false);
+  expect(safeBot(bot.replace('node tools/ci/mid-review-premerge-guard.mjs','echo unsafe-bypass'))).toBe(false);
+  expect(safeRetry(retry.replace('ref: ${{ steps.trusted_stable.outputs.sha }}','ref: main'))).toBe(false);
+  expect(safeRetry(retry.replace('github.event.workflow_run.run_attempt < 3','true'))).toBe(false);
+ });
 });
