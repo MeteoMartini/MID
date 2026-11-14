@@ -142,6 +142,7 @@ export default function CurrentSurroundings(props:Props){
   return ()=>{img.onload=null;img.onerror=null};
  },[radar,target,selection]);
  const needsOpera=selection===undefined&&Boolean(showPhase||(catalog&&!radar)||failed||(radar&&imageError===radar));
+ // biome-ignore lint/correctness/useExhaustiveDependencies: A refreshed composite catalog intentionally revalidates OPERA availability even when location/selection remain unchanged.
  useEffect(()=>{
   if(!needsOpera)return;
   const controller=new AbortController();
@@ -219,7 +220,7 @@ export default function CurrentSurroundings(props:Props){
     {future.map(time=><option key={time} value={time}>{clock(time)}</option>)}
    </select></label>
   </div>
-  <div className="current-surroundings-map" aria-label={`Wetterbild um ${name}`}>
+  <div className="current-surroundings-map" role="group" aria-label={`Wetterbild um ${name}`}>
    {visibleClouds&&<img src={clouds} alt="" onError={()=>setCloudError(clouds)}/>}
    {(displayedOpera??displayedRadar)&&<img src={displayedPhase?.url??(displayedOpera??displayedRadar)?.url} alt="" />}
    <svg className="current-surroundings-orientation" viewBox="0 0 512 256" preserveAspectRatio="none" aria-hidden="true"><path d={orientation.paths}/></svg>
@@ -227,7 +228,7 @@ export default function CurrentSurroundings(props:Props){
     {place.name}{temperatures?.[place.id]!==undefined&&<strong>{formatWeatherValue(temperatures[place.id],'temperature','overview')}°</strong>}
    </span>)}
    {orientation.temperaturePoints.map(point=>temperatures?.[point.id]===undefined?null:
-    <span key={point.id} className="current-surroundings-temperature"
+    <span key={point.id} className="current-surroundings-temperature" role="img"
      style={{left:`${point.x/5.12}%`,top:`${point.y/2.56}%`}}
      aria-label={`Modelltemperatur am Kartenpunkt ${formatWeatherValue(temperatures[point.id],'temperature','overview')} Grad Celsius`}>
      {formatWeatherValue(temperatures[point.id],'temperature','overview')}°
