@@ -1,3 +1,9 @@
+# MID v0.9.85.476
+
+- Extremwetter-Ausblick: Kurz- und Mittelfrist öffnen schneller und zeigen vorhandene, validierte Modellinformationen unmittelbar. Ältere Datenstände bleiben ausdrücklich als nicht aktuell gekennzeichnet.
+- Beim Aufruf aus dem Warnbereich verhindert MID doppelte Vorababrufe. Der zentrale Dienst wird zeitlich begrenzt geprüft; falls nötig, folgt die vorhandene direkte Ersatzberechnung mit verständlicherer Ursache.
+- Fehlende Modelllaufzeiten und nicht verfügbare Gefahrenfelder werden nicht als sichere Entwarnung dargestellt. Modellprognosen bleiben klar von amtlichen Warnungen getrennt.
+
 # MID v0.9.85.475
 
 - Sicherheits-/Qualitätswartung: CodeQL-Workflow auf die offiziell verifizierte GitHub-Action v4.39.3 aktualisiert. Initialisierung und Analyse verwenden denselben festgeschriebenen Commit.
