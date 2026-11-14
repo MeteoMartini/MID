@@ -1,8 +1,9 @@
 import {useCallback,useEffect,useId,useMemo,useState} from 'react';
-import {compositeWmsProxy,loadCompositeTimes,loadOperaRaster,type CompositeProductTimes,type ProductTime,type WmsProvider} from './CompositeData';
+import {compositeWmsProxy,loadCompositeTimes,loadOperaRaster,openFreeMapVectorTileProxy,openFreeMapGlyphProxy,type CompositeProductTimes,type ProductTime,type WmsProvider} from './CompositeData';
 import {formatWeatherValue} from "./weatherValueFormat";
 import {PRECIPITATION_TYPE_COLORS,radarDbzColor} from './radarColorTables';
 import {loadModelMapGeography,type ModelMapGeography} from './modelMapGeography';
+import {browserExternalWeatherFallbackAllowed} from './workerClient';
 import {MidMapLibre,ImageQuadLayer,HtmlMarker,MapFitBounds,useMidMap} from './MapLibreCore';
 import {VectorReferenceLayer} from './MapLibreLegacyCompat';
 import UnifiedVectorBasemap from './UnifiedVectorBasemap';
@@ -15,7 +16,9 @@ export type SurroundingsBounds={west:number;south:number;east:number;north:numbe
 
 type Props={lat:number;lon:number;name:string;timezone:string;temperature:number;temperatureTime:string;onOpen:(time:number|undefined,bounds:SurroundingsBounds)=>void};
 const rvLayer='dwd:Radar_rv_product_1x1km_ger';
-const MID_REFERENCE_TILES='https://tiles.openfreemap.org/planet',MID_REFERENCE_GLYPHS='https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
+// Mirror UnifiedVectorBasemap's proxied, consent-gated vector source policy.
+const DIRECT_VECTOR_TILES='https://tiles.openfreemap.org/planet/latest/{z}/{x}/{y}.pbf';
+const DIRECT_VECTOR_GLYPHS='https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
 const surroundingReference={countries:true,regions:true,cities:true,water:true,roads:true};
 function mapSafe(value:string){return value.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]||c))}
 function useDarkMapTheme(){
@@ -123,6 +126,9 @@ export default function CurrentSurroundings(props:Props){
  ],{lat,lon},{west,south,east,north}),[mapCities,geography,lat,lon,west,south,east,north]);
  const mapBounds=useMemo(()=>[[south,west],[north,east]] as [[number,number],[number,number]],[south,west,north,east]);
  const mapReferences=useMemo(()=>compositeReferenceLayers(.93,surroundingReference),[darkMap]);
+ const directVectorAllowed=browserExternalWeatherFallbackAllowed();
+ const referenceTileUrl=openFreeMapVectorTileProxy()||(directVectorAllowed?DIRECT_VECTOR_TILES:'');
+ const referenceGlyphsUrl=openFreeMapGlyphProxy()||(directVectorAllowed?DIRECT_VECTOR_GLYPHS:'');
  const updateMapCities=useCallback((next:SurroundingsCityCandidate[])=>setMapCities(previous=>{
   const signature=(places:SurroundingsCityCandidate[])=>places.map(p=>`${p.name}:${p.lat.toFixed(3)}:${p.lon.toFixed(3)}`).sort().join('|');
   return signature(previous)===signature(next)?previous:next;
@@ -242,7 +248,7 @@ export default function CurrentSurroundings(props:Props){
     <UnifiedVectorBasemap dark={darkMap}/>
     {visibleClouds&&<ImageQuadLayer id="surroundings-clouds" url={clouds} bounds={mapBounds} zIndex={220} onError={()=>setCloudError(clouds)}/>}
     {(displayedOpera??displayedRadar)&&<ImageQuadLayer id="surroundings-radar" url={displayedPhase?.url??(displayedOpera??displayedRadar)!.url} bounds={mapBounds} zIndex={360}/>}
-    <VectorReferenceLayer url={MID_REFERENCE_TILES} glyphsUrl={MID_REFERENCE_GLYPHS} layers={mapReferences} zIndex={790}/>
+    <VectorReferenceLayer url={referenceTileUrl} glyphsUrl={referenceGlyphsUrl} layers={mapReferences} zIndex={790}/>
     <MapCityInventory onChange={updateMapCities}/>
     {nearbyCities.map((place,index)=>{
      const value=temperatures?.[place.id];if(value===undefined)return null;
