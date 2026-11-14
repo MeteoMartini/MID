@@ -117,4 +117,5 @@ const vector=fromTiles([
 ]);
 assert.equal(vector.length,1,'Duplicated vector tile features cannot become duplicate map labels');
 assert.equal(choose(vector,{lat:46.97,lon:11},{west:9.6,east:12.4,south:46.32,north:47.62})[0]?.name,'Ötztal');
+assert.ok(component.includes('<MapFitBounds south={south} west={west} north={north} east={east} padding={8} maxZoom={7}/>'),'MapLibre fitBounds must provide a finite maxZoom to prevent an invalid NaN camera');
 console.log('MID: georeferenced city temperatures, shared basemap and NoData/pixel-collision contracts passed.');

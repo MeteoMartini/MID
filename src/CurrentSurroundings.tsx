@@ -260,7 +260,7 @@ export default function CurrentSurroundings(props:Props){
   </div>
   <figure ref={mapFigureRef} className="current-surroundings-map" aria-label={`Wetterbild um ${name}: MID-Kartenbasis und Temperaturen an benannten Orten`}>
    <MidMapLibre center={[lat,lon]} zoom={7} scrollZoom={false} interactive={false} navigationControl={false} className="current-surroundings-maplibre">
-    <MapFitBounds south={south} west={west} north={north} east={east} padding={8}/>
+    <MapFitBounds south={south} west={west} north={north} east={east} padding={8} maxZoom={7}/>
     <UnifiedVectorBasemap dark={darkMap}/>
     {visibleClouds&&<ImageQuadLayer id="surroundings-clouds" url={clouds} bounds={mapBounds} zIndex={220} onError={()=>setCloudError(clouds)}/>}
     {(displayedOpera??displayedRadar)&&<ImageQuadLayer id="surroundings-radar" url={displayedPhase?.url??(displayedOpera??displayedRadar)!.url} bounds={mapBounds} zIndex={360}/>}
