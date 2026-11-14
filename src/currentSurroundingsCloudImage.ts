@@ -1,6 +1,6 @@
 import {useEffect,useState} from 'react';
 import {cloudWeatherRaster,nativeCloudWeatherPair,synopticCloudWeather,loadCloudWeatherField,type CloudWeatherData} from './cloudWeatherData';
-import {loadSynopticIndex,loadSynopticField,type SynopticFrame,type SynopticModel} from './nativeSynopticFields';
+import {loadEstablishedSynopticIndex,loadSynopticField,type SynopticFrame,type SynopticModel} from './nativeSynopticFields';
 import {loadNativeIndex,loadNativeField} from './nativeModelFields';
 
 export type SurroundingsCloudImage={
@@ -59,7 +59,7 @@ function displayCloudFrame(data:CloudWeatherData,label:string,lat:number,lon:num
 }
 export async function loadVerifiedSurroundingsCloud(lat:number,lon:number,now:number,signal:AbortSignal):Promise<SurroundingsCloudImage>{
  try{
-  const {index,base}=await loadSynopticIndex(signal);
+  const {index,base}=await loadEstablishedSynopticIndex(signal);
   // A time-valid ICON-D2 field may be geographically invalid at the user's site.
   // Try the next SHA-verified model instead of falling back directly to native D2.
   for(const selected of chooseSurroundingsCloudFrames(index.models,now)){
@@ -91,14 +91,21 @@ export function useSurroundingsCloudImage(enabled:boolean,lat:number,lon:number,
  useEffect(()=>{
   if(!enabled){setResult({image:null,loading:false,unavailable:false});return}
   const controller=new AbortController();
-  setResult({image:null,loading:true,unavailable:false});
+  setResult(previous=>previous.image&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,targetBucket*30*60000)
+   ?{...previous,loading:true,unavailable:false}
+   :{image:null,loading:true,unavailable:false});
   const now=targetBucket*30*60000;
   const timer=window.setTimeout(()=>{
-   if(!controller.signal.aborted){setResult({image:null,loading:false,unavailable:true});controller.abort()}
+   if(!controller.signal.aborted){
+    setResult(previous=>previous.image&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,now)
+     ?{...previous,loading:false,unavailable:true}:{image:null,loading:false,unavailable:true});
+    controller.abort()
+   }
   },18000);
   void loadVerifiedSurroundingsCloud(lat,lon,now,controller.signal).then(image=>{
    if(!controller.signal.aborted)setResult({image,loading:false,unavailable:false});
-  }).catch(()=>{if(!controller.signal.aborted)setResult({image:null,loading:false,unavailable:true})})
+  }).catch(()=>{if(!controller.signal.aborted)setResult(previous=>previous.image&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,now)
+    ?{...previous,loading:false,unavailable:true}:{image:null,loading:false,unavailable:true})})
   .finally(()=>window.clearTimeout(timer));
   return()=>{window.clearTimeout(timer);controller.abort()};
  },[enabled,lat,lon,targetBucket]);

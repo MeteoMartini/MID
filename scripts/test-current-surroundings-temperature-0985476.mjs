@@ -69,8 +69,11 @@ assert.ok(component.includes('id="surroundings-model-cloud-weather"')&&component
 assert.ok(component.includes("ecmwfTemperatureColor(value)")&&component.includes("ecmwfTemperatureColor(temperature)"),'Temperaturzahlen und Standort verwenden dieselbe ECMWF-MID-Skala.');
 assert.ok(css.includes('background:transparent!important;box-shadow:none!important')&&css.includes('.current-surroundings-center-dot>strong'),'Temperaturen dürfen nicht durch Hintergrundplatten verdeckt sein.');
 const cloudSource=await read('src/currentSurroundingsCloudImage.ts');
-assert.ok(cloudSource.includes('loadSynopticIndex(signal)')&&cloudSource.includes('loadNativeIndex(signal)')&&cloudSource.includes('nativeCloudWeatherPair('),'Nur die originalen, SHA-validierten MID-Wolken-/SigWx-Daten verwenden.');
+assert.ok(cloudSource.includes('loadEstablishedSynopticIndex(signal)')&&cloudSource.includes('loadNativeIndex(signal)')&&cloudSource.includes('nativeCloudWeatherPair('),'Nur die originalen, SHA-validierten MID-Wolken-/SigWx-Daten verwenden.');
 assert.ok(cloudSource.includes("cloudWeatherRaster(data,'pseudo')")&&cloudSource.includes('admissibleSurroundingsCloudTime'),'Kein Fake-Satellitenbild und keine ungebundene Modellzeit.');
+assert.ok(cloudSource.includes('setResult(previous=>previous.image&&admissibleSurroundingsCloudTime('),'Still-valid model images must remain visible until replacement or expiry.');
+assert.ok(component.includes("cloudForecast.unavailable?' · Aktualisierung nicht erreichbar':''"),'Failed model update must be visibly declared.');
+assert.ok(component.includes("selection===undefined&&Number.isFinite(temperature)"),'Current site temperature must not masquerade as a future radar value.');
 const compiledCloud=ts.transpileModule(cloudSource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022},reportDiagnostics:true});
 assert.equal(compiledCloud.diagnostics?.length??0,0);
 const cloudExports={};
@@ -103,7 +106,7 @@ runInNewContext(compiledCloud.outputText,{
    loadCloudWeatherField:async(_base,modelId)=>{accessedModels.push(modelId);return modelId==='icon-d2'?outsideD2:insideEu},
    cloudWeatherRaster:()=> 'data:image/png;base64,verified-mock'
   };
-  if(id==='./nativeSynopticFields')return {loadSynopticIndex:async()=>({index:{models:euCatalog},base:'https://example.invalid/'})};
+  if(id==='./nativeSynopticFields')return {loadEstablishedSynopticIndex:async()=>({index:{models:euCatalog},base:'https://example.invalid/'})};
   if(id==='./nativeModelFields')return {loadNativeIndex:async()=>{attemptedNativeFallback++;throw Error('Unnecessary native fallback')}};
   return {};
  },
