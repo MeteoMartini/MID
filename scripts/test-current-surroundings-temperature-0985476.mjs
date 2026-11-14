@@ -53,7 +53,10 @@ assert.ok(!component.includes('temperaturePoints=['),'No synthetic four-corner s
 assert.ok(!component.includes('current-surroundings-orientation')&&!component.includes('orientation.paths'),'Simplified separate boundaries removed');
 assert.ok(component.includes('<UnifiedVectorBasemap dark={darkMap}'),'Use exact MID vector land and water');
 assert.ok(component.includes('<MidMapLibre center={[lat,lon]}')&&component.includes('interactive={false} navigationControl={false}'),'The neighborhood map is a compact static preview without misleading zoom controls');
-assert.ok(component.includes('<VectorReferenceLayer url={MID_REFERENCE_TILES}'),'Use MID border, city, waterway and road styling');
+assert.ok(component.includes('<VectorReferenceLayer url={referenceTileUrl}')&&component.includes('glyphsUrl={referenceGlyphsUrl}'),'Use MID border, city, waterway and road styling');
+assert.ok(component.includes('referenceTileUrl=openFreeMapVectorTileProxy()')&&component.includes('referenceGlyphsUrl=openFreeMapGlyphProxy()'),'Reference layers must use the same proxied vector/glyph source as the MID basemap');
+assert.ok(component.includes("directVectorAllowed?DIRECT_VECTOR_TILES:''")&&component.includes("directVectorAllowed?DIRECT_VECTOR_GLYPHS:''"),'No direct external basemap requests when browser fallback is disallowed');
+assert.ok(component.includes('ResizeObserver(update)')&&component.includes('mapViewport?chooseSurroundingsCities'),'Selection must use measured viewport dimensions, not a hardcoded desktop raster');
 assert.ok(component.includes('<ImageQuadLayer id="surroundings-radar"'),'Radar stays georeferenced');
 assert.ok(component.includes('nearbyCities.map((place,index)=>'),'Temperatures bind to ranked named settlements');
 assert.ok(component.includes('current-surroundings-city-marker'),'Use MapLibre HTML markers');
@@ -79,6 +82,14 @@ assert.ok(chosen.length>=2&&chosen.length<=4,'Selected named region should retai
 assert.ok(chosen.every(item=>cities.some(original=>original.name===item.name&&original.lat===item.lat&&original.lon===item.lon)));
 assert.equal(choose([],center,bounds).length,0,'Missing cities are never reconstructed from raster corners');
 assert.equal(choose(cities,center,{west:8,east:5,south:50,north:51}).length,0,'Invalid bounds fail closed');
+const compact=choose(cities,center,bounds,4,{width:280,height:220});
+assert.ok(compact.length>=1&&compact.length<=chosen.length,'Mobile layout reduces colliding labels without fabricating extra cities');
+assert.equal(choose(cities,center,bounds,4,{width:150,height:120}).length,0,'Too narrow for a legible city plate is NoData rather than overlapping labels');
+const nearDuplicates=[
+ {name:'A',lat:50.97,lon:6.80,population:450000,origin:'natural-earth'},
+ {name:'B',lat:50.972,lon:6.81,population:400000,origin:'natural-earth'}
+];
+assert.equal(choose(nearDuplicates,center,bounds,4,{width:280,height:200}).length,1,'Nearly coincident city labels cannot overlap on phones');
 const vector=fromTiles([
  {geometry:{type:'Point',coordinates:[11,47.1]},properties:{class:'town',name:'Ötztal',rank:7}},
  {geometry:{type:'Point',coordinates:[11,47.1]},properties:{class:'town',name:'Ötztal',rank:7}},
