@@ -3,7 +3,7 @@ import {compositeWmsProxy,loadCompositeTimes,loadOperaRaster,type CompositeProdu
 import {formatWeatherValue} from "./weatherValueFormat";
 import {PRECIPITATION_TYPE_COLORS,radarDbzColor} from './radarColorTables';
 import {loadModelMapGeography,type ModelMapGeography} from './modelMapGeography';
-import {ImageQuadLayer,HtmlMarker,MapFitBounds,useMidMap} from './MapLibreCore';
+import {ImageQuadLayer,HtmlMarker,MapFitBounds,MapInteraction,useMidMap} from './MapLibreCore';
 import {MapContainer,VectorReferenceLayer} from './MapLibreLegacyCompat';
 import UnifiedVectorBasemap from './UnifiedVectorBasemap';
 import {compositeReferenceLayers} from './mapReferenceLayers';
@@ -239,6 +239,7 @@ export default function CurrentSurroundings(props:Props){
   <figure className="current-surroundings-map" aria-label={`Wetterbild um ${name}: MID-Kartenbasis und Temperaturen an benannten Orten`}>
    <MapContainer center={[lat,lon]} zoom={7} scrollWheelZoom={false} className="current-surroundings-maplibre">
     <MapFitBounds south={south} west={west} north={north} east={east} padding={8}/>
+    <MapInteraction enabled={false}/>
     <UnifiedVectorBasemap dark={darkMap}/>
     {visibleClouds&&<ImageQuadLayer id="surroundings-clouds" url={clouds} bounds={mapBounds} zIndex={220} onError={()=>setCloudError(clouds)}/>}
     {(displayedOpera??displayedRadar)&&<ImageQuadLayer id="surroundings-radar" url={displayedPhase?.url??(displayedOpera??displayedRadar)!.url} bounds={mapBounds} zIndex={360}/>}
