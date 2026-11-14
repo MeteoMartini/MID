@@ -31,7 +31,7 @@ export function CurrentSurroundingsEntry({location,current,timezone,onOpen}:{
  onOpen:(request:{lat:number;lon:number;time?:number;bounds:SurroundingsBounds;id:number})=>void;
 }){
  const {latitude:lat,longitude:lon,name}=location;
- return <CurrentSurroundings key={lat+':'+lon} lat={lat} lon={lon} name={name} timezone={timezone}
+ return <CurrentSurroundings key={`${lat}:${lon}`} lat={lat} lon={lon} name={name} timezone={timezone}
   temperature={typeof current.temperature_2m==='number'?current.temperature_2m:NaN}
   temperatureTime={String(current.time??'')} onOpen={(time,bounds)=>onOpen({lat,lon,time,bounds,id:Date.now()})}/>;
 }
@@ -102,12 +102,12 @@ export default function CurrentSurroundings(props:Props){
    const [x,y]=project(place.lon,place.lat);
    if(x<55||x>457||y<25||y>231||(Math.abs(x-256)<145&&Math.abs(y-128)<32))continue;
    if(places.some(other=>Math.abs(other.x-x)<125&&Math.abs(other.y-y)<32))continue;
-   places.push({id:place.name+':'+place.lat.toFixed(5)+':'+place.lon.toFixed(5),name:place.name,x,y,lat:place.lat,lon:place.lon});
+   places.push({id:`${place.name}:${place.lat.toFixed(5)}:${place.lon.toFixed(5)}`,name:place.name,x,y,lat:place.lat,lon:place.lon});
    if(places.length===4)break;
   }
   // Four real georeferenced forecast points, independent of city-label density.
   const temperaturePoints=[{x:.22,y:.25},{x:.78,y:.25},{x:.22,y:.75},{x:.78,y:.75}]
-   .map(({x,y},index)=>({id:'surroundings-point-'+index,x:x*512,y:y*256,
+   .map(({x,y},index)=>({id:`surroundings-point-${index}`,x:x*512,y:y*256,
     lat:north-y*(north-south),lon:west+x*(east-west)}));
   return {paths,places,temperaturePoints,center:project(lon,lat)};
  },[geography,west,south,east,north,lat,lon]);
@@ -223,12 +223,12 @@ export default function CurrentSurroundings(props:Props){
    {visibleClouds&&<img src={clouds} alt="" onError={()=>setCloudError(clouds)}/>}
    {(displayedOpera??displayedRadar)&&<img src={displayedPhase?.url??(displayedOpera??displayedRadar)?.url} alt="" />}
    <svg className="current-surroundings-orientation" viewBox="0 0 512 256" preserveAspectRatio="none" aria-hidden="true"><path d={orientation.paths}/></svg>
-   {orientation.places.map(place=><span key={place.id} className="current-surroundings-place" style={{left:place.x/5.12+'%',top:place.y/2.56+'%'}}>
+   {orientation.places.map(place=><span key={place.id} className="current-surroundings-place" style={{left:`${place.x/5.12}%`,top:`${place.y/2.56}%`}}>
     {place.name}{temperatures?.[place.id]!==undefined&&<strong>{formatWeatherValue(temperatures[place.id],'temperature','overview')}°</strong>}
    </span>)}
    {orientation.temperaturePoints.map(point=>temperatures?.[point.id]===undefined?null:
     <span key={point.id} className="current-surroundings-temperature"
-     style={{left:point.x/5.12+'%',top:point.y/2.56+'%'}}
+     style={{left:`${point.x/5.12}%`,top:`${point.y/2.56}%`}}
      aria-label={`Modelltemperatur am Kartenpunkt ${formatWeatherValue(temperatures[point.id],'temperature','overview')} Grad Celsius`}>
      {formatWeatherValue(temperatures[point.id],'temperature','overview')}°
     </span>)}
