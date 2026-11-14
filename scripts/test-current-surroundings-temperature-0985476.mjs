@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
-import ts from 'typescript';
+import ts from 'typescript-strada';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
 const [helper,component,css]=await Promise.all([read('src/currentSurroundingsTemperature.ts'),read('src/CurrentSurroundings.tsx'),read('src/CurrentSurroundings.css')]);
