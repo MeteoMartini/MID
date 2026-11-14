@@ -73,7 +73,7 @@ export async function loadSurroundingsTemperatures(
  const url=surroundingsTemperatureUrl(places);
  if(!url)return;
  const response=await fetch(url,{signal,mode:'cors',credentials:'omit'});
- if(!response.ok)throw new Error('Umfeldtemperatur HTTP '+response.status);
+ if(!response.ok)throw new Error(`Umfeldtemperatur HTTP ${response.status}`);
  const data:unknown=await response.json();
  if(signal.aborted)return;
  return extractSurroundingsTemperatures(data,places,targetTime);
