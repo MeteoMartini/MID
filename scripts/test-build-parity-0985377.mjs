@@ -103,3 +103,72 @@ await import('../tools/ci/protected-source-attestation.test.mjs');
 
 // Verify protected Sigstore observations under the existing mandatory parity regression.
 await import('../tools/ci/verify-protected-source-pilot.test.mjs');
+
+test('Source and Installer derive release build inputs from the same code', async () => {
+  const {releaseBuildInputs, resolveReleaseBuildInputs} = await import('../tools/ci/release-build-inputs.mjs');
+  const defaults = resolveReleaseBuildInputs({VITE_METAR_PROXY_URL: 'https://example.invalid'});
+  assert.equal(defaults.VITE_RADAR_PROXY_URL, defaults.VITE_METAR_PROXY_URL);
+  assert.equal(defaults.VITE_ALERT_PROXY_URL, defaults.VITE_METAR_PROXY_URL);
+  assert.equal(defaults.VITE_WORKER_SAME_ORIGIN_PATH, '/api/mid-worker');
+  for (const name of ['chatgpt-pr-gate.yml', 'install-mid.yml']) {
+    const active = await readFile(new URL('../.github/workflows/' + name, import.meta.url), 'utf8');
+    assert.equal(active, await readFile(new URL('../ci/github/workflows/' + name, import.meta.url), 'utf8'));
+    const steps = active.split('\n      - name: ');
+    const builds = steps.filter(step => step.includes('npm run build'));
+    assert.equal(builds.length, 3);
+    for (const build of builds) {
+      const inputStep = steps[steps.indexOf(build) - 1];
+      assert.match(inputStep, /run: node tools\/ci\/release-build-inputs\.mjs/);
+      assert.deepEqual([...inputStep.matchAll(/^          VITE_(\w+): .*$/gm)].map(match => match[1]), releaseBuildInputs);
+      for (const key of releaseBuildInputs) assert.ok(inputStep.includes('VITE_' + key + ': ${{ vars.VITE_' + key + ' }}'));
+      assert.doesNotMatch(build, /^ +VITE_\w+:/m);
+    }
+  }
+});
+
+test('failed installer evidence refuses false lineage, retries, deployment and stale refs', async () => {
+  const {assessFailedReleaseEvidence} = await import('../tools/ci/failed-release-evidence.mjs');
+  const main = 'a'.repeat(40), stable = 'b'.repeat(40), source = 'c'.repeat(40);
+  const bot = {login: 'mid-release-bot-meteomartini[bot]'};
+  const run = {id: 1, run_attempt: 1, path: '.github/workflows/install-mid.yml', head_branch: 'main',
+    head_sha: main, event: 'workflow_dispatch', status: 'completed', conclusion: 'failure'};
+  const names = ['Vollständig geprüften Release sammeln und committen', 'Geprüften MID-Worker sicher automatisch veröffentlichen',
+    ...[1, 2, 3].map(i => 'MID auf GitHub Pages veröffentlichen · Versuch ' + i),
+    'Erfolgreichen Pages-/Worker-Release finalisieren'];
+  const jobs = names.map((name, i) => ({name, id: i+1, run_id: 1, status: 'completed', conclusion: 'skipped'}));
+  jobs.push({name: 'Release-Core-Regression · core-3/4', id: 7, run_id: 1, status: 'completed', conclusion: 'failure'});
+  const evidence = {main, stable, finalRefs: {main, stable}, source: {sha: source, parents: [{sha: stable}]},
+    packet: {sha: main, parents: [{sha: source}], author: bot, committer: bot,
+      files: [{filename: 'MID-professional-replacement.zip', status: 'added'}]},
+    run, jobs: {total_count: jobs.length, jobs}, installerRuns: {total_count: 1, workflow_runs: [run]}};
+  assert.deepEqual(assessFailedReleaseEvidence(evidence), {eligibleForReview: true,
+    reason: 'PREDEPLOY_FAILURE_CONFIRMED', mergeAuthorized: false, releaseAuthorized: false});
+  for (const change of [
+    e => e.finalRefs.main = stable,
+    e => e.packet.files.push({filename: 'src/App.tsx'}),
+    e => e.source.parents[0].sha = main,
+    e => e.run.run_attempt = 2,
+    e => {e.installerRuns.workflow_runs.push({id: 99, status: 'in_progress'}); e.installerRuns.total_count++;},
+    e => e.jobs.jobs.pop(),
+    e => e.jobs.jobs[1].conclusion = 'failure',
+    e => e.jobs.jobs[1].steps = [{conclusion: 'success'}],
+  ]) {
+    const altered = structuredClone(evidence);
+    change(altered);
+    assert.equal(assessFailedReleaseEvidence(altered).eligibleForReview, false);
+  }
+});
+
+test('failed-release reader rejects a stale ref before requesting any installer evidence', async () => {
+  const {auditFailedRelease} = await import('../tools/ci/audit-failed-release.mjs');
+  const main = 'a'.repeat(40), stable = 'b'.repeat(40);
+  const requested = [];
+  const get = path => {
+    requested.push(path);
+    return {object: {sha: stable}};
+  };
+  await assert.rejects(auditFailedRelease({expectedMain: main, expectedStable: stable, installerId: '43522922451'}, get), /Live refs differ/);
+  assert.deepEqual(requested, ['git/ref/heads/main', 'git/ref/heads/mid-stable']);
+  await assert.rejects(auditFailedRelease({expectedMain: main, expectedStable: stable, installerId: '../2'}, get), /installer run ID/);
+  assert.equal(requested.length, 2);
+});

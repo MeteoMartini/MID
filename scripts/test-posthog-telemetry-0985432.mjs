@@ -6,16 +6,17 @@ import vm from 'node:vm';
 import {transformSync} from 'esbuild';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const [source,app,main]=await Promise.all([
+const [source,app,main,systemUpdateManager]=await Promise.all([
  readFile(path.join(root,'src/posthogTelemetry.ts'),'utf8'),
  readFile(path.join(root,'src/App.tsx'),'utf8'),
  readFile(path.join(root,'src/main.tsx'),'utf8'),
+ readFile(path.join(root,'src/SystemUpdateManager.tsx'),'utf8'),
 ]);
-assert.match(app,/Freiwillige MID-Diagnose \(PostHog\)/);
+assert.match(systemUpdateManager,/Freiwillige MID-Diagnose \(PostHog\)/);
 assert.match(app,/data-mid-telemetry-section=\{tab\.id\}/);
-assert.match(app,/setMidPosthogConsent\(next\)/);
-assert.match(app,/posthogNotice&&<span role="status">/);
-assert.match(app,/Diagnose-Auswahl konnte auf diesem Gerät nicht gespeichert werden/);
+assert.match(systemUpdateManager,/setMidPosthogConsent\(next\)/);
+assert.match(systemUpdateManager,/posthogNotice&&<span role="status">/);
+assert.match(systemUpdateManager,/Diagnose-Auswahl konnte auf diesem Gerät nicht gespeichert werden/);
 assert.match(main,/startMidPosthogTelemetry\(\)/);
 assert.doesNotMatch(source,/\$current_url|\$referrer|identify\(|session_recording|autocapture:/);
 assert.match(source,/\$process_person_profile:false/);

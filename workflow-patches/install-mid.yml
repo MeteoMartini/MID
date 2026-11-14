@@ -315,23 +315,28 @@ jobs:
         timeout-minutes: 5
         run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
 
+      - name: Gemeinsame MID-Build-Eingaben laden
+        shell: bash
+        env:
+          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL }}
+          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
+          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+          VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
+          VITE_POSTHOG_PROJECT_TOKEN: ${{ vars.VITE_POSTHOG_PROJECT_TOKEN }}
+          VITE_POSTHOG_HOST: ${{ vars.VITE_POSTHOG_HOST }}
+        run: node tools/ci/release-build-inputs.mjs
+
       - name: Produktionsbuild und Worker-Syntax verifizieren
         shell: bash
         # Der unveränderte Produktionsbuild bleibt eigener verpflichtender Gate-Job.
         # Alle Core-Regressionen laufen vollständig in vier obligatorischen disjunkten Matrix-Shards.
         timeout-minutes: 8
-        env:
-          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
-          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
-          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
-          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH || '/api/mid-worker' }}
-          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
-          VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
-          VITE_POSTHOG_PROJECT_TOKEN: ${{ vars.VITE_POSTHOG_PROJECT_TOKEN }}
-          VITE_POSTHOG_HOST: ${{ vars.VITE_POSTHOG_HOST }}
         run: |
           set -euo pipefail
           npm run build
+          node scripts/test-bundle-budget-098594.mjs
           node --check worker/metar-proxy.js
 
 
@@ -491,20 +496,25 @@ jobs:
         timeout-minutes: 5
         run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
 
+      - name: Gemeinsame MID-Build-Eingaben laden
+        shell: bash
+        env:
+          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL }}
+          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
+          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+          VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
+          VITE_POSTHOG_PROJECT_TOKEN: ${{ vars.VITE_POSTHOG_PROJECT_TOKEN }}
+          VITE_POSTHOG_HOST: ${{ vars.VITE_POSTHOG_HOST }}
+        run: node tools/ci/release-build-inputs.mjs
+
       - name: Disjunkten Core-Regressionsanteil ohne Testsprung prüfen
         shell: bash
         timeout-minutes: 15
         env:
           MID_REGRESSION_SHARD: ${{ matrix.shard }}
           MID_REGRESSION_JOBS: '2'
-          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
-          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
-          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
-          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH || '/api/mid-worker' }}
-          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
-          VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
-          VITE_POSTHOG_PROJECT_TOKEN: ${{ vars.VITE_POSTHOG_PROJECT_TOKEN }}
-          VITE_POSTHOG_HOST: ${{ vars.VITE_POSTHOG_HOST }}
         run: |
           set -euo pipefail
           npm run build
@@ -639,6 +649,19 @@ jobs:
         timeout-minutes: 10
         run: node scripts/prepare-browser-runtimes.mjs
 
+      - name: Gemeinsame MID-Build-Eingaben laden
+        shell: bash
+        env:
+          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL }}
+          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
+          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+          VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
+          VITE_POSTHOG_PROJECT_TOKEN: ${{ vars.VITE_POSTHOG_PROJECT_TOKEN }}
+          VITE_POSTHOG_HOST: ${{ vars.VITE_POSTHOG_HOST }}
+        run: node tools/ci/release-build-inputs.mjs
+
       - name: Vollständigen Heavy-Anteil des gleichen Releases prüfen
         shell: bash
         timeout-minutes: 15
@@ -646,14 +669,6 @@ jobs:
           MID_REGRESSION_SHARD: ${{ matrix.shard }}
           MID_MAP_QA_SHARD: ${{ matrix.map_group }}
           MID_REGRESSION_VERBOSE: '1'
-          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
-          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
-          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
-          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH || '/api/mid-worker' }}
-          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
-          VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
-          VITE_POSTHOG_PROJECT_TOKEN: ${{ vars.VITE_POSTHOG_PROJECT_TOKEN }}
-          VITE_POSTHOG_HOST: ${{ vars.VITE_POSTHOG_HOST }}
         run: |
           set -euo pipefail
           npm run build

@@ -1,3 +1,7 @@
+# MID v0.9.85.473 · Release-Kandidat zur Wiederaufnahme
+
+Stable-Basis v0.9.85.471: `987841ec2e077daa5a7bd07e861e5d9a76dc3ed7`. Lokaler Kandidat auf dem Source-Merge von #797 (`4c5ad000d946a4d4924a451a2b7e51610fce26e0`). Der Systemstatus wird verzögert geladen und offline vorgehalten. Source-Gate und Installer verwenden dieselben Vite-Build-Eingaben. Der geschützte Wiederanlauf und die Release-Gates stehen aus.
+
 # MID v0.9.85.472 · Wetter im Umfeld (QA-Kandidat)
 
 Stable-Basis `987841ec2e077daa5a7bd07e861e5d9a76dc3ed7`. #795/#797: Lazy-Vorschau für Aktuell mit DWD-RV, OPERA-Ersatzquelle und separat datierter Satellitenbeobachtung. Der angezeigte Radarzeitpunkt wird an die Detailkarte übergeben. Die vollständige Fach-, Browser- und Live-Abnahme steht aus.
