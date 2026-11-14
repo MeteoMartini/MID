@@ -86,6 +86,34 @@ assert.equal(validCloudTime(new Date(modelNow+4*3600000).toISOString(),modelRun,
 assert.equal(validCloudTime(modelTime,new Date(modelNow-25*3600000).toISOString(),modelNow),false,'Retired model run is not current.');
 assert.equal(validCloudTime('not-a-date',modelRun,modelNow),false);
 assert.equal(chooseCloud({},modelNow),null,'No proven model frame is unknown, never clear sky.');
+
+const {chooseSurroundingsCloudFrames:chooseCloudFrames}=cloudExports;
+const euCatalog={...modelCatalog,'icon-eu':{...modelCatalog['icon-d2'],label:'DWD ICON-EU',cloudWeatherFrames:[{...modelRef,file:'icon-eu-cw-001.bin'}]}};
+assert.equal(chooseCloudFrames(euCatalog,modelNow).map(item=>item.modelId).join(','),'icon-d2,icon-eu','A valid second model must remain available, not be discarded by priority');
+assert.ok(cloudSource.includes('for(const selected of chooseSurroundingsCloudFrames(index.models,now))'),'After invalid regional coverage the loader must try the next verified model');
+const accessedModels=[];
+let attemptedNativeFallback=0;
+const mockedModule={};
+const outsideD2={model:'icon-d2',run:modelRun,time:modelTime,lats:[48,49],lons:[5,6],cloud:[50,50,50,50],weather:[null,null,null,null]};
+const insideEu={model:'icon-eu',run:modelRun,time:modelTime,lats:[40,50],lons:[10,30],cloud:[50,50,50,50],weather:[null,null,null,null]};
+runInNewContext(compiledCloud.outputText,{
+ exports:mockedModule,
+ require:(id)=>{
+  if(id==='./cloudWeatherData')return {
+   loadCloudWeatherField:async(_base,modelId)=>{accessedModels.push(modelId);return modelId==='icon-d2'?outsideD2:insideEu},
+   cloudWeatherRaster:()=> 'data:image/png;base64,verified-mock'
+  };
+  if(id==='./nativeSynopticFields')return {loadSynopticIndex:async()=>({index:{models:euCatalog},base:'https://example.invalid/'})};
+  if(id==='./nativeModelFields')return {loadNativeIndex:async()=>{attemptedNativeFallback++;throw Error('Unnecessary native fallback')}};
+  return {};
+ },
+ Date,Number,Math,Array,Object,String,JSON,Set,Error,Promise
+},{timeout:1000});
+const euImage=await mockedModule.loadVerifiedSurroundingsCloud(45,20,modelNow,{aborted:false});
+assert.equal(euImage.model,'DWD ICON-EU','The out-of-ICON-D2 location must use the valid EU field');
+assert.equal(accessedModels.join(','),'icon-d2,icon-eu','Only confirmed SHA-bound fields may be retried in declared priority order');
+assert.equal(attemptedNativeFallback,0,'Do not discard an available EU field in favor of a D2-only fallback');
+
 assert.equal(chooseCloud({'icon-d2':{...modelCatalog['icon-d2'],cloudWeatherFrames:[{...modelRef,time:new Date(modelNow+5*3600000).toISOString()}]}},modelNow),null,'Wrong forecast validity never renders as actual weather.');
 const citySource=await read('src/surroundingsCitySelection.ts');
 const cityJs=ts.transpileModule(citySource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022},reportDiagnostics:true});

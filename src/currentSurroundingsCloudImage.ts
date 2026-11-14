@@ -21,9 +21,10 @@ export function admissibleSurroundingsCloudTime(validTime:string,run:string,now:
   time>=now-MAX_OFFSET&&time<=now+MAX_OFFSET&&
   init<=now+HOUR&&init>=now-MAX_RUN_AGE&&time>=init;
 }
-export function chooseSurroundingsCloudFrame(
+export function chooseSurroundingsCloudFrames(
  models:Record<string,SynopticModel>,now:number
-):{modelId:string;model:SynopticModel;ref:SynopticFrame;independent:boolean}|null{
+):Array<{modelId:string;model:SynopticModel;ref:SynopticFrame;independent:boolean}>{
+ const candidates:Array<{modelId:string;model:SynopticModel;ref:SynopticFrame;independent:boolean}>=[];
  for(const modelId of MODEL_PRIORITY){
   const model=models[modelId];
   if(!model)continue;
@@ -32,9 +33,14 @@ export function chooseSurroundingsCloudFrame(
    ...model.frames.filter(ref=>ref.cloudWeather===true).map(ref=>({ref,independent:false}))
   ].filter(item=>admissibleSurroundingsCloudTime(item.ref.time,model.run,now))
    .sort((a,b)=>Math.abs(Date.parse(a.ref.time)-now)-Math.abs(Date.parse(b.ref.time)-now));
-  if(records[0])return {modelId,model,ref:records[0].ref,independent:records[0].independent};
+  if(records[0])candidates.push({modelId,model,ref:records[0].ref,independent:records[0].independent});
  }
- return null;
+ return candidates;
+}
+
+/** The highest-priority candidate remains the default; the loader may retry other proven models. */
+export function chooseSurroundingsCloudFrame(models:Record<string,SynopticModel>,now:number){
+ return chooseSurroundingsCloudFrames(models,now)[0]??null;
 }
 function usableAtSite(data:CloudWeatherData,lat:number,lon:number):boolean{
  if(!Number.isFinite(lat)||!Number.isFinite(lon)||data.lats.length<2||data.lons.length<2||
@@ -51,16 +57,19 @@ function displayCloudFrame(data:CloudWeatherData,label:string,lat:number,lon:num
  if(!url.startsWith('data:image/png'))throw new Error('Modellbild nicht bereit.');
  return {url,bounds:[[data.lats[0],data.lons[0]],[data.lats.at(-1)!,data.lons.at(-1)!]],model:label,run:data.run,validTime:data.time};
 }
-async function loadVerifiedSurroundingsCloud(lat:number,lon:number,now:number,signal:AbortSignal):Promise<SurroundingsCloudImage>{
+export async function loadVerifiedSurroundingsCloud(lat:number,lon:number,now:number,signal:AbortSignal):Promise<SurroundingsCloudImage>{
  try{
   const {index,base}=await loadSynopticIndex(signal);
-  const selected=chooseSurroundingsCloudFrame(index.models,now);
-  if(selected){
+  // A time-valid ICON-D2 field may be geographically invalid at the user's site.
+  // Try the next SHA-verified model instead of falling back directly to native D2.
+  for(const selected of chooseSurroundingsCloudFrames(index.models,now)){
    const {modelId,model,ref,independent}=selected;
-   const field=independent
-    ?await loadCloudWeatherField(base,modelId,model,ref,signal)
-    :synopticCloudWeather(await loadSynopticField(base,modelId,model,ref,signal));
-   return displayCloudFrame(field,model.label,lat,lon,now);
+   try{
+    const field=independent
+     ?await loadCloudWeatherField(base,modelId,model,ref,signal)
+     :synopticCloudWeather(await loadSynopticField(base,modelId,model,ref,signal));
+    return displayCloudFrame(field,model.label,lat,lon,now);
+   }catch(error){if(signal.aborted)throw error}
   }
  }catch(error){if(signal.aborted)throw error}
  // Retain the established SHA-validated ICON-D2 paired original fields as a fallback.
