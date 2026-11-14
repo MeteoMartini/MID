@@ -94,10 +94,11 @@ const OUTLOOK_STALE_MS=12*60*60*1000;
 const EXTENDED_CACHE_KEY='mid:extreme-outlook:extended-payload:v4';
 const EXTENDED_FRESH_MS=3*60*60*1000;
 const EXTENDED_STALE_MS=24*60*60*1000;
+const SHORT_WORKER_TIMEOUT_MS=18000,EXTENDED_WORKER_TIMEOUT_MS=24000;
 
 function browserStorage(){try{return typeof localStorage==='undefined'?undefined:localStorage}catch{return undefined}}
 function validOutlook(value:unknown):value is ExtremeWeatherOutlook{const data=value as ExtremeWeatherOutlook|undefined,bounds=data?.grid?.bounds;const coverage=Number(data?.quality?.dataCoveragePct??100);return Boolean(data&&data.scope==='Mitteleuropa'&&Array.isArray(data.periods)&&data.periods.length&&Array.isArray(data.cells)&&data.cells.length&&data.grid?.pointCount&&coverage>=60&&bounds&&bounds.west<=-3.84&&bounds.east>=20.2&&bounds.south<=43.2&&bounds.north>=57.99&&data.thresholds?.probability)}
-function readOutlookCache(maxAgeMs:number){const storage=browserStorage();if(!storage)return undefined;const value=readStoredJsonCache<ExtremeWeatherOutlook>(storage,OUTLOOK_CACHE_KEY,maxAgeMs);return validOutlook(value)?value:undefined}
+function readOutlookCache(maxAgeMs:number){const storage=browserStorage();if(!storage)return undefined;const value=readStoredJsonCache<ExtremeWeatherOutlook>(storage,OUTLOOK_CACHE_KEY,maxAgeMs);const age=Date.now()-Date.parse(value?.checkedAt||'');return validOutlook(value)&&Number.isFinite(age)&&age>=-10*60*1000&&age<=maxAgeMs?value:undefined}
 function writeOutlookCache(value:ExtremeWeatherOutlook){const storage=browserStorage();if(!storage)return;writeStoredJsonCache(storage,OUTLOOK_CACHE_KEY,value,[OUTLOOK_PAYLOAD_PREFIX],2,OUTLOOK_STALE_MS)}
 function validExtendedOutlook(value:unknown):value is ExtremeWeatherOutlook{
  if(!validOutlook(value))return false;
@@ -121,6 +122,14 @@ function readExtendedOutlookCache(maxAgeMs:number){
  return age>=-10*60*1000&&age<=maxAgeMs?value:undefined;
 }
 function writeExtendedOutlookCache(value:ExtremeWeatherOutlook){const storage=browserStorage();if(storage)writeStoredJsonCache(storage,EXTENDED_CACHE_KEY,value,['mid:extreme-outlook:extended-payload:'],1,EXTENDED_STALE_MS)}
+/** Synchronous verified preview; its timestamp is the true forecast calculation time, not the cache write time. */
+export function previewExtremeWeatherOutlook(range:'short'|'extended'):ExtremeWeatherOutlook|null{
+ const value=range==='extended'?readExtendedOutlookCache(EXTENDED_STALE_MS):readOutlookCache(OUTLOOK_STALE_MS);
+ if(!value)return null;
+ const age=Date.now()-Date.parse(value.checkedAt),limit=range==='extended'?EXTENDED_FRESH_MS:OUTLOOK_FRESH_MS;
+ const stale=Boolean(value.stale)||age>limit;
+ return {...value,delivery:'local-cache',stale,staleReason:stale?'Gesicherter, älterer Modellausblick. Die Daten werden beim Öffnen erneut geprüft; fehlende aktuelle Daten bedeuten keine Entwarnung.':undefined};
+}
 function errorText(error:unknown){return error instanceof Error?error.message:String(error||'unbekannter Fehler')}
 export function isExtremeChunkLoadError(error:unknown){return /importing a module script failed|failed to fetch dynamically imported module|error loading dynamically imported module|dynamically imported module|module script.*failed|Eine App-Ressource konnte nicht geladen werden/i.test(errorText(error))}
 function abortReason(signal?:AbortSignal){return signal?.reason instanceof Error?signal.reason:new DOMException('Vorgang abgebrochen.','AbortError')}
@@ -129,17 +138,23 @@ function dailyWorkerLimit(error:unknown){return/(?:daily api request limit excee
 function storedWorkerLimitUntil(){try{const storage=browserStorage();if(!storage)return 0;const value=Number(storage.getItem(WORKER_LIMIT_KEY));return Number.isFinite(value)&&value>Date.now()?value:0}catch{return 0}}
 function rememberWorkerLimit(){const storage=browserStorage();if(!storage)return;const now=new Date(),until=Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()+1,0,15);try{storage.setItem(WORKER_LIMIT_KEY,String(until))}catch{}}
 function clearWorkerLimit(){try{browserStorage()?.removeItem(WORKER_LIMIT_KEY)}catch{}}
-function directFallbackReason(error:unknown,skipped=false){void error;void skipped;return'Die zentrale Datenquelle war vorübergehend nicht erreichbar. Die aktuelle Prognose wurde direkt aus ICON-D2-EPS und ICON-D2 berechnet.'}
+function directFallbackReason(error:unknown,skipped=false){
+ const reason=errorText(error);
+ const cause=skipped?'Der zentrale Datenweg wird wegen eines zuvor erreichten Tageskontingents vorübergehend übersprungen.':dailyWorkerLimit(error)?'Der zentrale Datenweg meldete ein Tageskontingent.':/Zeitüberschreitung|TimeoutError|timed out|timeout/i.test(reason)?'Der zentrale Datenweg hat das begrenzte Zeitfenster überschritten.':/nicht vollständig|ungültig|Antwortformat|vollständigen Mitteleuropa/i.test(reason)?'Die zentrale Antwort erfüllte den Datenvertrag nicht.':'Der zentrale Datenweg war vorübergehend nicht erreichbar.';
+ return cause+' Die aktuelle Prognose wurde direkt aus ICON-D2-EPS und ICON-D2 berechnet.';
+}
 
 export async function loadExtremeWeatherOutlook(signal?:AbortSignal):Promise<ExtremeWeatherOutlook>{
  throwIfAborted(signal);
- const fresh=readOutlookCache(OUTLOOK_FRESH_MS);if(fresh)return{...fresh,delivery:'local-cache'};
+ const fresh=readOutlookCache(OUTLOOK_FRESH_MS);if(fresh&&!fresh.stale)return{...fresh,delivery:'local-cache'};
  const workerSkipped=storedWorkerLimitUntil()>Date.now();let workerError:unknown=workerSkipped?new Error('Zentraler Datenweg vorübergehend ausgesetzt.'):undefined;
  if(!workerSkipped){
   try{
-   const worker=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{phase_schema:'freezing-liquid-v1'}, {purpose:'general',signal,timeoutMs:48000,maxAgeMs:30*60*1000,staleIfErrorMs:6*60*60*1000,cacheKey:'dach-extreme-outlook:v6'});
+   const worker=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{phase_schema:'freezing-liquid-v1'}, {purpose:'general',signal,timeoutMs:SHORT_WORKER_TIMEOUT_MS,maxAgeMs:30*60*1000,staleIfErrorMs:6*60*60*1000,cacheKey:'dach-extreme-outlook:v6'});
    if(worker.error)throw new Error(worker.error);if(!validOutlook(worker))throw new Error('Der MID-Datendienst lieferte keinen vollständigen Mitteleuropa-Ausblick über das ICON-D2-Gebiet.');
-   const result={...worker,delivery:'worker' as const};clearWorkerLimit();writeOutlookCache(result);return result;
+   const age=Date.now()-Date.parse(worker.checkedAt);if(!Number.isFinite(age)||age< -10*60*1000)throw new Error('Der MID-Datendienst lieferte keine gültige Berechnungszeit.');
+   const stale=Boolean(worker.stale)||age>OUTLOOK_FRESH_MS;
+   const result={...worker,delivery:'worker' as const,stale,staleReason:stale?'Der letzte vollständige Kurzfristausblick ist älter als 20 Minuten; keine aktuelle Entwarnung.':undefined};clearWorkerLimit();writeOutlookCache(result);return result;
   }catch(error){throwIfAborted(signal);workerError=error;if(dailyWorkerLimit(error))rememberWorkerLimit()}
  }
  try{
@@ -147,7 +162,8 @@ export async function loadExtremeWeatherOutlook(signal?:AbortSignal):Promise<Ext
   const result={...direct,delivery:'browser-direct' as const,fallbackReason:directFallbackReason(workerError,workerSkipped)};writeOutlookCache(result);return result;
  }catch(directError){
   throwIfAborted(signal);const stale=readOutlookCache(OUTLOOK_STALE_MS);if(stale)return{...stale,delivery:'local-cache',stale:true,staleReason:'Die aktuellen Datenwege sind vorübergehend nicht erreichbar; der letzte lokal gesicherte Ausblick wird weiter angezeigt.'};
-  void workerError;void directError;throw new Error('Die aktuellen MID-Datenwege für ICON-D2-EPS sind momentan nicht erreichbar. Bitte später erneut versuchen; ein vorhandener Ausblick wird künftig automatisch lokal als Ausfallsicherung vorgehalten.');
+  if(isExtremeChunkLoadError(directError))throw new Error('Eine App-Ressource konnte nicht geladen werden. Bitte die App einmal neu laden; gespeicherte Wetterdaten bleiben erhalten.');
+  void workerError;void directError;throw new Error('Die aktuellen MID-Datenwege für ICON-D2-EPS sind momentan nicht erreichbar. Bitte erneut laden; ein vorhandener Ausblick wird lokal als Ausfallsicherung vorgehalten.');
  }
 }
 
@@ -196,7 +212,7 @@ export async function loadExtendedExtremeWeatherOutlook(signal?:AbortSignal,forc
  const skipped=storedWorkerLimitUntil()>Date.now();let workerError:unknown=skipped?new Error('Zentraler Datenweg vorübergehend ausgesetzt.'):undefined;
  if(!skipped){
   try{
-   const data=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'},{purpose:'general',signal,timeoutMs:48000,maxAgeMs:forceRefresh?0:EXTENDED_FRESH_MS,staleIfErrorMs:0,cacheKey:'dach-extreme-outlook:extended:v4'});
+   const data=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'},{purpose:'general',signal,timeoutMs:EXTENDED_WORKER_TIMEOUT_MS,maxAgeMs:forceRefresh?0:EXTENDED_FRESH_MS,staleIfErrorMs:0,cacheKey:'dach-extreme-outlook:extended:v4'});
    throwIfAborted(signal);
    if(data.error||!validExtendedOutlook(data))throw new Error('Regionaler Langfristausblick derzeit nicht vollständig verfügbar.');
    const age=Date.now()-Date.parse(data.checkedAt),stale=Boolean(data.stale||age>EXTENDED_FRESH_MS);
