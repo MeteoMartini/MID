@@ -12,7 +12,6 @@ type ForecastRow={
  hourly?:{time?:unknown[];temperature_2m?:unknown[]};
 };
 
-const HOUR=3600000;
 const MINUTE=60000;
 const finite=(value:unknown):value is number=>typeof value==='number'&&Number.isFinite(value);
 
