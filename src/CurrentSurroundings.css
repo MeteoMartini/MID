@@ -13,3 +13,136 @@
 .current-surroundings-orientation { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
 .current-surroundings-orientation path { fill:none; stroke:CanvasText; stroke-opacity:.55; stroke-width:1; vector-effect:non-scaling-stroke; }
 .current-surroundings-place { position:absolute; transform:translate(-50%,-50%); color:CanvasText; background:Canvas; border-radius:.2rem; padding:0 .2rem; font-size:.72rem; max-width:22%; text-align:center; overflow-wrap:anywhere; }
+
+.current-surroundings {
+  --surroundings-border: color-mix(in srgb, var(--muted, #65778b) 28%, transparent);
+  --surroundings-surface: color-mix(in srgb, var(--accent, #007aa8) 6%, var(--panel, Canvas));
+}
+.current-surroundings header {
+  gap: .25rem .75rem;
+  margin-block-end: .65rem;
+}
+.current-surroundings h2 {
+  font-size: clamp(1.05rem, 3.6vw, 1.35rem);
+  line-height: 1.25;
+}
+.current-surroundings button,
+.current-surroundings select {
+  border: 1px solid var(--surroundings-border);
+  border-radius: .7rem;
+  padding: .35rem .65rem;
+  background: var(--surroundings-surface);
+  color: var(--text, CanvasText);
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 650;
+}
+.current-surroundings header button,
+.current-surroundings button[aria-pressed="true"] {
+  color: var(--accent, #007aa8);
+}
+.current-surroundings button[aria-pressed="true"] {
+  border-color: currentColor;
+  background: color-mix(in srgb, var(--accent, #007aa8) 12%, var(--panel, Canvas));
+}
+.current-surroundings button:disabled,
+.current-surroundings select:disabled {
+  color: var(--muted, #65778b);
+  opacity: .65;
+}
+.current-surroundings-controls { gap: .35rem; }
+.current-surroundings-controls label {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .35rem;
+  min-width: 0;
+  font-size: .78rem;
+  color: var(--muted, #65778b);
+}
+.current-surroundings :is(button, select, summary):focus-visible {
+  outline: 2px solid var(--accent, #007aa8);
+  outline-offset: 2px;
+}
+.current-surroundings-map {
+  border: 1px solid var(--surroundings-border);
+  border-radius: .85rem;
+  background: var(--surroundings-surface);
+}
+.current-surroundings :is(.current-surroundings-site, .current-surroundings-temperature, .current-surroundings-place) {
+  color: var(--text, CanvasText);
+  background: color-mix(in srgb, var(--panel, Canvas) 92%, transparent);
+}
+.current-surroundings-site {
+  border: 1px solid var(--accent, #007aa8);
+  border-radius: .65rem;
+  padding: .24rem .5rem;
+  font-size: .85rem;
+  font-weight: 700;
+  text-align: center;
+}
+.current-surroundings-orientation path { stroke: var(--muted, #65778b); }
+.current-surroundings > p,
+.current-surroundings-sources {
+  color: var(--muted, #65778b);
+  font-size: .78rem;
+}
+.current-surroundings-sources summary {
+  display: list-item;
+  align-content: center;
+  width: fit-content;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+/* Compact opaque-enough label plates: contrast survives bright snow, cloud and radar pixels. */
+.current-surroundings :is(.current-surroundings-site, .current-surroundings-place) {
+  color: var(--text, CanvasText);
+  background: color-mix(in srgb, var(--panel, Canvas) 94%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text, CanvasText) 22%, transparent);
+  border-radius: .45rem;
+  padding: .12rem .35rem;
+  box-shadow: 0 1px 3px #0003;
+  font-size: clamp(.68rem, 2.2vw, .83rem);
+  font-weight: 650;
+  line-height: 1.25;
+  text-align: center;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+.current-surroundings :is(.current-surroundings-site, .current-surroundings-place) strong {
+  display: block;
+  font-size: 1.18em;
+  font-variant-numeric: tabular-nums;
+}
+.current-surroundings-temperature {
+  z-index: 3;
+  padding: .12rem .4rem;
+  font-weight: 750;
+  font-size: clamp(.86rem, 3vw, 1.05rem);
+  line-height: 1.3;
+  pointer-events: none;
+  box-shadow: 0 1px 4px #0003;
+}
+.current-surroundings-site {
+  max-width: 39%;
+  z-index: 2;
+}
+.current-surroundings-place {
+  max-width: 23%;
+  z-index: 1;
+}
+.current-surroundings-site::before {
+  content: '';
+  display: block;
+  width: .42rem;
+  aspect-ratio: 1;
+  margin: 0 auto .14rem;
+  border: 1px solid var(--text, CanvasText);
+  border-radius: 50%;
+  background: var(--accent, #007aa8);
+}
+@media (max-width: 360px) {
+  .current-surroundings-place:nth-of-type(n+3) { display: none; }
+  .current-surroundings-site { max-width: 44%; }
+}

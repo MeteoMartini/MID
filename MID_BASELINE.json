@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.475",
+  "releaseVersion": "0.9.85.476",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -206,6 +206,7 @@
     "scripts/test-current-solar-event-background-09538.mjs",
     "scripts/test-current-source-info-type-safety-09471.mjs",
     "scripts/test-current-sunshine-minutes-081002.mjs",
+    "scripts/test-current-surroundings-temperature-0985476.mjs",
     "scripts/test-current-temperature-cache-transition-095339.mjs",
     "scripts/test-current-temperature-smooth-bridge-097719.mjs",
     "scripts/test-current-warning-compact-responsive-09654.mjs",
@@ -1300,6 +1301,7 @@
     "scripts/test-current-solar-event-background-09538.mjs",
     "scripts/test-current-source-info-type-safety-09471.mjs",
     "scripts/test-current-sunshine-minutes-081002.mjs",
+    "scripts/test-current-surroundings-temperature-0985476.mjs",
     "scripts/test-current-temperature-cache-transition-095339.mjs",
     "scripts/test-current-temperature-smooth-bridge-097719.mjs",
     "scripts/test-current-warning-compact-responsive-09654.mjs",
@@ -3966,7 +3968,7 @@
     "scripts/test-skybar-solid-colors-0985358.mjs",
     "scripts/test-current-moisture-0985462.mjs"
   ],
-  "version": "0.9.85.475",
+  "version": "0.9.85.476",
   "updatedAt": "2026-11-12",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",
