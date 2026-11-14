@@ -232,7 +232,7 @@ export default function CurrentSurroundings(props:Props){
      aria-label={`Modelltemperatur am Kartenpunkt ${formatWeatherValue(temperatures[point.id],'temperature','overview')} Grad Celsius`}>
      {formatWeatherValue(temperatures[point.id],'temperature','overview')}°
     </span>)}
-   <span className="current-surroundings-site" style={{left:orientation.center[0]/5.12+'%',top:orientation.center[1]/2.56+'%'}}>{name}{selection===undefined&&Number.isFinite(temperature)&&<strong>{formatWeatherValue(temperature,'temperature','overview')}°</strong>}</span>
+   <span className="current-surroundings-site" style={{left:`${orientation.center[0]/5.12}%`,top:`${orientation.center[1]/2.56}%`}}>{name}{selection===undefined&&Number.isFinite(temperature)&&<strong>{formatWeatherValue(temperature,'temperature','overview')}°</strong>}</span>
   </div>
   <p role="status">{displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</p>
   <details className="current-surroundings-sources">
