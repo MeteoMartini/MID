@@ -7,7 +7,7 @@ const source=sources[0],job=source.split('  install_build:')[1].split('\n  deplo
 assert.equal(Number(job.match(/^    timeout-minutes: (\d+)$/m)?.[1]),40);
 const step=source.split('      - name: Produktionsbuild und Worker-Syntax verifizieren')[1].split('\n      - name:')[0];
 assert.equal(Number(step.match(/timeout-minutes: (\d+)/)?.[1]),8);
-assert.match(step,/set -euo pipefail\s+ npm run build\s+ node --check worker\/metar-proxy\.js/);
+assert.match(step,/set -euo pipefail\s+ npm run build\s+ node scripts\/test-bundle-budget-098594\.mjs\s+ node --check worker\/metar-proxy\.js/);
 assert.doesNotMatch(step,/continue-on-error|MID_REGRESSION_SKIP|\|\|\s*true/);
 const core=source.split('  verify_core_shards:')[1].split('  verify_heavy:')[0];
 assert.match(core,/fail-fast: false/);
