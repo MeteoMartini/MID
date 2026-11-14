@@ -105,7 +105,11 @@ export default function CurrentSurroundings(props:Props){
    places.push({id:place.name+':'+place.lat.toFixed(5)+':'+place.lon.toFixed(5),name:place.name,x,y,lat:place.lat,lon:place.lon});
    if(places.length===4)break;
   }
-  return {paths,places,center:project(lon,lat)};
+  // Four real georeferenced forecast points, independent of city-label density.
+  const temperaturePoints=[{x:.22,y:.25},{x:.78,y:.25},{x:.22,y:.75},{x:.78,y:.75}]
+   .map(({x,y},index)=>({id:'surroundings-point-'+index,x:x*512,y:y*256,
+    lat:north-y*(north-south),lon:west+x*(east-west)}));
+  return {paths,places,temperaturePoints,center:project(lon,lat)};
  },[geography,west,south,east,north,lat,lon]);
  const radar=target===undefined?'':imageUrl('dwd',rvLayer,target,bounds);
  const satellite=catalog?.satelliteRgbProduct??catalog?.satelliteIrProduct;
@@ -195,14 +199,14 @@ export default function CurrentSurroundings(props:Props){
  const temperatureTarget=Math.floor(now/(10*60000))*10*60000;
  const [temperatureGrid,setTemperatureGrid]=useState<SurroundingsTemperatureSnapshot>();
  useEffect(()=>{
-  if(selection!==undefined||!orientation.places.length){setTemperatureGrid(undefined);return;}
+  if(selection!==undefined||!orientation.temperaturePoints.length){setTemperatureGrid(undefined);return;}
   const controller=new AbortController();
   // One bounded forecast request for up to four real places; entirely independent of radar.
-  void loadSurroundingsTemperatures(orientation.places,temperatureTarget,controller.signal)
+  void loadSurroundingsTemperatures(orientation.temperaturePoints,temperatureTarget,controller.signal)
    .then(result=>{if(!controller.signal.aborted)setTemperatureGrid(result)})
    .catch(()=>{if(!controller.signal.aborted)setTemperatureGrid(undefined)});
   return ()=>controller.abort();
- },[selection,temperatureTarget,orientation.places]);
+ },[selection,temperatureTarget,orientation.temperaturePoints]);
  const temperatures=selection===undefined?temperatureGrid?.values:undefined;
  const visibleClouds=Boolean(clouds&&cloudError!==clouds);
  return <section className="card current-surroundings" aria-labelledby={heading}>
@@ -222,6 +226,12 @@ export default function CurrentSurroundings(props:Props){
    {orientation.places.map(place=><span key={place.id} className="current-surroundings-place" style={{left:place.x/5.12+'%',top:place.y/2.56+'%'}}>
     {place.name}{temperatures?.[place.id]!==undefined&&<strong>{formatWeatherValue(temperatures[place.id],'temperature','overview')}°</strong>}
    </span>)}
+   {orientation.temperaturePoints.map(point=>temperatures?.[point.id]===undefined?null:
+    <span key={point.id} className="current-surroundings-temperature"
+     style={{left:point.x/5.12+'%',top:point.y/2.56+'%'}}
+     aria-label={`Modelltemperatur am Kartenpunkt ${formatWeatherValue(temperatures[point.id],'temperature','overview')} Grad Celsius`}>
+     {formatWeatherValue(temperatures[point.id],'temperature','overview')}°
+    </span>)}
    <span className="current-surroundings-site" style={{left:orientation.center[0]/5.12+'%',top:orientation.center[1]/2.56+'%'}}>{name}{selection===undefined&&Number.isFinite(temperature)&&<strong>{formatWeatherValue(temperature,'temperature','overview')}°</strong>}</span>
   </div>
   <p role="status">{displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</p>
