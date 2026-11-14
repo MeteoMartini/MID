@@ -1,3 +1,9 @@
+# MID v0.9.85.478
+
+- Wetter im Umfeld: dieselbe hochwertige OpenFreeMap-/MapLibre-Kartengrundlage wie im MID-Kartenbereich mit Wasser, Länder- und Regionalgrenzen sowie Orts- und Flussbeschriftungen statt schematischer SVG-Grenzlinien.
+- Temperaturwerte erscheinen bei bis zu vier tatsächlich benannten, nach regionaler Bedeutung ausgewählten Städten bzw. Orten. Die bisherigen frei gewählten Modellrasterpositionen entfallen. Werte stammen aus echten ortsbezogenen Open-Meteo-Best-Match-Abfragen; fehlende und unplausible Werte werden nicht als 0 dargestellt.
+- Niederschlagsradar und Satellitenbilder liegen georeferenziert auf der Kartenbasis. Der gewählte Ort bleibt als dezente Standortmarkierung mit seinem eigenen aktuellen Temperaturwert erkennbar.
+
 # MID v0.9.85.477
 
 - Stabilere GitHub-Actions-Artefaktübertragung bei HTTP-429-Drosselung: Die offizielle GitHub-Action `actions/download-artifact` verwendet jetzt v8.0.2 mit berücksichtigt­em `Retry-After`, ohne MID-Daten, Wetterberechnungen oder Benutzeroberfläche zu ändern.
