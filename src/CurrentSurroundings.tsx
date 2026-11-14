@@ -220,7 +220,7 @@ export default function CurrentSurroundings(props:Props){
     {future.map(time=><option key={time} value={time}>{clock(time)}</option>)}
    </select></label>
   </div>
-  <div className="current-surroundings-map" role="group" aria-label={`Wetterbild um ${name}`}>
+  <figure className="current-surroundings-map" aria-label={`Wetterbild um ${name}`}>
    {visibleClouds&&<img src={clouds} alt="" onError={()=>setCloudError(clouds)}/>}
    {(displayedOpera??displayedRadar)&&<img src={displayedPhase?.url??(displayedOpera??displayedRadar)?.url} alt="" />}
    <svg className="current-surroundings-orientation" viewBox="0 0 512 256" preserveAspectRatio="none" aria-hidden="true"><path d={orientation.paths}/></svg>
@@ -234,7 +234,7 @@ export default function CurrentSurroundings(props:Props){
      {formatWeatherValue(temperatures[point.id],'temperature','overview')}°
     </span>)}
    <span className="current-surroundings-site" style={{left:`${orientation.center[0]/5.12}%`,top:`${orientation.center[1]/2.56}%`}}>{name}{selection===undefined&&Number.isFinite(temperature)&&<strong>{formatWeatherValue(temperature,'temperature','overview')}°</strong>}</span>
-  </div>
+  </figure>
   <p role="status">{displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</p>
   <details className="current-surroundings-sources">
    <summary>Quellen und Datenstand</summary>
