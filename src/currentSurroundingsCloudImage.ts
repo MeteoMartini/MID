@@ -1,6 +1,6 @@
 import {useEffect,useState} from 'react';
 import {cloudWeatherRaster,nativeCloudWeatherPair,synopticCloudWeather,loadCloudWeatherField,type CloudWeatherData} from './cloudWeatherData';
-import {loadSynopticIndex,loadSynopticField,type SynopticFrame,type SynopticModel} from './nativeSynopticFields';
+import {loadEstablishedSynopticIndex,loadSynopticField,type SynopticFrame,type SynopticModel} from './nativeSynopticFields';
 import {loadNativeIndex,loadNativeField} from './nativeModelFields';
 
 export type SurroundingsCloudImage={
@@ -53,7 +53,7 @@ function displayCloudFrame(data:CloudWeatherData,label:string,lat:number,lon:num
 }
 async function loadVerifiedSurroundingsCloud(lat:number,lon:number,now:number,signal:AbortSignal):Promise<SurroundingsCloudImage>{
  try{
-  const {index,base}=await loadSynopticIndex(signal);
+  const {index,base}=await loadEstablishedSynopticIndex(signal);
   const selected=chooseSurroundingsCloudFrame(index.models,now);
   if(selected){
    const {modelId,model,ref,independent}=selected;

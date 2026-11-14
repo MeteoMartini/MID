@@ -69,7 +69,7 @@ assert.ok(component.includes('id="surroundings-model-cloud-weather"')&&component
 assert.ok(component.includes("ecmwfTemperatureColor(value)")&&component.includes("ecmwfTemperatureColor(temperature)"),'Temperaturzahlen und Standort verwenden dieselbe ECMWF-MID-Skala.');
 assert.ok(css.includes('background:transparent!important;box-shadow:none!important')&&css.includes('.current-surroundings-center-dot>strong'),'Temperaturen dürfen nicht durch Hintergrundplatten verdeckt sein.');
 const cloudSource=await read('src/currentSurroundingsCloudImage.ts');
-assert.ok(cloudSource.includes('loadSynopticIndex(signal)')&&cloudSource.includes('loadNativeIndex(signal)')&&cloudSource.includes('nativeCloudWeatherPair('),'Nur die originalen, SHA-validierten MID-Wolken-/SigWx-Daten verwenden.');
+assert.ok(cloudSource.includes('loadEstablishedSynopticIndex(signal)')&&cloudSource.includes('loadNativeIndex(signal)')&&cloudSource.includes('nativeCloudWeatherPair('),'SHA-validierte Wolken-/SigWx-Daten ohne blockierendes RUC-Vorabladen verwenden.');
 assert.ok(cloudSource.includes("cloudWeatherRaster(data,'pseudo')")&&cloudSource.includes('admissibleSurroundingsCloudTime'),'Kein Fake-Satellitenbild und keine ungebundene Modellzeit.');
 const compiledCloud=ts.transpileModule(cloudSource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022},reportDiagnostics:true});
 assert.equal(compiledCloud.diagnostics?.length??0,0);
