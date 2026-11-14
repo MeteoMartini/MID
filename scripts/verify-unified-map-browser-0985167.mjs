@@ -505,6 +505,14 @@ async function verifySurroundings(width,theme){
    return route.fulfill({json:{error:'Unavailable in surroundings fixture'}});
   });
   await page.goto(base+'/__map-qa?surroundings');
+  // .480: no radar/satellite/OPERA requests until the observation mode is explicitly selected.
+  // The cloud/SigWx fixture intentionally lacks a signed model catalogue: unknown stays NoData.
+  await page.getByRole('button',{name:'Wolken + Wetter',exact:true}).waitFor();
+  assert.equal(await page.getByRole('button',{name:'Wolken + Wetter',exact:true}).getAttribute('aria-pressed'),'true');
+  assert.equal(requests.filter(value=>/mode=composite-(times|wms)|mode=opera-raster/.test(value)).length,0,
+   'Default cloud/SigWx must not start an expensive observation/radar request');
+  await page.getByRole('button',{name:'Radar / Satellit',exact:true}).click();
+  assert.equal(await page.getByRole('button',{name:'Radar / Satellit',exact:true}).getAttribute('aria-pressed'),'true');
   const radarObserved=page.getByRole('status').filter({hasText:'DWD-Radar · Beobachtung'});
   try{await radarObserved.waitFor({timeout:60000})}catch(error){
    const state=await page.evaluate(()=>({
