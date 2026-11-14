@@ -34,7 +34,7 @@ export function chooseSurroundingsCities(
   if(Math.hypot(dx,dy)<6)return[]; // The selected location has its own site marker.
   const population=Math.max(0,item.population??0),rank=Math.max(1,Math.min(20,item.rank??8));
   const type=item.kind??'city';
-  const importance=population>0?Math.log10(population+1):(type==='city'?6.1:type==='town'?5.2:4.3)-.055*rank;
+  const importance=population>0?Math.log10(population+1):(type==='city'?5.45:type==='town'?4.8:4.1)-.055*rank;
   const priority=importance+(item.origin==='vector'?.23:0)-.003*Math.min(Math.hypot(dx,dy),150);
   return[{...item,name,id:`city:${lat.toFixed(5)}:${lon.toFixed(5)}`,priority,x,y}];
  }).sort((a,b)=>b.priority-a.priority||a.name.localeCompare(b.name,'de'));
