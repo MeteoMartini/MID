@@ -3,7 +3,8 @@ import {writeFirstDiagnostic} from '../../scripts/lib/secure-diagnostics.mjs';
 import {createWidgetNetworkDiagnostics} from './network-diagnostics.mjs';
 import {spawn} from 'node:child_process';
 import {existsSync} from 'node:fs';
-import {mkdir,mkdtemp,readFile,rename,rm,stat,writeFile} from 'node:fs/promises';
+import {mkdir,mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
+import {publishAtomicPng} from './atomic-png.mjs';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -75,7 +76,7 @@ try{
  const box=measured.result?.value;if(!box||box.width<100||box.height<100)throw new Error(`Widget-Abmessungen sind unplausibel: ${JSON.stringify(box)}; ${ready.text||''}`);
  const screenshot=await cdp.call('Page.captureScreenshot',{format:'png',fromSurface:true,captureBeyondViewport:true,clip:{x:box.x,y:box.y,width:box.width,height:box.height,scale:1}}),bytes=Buffer.from(screenshot.data,'base64');
  if(bytes.length<20000||bytes[0]!==137||bytes[1]!==80||bytes[2]!==78||bytes[3]!==71)throw new Error(`Ungültiger oder leerer Screenshot (${bytes.length} Byte).`);
- await mkdir(path.dirname(output),{recursive:true});const temporary=`${output}.part.png`;await writeFile(temporary,bytes);await rm(output,{force:true});await rename(temporary,output);const result=await stat(output);console.log(`Aktualisiert: ${output} (${result.size} Byte, ${box.width}×${box.height}px, ECMWF-Farben)`);
+ const result=await publishAtomicPng(output,bytes);console.log(`Aktualisiert: ${output} (${result.size} Byte, ${box.width}×${box.height}px, ECMWF-Farben)`);
 }catch(error){
  // Keep the FIRST failure across retries; never capture cookies, headers or URL queries.
  const diagnosticBase=path.join(path.dirname(output),'diagnostics',path.basename(output)),report=`${diagnosticBase}.first-failure.json`,image=`${diagnosticBase}.first-failure.png`;

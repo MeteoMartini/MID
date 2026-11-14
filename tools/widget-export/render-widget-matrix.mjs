@@ -53,8 +53,8 @@ function runCaptureOnce(url,target){
 async function runCapture(url,target){
  let lastError;
  for(let attempt=1;attempt<=captureAttempts;attempt++){
-  await rm(target,{force:true});
-  await rm(`${target}.part.png`,{force:true});
+  // The capture performs an exclusive staged PNG write and an atomic rename.
+  // Do not delete a previously valid image before a failed retry.
   if(attempt>1)await sleep(Math.min(5000,attempt*1500));
   console.log(`Widget-Render ${path.basename(target)}: Versuch ${attempt}/${captureAttempts} …`);
   try{
