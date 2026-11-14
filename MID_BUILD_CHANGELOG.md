@@ -1,3 +1,8 @@
+## MID v0.9.85.473 · Kandidat zur Wiederaufnahme des Releases
+
+- Quellbasis: gemergter PR #797, Commit `4c5ad000d946a4d4924a451a2b7e51610fce26e0`. Der Installer für das Paket `987fd2913351a8dc90bdb3325bac174efac22794` meldete 1.500.120 Byte Start-JavaScript bei einem Limit von 1.500.000 Byte.
+- Systemstatus und Diagnose-Einstellungen werden aus dem Startmodul in eine verzögert geladene Komponente verschoben. Die drei Source- und drei Installer-Buildschritte lösen Vite-Eingaben gemeinsam auf und protokollieren einen Eingabe-Fingerabdruck. Beide Gates bauen und prüfen das Bundle-Budget eigenständig. Der lesende Prüfer für fehlgeschlagene Installer qualifiziert ausschließlich vollständige Evidenz vor dem Deployment für die weitere Prüfung. Er wird nicht vom Merge-Guard aufgerufen.
+
 ## MID v0.9.85.472 · Wetter im Umfeld (QA-Kandidat)
 
 Stable-Basis `987841ec2e077daa5a7bd07e861e5d9a76dc3ed7`. #795/#797: Lazy-Vorschau für Aktuell mit DWD-RV, OPERA-Ersatzquelle und separat datierter Satellitenbeobachtung. Der angezeigte Radarzeitpunkt wird an die Detailkarte übergeben. Die vollständige Fach-, Browser- und Live-Abnahme steht aus.

@@ -37,6 +37,10 @@ export default defineConfig({
       const pollenRoots=Object.values(bundle).filter(chunk=>chunk.type==='chunk'&&chunk.facadeModuleId?.endsWith('/src/PollenForecast.tsx'));
       if(pollenRoots.length!==1)throw new Error('Expected exactly one deferred pollen module');
       visit(pollenRoots[0].fileName);
+      // Cache the deferred system controls so repair and rollback also open offline.
+      const systemRoot=Object.values(bundle).find(chunk=>chunk.type==='chunk'&&chunk.facadeModuleId?.endsWith('/src/SystemUpdateManager.tsx'));
+      if(!systemRoot)throw new Error('Missing deferred system update controls');
+      visit(systemRoot.fileName);
       // Export modules are fetched for offline use without eagerly executing them.
       // Their shared map dependencies are already loaded when an export is usable.
       const mapRoot=Object.values(bundle).find(chunk=>chunk.type==='chunk'&&chunk.facadeModuleId?.endsWith('/src/UnifiedWeatherMap.tsx'));
