@@ -3,7 +3,7 @@ import {compositeWmsProxy,loadCompositeTimes,loadOperaRaster,type CompositeProdu
 import {formatWeatherValue} from "./weatherValueFormat";
 import {PRECIPITATION_TYPE_COLORS,radarDbzColor} from './radarColorTables';
 import {loadModelMapGeography,type ModelMapGeography} from './modelMapGeography';
-import {extractSurroundingsTemperatures,type SurroundingsTemperatureSnapshot} from './currentSurroundingsTemperature';
+import {loadSurroundingsTemperatures,type SurroundingsTemperatureSnapshot} from './currentSurroundingsTemperature';
 import './CurrentSurroundings.css';
 
 export type SurroundingsBounds={west:number;south:number;east:number;north:number};
@@ -192,20 +192,17 @@ export default function CurrentSurroundings(props:Props){
  const displayedRadar=loaded&&loaded.time>=now-45*60000?loaded:undefined;
  const displayedPhase=showPhase&&displayedOpera&&phaseImage?.time===displayedOpera.time?phaseImage:undefined;
  const displayTime=displayedOpera?.time??displayedRadar?.time;
- const temperatureTarget=Math.round(now/(15*60000))*15*60000;
+ const temperatureTarget=Math.floor(now/(10*60000))*10*60000;
  const [temperatureGrid,setTemperatureGrid]=useState<SurroundingsTemperatureSnapshot>();
  useEffect(()=>{
   if(selection!==undefined||!orientation.places.length){setTemperatureGrid(undefined);return;}
   const controller=new AbortController();
-  // Model temperatures must not depend on availability or validity of a radar frame.
-  void import('./WeatherMapsData').then(({loadWeatherPhaseGrid})=>
-   loadWeatherPhaseGrid(lat,lon,new Date(temperatureTarget).toISOString(),controller.signal)
-  ).then(grid=>{
-   if(controller.signal.aborted)return;
-   setTemperatureGrid(extractSurroundingsTemperatures(grid,orientation.places,temperatureTarget));
-  }).catch(()=>{if(!controller.signal.aborted)setTemperatureGrid(undefined)});
+  // One bounded forecast request for up to four real places; entirely independent of radar.
+  void loadSurroundingsTemperatures(orientation.places,temperatureTarget,controller.signal)
+   .then(result=>{if(!controller.signal.aborted)setTemperatureGrid(result)})
+   .catch(()=>{if(!controller.signal.aborted)setTemperatureGrid(undefined)});
   return ()=>controller.abort();
- },[selection,temperatureTarget,lat,lon,orientation.places]);
+ },[selection,temperatureTarget,orientation.places]);
  const temperatures=selection===undefined?temperatureGrid?.values:undefined;
  const visibleClouds=Boolean(clouds&&cloudError!==clouds);
  return <section className="card current-surroundings" aria-labelledby={heading}>
@@ -234,7 +231,7 @@ export default function CurrentSurroundings(props:Props){
   {visibleClouds&&satelliteTime!==undefined&&<p>Bewölkung · {satellite?.provider==='dwd'?'DWD':'EUMETSAT'} · Beobachtung {clock(satelliteTime)} Uhr</p>}
   {Number.isFinite(temperature)&&temperatureTime&&<p>Temperatur am gewählten Ort · {temperatureTime.slice(11,16)} Uhr</p>}
   {selection===undefined&&(temperatureGrid&&temperatures&&Object.keys(temperatures).length
-   ?<p>Umfeldtemperaturen · {temperatureGrid.modelLabel} ({temperatureGrid.modelId}) · Modelllauf {datedClock(temperatureGrid.runTime)} · gültig {datedClock(temperatureGrid.validTime)}</p>
+   ?<p>Umfeldtemperaturen · {temperatureGrid.source} {temperatureGrid.modelLabel} · gültig {datedClock(temperatureGrid.validTime)} · {temperatureGrid.available}/{temperatureGrid.requested} Orte · einzelner Modelllauf nicht ausgewiesen</p>
    :<p>Umfeldtemperaturen · Kein zeitlich und räumlich belegtes Temperaturfeld verfügbar</p>)}
   </details>
   {selection===undefined&&showPhase&&(displayedPhase?.url
