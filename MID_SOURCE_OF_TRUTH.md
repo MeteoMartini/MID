@@ -1,3 +1,7 @@
+# MID v0.9.85.474 · Geschützter Release-Wiederanlauf
+
+Basis: a25e2c2c2ba6df0ca9ce285313a01df5048fb9c9. Der Merge-Guard prüft Paket-Herkunft, fehlgeschlagenen Installer und übersprungene Deployment-Jobs über GitHub und bindet den Nachweis an aktuellen Main-, Stable- und getesteten Basis-SHA. Review- und Release-Gates bleiben verpflichtend.
+
 # MID v0.9.85.473 · Release-Kandidat zur Wiederaufnahme
 
 Stable-Basis v0.9.85.471: `987841ec2e077daa5a7bd07e861e5d9a76dc3ed7`. Lokaler Kandidat auf dem Source-Merge von #797 (`4c5ad000d946a4d4924a451a2b7e51610fce26e0`). Der Systemstatus wird verzögert geladen und offline vorgehalten. Source-Gate und Installer verwenden dieselben Vite-Build-Eingaben. Der geschützte Wiederanlauf und die Release-Gates stehen aus.
