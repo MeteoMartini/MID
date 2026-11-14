@@ -1,61 +1,81 @@
-// #795: Temperature is a separately time- and run-qualified model field.
-// Precipitation-phase provenance must never admit or suppress a temperature.
+// #795 – Independent point temperatures. A precipitation phase grid is NOT a temperature source.
+// Open-Meteo Best Match intentionally does not expose a trustworthy per-cell model run.
+// Do not borrow phase model run time or claim a single underlying model.
 export type SurroundingsTemperaturePlace={id:string;lat:number;lon:number};
 export type SurroundingsTemperatureSnapshot={
- modelId:string;modelLabel:string;validTime:number;runTime:number;values:Record<string,number>;
+ source:'Open-Meteo';modelLabel:'Best Match';validTime:number;checkedAt:number;
+ values:Record<string,number>;available:number;requested:number;
 };
-type TemperatureGrid={
- error?:string;stale?:boolean;modelAgeHours?:number|null;
- modelId?:string;modelLabel?:string;referenceTime?:string;
- lats?:number[];lons?:number[];
- frame?:{time?:string;temperature2m?:Array<number|null|undefined>};
+type ForecastRow={
+ latitude?:number;longitude?:number;utc_offset_seconds?:number;
+ hourly_units?:{temperature_2m?:string};
+ hourly?:{time?:unknown[];temperature_2m?:unknown[]};
 };
-const minute=60000;
 
-function axisValid(axis:readonly number[]|undefined):axis is number[]{
- if(!Array.isArray(axis)||axis.length<2||axis.length>10000||axis.some(value=>!Number.isFinite(value)))return false;
- const sign=Math.sign(axis[1]-axis[0]);
- if(!sign)return false;
- for(let index=2;index<axis.length;index++)if(Math.sign(axis[index]-axis[index-1])!==sign)return false;
- return true;
-}
+const HOUR=3600000;
+const MINUTE=60000;
+const finite=(value:unknown):value is number=>typeof value==='number'&&Number.isFinite(value);
 
-function nearestCell(axis:readonly number[],coordinate:number):number{
- if(!Number.isFinite(coordinate))return -1;
- let best=-1,distance=Infinity;
- for(let index=0;index<axis.length;index++){
-  const delta=Math.abs(axis[index]-coordinate);
-  if(delta<distance){distance=delta;best=index;}
- }
- if(best<0)return -1;
- const before=best>0?Math.abs(axis[best]-axis[best-1]):0;
- const after=best+1<axis.length?Math.abs(axis[best+1]-axis[best]):0;
- const halfCell=Math.max(before,after)/2;
- return distance<=halfCell+1e-9?best:-1;
+export function surroundingsTemperatureUrl(places:readonly SurroundingsTemperaturePlace[]):string|undefined{
+ if(places.length<1||places.length>5||places.some(p=>!p.id||!finite(p.lat)||Math.abs(p.lat)>90||!finite(p.lon)||Math.abs(p.lon)>180))return;
+ const url=new URL('https://api.open-meteo.com/v1/forecast');
+ url.searchParams.set('latitude',places.map(p=>p.lat.toFixed(5)).join(','));
+ url.searchParams.set('longitude',places.map(p=>p.lon.toFixed(5)).join(','));
+ url.searchParams.set('hourly','temperature_2m');
+ url.searchParams.set('temperature_unit','celsius');
+ url.searchParams.set('timezone','GMT');
+ url.searchParams.set('timeformat','unixtime');
+ url.searchParams.set('past_hours','2');
+ url.searchParams.set('forecast_hours','3');
+ url.searchParams.set('cell_selection','land');
+ return url.toString();
 }
 
 export function extractSurroundingsTemperatures(
- grid:TemperatureGrid|null|undefined,places:readonly SurroundingsTemperaturePlace[],targetTime:number
+ raw:unknown,places:readonly SurroundingsTemperaturePlace[],targetTime:number,checkedAt=Date.now()
 ):SurroundingsTemperatureSnapshot|undefined{
- if(!grid||grid.error||grid.stale||!Number.isFinite(targetTime))return;
- if(!grid.modelId?.trim()||!grid.modelLabel?.trim()||!grid.referenceTime)return;
- const validTime=Date.parse(grid.frame?.time??'');
- const runTime=Date.parse(grid.referenceTime);
- // The grid's own valid time and run time apply to temperature, never phaseValidTimeByCell.
- if(!Number.isFinite(validTime)||!Number.isFinite(runTime)||runTime>validTime)return;
- if(Math.abs(validTime-targetTime)>20*minute||runTime>targetTime||targetTime-runTime>16*60*minute)return;
- if(grid.modelAgeHours!=null&&(!Number.isFinite(grid.modelAgeHours)||grid.modelAgeHours<0||grid.modelAgeHours>16))return;
- if(!axisValid(grid.lats)||!axisValid(grid.lons))return;
- const cells=grid.frame?.temperature2m;
- if(!Array.isArray(cells)||cells.length!==grid.lats.length*grid.lons.length)return;
+ if(!Number.isFinite(targetTime)||!Number.isFinite(checkedAt)||places.length<1||places.length>5)return;
+ const rows=Array.isArray(raw)?raw:[raw];
+ if(rows.length!==places.length)return;
  const values:Record<string,number>=Object.create(null);
- for(const place of places){
-  if(!place.id||!Number.isFinite(place.lat)||!Number.isFinite(place.lon))continue;
-  const row=nearestCell(grid.lats,place.lat),col=nearestCell(grid.lons,place.lon);
-  if(row<0||col<0)continue; // Out of original grid coverage, not 0 C.
-  const value=cells[row*grid.lons.length+col];
-  if(typeof value==='number'&&Number.isFinite(value))values[place.id]=value;
+ let validTime:number|undefined;
+ for(let i=0;i<rows.length;i++){
+  const row=rows[i] as ForecastRow|null;
+  const place=places[i];
+  if(!row||!place||!finite(row.latitude)||!finite(row.longitude)||
+    Math.abs(row.latitude-place.lat)>0.35||Math.abs(row.longitude-place.lon)>0.35||
+    row.utc_offset_seconds!==0||row.hourly_units?.temperature_2m!=='°C')continue;
+  const times=row.hourly?.time,temps=row.hourly?.temperature_2m;
+  if(!Array.isArray(times)||!Array.isArray(temps)||times.length!==temps.length||times.length>72||!times.length)continue;
+  let best=-1,delta=Infinity;
+  for(let k=0;k<times.length;k++){
+   const time=times[k];
+   if(!finite(time))continue;
+   const d=Math.abs(time*1000-targetTime);
+   if(d<delta){best=k;delta=d;}
+  }
+  // Hourly forecasts may be +/-30 minutes from now. Reject stale/foreign frames.
+  if(best<0||delta>32*MINUTE)continue;
+  const value=temps[best];
+  if(!finite(value)||value < -100||value > 65)continue;
+  const time=(times[best] as number)*1000;
+  if(validTime!==undefined&&time!==validTime)continue; // Never mix times in one map.
+  validTime=time;
+  values[place.id]=value; // stable coordinate-derived key, not the place name
  }
- if(!Object.keys(values).length)return;
- return{modelId:grid.modelId,modelLabel:grid.modelLabel,validTime,runTime,values};
+ const available=Object.keys(values).length;
+ if(!available||validTime===undefined)return;
+ return{source:'Open-Meteo',modelLabel:'Best Match',validTime,checkedAt,available,requested:places.length,values};
+}
+
+export async function loadSurroundingsTemperatures(
+ places:readonly SurroundingsTemperaturePlace[],targetTime:number,signal:AbortSignal
+):Promise<SurroundingsTemperatureSnapshot|undefined>{
+ const url=surroundingsTemperatureUrl(places);
+ if(!url)return;
+ const response=await fetch(url,{signal,mode:'cors',credentials:'omit'});
+ if(!response.ok)throw new Error('Umfeldtemperatur HTTP '+response.status);
+ const data:unknown=await response.json();
+ if(signal.aborted)return;
+ return extractSurroundingsTemperatures(data,places,targetTime);
 }
