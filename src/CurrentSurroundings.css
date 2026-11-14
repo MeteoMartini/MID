@@ -94,3 +94,31 @@
   min-height: 44px;
   cursor: pointer;
 }
+
+/* Map labels use a narrow outline so the weather raster remains visible. */
+.current-surroundings :is(.current-surroundings-site, .current-surroundings-place) {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: white;
+  text-shadow: 0 1px 2px #112133, 0 0 3px #112133, 1px 0 #112133, -1px 0 #112133;
+  font-size: clamp(.68rem, 2.2vw, .83rem);
+  font-weight: 600;
+  text-align: center;
+}
+.current-surroundings :is(.current-surroundings-site, .current-surroundings-place) strong {
+  display: block;
+  font-size: 1.18em;
+  font-variant-numeric: tabular-nums;
+}
+.current-surroundings-site { max-width: 40%; }
+.current-surroundings-site::before {
+  content: '';
+  display: block;
+  width: .42rem;
+  aspect-ratio: 1;
+  margin: 0 auto .14rem;
+  border: 1px solid white;
+  border-radius: 50%;
+  background: #007aa8;
+}
