@@ -6,19 +6,30 @@ export type SurroundingsCityCandidate={
 export type SurroundingsCity=SurroundingsCityCandidate&{id:string;priority:number};
 export type SurroundingsCityBounds={west:number;south:number;east:number;north:number};
 const finite=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v);
+const mercatorY=(lat:number)=>Math.log(Math.tan(Math.PI/4+Math.max(-85,Math.min(85,lat))*Math.PI/360))*180/Math.PI;
 
 export function chooseSurroundingsCities(
  candidates:readonly SurroundingsCityCandidate[],
- center:{lat:number;lon:number},bounds:SurroundingsCityBounds,maximum=4
+ center:{lat:number;lon:number},bounds:SurroundingsCityBounds,maximum=4,viewport?:{width:number;height:number}
 ):SurroundingsCity[]{
  if(!finite(center.lat)||!finite(center.lon)||![bounds.west,bounds.east,bounds.south,bounds.north].every(finite)||
   bounds.east<=bounds.west||bounds.north<=bounds.south||!Number.isInteger(maximum)||maximum<1||maximum>4)return[];
- const spanX=bounds.east-bounds.west,spanY=bounds.north-bounds.south;
+ // Match MapLibre's fitBounds/Web-Mercator viewport instead of assuming a fixed 512×256 raster.
+ const width=viewport?.width??512,height=viewport?.height??256;
+ if(!finite(width)||!finite(height)||width<180||height<155||width>4000||height>4000)return[];
+ const spanX=bounds.east-bounds.west,top=mercatorY(bounds.north),bottom=mercatorY(bounds.south),spanY=top-bottom;
+ if(!finite(spanY)||spanY<=0)return[];
+ const scale=Math.min((width-16)/spanX,(height-16)/spanY);
+ const offsetX=(width-spanX*scale)/2,offsetY=(height-spanY*scale)/2;
+ const centerX=offsetX+(center.lon-bounds.west)*scale,centerY=offsetY+(top-mercatorY(center.lat))*scale;
  const pool=candidates.flatMap(item=>{
   const name=String(item.name||'').trim(),lat=item.lat,lon=item.lon;
   if(!name||name.length>70||!finite(lat)||!finite(lon)||!finite(item.population??0)||!finite(item.rank??1))return[];
-  const x=(lon-bounds.west)/spanX*512,y=(bounds.north-lat)/spanY*256;
-  if(x<38||x>474||y<26||y>230)return[];
+  const x=offsetX+(lon-bounds.west)*scale,y=offsetY+(top-mercatorY(lat))*scale;
+  const marginX=Math.min(70,width*.25),marginY=24;
+  if(x<marginX||x>width-marginX||y<marginY||y>height-marginY)return[];
+  // Do not put a large city label over the selected-site marker.
+  if(Math.abs(x-centerX)<58&&Math.abs(y-centerY)<28)return[];
   const dx=(lon-center.lon)*Math.cos(center.lat*Math.PI/180)*111.2,dy=(lat-center.lat)*111.2;
   if(Math.hypot(dx,dy)<6)return[]; // The selected location has its own site marker.
   const population=Math.max(0,item.population??0),rank=Math.max(1,Math.min(20,item.rank??8));
@@ -30,7 +41,7 @@ export function chooseSurroundingsCities(
  const chosen:typeof pool=[];
  for(const item of pool){
   if(chosen.some(other=>Math.hypot((other.lon-item.lon)*Math.cos(center.lat*Math.PI/180)*111.2,(other.lat-item.lat)*111.2)<6))continue;
-  if(chosen.some(other=>Math.abs(item.x-other.x)<100&&Math.abs(item.y-other.y)<47))continue;
+  if(chosen.some(other=>Math.abs(item.x-other.x)<140&&Math.abs(item.y-other.y)<52))continue;
   chosen.push(item);
   if(chosen.length>=maximum)break;
  }
