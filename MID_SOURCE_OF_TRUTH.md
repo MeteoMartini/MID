@@ -1,5 +1,7 @@
 # MID v0.9.85.480 · schnelle Umfeld-Modellkarte und kompakter Kartenzeitvertrag (Source-Kandidat)
 
+Leitchat-Integration: vier SHA-identische Widget-QA-Dateien aus #810; private atomare PNG-Ersetzung und Negativ-/Concurrency-Tests. Für Orte außerhalb der ersten Modellabdeckung wird ein bestätigtes Folge-Modell statt eines ungeprüften D2-only-Abbruchs versucht; fehlende Felder bleiben NoData. Unabhängige Gesamt-/Browser-/Geräte-/Release-Abnahme noch ausstehend. Vor Freigabe aktuelle Spezialbranch-Änderungen neu verifizieren.
+
 Basis Stable v0.9.85.479 SHA `26e023f01662a5bf00f7543bcb02031634a101b9`. Kein direkter Stable-Schreibzugriff. Bestehendes MID-Kartenmodell Wolken + signifikantes Wetter für die kompakte Umfeld-Standardkarte; Radar und echte Satellitenbeobachtungen nur nach expliziter Wahl. SHA-/Run-/Gültigkeitsvalidierung und sichere NoData-Fälle; separate Best-Match-Ortstemperaturen mit bestehender wertbasierter ECMWF-Farbpalette (keine Änderung der Prognosequelle). In der Hauptkarte relative plus absolute Zeit einmalig in der sichtbaren Zeitleiste statt als verdeckte oder redundante Karten-Pille. Detailnachweise und offene QA siehe `MID_BUILD_CHANGELOG.md`.
 
 # MID v0.9.85.479 · In-App-Changelog und belastbare Codeprüfer-Evidenz (Source-Kandidat)
