@@ -1,3 +1,13 @@
+## MID v0.9.85.478 · identische MID-Kartenbasis und ortsgebundene Umfeldtemperaturen (Source-Kandidat)
+
+Basis Stable v0.9.85.477 `4f6c167cc41ab588dfeb2e512ad17a8683a99096` (inkl. erfolgreichem Installer `43629614852`). Selektiv SHA-/Blob-identisch übernommener Spezialchat-Kandidat `b9e3515b1cd785534612764f5a80dcc179d67c00`, dessen vier Quelldateien vor Änderungen gegen die neue Stable-Basis geprüft wurden; keine Überschneidung mit dem Security-Release .477.
+
+Umfeldwetter verwendet die offiziellen, schon im MID-Kartenbereich gebundenen Komponenten `UnifiedVectorBasemap`, `compositeReferenceLayers`, `MapContainer`, `ImageQuadLayer`, `HtmlMarker`. Damit entfallen handgezeichnete Natural-Earth-SVG-Grenzen und künstliche georeferenzierte Rasterkanten; die Radar-/Satellitenfelder bleiben zeitlich eindeutig und geografisch projiziert. Der Hintergrund führt OpenFreeMap/OSM-Vektorkacheln und dieselben Grenz-/Orts-/Gewässerstile wie der MID-Kartenbereich. Kein zusätzliches kostenpflichtiges Kartenprodukt.
+
+Neue deterministische Ortsauswahl `src/surroundingsCitySelection.ts`: bis vier geografisch registrierte Städte/Orte aus Natural Earth und tatsächlich geladenen OpenFreeMap-Kacheln, Priorität nach realer Bevölkerungsangabe beziehungsweise kartografischer Klasse/Rang, Mindestabständen und Begrenzung von Überschneidungen. Die vorhandene Open-Meteo-Best-Match-Mehrpunkt-Temperaturquelle wird nur für ausgewählte Ortschaften angefragt, ihre Celsius-Einheiten, UTC-Gültigkeit, Koordinaten und NoData-/Plausibilitätsgrenzen bleiben geschützt. Eine fehlende Stadt ist kein synthetischer Temperaturpunkt; ein fehlender Wert ist nicht 0. Der gewählte Ort behält seinen vorhandenen eigenen aktuellen Wert. Prognosewerte sind nicht amtliche Beobachtungen/Warnungen; einzelne Modellläufe sind aus Best Match nicht sicher ableitbar.
+
+Tests: `scripts/test-current-surroundings-temperature-0985476.mjs` mit Herkunfts-, Orts-, Distanz-, Kollision-, Negativ- und Fallback-Prüfungen ergänzt. Bestehende Rendering-/Responsive-/Modul-/Fachtests sowie Browser-/GPU-Kaltstart und iOS/VoiceOver sind über den finalen SHA in allen bestehenden Source-/PR-/Installer-/Worker-/Pages-/Stable-Gates unabhängig zu prüfen; dieser Dokumentenstand selbst behauptet keine Veröffentlichung oder erfolgreiches Release.
+
 ## MID v0.9.85.477 · Official actions/download-artifact v8.0.2 maintenance (Source-Kandidat)
 
 * Basis: Stable `8547d4a8420c648e0c28685ea7a5c3bb4b62baa7`, v0.9.85.476, 5 aktive Rulesets.
