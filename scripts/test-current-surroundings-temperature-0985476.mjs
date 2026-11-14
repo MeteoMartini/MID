@@ -52,7 +52,7 @@ assert.ok(component.includes('chooseSurroundingsCities'),'Named cities are chose
 assert.ok(!component.includes('temperaturePoints=['),'No synthetic four-corner sampling');
 assert.ok(!component.includes('current-surroundings-orientation')&&!component.includes('orientation.paths'),'Simplified separate boundaries removed');
 assert.ok(component.includes('<UnifiedVectorBasemap dark={darkMap}'),'Use exact MID vector land and water');
-assert.ok(component.includes('<MapInteraction enabled={false}/>'),'Embedded neighborhood weather map remains static; explore via Karte öffnen');
+assert.ok(component.includes('<MidMapLibre center={[lat,lon]}')&&component.includes('interactive={false} navigationControl={false}'),'The neighborhood map is a compact static preview without misleading zoom controls');
 assert.ok(component.includes('<VectorReferenceLayer url={MID_REFERENCE_TILES}'),'Use MID border, city, waterway and road styling');
 assert.ok(component.includes('<ImageQuadLayer id="surroundings-radar"'),'Radar stays georeferenced');
 assert.ok(component.includes('nearbyCities.map((place,index)=>'),'Temperatures bind to ranked named settlements');

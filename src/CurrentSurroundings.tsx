@@ -3,8 +3,8 @@ import {compositeWmsProxy,loadCompositeTimes,loadOperaRaster,type CompositeProdu
 import {formatWeatherValue} from "./weatherValueFormat";
 import {PRECIPITATION_TYPE_COLORS,radarDbzColor} from './radarColorTables';
 import {loadModelMapGeography,type ModelMapGeography} from './modelMapGeography';
-import {ImageQuadLayer,HtmlMarker,MapFitBounds,MapInteraction,useMidMap} from './MapLibreCore';
-import {MapContainer,VectorReferenceLayer} from './MapLibreLegacyCompat';
+import {MidMapLibre,ImageQuadLayer,HtmlMarker,MapFitBounds,useMidMap} from './MapLibreCore';
+import {VectorReferenceLayer} from './MapLibreLegacyCompat';
 import UnifiedVectorBasemap from './UnifiedVectorBasemap';
 import {compositeReferenceLayers} from './mapReferenceLayers';
 import {chooseSurroundingsCities,citiesFromMapFeatures,type SurroundingsCityCandidate} from './surroundingsCitySelection';
@@ -237,9 +237,8 @@ export default function CurrentSurroundings(props:Props){
    </select></label>
   </div>
   <figure className="current-surroundings-map" aria-label={`Wetterbild um ${name}: MID-Kartenbasis und Temperaturen an benannten Orten`}>
-   <MapContainer center={[lat,lon]} zoom={7} scrollWheelZoom={false} className="current-surroundings-maplibre">
+   <MidMapLibre center={[lat,lon]} zoom={7} scrollZoom={false} interactive={false} navigationControl={false} className="current-surroundings-maplibre">
     <MapFitBounds south={south} west={west} north={north} east={east} padding={8}/>
-    <MapInteraction enabled={false}/>
     <UnifiedVectorBasemap dark={darkMap}/>
     {visibleClouds&&<ImageQuadLayer id="surroundings-clouds" url={clouds} bounds={mapBounds} zIndex={220} onError={()=>setCloudError(clouds)}/>}
     {(displayedOpera??displayedRadar)&&<ImageQuadLayer id="surroundings-radar" url={displayedPhase?.url??(displayedOpera??displayedRadar)!.url} bounds={mapBounds} zIndex={360}/>}
@@ -254,7 +253,7 @@ export default function CurrentSurroundings(props:Props){
     })}
     <HtmlMarker latitude={lat} longitude={lon} anchor="center" className="current-surroundings-center-marker" zIndex={920}
      html={`<span class="current-surroundings-center-dot" role="img" aria-label="Gewählter Ort: ${mapSafe(name)}"></span>`}/>
-   </MapContainer>
+   </MidMapLibre>
    <figcaption className="current-surroundings-map-caption">Standort: {name}{selection===undefined&&Number.isFinite(temperature)?` · ${formatWeatherValue(temperature,'temperature','overview')}°`:''}</figcaption>
   </figure>
   <p role="status">{displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</p>
