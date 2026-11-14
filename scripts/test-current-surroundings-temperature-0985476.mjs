@@ -85,6 +85,26 @@ assert.equal(choose(cities,center,{west:8,east:5,south:50,north:51}).length,0,'I
 const compact=choose(cities,center,bounds,4,{width:280,height:220});
 assert.ok(compact.length>=1&&compact.length<=chosen.length,'Mobile layout reduces colliding labels without fabricating extra cities');
 assert.equal(choose(cities,center,bounds,4,{width:150,height:120}).length,0,'Too narrow for a legible city plate is NoData rather than overlapping labels');
+// Deterministic layout QA complements (but does not replace) real browser screenshot checks.
+const mercator=lat=>Math.log(Math.tan(Math.PI/4+lat*Math.PI/360))*180/Math.PI;
+for(const [width,height] of [[320,220],[390,235],[430,260],[834,285]]){
+ const selected=choose(cities,center,bounds,4,{width,height});
+ const top=mercator(bounds.north),bottom=mercator(bounds.south);
+ const scale=Math.min((width-16)/(bounds.east-bounds.west),(height-16)/(top-bottom));
+ const offsetX=(width-(bounds.east-bounds.west)*scale)/2,offsetY=(height-(top-bottom)*scale)/2;
+ const projected=selected.map(city=>({
+  x:offsetX+(city.lon-bounds.west)*scale,
+  y:offsetY+(top-mercator(city.lat))*scale
+ }));
+ assert.ok(projected.length>=1&&projected.length<=4,`Georeferenced cities available at ${width}px`);
+ for(const point of projected){
+  assert.ok(point.x>=Math.min(70,width*.25)&&point.x<=width-Math.min(70,width*.25),`Label clipping horizontally at ${width}px`);
+  assert.ok(point.y>=24&&point.y<=height-24,`Label clipping vertically at ${width}px`);
+ }
+ for(let i=0;i<projected.length;i++)for(let j=i+1;j<projected.length;j++){
+  assert.ok(Math.abs(projected[i].x-projected[j].x)>=140||Math.abs(projected[i].y-projected[j].y)>=52,`Colliding city labels at ${width}px`);
+ }
+}
 const nearDuplicates=[
  {name:'A',lat:50.97,lon:6.80,population:450000,origin:'natural-earth'},
  {name:'B',lat:50.972,lon:6.81,population:400000,origin:'natural-earth'}
