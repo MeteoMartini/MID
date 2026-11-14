@@ -2,7 +2,7 @@ import type {SurroundingsBounds} from './CurrentSurroundings';
 import {astronomicalIsDayAt} from './astronomy';
 import {px250FreshForLocation} from './px250Availability';
 import {useDisplayPreference,displayBoolean} from './useDisplayPreference';
-import {modelLeadLabel,modelAvailableLabel} from './modelForecastTime';
+
 import './mapCanvasResponsive.css';
 import './mapPopupTheme.css';
 import {compositeReferenceLayers,readMapReferenceSettings,patchMapReferenceSettings,subscribeMapReferenceSettings,DEFAULT_MAP_REFERENCE} from './mapReferenceLayers';
