@@ -1,3 +1,9 @@
+# MID v0.9.85.477
+
+- Die Übertragung von GitHub-Actions-Artefakten wird bei temporärer HTTP-429-Drosselung robuster. Die offizielle Action `actions/download-artifact v8.0.2` berücksichtigt `Retry-After`.
+- Zehn aktive und kanonische Workflow-Paare, Installer-Vorlage und Workflow-Synchronisierung werden auf denselben upstream-verifizierten SHA aktualisiert. Sicherheits-, Review-, Digest-/Herkunfts- und Release-Gates bleiben erhalten.
+- Kein Eingriff in Wetterdaten, Warnungen, Karten oder Bedienoberfläche.
+
 # MID v0.9.85.476
 
 - Extremwetter-Ausblick: Kurz- und Mittelfrist können mit einer validierten lokalen Vorschau sofort geöffnet werden. Kürzere begrenzte zentrale Abruffristen und kontrollierter serieller Direkt-Fallback vermeiden doppelte Datenanforderungen; fehlende Modelllauf-Metadaten und unvollständige Gefahrenfelder bleiben ausdrücklich gekennzeichnet. Eigene MID-Diagnostik ist keine amtliche Warnung.
