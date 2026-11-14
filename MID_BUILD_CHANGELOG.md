@@ -1,5 +1,9 @@
 ## MID v0.9.85.476 · Vier echte Umfeldtemperaturen und sichere P1-Codequalitäts-Piloten (Source-Kandidat)
 
+
+Gebündelte Freigabekandidatur: #803, Quell-SHA `d313c8da02b823afd7e801ebdb11002ecf250c35`. Extremwetter-Ausblick: Kurz- und Mittelfrist können mit einer validierten lokalen Vorschau sofort geöffnet werden. Kürzere begrenzte zentrale Abruffristen und kontrollierter serieller Direkt-Fallback vermeiden doppelte Datenanforderungen; fehlende Modelllauf-Metadaten und unvollständige Gefahrenfelder bleiben ausdrücklich gekennzeichnet. Eigene MID-Diagnostik ist keine amtliche Warnung.
+Die ursprünglichen fünf Dateien (3 Quellmodule, 2 vollständige Regressionstests) wurden blob-identisch in #804 übernommen; die beiden Drafts werden nicht unabhängig unter .476 veröffentlicht. Dieser SHA-bestehende Handoff ersetzt noch keine neuen Source- und Browser-Gates.
+
 Stable-Basis `b598bf457461e0dfa838180a6fd7dfddb22a1487` / v0.9.85.475. Unabhängige Open-Meteo-Best-Match-Mehrpunktprognose für vier georeferenzierte Umfeldtemperaturen zusätzlich zum gewählten Favoriten; gemeinsamer echter Stunden-Gültigkeitszeitpunkt, Celsius-/Koordinaten- und physikalische Plausibilitätsprüfung, kein Missing→0, keine fiktive per-Punkt-Modelllaufprovenienz. Bestehender Draft #801 selektiv übernommen. Kartenlabels auf hellem/dunklem Hintergrund kontrastgesichert; UI-/Live-/iOS-Abnahme weiterhin gesondert.
 
 P1-QA-Piloten aus #760 und dem vorhandenen MID-Check-Pfad: actionlint v1.7.12, zizmor v1.32.0 und Biome v2.6.7 aus SHA256-verifizierten, vor dem Start geprüften offiziellen Releases, ohne GitHub-Token, nur diagnostisch. axe-core/Playwright v4.14.0 als optionaler, von bestehenden Pflichtchecks getrennter Revisionsschritt. Kein neuer Dienst, keine bezahlten Credits, keine automatischen Fix-Commits oder Freigabeumgehung. Vollständiger Source-PR-/Bot-/ZIP-/Installer-/Worker-/Pages-/Stable-Pfad bleibt bindend. Quellkandidat ist noch nicht veröffentlicht.
