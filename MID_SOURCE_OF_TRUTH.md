@@ -1,3 +1,11 @@
+# MID v0.9.85.477 · download-artifact v8.0.2 (Source-Kandidat)
+
+Verifizierte Ausgangsbasis `main=mid-stable=8547d4a8420c648e0c28685ea7a5c3bb4b62baa7`, v0.9.85.476, fünf aktive Rulesets. Offizieller Upstream `actions/download-artifact v8.0.2`: GitHub Tag `v8.0.2` zeigt auf signierten Commit `9000827ccba6bdab643e8b6fd33ac0654aef8333` (07.10.2026), Vergleichsstand v8.0.1 `3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c`. Änderung verbessert HTTP-429-/Retry-After-Retry; vorhandene Digest-Mismatch-Errors dürfen nicht abgeschwächt werden.
+
+Herkunft: unabhängiger QA-Draft #773 @ `b4f34ded936d39bd8252081c5d4072ce3402da9d`, **nicht** blind gemergt. Zehn Paare `ci/github/workflows` und `.github/workflows` wurden jeweils am echten Stable-Blob auf Identität geprüft und ausschließlich am Action-SHA/Versionskommentar aktualisiert. `workflow-patches/install-mid.yml` entspricht dem kanonischen Installer, `scripts/sync-github-workflows.mjs` persistiert den neuen Pin. Drei vorhandene Regressionen prüfen die neue SHA; `test-security-pollen-maintenance-0985128.mjs` schützt alle zehn Spiegelpaare und den Legacy-Pin-Negativfall. Abfrage-/DWD-/RUC-Quelllogik, Trigger, Berechtigungen, Secrets, Bot-Reviewguard und Installer bleiben unverändert.
+
+Quellkandidat: Kein Ersatz für Source-PR-Gate, 4 Core-/6 Heavy-Shards, Review/CI, kontrollierten SHA-Merge, Release-ZIP, `install-mid.yml`, Worker-/Pages-Gates oder Stable-Promotion. Keine bezahlten Dienste. Fehlende Daten, Modelllauf-/Gültigkeitszeiten, offizielle Warnungen und Sicherheitsguards bleiben unverändert.
+
 # MID v0.9.85.476 · Umfeldtemperaturen und P1-Qualitäts-Piloten (Source-Kandidat)
 
 

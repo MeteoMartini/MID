@@ -1,3 +1,12 @@
+## MID v0.9.85.477 · Official actions/download-artifact v8.0.2 maintenance (Source-Kandidat)
+
+* Basis: Stable `8547d4a8420c648e0c28685ea7a5c3bb4b62baa7`, v0.9.85.476, 5 aktive Rulesets.
+* Upstream-verifizierter SHA `9000827ccba6bdab643e8b6fd33ac0654aef8333`, offizieller GitHub-Tag v8.0.2; Verbesserung des Retry-After-Verhaltens bei HTTP 429.
+* Aus unverändertem aktuellem Stable-Quellstand neu aufgebaut, nicht mit altem Draft #773 überschrieben: genau 10 aktive/kanonische Workflowpaare, workflow-patches-Installer, Sync-Pin und 3 existierende Regressionen; alte SHA nur als explizite negative Regression.
+* Vollständige Versionierung Web/Worker/PWA/iOS/Registry/Changelogs synchronisiert. Eingriffsfläche ausschließlich CI-Leseaktion, keine Änderung der Download-Hashes/Digest-Mismatch-Vorgaben, Bot-Identitäten, Warn-/Wetter- oder RUC-Aggregationslogik.
+* QA und Release zum Zeitpunkt der Quellautorisierung **ausstehend**. Bestehender Source→SHA-Bot→ZIP→Installer→Worker/Pages→Stable-Pfad bleibt vollständig erforderlich.
+
+
 ## MID v0.9.85.476 · Vier echte Umfeldtemperaturen und sichere P1-Codequalitäts-Piloten (Source-Kandidat)
 
 

@@ -86,7 +86,7 @@ jobs:
           done
           echo 'External SHA/digest metadata checked against GitHub Actions, not candidate files.'
       - name: Fetch exact immutable RUC 27h EPS20 and authentic native Fast joint artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           run-id: 41501426005
           artifact-ids: 13168948161
@@ -94,7 +94,7 @@ jobs:
           digest-mismatch: error
           path: .joint-original
       - name: Fetch exact immutable full-native DWD ICON-D2 72-field candidate
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           run-id: 41433049114
           artifact-ids: 13135434899
