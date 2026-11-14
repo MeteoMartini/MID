@@ -28,7 +28,7 @@ assert.ok(app.includes('<ViewportGate'));
 assert.ok(app.includes('unit={unit}'));
 assert.ok(app.includes('timezone={displayTimezone}'));
 
-for(const token of ["'overall'","'thunderstorm'","'rain'","'wind'","'snow'","'ice'",'overviewMin:number','hazardMin:number','extremeExceptionMin:number','timeoutMs:48000','staleIfErrorMs:6*60*60*1000'])assert.ok(data.includes(token),`Client-Datenvertrag fehlt: ${token}`);
+for(const token of ["'overall'","'thunderstorm'","'rain'","'wind'","'snow'","'ice'",'overviewMin:number','hazardMin:number','extremeExceptionMin:number','SHORT_WORKER_TIMEOUT_MS=18000','EXTENDED_WORKER_TIMEOUT_MS=24000','timeoutMs:SHORT_WORKER_TIMEOUT_MS','timeoutMs:EXTENDED_WORKER_TIMEOUT_MS','staleIfErrorMs:6*60*60*1000'])assert.ok(data.includes(token),`Client-Datenvertrag fehlt: ${token}`);
 for(const token of ['formatDwdWindValue','formatDisplayDateTime','displayTimeLabel','aria-pressed','role="region"','MapFitBounds','GeoJsonLayers','MID Extremwetter-Ausblick · Mitteleuropa','Eigene MID-Prognose','keine amtliche Warnung','Schwellen, Parameter und Methodik','signalMetricSummary(signal,unit)'])assert.ok(panel.includes(token),`Oberflächenvertrag fehlt: ${token}`);
 for(const token of ['HtmlMarker','areas.map(area=>','hazardLabel(area.signal.hazard)'])assert.ok(overlay.includes(token),`Flächengebundener Kartenmarker fehlt: ${token}`);
 assert.ok(!overlay.includes('Modellierte Gefahrenfläche'),'Modellierte Gefahrenfläche darf im Popup nicht mehr als generische Bezeichnung erscheinen.');

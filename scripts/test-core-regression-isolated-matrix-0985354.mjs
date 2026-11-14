@@ -38,7 +38,8 @@ const expectedSwaps=[
 assert.deepEqual(REGRESSION_CORE_BALANCE_SWAPS,expectedSwaps,'Only the independently reviewed three cost-balancing swaps are authorized.');
 assert.deepEqual(REGRESSION_CORE_STABLE_ADDITIONS,[
  {test:'test-current-moisture-0985462.mjs',destination:'core-4/4'},
- {test:'test-codeql-4393-pin-0985475.mjs',destination:'core-1/4'}
+ {test:'test-codeql-4393-pin-0985475.mjs',destination:'core-1/4'},
+ {test:'test-current-surroundings-temperature-0985476.mjs',destination:'core-4/4'}
 ],'New approved regressions must run exactly once in qualified mandatory Core jobs without shifting historical allocations');
 const additions=new Set(REGRESSION_CORE_STABLE_ADDITIONS.map(row=>row.test));
 const previous=full.filter(name=>!additions.has(name));

@@ -13,6 +13,8 @@ assert.match(pkg.version,/^0\.9\.85\.\d+$/);
 assert.ok(Number(pkg.version.split('.').at(-1))>=296);
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[key].includes(test),test+' fehlt in '+key);
 assert.ok(panel.includes('isExtremeChunkLoadError(error)')&&panel.includes('window.location.reload()'),'Explizite Wiederherstellung fehlt');
+assert.ok(panel.includes('previewExtremeWeatherOutlook(range)')&&panel.includes('setSlowStart(true)'),'Sichtbarer Cache-Kaltstart mit begrenztem Wartezustand fehlt');
+assert.ok(source.includes('age<=maxAgeMs')&&source.includes('SHORT_WORKER_TIMEOUT_MS=18000'),'Berechnungszeit und kurzes Worker-Zeitfenster fehlen');
 assert.ok(source.includes('validExtendedOutlook(data)')&&!source.includes("import('./extremeWeatherOutlookExtendedFallback')"),'Worker muss unabhängig vom Zusatzmodul starten');
 
 // Run the real loader code after replacing only the two service interfaces and
@@ -44,7 +46,7 @@ globalThis.__midTestCacheRead=(s,k,ttl)=>{
 globalThis.__midTestCacheWrite=(s,k,v)=>{s.setItem(k,JSON.stringify({at:Date.now(),value:v}));return true};
 let calls=0,imports=0,workerResult,workerError,importError,directResult;
 globalThis.__midTestFetchWorker=async()=>{calls++;if(workerError)throw workerError;return workerResult};
-globalThis.__midTestDirectImport=async()=>{imports++;if(importError)throw importError;return{loadDirectDachExtendedExtremeOutlook:async()=>directResult}};
+globalThis.__midTestDirectImport=async()=>{imports++;if(importError)throw importError;return{loadDirectDachExtendedExtremeOutlook:async()=>directResult,loadDirectDachExtremeOutlook:async()=>directResult}};
 const dates=[48,72,96,120,144,168],ids=['48-72','72-96','96-120','120-144','144-168'];
 const base=Date.parse('2026-10-18T00:00:00Z');
 const periods=ids.map((id,i)=>({id,label:id,startHour:dates[i],endHour:dates[i+1],start:new Date(base+dates[i]*3600000).toISOString(),end:new Date(base+dates[i+1]*3600000).toISOString()}));
@@ -98,7 +100,21 @@ try{
   result=await module.loadExtendedExtremeWeatherOutlook();
   assert.equal(result.delivery,'worker');assert.equal(calls,1);assert.equal(imports,0);
  }
- console.log('MID .296: erweitertes Worker-first-Laden, Fachschema, Importausfall, Stale-Cache, Tageslimit und Abort dynamisch bestanden.');
+ // Short range: cached forecasts display immediately but do not acquire a fresh status from a new storage timestamp.
+ dataMap.clear();workerError=undefined;importError=undefined;calls=0;imports=0;workerResult=forecast();
+ let shortResult=await module.loadExtremeWeatherOutlook();
+ assert.equal(shortResult.delivery,'worker');assert.equal(calls,1);assert.equal(imports,0);
+ assert.equal(module.previewExtremeWeatherOutlook('short')?.delivery,'local-cache');
+ dataMap.clear();calls=0;imports=0;workerError=new Error('Zeitüberschreitung beim MID-Datendienst');directResult=forecast();
+ shortResult=await module.loadExtremeWeatherOutlook();
+ assert.equal(shortResult.delivery,'browser-direct');assert.match(shortResult.fallbackReason,/Zeitfenster überschritten/);assert.equal(calls,1);assert.equal(imports,1);
+ const oldShort={...forecast(),checkedAt:new Date(Date.now()-21*60*1000).toISOString()};
+ dataMap.clear();storage.setItem('mid:extreme-outlook:payload:v6',JSON.stringify({at:Date.now(),value:oldShort}));
+ assert.equal(module.previewExtremeWeatherOutlook('short')?.stale,true,'Cache-Schreibzeit ist keine Prognosefrische');
+ workerError=undefined;workerResult=forecast();calls=0;imports=0;
+ shortResult=await module.loadExtremeWeatherOutlook();
+ assert.equal(shortResult.delivery,'worker');assert.equal(calls,1,'20-Minuten-alter Modellstand erfordert Wiedervalidierung');
+ console.log('MID .476: Kurzfrist-Vorschau, Frischevertrag und Fallback geprüft; bisherige .296-Regression bleibt bestehen.');
 }finally{
  for(const [k,v] of Object.entries({localStorage:saved.storage,__midTestFetchWorker:saved.fetch,__midTestDirectImport:saved.importer,__midTestCacheRead:saved.read,__midTestCacheWrite:saved.write})){if(v===undefined)delete globalThis[k];else globalThis[k]=v}
 }
