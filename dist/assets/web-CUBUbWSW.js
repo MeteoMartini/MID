@@ -1,0 +1,1 @@
+import{Ri as e}from"./index-Dge08cCk.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};
