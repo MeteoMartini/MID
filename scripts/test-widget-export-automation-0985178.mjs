@@ -54,8 +54,7 @@ for(const token of [
  'Widget-Rendering endgültig fehlgeschlagen'
 ])assert.ok(renderer.includes(token),`Renderer-Retryvertrag fehlt: ${token}`);
 assert.ok(!renderer.includes('await rm(target,{force:true})'),'Ein alter erfolgreicher Screenshot darf vor einem Retry nicht entfernt werden.');
-assert.ok(!renderer.includes('await rm(`\  await rm(target,{force:true});
-  await rm(`${target}.part.png`,{force:true});.part.png`,{force:true})'),'Alte Partdateien dürfen kein gemeinsamer Stagingpfad sein.');
+assert.ok(!renderer.includes('.part.png'),'Legacy-Partdateien sind nicht länger ein gemeinsamer Stagingpfad.');
 const captureSource=await read('tools/widget-export/capture-widget.mjs');
 const atomicSource=await read('tools/widget-export/atomic-png.mjs');
 assert.ok(captureSource.includes('publishAtomicPng(output,bytes)'),'Capture verwendet atomaren Screenshot-Publish.');
