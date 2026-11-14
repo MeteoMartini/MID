@@ -285,12 +285,12 @@ export default function CurrentSurroundings(props:Props){
       html={`<span class="current-surroundings-city-value" role="img" aria-label="${mapSafe(place.name)}: ${degrees} Grad Celsius, Open-Meteo Best Match"><b>${mapSafe(place.name)}</b><strong style="color:${ecmwfTemperatureColor(value)}">${degrees}°</strong></span>`}/>;
     })}
     <HtmlMarker latitude={lat} longitude={lon} anchor="center" className="current-surroundings-center-marker" zIndex={920}
-     html={`<span class="current-surroundings-center-dot" role="img" aria-label="Gewählter Ort: ${mapSafe(name)}${Number.isFinite(temperature)?`, ${formatWeatherValue(temperature,'temperature','overview')} Grad Celsius`:''}">${Number.isFinite(temperature)?`<strong style="color:${ecmwfTemperatureColor(temperature)}">${formatWeatherValue(temperature,'temperature','overview')}°</strong>`:''}</span>`}/>
+     html={`<span class="current-surroundings-center-dot" role="img" aria-label="Gewählter Ort: ${mapSafe(name)}${selection===undefined&&Number.isFinite(temperature)?`, ${formatWeatherValue(temperature,'temperature','overview')} Grad Celsius`:''}">${selection===undefined&&Number.isFinite(temperature)?`<strong style="color:${ecmwfTemperatureColor(temperature)}">${formatWeatherValue(temperature,'temperature','overview')}°</strong>`:''}</span>`}/>
    </MidMapLibre>
    <figcaption className="current-surroundings-map-caption">Standort: {name}</figcaption>
   </figure>
   <p role="status" className="current-surroundings-data-status">{mode==='cloud'
-   ?cloudForecast.image?<>Modellbild · {cloudForecast.image.model} · gültig {datedClock(Date.parse(cloudForecast.image.validTime))} · INIT {datedClock(Date.parse(cloudForecast.image.run))} · schematische Wolken + SigWx, keine Beobachtung</>
+   ?cloudForecast.image?<>Modellbild · {cloudForecast.image.model} · gültig {datedClock(Date.parse(cloudForecast.image.validTime))} · INIT {datedClock(Date.parse(cloudForecast.image.run))} · schematische Wolken + SigWx, keine Beobachtung{cloudForecast.loading?' · neuer Stand wird geprüft':''}{cloudForecast.unavailable?' · Aktualisierung nicht erreichbar':''}</>
     :cloudForecast.loading?'Verifiziertes Modell-Wolkenbild wird geladen …':'Kein gültiges Wolken-/SigWx-Modellbild für Ort und Termin; keine Satellitenbeobachtung oder Entwarnung.'
    :displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</p>
   <details className="current-surroundings-sources">

@@ -71,6 +71,9 @@ assert.ok(css.includes('background:transparent!important;box-shadow:none!importa
 const cloudSource=await read('src/currentSurroundingsCloudImage.ts');
 assert.ok(cloudSource.includes('loadEstablishedSynopticIndex(signal)')&&cloudSource.includes('loadNativeIndex(signal)')&&cloudSource.includes('nativeCloudWeatherPair('),'SHA-validierte Wolken-/SigWx-Daten ohne blockierendes RUC-Vorabladen verwenden.');
 assert.ok(cloudSource.includes("cloudWeatherRaster(data,'pseudo')")&&cloudSource.includes('admissibleSurroundingsCloudTime'),'Kein Fake-Satellitenbild und keine ungebundene Modellzeit.');
+assert.ok(cloudSource.includes('setResult(previous=>previous.image&&admissibleSurroundingsCloudTime('),'Still-valid model images must remain visible until replacement or expiry.');
+assert.ok(component.includes("cloudForecast.unavailable?' · Aktualisierung nicht erreichbar':''"),'Failed model update must be visibly declared.');
+assert.ok(component.includes("selection===undefined&&Number.isFinite(temperature)"),'Current site temperature must not masquerade as a future radar value.');
 const compiledCloud=ts.transpileModule(cloudSource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022},reportDiagnostics:true});
 assert.equal(compiledCloud.diagnostics?.length??0,0);
 const cloudExports={};
