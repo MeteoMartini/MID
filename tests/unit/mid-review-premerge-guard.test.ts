@@ -20,6 +20,16 @@ describe('SHA-bound MID merge-time review guard',()=>{
   }
   expect(check(input()).ok).toBe(true);
  });
+ it('accepts only verified pre-deploy recovery for the tested main and Stable',()=>{
+  const packet='c'.repeat(40);
+  const recovery={main:packet,stable,eligibleForReview:true};
+  const based={...pr,base:{ref:'main',sha:packet}};
+  const state={main:{commit:{sha:packet}},sourceBaseSha:packet,before:based,after:based};
+  expect(check(input(state)).ok).toBe(false);
+  expect(check(input({...state,recovery})).ok).toBe(true);
+  expect(check(input({...state,recovery:{...recovery,stable:sha}})).ok).toBe(false);
+  expect(check(input({...state,recovery,data:{meta,threads:[thread(false)],reviews:[],truncated:false}})).ok).toBe(false);
+ });
  it('does not claim a clean readback is merge or release authorization',()=>{
   expect(check(input())).toMatchObject({ok:true,mergeAuthorized:false,releaseAuthorized:false,nativeEnforcementRequired:true});
  });

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 /** MID premerge evidence readback only; native GitHub rules close TOCTOU. */
+import {auditFailedRelease} from './audit-failed-release.mjs';
 import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 const REPO='MeteoMartini/MID',SHA=/^[a-f0-9]{40}$/;
@@ -7,10 +8,12 @@ const BRANCH=/^(chatgpt|codex)\/[^/]+(?:\/[^/]+)*$/;
 const QUERY='query($owner:String!,$name:String!,$number:Int!,$threadAfter:String,$reviewAfter:String){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid headRefName baseRefName isDraft state reviewThreads(first:100,after:$threadAfter){nodes{id isResolved isOutdated}pageInfo{hasNextPage endCursor}} reviews(first:100,after:$reviewAfter){nodes{id state author{login} submittedAt}pageInfo{hasNextPage endCursor}}}}}';
 const block=reason=>({ok:false,reason:'MID_REVIEW_'+reason,mergeAuthorized:false,releaseAuthorized:false});
 
-export function assessMidPremerge({before,after,main,stable,data,number,sha,branch,sourceBaseSha}={}){
+export function assessMidPremerge({before,after,main,stable,data,number,sha,branch,sourceBaseSha,recovery}={}){
  if(!Number.isSafeInteger(number)||number<1||!SHA.test(sha??'')||!BRANCH.test(branch??''))return block('BAD_INPUT');
  if(!SHA.test(sourceBaseSha??''))return block('SOURCE_BASE_UNVERIFIED');
- if(!SHA.test(main?.commit?.sha??'')||main.commit.sha!==stable?.commit?.sha||main.commit.sha!==sourceBaseSha)return block('SOURCE_DRIFT');
+ if(!SHA.test(main?.commit?.sha??'')||!SHA.test(stable?.commit?.sha??'')||main.commit.sha!==sourceBaseSha)return block('SOURCE_DRIFT');
+ if(main.commit.sha!==stable.commit.sha&&(recovery?.main!==main.commit.sha||
+  recovery?.stable!==stable.commit.sha||recovery?.eligibleForReview!==true))return block('SOURCE_DRIFT');
  const match=p=>p?.number===number&&p.state==='open'&&p.draft===false&&
   p.base?.ref==='main'&&p.base?.sha===main.commit.sha&&p.head?.ref===branch&&
   p.head?.sha===sha&&p.head?.repo?.full_name===REPO;
@@ -122,8 +125,21 @@ export async function runMidReviewGuard(env=process.env){
   if(reviewAfter!==null)args.push('-f','reviewAfter='+reviewAfter);
   return gh(args);
  },number,sha);
+ let recovery;
+ if(main.commit.sha!==stable.commit.sha&&main.commit.sha===sourceBaseSha){
+  const read=path=>get('repos/'+REPO+'/'+path);
+  const inventory=read('actions/workflows/install-mid.yml/runs?per_page=100&head_sha='+sourceBaseSha);
+  const failures=inventory.workflow_runs?.filter(run=>run.event==='workflow_dispatch'&&run.conclusion==='failure');
+  if(failures?.length===1){
+   const evidence=await auditFailedRelease({expectedMain:sourceBaseSha,expectedStable:stable.commit.sha,
+    installerId:String(failures[0].id)},read);
+   recovery={...evidence,main:sourceBaseSha,stable:stable.commit.sha};
+  }
+ }
  const after=get('repos/'+REPO+'/pulls/'+number);
- return assessMidPremerge({before,after,main,stable,data,number,sha,branch,sourceBaseSha});
+ const finalMain=get('repos/'+REPO+'/branches/main'),finalStable=get('repos/'+REPO+'/branches/mid-stable');
+ if(finalMain.commit.sha!==main.commit.sha||finalStable.commit.sha!==stable.commit.sha)return block('SOURCE_DRIFT');
+ return assessMidPremerge({before,after,main,stable,data,number,sha,branch,sourceBaseSha,recovery});
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  try{

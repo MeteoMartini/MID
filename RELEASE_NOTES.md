@@ -1,3 +1,7 @@
+# MID v0.9.85.474
+
+Der Release-Bot kann nach einem nachgewiesenen Installerfehler vor dem Deployment einen vollständig geprüften Folge-PR übernehmen.
+
 # MID v0.9.85.473
 
 - „Wetter im Umfeld“ ergänzt die Startseite um Radar, Satellit und zeitlich passende Temperaturwerte.

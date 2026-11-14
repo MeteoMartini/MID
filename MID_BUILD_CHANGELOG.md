@@ -1,3 +1,7 @@
+## MID v0.9.85.474 · Geschützter Release-Wiederanlauf
+
+Der Release-Bot verwendet den vorhandenen lesenden Installer-Nachweis vor dem regulären SHA-gebundenen Merge. Unklare Historie, aktive Läufe oder begonnene Deployments führen zur Sperre.
+
 ## MID v0.9.85.473 · Kandidat zur Wiederaufnahme des Releases
 
 - Quellbasis: gemergter PR #797, Commit `4c5ad000d946a4d4924a451a2b7e51610fce26e0`. Der Installer für das Paket `987fd2913351a8dc90bdb3325bac174efac22794` meldete 1.500.120 Byte Start-JavaScript bei einem Limit von 1.500.000 Byte.
