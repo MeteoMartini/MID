@@ -1,3 +1,9 @@
+# MID v0.9.85.475
+
+- Sicherheits-/Qualitätswartung: CodeQL-Workflow auf die offiziell verifizierte GitHub-Action v4.39.3 aktualisiert. Initialisierung und Analyse verwenden denselben festgeschriebenen Commit.
+- MID hält beide GitHub-Workflowspiegel und den Pin-Generator synchron. Eine neue Pflichtregression schützt vor einem erneuten Rückfall auf die alte Action-Version.
+- Wetterdaten, Warnungen, Bedienoberfläche und bestehende Funktionen bleiben unverändert.
+
 # MID v0.9.85.474
 
 Der Release-Bot kann nach einem nachgewiesenen Installerfehler vor dem Deployment einen vollständig geprüften Folge-PR übernehmen.

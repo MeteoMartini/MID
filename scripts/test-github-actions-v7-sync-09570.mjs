@@ -5,7 +5,7 @@ import path from 'node:path';
 import {syncGithubConfiguration} from './sync-github-workflows.mjs';
 
 const root=new URL('../',import.meta.url),sourceRoot=path.join(new URL('../ci/github/',import.meta.url).pathname),tmp=await mkdtemp(path.join(tmpdir(),'mid-actions-v7-'));
-const checkout='3d3c42e5aac5ba805825da76410c181273ba90b1',setup='949feb2413d6458794dcd2491c4babbbce0c15c1',python='5fda3b95a4ea91299a34e894583c3862153e4b97',codeql='9b3254085494b55a0f7c4c2b3d2d52cc712ce370',deployPages='368f82528645a54fb793d4d04e342629a3f51346',upload='cf430e030ddbb5b0abf93d22962f4752f3646cd9';
+const checkout='3d3c42e5aac5ba805825da76410c181273ba90b1',setup='949feb2413d6458794dcd2491c4babbbce0c15c1',python='5fda3b95a4ea91299a34e894583c3862153e4b97',codeql='33d7b85da1a04171e211befe2c739303b9a4c066',deployPages='368f82528645a54fb793d4d04e342629a3f51346',upload='cf430e030ddbb5b0abf93d22962f4752f3646cd9';
 try{
  const workflows=path.join(tmp,'.github','workflows');await mkdir(workflows,{recursive:true});
  await writeFile(path.join(workflows,'apply-private-analytics.yml'),`name: extra\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v6\n      - uses: actions/setup-node@2951748f4c016b747952f8ca7e75fc64f2f62b53 # v6.2.0\n      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5\n      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0\n      - uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0\n`);
@@ -29,8 +29,8 @@ try{
   if(/actions\/deploy-pages@/.test(text))assert.ok(text.includes(`actions/deploy-pages@${deployPages} # v5.0.1`),`${file}: deploy-pages v5.0.1 fehlt.`);
   assert.ok(!/actions\/(?:checkout|setup-node)@v6\b/.test(text),`${file}: v6-Action blieb zurück.`);
   if(/github\/codeql-action\/(?:init|analyze)@/.test(text)){
-   assert.ok(text.includes(`github/codeql-action/init@${codeql} # v4.39.1`),`${file}: CodeQL init 4.39.1 fehlt.`);
-   assert.ok(text.includes(`github/codeql-action/analyze@${codeql} # v4.39.1`),`${file}: CodeQL analyze 4.39.1 fehlt.`);
+   assert.ok(text.includes(`github/codeql-action/init@${codeql} # v4.39.3`),`${file}: CodeQL init 4.39.3 fehlt.`);
+   assert.ok(text.includes(`github/codeql-action/analyze@${codeql} # v4.39.3`),`${file}: CodeQL analyze 4.39.3 fehlt.`);
   }
  }
 }finally{await rm(tmp,{recursive:true,force:true})}

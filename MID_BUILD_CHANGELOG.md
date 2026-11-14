@@ -1,3 +1,9 @@
+## MID v0.9.85.475 · CodeQL v4.39.3 und regenerationsfeste Actions-Pins (Source-PR-Kandidat)
+
+Base `34b4871b8512b9301d4a60906db2e2feaa4afcd5` (.474 Stable). Bündelung der unabhängigen Dependabot-PRs #609 (analyze) und #610 (init): offizieller signierter Tagname v4.39.3 per GitHub Tag-Objekt auf Commit `33d7b85da1a04171e211befe2c739303b9a4c066` aufgelöst. Beide CodeQL-Aufrufe `init`/`analyze` in `ci/github/workflows/mid-code-revision.yml` und dem installierten Spiegel `.github/workflows/mid-code-revision.yml` werden ausschließlich auf diesen unveränderlichen Commit aktualisiert. Die vorhandenen CodeQL-Abfrageparameter, Scope, Job-Permissions, Trigger und Gates bleiben unangetastet. `scripts/sync-github-workflows.mjs` verwendet dieselbe Version, damit `prepare:release-repository` den Pin nicht wieder auf 4.39.1 zurücksetzt. Der neue obligatorische Test `scripts/test-codeql-4393-pin-0985475.mjs` prüft beide SHA-Pins, bytegleichen Spiegel, Generator und unveränderten Security-Extended-Vertrag mit Negativprüfung des alten SHA; beide Baseline-Inventare synchron.
+
+Freigabe ausschließlich nach SHA-gebundenem MID-Source-Gate, CodeQL-Revision, vollständigen Core-/Heavy-/Browser-/Dependency-Checks, stabilem Worker/Pages-Vertrag und Installer-Promotion. Kein generisches Dependabot-Merge, keine Schutzregeln- oder Secretänderung, kein bezahlter Dienst. Reale iOS-/VoiceOver-Abnahme weiterhin getrennt.
+
 ## MID v0.9.85.474 · Geschützter Release-Wiederanlauf
 
 Der Release-Bot verwendet den vorhandenen lesenden Installer-Nachweis vor dem regulären SHA-gebundenen Merge. Unklare Historie, aktive Läufe oder begonnene Deployments führen zur Sperre.

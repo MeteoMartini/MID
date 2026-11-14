@@ -1,5 +1,11 @@
 # MID Dependency Upgrade Policy
 
+## Aktueller CodeQL-Pin · v0.9.85.475 (Source-PR-Kandidat, 14.11.2026)
+
+- **CodeQL: 4.39.3**. Offizielles GitHub-Tag `github/codeql-action/v4.39.3` wurde durch das annotierte Tagobjekt `f3bbb05694c2f74569081c28664c0866d64dec21` auf den festgeschriebenen Commit `33d7b85da1a04171e211befe2c739303b9a4c066` aufgelöst. `init` und `analyze` verwenden identisch diesen SHA in kanonischem und installiertem Revisionsworkflow; der Workflow-Sync-Generator pinnt denselben Wert. Keine neuen Berechtigungen oder Queries.
+- Vorherige Einträge und SHA-Angaben der v4.38.2-/v4.39.1-Verträge bleiben **historisch dokumentiert**, sind jedoch keine aktuelle Freigabe. Bestehende Tests der Action-Pins werden auf die neue freigegebene Version migriert; die negative Regression gegen Rückfall auf v4.39.1 bleibt separat verpflichtend.
+- Der Kandidat ist noch nicht veröffentlicht. Vollständiges Source-/Core-/Heavy-/CodeQL-/Bot-/Installer-/Stable-Gate sowie Versions-/iOS-Paketspiegel sind weiterhin verpflichtend.
+
 Stand: MID 18.2.9 Wartungsreview 25.10.2026 / Ziel v0.9.85.332
 
 Der Stable-Channel übernimmt Abhängigkeits- und Toolchain-Sprünge nur als zusammenhängend geprüfte Verträge. Für v0.9.85.332 gilt:
