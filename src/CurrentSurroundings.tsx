@@ -1,4 +1,4 @@
-import {useCallback,useEffect,useId,useMemo,useState} from 'react';
+import {useCallback,useEffect,useId,useMemo,useRef,useState} from 'react';
 import {compositeWmsProxy,loadCompositeTimes,loadOperaRaster,openFreeMapVectorTileProxy,openFreeMapGlyphProxy,type CompositeProductTimes,type ProductTime,type WmsProvider} from './CompositeData';
 import {formatWeatherValue} from "./weatherValueFormat";
 import {PRECIPITATION_TYPE_COLORS,radarDbzColor} from './radarColorTables';
@@ -78,7 +78,23 @@ export default function CurrentSurroundings(props:Props){
  const [phaseImage,setPhaseImage]=useState<{url?:string;time:number}>();
  const [phaseLoading,setPhaseLoading]=useState(false);
  const [mapCities,setMapCities]=useState<SurroundingsCityCandidate[]>([]);
+ const [mapViewport,setMapViewport]=useState<{width:number;height:number}|null>(null);
+ const mapFigureRef=useRef<HTMLElement|null>(null);
  const darkMap=useDarkMapTheme();
+ useEffect(()=>{
+  const element=mapFigureRef.current;
+  if(!element)return;
+  const update=()=>{
+   const width=Math.round(element.clientWidth),height=Math.round(element.clientHeight);
+   if(width<1||height<1)return;
+   setMapViewport(previous=>previous&&Math.abs(previous.width-width)<3&&Math.abs(previous.height-height)<3?previous:{width,height});
+  };
+  update();
+  const observer=typeof ResizeObserver!=='undefined'?new ResizeObserver(update):null;
+  observer?.observe(element);
+  window.addEventListener('resize',update);
+  return()=>{observer?.disconnect();window.removeEventListener('resize',update)};
+ },[]);
  useEffect(()=>{
   const controller=new AbortController();
   let loading=false;
@@ -121,9 +137,9 @@ export default function CurrentSurroundings(props:Props){
   return ()=>{active=false};
  },[]);
  // Coordinates come from actual named settlements, not screen-grid reference points.
- const nearbyCities=useMemo(()=>chooseSurroundingsCities([
+ const nearbyCities=useMemo(()=>mapViewport?chooseSurroundingsCities([
   ...mapCities,...(geography?.places??[]).map(place=>({name:place.name,lat:place.lat,lon:place.lon,population:place.population,rank:place.minZoom,origin:'natural-earth' as const}))
- ],{lat,lon},{west,south,east,north}),[mapCities,geography,lat,lon,west,south,east,north]);
+ ],{lat,lon},{west,south,east,north},4,mapViewport):[],[mapCities,geography,lat,lon,west,south,east,north,mapViewport]);
  const mapBounds=useMemo(()=>[[south,west],[north,east]] as [[number,number],[number,number]],[south,west,north,east]);
  const mapReferences=useMemo(()=>compositeReferenceLayers(.93,surroundingReference),[darkMap]);
  const directVectorAllowed=browserExternalWeatherFallbackAllowed();
@@ -242,7 +258,7 @@ export default function CurrentSurroundings(props:Props){
     {future.map(time=><option key={time} value={time}>{clock(time)}</option>)}
    </select></label>
   </div>
-  <figure className="current-surroundings-map" aria-label={`Wetterbild um ${name}: MID-Kartenbasis und Temperaturen an benannten Orten`}>
+  <figure ref={mapFigureRef} className="current-surroundings-map" aria-label={`Wetterbild um ${name}: MID-Kartenbasis und Temperaturen an benannten Orten`}>
    <MidMapLibre center={[lat,lon]} zoom={7} scrollZoom={false} interactive={false} navigationControl={false} className="current-surroundings-maplibre">
     <MapFitBounds south={south} west={west} north={north} east={east} padding={8}/>
     <UnifiedVectorBasemap dark={darkMap}/>
