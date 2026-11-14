@@ -1,3 +1,15 @@
+## MID v0.9.85.479 · Changelog-Rückweg und dokumentierte P1-Prüfqualität (Source-Kandidat)
+
+Kanonische Ausgangsbasis: main=mid-stable SHA `c5e9d9e5a8af760a8c2b78ae456ef4abffc81442`, v0.9.85.478; Installer #43639610471 PASS mit 4 Core/6 Heavy, Worker/Pages und Stable-Promotion. Fünf GitHub-Rulesets aktiv, keine Direktänderung an geschützten Branches oder Pflichtgates.
+
+SHA-verifiziert und ohne Quellpfad-Überschneidung selektiv integriert: QA-Draft #808 HEAD `fdabe864505530faefb74d6e984bf5fa8e09b7ed` (6 Dateien), QA-Draft #807 HEAD `b0f46cf2190341b240519232d541b82fec20803f` (3 Dateien). Beide Drafts bestanden Unit/Coverage und gezielte Regressionen auf ihren exakten QA-SHAs. Der Unterschied der alten .477-Basis zur veröffentlichten .478 wurde vor der Integration gegen diese neun Pfade geprüft. QA-Piloten allein legitimieren keinen Merge oder Release.
+
+Das Footer-Changelog öffnet die gebündelte aktuelle CHANGELOG.md per React-Klick und Lazy-Import in einem HTML-Dialog im bestehenden App-Dokument. Der alte 10-Sekunden-MutationObserver und externe Tab entfallen. „Zurück zu MID“, Escape, Fokus-Wiederherstellung, sichere Textdarstellung von Markdown, nachgeladene historische Einträge, Ladefehler und responsive Light/Dark-/Safe-Area-Unterstützung bleiben verbindlich. Browser-Simulation ersetzt keine reale iOS-/VoiceOver-Abnahme.
+
+Die Erweiterung des bereits registrierten MID_CHATGPT_GITHUB_CONTRACT.md erfasst betriebliche P1-Codeprüfung und original dokumentierte Findings mit korrekter Tool-/Version-/SHA-Provenienz. Die Prüfwerkzeuge actionlint, zizmor, Biome und axe bleiben optional und nicht blockierende Diagnosen, bestehende CodeQL-Pins und Workflow-Spiegel verbindlich; unbekannte und hohe Befunde sind nicht pauschal entwarnt. Es wurden weder neue Secrets, Rechte, AutoFix-/Merge-Privilegien noch neue bezahlte Dienste hinzugefügt.
+
+Die Version v0.9.85.479 wird über Paket/Lockfile, Baseline, Contract-Registry, iOS-Projekt, Worker, PWA und Changelogs synchronisiert. Kein Wetterdaten-/WMO-/DWD-Warnvertrag geändert. Veröffentlichung nur über Source-PR Gate, kontrollierten SHA-Merge, serverseitiges Release-ZIP, install-mid.yml, Worker-/Pages-Gates und Stable-Promotion.
+
 ## MID v0.9.85.478 · identische MID-Kartenbasis und ortsgebundene Umfeldtemperaturen (Source-Kandidat)
 
 Basis Stable v0.9.85.477 `4f6c167cc41ab588dfeb2e512ad17a8683a99096` (inkl. erfolgreichem Installer `43629614852`). Selektiv SHA-/Blob-identisch übernommener Spezialchat-Kandidat `b9e3515b1cd785534612764f5a80dcc179d67c00`, dessen vier Quelldateien vor Änderungen gegen die neue Stable-Basis geprüft wurden; keine Überschneidung mit dem Security-Release .477.

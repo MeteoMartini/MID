@@ -2,13 +2,14 @@ import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
-const [main,styles,rowStyles,cockpit,publicChangelog,packageJson]=await Promise.all([
+const [main,styles,rowStyles,cockpit,publicChangelog,packageJson,app]=await Promise.all([
  readPresentationEntrySources(),
  readFile(new URL('../src/midC12ForecastRedesign.css',import.meta.url),'utf8'),
  readFile(new URL('../src/midC18ForecastRows.css',import.meta.url),'utf8'),
  readFile(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8'),
  readFile(new URL('../public/CHANGELOG.md',import.meta.url),'utf8'),
- readFile(new URL('../package.json',import.meta.url),'utf8')
+ readFile(new URL('../package.json',import.meta.url),'utf8'),
+ readFile(new URL('../src/App.tsx',import.meta.url),'utf8')
 ]);
 const releaseVersion=JSON.parse(packageJson).version;
 
@@ -53,8 +54,8 @@ assert.ok(main.indexOf("import './midC18ForecastRows.css';")>main.indexOf("impor
 assert.ok(/\.cockpit-seven-grid>\.cockpit-day\.active\{[\s\S]*?box-shadow:inset 0 3px 0 var\(--primary\)!important/.test(styles),'Gewählter 7-Tage-Tag muss eindeutig markiert sein.');
 assert.ok(/\.cockpit-fourteen-card\.active\{[\s\S]*?box-shadow:inset 0 3px 0 var\(--primary\)!important/.test(styles),'Gewählter 14-Tage-Tag muss eindeutig markiert sein.');
 assert.ok(!styles.includes('filter:blur('),'Fachliche Prognoseflächen dürfen nicht durch dekorative Unschärfe beeinträchtigt werden.');
-assert.ok(main.includes('const target=`${import.meta.env.BASE_URL}CHANGELOG.md`'),'Der In-App-Changelog muss auf die mit dem Release ausgelieferte aktuelle Datei zeigen.');
-assert.ok(main.includes('pointChangelogLinkToBundledRelease();'),'Der In-App-Changelog-Link muss nach dem React-Start aktiviert werden.');
+assert.ok(app.includes('CHANGELOG.md')&&app.includes('href={')&&!app.includes('href="https://github.com/MeteoMartini/MID/blob/main/CHANGELOG.md"'),'Der In-App-Changelog muss die gebündelte Datei nutzen, nicht die externe GitHub-Seite.');
+assert.ok(app.includes("import('./changelogOverlay')")&&app.includes('event.preventDefault()')&&!app.includes('target="_blank" rel="noreferrer">Changelog'),'Der Changelog muss jederzeit über einen direkten React-Klick ohne neues PWA-Fenster geöffnet werden.');
 assert.ok(publicChangelog.startsWith(`# MID v${releaseVersion}`),`Der ausgelieferte Changelog muss mit der aktuellen Releaseversion v${releaseVersion} beginnen.`);
 assert.ok(publicChangelog.includes('# MID v0.9.85.31')&&publicChangelog.includes('# MID v0.9.85.30'),'Der externe Changelog darf die unmittelbar vorherigen Redesign-Schritte nicht auslassen.');
 
