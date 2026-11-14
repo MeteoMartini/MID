@@ -231,11 +231,14 @@ export default function CurrentSurroundings(props:Props){
    <span className="current-surroundings-site" style={{left:orientation.center[0]/5.12+'%',top:orientation.center[1]/2.56+'%'}}>{name}{Number.isFinite(temperature)&&<> · {formatWeatherValue(temperature,'temperature','overview')} °C</>}</span>
    {temperatures?.map(({x,y,value})=><span key={x+':'+y} className="current-surroundings-temperature" style={{left:x*100+'%',top:y*100+'%'}} aria-label={`Modelltemperatur ${formatWeatherValue(value,'temperature','overview')} Grad Celsius`}>{formatWeatherValue(value,'temperature','overview')}°</span>)}
   </div>
-  {geography&&<p>Kartengrundlage · Natural Earth</p>}
   <p role="status">{displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</p>
+  <details className="current-surroundings-sources">
+   <summary>Quellen und Datenstand</summary>
+   {geography&&<p>Kartengrundlage · Natural Earth</p>}
   {visibleClouds&&satelliteTime!==undefined&&<p>Bewölkung · {satellite?.provider==='dwd'?'DWD':'EUMETSAT'} · Beobachtung {clock(satelliteTime)} Uhr</p>}
   {Number.isFinite(temperature)&&temperatureTime&&<p>Temperatur am gewählten Ort · {temperatureTime.slice(11,16)} Uhr</p>}
   {Boolean(temperatures?.length)&&<p>Umfeldtemperaturen · Modellwerte zum Radarstand</p>}
+  </details>
   {selection===undefined&&showPhase&&(displayedPhase?.url
    ?<p>Radar + Modellphase · {([
     ['rain','Regen'],['mixed','Schneeregen'],['snow','Schnee'],['freezing','Gefrierend'],
