@@ -117,7 +117,6 @@ import {appendIsoCountry,conciseThunderPlace,readThunderPlaceCache,resolveThunde
 import {readWidgetUrlExportRequest} from './widgetUrlExports';
 
 
-import {loadExtremeWeatherOutlook} from './extremeWeatherOutlook';
 export {buildSevenDayForecastSummary} from './SevenDayForecastSummary';
 
 const LAZY_PLACEHOLDER_CLASS='lazy-placeholder inner';
@@ -342,9 +341,9 @@ const MemoCurrent=memo(Current);
 const MemoMountainSki=memo(MountainSki);
 const MemoHazards=memo(Hazards);
 const MemoOfficialWarnings=memo(OfficialWarnings);
-let extremeOutlookWarmPromise:Promise<unknown>|undefined;
 function warmCompositePanel(){void Promise.allSettled([importMapWorkspacePanel(),importRadarPanel(),import('./UnifiedWeatherMap')])}
-function warmExtremeWeatherOutlook(){void importExtremeWeatherOutlookPanel();extremeOutlookWarmPromise??=loadExtremeWeatherOutlook().catch(()=>undefined)}
+/** Warm the view code only, never race the cancellable panel request with a second costly forecast. */
+function warmExtremeWeatherOutlook(){void importExtremeWeatherOutlookPanel().catch(()=>undefined)}
 const MemoWarningCenter=memo(WarningCenter);
 const MemoForecast=memo(Forecast);
 const MemoFavoriteRuleNotice=memo(FavoriteRuleNotice);
