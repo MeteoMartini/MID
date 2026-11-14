@@ -24,9 +24,22 @@ function setBootStage(message:string){const node=document.getElementById('mid-bo
 function wait(ms:number){return new Promise<void>(resolve=>window.setTimeout(resolve,ms))}
 function markBootHealthy(){try{sessionStorage.removeItem(BOOT_MARKER);localStorage.removeItem('mid:runtime:last-start-error')}catch{}}
 function pointChangelogLinkToBundledRelease(){
- const target=`${import.meta.env.BASE_URL}CHANGELOG.md`,root=document.getElementById('root');
+ const target=import.meta.env.BASE_URL+'CHANGELOG.md',root=document.getElementById('root');
  if(!root)return;
- const rewrite=()=>{const link=root.querySelector<HTMLAnchorElement>(`footer a[href="${LEGACY_CHANGELOG_URL}"]`);if(!link)return false;link.href=target;link.target='_blank';link.rel='noreferrer';return true};
+ const rewrite=()=>{
+  const link=root.querySelector<HTMLAnchorElement>('footer a[href="'+LEGACY_CHANGELOG_URL+'"]');
+  if(!link)return false;
+  // Avoid a second tab or a native PWA view without a route back to MID.
+  link.href=target;
+  link.removeAttribute('target');
+  link.removeAttribute('rel');
+  link.addEventListener('click',event=>{
+   event.preventDefault();
+   void import('./changelogOverlay').then(module=>module.openMidChangelog(target))
+    .catch(()=>window.alert('Der Changelog konnte nicht geöffnet werden. MID bleibt geöffnet.'));
+  });
+  return true;
+ };
  if(rewrite())return;
  const observer=new MutationObserver(()=>{if(rewrite())observer.disconnect()});
  observer.observe(root,{childList:true,subtree:true});
