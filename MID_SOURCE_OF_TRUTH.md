@@ -1,3 +1,7 @@
+# MID v0.9.85.476 · Extremwetter-Kaltstart, geprüfte Cache-Vorschau und Fallbackstatus (Source-Draft)
+
+Basis `b598bf457461e0dfa838180a6fd7dfddb22a1487`, Stable v0.9.85.475. Kleine, kontrollierte Änderungen an App-Vorabladen, Extremwetter-Client und zugehöriger Panelanzeige; keine meteorologischen Schwellen- oder Warnänderungen. Diagnostik, Versionsspiegel und QA-Nachweise: `MID_BUILD_CHANGELOG.md`. Quelle bleibt Draft bis zum vollständigen SHA-gebundenen MID-Releasepfad.
+
 # MID v0.9.85.475 · CodeQL-Action-Sicherheitswartung und Workflow-Provenienz (Source-Draft)
 
 Basis `34b4871b8512b9301d4a60906db2e2feaa4afcd5`, vorherige Stable v0.9.85.474. Offizielle GitHub-Tag-Provenienz: `github/codeql-action v4.39.3` → `33d7b85da1a04171e211befe2c739303b9a4c066`. Nur die beiden CodeQL-Actions und deren kanonischer Pin-Generator werden auf denselben SHA umgestellt. Source-Workflow und installierter GitHub-Workflow bytegleich, automatischer Sync darf den Pin nicht zurückdrehen. Neuer Pflichtregressionstest. Funktions-/Warn-/Wetterdatenlogik unverändert. Source-PR-/Bot-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates bleiben vollständig bindend; diese Quelle dokumentiert einen Kandidaten, keinen bereits erfolgreichen Release.
