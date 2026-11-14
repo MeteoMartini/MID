@@ -1,3 +1,9 @@
+# MID v0.9.85.479
+
+- Changelog direkt in MID öffnen und über „Zurück zu MID“ zur bisherigen App-Ansicht zurückkehren – ohne neuen Browser-Tab oder PWA-Fenster.
+- Bedienbarkeit: Schließen über Escape, Wiederherstellung des Fokus, mobile Safe Areas, Light/Dark-Modus und verständliche Fehlermeldung mit weiterhin nutzbarem Rückweg.
+- Codequalität: Bestehende Prüfwerkzeuge, deren Status und deren Grenzen verbindlich dokumentiert. actionlint, zizmor, Biome und axe bleiben optionale Diagnosen mit nachvollziehbarer Befundpflicht; alle bisherigen Release- und Schutzgates bleiben erhalten.
+
 # MID v0.9.85.478
 
 - Wetter im Umfeld: dieselbe hochwertige OpenFreeMap-/MapLibre-Kartengrundlage wie im MID-Kartenbereich mit Wasser, Länder- und Regionalgrenzen sowie Orts- und Flussbeschriftungen statt schematischer SVG-Grenzlinien.
