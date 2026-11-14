@@ -47,7 +47,9 @@ assert.equal(extract(rows.map(r=>({...r,hourly:{time:[valid],temperature_2m:[300
 assert.equal(makeUrl([]),undefined,'No zero-coordinate request');
 assert.equal(makeUrl([...places,...places]),undefined,'Max five request coordinates');
 assert.doesNotMatch(component,/grid\.phaseSourceByCell|grid\.phaseValidTimeByCell/,'Temperature must never use precipitation-phase provenance');
-assert.match(component,/loadSurroundingsTemperatures\(orientation\.places/,'Surroundings temperatures must load independently of radar');
+assert.match(component,/loadSurroundingsTemperatures\(orientation\.temperaturePoints/,'Four georeferenced forecast values must load independently of radar');
+assert.match(component,/temperaturePoints=\[\{x:\.22,y:\.25\}/,'Four reference coordinates must be used even where fewer than four city labels exist');
+assert.match(component,/orientation\.temperaturePoints\.map\(point=>/,'Render every forecast-backed surrounding point');
 assert.match(component,/orientation\.places\.map\(place=><span key=\{place\.id\}/,'Labels must use stable coordinates');
 assert.match(component,/temperatureGrid\.available.*temperatureGrid\.requested/,'Provenance and count must be displayed');
 assert.match(css,/\.current-surroundings :is\(\.current-surroundings-site, \.current-surroundings-place\)[\s\S]*background: color-mix/,'Labels require readable backplates');
