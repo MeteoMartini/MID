@@ -29,7 +29,7 @@ export function chooseSurroundingsCities(
   const marginX=Math.min(70,width*.25),marginY=24;
   if(x<marginX||x>width-marginX||y<marginY||y>height-marginY)return[];
   // Do not put a large city label over the selected-site marker.
-  if(Math.abs(x-centerX)<58&&Math.abs(y-centerY)<28)return[];
+  if(Math.abs(x-centerX)<58&&Math.abs(y-centerY)<18)return[];
   const dx=(lon-center.lon)*Math.cos(center.lat*Math.PI/180)*111.2,dy=(lat-center.lat)*111.2;
   if(Math.hypot(dx,dy)<6)return[]; // The selected location has its own site marker.
   const population=Math.max(0,item.population??0),rank=Math.max(1,Math.min(20,item.rank??8));
