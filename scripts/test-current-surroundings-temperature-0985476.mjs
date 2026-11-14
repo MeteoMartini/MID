@@ -53,6 +53,7 @@ assert.match(component,/orientation\.temperaturePoints\.map\(point=>/,'Render ev
 assert.match(component,/orientation\.places\.map\(place=><span key=\{place\.id\}/,'Labels must use stable coordinates');
 assert.match(component,/temperatureGrid\.available.*temperatureGrid\.requested/,'Provenance and count must be displayed');
 assert.match(css,/\.current-surroundings :is\(\.current-surroundings-site, \.current-surroundings-place\)[\s\S]*background: color-mix/,'Labels require readable backplates');
-assert.match(component,/className="current-surroundings-map" role="group"/,'Map should be a named semantic group without hiding child temperatures');
+assert.match(component,/<figure className="current-surroundings-map" aria-label=/,'Map should be a named semantic figure without hiding child temperatures');
+assert.match(css,/\.current-surroundings-map \{ position:relative; margin:0;/,'Semantic map figure must not introduce default margins on narrow displays');
 assert.match(component,/className="current-surroundings-temperature" role="img"/,'Each weather pin should expose its accessible temperature label');
 console.log('MID #795 real multipoint temperatures: coordinate/time/unit/no-data/source/recovery contracts passed.');
