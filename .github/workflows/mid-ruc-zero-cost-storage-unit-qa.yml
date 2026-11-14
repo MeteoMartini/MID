@@ -1,0 +1,109 @@
+name: MID RUC zero-cost storage lightweight QA (no deploy)
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'tools/ruc/ruc_r2_zero_cost_qa.py'
+      - 'tools/ruc/test_ruc_r2_zero_cost_qa.py'
+      - 'tools/ruc/ruc_r2_lossless_pack_qa.py'
+      - 'tools/ruc/test_ruc_r2_lossless_pack_qa.py'
+      - 'tools/ruc/ruc_r2_range_consumer_qa.mjs'
+      - 'tools/ruc/ruc_do_free_capacity_qa.py'
+      - 'tools/ruc/test_ruc_do_free_capacity_qa.py'
+      - 'tools/ruc/ruc_do_sqlite_physical_qa.py'
+      - 'tools/ruc/test_ruc_do_sqlite_physical_qa.py'
+      - 'tools/ruc/ruc_do_worker_core_qa.mjs'
+      - 'tools/ruc/test_ruc_do_worker_core_qa.mjs'
+      - 'tools/ruc/ruc_do_workerd_entry_qa.mjs'
+      - 'tools/ruc/test_ruc_do_workerd_qa.mjs'
+      - 'tools/ruc/ruc_do_attestation_qa.mjs'
+      - 'tools/ruc/ruc_do_workerd_signed_entry_qa.mjs'
+      - 'tools/ruc/test_ruc_do_workerd_signed_qa.mjs'
+      - 'tools/ruc/ruc_do_original_proof_bridge_qa.py'
+      - 'tools/ruc/test_ruc_do_original_proof_bridge_qa.py'
+      - 'tools/ruc/ruc_do_persisted_origin_receipt_qa.py'
+      - 'tools/ruc/test_ruc_do_persisted_origin_receipt_qa.py'
+      - 'docs/ruc/MID_RUC_DO_ORIGINAL_PROOF_RECEIPT_453_QA.json'
+      - '.github/workflows/mid-ruc-zero-cost-storage-unit-qa.yml'
+permissions:
+  contents: read
+concurrency:
+  group: mid-ruc-zero-cost-storage-unit-qa-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  standalone_no_cloudflare_qa:
+    if: ${{ github.event.pull_request.number == 738 && github.event.pull_request.head.repo.full_name == 'MeteoMartini/MID' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact SHA; credentials not persisted
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Require identical canonical workflow mirror
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmp ci/github/workflows/mid-ruc-zero-cost-storage-unit-qa.yml .github/workflows/mid-ruc-zero-cost-storage-unit-qa.yml
+          test -z "$(git status --porcelain)"
+      - name: Check Python source syntax without R2 or DWD access
+        run: |
+          python3 -m py_compile tools/ruc/ruc_r2_zero_cost_qa.py tools/ruc/ruc_r2_lossless_pack_qa.py tools/ruc/ruc_do_free_capacity_qa.py tools/ruc/ruc_do_sqlite_physical_qa.py
+      - name: 27h/EPS20 capacity, negative traces, simulated SQLite atomicity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/ruc/test_ruc_r2_zero_cost_qa.py
+          python3 tools/ruc/test_ruc_r2_lossless_pack_qa.py
+          python3 tools/ruc/test_ruc_do_free_capacity_qa.py
+          python3 tools/ruc/test_ruc_do_sqlite_physical_qa.py
+          echo 'ONLY simulated/offline QA; actual Cloudflare DO/R2, billing, user usage, worker CPU and live client NOT qualified'
+      - name: Verify permanent pinned historical QA receipt without re-downloading artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/ruc/test_ruc_do_persisted_origin_receipt_qa.py
+          python3 tools/ruc/ruc_do_persisted_origin_receipt_qa.py \
+            --receipt docs/ruc/MID_RUC_DO_ORIGINAL_PROOF_RECEIPT_453_QA.json
+          echo 'Prior Actions artifact was SHA verified in #42798390928; no current original-byte verification.'
+      - name: Node 22 experimental host SQLite (no Cloudflare / no DWD)
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22.16.0'
+      - name: Atomic last-good and real SQL/BLOB/deflate local pilot
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check tools/ruc/ruc_do_worker_core_qa.mjs
+          node --check tools/ruc/test_ruc_do_worker_core_qa.mjs
+          node --no-warnings tools/ruc/test_ruc_do_worker_core_qa.mjs
+      - name: Isolated stable Miniflare 4 / local workerd only
+        shell: bash
+        env:
+          WRANGLER_SEND_METRICS: 'false'
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/mid-ruc-local-workerd"
+          npm install --prefix "$RUNNER_TEMP/mid-ruc-local-workerd" --no-save --ignore-scripts --no-package-lock --no-audit --no-fund miniflare@4.20260730.0
+          mkdir -p node_modules
+          ln -s "$RUNNER_TEMP/mid-ruc-local-workerd/node_modules/miniflare" node_modules/miniflare
+          test -f node_modules/miniflare/package.json
+      - name: Local workerd SQLite Durable Objects RPC + last-good (NO DEPLOY)
+        shell: bash
+        env:
+          WRANGLER_SEND_METRICS: 'false'
+          MID_RUC_PINNED_PROOF_RECEIPT: docs/ruc/MID_RUC_DO_ORIGINAL_PROOF_RECEIPT_453_QA.json
+        run: |
+          set -euo pipefail
+          node --check tools/ruc/ruc_do_workerd_entry_qa.mjs
+          node --check tools/ruc/test_ruc_do_workerd_qa.mjs
+          node --no-warnings tools/ruc/test_ruc_do_workerd_qa.mjs
+          node --check tools/ruc/ruc_do_attestation_qa.mjs
+          node --check tools/ruc/ruc_do_workerd_signed_entry_qa.mjs
+          node --check tools/ruc/test_ruc_do_workerd_signed_qa.mjs
+          node --no-warnings tools/ruc/test_ruc_do_workerd_signed_qa.mjs
+          echo 'No remote bindings or Cloudflare keys; no subscription, production route, or deploy.'
+
+          echo 'Local SQL-API-compatible core only. No Cloudflare runtime, no R2/DO subscription, no Worker routes, no billing or release.'
+
