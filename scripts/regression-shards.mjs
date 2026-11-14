@@ -21,7 +21,8 @@ export const REGRESSION_CORE_SUBSHARDS=Object.freeze(['core-1/4','core-2/4','cor
  */
 export const REGRESSION_CORE_STABLE_ADDITIONS=Object.freeze([
  Object.freeze({test:'test-current-moisture-0985462.mjs',destination:'core-4/4'}),
- Object.freeze({test:'test-codeql-4393-pin-0985475.mjs',destination:'core-1/4'})
+ Object.freeze({test:'test-codeql-4393-pin-0985475.mjs',destination:'core-1/4'}),
+ Object.freeze({test:'test-current-surroundings-temperature-0985476.mjs',destination:'core-4/4'})
 ]);
 
 // Budget-neutral test scheduling, measured on actual SHA-bound Source gate #42568701822:
