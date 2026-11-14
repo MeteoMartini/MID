@@ -106,7 +106,8 @@ assert.ok(radar.includes('<span><strong>Legende</strong>')&&!radar.includes("abs
 assert.ok(radar.includes('valueLabel={relative}')&&radar.includes('className="composite-timeline-valid-at"'),'Relative und absolute Gültigkeit stehen gemeinsam an der einzigen Zeitachse.');
 assert.ok(radar.includes('Kartenzeitschritt wählen')&&radar.includes('rangeLabel={'),'Slider ist für Screenreader mit realem Modelltermin beschriftet.');
 const responsive=await readFile(new URL('../src/mapCanvasResponsive.css',import.meta.url),'utf8');
-assert.ok(responsive.includes('composite-timeline-valid-at')&&responsive.includes('composite-direct-time{display:none'),'Kleine Bildschirme zeigen vollständige Zeit im Zeitband, nicht als zweite Pille oder Terminauswahl.');
+assert.ok(responsive.includes('composite-timeline-valid-at')&&responsive.includes('grid-row:3!important'),'Kleine Bildschirme zeigen die vollständige Zeit an der bestehenden Zeitleiste.');
+assert.ok(!responsive.includes('composite-direct-time{display:none'),'Der bisherige direkte Terminwähler bleibt in Nicht-Fokusansichten bedienbar; der Karten-Fokusmodus zeigt keine Duplikate.');
 assert.ok(!radar.includes('className="composite-map-absolute-clock"'),'Zweites Zeit-Overlay unten rechts ist nicht zulässig.');
 assert.equal((radar.match(/className="composite-observation-master"/g)||[]).length,1,'Beobachtungen dürfen nur einen Master-Schalter besitzen.');
 assert.ok(radar.includes('composite-compact-observation-heading'),'Der Master-Schalter bleibt innerhalb der Ebeneauswahl bedienbar.');

@@ -113,10 +113,6 @@ html .unified-weather-map .composite-card .radarmap{border-color:color-mix(in sr
   font-variant-numeric:tabular-nums!important;
  }
 }
-@media(max-width:850px){
- /* The slider is the accessible time selector; the separate drop-down repeats the current date. */
- html[data-mid-design='next'] .composite-card .composite-direct-time{display:none!important}
-}
 @media(max-width:380px){
  html[data-mid-design='next'] .composite-card .composite-timeline-controls>.composite-timeline-time{
   gap:0 7px!important;
