@@ -46,14 +46,42 @@ assert.equal(extract(rows.map(r=>({...r,hourly:{time:[valid],temperature_2m:[NaN
 assert.equal(extract(rows.map(r=>({...r,hourly:{time:[valid],temperature_2m:[300]}})),places,at),undefined,'Physically impossible Celsius value rejected');
 assert.equal(makeUrl([]),undefined,'No zero-coordinate request');
 assert.equal(makeUrl([...places,...places]),undefined,'Max five request coordinates');
-assert.doesNotMatch(component,/grid\.phaseSourceByCell|grid\.phaseValidTimeByCell/,'Temperature must never use precipitation-phase provenance');
-assert.match(component,/loadSurroundingsTemperatures\(orientation\.temperaturePoints/,'Four georeferenced forecast values must load independently of radar');
-assert.match(component,/temperaturePoints=\[\{x:\.22,y:\.25\}/,'Four reference coordinates must be used even where fewer than four city labels exist');
-assert.match(component,/orientation\.temperaturePoints\.map\(point=>/,'Render every forecast-backed surrounding point');
-assert.match(component,/orientation\.places\.map\(place=><span key=\{place\.id\}/,'Labels must use stable coordinates');
-assert.match(component,/temperatureGrid\.available.*temperatureGrid\.requested/,'Provenance and count must be displayed');
-assert.match(css,/\.current-surroundings :is\(\.current-surroundings-site, \.current-surroundings-place\)[\s\S]*background: color-mix/,'Labels require readable backplates');
-assert.match(component,/<figure className="current-surroundings-map" aria-label=/,'Map should be a named semantic figure without hiding child temperatures');
-assert.match(css,/\.current-surroundings-map \{ position:relative; margin:0;/,'Semantic map figure must not introduce default margins on narrow displays');
-assert.match(component,/className="current-surroundings-temperature" role="img"/,'Each weather pin should expose its accessible temperature label');
-console.log('MID #795 real multipoint temperatures: coordinate/time/unit/no-data/source/recovery contracts passed.');
+assert.doesNotMatch(component,/grid\\.phaseSourceByCell|grid\\.phaseValidTimeByCell/,'Temperature must never rely on precipitation-phase provenance');
+assert.match(component,/loadSurroundingsTemperatures\\(nearbyCities/,'Only selected named settlements may receive temperature requests');
+assert.match(component,/chooseSurroundingsCities/,'Named cities are chosen by ranking and geographic placement');
+assert.doesNotMatch(component,/temperaturePoints=\\[\\{x:/,'No synthetic four-corner sampling');
+assert.doesNotMatch(component,/current-surroundings-orientation|orientation\\.paths/,'Do not draw separate simplified borders');
+assert.match(component,/<UnifiedVectorBasemap dark=\\{darkMap\\}/,'Use the identical vector land/water layers from MID Maps');
+assert.match(component,/<VectorReferenceLayer url=\\{MID_REFERENCE_TILES\\}/,'Reuse the MID reference layer styles for states, towns, roads and waterways');
+assert.match(component,/<ImageQuadLayer id="surroundings-radar"/,'Radar and satellites stay georeferenced on the shared map');
+assert.match(component,/nearbyCities\\.map\\(\\(place,index\\)=>/,'Actual city values are bound to georeferenced marker positions');
+assert.match(component,/className=\\{`current-surroundings-city-marker/,'City markers use the native map marker');
+assert.match(css,/\\.current-surroundings-city-value/,'Readable two-line city temperature markers');
+assert.doesNotMatch(css,/\\.current-surroundings-orientation/,'Legacy SVG paths must be removed');
+const citySource=await read('src/surroundingsCitySelection.ts');
+const cityJs=ts.transpileModule(citySource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022},reportDiagnostics:true});
+assert.equal(cityJs.diagnostics?.length??0,0);
+const cityExports={};
+runInNewContext(cityJs.outputText,{exports:cityExports,Math,Number,Array,Object,String,Set,JSON},{timeout:1000});
+const choose=cityExports.chooseSurroundingsCities,fromTiles=cityExports.citiesFromMapFeatures;
+const bounds={west:5.66,east:8.46,south:50.15,north:51.45},center={lat:50.8,lon:7.06};
+const cities=[
+ {name:'Köln',lat:50.932,lon:6.948,population:1004000,origin:'natural-earth'},
+ {name:'Bonn',lat:50.7205,lon:7.08,population:680543,origin:'natural-earth'},
+ {name:'Düsseldorf',lat:51.2204,lon:6.78,population:1220000,origin:'natural-earth'},
+ {name:'Koblenz',lat:50.3505,lon:7.6,population:312633,origin:'natural-earth'},
+ {name:'Off-grid',lat:10,lon:10,population:1}
+];
+const chosen=choose(cities,center,bounds);
+assert.ok(chosen.length>=2&&chosen.length<=4,'Selected named region should retain several genuine cities');
+assert.ok(chosen.every(item=>cities.some(original=>original.name===item.name&&original.lat===item.lat&&original.lon===item.lon)));
+assert.equal(choose([],center,bounds).length,0,'Missing cities are never reconstructed from raster corners');
+assert.equal(choose(cities,center,{west:8,east:5,south:50,north:51}).length,0,'Invalid bounds fail closed');
+const vector=fromTiles([
+ {geometry:{type:'Point',coordinates:[11,47.1]},properties:{class:'town',name:'Ötztal',rank:7}},
+ {geometry:{type:'Point',coordinates:[11,47.1]},properties:{class:'town',name:'Ötztal',rank:7}},
+ {geometry:{type:'Point',coordinates:[11.1,47.1]},properties:{class:'hamlet',name:'Not a city'}}
+]);
+assert.equal(vector.length,1,'Duplicated vector tile features cannot become duplicate map labels');
+assert.equal(choose(vector,{lat:46.97,lon:11},{west:9.6,east:12.4,south:46.32,north:47.62})[0]?.name,'Ötztal');
+console.log('MID: georeferenced city temperatures, shared basemap and NoData/pixel-collision contracts passed.');
