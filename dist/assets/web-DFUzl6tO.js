@@ -1,1 +1,0 @@
-import{Li as e}from"./index-DlxJ_Bsm.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};
