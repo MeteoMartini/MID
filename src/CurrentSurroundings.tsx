@@ -96,12 +96,12 @@ export default function CurrentSurroundings(props:Props){
   const rings=[...(geography?.countries??[]),...(geography?.states.flatMap(state=>state.rings)??[])];
   const paths=rings.filter(ring=>ring.some(([lng,latitude])=>lng>=west-3&&lng<=east+3&&latitude>=south-2&&latitude<=north+2))
    .map(ring=>ring.map(([lng,latitude],index)=>(index?'L':'M')+project(lng,latitude).map(value=>value.toFixed(1)).join(' ')).join('')).join('');
-  const places:{name:string;x:number;y:number}[]=[];
+  const places:{name:string;x:number;y:number;lat:number;lon:number}[]=[];
   for(const place of geography?.places??[]){
    const [x,y]=project(place.lon,place.lat);
    if(x<55||x>457||y<25||y>231||(Math.abs(x-256)<145&&Math.abs(y-128)<32))continue;
    if(places.some(other=>Math.abs(other.x-x)<125&&Math.abs(other.y-y)<32))continue;
-   places.push({name:place.name,x,y});
+   places.push({name:place.name,x,y,lat:place.lat,lon:place.lon});
    if(places.length===4)break;
   }
   return {paths,places,center:project(lon,lat)};
@@ -190,7 +190,7 @@ export default function CurrentSurroundings(props:Props){
  const displayedRadar=loaded&&loaded.time>=now-45*60000?loaded:undefined;
  const displayedPhase=showPhase&&displayedOpera&&phaseImage?.time===displayedOpera.time?phaseImage:undefined;
  const displayTime=displayedOpera?.time??displayedRadar?.time;
- const [temperatureGrid,setTemperatureGrid]=useState<{time:number;values:{x:number;y:number;value:number}[]}>();
+ const [temperatureGrid,setTemperatureGrid]=useState<{time:number;values:Record<string,number>}>();
  useEffect(()=>{
   if(selection!==undefined||displayTime===undefined||(!displayedOpera&&displayedRadar?.kind!=='Beobachtung'))return;
   const controller=new AbortController();
@@ -198,19 +198,19 @@ export default function CurrentSurroundings(props:Props){
   void import('./WeatherMapsData').then(({loadWeatherPhaseGrid})=>loadWeatherPhaseGrid(lat,lon,new Date(time).toISOString(),controller.signal)).then(grid=>{
    if(controller.signal.aborted||grid.error||grid.stale||(grid.modelAgeHours??0)>16)return;
    const latStep=Math.abs(grid.lats[1]-grid.lats[0]),lonStep=Math.abs(grid.lons[1]-grid.lons[0]);
-   const values=[];
-   for(const [x,y] of [[.23,.27],[.77,.27],[.23,.73],[.77,.73]]){
-    const row=grid.lats.findIndex(value=>Math.abs(value-(north-y*(north-south)))<=latStep/2);
-    const col=grid.lons.findIndex(value=>Math.abs(value-(west+x*(east-west)))<=lonStep/2);
+   const values:Record<string,number>={};
+   for(const place of orientation.places){
+    const row=grid.lats.findIndex(value=>Math.abs(value-place.lat)<=latStep/2);
+    const col=grid.lons.findIndex(value=>Math.abs(value-place.lon)<=lonStep/2);
     if(row<0||col<0)continue;
     const index=row*grid.lons.length+col;
     const value=grid.frame.temperature2m[index],valid=Date.parse(grid.phaseValidTimeByCell?.[index]??'');
-    if(grid.phaseSourceByCell?.[index]&&Number.isFinite(value)&&Math.abs(valid-time)<=20*60000)values.push({x,y,value});
+    if(grid.phaseSourceByCell?.[index]&&Number.isFinite(value)&&Math.abs(valid-time)<=20*60000)values[place.name]=value;
    }
    setTemperatureGrid({time,values});
   }).catch(()=>{});
   return ()=>controller.abort();
- },[selection,displayTime,displayedOpera,displayedRadar,lat,lon,west,south,east,north]);
+ },[selection,displayTime,displayedOpera,displayedRadar,lat,lon,orientation.places]);
  const temperatures=selection===undefined&&temperatureGrid?.time===displayTime?temperatureGrid?.values:undefined;
  const visibleClouds=Boolean(clouds&&cloudError!==clouds);
  return <section className="card current-surroundings" aria-labelledby={heading}>
@@ -227,15 +227,19 @@ export default function CurrentSurroundings(props:Props){
    {visibleClouds&&<img src={clouds} alt="" onError={()=>setCloudError(clouds)}/>}
    {(displayedOpera??displayedRadar)&&<img src={displayedPhase?.url??(displayedOpera??displayedRadar)?.url} alt="" />}
    <svg className="current-surroundings-orientation" viewBox="0 0 512 256" preserveAspectRatio="none" aria-hidden="true"><path d={orientation.paths}/></svg>
-   {orientation.places.filter(place=>!temperatures?.some(({x,y})=>Math.abs(place.x-x*512)<85&&Math.abs(place.y-y*256)<30)).map(place=><span key={place.name} className="current-surroundings-place" style={{left:place.x/5.12+'%',top:place.y/2.56+'%'}}>{place.name}</span>)}
-   <span className="current-surroundings-site" style={{left:orientation.center[0]/5.12+'%',top:orientation.center[1]/2.56+'%'}}>{name}{Number.isFinite(temperature)&&<> · {formatWeatherValue(temperature,'temperature','overview')} °C</>}</span>
-   {temperatures?.map(({x,y,value})=><span key={x+':'+y} className="current-surroundings-temperature" style={{left:x*100+'%',top:y*100+'%'}} aria-label={`Modelltemperatur ${formatWeatherValue(value,'temperature','overview')} Grad Celsius`}>{formatWeatherValue(value,'temperature','overview')}°</span>)}
+   {orientation.places.map(place=><span key={place.name} className="current-surroundings-place" style={{left:place.x/5.12+'%',top:place.y/2.56+'%'}}>
+    {place.name}{temperatures?.[place.name]!==undefined&&<strong>{formatWeatherValue(temperatures[place.name],'temperature','overview')}°</strong>}
+   </span>)}
+   <span className="current-surroundings-site" style={{left:orientation.center[0]/5.12+'%',top:orientation.center[1]/2.56+'%'}}>{name}{Number.isFinite(temperature)&&<strong>{formatWeatherValue(temperature,'temperature','overview')}°</strong>}</span>
   </div>
-  {geography&&<p>Kartengrundlage · Natural Earth</p>}
   <p role="status">{displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</p>
+  <details className="current-surroundings-sources">
+   <summary>Quellen und Datenstand</summary>
+   {geography&&<p>Kartengrundlage · Natural Earth</p>}
   {visibleClouds&&satelliteTime!==undefined&&<p>Bewölkung · {satellite?.provider==='dwd'?'DWD':'EUMETSAT'} · Beobachtung {clock(satelliteTime)} Uhr</p>}
   {Number.isFinite(temperature)&&temperatureTime&&<p>Temperatur am gewählten Ort · {temperatureTime.slice(11,16)} Uhr</p>}
-  {Boolean(temperatures?.length)&&<p>Umfeldtemperaturen · Modellwerte zum Radarstand</p>}
+  {Boolean(temperatures&&Object.keys(temperatures).length)&&<p>Umfeldtemperaturen · Modellwerte zum Radarstand</p>}
+  </details>
   {selection===undefined&&showPhase&&(displayedPhase?.url
    ?<p>Radar + Modellphase · {([
     ['rain','Regen'],['mixed','Schneeregen'],['snow','Schnee'],['freezing','Gefrierend'],
