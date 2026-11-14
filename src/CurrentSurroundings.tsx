@@ -1,8 +1,13 @@
-import {useEffect,useId,useMemo,useState} from 'react';
+import {useCallback,useEffect,useId,useMemo,useState} from 'react';
 import {compositeWmsProxy,loadCompositeTimes,loadOperaRaster,type CompositeProductTimes,type ProductTime,type WmsProvider} from './CompositeData';
 import {formatWeatherValue} from "./weatherValueFormat";
 import {PRECIPITATION_TYPE_COLORS,radarDbzColor} from './radarColorTables';
 import {loadModelMapGeography,type ModelMapGeography} from './modelMapGeography';
+import {ImageQuadLayer,HtmlMarker,MapFitBounds,useMidMap} from './MapLibreCore';
+import {MapContainer,VectorReferenceLayer} from './MapLibreLegacyCompat';
+import UnifiedVectorBasemap from './UnifiedVectorBasemap';
+import {compositeReferenceLayers} from './mapReferenceLayers';
+import {chooseSurroundingsCities,citiesFromMapFeatures,type SurroundingsCityCandidate} from './surroundingsCitySelection';
 import {loadSurroundingsTemperatures,type SurroundingsTemperatureSnapshot} from './currentSurroundingsTemperature';
 import './CurrentSurroundings.css';
 
@@ -10,6 +15,23 @@ export type SurroundingsBounds={west:number;south:number;east:number;north:numbe
 
 type Props={lat:number;lon:number;name:string;timezone:string;temperature:number;temperatureTime:string;onOpen:(time:number|undefined,bounds:SurroundingsBounds)=>void};
 const rvLayer='dwd:Radar_rv_product_1x1km_ger';
+const MID_REFERENCE_TILES='https://tiles.openfreemap.org/planet',MID_REFERENCE_GLYPHS='https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
+const surroundingReference={countries:true,regions:true,cities:true,water:true,roads:true};
+function mapSafe(value:string){return value.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]||c))}
+function useDarkMapTheme(){
+ const [dark,setDark]=useState(()=>document.documentElement.dataset.theme==='dark'||document.documentElement.classList.contains('dark'));
+ useEffect(()=>{const root=document.documentElement,update=()=>setDark(root.dataset.theme==='dark'||root.classList.contains('dark'));const observer=new MutationObserver(update);observer.observe(root,{attributes:true,attributeFilter:['data-theme','class']});return()=>observer.disconnect()},[]);
+ return dark;
+}
+function MapCityInventory({onChange}:{onChange:(values:SurroundingsCityCandidate[])=>void}){
+ const map=useMidMap();
+ useEffect(()=>{if(!map)return;
+  const collect=()=>{try{if(!map.getSource('unified-vector-base-source'))return;const cities=citiesFromMapFeatures(map.querySourceFeatures('unified-vector-base-source',{sourceLayer:'place'}));if(cities.length)onChange(cities)}catch{/* Never fabricate geographic inventory. */}};
+  map.on('idle',collect);map.on('sourcedata',collect);collect();
+  return()=>{map.off('idle',collect);map.off('sourcedata',collect)};
+ },[map,onChange]);
+ return null;
+}
 
 function validTimes(values:ProductTime[]|undefined){
  return [...new Set((values??[]).map(value=>typeof value==='number'?value*(value<1e12?1000:1):Date.parse(value)).filter(Number.isFinite))].sort((a,b)=>a-b);
@@ -51,6 +73,8 @@ export default function CurrentSurroundings(props:Props){
  const [showPhase,setShowPhase]=useState(false);
  const [phaseImage,setPhaseImage]=useState<{url?:string;time:number}>();
  const [phaseLoading,setPhaseLoading]=useState(false);
+ const [mapCities,setMapCities]=useState<SurroundingsCityCandidate[]>([]);
+ const darkMap=useDarkMapTheme();
  useEffect(()=>{
   const controller=new AbortController();
   let loading=false;
@@ -92,25 +116,16 @@ export default function CurrentSurroundings(props:Props){
   void loadModelMapGeography().then(value=>{if(active)setGeography(value)}).catch(()=>{});
   return ()=>{active=false};
  },[]);
- const orientation=useMemo(()=>{
-  const project=(lng:number,latitude:number)=>[(lng-west)/(east-west)*512,(north-latitude)/(north-south)*256];
-  const rings=[...(geography?.countries??[]),...(geography?.states.flatMap(state=>state.rings)??[])];
-  const paths=rings.filter(ring=>ring.some(([lng,latitude])=>lng>=west-3&&lng<=east+3&&latitude>=south-2&&latitude<=north+2))
-   .map(ring=>ring.map(([lng,latitude],index)=>(index?'L':'M')+project(lng,latitude).map(value=>value.toFixed(1)).join(' ')).join('')).join('');
-  const places:{id:string;name:string;x:number;y:number;lat:number;lon:number}[]=[];
-  for(const place of geography?.places??[]){
-   const [x,y]=project(place.lon,place.lat);
-   if(x<55||x>457||y<25||y>231||(Math.abs(x-256)<145&&Math.abs(y-128)<32))continue;
-   if(places.some(other=>Math.abs(other.x-x)<125&&Math.abs(other.y-y)<32))continue;
-   places.push({id:`${place.name}:${place.lat.toFixed(5)}:${place.lon.toFixed(5)}`,name:place.name,x,y,lat:place.lat,lon:place.lon});
-   if(places.length===4)break;
-  }
-  // Four real georeferenced forecast points, independent of city-label density.
-  const temperaturePoints=[{x:.22,y:.25},{x:.78,y:.25},{x:.22,y:.75},{x:.78,y:.75}]
-   .map(({x,y},index)=>({id:`surroundings-point-${index}`,x:x*512,y:y*256,
-    lat:north-y*(north-south),lon:west+x*(east-west)}));
-  return {paths,places,temperaturePoints,center:project(lon,lat)};
- },[geography,west,south,east,north,lat,lon]);
+ // Coordinates come from actual named settlements, not screen-grid reference points.
+ const nearbyCities=useMemo(()=>chooseSurroundingsCities([
+  ...mapCities,...(geography?.places??[]).map(place=>({name:place.name,lat:place.lat,lon:place.lon,population:place.population,rank:place.minZoom,origin:'natural-earth' as const}))
+ ],{lat,lon},{west,south,east,north}),[mapCities,geography,lat,lon,west,south,east,north]);
+ const mapBounds=useMemo(()=>[[south,west],[north,east]] as [[number,number],[number,number]],[south,west,north,east]);
+ const mapReferences=useMemo(()=>compositeReferenceLayers(.93,surroundingReference),[darkMap]);
+ const updateMapCities=useCallback((next:SurroundingsCityCandidate[])=>setMapCities(previous=>{
+  const signature=(places:SurroundingsCityCandidate[])=>places.map(p=>`${p.name}:${p.lat.toFixed(3)}:${p.lon.toFixed(3)}`).sort().join('|');
+  return signature(previous)===signature(next)?previous:next;
+ }),[]);
  const radar=target===undefined?'':imageUrl('dwd',rvLayer,target,bounds);
  const satellite=catalog?.satelliteRgbProduct??catalog?.satelliteIrProduct;
  const satelliteTime=validTimes(satellite?.times).filter(time=>time>=now-75*60000&&time<=now+90000).at(-1);
@@ -200,14 +215,14 @@ export default function CurrentSurroundings(props:Props){
  const temperatureTarget=Math.floor(now/(10*60000))*10*60000;
  const [temperatureGrid,setTemperatureGrid]=useState<SurroundingsTemperatureSnapshot>();
  useEffect(()=>{
-  if(selection!==undefined||!orientation.temperaturePoints.length){setTemperatureGrid(undefined);return;}
+  if(selection!==undefined||!nearbyCities.length){setTemperatureGrid(undefined);return;}
   const controller=new AbortController();
   // One bounded forecast request for up to four real places; entirely independent of radar.
-  void loadSurroundingsTemperatures(orientation.temperaturePoints,temperatureTarget,controller.signal)
+  void loadSurroundingsTemperatures(nearbyCities,temperatureTarget,controller.signal)
    .then(result=>{if(!controller.signal.aborted)setTemperatureGrid(result)})
    .catch(()=>{if(!controller.signal.aborted)setTemperatureGrid(undefined)});
   return ()=>controller.abort();
- },[selection,temperatureTarget,orientation.temperaturePoints]);
+ },[selection,temperatureTarget,nearbyCities]);
  const temperatures=selection===undefined?temperatureGrid?.values:undefined;
  const visibleClouds=Boolean(clouds&&cloudError!==clouds);
  return <section className="card current-surroundings" aria-labelledby={heading}>
@@ -220,25 +235,30 @@ export default function CurrentSurroundings(props:Props){
     {future.map(time=><option key={time} value={time}>{clock(time)}</option>)}
    </select></label>
   </div>
-  <figure className="current-surroundings-map" aria-label={`Wetterbild um ${name}`}>
-   {visibleClouds&&<img src={clouds} alt="" onError={()=>setCloudError(clouds)}/>}
-   {(displayedOpera??displayedRadar)&&<img src={displayedPhase?.url??(displayedOpera??displayedRadar)?.url} alt="" />}
-   <svg className="current-surroundings-orientation" viewBox="0 0 512 256" preserveAspectRatio="none" aria-hidden="true"><path d={orientation.paths}/></svg>
-   {orientation.places.map(place=><span key={place.id} className="current-surroundings-place" style={{left:`${place.x/5.12}%`,top:`${place.y/2.56}%`}}>
-    {place.name}{temperatures?.[place.id]!==undefined&&<strong>{formatWeatherValue(temperatures[place.id],'temperature','overview')}°</strong>}
-   </span>)}
-   {orientation.temperaturePoints.map(point=>temperatures?.[point.id]===undefined?null:
-    <span key={point.id} className="current-surroundings-temperature" role="img"
-     style={{left:`${point.x/5.12}%`,top:`${point.y/2.56}%`}}
-     aria-label={`Modelltemperatur am Kartenpunkt ${formatWeatherValue(temperatures[point.id],'temperature','overview')} Grad Celsius`}>
-     {formatWeatherValue(temperatures[point.id],'temperature','overview')}°
-    </span>)}
-   <span className="current-surroundings-site" style={{left:`${orientation.center[0]/5.12}%`,top:`${orientation.center[1]/2.56}%`}}>{name}{selection===undefined&&Number.isFinite(temperature)&&<strong>{formatWeatherValue(temperature,'temperature','overview')}°</strong>}</span>
+  <figure className="current-surroundings-map" aria-label={`Wetterbild um ${name}: MID-Kartenbasis und Temperaturen an benannten Orten`}>
+   <MapContainer center={[lat,lon]} zoom={7} scrollWheelZoom={false} className="current-surroundings-maplibre">
+    <MapFitBounds south={south} west={west} north={north} east={east} padding={8}/>
+    <UnifiedVectorBasemap dark={darkMap}/>
+    {visibleClouds&&<ImageQuadLayer id="surroundings-clouds" url={clouds} bounds={mapBounds} zIndex={220} onError={()=>setCloudError(clouds)}/>}
+    {(displayedOpera??displayedRadar)&&<ImageQuadLayer id="surroundings-radar" url={displayedPhase?.url??(displayedOpera??displayedRadar)!.url} bounds={mapBounds} zIndex={360}/>}
+    <VectorReferenceLayer url={MID_REFERENCE_TILES} glyphsUrl={MID_REFERENCE_GLYPHS} layers={mapReferences} zIndex={790}/>
+    <MapCityInventory onChange={updateMapCities}/>
+    {nearbyCities.map((place,index)=>{
+     const value=temperatures?.[place.id];if(value===undefined)return null;
+     const degrees=formatWeatherValue(value,'temperature','overview');
+     return <HtmlMarker key={place.id} latitude={place.lat} longitude={place.lon} anchor="center" zIndex={850+index}
+      className={`current-surroundings-city-marker priority-${index}`}
+      html={`<span class="current-surroundings-city-value" role="img" aria-label="${mapSafe(place.name)}: ${degrees} Grad Celsius, Open-Meteo Best Match"><b>${mapSafe(place.name)}</b><strong>${degrees}°</strong></span>`}/>;
+    })}
+    <HtmlMarker latitude={lat} longitude={lon} anchor="center" className="current-surroundings-center-marker" zIndex={920}
+     html={`<span class="current-surroundings-center-dot" role="img" aria-label="Gewählter Ort: ${mapSafe(name)}"></span>`}/>
+   </MapContainer>
+   <figcaption className="current-surroundings-map-caption">Standort: {name}{selection===undefined&&Number.isFinite(temperature)?` · ${formatWeatherValue(temperature,'temperature','overview')}°`:''}</figcaption>
   </figure>
   <p role="status">{displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</p>
   <details className="current-surroundings-sources">
    <summary>Quellen und Datenstand</summary>
-   {geography&&<p>Kartengrundlage · Natural Earth</p>}
+   <p>Kartengrundlage · MID-Kartenbereich, OpenFreeMap / OpenStreetMap; Orte Natural Earth und Kartenkacheln</p>
   {visibleClouds&&satelliteTime!==undefined&&<p>Bewölkung · {satellite?.provider==='dwd'?'DWD':'EUMETSAT'} · Beobachtung {clock(satelliteTime)} Uhr</p>}
   {Number.isFinite(temperature)&&temperatureTime&&<p>Temperatur am gewählten Ort · {temperatureTime.slice(11,16)} Uhr</p>}
   {selection===undefined&&(temperatureGrid&&temperatures&&Object.keys(temperatures).length
