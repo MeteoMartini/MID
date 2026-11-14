@@ -505,6 +505,16 @@ async function verifySurroundings(width,theme){
    return route.fulfill({json:{error:'Unavailable in surroundings fixture'}});
   });
   await page.goto(base+'/__map-qa?surroundings');
+  // v.480: the SHA-validated clouds/SigWx view starts without expensive radar.
+  // This fixture intentionally lacks a real cloud original: NoData is correct.
+  const cloudMode=page.getByRole('button',{name:'Wolken + Wetter',exact:true});
+  await cloudMode.waitFor({timeout:30000});
+  assert.equal(await cloudMode.getAttribute('aria-pressed'),'true','The initial surroundings mode is verified cloud weather');
+  await page.locator('.current-surroundings-maplibre canvas').first().waitFor({timeout:30000});
+  await page.locator('.current-surroundings-center-dot').waitFor({timeout:30000});
+  assert.equal(requests.some(value=>new URL(value).searchParams.get('mode')==='composite-times'),false,'No eager DWD radar on initial cloud preview');
+  await page.getByRole('button',{name:'Radar / Satellit',exact:true}).click();
+  assert.equal(await page.getByRole('button',{name:'Radar / Satellit',exact:true}).getAttribute('aria-pressed'),'true','Explicit radar selection activated');
   const radarObserved=page.getByRole('status').filter({hasText:'DWD-Radar · Beobachtung'});
   try{await radarObserved.waitFor({timeout:60000})}catch(error){
    const state=await page.evaluate(()=>({
@@ -517,7 +527,7 @@ async function verifySurroundings(width,theme){
    throw new Error('Umfeld-Radar-Fixturnier (echte Bilddaten erforderlich): '+JSON.stringify({state,requests:requests.slice(-16),pageErrors:errors})+'; Ursache: '+String(error));
   }
   // #795/.478 replaces the old approximate SVG borders with the real MapLibre vector basemap.
-  // Do not weaken the independent radar admission: status above proves a rendered valid radar frame.
+  // The independent radar admission still requires a real rendered frame after explicit selection.
   await page.locator('.current-surroundings-maplibre canvas').first().waitFor({timeout:30000});
   await page.locator('.current-surroundings-center-dot').waitFor({timeout:30000});
   assert.equal(await page.locator('.current-surroundings-orientation').count(),0,'Obsolete hand-drawn borders must not return');
