@@ -147,7 +147,18 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
   assert.match(value??'',/^\d+$/,'Term must exist in the real product timeline');
   if(compactTimeline)await timelineRange.fill(value);
   else await direct.selectOption(value);
-  await page.waitForFunction(expected=>document.querySelector('select[aria-label="Kartentermin auswählen"]')?.value===expected,value);
+  await page.waitForFunction(expected=>document.querySelector('select[aria-label="Kartentermin auswählen"]')?.value===expected,value).catch(async error=>{
+   const detail=await page.evaluate(()=>({
+    model:document.querySelector('select[aria-label="Modell für Parameter"]')?.value,
+    select:document.querySelector('select[aria-label="Kartentermin auswählen"]')?.value,
+    range:document.querySelector('.composite-timeline-range input[type="range"]')?.value,
+    max:document.querySelector('.composite-timeline-range input[type="range"]')?.max,
+    status:document.querySelector('.unified-layer-status')?.textContent?.slice(0,400),
+    busy:document.querySelector('.unified-layer-status')?.getAttribute('aria-busy')
+   }));
+   console.error('Selected source term did not commit',{expected:value,detail});
+   throw error;
+  });
   assert.equal(await timelineRange.inputValue(),value,'Visible range and exact source term stay synchronized');
  }
  await chooseTerm('0');
@@ -207,7 +218,18 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  await satelliteSwitch.click();await verifyPresentationHint('Linien empfohlen');
  await radarSwitch.click();await satelliteSwitch.click();assert.equal(await radarSwitch.getAttribute('aria-pressed'),'true');assert.equal(await satelliteSwitch.getAttribute('aria-pressed'),'false');
  await page.waitForFunction(()=>window.__qaMap?.getLayer('model-pressure-centers-labels'));
- await page.getByLabel('Modell für Parameter').selectOption('icon-eu');const exactPressure=direct.locator(`option[data-valid-time="${Math.floor((runMs+3*hour)/1000)}"]`);await exactPressure.waitFor({state:'attached'});await chooseTerm(await exactPressure.getAttribute('value'));await page.waitForFunction(()=>window.__qaMap?.getLayer('unified-wms-pressure-isobars-line-dashed')).catch(async e=>{console.error('Pressure frame',{width,theme,design,status:await page.locator('.unified-layer-status').innerText(),fieldRequests:requests.filter(u=>u.endsWith('.bin')),errors,visibleLayers:await page.evaluate(()=>window.__qaMap?.getStyle()?.layers?.filter(l=>/pressure|isobar/.test(l.id)).map(l=>l.id)??[]).catch(()=>[])});throw e});
+ await page.getByLabel('Modell für Parameter').selectOption('icon-eu');
+ // The old model can also have a +3h option. An attached DOM option does not
+ // prove the newly selected model's times and status have finished updating.
+ await page.waitForFunction(()=>{
+  const status=document.querySelector('.unified-layer-status');
+  const active=document.querySelector('select[aria-label="Modell für Parameter"]');
+  return active?.value==='icon-eu'&&status?.textContent?.includes('ICON-EU')&&
+   status?.getAttribute('aria-busy')==='false'&&!status.textContent.includes('Rohdaten laden');
+ });
+ const exactPressure=direct.locator(`option[data-valid-time="${Math.floor((runMs+3*hour)/1000)}"]`);
+ await exactPressure.waitFor({state:'attached'});
+ await chooseTerm(await exactPressure.getAttribute('value'));await page.waitForFunction(()=>window.__qaMap?.getLayer('unified-wms-pressure-isobars-line-dashed')).catch(async e=>{console.error('Pressure frame',{width,theme,design,status:await page.locator('.unified-layer-status').innerText(),fieldRequests:requests.filter(u=>u.endsWith('.bin')),errors,visibleLayers:await page.evaluate(()=>window.__qaMap?.getStyle()?.layers?.filter(l=>/pressure|isobar/.test(l.id)).map(l=>l.id)??[]).catch(()=>[])});throw e});
  assert.equal(await page.evaluate(()=>window.__qaMap.getStyle().layers.some(l=>l.id.startsWith('unified-dwd-'))),false,'Pure numerical pressure lines replace the fixed WMS line image');
  await page.getByLabel('Modell für Parameter').selectOption('icon-d2');await page.waitForFunction(()=>window.__qaMap?.getLayer('model-pressure-centers-labels'));
  await measuredReload();assert.equal(await radarSwitch.getAttribute('aria-pressed'),'true');assert.equal(await satelliteSwitch.getAttribute('aria-pressed'),'false');
