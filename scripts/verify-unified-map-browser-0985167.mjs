@@ -157,6 +157,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
   }else await direct.selectOption(value);
   await page.waitForFunction(expected=>document.querySelector('select[aria-label="Kartentermin auswählen"]')?.value===expected,value).catch(async error=>{
    const detail=await page.evaluate(()=>({
+    timeline:{rangeCount:document.querySelectorAll('.composite-timeline-range input[type="range"]').length,rangeDisabled:document.querySelector('.composite-timeline-range input[type="range"]')?.disabled,rangeMin:document.querySelector('.composite-timeline-range input[type="range"]')?.min,rangeAria:document.querySelector('.composite-timeline-range input[type="range"]')?.getAttribute('aria-label'),selectDisabled:document.querySelector('select[aria-label="Kartentermin auswählen"]')?.disabled,options:[...document.querySelectorAll('select[aria-label="Kartentermin auswählen"] option')].map(option=>({value:option.value,validTime:option.dataset.validTime,disabled:option.disabled})).slice(0,12),focused:document.activeElement?.outerHTML?.slice(0,320)},
     model:document.querySelector('select[aria-label="Modell für Parameter"]')?.value,
     select:document.querySelector('select[aria-label="Kartentermin auswählen"]')?.value,
     range:document.querySelector('.composite-timeline-range input[type="range"]')?.value,
