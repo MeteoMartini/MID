@@ -29,3 +29,23 @@ Erforderlich: `dist/index.html`, `dist/version.json`, `dist/mid-build-identity.j
 3. **C:** Nach erfolgreicher B-Abnahme CI-Berichte, wiederholbare Speicherkontrollen und kalibrierte Performance-Budgets hinzufügen, ohne bestehende Release- oder Fachgates zu lockern.
 
 **Keine Freigabebehauptung:** Dieser Draft belegt keine Nettoeinsparung, keine Browser-/iOS-/VoiceOver-Abnahme und keinen veröffentlichten Build. Künftige produktive Integration ausschließlich über MID Source-PR-Gate → SHA-Bot → serverseitiges ZIP → Installer → Worker/Pages → Stable.
+
+## Erweiterung: Paket B (ein sicher abgegrenzter JS-Pilot)
+
+- Nur der **UI-Renderer** `PushSettingsPanel` ist in `src/App.tsx` von statischem Import auf React.lazy umgestellt. Der gemeinsame Push-Daten-/Benachrichtigungspfad, `src/pushNotifications.ts`, Service Worker, Worker und alle gespeicherten Einstellungen sind unverändert.
+- Der weiterhin identische Aufruf ist auf `contentReady && section==='notifications'` beschränkt; Props werden über eine typisierte Wrapper-Komponente unverändert weitergereicht. Die asynchrone Ladegrenze zeigt `role=status` und `aria-live=polite`; keine neue Nutzerentscheidung oder Änderung an Warnungen.
+- Neue Pflichtregression: `scripts/test-lazy-notifications-settings-0985482.mjs`, zusätzlich zu bestehenden Push-Tests. Ein sichtbarer Größen-/Ladezeitgewinn ist erst nach einem identisch konfigurierten neuen Vite-Produktionsbuild nachzuweisen; die syntaktische Lazy-Grenze ist **noch kein gemessener Nettoeffekt**.
+- Keine globale CSS-Verschiebung: die vorhandenen Kaskadenkollisionen bleiben ungeklärt. Daher bleiben `presentation-order.json` und `midPresentation.css` unverändert.
+
+## Erweiterung: Paket C (dauerhaftes zusätzliches Start-JS-Gate)
+
+- `scripts/check-build-budget.mjs` verwendet den vorhandenen SHA-verifizierbaren HTML-Startpfad als zusätzliche Kennzahl. Im regulären Build-Budgetbericht erscheinen `initialJsBytes`, `initialJsGzipBytes`, `initialJsFileCount` und `initialJsAssets`, neben allen bisherigen CSS-/Gesamtbudgets.
+- Neue zusätzliche, **nicht gelockerte** Obergrenzen in `MID_PERFORMANCE_BASELINE.json`: **2.400.000 B Rohbytes** und **750.000 B gzip-9** für deduplizierte `script[type=module]`- und `modulepreload`-JS-Dateien aus dem Produktions-HTML. .481-Baseline: 2.277.626 B roh und 688.085 B gzip; die neuen Limits lassen dokumentierte Reserve, sind aber deutlich unter der bestehenden Gesamt-JS-Grenze.
+- Neu: `scripts/test-startup-js-gate-0985482.mjs` mit Positivtest und Negativfällen für übergroße Roh- und gzip-Startdateien, doppelte Preloads und abseits des Startpfads liegende Lazy-Chunks. Ebenfalls im vollständigen Regressionsinventar.
+- **Kein behaupteter Heap-Gate:** wiederholte, kontrollierte Post-GC-/GPU-Tests, Browserparität, reales iOS und etwaige Freigabe einer Größeinsparung bleiben offen. Keine erfundenen Speicherlimits.
+
+## Isolierte Prüfbarkeit
+
+- Lokale syntaxbasierte TypeScript-TSX-Prüfung des auf dem exakten Stable-Quellblob aufgebauten Lazy-Imports: **PASS** (keine AST-Parsefehler); statischer Push-Panel-Import fehlt, vorhandener Benachrichtigungsbereich und Status-Ladeanzeige bleiben erhalten.
+- Der bereits veröffentlichte SHA-verifizierte .481-Produktionsbuild wurde mit dem **erweiterten** `check-build-budget.mjs` und den Zusatzgrenzen erneut ausgewertet: **PASS**, CSS roh/gzip/Brotli und HTML-Start-JS roh/gzip wie dokumentiert. Dies prüft das Limit gegen .481, **nicht** die noch unverifizierte Ausgabe eines neuen App-Builds.
+- Vollständige neue CI-Tests und unabhängiger Source-/Installerpfad sind für den aktuellen PR-HEAD getrennt nachzuweisen. Draft bleibt Draft.
