@@ -2,10 +2,21 @@ import {fetchJsonWithRetry,classifyApiTransportError} from './api-contract-reque
 import {finiteSeries,rangeSeries,distinctExtrema} from './api-contract-series.mjs';
 
 const failures=[],warnings=[],checks=[];
+const quotaBlockedOrigins=new Set();
 
+// A confirmed provider 429 is not a schema failure. Avoid retrying seven
+// optional model variants on an origin whose quota has just been exhausted.
+// Scope to the exact URL origin: independent API hosts are still inspected.
 async function jsonCheck(name,url,validate,{required=true}={}){
+ const origin=new URL(url).origin;
+ if(quotaBlockedOrigins.has(origin)){
+  checks.push({name,status:null,ok:false,required,attemptsUsed:0,verification:'QUOTA_BLOCKED'});
+  (required?failures:warnings).push(`${name}: nicht geprüft wegen bestätigtem HTTP 429 derselben API-Origin (kein Schemaurteil; 0 Abrufversuche)`);
+  return false;
+ }
  try{
   const {response,payload,attemptsUsed}=await fetchJsonWithRetry(url),valid=response.ok&&validate(payload);
+  if(response.status===429)quotaBlockedOrigins.add(origin);
   checks.push({name,status:response.status,ok:valid,required,attemptsUsed});
   if(!valid){
    const suffix=attemptsUsed>1?` nach ${attemptsUsed} Abrufversuchen`:'';
