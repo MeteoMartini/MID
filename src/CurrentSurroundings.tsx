@@ -4,7 +4,7 @@ import {formatWeatherValue} from "./weatherValueFormat";
 import {ecmwfTemperatureColor} from "./temperatureTone";
 import {useSurroundingsCloudImage} from "./currentSurroundingsCloudImage";
 import {surroundingsQuarterHourTarget} from "./surroundingsQuarterHour";
-import {radarOriginalForStep,nearestVerifiedOriginal,surroundingsRadarTarget,SURROUNDINGS_RADAR_MIN_STEP,SURROUNDINGS_RADAR_MAX_STEP} from './surroundingsRadarTimeline';
+import {radarOriginalForStep,nearestVerifiedOriginal,surroundingsRadarTarget,selectVerifiedSurroundingsRadarFrame,SURROUNDINGS_RADAR_MIN_STEP,SURROUNDINGS_RADAR_MAX_STEP} from './surroundingsRadarTimeline';
 import {useDisplayPreference,displayChoice} from './useDisplayPreference';
 import {PRECIPITATION_TYPE_COLORS,radarDbzColor} from './radarColorTables';
 import {loadModelMapGeography,type ModelMapGeography} from './modelMapGeography';
@@ -238,7 +238,7 @@ export default function CurrentSurroundings(props:Props){
   return ()=>controller.abort();
  },[needsOpera,showPhase,lat,lon,bounds,catalog?.checkedAt]);
  const displayedOpera=needsOpera&&opera&&opera.time>=now-45*60000?opera:undefined;
- const displayedRadar=mode==='radar'&&loaded&&target!==undefined&&loaded.time===target?loaded:undefined;
+ const displayedRadar=mode==='radar'?selectVerifiedSurroundingsRadarFrame(loaded,radar,radarOriginal):undefined;
  const displayedPhase=showPhase&&displayedOpera&&phaseImage?.time===displayedOpera.time?phaseImage:undefined;
  const displayTime=displayedOpera?.time??displayedRadar?.time;
  const temperatureTarget=mode==='cloud'?cloudTarget:radarTarget;
