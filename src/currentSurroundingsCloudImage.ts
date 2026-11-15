@@ -94,48 +94,24 @@ export async function loadVerifiedSurroundingsCloud(lat:number,lon:number,now:nu
   for(const selected of chooseSurroundingsCloudFrames(index.models,now)){
    const {modelId,model,ref,independent}=selected;
    try{
-    // Never interpolate when an exact SHA-verified original is available,
-    // even if two adjacent original frames also exist.
-    if(Date.parse(ref.time)===now){
-     const exact=independent
-      ?await loadCloudWeatherField(base,modelId,model,ref,signal)
-      :synopticCloudWeather(await loadSynopticField(base,modelId,model,ref,signal));
-     return displayCloudFrame(exact,model.label,lat,lon,now);
-    }
-    const siblings=[
-     ...(model.cloudWeatherFrames??[]).map(item=>({ref:item,independent:true})),
-     ...model.frames.filter(item=>item.cloudWeather===true).map(item=>({ref:item,independent:false}))
-    ].filter(item=>item.independent===independent&&admissibleSurroundingsCloudTime(item.ref.time,model.run,now));
-    const earlier=siblings.filter(item=>Date.parse(item.ref.time)<now).sort((a,b)=>Date.parse(b.ref.time)-Date.parse(a.ref.time))[0];
-    const later=siblings.filter(item=>Date.parse(item.ref.time)>now).sort((a,b)=>Date.parse(a.ref.time)-Date.parse(b.ref.time))[0];
-    if(earlier&&later&&Date.parse(later.ref.time)-Date.parse(earlier.ref.time)<=HOUR){
-     try{
-      const read=async(item:typeof earlier)=>item.independent
-       ?loadCloudWeatherField(base,modelId,model,item.ref,signal)
-       :synopticCloudWeather(await loadSynopticField(base,modelId,model,item.ref,signal));
-      const [before,after]=await Promise.all([read(earlier),read(later)]);
-      if(!usableAtSite(before,lat,lon)||!usableAtSite(after,lat,lon))throw Error('Unvollständige örtliche Interpolationsabdeckung.');
-      const blend=interpolateVerifiedSurroundingsCloud(before,after,now);
-      if(blend){
-       const nearest=now-Date.parse(before.time)<=Date.parse(after.time)-now?before:after;
-       return displayCloudFrame(blend,model.label,lat,lon,now,{originalTimes:[before.time,after.time],sigwxTime:nearest.time});
-      }
-     }catch(error){if(signal.aborted)throw error}
-    }
-    const field=independent
+    // A 15-minute selector is not a native 15-minute dataset.
+    // Render only exact SHA-bound source frames. Missing slots remain NoData:
+    // never create temporal cloud animation or borrow a WMO SigWx category.
+    if(Date.parse(ref.time)!==now)continue;
+    const exact=independent
      ?await loadCloudWeatherField(base,modelId,model,ref,signal)
      :synopticCloudWeather(await loadSynopticField(base,modelId,model,ref,signal));
-    return displayCloudFrame(field,model.label,lat,lon,now);
+    return displayCloudFrame(exact,model.label,lat,lon,now);
    }catch(error){if(signal.aborted)throw error}
   }
  }catch(error){if(signal.aborted)throw error}
  // Retain the established SHA-validated ICON-D2 paired original fields as a fallback.
  const {index,base}=await loadNativeIndex(signal);
  const cloudRefs=index.products.cloud?.frames??[],weatherRefs=index.products.sigwx?.frames??[];
- const paired=cloudRefs.filter(ref=>weatherRefs.some(other=>other.time===ref.time)&&admissibleSurroundingsCloudTime(ref.time,index.run,now))
+ const paired=cloudRefs.filter(ref=>Date.parse(ref.time)===now&&weatherRefs.some(other=>other.time===ref.time)&&admissibleSurroundingsCloudTime(ref.time,index.run,now))
   .sort((a,b)=>Math.abs(Date.parse(a.time)-now)-Math.abs(Date.parse(b.time)-now));
  const ref=paired[0],weather=ref&&weatherRefs.find(other=>other.time===ref.time);
- if(!ref||!weather)throw new Error('Kein gültiges Wolken- und SigWx-Feld verfügbar.');
+ if(!ref||!weather)throw new Error('Kein originales Wolken- und SigWx-Feld für genau diesen 15-Minuten-Termin vorhanden.');
  const [cloudField,weatherField]=await Promise.all([
   loadNativeField(index,base,ref,'cloud',signal),loadNativeField(index,base,weather,'sigwx',signal)
  ]);
@@ -148,7 +124,7 @@ export function useSurroundingsCloudImage(enabled:boolean,lat:number,lon:number,
  useEffect(()=>{
   if(!enabled){setResult({image:null,loading:false,unavailable:false});return}
   const controller=new AbortController();
-  setResult(previous=>previous.image&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,target)
+  setResult(previous=>previous.image&&Date.parse(previous.image.validTime)===target&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,target)
    ?{...previous,loading:true,unavailable:false}
    :{image:null,loading:true,unavailable:false});
   // Bucket changes limit network reloads; raster time uses the precise selected instant.
@@ -160,7 +136,7 @@ export function useSurroundingsCloudImage(enabled:boolean,lat:number,lon:number,
    if(controller.signal.aborted)return;
    requestTimeout=window.setTimeout(()=>{
     if(!controller.signal.aborted){
-     setResult(previous=>previous.image&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,now)
+     setResult(previous=>previous.image&&Date.parse(previous.image.validTime)===target&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,now)
       ?{...previous,loading:false,unavailable:true}:{image:null,loading:false,unavailable:true});
      controller.abort();
     }
@@ -168,7 +144,7 @@ export function useSurroundingsCloudImage(enabled:boolean,lat:number,lon:number,
    void loadVerifiedSurroundingsCloud(lat,lon,now,controller.signal).then(image=>{
     if(!controller.signal.aborted)setResult({image,loading:false,unavailable:false});
    }).catch(()=>{
-    if(!controller.signal.aborted)setResult(previous=>previous.image&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,now)
+    if(!controller.signal.aborted)setResult(previous=>previous.image&&Date.parse(previous.image.validTime)===target&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,now)
      ?{...previous,loading:false,unavailable:true}:{image:null,loading:false,unavailable:true});
    }).finally(()=>{if(requestTimeout!==undefined)window.clearTimeout(requestTimeout)});
   });
