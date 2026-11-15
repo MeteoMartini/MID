@@ -4,7 +4,7 @@ import {createRequire} from 'node:module';
 import {realpathSync,readFileSync,mkdirSync,writeFileSync,appendFileSync} from 'node:fs';
 import {dirname,join} from 'node:path';
 import assert from 'node:assert/strict';
-import {startCssRuleUsageTracking,collectCssRuleUsage} from './lib/cssRuleUsageDiagnostic.mjs';
+import {startCssRuleUsageTracking,collectCssRuleUsage,assertCssRuleUsageComplete} from './lib/cssRuleUsageDiagnostic.mjs';
 const cli=realpathSync(execFileSync('npm',['exec','--yes','--package=playwright@1.56.1','--','which','playwright'],{encoding:'utf8'}).trim()),{chromium}=createRequire(import.meta.url)(join(dirname(dirname(cli)),'playwright'));
 if(process.env.GITHUB_ACTIONS==='true')execFileSync('node',[cli,'install','chromium'],{stdio:'inherit',timeout:240000});
 const now=Date.UTC(2026,9,12,10,10),start=Date.UTC(2026,9,12,11),time=Array.from({length:30},(_,i)=>new Date(start+i*3600000).toISOString().slice(0,16));
@@ -48,7 +48,7 @@ try{
    await nav.getByRole('button',{name:'Karten',exact:true}).click();await page.getByText('Interaktive Karte nicht verfügbar',{exact:true}).first().waitFor();await nav.getByRole('button',{name:'Aktuell',exact:true}).click();await page.waitForFunction(()=>document.querySelector('[aria-label=Hauptnavigation] button[aria-label=Aktuell]')?.getAttribute('aria-current')==='page');
   }
   if(width===1536&&theme==='light'){await page.getByRole('button',{name:'Meine Orte öffnen',exact:true}).click();await page.waitForSelector('.li-place');await page.screenshot({path:'/tmp/mid242-favorites1536.png',fullPage:true})}
-  assert.deepEqual(errors,[]);cssCoverage.push(await collectCssRuleUsage(cssSession,{viewport:[width,height],theme,scope:'Vite development fixture; production CSS and remaining dashboard modules excluded',views:width===390||width===1536?['favorites','settings','Current','forecast','radar','map fallback']:['favorites']}));await context.close();cases++;console.log(`Favorites App ${width}/${theme}: comparison, persistence, touch targets${width===390||width===1536?', management, navigation, Radar and WebGL recovery':''} passed`);
+  assert.deepEqual(errors,[]);cssCoverage.push(assertCssRuleUsageComplete(await collectCssRuleUsage(cssSession,{viewport:[width,height],theme,scope:'Vite development fixture; production CSS and remaining dashboard modules excluded',views:width===390||width===1536?['favorites','settings','Current','forecast','radar','map fallback']:['favorites']}),`Favorites CSS ${width}/${theme}`));await context.close();cases++;console.log(`Favorites App ${width}/${theme}: comparison, persistence, touch targets${width===390||width===1536?', management, navigation, Radar and WebGL recovery':''} passed`);
  }
  const report={schema:'mid.css-coverage-diagnostic.v1',sourceSha:process.env.GITHUB_SHA||null,scope:'Vite development fixture, not production CSS; favorites, settings, Current, forecast/radar and map fallback plus favorites at all configured widths',cases:cssCoverage};
  mkdirSync(join(process.cwd(),'artifacts'),{recursive:true});writeFileSync(join(process.cwd(),'artifacts','css-app-coverage.json'),JSON.stringify(report,null,2)+'\n');
