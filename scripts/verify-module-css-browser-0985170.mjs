@@ -5,7 +5,7 @@ import {createRequire} from 'node:module';
 import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createServer} from 'vite';
-import {startCssRuleUsageTracking,collectCssRuleUsage} from './lib/cssRuleUsageDiagnostic.mjs';
+import {startCssRuleUsageTracking,collectCssRuleUsage,assertCssRuleUsageComplete} from './lib/cssRuleUsageDiagnostic.mjs';
 import {midCssQaBrowserExecutable} from './lib/cssQaBrowserExecutable.mjs';
 import {browserPrelude} from './lib/mountainBrowserFixture.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..'),require=createRequire(import.meta.url);
@@ -102,7 +102,7 @@ try{
   assert.equal(await current.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`${width}/${theme}/mountain-reentry: page overflow`);
   if(reference){assert.deepEqual(await snapshot(current.page),await snapshot(reference.page),`${width}/${theme}/mountain-reentry: reference geometry/styles diverge`);parity++;}cases++;
   assert.deepEqual(current.errors,[],'Optional module caused a runtime error');if(reference)assert.deepEqual(reference.errors,[]);
-  cssCoverage.push(await measureCssCoverage(current,width,height,theme));
+  cssCoverage.push(assertCssRuleUsageComplete(await measureCssCoverage(current,width,height,theme),`Module CSS ${width}/${height}/${theme}`));
   await current.context.close();if(reference)await reference.context.close();
   console.log(`${width}×${height} ${theme}: module loading and four feature views passed${reference?' with configured reference parity':''}.`);
  }

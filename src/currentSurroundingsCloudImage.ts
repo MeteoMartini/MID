@@ -1,4 +1,5 @@
 import {useEffect,useState} from 'react';
+import {deferSurroundingsCloudRead} from './surroundingsCloudScheduler';
 import {cloudWeatherRaster,nativeCloudWeatherPair,synopticCloudWeather,loadCloudWeatherField,type CloudWeatherData} from './cloudWeatherData';
 import {loadEstablishedSynopticIndex,loadSynopticField,type SynopticFrame,type SynopticModel} from './nativeSynopticFields';
 import {loadNativeIndex,loadNativeField} from './nativeModelFields';
@@ -152,19 +153,30 @@ export function useSurroundingsCloudImage(enabled:boolean,lat:number,lon:number,
    :{image:null,loading:true,unavailable:false});
   // Bucket changes limit network reloads; raster time uses the precise selected instant.
   const now=target;
-  const timer=window.setTimeout(()=>{
-   if(!controller.signal.aborted){
-    setResult(previous=>previous.image&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,now)
+  let requestTimeout:number|undefined; // window.setTimeout is a DOM timer, even with Node ambient types
+  // Coalesce rapid UTC quarter-hour scrubs before initiating any SHA-bound
+  // field download/raster decode. Replaced requests are never started.
+  const cancelPending=deferSurroundingsCloudRead(()=>{
+   if(controller.signal.aborted)return;
+   requestTimeout=window.setTimeout(()=>{
+    if(!controller.signal.aborted){
+     setResult(previous=>previous.image&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,now)
+      ?{...previous,loading:false,unavailable:true}:{image:null,loading:false,unavailable:true});
+     controller.abort();
+    }
+   },18000);
+   void loadVerifiedSurroundingsCloud(lat,lon,now,controller.signal).then(image=>{
+    if(!controller.signal.aborted)setResult({image,loading:false,unavailable:false});
+   }).catch(()=>{
+    if(!controller.signal.aborted)setResult(previous=>previous.image&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,now)
      ?{...previous,loading:false,unavailable:true}:{image:null,loading:false,unavailable:true});
-    controller.abort()
-   }
-  },18000);
-  void loadVerifiedSurroundingsCloud(lat,lon,now,controller.signal).then(image=>{
-   if(!controller.signal.aborted)setResult({image,loading:false,unavailable:false});
-  }).catch(()=>{if(!controller.signal.aborted)setResult(previous=>previous.image&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,now)
-    ?{...previous,loading:false,unavailable:true}:{image:null,loading:false,unavailable:true})})
-  .finally(()=>window.clearTimeout(timer));
-  return()=>{window.clearTimeout(timer);controller.abort()};
+   }).finally(()=>{if(requestTimeout!==undefined)window.clearTimeout(requestTimeout)});
+  });
+  return()=>{
+   cancelPending();
+   if(requestTimeout!==undefined)window.clearTimeout(requestTimeout);
+   controller.abort();
+  };
  },[enabled,lat,lon,targetBucket]);
  return result;
 }

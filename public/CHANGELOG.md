@@ -1,3 +1,11 @@
+# MID v0.9.85.484
+
+- **Schonendere Kartenbedienung:** Gleichzeitige Kartenlayer werden in einem Sortierdurchlauf geordnet, statt wiederholt neu angeordnet. Optionale Kartensprünge respektieren die Einstellung für reduzierte Bewegung.
+- **Verlässliche Kartenzeiten:** Die Zeitregler der Wetter- und Kompositkarten geben ihren tatsächlichen Gültigkeitszeitpunkt und die Phase (Beobachtung, Nowcast oder Modellprognose) auch für Screenreader verständlich an. Die sichtbare Kartenzeit bleibt kompakt.
+- **Korrekte Temperatur am gewählten Termin:** Beim schnellen Wechsel zwischen Viertelstunden und Orten blendet die Umfeldkarte keine Temperatur mehr ein, die noch zu einer vorherigen Anfrage gehört. Modellherkunft und Original- beziehungsweise Zwischenwert bleiben unterscheidbar; fehlende Daten werden nicht als null angezeigt.
+- **Flüssigeres PseudoSat-Bedienen:** Schnell überstrichene Zeitpunkte lösen erst nach einer kurzen Ruhephase teure Wolken-/Wetterbild-Abrufe aus. Die tatsächlichen Originalfelder und die fachlichen Grenzen ihrer Darstellung bleiben bestehen.
+- **Sicherere Wartung:** GitHub-Checkout-Schritte speichern in 13 weiteren Fällen keine Zugangsdaten dauerhaft. Der Codeprüfer protokolliert Sicherheitsbefunde vollständig statt sie zu verkürzen, ohne daraus eine Freigabe abzuleiten.
+
 # MID v0.9.85.483
 
 - **Startmodule entlastet:** Benachrichtigungen, iCloud-Sicherheitskopie, Wetterzwilling und Verbindungsdiagnose laden ihre Einstellungsoberflächen erst bei Bedarf. Bestehende Bedienung, Push-/Datenfachlogik und gespeicherte Einstellungen bleiben erhalten.

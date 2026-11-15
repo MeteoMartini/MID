@@ -169,6 +169,7 @@ jobs:
       - name: Zu prüfenden MID-Stand laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           ref: ${{ needs.revision_source.outputs.sha }}
       - name: Installationsstand erkennen
         id: revision_ready
@@ -254,6 +255,7 @@ jobs:
       - name: MID Stable laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           ref: ${{ needs.revision_source.outputs.sha }}
       - name: Node.js 22 einrichten
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -360,6 +362,7 @@ jobs:
       - name: MID Stable laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           ref: mid-stable
       - name: Node.js 22 einrichten
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -519,6 +522,7 @@ jobs:
       - name: Zu analysierenden MID-Stand laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           ref: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'mid-stable' || github.sha }}
       - name: CodeQL initialisieren
         uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
