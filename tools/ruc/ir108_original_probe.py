@@ -108,8 +108,10 @@ def check_source_url(url: str) -> None:
                 "p", PRODUCT, "r"]
     if (parts.scheme != "https" or parts.netloc != "opendata.dwd.de"
             or parts.username or parts.password or parts.query or parts.fragment
-            or segments[:len(expected)] != expected or len(segments) <= len(expected)):
-        raise IR108QualificationError("source URL not bound to the official DWD IR10.8 directory")
+            or segments[:len(expected)] != expected or len(segments) != len(expected) + 2
+            or any(part in ("", ".", "..") for part in segments[len(expected):])
+            or re.fullmatch(r"[A-Za-z0-9_.-]+\.gr(?:ib|b)2(?:\.bz2)?", segments[-1]) is None):
+        raise IR108QualificationError("source URL not bound to an official DWD IR10.8 GRIB file")
 
 
 def validate_frame_sequence(records: list[dict], run: str, first_valid: str) -> list[dict]:
@@ -226,11 +228,22 @@ def audit_manifest(path: Path) -> dict:
     utc(first_valid)
     if not isinstance(items, list) or len(items) != 9:
         raise IR108QualificationError("manifest requires nine candidate frame entries")
+    # A repeated local filename, URL, or digest is not a nine-frame original series.
+    # The source URL must be in the exact declared DWD initialization directory.
+    names, urls, digests = set(), set(), set()
     output = []
     for frame in items:
         if not isinstance(frame, dict):
             raise IR108QualificationError("invalid manifest frame")
-        check_source_url(frame.get("sourceUrl"))
+        url = frame.get("sourceUrl")
+        check_source_url(url)
+        if urlsplit(url).path.split("/")[9] != run[:-1]:
+            raise IR108QualificationError("DWD source URL initialization does not match the manifest")
+        if frame.get("name") in names or url in urls or frame.get("sha256") in digests:
+            raise IR108QualificationError("duplicate source URL, hash or local frame name")
+        names.add(frame.get("name"))
+        urls.add(url)
+        digests.add(frame.get("sha256"))
         local = _checked_file(path.parent / "frames", frame.get("name"))
         digest = frame.get("sha256")
         if not isinstance(digest, str) or re.fullmatch(r"[a-f0-9]{64}", digest) is None:

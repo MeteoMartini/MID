@@ -133,7 +133,9 @@ class IR108Tests(unittest.TestCase):
                 name = f"IR_{i:02d}.grib2.bz2"
                 raw = b"not-a-real-grib-unit-test-" + bytes([i]) * 120
                 (folder / name).write_bytes(raw)
-                frames.append({"name": name, "sourceUrl": URL,
+                frames.append({"name": name,
+                               "sourceUrl": URL.replace("20261115_0015.grib2.bz2",
+                                                       f"20261115_{i*15:04d}.grib2.bz2"),
                                "sha256": hashlib.sha256(raw).hexdigest()})
             manifest = base / "manifest.json"
             manifest.write_text(json.dumps({"schema": SCHEMA, "run": RUN,
@@ -147,6 +149,21 @@ class IR108Tests(unittest.TestCase):
             self.assertEqual(report["headerAndCadenceAudit"], "PASS")
             self.assertFalse(report["activationAuthorized"])
             self.assertIn("independent calibrated", " ".join(report["blockers"]))
+            duplicated = list(frames)
+            duplicated[8] = {**duplicated[8], "sourceUrl": duplicated[7]["sourceUrl"]}
+            manifest.write_text(json.dumps({"schema": SCHEMA, "run": RUN,
+                                            "firstValid": FIRST, "frames": duplicated}))
+            with self.assertRaises(IR108QualificationError):
+                audit_manifest(manifest)
+            bad_run = list(frames)
+            bad_run[8] = {**bad_run[8], "sourceUrl": bad_run[8]["sourceUrl"]
+                          .replace("2026-11-15T00:00", "2026-11-15T01:00")}
+            manifest.write_text(json.dumps({"schema": SCHEMA, "run": RUN,
+                                            "firstValid": FIRST, "frames": bad_run}))
+            with self.assertRaises(IR108QualificationError):
+                audit_manifest(manifest)
+            manifest.write_text(json.dumps({"schema": SCHEMA, "run": RUN,
+                                            "firstValid": FIRST, "frames": frames}))
             frames[1]["sha256"] = "0" * 64
             manifest.write_text(json.dumps({"schema": SCHEMA, "run": RUN,
                                             "firstValid": FIRST, "frames": frames}))
