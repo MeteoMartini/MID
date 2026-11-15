@@ -101,13 +101,21 @@ export function createMidAiGlobalAdmission({
        // One rolling minute is reserved atomically with the global request.
        // The signed issuer must independently attest any stricter live limit.
        if(proof.provider==='openrouter'){
+         // Check the latest durable claim across ALL history, not just the
+         // moving minute window. Otherwise a clock rollback >60s makes a
+         // future claim invisible and allows a second 20-RPM burst.
+         const last=sqlRows(storage,
+           'SELECT MAX(claimed_at_ms) AS newest FROM mid_ai_claims WHERE quota_subject=?',
+           proof.quotaSubject);
+         if(last.length!==1 ||
+            (last[0].newest!==null &&
+             (!Number.isSafeInteger(last[0].newest)||last[0].newest>stamp)))
+           error('MINUTE_QUOTA_INTEGRITY_ERROR');
          const minute=sqlRows(storage,
-           'SELECT COUNT(*) AS used, MAX(claimed_at_ms) AS newest FROM mid_ai_claims WHERE quota_subject=? AND claimed_at_ms>?',
+           'SELECT COUNT(*) AS used FROM mid_ai_claims WHERE quota_subject=? AND claimed_at_ms>?',
            proof.quotaSubject,stamp-60000);
          if(minute.length!==1 || !Number.isSafeInteger(minute[0].used) ||
-            minute[0].used<0 ||
-            (minute[0].newest!==null &&
-             (!Number.isSafeInteger(minute[0].newest) || minute[0].newest>stamp)))
+            minute[0].used<0)
            error('MINUTE_QUOTA_INTEGRITY_ERROR');
          if(minute[0].used>=20)error('VERIFIED_FREE_MINUTE_QUOTA_EXHAUSTED');
        }

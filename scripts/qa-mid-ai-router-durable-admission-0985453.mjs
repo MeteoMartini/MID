@@ -120,5 +120,19 @@ await check(async()=>{
   'MINUTE_QUOTA_INTEGRITY_ERROR');
  timestamp+=1_000;
 });
+await check(async()=>{
+ // A rollback beyond the 60-second lookback MUST still be rejected.
+ // Otherwise the 21 existing claims disappear from the minute query and
+ // could allow an additional free-model burst within real time.
+ timestamp-=125_000;
+ try{
+  await blocked(()=>minuteAgent.reserve(request('openrouter-deep-clock-rollback')),
+   'MINUTE_QUOTA_INTEGRITY_ERROR');
+ }finally{timestamp+=125_000;}
+ const rows=sql.exec(
+  'SELECT COUNT(*) AS used FROM mid_ai_claims WHERE quota_subject=?',
+  minuteSubject).toArray();
+ assert.equal(rows[0].used,21);
+});
 console.log('MID AI Router SQLite durable admission QA OK; scenarios='+scenarios+
  '; no external model, credentials, deployment or network.');
