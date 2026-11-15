@@ -47,7 +47,7 @@ assert.equal(extract(rows.map(r=>({...r,hourly:{time:[valid],temperature_2m:[300
 assert.equal(makeUrl([]),undefined,'No zero-coordinate request');
 assert.equal(makeUrl([...places,...places]),undefined,'Max five request coordinates');
 assert.ok(!component.includes('grid.phaseSourceByCell')&&!component.includes('grid.phaseValidTimeByCell'),'Temperature must never rely on precipitation-phase provenance');
-assert.ok(component.includes('loadSurroundingsTemperatures(nearbyCities'),'Only named settlements may receive temperature requests');
+assert.ok(component.includes('loadSurroundingsTemperatures(temperaturePlaces')&&component.includes('...nearbyCities,{id:siteId,lat,lon}'),'Only real neighboring cities and the actual selected place receive independent temperature requests');
 assert.ok(component.includes('chooseSurroundingsCities'),'Named cities are chosen by geographic priority');
 assert.ok(!component.includes('temperaturePoints=['),'No synthetic four-corner sampling');
 assert.ok(!component.includes('current-surroundings-orientation')&&!component.includes('orientation.paths'),'Simplified separate boundaries removed');
@@ -61,19 +61,19 @@ assert.ok(component.includes('<ImageQuadLayer id="surroundings-radar"'),'Radar s
 assert.ok(component.includes('nearbyCities.map((place,index)=>'),'Temperatures bind to ranked named settlements');
 assert.ok(component.includes('current-surroundings-city-marker'),'Use MapLibre HTML markers');
 assert.ok(css.includes('.current-surroundings-city-value'),'Readable city labels');
-assert.ok(css.includes('text-overflow:ellipsis')&&css.includes('max-width:min(124px,38vw)'),'Long named places cannot overflow narrow map labels');
+assert.ok(!component.includes('<b>${mapSafe(place.name)}</b>')&&!css.includes('.current-surroundings-city-value b{'),'City names are rendered ONCE by the vector basemap, never duplicated by value markers');
 assert.ok(!css.includes('.current-surroundings-orientation'),'No parallel SVG border renderer');
 assert.ok(component.includes("useSurroundingsCloudImage(mode==='cloud'"),'Verifiziertes Modellbild ist Standard ohne teuren Radardaten-Kaltstart.');
 assert.ok(component.includes("if(mode!=='radar')return")&&component.includes("mode==='radar'&&selection===undefined"),'DWD-/Satelliten-/OPERA-Beobachtungen nur nach Nutzerwahl laden.');
 assert.ok(component.includes('id="surroundings-model-cloud-weather"')&&component.includes('cloudForecast.image.bounds'),'Wolken/SigWx müssen das geprüfte Modellraster georeferenziert nutzen.');
 assert.ok(component.includes("ecmwfTemperatureColor(value)")&&component.includes("ecmwfTemperatureColor(temperature)"),'Temperaturzahlen und Standort verwenden dieselbe ECMWF-MID-Skala.');
-assert.ok(css.includes('background:transparent!important;box-shadow:none!important')&&css.includes('.current-surroundings-center-dot>strong'),'Temperaturen dürfen nicht durch Hintergrundplatten verdeckt sein.');
+assert.ok(css.includes('background:transparent!important;box-shadow:none!important')&&css.includes('.current-surroundings-center-dot>strong')&&css.includes('-webkit-text-stroke:1.15px'),'High-contrast ECMWF-colored temperature numerals require no opaque background plates.');
 const cloudSource=await read('src/currentSurroundingsCloudImage.ts');
 assert.ok(cloudSource.includes('loadEstablishedSynopticIndex(signal)')&&cloudSource.includes('loadNativeIndex(signal)')&&cloudSource.includes('nativeCloudWeatherPair('),'Nur die originalen, SHA-validierten MID-Wolken-/SigWx-Daten verwenden.');
 assert.ok(cloudSource.includes("cloudWeatherRaster(data,'pseudo')")&&cloudSource.includes('admissibleSurroundingsCloudTime'),'Kein Fake-Satellitenbild und keine ungebundene Modellzeit.');
 assert.ok(cloudSource.includes('setResult(previous=>previous.image&&admissibleSurroundingsCloudTime('),'Still-valid model images must remain visible until replacement or expiry.');
 assert.ok(component.includes("cloudForecast.unavailable?' · Aktualisierung nicht erreichbar':''"),'Failed model update must be visibly declared.');
-assert.ok(component.includes("selection===undefined&&Number.isFinite(temperature)"),'Current site temperature must not masquerade as a future radar value.');
+assert.ok(component.includes("selection===undefined&&Number.isFinite(temperature)")&&component.includes('forecastSiteTemperature'),'Present observed/MID site value cannot masquerade as a future model value');
 const compiledCloud=ts.transpileModule(cloudSource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022},reportDiagnostics:true});
 assert.equal(compiledCloud.diagnostics?.length??0,0);
 const cloudExports={};
@@ -118,6 +118,41 @@ assert.equal(accessedModels.join(','),'icon-d2,icon-eu','Only confirmed SHA-boun
 assert.equal(attemptedNativeFallback,0,'Do not discard an available EU field in favor of a D2-only fallback');
 
 assert.equal(chooseCloud({'icon-d2':{...modelCatalog['icon-d2'],cloudWeatherFrames:[{...modelRef,time:new Date(modelNow+5*3600000).toISOString()}]}},modelNow),null,'Wrong forecast validity never renders as actual weather.');
+
+// .481: Nine reachable 15-minute targets, genuine source-time labeling, no eager radar.
+// Dates are derived from one absolute target; no unverified 15-minute WMO observations.
+assert.ok(component.includes('const [cloudStep,setCloudStep]=useState(0)')&&component.includes('const cloudTarget=now+cloudStep*15*60000'),'Cloud timeline has bounded 15-minute positions');
+assert.ok(component.includes('min={0} max={8} step={1}')&&component.includes('Wolkenprognose 15 Minuten vor')&&component.includes('Wolkenprognose 15 Minuten zurück'),'Real accessible 0–120-min control with 15-min steps');
+assert.ok(component.includes('cloudForecast.image.temporalMethod')&&component.includes('cloudForecast.image.sigwxTime')&&component.includes('cloudForecast.image.originalTimes'),'No fabricated 15-minute original times, discrete SigWx source preserved');
+assert.ok(component.includes("mode==='radar'&&selection===undefined")&&component.includes("if(mode!=='radar')return"),'Cloud forecast must not trigger DWD radar/satellite by default');
+assert.ok(css.includes('current-surroundings-cloud-timeline')&&css.includes('min-height:44px')&&css.includes('grid-column:1/-1'),'Mobile timeline keeps the clock readable and touch targets accessible');
+const quarter=valid*1000+15*60000;
+const interpolated=extract(rows,places,quarter,at,true);
+assert.ok(interpolated&&interpolated.temporalMethod==='linear');
+assert.equal(interpolated.validTime,quarter);
+assert.deepEqual(JSON.parse(JSON.stringify(interpolated.values)),{'Dorf:50.0:7.0':0.3,'Dorf:50.1:7.1':-3.3,'Dorf:50.2:7.2':4.6,'Dorf:50.3:7.3':13.1});
+assert.deepEqual(JSON.parse(JSON.stringify(interpolated.sourceTimes)),[valid*1000,(valid+3600)*1000]);
+assert.equal(extract(rows.map((r,i)=>i===0?{...r,hourly:{time:[valid,valid+3600],temperature_2m:[null,1]}}:r),places,quarter,at,true)?.available,3,'Absent original cloud/temperature endpoint is never silently 0');
+const jumpRows=rows.map((r,i)=>i===0?{...r,hourly:{time:[valid,valid+3600],temperature_2m:[-5,20]}}:r);
+assert.equal(extract(jumpRows,places,quarter,at,true)?.available,3,'A 25 C/h jump is not smoothed into a manufactured quarter-hour value');
+
+// Cloud interpolation: one run/model/grid, bounded original spacing, categorical WMO nearest, no extreme smoothing.
+const blendCloud=cloudExports.interpolateVerifiedSurroundingsCloud;
+const mkCloud=(time,cloud,weather,run=modelRun,model='icon-d2')=>({model,run,time,lats:[49,50],lons:[7,8],cloud,weather});
+const originalA=mkCloud(new Date(modelNow).toISOString(),[20,null,10,90],[61,61,95,null]);
+const originalB=mkCloud(new Date(modelNow+3600000).toISOString(),[40,80,90,10],[61,61,0,null]);
+const quarterCloud=blendCloud(originalA,originalB,modelNow+15*60000);
+assert.ok(quarterCloud&&quarterCloud.time===new Date(modelNow+15*60000).toISOString());
+assert.equal(quarterCloud.cloud[0],25,'Gradual cloud coverage may be interpolated');
+assert.equal(quarterCloud.cloud[1],null,'Unknown cloud stays unknown');
+assert.equal(quarterCloud.cloud[2],10,'80 percentage-point abrupt cloud boundary stays on original, never smoothed');
+assert.equal(quarterCloud.cloud[3],90,'Abrupt change without WMO code is not smoothed');
+assert.equal(quarterCloud.weather[2],95,'Discrete thunderstorm WMO 4677 code remains from the nearest original');
+assert.equal(blendCloud(originalA,{...originalB,run:new Date(modelNow+7200000).toISOString()},modelNow+15*60000),null,'Different run is not a blend');
+assert.equal(blendCloud(originalA,{...originalB,model:'icon-eu'},modelNow+15*60000),null,'Different source model is not a blend');
+assert.equal(blendCloud(originalA,{...originalB,lats:[49,50.1]},modelNow+15*60000),null,'Different grids are not blended');
+assert.equal(blendCloud(originalA,{...originalB,time:new Date(modelNow+2*3600000).toISOString()},modelNow+15*60000),null,'No interpolation over a >1h gap');
+
 const citySource=await read('src/surroundingsCitySelection.ts');
 const cityJs=ts.transpileModule(citySource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022},reportDiagnostics:true});
 assert.equal(cityJs.diagnostics?.length??0,0);
