@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {collectCssRuleUsage,assertCssRuleUsageComplete} from '../../scripts/lib/cssRuleUsageDiagnostic.mjs';
+import {startCssRuleUsageTracking,collectCssRuleUsage,assertCssRuleUsageComplete} from '../../scripts/lib/cssRuleUsageDiagnostic.mjs';
 import {readFileSync} from 'node:fs';
 import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -92,6 +92,57 @@ describe('read-only CSS CDP evidence integrity',()=>{
    expect(source).toContain('assertCssRuleUsageComplete');
    expect(source).toContain('cssCoverage.push(assertCssRuleUsageComplete(');
   }
+ });
+
+ it('keeps original CSS bytes from a stylesheet removed after its event-time snapshot',async()=>{
+  const source='.removed{color:red}',handlers=new Map<string,(payload:any)=>void>();
+  let removed=false;
+  const cdp={
+   on(event:string,handler:(payload:any)=>void){handlers.set(event,handler)},
+   async send(method:string,args?:{styleSheetId?:string}){
+    if(method==='CSS.enable'){
+     handlers.get('CSS.styleSheetAdded')?.({header:{styleSheetId:'removed',sourceURL:'fixture://removed.css'}});
+     return{};
+    }
+    if(method==='CSS.getStyleSheetText'){
+     if(removed)throw Error('the stylesheet is now removed');
+     return{text:source};
+    }
+    if(method==='CSS.stopRuleUsageTracking')return{ruleUsage:[{
+     styleSheetId:'removed',startOffset:0,endOffset:source.length,used:true}]};
+    if(method==='Performance.getMetrics')return{metrics:[]};
+    return{};
+   }
+  };
+  const session=await startCssRuleUsageTracking({newCDPSession:async()=>cdp},{});
+  await Promise.allSettled([...session.pendingTextReads]);
+  handlers.get('CSS.styleSheetRemoved')?.({styleSheetId:'removed'});
+  removed=true;
+  const report=await collectCssRuleUsage(session,options);
+  expect(report.integrity.status).toBe('TRACKED_SHEETS_RECORDED_NO_REMOVAL_APPROVAL');
+  expect(report.integrity.cachedRemovedStyleSheetCount).toBe(1);
+  expect(report.integrity.removedStyleSheetCount).toBe(1);
+  expect(report.sheets[0].rawBytes).toBe(Buffer.byteLength(source));
+  expect(report.sheets[0].usedBytes).toBe(Buffer.byteLength(source));
+  expect(assertCssRuleUsageComplete(report)).toBe(report);
+ });
+ it('refuses removed CSS when no independently captured original is available',async()=>{
+  const report=await collectCssRuleUsage({
+   ...fixture({sources:{a:'.a{color:red}'},fail:['a']}),
+   removedIds:new Set(['a']),textSnapshots:new Map()
+  },options);
+  expect(report.integrity.status).toBe('INCOMPLETE_EVIDENCE');
+  expect(report.integrity.unreadableStyleSheetIds).toEqual(['a']);
+  expect(()=>assertCssRuleUsageComplete(report)).toThrow(/incomplete CSS rule usage/);
+ });
+ it('treats changed CSS source as incomplete despite valid current offsets',async()=>{
+  const report=await collectCssRuleUsage({
+   ...fixture({sources:{a:'.a{color:red}'},coverage:[{styleSheetId:'a',startOffset:0,endOffset:3,used:true}]}),
+   changedIds:new Set(['a'])
+  },options);
+  expect(report.integrity.changedStyleSheetIds).toEqual(['a']);
+  expect(report.integrity.status).toBe('INCOMPLETE_EVIDENCE');
+  expect(()=>assertCssRuleUsageComplete(report)).toThrow(/incomplete CSS rule usage/);
  });
 
 });
