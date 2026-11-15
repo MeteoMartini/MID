@@ -223,6 +223,88 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
+
+  draft-performance-map-postgc-evidence:
+    name: MID Draft · vollständiger 20-Zyklen-Post-GC-Kartentest
+    needs: draft-css-mountain-browser-parity
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.draft == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'chatgpt/v0.9.85.483-css-js-performance-integration' &&
+      needs['draft-css-mountain-browser-parity'].result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - name: Unveränderlichen PR-Quellstand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Node 22.16 einrichten
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          package-manager-cache: false
+      - name: Lockfile-Abhängigkeiten installieren
+        timeout-minutes: 8
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: Alle unveränderten Kartenfälle des 1/3-Shards und 20 Post-GC-Rundwechsel
+        timeout-minutes: 18
+        shell: bash
+        env:
+          MID_EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+          MID_REGRESSION_SHARD: heavy-unified-map
+          MID_MAP_QA_SHARD: '1/3'
+          MID_REGRESSION_VERBOSE: '1'
+          MID_REGRESSION_JOBS: '1'
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$MID_EXPECTED_SOURCE_SHA"
+          export GITHUB_SHA="$MID_EXPECTED_SOURCE_SHA"
+          npm run build
+          npm run test:regressions
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+          import {mapBrowserCases} from './scripts/map-browser-shards.mjs';
+          const report=JSON.parse(readFileSync('/tmp/mid-map-runtime-baseline-1_3.json','utf8'));
+          assert.equal(report.schema,'mid.map.runtime.fixture.v2');
+          assert.equal(report.commit,process.env.MID_EXPECTED_SOURCE_SHA);
+          assert.equal(report.version,'0.9.85.483');
+          assert.equal(report.shard,'1/3');
+          const functional=report.cases.filter(x=>x.caseKind==='functional-matrix');
+          assert.equal(functional.length,mapBrowserCases('1/3').length,'Full mapped browser cases must execute');
+          const samples=report.cases.filter(x=>x.caseKind==='isolated-memory-cycles');
+          assert.equal(samples.length,1,'Exactly one full 20-cycle Post-GC memory case required');
+          const memory=samples[0].memoryProfile;
+          assert.ok(memory,'Missing real CDP-GC observations');
+          assert.equal(memory.completedCycles,20);
+          assert.deepEqual(memory.samples.map(x=>x.cycle),[0,5,10,15,20]);
+          for(const row of memory.samples)for(const k of ['usedHeapBytes','allocatedHeapBytes','documents','nodes','listeners'])
+            assert.ok(Number.isFinite(row[k])&&row[k]>=0,'Invalid '+k);
+          mkdirSync('artifacts',{recursive:true});
+          const artifact={schema:'mid.map.postgc.draft.v1',sourceSha:report.commit,
+            note:'Synthetic Chromium MapLibre fixture only: not a leak verdict, GPU metric, iOS or user CWV',
+            cases:functional.length,viewport:samples[0].width,theme:samples[0].theme,design:samples[0].design,memory};
+          writeFileSync('artifacts/map-postgc-0985483.json',JSON.stringify(artifact,null,2)+'\n');
+          console.log('MID_POST_GC_EVIDENCE '+JSON.stringify({sourceSha:report.commit,
+            mapCases:functional.length,cycles:memory.completedCycles,heapDeltaBytes:memory.heapDeltaBytes,
+            nodeDelta:memory.nodeDelta,listenerDelta:memory.listenerDelta}));
+          NODE
+      - name: Unveränderte Laufzeit-Samples speichern
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-performance-map-postgc-evidence
+          path: |
+            artifacts/map-postgc-0985483.json
+            /tmp/mid-map-runtime-baseline-1_3.json
+          if-no-files-found: warn
+          retention-days: 7
+
   draft-regression-preflight:
     name: MID Draft · gezielte Regressionen
     if: >-
