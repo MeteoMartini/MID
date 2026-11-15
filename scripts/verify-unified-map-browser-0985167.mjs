@@ -181,7 +181,22 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
   assert.equal(await timelineRange.inputValue(),value,'Visible range and exact source term stay synchronized');
  }
  await chooseTerm('0');
- assert.equal(await page.getByRole('button',{name:compactTimeline?'Vorheriger verfügbarer Zeitschritt':'Vorheriger Kartentermin',exact:true}).isDisabled(),true);
+ // Selecting a native <select> changes its DOM value before React necessarily
+ // commits the prev-button disabled state. The contract remains strict:
+ // verify selected value AND disabled state, then repeat the original assertion.
+ const firstTermPreviousLabel=compactTimeline?'Vorheriger verfügbarer Zeitschritt':'Vorheriger Kartentermin';
+ await page.waitForFunction(label=>{
+  const button=[...document.querySelectorAll('button[aria-label]')].find(node=>node.getAttribute('aria-label')===label);
+  const select=document.querySelector('select[aria-label="Kartentermin auswählen"]');
+  return button?.disabled===true&&select?.value==='0';
+ },firstTermPreviousLabel,{timeout:5000}).catch(async error=>{
+  console.error('First term state did not settle',await page.evaluate(label=>{
+   const button=[...document.querySelectorAll('button[aria-label]')].find(node=>node.getAttribute('aria-label')===label);
+   return {label,prevDisabled:button?.disabled,select:document.querySelector('select[aria-label="Kartentermin auswählen"]')?.value,range:document.querySelector('.composite-timeline-range input[type="range"]')?.value};
+  },firstTermPreviousLabel));
+  throw error;
+ });
+ assert.equal(await page.getByRole('button',{name:firstTermPreviousLabel,exact:true}).isDisabled(),true);
  const nextTerm=page.getByRole('button',{name:compactTimeline?'Nächster verfügbarer Zeitschritt':'Nächster Kartentermin',exact:true});
  await nextTerm.evaluate(button=>button.addEventListener('click',()=>{
   const select=document.querySelector('select[aria-label="Kartentermin auswählen"]');
