@@ -57,7 +57,7 @@ describe('MID Karten: semantische, quellgetreue Timeline ohne zweite Zeitpille',
   const composite=readFileSync('src/RadarPanel.tsx','utf8');
   const model=readFileSync('src/WeatherMapsPanel.tsx','utf8');
   const shared=readFileSync('src/MapTimelineControls.tsx','utf8');
-  expect(composite).toContain('rangeLabel="Kartenzeitschritt wählen"');
+  expect(composite).toContain('rangeLabel={`Kartenzeitschritt wählen ·');
   expect(composite).toContain('rangeValueText={selectedFrame?');
   expect(composite).toContain('timeISO={selectedFrame?new Date(targetMs).toISOString():undefined}');
   expect(composite).toContain("selectedFrame.phase==='forecast'?'Modellprognose'");

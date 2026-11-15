@@ -11,7 +11,7 @@
 
 ## Implementierter disjunkter QA-Fix
 
-- `MapTimelineRange`: optionales `valueText`, direkt an der nativen `input type=range`-Eigenschaft `aria-valuetext`. `aria-label` bleibt eine stabile, verständliche Funktionsbezeichnung, `aria-valuetext` vermittelt die selektierte Modell-/Messzeit samt Phase. Ohne Wert bleibt bisherige native Semantik unverändert.
+- `MapTimelineRange`: optionales `valueText`, direkt an der nativen `input type=range`-Eigenschaft `aria-valuetext`. Für das Komposit bleibt im `aria-label` aus Rückwärtskompatibilität auch die tatsächliche Gültigkeit enthalten; `aria-valuetext` ergänzt die semantische Werteansage samt Phase. Bei anderen Range-Consumern bleibt eine stabile Funktionsbezeichnung möglich. Ohne Wert bleibt bisherige native Semantik unverändert.
 - `MapTimelineControls`: optionales `rangeValueText` und `timeISO`, durchgereicht an die *bestehenden* Slider- und `<time>`-Elemente. Kein zusätzliches DOM-Pill, keine neuen Timer, Netzwerkrequests, Persistenz- oder Rechenpipelines.
 - `RadarPanel`: Wert besteht aus der bereits bestätigten relativ/absoluten Kartenzeit plus echter Framephase Beobachtung, Nowcast oder Modell; `timeISO` ist `selectedFrame`-gebunden. Keine Zeit für fehlende Frames erfinden.
 - `WeatherMapsPanel`: `rangeValueText` ebenfalls am expliziten `MapTimelineRange`-Override, mit Originalgültigkeit, Vorhersagevorlauf und Produktphase; `timeISO` ist `selectedTime`-gebunden.
