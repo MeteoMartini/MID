@@ -27,3 +27,19 @@ Bisher erzeugte der Umfeldkarten-Loader im Produktivpfad über `interpolateVerif
 - Vorhandene Source-Regression `test-current-surroundings-temperature-0985476.mjs` prüft nun ausdrücklich **nur Originale** im Umfeld-Loader; isolierter Legacy-Blend-Helper wird aus Regressionserhalt weiter separat getestet.
 - Browser-Test `verify-unified-map-browser-0985167.mjs` prüft an real gerenderten 320–834px-Layouts Rad/Sat-15-Minuten-Zeitleiste, 44px Touchziele, echten WMS-Nowcast-Handoff und Rückwärtsbedienung statt der obsoleten Select-Liste.
 - Für Freigabe: Source/Core/Heavy, TypeScript/Vite, Datenprovenienz, WMS-Frame-Status, Safari/WebKit, iPhone & Tablet, Light/Dark, Fokus/Dynamic Type, reale iOS-/VoiceOver-Abnahme getrennt sowie Installer/Worker/Pages/Stable-Gates. Keine Versionsspiegel auf QA-Branch ändern; tatsächliche Buildversion bestimmt der Release-Train.
+
+
+## MID-Karten 1.8 – IR10.8-Shadow-Rebasierung (15.11.2026, QA ONLY)
+
+Die zusätzliche wissenschaftliche QA übernimmt vier bereits entwickelte und auf dem alten Spezial-Draft #820 (f90d5999edd7f9dfbe47ffcf2b0bab383511add3) geprüfte Original-Git-Blobobjekte **ohne Code-Neuerfindung** auf die aktuelle unveränderte Stable-Basis c9fadfcd0969e949a92f414b321627dd3d4fb0cc des bestehenden Karten-Drafts #832. Exakte Quellen:
+
+- `tools/ruc/ir108_original_probe.py`: `050eca6dc2cda14577d3948e407e89a76dafe4d6`
+- `tools/ruc/test_ir108_original_probe.py`: `88dfc0ef12092a752678bc840325d5d0ea60843c`
+- `tools/ruc/ir108_stage_originals.py`: `5a51e0e75216729d7c149d7645cf61ccc358a495`
+- `tools/ruc/test_ir108_stage_originals.py`: `ee49cb520465b3715942a7471e3cde127e02145a`
+
+Der Originalprüfer validiert insbesondere GRIB2-PDT4.32/SEVIRI-Kanal IR10.8 gegenüber WV6.2, strikte Lauf-/UTC-Gültigkeits-/15-min-Schritte, Bitmap/Missing und physikalische Kelvin-Extrema (nur wenn reale Werte durch ecCodes decodiert werden). Der optionale private Stager akzeptiert ausschließlich echte amtliche DWD-`r/<run>/s/PTxxxHyyM.grib2`-Originale, begrenzt den Satz auf genau zehn zeitlich benachbarte Frames, Bytes und Redirects und verwirft unvollständige Downloads atomar. Es gibt **keine** neuen Downloads im MID-Worker oder Browser, keine Hintergrundaktivierung und keine Veröffentlichung der Rohdaten.
+
+Die bestehende `test-current-surroundings-temperature-0985476.mjs` ruft nun zusätzlich die vorhandenen Staging-Negativtests über die sichere Python-Discovery `test_ir108_*.py` ab. Diese Offline-Fixtures sind keine reale GRIB- oder iOS-Validierung. Die alte #820-PR bleibt als Provenienznachweis erhalten und darf **nicht separat** auf #832 oder den Leitchat-Release-Train gemergt werden. Weil sich #832 in UI-Dateien mit #828 überschneidet, ist nur kontrollierter SHA-/Hunk-geprüfter selektiver Import nach neuem Stable-Abgleich zulässig.
+
+**Aktivierung:** `activationAuthorized=false` bis aktueller vollständiger zehn-Dateien-Originaldownload, ecCodes-Feld-/Bitmap-/CLAT-CLON-Gitterschlüssel, IR10.8-georeferenzierter Render-/Farbvertrag, getrennte verfügbare 15-min-SigWx-Quellen und reale Browser-/Performance-/Source-/Installer-/Worker-/Pages-/Stable-Gates vorliegen. Kein echtes Satellitenbild, keine Umrechnung in `CLCT` oder WMO-4677-`WW`, kein Missing→0.
