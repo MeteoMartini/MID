@@ -15,6 +15,7 @@ import argparse
 import bz2
 import hashlib
 import json
+import math
 import re
 import stat
 import tempfile
@@ -228,7 +229,44 @@ def _decode_path(path: Path, scratch) -> None:
     scratch.seek(0)
 
 
-def inspect_local_grib(path: Path, run: str) -> dict:
+def audit_brightness_kelvin(values, expected_points: int = NATIVE_GRID[3]) -> dict:
+    """Strict original-value validation. No interpolation, smoothing, or NoData -> 0.
+
+    NaN/None represent missing positions (as preserved by the existing DWD
+    GRIB Section-6 bitmap decoder). Infinite, zero, impossible or foreign
+    values are errors, never quietly clipped into display colors.
+    """
+    if type(expected_points) is not int or expected_points <= 0 or len(values) != expected_points:
+        raise IR108QualificationError("IR10.8 native value count differs from audited grid")
+    known, missing, low, high = 0, 0, math.inf, -math.inf
+    for item in values:
+        if item is None:
+            missing += 1
+            continue
+        if isinstance(item, bool):
+            raise IR108QualificationError("boolean is not a brightness temperature")
+        try:
+            v = float(item)
+        except (TypeError, ValueError) as exc:
+            raise IR108QualificationError("non-numeric brightness-temperature cell") from exc
+        if math.isnan(v):
+            missing += 1
+            continue
+        if not math.isfinite(v) or v < 100.0 or v > 400.0:
+            raise IR108QualificationError("IR10.8 Kelvin value outside conservative physical bound")
+        known += 1
+        low, high = min(low, v), max(high, v)
+    if not known or known + missing != expected_points:
+        raise IR108QualificationError("IR10.8 all-missing or incomplete native bitmap")
+    return {
+        "valueUnits": "K", "validCells": known, "missingCells": missing,
+        "nativeCells": expected_points, "rawMinimumKelvin": low,
+        "rawMaximumKelvin": high, "extremesSmoothed": False,
+        "missingConvertedToZero": False, "method": "unaltered native GRIB bitmap and decoded values",
+    }
+
+
+def inspect_local_grib(path: Path, run: str, *, audit_values: bool = False) -> dict:
     """ecCodes is intentionally needed only for a real local GRIB inspection."""
     try:
         from eccodes import codes_grib_new_from_file, codes_get, codes_get_long, codes_release
@@ -274,6 +312,15 @@ def inspect_local_grib(path: Path, run: str) -> dict:
                 except (KeyError, ValueError, RuntimeError):
                     meta[key] = None
             record = validate_header(meta, run)
+            if audit_values:
+                # Existing MID RUC bitmap routine preserves all 542040 native
+                # positions and turns only explicit GRIB bitmap holes into NaN.
+                # Do not treat ecCodes' numeric missing sentinel as dry/clear.
+                from grib_bitmap import decode_bitmap_values
+                record["brightnessKelvinAudit"] = audit_brightness_kelvin(
+                    decode_bitmap_values(gid), expected_points=NATIVE_GRID[3]
+                )
+                record["valueAndMissingQuality"] = "NATIVE_BITMAP_AND_KELVIN_AUDITED"
             record["rawParameterIdentifiers"] = {"shortName": meta["shortName"],
                                                  "name": meta["name"]}
         finally:
@@ -286,7 +333,7 @@ def inspect_local_grib(path: Path, run: str) -> dict:
         return record
 
 
-def audit_manifest(path: Path) -> dict:
+def audit_manifest(path: Path, *, audit_values: bool = False) -> dict:
     document = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(document, dict) or document.get("schema") != SCHEMA:
         raise IR108QualificationError("unsupported candidate manifest schema")
@@ -317,7 +364,7 @@ def audit_manifest(path: Path) -> dict:
             raise IR108QualificationError("invalid or missing expected file digest")
         if _sha256(local) != digest:
             raise IR108QualificationError("source SHA-256 differs from manifest")
-        record = inspect_local_grib(local, run)
+        record = inspect_local_grib(local, run, audit_values=True) if audit_values else inspect_local_grib(local, run)
         if record["leadSeconds"] != source_lead_seconds(url):
             raise IR108QualificationError("DWD source filename lead differs from decoded GRIB validity")
         record["sha256"] = digest
@@ -328,6 +375,10 @@ def audit_manifest(path: Path) -> dict:
     return {"schema": SCHEMA, "run": run, "firstValid": first_valid,
             "candidateFrames": len(ordered), "records": ordered,
             "headerAndCadenceAudit": "PASS",
+            "fullBitmapValueAudits": sum(
+                item["valueAndMissingQuality"] == "NATIVE_BITMAP_AND_KELVIN_AUDITED"
+                for item in ordered
+            ),
             "spectralMatches": sum(
                 item["channelIdentity"] == "DWD_PDT32_SEVIRI_IR108_SPECTRAL_MATCH"
                 for item in ordered
@@ -344,9 +395,11 @@ def audit_manifest(path: Path) -> dict:
 def main() -> int:
     cli = argparse.ArgumentParser(description="Offline DWD native IR10.8 GRIB source auditor (never publishes)")
     cli.add_argument("--manifest", type=Path, required=True)
+    cli.add_argument("--audit-values", action="store_true",
+                     help="Decode true ecCodes + native bitmap + Kelvin extrema; never publishes")
     args = cli.parse_args()
     try:
-        result = audit_manifest(args.manifest)
+        result = audit_manifest(args.manifest, audit_values=args.audit_values)
         print(json.dumps(result, sort_keys=True))
     except (IR108QualificationError, OSError, ValueError, KeyError, TypeError) as exc:
         print(json.dumps({"schema": SCHEMA, "activationAuthorized": False,

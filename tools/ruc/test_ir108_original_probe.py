@@ -5,6 +5,7 @@ independent channel disambiguation and browser/render checks remain separate.
 """
 import hashlib
 import json
+import math
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
@@ -14,7 +15,7 @@ from unittest.mock import patch
 from ir108_original_probe import (
     SCHEMA, IR108QualificationError, NATIVE_GRID, audit_manifest,
     check_source_url, source_lead_seconds, step_seconds, validate_frame_sequence, validate_header,
-    validate_spectral_channel,
+    validate_spectral_channel, audit_brightness_kelvin,
 )
 
 RUN = "2026-11-15T00:00:00Z"
@@ -100,6 +101,26 @@ class IR108Tests(unittest.TestCase):
                 broken = dict(spectral)
                 broken[key] = value
                 self.expect_fail(broken)
+
+    def test_original_kelvin_extrema_and_bitmap_missing_are_never_smoothed(self):
+        field = [174.25, None, math.nan, 328.75, 205.0]
+        audit = audit_brightness_kelvin(field, expected_points=5)
+        self.assertEqual(audit["validCells"], 3)
+        self.assertEqual(audit["missingCells"], 2)
+        self.assertEqual(audit["rawMinimumKelvin"], 174.25)
+        self.assertEqual(audit["rawMaximumKelvin"], 328.75)
+        self.assertFalse(audit["extremesSmoothed"])
+        self.assertFalse(audit["missingConvertedToZero"])
+        for field in [
+            [0.0, 270.0], [9999.0, 270.0], [math.inf, 270.0],
+            [-math.inf, 270.0], [True, 275.0], ["invalid", 275.0],
+            [None, math.nan], [95.0, 280.0], [290.0, 410.0],
+        ]:
+            with self.subTest(field=field):
+                with self.assertRaises(IR108QualificationError):
+                    audit_brightness_kelvin(field, expected_points=2)
+        with self.assertRaises(IR108QualificationError):
+            audit_brightness_kelvin([280.0], expected_points=2)
 
     def test_wrong_centre_and_edition_fail_closed(self):
         for key, value in [("centre", 98), ("edition", 1)]:
@@ -204,7 +225,20 @@ class IR108Tests(unittest.TestCase):
             self.assertEqual(report["candidateFrames"], 10)
             self.assertEqual(report["headerAndCadenceAudit"], "PASS")
             self.assertEqual(report["spectralMatches"], 10)
+            self.assertEqual(report["fullBitmapValueAudits"], 0)
             self.assertFalse(report["activationAuthorized"])
+            def fake_grib_with_values(path, run, *, audit_values=False):
+                result = fake_grib(path, run)
+                if audit_values:
+                    result["valueAndMissingQuality"] = "NATIVE_BITMAP_AND_KELVIN_AUDITED"
+                    result["brightnessKelvinAudit"] = audit_brightness_kelvin(
+                        [200.0, math.nan, 300.0], expected_points=3
+                    )
+                return result
+            with patch("ir108_original_probe.inspect_local_grib", side_effect=fake_grib_with_values):
+                fully_audited_shadow = audit_manifest(manifest, audit_values=True)
+            self.assertEqual(fully_audited_shadow["fullBitmapValueAudits"], 10)
+            self.assertFalse(fully_audited_shadow["activationAuthorized"])
             self.assertIn("all ten current-run", " ".join(report["blockers"]))
             duplicated = list(frames)
             duplicated[8] = {**duplicated[8], "sourceUrl": duplicated[7]["sourceUrl"]}

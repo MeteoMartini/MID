@@ -111,3 +111,16 @@ Wichtig: Das ist ein **aktueller Zwei-Dateien-Headernachweis**, kein Wertedecode
 Der QA-Prüfer fordert für ICON-D2-RUC-SynSat dieses Datenformats ab jetzt Template 4.32 mit genau einem Band, Serie 333, Satellit 72, Instrument 207 und zentraler Wellenzahl innerhalb des engen nachgewiesenen IR10.8-Fensters. WMO-Template 4.30/4.31, Wasserdampfkanal 6.2 µm, unbekannte Kanäle oder unvollständige ecCodes-Metadaten dürfen nicht still als qualifizierter IR10.8-Datensatz durchgehen. Die Zustandskennung lautet DWD_PDT32_SEVIRI_IR108_SPECTRAL_MATCH; trotz Matching bleibt activationAuthorized=false, bis **alle zehn Dateien**, native Bitmapwerte, Zell-/Geografiezugriff, Renderer, Ressourcengrenzen und die MID-Release-Gates unabhängig nachgewiesen sind. Es werden keine zusätzlichen Datenquellen, Gebühren oder Produktionsschreibrechte eingeführt.
 
 Die weitere ressourcenschonende Kartenimplementierung soll den bestehenden, SHA-verifizierten nearest-native-cell-RUC-Kartenlookup wiederverwenden, statt eine zweite räumliche Interpolationspipeline zu erzeugen. Dieser Ansatz ist noch nicht freigeschaltet und bedarf eines identischen GRID-/CLAT-/CLON-Nachweises am realen Source-SHA.
+
+
+## Optionaler ecCodes-Bitmap-/Kelvin-Werteaudit – nur lokales QA
+
+Der IR10.8-Quellprüfer unterstützt jetzt einen **expliziten** Zusatzschalter --audit-values. Er decodiert ausschließlich nach vorher geprüftem Originaldatei-SHA/GRIB-Header die vollständigen 542040 Zellwerte mit dem bestehenden MID-Modul tools/ruc/grib_bitmap.py. Damit bleibt die GRIB-Section-6-Bitmap inklusive aller fehlenden Rasterzellen erhalten. Nur original fehlende Zellen werden NoData; weder 9999 noch fehlende Daten dürfen als 0 K/Wolkenlosigkeit erscheinen. Inf, boolesche Werte, nichtnumerische Felder oder grob physikalisch unmögliche Werte außerhalb des konservativen Prüfintervalls 100–400 K blockieren das Feld. Der rohe Min-/Max-Wert wird ohne Glättung, Mittelung oder grafisches Clipping dokumentiert. Das Intervall ist eine **weite Zulassungsschranke**, keine Helligkeitstemperatur-Farbskala oder wissenschaftliche Gütekalibrierung.
+
+Ausführung nur bei lokal verfügbaren, schon vollständig heruntergeladenen DWD-Kandidaten mit ecCodes und NumPy aus den bestehenden RUC-Requirements:
+
+    python tools/ruc/ir108_original_probe.py \
+      --manifest /privates/verzeichnis/ir108-20261115T1500/manifest.json \
+      --audit-values
+
+Der separate QA-Bericht zählt pro Originalbild fullBitmapValueAudits (0..10) und weist für jeden nachgewiesenen Frame rawMinimumKelvin, rawMaximumKelvin, validCells und missingCells aus. Ein positiver Lauf **veröffentlicht noch keine Karte**; auch bei zehn geprüften Feldern bleibt activationAuthorized=false. Für die Produktfreigabe fehlen noch die echte vollständige Erfassung eines aktuellen DWD-Modelllaufs, unabhängige Grid-/Georeferenz-Prüfung, ein korrektes IR10.8-Rendering, fachlich getrennte SigWx-Overlays, End-to-End-Performance und der reguläre MID-Releasepfad. Die deterministischen CI-Tests verwenden synthetische Bitmap-/Temperaturwerte, niemals erfundene reale GRIB-Extrema.
