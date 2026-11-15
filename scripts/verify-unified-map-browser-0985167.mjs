@@ -607,12 +607,22 @@ async function verifySurroundings(width,theme){
   const cloudPrev=page.getByRole('button',{name:'Wolkenprognose 15 Minuten zurück',exact:true});
   const cloudNext=page.getByRole('button',{name:'Wolkenprognose 15 Minuten vor',exact:true});
   assert.equal(await cloudPrev.isDisabled(),true);
-  for(let step=1;step<=8;step++){
+  // UTC validity slots are 15 min apart, but the truthful relative readout is
+  // measured from the actual wall-clock now, not the last completed quarter-hour.
+  for(let step=1;step<=9;step++){
    await cloudNext.click();
-   assert.equal(await quarter.inputValue(),String(step),'Each click advances exactly 15 min');
-   assert.ok((await cloudTimeline.locator('output').innerText()).includes('+'+String(step*15)+' min'),'Relative time is visible in a single clock');
+   assert.equal(await quarter.inputValue(),String(step),'Each click advances exactly one 15-minute model-validity slot');
+   const readoutText=await cloudTimeline.locator('output').innerText();
+   const relative=readoutText.match(/\bin (\d+) min\b/);
+   assert.ok(relative,'The single visible time readout must contain a real relative time');
+   const remaining=Number(relative[1]);
+   assert.ok(remaining>(step-1)*15&&remaining<=step*15,
+    'Relative minutes must be consistent with a UTC quarter-hour target and the elapsed fraction of the current slot');
+   assert.match(readoutText,/\d{2}\.\d{2}\./,'The same readout must show its absolute date');
+   assert.ok((await quarter.getAttribute('aria-label'))?.includes('in '+remaining+' Minuten'),
+    'Range accessibility label must agree with the visible relative minutes');
   }
-  assert.equal(await cloudNext.isDisabled(),true,'The cloud forecast cannot exceed +120 min');
+  assert.equal(await cloudNext.isDisabled(),true,'The cloud forecast must stop at the ninth step, which guarantees at least +120 min');
   const readout=cloudTimeline.locator('output');
   assert.equal(await readout.isVisible(),true);
   assert.match(await readout.innerText(),/\d{2}\.\d{2}\./,'The same time band shows the absolute date');
@@ -624,7 +634,7 @@ async function verifySurroundings(width,theme){
   assert.ok(bounds.buttons.every(v=>v>=44)&&bounds.range>=44,'Minimum 44px touch targets');
   assert.equal(bounds.overflow,false,'No mobile time scrubber overflow');
   await cloudPrev.click();
-  assert.equal(await quarter.inputValue(),'7','Backwards is one 15-min step');
+  assert.equal(await quarter.inputValue(),'8','Backwards is exactly one 15-min validity step');
   await quarter.fill('0');
   assert.equal(await quarter.inputValue(),'0','Slider returns to live');
   assert.equal(requests.some(v=>new URL(v).searchParams.get('mode')==='composite-times'),false,'No eager radar network even while browsing future cloud frames');
