@@ -66,16 +66,16 @@ assert.ok(css.includes('.current-surroundings-city-value'),'Readable city labels
 assert.ok(!component.includes('<b>${mapSafe(place.name)}</b>')&&!css.includes('.current-surroundings-city-value b{'),'City names are rendered ONCE by the vector basemap, never duplicated by value markers');
 assert.ok(!css.includes('.current-surroundings-orientation'),'No parallel SVG border renderer');
 assert.ok(component.includes("useSurroundingsCloudImage(mode==='cloud'"),'Verifiziertes Modellbild ist Standard ohne teuren Radardaten-Kaltstart.');
-assert.ok(component.includes("if(mode!=='radar')return")&&component.includes("mode==='radar'&&selection===undefined"),'DWD-/Satelliten-/OPERA-Beobachtungen nur nach Nutzerwahl laden.');
+assert.ok(component.includes("if(mode!=='radar')return")&&component.includes("mode==='radar'&&radarAtNow"),'DWD-/Satelliten-/OPERA-Beobachtungen nur nach Nutzerwahl laden.');
 assert.ok(component.includes('id="surroundings-model-cloud-weather"')&&component.includes('cloudForecast.image.bounds'),'Wolken/SigWx müssen das geprüfte Modellraster georeferenziert nutzen.');
 assert.ok(component.includes("ecmwfTemperatureColor(value)")&&component.includes("ecmwfTemperatureColor(displaySiteTemperature!)"),'Temperaturzahlen und Standort verwenden dieselbe ECMWF-MID-Skala.');
 assert.ok(css.includes('background:transparent!important;box-shadow:none!important')&&css.includes('.current-surroundings-center-dot>strong')&&css.includes('-webkit-text-stroke:1.15px'),'High-contrast ECMWF-colored temperature numerals require no opaque background plates.');
 const cloudSource=await read('src/currentSurroundingsCloudImage.ts');
 assert.ok(cloudSource.includes('loadEstablishedSynopticIndex(signal)')&&cloudSource.includes('loadNativeIndex(signal)')&&cloudSource.includes('nativeCloudWeatherPair('),'Nur die originalen, SHA-validierten MID-Wolken-/SigWx-Daten verwenden.');
 assert.ok(cloudSource.includes("cloudWeatherRaster(data,'pseudo')")&&cloudSource.includes('admissibleSurroundingsCloudTime'),'Kein Fake-Satellitenbild und keine ungebundene Modellzeit.');
-assert.ok(cloudSource.includes('setResult(previous=>previous.image&&admissibleSurroundingsCloudTime('),'Still-valid model images must remain visible until replacement or expiry.');
+assert.ok(cloudSource.includes('setResult(previous=>previous.image&&Date.parse(previous.image.validTime)===target&&admissibleSurroundingsCloudTime('),'Still-valid model images must remain visible until replacement or expiry.');
 assert.ok(component.includes("cloudForecast.unavailable&&<small>"),'Failed model update must be visibly declared.');
-assert.ok(component.includes("selection===undefined&&Number.isFinite(temperature)")&&component.includes('forecastSiteTemperature'),'Present observed/MID site value cannot masquerade as a future model value');
+assert.ok(component.includes("(mode==='cloud'||radarAtNow)&&Number.isFinite(temperature)")&&component.includes('forecastSiteTemperature'),'Present observed/MID site value cannot masquerade as a future model value');
 const compiledCloud=ts.transpileModule(cloudSource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022},reportDiagnostics:true});
 assert.equal(compiledCloud.diagnostics?.length??0,0);
 const cloudExports={};
@@ -206,7 +206,7 @@ assert.equal(extract(rows.map((r,i)=>i===0?{...r,hourly:{time:[valid,valid+3600]
 const jumpRows=rows.map((r,i)=>i===0?{...r,hourly:{time:[valid,valid+3600],temperature_2m:[-5,20]}}:r);
 assert.equal(extract(jumpRows,places,quarter,at,true)?.available,3,'A 25 C/h jump is not smoothed into a manufactured quarter-hour value');
 
-// Cloud interpolation: one run/model/grid, bounded original spacing, categorical WMO nearest, no extreme smoothing.
+// Legacy standalone interpolation utility is tested for other supported workflows, but the surroundings loader must never call it.
 const blendCloud=cloudExports.interpolateVerifiedSurroundingsCloud;
 const mkCloud=(time,cloud,weather,run=modelRun,model='icon-d2')=>({model,run,time,lats:[49,50],lons:[7,8],cloud,weather});
 const originalA=mkCloud(new Date(modelNow).toISOString(),[20,null,10,90],[61,61,95,null]);
@@ -293,9 +293,10 @@ assert.ok(shortStatus.includes('PseudoSat + SigWx')&&shortStatus.includes('Gült
  'Compact status identifies model image, source validity, initialization and non-observation.');
 assert.ok(!shortStatus.includes('Wolken aus Originalterminen')&&!shortStatus.includes('Bildtermin'),
  'Detailed temporal algorithm and duplicate image terminology must not flood the compact status.');
-assert.ok(component.includes("cloudForecast.image.temporalMethod==='cloud-linear'")&&
- component.includes('cloudForecast.image.originalTimes')&&component.includes('cloudForecast.image.sigwxTime'),
- 'Expanded provenance retains exact cloud interpolation and discrete SigWx-original times.');
+assert.ok(!component.includes("cloudForecast.image.temporalMethod==='cloud-linear'")&&
+ cloudSource.includes('if(Date.parse(ref.time)!==now)continue;')&&
+ !cloudSource.slice(cloudSource.indexOf('export async function loadVerifiedSurroundingsCloud('),cloudSource.indexOf('export function useSurroundingsCloudImage(')).includes('interpolateVerifiedSurroundingsCloud('),
+ 'Surroundings no longer invents cloud/WW 15-minute frames from hourly neighbors; only exact source times are admitted.');
 assert.ok(shortStatus.includes('Math.abs(Date.parse(cloudForecast.image.validTime)-cloudTarget)>90*1000'),
  'A stale/original image may never masquerade as the selected future 15-min target.');
 assert.ok(shortStatus.includes('cloudForecast.loading&&<small>')&&shortStatus.includes('cloudForecast.unavailable&&<small>'),
