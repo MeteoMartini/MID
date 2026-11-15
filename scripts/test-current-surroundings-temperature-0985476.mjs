@@ -2,6 +2,8 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import ts from 'typescript-strada';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
@@ -296,5 +298,13 @@ assert.ok(shortStatus.includes('cloudForecast.loading&&<small>')&&shortStatus.in
  'Refresh/failure states remain explicit without blanking the verified prior frame.');
 assert.ok(css.includes('.current-surroundings-data-status>strong')&&css.includes('overflow-wrap:anywhere'),
  '320px and Dynamic Type must wrap compact metadata without obstructing the map.');
+
+// Native IR10.8 source must remain offline/read-only until an independently calibrated
+// channel identity and real GRIB/bitmap/georeferencing evidence exist.
+const irFixtureResult=execFileSync('python3',[
+ '-m','unittest','discover','-s','tools/ruc','-p','test_ir108_original_probe.py'
+],{cwd:fileURLToPath(new URL('../',import.meta.url)),encoding:'utf8',timeout:15000});
+assert.equal(typeof irFixtureResult,'string');
+console.log('MID: native IR10.8 metadata, 9-frame UTC cadence, digest and fail-closed shadow QA passed.');
 
 console.log('MID: georeferenced city temperatures, shared basemap and NoData/pixel-collision contracts passed.');
