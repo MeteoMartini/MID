@@ -1,6 +1,6 @@
 # MID v0.9.85.483
 
-- **Startmodule entlastet:** Der Benachrichtigungs-Einstellungsbereich wird erst bei Bedarf nachgeladen; die bisherigen Push-Funktionen und gespeicherten Einstellungen bleiben erhalten.
+- **Startmodule entlastet:** Benachrichtigungen, iCloud-Sicherheitskopie, Wetterzwilling und Verbindungsdiagnose laden ihre Einstellungsoberflächen erst bei Bedarf. Bestehende Bedienung, Push-/Datenfachlogik und gespeicherte Einstellungen bleiben erhalten.
 - **Performancebudgets erweitert:** SHA-gebundene Produktionsbuild-Messung für Start-CSS und HTML-referenziertes JavaScript, mit zusätzlichen Obergrenzen und Negativtests. Fehlende Mess- und Herkunftsdaten gelten nicht als bestanden.
 - **Responsive und Wetterdaten unverändert:** Keine unqualifizierte Verschiebung globaler CSS-Regeln und keine Änderungen an Wettermodellen, amtlichen Warnungen, Niederschlags-/Zeiteinheiten oder Originaldaten.
 
