@@ -61,12 +61,14 @@ type MapTimelineRangeProps={
  canAnimate:boolean;
  onSeek:(index:number)=>void;
  rangeLabel:string;
+ /** Announces the verified meteorological valid time, not a numeric frame index. */
+ valueText?:string;
  countLabel?:ReactNode;
  markers?:readonly MapTimelineMarker[];
  children?:ReactNode;
 };
 
-export function MapTimelineRange({className,markerClassName,index,count,canAnimate,onSeek,rangeLabel,countLabel,markers=[],children}:MapTimelineRangeProps){
+export function MapTimelineRange({className,markerClassName,index,count,canAnimate,onSeek,rangeLabel,valueText,countLabel,markers=[],children}:MapTimelineRangeProps){
  const lastIndex=Math.max(0,count-1),selectedIndex=Math.max(0,Math.min(index,lastIndex));
  // React's onChange may not commit every native range input after an asynchronous
  // model/term switch. Keep pointer, touch and keyboard events on one idempotent path.
@@ -86,7 +88,7 @@ export function MapTimelineRange({className,markerClassName,index,count,canAnima
    onInput={event=>commitSeek(Number(event.currentTarget.value))}
    onChange={event=>commitSeek(Number(event.currentTarget.value))}
    onKeyDown={event=>{if(event.key==='Home'||event.key==='End'){event.preventDefault();commitSeek(event.key==='Home'?0:lastIndex)}}}
-   aria-label={rangeLabel}/>
+   aria-label={rangeLabel} aria-valuetext={valueText}/>
   {children}
  </label>;
 }
@@ -128,6 +130,9 @@ type MapTimelineControlsProps={
  onSeek:(index:number)=>void;
  onLive:()=>void;
  rangeLabel:string;
+ rangeValueText?:string;
+ /** ISO UTC validity for the existing single visible clock; no extra time pill. */
+ timeISO?:string;
  countLabel:ReactNode;
  valueLabel:ReactNode;
  detailLabel?:ReactNode;
@@ -147,14 +152,14 @@ type MapTimelineControlsProps={
 export default function MapTimelineControls({
  className,transportClassName,stepButtonClassName,playButtonClassName,speedClassName,rangeClassName,markerClassName,timeClassName,liveButtonClassName,
  index,count,playing,canAnimate,liveActive,liveDisabled=false,playbackSeconds,onPlaybackSecondsChange,onPrevious,onToggle,onNext,onSeek,onLive,
- rangeLabel,countLabel,valueLabel,detailLabel,liveLabel='Jetzt',playLabel='Animation starten',pauseLabel='Animation pausieren',markers=[],future=false,children,
+ rangeLabel,rangeValueText,timeISO,countLabel,valueLabel,detailLabel,liveLabel='Jetzt',playLabel='Animation starten',pauseLabel='Animation pausieren',markers=[],future=false,children,
  transportControl,speedControl,rangeControl,timeControl,liveControl
 }:MapTimelineControlsProps){
  return <div className={`map-timeline-controls ${className}`}>
   {transportControl??<MapTimelineTransport className={transportClassName} stepButtonClassName={stepButtonClassName} playButtonClassName={playButtonClassName} index={index} count={count} playing={playing} canAnimate={canAnimate} onPrevious={onPrevious} onToggle={onToggle} onNext={onNext} playLabel={playLabel} pauseLabel={pauseLabel}>{children}</MapTimelineTransport>}
   {speedControl??<MapTimelineSpeedControl className={speedClassName} playbackSeconds={playbackSeconds} onPlaybackSecondsChange={onPlaybackSecondsChange}/>}
-  {rangeControl??<MapTimelineRange className={rangeClassName} markerClassName={markerClassName} index={index} count={count} canAnimate={canAnimate} onSeek={onSeek} rangeLabel={rangeLabel} countLabel={countLabel} markers={markers}/>}
-  {timeControl===undefined?<time className={`map-timeline-time ${timeClassName}${future?' future':''}`}><span>{valueLabel}</span>{detailLabel!==undefined&&<small>{detailLabel}</small>}</time>:timeControl}
+  {rangeControl??<MapTimelineRange className={rangeClassName} markerClassName={markerClassName} index={index} count={count} canAnimate={canAnimate} onSeek={onSeek} rangeLabel={rangeLabel} valueText={rangeValueText} countLabel={countLabel} markers={markers}/>}
+  {timeControl===undefined?<time dateTime={timeISO} className={`map-timeline-time ${timeClassName}${future?' future':''}`}><span>{valueLabel}</span>{detailLabel!==undefined&&<small>{detailLabel}</small>}</time>:timeControl}
   {liveControl??<MapTimelineLiveButton className={`${liveButtonClassName}${liveActive?' active':''}`} active={liveActive} onClick={onLive} disabled={liveDisabled} label={liveLabel}/>}
  </div>;
 }

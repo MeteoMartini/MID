@@ -39,6 +39,10 @@ globalThis.fetch=async raw=>{
  const url=new URL(raw),model=url.searchParams.get('models'),mode=process.env.MID_API_FIXTURE;
  if(model==='best_match'&&mode==='required-transport')throw new TypeError('fetch failed',{cause:Object.assign(new Error('Private diagnostic cause must not be logged'),{code:'ENOTFOUND'})});
  if(model==='best_match'&&mode==='required-http-503')return new Response(JSON.stringify({reason:'temporary provider failure'}),{status:503,headers:{'Content-Type':'application/json'}});
+ if(mode==='rate-limit-origin'&&url.origin==='https://api.open-meteo.com'){
+  globalThis.__rateLimitOriginRequests=(globalThis.__rateLimitOriginRequests||0)+1;
+  return new Response(JSON.stringify({reason:'rate-limited'}),{status:429,headers:{'Content-Type':'application/json'}});
+ }
  const hourly={time:Array.from({length:8},(_,i)=>'2026-10-18T'+String(i).padStart(2,'0')+':00')};
  for(const key of (url.searchParams.get('hourly')||'').split(','))hourly[key]=Array(8).fill(2);
  if(hourly.temperature_2m_max)hourly.temperature_2m_max=Array(8).fill(4);
@@ -47,6 +51,8 @@ globalThis.fetch=async raw=>{
  if(mode==='false-extrema'&&hourly.temperature_2m_min){hourly.temperature_2m_min=[null,2,3];hourly.temperature_2m_max=[7,2,3]}
  return new Response(JSON.stringify({hourly,daily:{moon_phase:mode==='required-bad-schema'&&model==='best_match'?undefined:[0.5]}}),{status:200,headers:{'Content-Type':'application/json'}});
 };
+process.on('exit',()=>{if(process.env.MID_API_FIXTURE==='rate-limit-origin')
+ console.error('OPENMETEO_ORIGIN_CALLS='+Number(globalThis.__rateLimitOriginRequests||0))});
 `);
  const run=mode=>spawnSync(process.execPath,['--import',preload,'scripts/check-api-contracts.mjs'],{cwd:process.cwd(),env:{...process.env,MID_API_FIXTURE:mode},encoding:'utf8',timeout:15000});
  const valid=run('valid');assert.equal(valid.status,0,valid.stderr);
@@ -64,5 +70,14 @@ globalThis.fetch=async raw=>{
  const missing=run('required-missing');assert.equal(missing.status,1,missing.stderr);assert.match(missing.stderr,/Kritische API-Vertragsfehler.*\nECMWF AIFS Europe Ensemble/s);
  const optional=run('optional-missing');assert.equal(optional.status,0,optional.stderr);assert.match(optional.stderr,/Optionale Provider-Degradation.*meteofrance_arpege_europe/s);
  const extrema=run('false-extrema');assert.equal(extrema.status,1,extrema.stderr);assert.match(extrema.stderr,/ECMWF IFS native 3h Min\/Max/);
+ const rateLimited=run('rate-limit-origin');
+ assert.equal(rateLimited.status,1,'Provider-429 bleibt ein fehlgeschlagenes Pflichtgate');
+ assert.match(rateLimited.stderr,/Open-Meteo Best Match \+ Mond: Provider HTTP 429 \(kein Schemaurteil\) nach 3 Abrufversuchen/);
+ assert.match(rateLimited.stderr,/ECMWF IFS native 3h Min\/Max: nicht geprüft wegen bestätigtem HTTP 429 derselben API-Origin/);
+ assert.match(rateLimited.stderr,/Météo-France meteofrance_arome_france: nicht geprüft wegen bestätigtem HTTP 429/);
+ assert.match(rateLimited.stderr,/Optionale Provider-Degradation \(7\)/);
+ assert.match(rateLimited.stderr,/Kritische API-Vertragsfehler \(2\)/);
+ assert.match(rateLimited.stderr,/OPENMETEO_ORIGIN_CALLS=3\b/,'Keine redundanten 21 regionalen Folgeabrufe nach Ursprungssperre');
+ assert.doesNotMatch(rateLimited.stderr,/Vertrag ungültig \(HTTP 429\)/,'429 ist kein nachgewiesener Schemafehler');
 }finally{await rm(temp,{recursive:true,force:true})}
 console.log('MID API NoData: strict series, genuine zero/extremes, partial coverage and actual required/optional CLI paths passed.');

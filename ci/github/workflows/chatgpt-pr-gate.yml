@@ -36,6 +36,7 @@ jobs:
       - name: PR-Mergezustand laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           # Zwei Ebenen erlauben den Vergleich des SHA-genauen Merge-Snapshots mit dessen Basis.
           fetch-depth: 2
 
@@ -300,6 +301,7 @@ jobs:
       - name: PR-Mergezustand laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 1
 
       - name: Node.js 22 ohne blockierenden Remote-npm-Cache einrichten
@@ -400,6 +402,7 @@ jobs:
       - name: PR-Mergezustand laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 1
 
       - name: Node.js 22 ohne blockierenden Remote-npm-Cache einrichten
@@ -578,6 +581,8 @@ jobs:
     steps:
       - name: SHA-identischen PR-Mergezustand laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Python einrichten
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -678,6 +683,8 @@ jobs:
     steps:
       - name: SHA-identischen PR-Mergezustand laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Node.js 22 ohne blockierenden Remote-npm-Cache einrichten
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
