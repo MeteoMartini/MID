@@ -1,5 +1,8 @@
 import {describe,it,expect} from 'vitest';
-import {collectCssRuleUsage} from '../../scripts/lib/cssRuleUsageDiagnostic.mjs';
+import {collectCssRuleUsage,assertCssRuleUsageComplete} from '../../scripts/lib/cssRuleUsageDiagnostic.mjs';
+import {readFileSync} from 'node:fs';
+import {dirname,resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
 
 const options={viewport:[390,844],theme:'dark',scope:'synthetic CDP fixture',views:['initial','settings']};
 function fixture({sources,coverage=[],fail=[],metrics=[]}:{sources:Record<string,string>,coverage?:any[],fail?:string[],metrics?:any[]}){
@@ -61,4 +64,34 @@ describe('read-only CSS CDP evidence integrity',()=>{
  it('fails closed on a malformed CDP coverage response',async()=>{
   await expect(collectCssRuleUsage({headers:new Map(),cdp:{send:async()=>({})}},options)).rejects.toThrow('no CDP ruleUsage array');
  });
+ it('admits a valid captured case but never authorizes CSS removal',async()=>{
+  const report=await collectCssRuleUsage(fixture({sources:{a:'.a{color:red}'},coverage:[
+   {styleSheetId:'a',startOffset:0,endOffset:13,used:true}]}),options);
+  expect(assertCssRuleUsageComplete(report,'Fixture')).toBe(report);
+  expect(report.integrity.cssRemovalAuthorized).toBe(false);
+ });
+ it('rejects incomplete reports and missing metadata at the browser admission gate',async()=>{
+  const incomplete=await collectCssRuleUsage(fixture({sources:{a:'.a{color:red}',b:'.b{color:blue}'},fail:['b']}),options);
+  expect(()=>assertCssRuleUsageComplete(incomplete,'Fixture')).toThrow(/Fixture: incomplete CSS rule usage evidence/);
+  expect(()=>assertCssRuleUsageComplete({sheets:incomplete.sheets})).toThrow(/MISSING_INTEGRITY/);
+ });
+ it('rejects contradictory CSS byte totals even with an apparently complete status',async()=>{
+  const report=await collectCssRuleUsage(fixture({sources:{a:'.a{color:red}'}}),options);
+  report.sheets[0].unusedBytes=99999;
+  expect(()=>assertCssRuleUsageComplete(report)).toThrow(/incomplete CSS rule usage evidence/);
+ });
+ it('rejects a missing sheet in a report that otherwise claims completeness',async()=>{
+  const report=await collectCssRuleUsage(fixture({sources:{a:'.a{color:red}'}}),options);
+  report.sheets=[];
+  expect(()=>assertCssRuleUsageComplete(report)).toThrow(/incomplete CSS rule usage evidence/);
+ });
+ it('requires both real Chromium fixtures to enforce CSS evidence integrity',()=>{
+  const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
+  for(const path of ['scripts/verify-module-css-browser-0985170.mjs','scripts/verify-favorites-app-browser-0985242.mjs']){
+   const source=readFileSync(resolve(root,path),'utf8');
+   expect(source).toContain('assertCssRuleUsageComplete');
+   expect(source).toContain('cssCoverage.push(assertCssRuleUsageComplete(');
+  }
+ });
+
 });
