@@ -59,3 +59,28 @@ export async function collectCssRuleUsage(session,{viewport,theme,scope,views=[]
  const selected=Object.fromEntries(metrics.filter(x=>['RecalcStyleDuration','LayoutDuration','ScriptDuration','TaskDuration','RecalcStyleCount','LayoutCount','JSHeapUsedSize'].includes(x.name)).map(x=>[x.name,x.value]));
  return{viewport,theme,scope,views,sheets,metrics:selected,integrity};
 }
+
+/**
+ * Browser QA admission, not permission to remove CSS.
+ * The reporting API stays diagnostic-only; consumers of coverage evidence
+ * must explicitly reject incomplete captures before reporting a passing case.
+ */
+export function assertCssRuleUsageComplete(result,label='CSS rule usage'){
+ const integrity=result?.integrity;
+ const sheets=result?.sheets;
+ if(integrity?.status!=='TRACKED_SHEETS_RECORDED_NO_REMOVAL_APPROVAL'||
+    !Array.isArray(sheets)||!sheets.length||
+    sheets.length!==integrity.readableStyleSheetCount||
+    integrity.cssRemovalAuthorized!==false||
+    integrity.fullUiStateCoverageProven!==false||
+    !Array.isArray(integrity.unreadableStyleSheetIds)||integrity.unreadableStyleSheetIds.length||
+    !Array.isArray(integrity.unknownUsageStyleSheetIds)||integrity.unknownUsageStyleSheetIds.length||
+    integrity.invalidRuleRanges!==0||
+    sheets.some(s=>!Number.isSafeInteger(s.rawBytes)||s.rawBytes<=0||
+      !Number.isSafeInteger(s.usedBytes)||s.usedBytes<0||s.usedBytes>s.rawBytes||
+      s.unusedBytes!==s.rawBytes-s.usedBytes)){
+  const status=integrity?.status??'MISSING_INTEGRITY';
+  throw Error(label+': incomplete CSS rule usage evidence ('+status+'); browser coverage QA must not pass');
+ }
+ return result;
+}
