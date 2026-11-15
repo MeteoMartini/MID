@@ -537,6 +537,34 @@ async function verifySurroundings(width,theme){
   await page.locator('.current-surroundings-maplibre canvas').first().waitFor({timeout:30000});
   await page.locator('.current-surroundings-center-dot').waitFor({timeout:30000});
   assert.equal(requests.some(value=>new URL(value).searchParams.get('mode')==='composite-times'),false,'No eager DWD radar on initial cloud preview');
+  // .481: real mobile cloud scrubber, source-time truthful even when original data unavailable.
+  const cloudTimeline=page.locator('.current-surroundings-cloud-timeline'),quarter=cloudTimeline.locator('input[type="range"]');
+  await quarter.waitFor();
+  assert.equal(await quarter.inputValue(),'0','Cloud starts at the current time');
+  const cloudPrev=page.getByRole('button',{name:'Wolkenprognose 15 Minuten zurück',exact:true});
+  const cloudNext=page.getByRole('button',{name:'Wolkenprognose 15 Minuten vor',exact:true});
+  assert.equal(await cloudPrev.isDisabled(),true);
+  for(let step=1;step<=8;step++){
+   await cloudNext.click();
+   assert.equal(await quarter.inputValue(),String(step),'Each click advances exactly 15 min');
+   assert.ok((await cloudTimeline.locator('output').innerText()).includes('+'+String(step*15)+' min'),'Relative time is visible in a single clock');
+  }
+  assert.equal(await cloudNext.isDisabled(),true,'The cloud forecast cannot exceed +120 min');
+  const readout=cloudTimeline.locator('output');
+  assert.equal(await readout.isVisible(),true);
+  assert.match(await readout.innerText(),/\\d{2}\\.\\d{2}\\./,'The same time band shows the absolute date');
+  const bounds=await cloudTimeline.evaluate(el=>({
+   buttons:[...el.querySelectorAll('button')].map(node=>node.getBoundingClientRect().height),
+   range:el.querySelector('input[type="range"]')?.getBoundingClientRect().height,
+   overflow:el.scrollWidth>el.clientWidth+1
+  }));
+  assert.ok(bounds.buttons.every(v=>v>=44)&&bounds.range>=44,'Minimum 44px touch targets');
+  assert.equal(bounds.overflow,false,'No mobile time scrubber overflow');
+  await cloudPrev.click();
+  assert.equal(await quarter.inputValue(),'7','Backwards is one 15-min step');
+  await quarter.fill('0');
+  assert.equal(await quarter.inputValue(),'0','Slider returns to live');
+  assert.equal(requests.some(v=>new URL(v).searchParams.get('mode')==='composite-times'),false,'No eager radar network even while browsing future cloud frames');
   await page.getByRole('button',{name:'Radar / Satellit',exact:true}).click();
   assert.equal(await page.getByRole('button',{name:'Radar / Satellit',exact:true}).getAttribute('aria-pressed'),'true','Explicit radar selection activated');
   const radarObserved=page.getByRole('status').filter({hasText:'DWD-Radar · Beobachtung'});
