@@ -14,6 +14,7 @@ from unittest.mock import patch
 from ir108_original_probe import (
     SCHEMA, IR108QualificationError, NATIVE_GRID, audit_manifest,
     check_source_url, source_lead_seconds, step_seconds, validate_frame_sequence, validate_header,
+    validate_spectral_channel,
 )
 
 RUN = "2026-11-15T00:00:00Z"
@@ -62,6 +63,42 @@ class IR108Tests(unittest.TestCase):
         self.assertEqual(a["points"], 542040)
         self.assertEqual(a["channelIdentity"], "AMBIGUOUS_IR_OR_WV")
         self.assertEqual(a["valueAndMissingQuality"], "NOT_EVALUATED")
+
+    def test_spectral_key_disambiguation_remains_historical_not_release(self):
+        spectral = fixture()
+        spectral.update({
+            "productDefinitionTemplateNumber": 31,
+            "numberOfContributingSpectralBands": 1,
+            "satelliteSeries": 333,
+            "satelliteNumber": 72,
+            "instrumentType": 207,
+            "scaleFactorOfCentralWaveNumber": 1,
+            "scaledValueOfCentralWaveNumber": 925920,
+        })
+        result = validate_header(spectral, RUN)
+        self.assertEqual(result["channelIdentity"],
+                         "HISTORICAL_DWD_SEVIRI_IR108_SPECTRAL_MATCH")
+        self.assertAlmostEqual(result["centralWaveNumberPerMetre"], 92592.0)
+        self.assertAlmostEqual(result["wavelengthMicrometres"], 10.8, places=1)
+        self.assertEqual(result["valueAndMissingQuality"], "NOT_EVALUATED")
+        # Same discipline/category/number with the water-vapour band MUST fail.
+        wv = dict(spectral)
+        wv["scaledValueOfCentralWaveNumber"] = 1612900
+        self.expect_fail(wv, "WV6.2")
+        # Missing spectral evidence is unknown, never a synthetic IR10.8 approval.
+        incomplete = dict(spectral)
+        del incomplete["instrumentType"]
+        self.assertEqual(validate_header(incomplete, RUN)["channelIdentity"], "AMBIGUOUS_IR_OR_WV")
+        for key, value in [
+            ("satelliteSeries", 111), ("satelliteNumber", 4),
+            ("instrumentType", 42), ("productDefinitionTemplateNumber", 0),
+            ("numberOfContributingSpectralBands", 2),
+            ("scaledValueOfCentralWaveNumber", 800000),
+        ]:
+            with self.subTest(key=key, value=value):
+                broken = dict(spectral)
+                broken[key] = value
+                self.expect_fail(broken)
 
     def test_wrong_centre_and_edition_fail_closed(self):
         for key, value in [("centre", 98), ("edition", 1)]:

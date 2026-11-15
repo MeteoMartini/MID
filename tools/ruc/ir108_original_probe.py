@@ -64,6 +64,48 @@ def step_seconds(value: object, units: int) -> int:
     return int(result)
 
 
+# Historical DWD COSMO-D2 SEVIRI/MSG calibration, *not* independently
+# verified for current ICON-D2-RUC files. ecCodes GRIB2 template 4.31 provides
+# these exact spectral keys; do not infer a channel from parameter 3/1/14 alone.
+IR108_CENTRAL_WAVENUMBER = 92592.0  # m^-1 ~ 10.8 micrometers
+WV62_CENTRAL_WAVENUMBER = 161290.0  # m^-1 ~ 6.2 micrometers
+EXPECTED_SATELLITE = (333, 72, 207)
+SPECTRAL_KEYS = (
+    "productDefinitionTemplateNumber", "numberOfContributingSpectralBands",
+    "satelliteSeries", "satelliteNumber", "instrumentType",
+    "scaleFactorOfCentralWaveNumber", "scaledValueOfCentralWaveNumber",
+)
+
+
+def validate_spectral_channel(meta: dict) -> dict:
+    """Inspect WMO spectral-band metadata; a missing field is NOT approval."""
+    if any(meta.get(key) is None for key in SPECTRAL_KEYS):
+        return {"channelIdentity": "AMBIGUOUS_IR_OR_WV",
+                "spectralEvidence": "MISSING_GRIB_SPECTRAL_KEYS"}
+    template = int(meta["productDefinitionTemplateNumber"])
+    count = int(meta["numberOfContributingSpectralBands"])
+    sat = tuple(int(meta[key]) for key in ("satelliteSeries", "satelliteNumber", "instrumentType"))
+    if template not in (30, 31, 32) or count != 1:
+        raise IR108QualificationError("unsupported satellite GRIB template/band count")
+    if sat != EXPECTED_SATELLITE:
+        raise IR108QualificationError("uncalibrated satellite series/id/instrument")
+    scale = int(meta["scaleFactorOfCentralWaveNumber"])
+    value = int(meta["scaledValueOfCentralWaveNumber"])
+    if not 0 <= scale <= 9 or not 0 < value < 1000000000:
+        raise IR108QualificationError("invalid central-wave-number scaling")
+    wave_number = value * (10.0 ** -scale)
+    if abs(wave_number - WV62_CENTRAL_WAVENUMBER) < 100:
+        raise IR108QualificationError("WV6.2 is not an IR10.8 source field")
+    if abs(wave_number - IR108_CENTRAL_WAVENUMBER) > 150:
+        raise IR108QualificationError("unverified satellite channel central wave number")
+    return {"channelIdentity": "HISTORICAL_DWD_SEVIRI_IR108_SPECTRAL_MATCH",
+            "spectralEvidence": "GRIB2_SATELLITE_BAND_METADATA",
+            "centralWaveNumberPerMetre": wave_number,
+            "wavelengthMicrometres": 1e6 / wave_number,
+            "satelliteSeries": sat[0], "satelliteNumber": sat[1],
+            "instrumentType": sat[2], "productDefinitionTemplateNumber": template}
+
+
 def validate_header(meta: dict, run: str) -> dict:
     """Only metadata and cadence; does not attest IR-vs-WV channel identity."""
     if not isinstance(meta, dict):
@@ -92,9 +134,10 @@ def validate_header(meta: dict, run: str) -> dict:
         raise IR108QualificationError("not a genuine instantaneous quarter-hour lead")
     if expected + timedelta(seconds=end) != valid:
         raise IR108QualificationError("GRIB initialization + step != validity")
+    spectral = validate_spectral_channel(meta)
     return {"run": run, "valid": meta["valid"], "leadSeconds": end,
             "points": grid[-1], "gribParameter": "3/1/14", "unit": "K",
-            "bitmapPresent": bitmap, "channelIdentity": "AMBIGUOUS_IR_OR_WV",
+            "bitmapPresent": bitmap, **spectral,
             "valueAndMissingQuality": "NOT_EVALUATED"}
 
 
@@ -222,6 +265,13 @@ def inspect_local_grib(path: Path, run: str) -> dict:
                 "shortName": str(get("shortName")),
                 "name": str(get("name")),
             }
+            # Keep all spectral header values for audit, without treating a
+            # historically matching signature as current-product admission.
+            for key in SPECTRAL_KEYS:
+                try:
+                    meta[key] = int(codes_get_long(gid, key))
+                except (KeyError, ValueError, RuntimeError):
+                    meta[key] = None
             record = validate_header(meta, run)
             record["rawParameterIdentifiers"] = {"shortName": meta["shortName"],
                                                  "name": meta["name"]}
@@ -277,6 +327,10 @@ def audit_manifest(path: Path) -> dict:
     return {"schema": SCHEMA, "run": run, "firstValid": first_valid,
             "candidateFrames": len(ordered), "records": ordered,
             "headerAndCadenceAudit": "PASS",
+            "historicalSpectralMatches": sum(
+                item["channelIdentity"] == "HISTORICAL_DWD_SEVIRI_IR108_SPECTRAL_MATCH"
+                for item in ordered
+            ),
             "activationAuthorized": False,
             "blockers": [
                 "independent calibrated IR10.8-versus-WV6.2 identity",

@@ -74,3 +74,15 @@ Beispiel für ein explizit gestartetes lokales QA-Staging:
       --manifest /privates/verzeichnis/ir108-20261115T1500/manifest.json
 
 **Keine eigenständige Source-/Produktfreigabe:** Der Stager ist weder ein MID-Worker noch Teil des produktiven RUC-Preprocessors. Er rendert keine Wetterkarte, publiziert nichts und verändert keine Vorhersagewerte. Die CI-Regressionsprüfung verwendet ausschließlich synthetische HTML-/GRIB-Transport-Fixtures **ohne DWD-Netzwerk**. Ein positiver Download plus Headernachweis lässt activationAuthorized=false, bis IR10.8 gegenüber WV6.2 zweifelsfrei unterschieden wird, Werte/Bitmap/CLAT-/CLON-Koordinaten samt Kartenrenderer, Quelle/Gültigkeitszeit/Wettercode-Kombination, Performance und alle MID-Release-Gates real validiert wurden. Kein amtliches Satellitenbild und keine Umdeutung in CLCT-Prozent.
+
+
+## Spektrale IR10.8-/WV6.2-Unterscheidung – historisch kalibrierter GRIB-Nachweis
+
+Die amtliche DWD-Modellreferenz für ältere COSMO-D2-SynSat-Produkte beschreibt für **beide** Kanäle denselben GRIB-Parameter 3/1/14, aber die zusätzlichen Satelliten-/Instrumentwerte 333/72/207 und **verschiedene zentrale Wellenzahlen**: 92 592 m⁻¹ (10,8 µm) gegenüber 161 290 m⁻¹ (6,2 µm). Die offizielle ECMWF/WMO-GRIB2-Satellitentemplate-4.31-Referenz belegt die Schlüssel numberOfContributingSpectralBands, satelliteSeries, satelliteNumber, instrumentType, scaleFactorOfCentralWaveNumber und scaledValueOfCentralWaveNumber. Quellen:
+- https://www.dwd.de/SharedDocs/downloads/DE/modelldokumentationen/nwv/cosmo_d2/cosmo_d2_dbbeschr_version_1_0_201805.pdf
+- https://codes-test.ecmwf.int/grib/format/grib2/templates/4/31/
+- https://docs.icon-model.org/2026.04/documentation/buildrun/buildrun_namelist_overview.html
+
+tools/ruc/ir108_original_probe.py liest diese **optionalen Rohfelder** aus dem echten GRIB-Header und prüft bei vollständigem vorhandenem Satz: ein spektrales Band, bekannte historische SEVIRI-Instrumentkennung und zu IR10.8 passende aus skalierter Wellenzahl errechnete Frequenz. Ein 6,2-µm-Wasserdampfkanal wird aktiv abgewiesen. Fehlt eines der spektralen Schlüsselfelder, ist das Ergebnis ausdrücklich AMBIGUOUS_IR_OR_WV und **keine** IR10.8-Zulassung. Der positive Status lautet bewusst HISTORICAL_DWD_SEVIRI_IR108_SPECTRAL_MATCH und **nicht** CURRENT_ICON_D2_IR108_QUALIFIED.
+
+Diese historischen 2018er Spektralwerte sind ein nachvollziehbarer, unabhängigerer Kanaltest als das Verzeichnis allein. Sie belegen **noch nicht** dieselbe Belegung in aktuellen ICON-D2-RUC-Payloads von November 2026. Ohne einen realen, zur amtlichen aktuellen Datenquelle gehörenden eCCodes-/Wellenzahl-/Wert-/Bitmap-Befund bleibt die Freigabescharte geschlossen. Der Status activationAuthorized bleibt unverändert false; RUC-/Browser-/Worker-Pipelines und bestehende Warn-/Signifikantwetterlogik werden nicht freigeschaltet. Die CI-Tests enthalten einen synthetischen IR10.8-Positivfall, einen ausdrücklich abgewiesenen WV6.2-Fall, abweichende Satelliteninstrumente und unvollständige Headerdaten.
