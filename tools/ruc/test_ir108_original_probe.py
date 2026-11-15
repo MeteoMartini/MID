@@ -38,7 +38,7 @@ def fixture(index=1):
 
 
 def records():
-    return [validate_header(fixture(i), RUN) for i in range(9)]
+    return [validate_header(fixture(i), RUN) for i in range(10)]
 
 
 class IR108Tests(unittest.TestCase):
@@ -92,11 +92,11 @@ class IR108Tests(unittest.TestCase):
             with self.assertRaises(IR108QualificationError):
                 step_seconds(value, unit)
 
-    def test_full_nine_original_frame_sequence(self):
+    def test_full_ten_original_frame_sequence(self):
         v = validate_frame_sequence(records(), RUN, FIRST)
-        self.assertEqual(len(v), 9)
+        self.assertEqual(len(v), 10)
         self.assertEqual(v[0]["valid"], FIRST)
-        self.assertEqual(v[-1]["valid"], "2026-11-15T02:00:00Z")
+        self.assertEqual(v[-1]["valid"], "2026-11-15T02:15:00Z")
         with self.assertRaises(IR108QualificationError):
             validate_frame_sequence(v[:-1], RUN, FIRST)
         dup = list(v)
@@ -123,13 +123,13 @@ class IR108Tests(unittest.TestCase):
                 with self.assertRaises(IR108QualificationError):
                     check_source_url(url)
 
-    def test_manifest_checks_hash_all_nine_but_never_authorizes(self):
+    def test_manifest_checks_hash_all_ten_but_never_authorizes(self):
         with tempfile.TemporaryDirectory() as temporary:
             base = Path(temporary)
             folder = base / "frames"
             folder.mkdir()
             frames = []
-            for i in range(9):
+            for i in range(10):
                 name = f"IR_{i:02d}.grib2.bz2"
                 raw = b"not-a-real-grib-unit-test-" + bytes([i]) * 120
                 (folder / name).write_bytes(raw)
@@ -145,7 +145,7 @@ class IR108Tests(unittest.TestCase):
                 return validate_header(fixture(n), run)
             with patch("ir108_original_probe.inspect_local_grib", side_effect=fake_grib):
                 report = audit_manifest(manifest)
-            self.assertEqual(report["candidateFrames"], 9)
+            self.assertEqual(report["candidateFrames"], 10)
             self.assertEqual(report["headerAndCadenceAudit"], "PASS")
             self.assertFalse(report["activationAuthorized"])
             self.assertIn("independent calibrated", " ".join(report["blockers"]))

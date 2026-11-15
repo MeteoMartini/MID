@@ -6,7 +6,7 @@ numeric signature alone does not prove channel identity. The source directory
 and SHA-bound local copy are additional evidence, NOT a final channel attestation.
 
 Usage: python tools/ruc/ir108_original_probe.py --manifest /safe/stage/manifest.json
-Manifest: schema, run, firstValid, frames[9] with name, sourceUrl, sha256.
+Manifest: schema, run, firstValid, frames[10] with name, sourceUrl, sha256.
 GRIB files must reside within /safe/stage/frames/ and not be symlinks.
 """
 from __future__ import annotations
@@ -115,16 +115,16 @@ def check_source_url(url: str) -> None:
 
 
 def validate_frame_sequence(records: list[dict], run: str, first_valid: str) -> list[dict]:
-    if len(records) != 9:
-        raise IR108QualificationError("an entire 0..+120-min quarter-hour axis needs nine originals")
+    if len(records) != 10:
+        raise IR108QualificationError("a guaranteed 0..+135-min quarter-hour axis needs ten originals")
     initial = utc(first_valid)
     if int(initial.timestamp()) % QUARTER_SECONDS:
         raise IR108QualificationError("first valid timestamp not on the UTC quarter-hour grid")
-    if len({item["valid"] for item in records}) != 9:
+    if len({item["valid"] for item in records}) != 10:
         raise IR108QualificationError("duplicate original validity timestamp")
     actual = sorted(records, key=lambda item: item["valid"])
     targets = [(initial + timedelta(seconds=i * QUARTER_SECONDS)).isoformat()
-               .replace("+00:00", "Z") for i in range(9)]
+               .replace("+00:00", "Z") for i in range(10)]
     if [item["valid"] for item in actual] != targets:
         raise IR108QualificationError("missing or non-contiguous native 15-minute frames")
     if any(item["run"] != run for item in actual):
@@ -226,9 +226,9 @@ def audit_manifest(path: Path) -> dict:
     run, first_valid, items = document.get("run"), document.get("firstValid"), document.get("frames")
     utc(run)
     utc(first_valid)
-    if not isinstance(items, list) or len(items) != 9:
-        raise IR108QualificationError("manifest requires nine candidate frame entries")
-    # A repeated local filename, URL, or digest is not a nine-frame original series.
+    if not isinstance(items, list) or len(items) != 10:
+        raise IR108QualificationError("manifest requires ten candidate frame entries")
+    # A repeated local filename, URL, or digest is not a ten-frame original series.
     # The source URL must be in the exact declared DWD initialization directory.
     names, urls, digests = set(), set(), set()
     output = []

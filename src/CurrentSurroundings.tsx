@@ -69,7 +69,7 @@ export default function CurrentSurroundings(props:Props){
  const {lat,lon,name,timezone,temperature,temperatureTime,onOpen}=props;
  const heading=useId();
  const [mode,setMode]=useState<'cloud'|'radar'>('cloud');
- const [cloudStep,setCloudStep]=useState(0); // 0=live, 1..8=+15 to +120 min
+ const [cloudStep,setCloudStep]=useState(0); // Step 0 = last UTC quarter-hour; step 9 guarantees >=+120 min
  const [catalog,setCatalog]=useState<CompositeProductTimes>();
  const [failed,setFailed]=useState(false);
  const [selection,setSelection]=useState<number>();
@@ -267,12 +267,12 @@ export default function CurrentSurroundings(props:Props){
    <button type="button" aria-pressed={mode==='cloud'} onClick={()=>{setMode('cloud');setSelection(undefined)}}>Wolken + Wetter</button>
    <button type="button" aria-pressed={mode==='radar'} onClick={()=>setMode('radar')}>Radar / Satellit</button>
   </div>
-  {mode==='cloud'&&<div className="current-surroundings-cloud-timeline" role="group" aria-label="Wolken und SigWx: Prognosezeit in 15-Minuten-Schritten bis zwei Stunden">
+  {mode==='cloud'&&<div className="current-surroundings-cloud-timeline" role="group" aria-label="Wolken und SigWx: Prognosezeit in 15-Minuten-Schritten über mindestens zwei Stunden">
    <button type="button" aria-label="Wolkenprognose 15 Minuten zurück" disabled={cloudStep===0} onClick={()=>setCloudStep(v=>Math.max(0,v-1))}>−15 min</button>
-   <input type="range" min={0} max={8} step={1} value={cloudStep}
+   <input type="range" min={0} max={9} step={1} value={cloudStep}
     aria-label={`Wolkenprognose: ${cloudStep===0?'letzter Viertelstundentermin':`in ${cloudRelativeMinutes} Minuten`} · Ziel ${datedClock(cloudTarget)} Uhr`}
-    onChange={event=>setCloudStep(Math.max(0,Math.min(8,Number(event.target.value))))}/>
-   <button type="button" aria-label="Wolkenprognose 15 Minuten vor" disabled={cloudStep===8} onClick={()=>setCloudStep(v=>Math.min(8,v+1))}>+15 min</button>
+    onChange={event=>setCloudStep(Math.max(0,Math.min(9,Number(event.target.value))))}/>
+   <button type="button" aria-label="Wolkenprognose 15 Minuten vor" disabled={cloudStep===9} onClick={()=>setCloudStep(v=>Math.min(9,v+1))}>+15 min</button>
    <output aria-live="polite" className="current-surroundings-time-readout">{cloudStep===0?'Letzter 15-min-Termin':`in ${cloudRelativeMinutes} min`} · {datedClock(cloudTarget)} Uhr</output>
   </div>}
   {mode==='radar'&&<div className="current-surroundings-controls">
