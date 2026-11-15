@@ -44,7 +44,7 @@ describe('MID P1 complete findings evidence never masks scanner failures',()=>{
   const root=fileURLToPath(new URL('../..',import.meta.url));
   const source=readFileSync(new URL('../../tools/ci/mid-p1-tool-bootstrap.mjs',import.meta.url),'utf8');
   expect(source).toContain('buildMidZizmorLedger(');
-  expect(source).toContain("evidence.status='SCANNER_EVIDENCE_INCOMPLETE'");
+  expect(source).toContain("ledger.status!=='COMPLETE'?'SCANNER_EVIDENCE_INCOMPLETE'");
   expect(source).toContain("'--offline','--no-config','--strict-collection','--format=json'");
   expect(source).toContain('collectWorkflowPilot(root)');
   expect(source).toContain('maxBuffer:2*1024*1024');
