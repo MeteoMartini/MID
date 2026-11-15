@@ -193,8 +193,16 @@ assert.equal(chooseCloud({'icon-d2':{...modelCatalog['icon-d2'],cloudWeatherFram
 // Dates are derived from one absolute target; no unverified 15-minute WMO observations.
 assert.ok(component.includes('const [cloudStep,setCloudStep]=useState(0)')&&component.includes('const cloudTarget=surroundingsQuarterHourTarget(now,cloudStep)'),'Cloud timeline has bounded 15-minute positions');
 assert.ok(component.includes('min={0} max={9} step={1}')&&component.includes('Wolkenprognose 15 Minuten vor')&&component.includes('Wolkenprognose 15 Minuten zurück'),'Real accessible quarter-hour control covering at least +120 min');
-assert.ok(component.includes('cloudForecast.image.temporalMethod')&&component.includes('cloudForecast.image.sigwxTime')&&component.includes('cloudForecast.image.originalTimes'),'No fabricated 15-minute original times, discrete SigWx source preserved');
-assert.ok(component.includes("mode==='radar'&&selection===undefined")&&component.includes("if(mode!=='radar')return"),'Cloud forecast must not trigger DWD radar/satellite by default');
+assert.ok(component.includes('Original-Modelltermin ohne zeitliche Interpolation')&&
+ component.includes('cloudForecast.image.validTime')&&
+ component.includes('Kein gültiges Wolken-/SigWx-Modellbild für Ort und Termin')&&
+ cloudSource.includes('Date.parse(ref.time)===now&&weatherRefs.some'),
+ 'Original-only cloud/SigWx display must label exact source validity and leave unmatched quarter-hours NoData');
+assert.ok(component.includes("useDisplayPreference('CurrentSurroundings.mode','cloud',displayChoice('cloud','radar'))")&&
+ component.includes("aria-pressed={mode==='cloud'}")&&component.includes("aria-pressed={mode==='radar'}")&&
+ component.includes('radarOriginalForStep(catalog,now,radarStep,dwdArea)')&&
+ component.includes('onChange={event=>setRadarStep(')&&component.includes("if(mode!=='radar')return"),
+ 'Persist cloud/radar mode; native radar 15-minute slider must not start observations while cloud mode is selected');
 assert.ok(css.includes('current-surroundings-cloud-timeline')&&css.includes('min-height:44px')&&css.includes('grid-column:1/-1'),'Mobile timeline keeps the clock readable and touch targets accessible');
 const quarter=valid*1000+15*60000;
 const interpolated=extract(rows,places,quarter,at,true);
