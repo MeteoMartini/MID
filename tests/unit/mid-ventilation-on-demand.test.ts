@@ -45,4 +45,36 @@ describe('MID ventilation assistant – conservative deferred-UI contract',()=>{
   expect(panel).toContain("window.clearInterval(timer)");
   expect(app).toContain("import {readVentilationAssistantSettings,ventilationPushConfig,type VentilationAssistantSettings} from './ventilationAssistant';");
  });
+ it('actually includes ventilation JS, its dependency and CSS in the generated offline-shell links',async()=>{
+  // Exercise the real Vite transformIndexHtml hook with an in-memory Rollup bundle.
+  // This is not a production build; absence of the chunk is a hard failure.
+  const configuration=(await import('../../vite.config')).default as any;
+  const plugin=(configuration.plugins as any[]).find(x=>x?.name==='mid-fourteen-offline-shell');
+  expect(plugin).toBeDefined();
+  const chunk=(fileName:string,facadeModuleId:string,imports:string[]=[],css:string[]=[])=>({
+   type:'chunk',fileName,facadeModuleId,imports,viteMetadata:{importedCss:new Set(css)}
+  });
+  const bundle:Record<string,any>={
+   'assets/FourteenDayDevelopment-a.js':chunk('assets/FourteenDayDevelopment-a.js','/app/src/FourteenDayDevelopment.tsx'),
+   'assets/PollenForecast-a.js':chunk('assets/PollenForecast-a.js','/app/src/PollenForecast.tsx'),
+   'assets/SystemUpdateManager-a.js':chunk('assets/SystemUpdateManager-a.js','/app/src/SystemUpdateManager.tsx'),
+   'assets/VentilationAssistantPanel-a.js':chunk('assets/VentilationAssistantPanel-a.js','/app/src/VentilationAssistantPanel.tsx',['assets/ventilation-shared-a.js'],['assets/ventilation-a.css']),
+   'assets/ventilation-shared-a.js':chunk('assets/ventilation-shared-a.js','/app/src/ventilationShared.ts'),
+   'assets/ventilation-a.css':{type:'asset',fileName:'assets/ventilation-a.css'},
+   'assets/UnifiedWeatherMap-a.js':chunk('assets/UnifiedWeatherMap-a.js','/app/src/UnifiedWeatherMap.tsx'),
+   'assets/cloudWeatherExport-a.js':chunk('assets/cloudWeatherExport-a.js','/app/src/cloudWeatherExport.ts'),
+   'assets/nativeModelMapExport-a.js':chunk('assets/nativeModelMapExport-a.js','/app/src/nativeModelMapExport.ts'),
+   'assets/precipitationTotalsExport-a.js':chunk('assets/precipitationTotalsExport-a.js','/app/src/precipitationTotalsExport.ts'),
+  };
+  const transform=plugin.transformIndexHtml.handler as (_html:string,context:{bundle:Record<string,any>})=>any[];
+  const links=transform('<html></html>',{bundle});
+  const urls=links.map(link=>{expect(link.attrs.rel).toBe('mid-offline');return link.attrs.href});
+  expect(urls).toContain('./assets/VentilationAssistantPanel-a.js');
+  expect(urls).toContain('./assets/ventilation-shared-a.js');
+  expect(urls).toContain('./assets/ventilation-a.css');
+  const missing={...bundle};
+  delete missing['assets/VentilationAssistantPanel-a.js'];
+  expect(()=>transform('<html></html>',{bundle:missing})).toThrow('Missing deferred ventilation assistant controls');
+ });
+
 });
