@@ -17,15 +17,45 @@
 .current-surroundings-city-marker{pointer-events:none!important}
 .current-surroundings-city-value{display:grid;justify-items:center;gap:0;padding:0 2px;border:0;white-space:nowrap;text-align:center;font-size:clamp(.68rem,2vw,.82rem);line-height:1.2;font-weight:650;color:var(--text,CanvasText);background:transparent!important;box-shadow:none!important}
 .current-surroundings-city-value :is(b,strong){background:transparent!important;filter:drop-shadow(0 0 1px var(--panel,Canvas)) drop-shadow(0 0 2px var(--panel,Canvas))}
-.current-surroundings-city-value b{font-weight:650;max-width:min(124px,38vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.current-surroundings-city-value strong{font-size:clamp(1.25rem,3.8vw,1.7rem);font-weight:820;font-variant-numeric:tabular-nums;line-height:1.05;-webkit-text-stroke:.6px var(--panel,Canvas);paint-order:stroke fill;letter-spacing:-.045em}
+.current-surroundings-city-value strong{
+ font-size:clamp(1.46rem,4.7vw,1.93rem);font-weight:900;font-variant-numeric:tabular-nums;
+ line-height:1.04;letter-spacing:-.045em;paint-order:stroke fill;
+ -webkit-text-stroke:1.15px rgba(13,24,37,.92);
+ text-shadow:0 0 2px rgba(255,255,255,.95),0 0 5px rgba(255,255,255,.86),0 1px 1px rgba(0,0,0,.85);
+}
 .current-surroundings-center-marker{pointer-events:none!important}
 .current-surroundings-center-dot{display:flex;align-items:center;flex-direction:column;gap:1px;min-width:16px;border:0;background:transparent!important;box-shadow:none!important}
 .current-surroundings-center-dot:after{content:'';display:block;width:12px;height:12px;border:2px solid white;border-radius:50%;background:var(--accent,#007aa8);box-shadow:0 0 0 2px #24617a,0 1px 4px #0008}
-.current-surroundings-center-dot>strong{font-size:clamp(1.25rem,3.8vw,1.7rem);line-height:1.05;font-weight:850;letter-spacing:-.04em;-webkit-text-stroke:.6px var(--panel,Canvas);paint-order:stroke fill;filter:drop-shadow(0 0 1px var(--panel,Canvas)) drop-shadow(0 0 2px var(--panel,Canvas));font-variant-numeric:tabular-nums}
+.current-surroundings-center-dot>strong{
+ font-size:clamp(1.46rem,4.7vw,1.93rem);line-height:1.04;font-weight:900;letter-spacing:-.045em;
+ -webkit-text-stroke:1.15px rgba(13,24,37,.92);paint-order:stroke fill;
+ text-shadow:0 0 2px rgba(255,255,255,.95),0 0 5px rgba(255,255,255,.86),0 1px 1px rgba(0,0,0,.85);
+ font-variant-numeric:tabular-nums
+}
 .current-surroundings-data-status{min-height:2.3em;line-height:1.4}
 .current-surroundings-phase{display:inline-block;margin-inline-start:.55rem}
 .current-surroundings>p,.current-surroundings-sources{color:var(--muted,#65778b);font-size:.78rem}
 .current-surroundings-sources summary{display:list-item;align-content:center;width:fit-content;min-height:44px;cursor:pointer}
 @media(max-width:380px){.current-surroundings-city-marker.priority-3{display:none}}
 @media(pointer:coarse){.current-surroundings-city-value{font-size:.78rem}}
+
+
+/* Cloud + SigWx: one actual 15-min selector, visible absolute time, accessible 44px touches. */
+.current-surroundings-cloud-timeline{
+ display:grid;grid-template-columns:minmax(72px,max-content) minmax(0,1fr) minmax(72px,max-content);
+ align-items:center;gap:5px 9px;margin:0 0 .6rem;min-width:0;
+}
+.current-surroundings-cloud-timeline>button{min-width:72px;padding-inline:7px;font-size:.79rem}
+.current-surroundings-cloud-timeline>input[type="range"]{
+ display:block;width:100%;min-width:0;min-height:44px;margin:0;accent-color:var(--accent,#007aa8);cursor:pointer;
+}
+.current-surroundings-cloud-timeline>input[type="range"]:focus-visible{outline:2px solid var(--accent,#007aa8);outline-offset:2px}
+.current-surroundings-cloud-timeline>.current-surroundings-time-readout{
+ grid-column:1/-1;display:block;min-width:0;font-size:clamp(.83rem,3vw,.98rem);font-weight:800;
+ text-align:center;color:var(--text,CanvasText);font-variant-numeric:tabular-nums;
+ white-space:normal;overflow-wrap:anywhere;line-height:1.32;
+}
+@media(max-width:380px){
+ .current-surroundings-cloud-timeline{column-gap:5px}
+ .current-surroundings-cloud-timeline>button{padding-inline:5px;font-size:.75rem}
+}
