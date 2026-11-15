@@ -44,7 +44,8 @@ assert.deepEqual(REGRESSION_CORE_STABLE_ADDITIONS,[
  {test:'test-lazy-optional-settings-0985483.mjs',destination:'core-1/4'},
  {test:'test-deferred-mountain-css-0985483.mjs',destination:'core-3/4'},
  {test:'test-startup-asset-evidence-0985482.mjs',destination:'core-3/4'},
- {test:'test-startup-js-gate-0985482.mjs',destination:'core-4/4'}
+ {test:'test-startup-js-gate-0985482.mjs',destination:'core-4/4'},
+ {test:'test-css-ownership-0985484.mjs',destination:'core-3/4'}
 ],'New approved regressions must run exactly once in qualified mandatory Core jobs without shifting historical allocations');
 const additions=new Set(REGRESSION_CORE_STABLE_ADDITIONS.map(row=>row.test));
 const previous=full.filter(name=>!additions.has(name));
