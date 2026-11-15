@@ -231,7 +231,9 @@ def audit_manifest(path: Path) -> dict:
     # A repeated local filename, URL, or digest is not a ten-frame original series.
     # The source URL must be in the exact declared DWD initialization directory.
     names, urls, digests = set(), set(), set()
-    output = []
+    # Qualify the entire untrusted manifest before invoking any GRIB decoder.
+    # A malformed later entry must never decode earlier synthetic/hostile data.
+    validated = []
     for frame in items:
         if not isinstance(frame, dict):
             raise IR108QualificationError("invalid manifest frame")
@@ -250,6 +252,14 @@ def audit_manifest(path: Path) -> dict:
             raise IR108QualificationError("invalid or missing expected file digest")
         if _sha256(local) != digest:
             raise IR108QualificationError("source SHA-256 differs from manifest")
+        validated.append((local, digest))
+    # Revalidate immediately before decoding; no stale preflight digest grants
+    # admission, and local source symlinks are rejected again.
+    output = []
+    for local, digest in validated:
+        local = _checked_file(path.parent / "frames", local.name)
+        if _sha256(local) != digest:
+            raise IR108QualificationError("source SHA-256 changed after manifest preflight")
         record = inspect_local_grib(local, run)
         record["sha256"] = digest
         output.append(record)
