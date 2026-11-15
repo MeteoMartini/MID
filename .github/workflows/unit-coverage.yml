@@ -132,15 +132,18 @@ jobs:
       - name: Read-only QA-Build und SHA-gebundene Startup-Budgets prüfen
         shell: bash
         env:
-          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          MID_EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          SOURCE_HEAD=$(git rev-parse HEAD)
+          echo "Diagnostic checkout SHA: $SOURCE_HEAD; expected: $MID_EXPECTED_SOURCE_SHA"
+          test "$SOURCE_HEAD" = "$MID_EXPECTED_SOURCE_SHA"
+          export GITHUB_SHA="$MID_EXPECTED_SOURCE_SHA"
           npm run build
           node scripts/test-bundle-budget-098594.mjs
           node scripts/check-build-budget.mjs
           node scripts/measure-startup-assets-0985482.mjs dist
-          node -e 'const f=require("node:fs");const i=JSON.parse(f.readFileSync("dist/mid-build-identity.json"));if(i.sourceGitSha!==process.env.GITHUB_SHA)throw Error("Build-Identität passt nicht zum Performance-Draft-HEAD");console.log("SHA-bound diagnostic build",i.sourceGitSha,"fingerprint",i.assetsSha256)'
+          node -e 'const f=require("node:fs");const i=JSON.parse(f.readFileSync("dist/mid-build-identity.json"));if(i.sourceGitSha!==process.env.MID_EXPECTED_SOURCE_SHA)throw Error("Build-Identität passt nicht zum Performance-Draft-HEAD");console.log("SHA-bound diagnostic build",i.sourceGitSha,"fingerprint",i.assetsSha256)'
           {
             echo '### MID Performance-Draft: unabhängig gebaut (keine Releasefreigabe)'
             echo
