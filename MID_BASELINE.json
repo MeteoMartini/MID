@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.482",
+  "releaseVersion": "0.9.85.483",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -509,6 +509,7 @@
     "scripts/test-knmi-workflow-consolidation-0985127.mjs",
     "scripts/test-konrad-derived-type-buildfix-09157.mjs",
     "scripts/test-kv-archive-ui-efficiency-09650.mjs",
+    "scripts/test-lazy-notifications-settings-0985482.mjs",
     "scripts/test-learning-scenarios-mountain-zones-071110.mjs",
     "scripts/test-legend-language.mjs",
     "scripts/test-local-imports.mjs",
@@ -935,6 +936,8 @@
     "scripts/test-stable-quality-status-retry-095573.mjs",
     "scripts/test-stable-release-hardening-095357.mjs",
     "scripts/test-standard-advanced-content.mjs",
+    "scripts/test-startup-asset-evidence-0985482.mjs",
+    "scripts/test-startup-js-gate-0985482.mjs",
     "scripts/test-startup-recovery-08281.mjs",
     "scripts/test-startup-splash-preload-097843.mjs",
     "scripts/test-state-integrity-contract-095327.mjs",
@@ -1604,6 +1607,7 @@
     "scripts/test-knmi-workflow-consolidation-0985127.mjs",
     "scripts/test-konrad-derived-type-buildfix-09157.mjs",
     "scripts/test-kv-archive-ui-efficiency-09650.mjs",
+    "scripts/test-lazy-notifications-settings-0985482.mjs",
     "scripts/test-learning-scenarios-mountain-zones-071110.mjs",
     "scripts/test-legend-language.mjs",
     "scripts/test-local-imports.mjs",
@@ -2030,6 +2034,8 @@
     "scripts/test-stable-quality-status-retry-095573.mjs",
     "scripts/test-stable-release-hardening-095357.mjs",
     "scripts/test-standard-advanced-content.mjs",
+    "scripts/test-startup-asset-evidence-0985482.mjs",
+    "scripts/test-startup-js-gate-0985482.mjs",
     "scripts/test-startup-recovery-08281.mjs",
     "scripts/test-startup-splash-preload-097843.mjs",
     "scripts/test-state-integrity-contract-095327.mjs",
@@ -3968,7 +3974,7 @@
     "scripts/test-skybar-solid-colors-0985358.mjs",
     "scripts/test-current-moisture-0985462.mjs"
   ],
-  "version": "0.9.85.482",
+  "version": "0.9.85.483",
   "updatedAt": "2026-11-12",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",
