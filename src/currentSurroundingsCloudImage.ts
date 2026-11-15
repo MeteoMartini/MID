@@ -103,12 +103,6 @@ export async function loadVerifiedSurroundingsCloud(lat:number,lon:number,now:nu
      :synopticCloudWeather(await loadSynopticField(base,modelId,model,ref,signal));
     return displayCloudFrame(exact,model.label,lat,lon,now);
    }catch(error){if(signal.aborted)throw error}
-    }
-    const field=independent
-     ?await loadCloudWeatherField(base,modelId,model,ref,signal)
-     :synopticCloudWeather(await loadSynopticField(base,modelId,model,ref,signal));
-    return displayCloudFrame(field,model.label,lat,lon,now);
-   }catch(error){if(signal.aborted)throw error}
   }
  }catch(error){if(signal.aborted)throw error}
  // Retain the established SHA-validated ICON-D2 paired original fields as a fallback.
