@@ -1,4 +1,5 @@
 import {readFileSync} from 'node:fs';
+import {matchesSurroundingsCloudRequest} from '../../src/surroundingsCloudOriginalGuard';
 import {describe,expect,it} from 'vitest';
 import {
  radarOriginalForStep,nearestVerifiedOriginal,sourceOriginalTimes,
@@ -63,6 +64,17 @@ describe('Umfeld Rad/Sat: 15-min selector uses only admitted ORIGINAL source tim
   expect(ui).toContain('displayedOpera=needsOpera');
   expect(ui).not.toContain('Radar-Nowcast-Termin');
  });
+ it('cloud originals never survive an unmatched quarter-hour, location or missing provenance',()=>{
+  const valid=Date.parse('2026-11-15T12:15:00Z');
+  const image={validTime:new Date(valid).toISOString(),requestLatitude:50.7800,requestLongitude:7.1100};
+  expect(matchesSurroundingsCloudRequest(image,50.7800,7.1100,valid)).toBe(true);
+  expect(matchesSurroundingsCloudRequest(image,50.7800,7.1100,valid+900000)).toBe(false);
+  expect(matchesSurroundingsCloudRequest(image,50.7801,7.1100,valid)).toBe(false);
+  expect(matchesSurroundingsCloudRequest(image,50.7800,7.1101,valid)).toBe(false);
+  expect(matchesSurroundingsCloudRequest({validTime:image.validTime},50.7800,7.1100,valid)).toBe(false);
+  expect(matchesSurroundingsCloudRequest({...image,validTime:'invalid'},50.7800,7.1100,valid)).toBe(false);
+  expect(matchesSurroundingsCloudRequest(image,50.7800,7.1100,NaN)).toBe(false);
+ });
  it('Cloud/SigWx runtime never constructs a pseudo 15-minute interpolated image',()=>{
   const cloud=readFileSync('src/currentSurroundingsCloudImage.ts','utf8');
   const loader=cloud.slice(cloud.indexOf('export async function loadVerifiedSurroundingsCloud('),cloud.indexOf('export function useSurroundingsCloudImage('));
@@ -71,6 +83,7 @@ describe('Umfeld Rad/Sat: 15-min selector uses only admitted ORIGINAL source tim
   expect(loader).not.toContain('interpolateVerifiedSurroundingsCloud(');
   expect(loader).not.toContain('const blend=');
   expect(cloud).toContain('previous.image&&Date.parse(previous.image.validTime)===target');
+  expect(cloud).toContain('matchesSurroundingsCloudRequest(result.image,lat,lon,target)');
   const ui=readFileSync('src/CurrentSurroundings.tsx','utf8');
   expect(ui).not.toContain("cloudForecast.image.temporalMethod==='cloud-linear'");
  });

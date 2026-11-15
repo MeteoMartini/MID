@@ -1,5 +1,6 @@
 import {useEffect,useState} from 'react';
 import {deferSurroundingsCloudRead} from './surroundingsCloudScheduler';
+import {matchesSurroundingsCloudRequest} from './surroundingsCloudOriginalGuard';
 import {cloudWeatherRaster,nativeCloudWeatherPair,synopticCloudWeather,loadCloudWeatherField,type CloudWeatherData} from './cloudWeatherData';
 import {loadEstablishedSynopticIndex,loadSynopticField,type SynopticFrame,type SynopticModel} from './nativeSynopticFields';
 import {loadNativeIndex,loadNativeField} from './nativeModelFields';
@@ -11,6 +12,8 @@ export type SurroundingsCloudImage={
  run:string;
  validTime:string;
  temporalMethod:'original'|'cloud-linear';
+ requestLatitude?:number;
+ requestLongitude?:number;
  originalTimes?:[string,string];
  sigwxTime?:string;
 };
@@ -142,7 +145,7 @@ export function useSurroundingsCloudImage(enabled:boolean,lat:number,lon:number,
     }
    },18000);
    void loadVerifiedSurroundingsCloud(lat,lon,now,controller.signal).then(image=>{
-    if(!controller.signal.aborted)setResult({image,loading:false,unavailable:false});
+    if(!controller.signal.aborted)setResult({image:{...image,requestLatitude:lat,requestLongitude:lon},loading:false,unavailable:false});
    }).catch(()=>{
     if(!controller.signal.aborted)setResult(previous=>previous.image&&Date.parse(previous.image.validTime)===target&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,now)
      ?{...previous,loading:false,unavailable:true}:{image:null,loading:false,unavailable:true});
@@ -154,5 +157,8 @@ export function useSurroundingsCloudImage(enabled:boolean,lat:number,lon:number,
    controller.abort();
   };
  },[enabled,lat,lon,targetBucket]);
- return result;
+ // Hide stale image synchronously before the next useEffect (time or location).
+ // A real failed refresh keeps its NoData/error status rather than claiming loading.
+ return result.image&&!matchesSurroundingsCloudRequest(result.image,lat,lon,target)
+  ?{image:null,loading:result.loading,unavailable:result.unavailable}:result;
 }
