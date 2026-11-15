@@ -27,6 +27,11 @@ for(const mutation of [
  sample.replace('href="./assets/vendor-def.js"','href=""'),
  sample.replace('type="module"','type="text/javascript"'),
  sample.replace('rel="stylesheet"','rel="alternate"'),
+ // URL normalization used to erase encoded dot segments before validation.
+ sample.replace('./assets/index-abc.js','./%2e%2e/assets/index-abc.js'),
+ sample.replace('./assets/index-abc.js','./.%2E/assets/index-abc.js'),
+ sample.replace('./assets/index-abc.js','./%2e/assets/index-abc.js'),
+ sample.replace('./assets/index-abc.js','./assets/%2e%2e/index-abc.js'),
 ])assert.throws(()=>startupAssetEvidence(mutation,inventory));
 assert.equal(startupAssetEvidence(sample.replace('./assets/index-abc.js','./assets/index-abc.js?x=1'),inventory).js.bytes,400);
 console.log('Static startup inventory: file reference, duplication, malformed URLs, CSS and NoData/absent entry checks pass');
