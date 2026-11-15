@@ -171,7 +171,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
     max:document.querySelector('.composite-timeline-range input[type="range"]')?.max,
     status:document.querySelector('.unified-layer-status')?.textContent?.slice(0,400),
     busy:document.querySelector('.unified-layer-status')?.getAttribute('aria-busy'),
-    timelineEvents:window.__qaTimelineInputEvents||[],
+    timelineEvents:JSON.stringify(window.__qaTimelineInputEvents||[]),
     liveButton:document.querySelector('.composite-live-button')?.className,
     chosenTime:document.querySelector('select[aria-label="Kartentermin auswählen"] option:checked')?.getAttribute('data-valid-time')
    }));
