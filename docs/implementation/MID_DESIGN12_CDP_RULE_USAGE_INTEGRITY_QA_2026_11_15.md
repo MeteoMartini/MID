@@ -12,11 +12,15 @@ MID verwendet bereits `scripts/lib/cssRuleUsageDiagnostic.mjs` mit Chromium `CSS
 - `INCOMPLETE_EVIDENCE` bei unlesbaren Stylesheets, Regelverweisen auf unbekannte Stylesheet-IDs, ungültigen Offsets oder ohne auswertbares CSS. Fehlendes CDP-`ruleUsage`-Array ist ein harter Fehler.
 - `TRACKED_SHEETS_RECORDED_NO_REMOVAL_APPROVAL` heißt **nur**, dass in den in diesem Fall erfassten Sheets kein bekannter Erfassungsfehler vorliegt. `fullUiStateCoverageProven:false` und `cssRemovalAuthorized:false` bleiben immer gesetzt.
 - UTF-16-Offsets werden gegen den Original-Quelltext validiert. Überlappende gültige Bereiche werden vereinigt; Bytes werden anschließend als UTF-8-Bytes gemessen. Ungültige Bereiche bleiben als Fehler gezählt und sind nicht als vollständige Messung zu interpretieren.
-- Sechs synthetische Vitest-Fälle in `tests/unit/mid-css-rule-usage-integrity.test.ts`; kein zusätzlicher `scripts/test-*.mjs`-Eintrag und keine Änderung der verpflichtenden Regressionsinventare.
+- Elf synthetische Vitest-Fälle in `tests/unit/mid-css-rule-usage-integrity.test.ts`, darunter fünf neue positive/negative Browser-Gate-Fälle; kein zusätzlicher `scripts/test-*.mjs`-Eintrag und keine Änderung der verpflichtenden Regressionsinventare.
+
+## Browser-QA-Fail-Closed-Integration
+
+Die zwei bestehenden Chromium-Fixtures `scripts/verify-module-css-browser-0985170.mjs` und `scripts/verify-favorites-app-browser-0985242.mjs` erzeugen weiterhin die vollständigen Diagnoseberichte, rufen aber vor einem Case-PASS nun `assertCssRuleUsageComplete` auf. Bei fehlenden/inkonsistenten Stylesheet-Texte-/RuleUsage-Daten führt das zum roten Browser-Gate statt zu falsch vollständig wirkenden Roh-/Used-Bytes. Ein vollständiger gemessener Fall bleibt **nur diagnostisch**, nicht zur CSS-Löschung autorisiert. Die neuen Vitest-Fälle prüfen auch die Einbindung in beide Browser-Fixtures als Regression.
 
 ## Nachweise und offene Gates
 
-Isolierte Node-22-Testfälle wurden lokal bestanden: Unicode/Überlappung, unlesbare und fehlende Stylesheets, unbekannte IDs, Offset außerhalb des Originals und fehlende CDP-Antwort. Der neue Vitest-Test muss noch **auf dem exakten GitHub-Kandidaten-HEAD** laufen. Keine vollständige MID-Source-/Core-/Heavy-Regression, keine Vite-Produktionsbuild-/CSSOM-Browsermatrix, kein WebKit-/echtes iOS-/VoiceOver- oder Installer-/Worker-/Pages-Nachweis wurde mit diesem Draft erbracht.
+Die sechs ursprünglichen Vitest-Testfälle bestanden am ersten GitHub-PR-HEAD `962e4c02646b630384a39c4dd1d89b3768b4c571` (GitHub Run `43755137454`, sechs Fälle). Für den **erweiterten finalen PR-HEAD** sind die elf Unit-Tests und die betroffenen Browser-Fixtures erneut auszuführen; die ursprüngliche Freigabe überträgt sich nicht. Unicode/Überlappung, unlesbare/fehlende Stylesheets, unbekannte IDs, Offset außerhalb des Originals, fehlerhafte CDP-Antwort und negativer Browser-Gate-Fall sind isoliert vertraglich abgesichert. Keine vollständige MID-Source-/Core-/Heavy-Regression, keine Vite-Produktionsbuild-/CSSOM-Browsermatrix, kein WebKit-/echtes iOS-/VoiceOver- oder Installer-/Worker-/Pages-Nachweis wurde mit diesem Draft erbracht.
 
 Vor Übernahme im Leitchat: vollständiger Stable-/main-SHA-, PR-Pfad- und Ruleset-Abgleich, Änderung auf Konflikte prüfen; dann differenzierte Source-/Vitest-/Browser- und meteorologische Nichtregression. Die weitere CSS-Auslagerung setzt eigenständige CSSOM-/Layout-/Pixel-Parität für 320/390/430/834/1024/1440 CSS-Pixel, Light/Dark, Touch/Fokus, Cold-/Warmcache und reale iOS-Abnahme voraus.
 
