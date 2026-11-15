@@ -552,7 +552,7 @@ async function verifySurroundings(width,theme){
   assert.equal(await cloudNext.isDisabled(),true,'The cloud forecast cannot exceed +120 min');
   const readout=cloudTimeline.locator('output');
   assert.equal(await readout.isVisible(),true);
-  assert.match(await readout.innerText(),/\\d{2}\\.\\d{2}\\./,'The same time band shows the absolute date');
+  assert.match(await readout.innerText(),/\d{2}\.\d{2}\./,'The same time band shows the absolute date');
   const bounds=await cloudTimeline.evaluate(el=>({
    buttons:[...el.querySelectorAll('button')].map(node=>node.getBoundingClientRect().height),
    range:el.querySelector('input[type="range"]')?.getBoundingClientRect().height,
