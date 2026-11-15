@@ -36,6 +36,8 @@ if(existsSync(manifestPath)){
  assert.equal(actual.controls.sourceWrites,false);
  assert.ok(actual.summary.declarations>0&&actual.summary.importantDeclarations>0);
  assert.ok(actual.sources.some(x=>x.file==='src/styles-src/30-modern.css'));
+ const metric={...actual.summary,exactLaterMatches:actual.sources.reduce((sum,s)=>sum+s.laterExactMatches,0),largestFour:actual.largestFour};
+ console.log('MID_CSS_OWNERSHIP_DIAGNOSTIC '+JSON.stringify(metric));
  console.log('PASS real canonical CSS read-only scan on current repository');
 }else if(process.env.CI==='true')throw Error('Mandatory canonical CSS manifest missing in CI');
 console.log('PASS CSS ownership collision, context, importance, source bytes, conservative controls and invalid-entry tests');
