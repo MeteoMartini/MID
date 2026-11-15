@@ -1110,7 +1110,8 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs",
+    "scripts/test-css-ownership-0985484.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -2210,7 +2211,8 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs",
+    "scripts/test-css-ownership-0985484.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/chatgpt-pr-gate.yml",
