@@ -385,3 +385,76 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: node tools/ci/mid-draft-regression-preflight.mjs --base "$BASE_SHA" --head "$HEAD_SHA" --run
+
+draft-css-cdp-real-browser-evidence:
+    name: MID Draft · echte Chromium CSS-CDP-Belege (${{ matrix.fixture }})
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.draft == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'chatgpt/v0.9.85.485-css-cdp-integrity-qa' &&
+      github.event.pull_request.base.sha == 'c9fadfcd0969e949a92f414b321627dd3d4fb0cc'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        fixture: [module, favorites]
+    steps:
+      - name: Unveränderten CSS-CDP-QA-HEAD SHA-gebunden laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Freigegebenen Stable als CSS-Paritätsreferenz unverändert laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: MeteoMartini/MID
+          ref: c9fadfcd0969e949a92f414b321627dd3d4fb0cc
+          path: .mid-css-reference
+          persist-credentials: false
+
+      - name: Node.js für die unveränderten Chromium-Fixtures
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Unveränderte Projektabhängigkeiten reproduzierbar installieren
+        shell: bash
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+
+      - name: Browser-Fixture mit echter CSSOM-/Coverage-Regelerfassung prüfen
+        shell: bash
+        timeout-minutes: 19
+        env:
+          MID_EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+          MID_PARITY_BASE: ${{ github.workspace }}/.mid-css-reference
+          FIXTURE: ${{ matrix.fixture }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$MID_EXPECTED_SOURCE_SHA"
+          test "$(git -C .mid-css-reference rev-parse HEAD)" = "c9fadfcd0969e949a92f414b321627dd3d4fb0cc"
+          export GITHUB_SHA="$MID_EXPECTED_SOURCE_SHA"
+          node --check scripts/lib/cssRuleUsageDiagnostic.mjs
+          case "$FIXTURE" in
+            module) node scripts/verify-module-css-browser-0985170.mjs ;;
+            favorites) node scripts/verify-favorites-app-browser-0985242.mjs ;;
+            *) echo "Unknown CSS fixture" >&2; exit 1 ;;
+          esac
+          echo "SHA-bound, real-Chromium CSS-CDP fixture $FIXTURE passed; NOT an iOS/VoiceOver or release approval."
+
+      - name: CSS-CDP-Artefakt des echten Browserlaufs sichern
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-design12-css-cdp-${{ matrix.fixture }}
+          path: |
+            artifacts/css-module-coverage.json
+            artifacts/css-app-coverage.json
+          if-no-files-found: warn
+          retention-days: 7
