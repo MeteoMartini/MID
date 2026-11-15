@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "version": "0.9.85.484",
+  "date": "2026-11-15",
+  "title": "Karten-Zeitqualität, Umfeldwetter und sichere Codeprüfung",
+  "external": [
+    "Karten-Zeitleisten zeigen ihren tatsächlichen Zeitpunkt einschließlich Screenreader-Ansage.",
+    "Umfeldtemperatur bleibt bei Zeit-/Ortswechseln korrekt gebunden, und schnelle PseudoSat-Zeitsprünge laden weniger unnötige Bilder.",
+    "Wartung und CI reduzieren Credential-Persistenz und liefern vollständige überprüfbare Scannerbefunde."
+  ],
+  "internal": [
+    "Quell-SHAs PR #825 11a2c028c5a966094b7d15711b7c65bca4ffe58a; #824 f82c01b0a4fb7a23a1ea9c681ebfcf0b62381c3a; #826 b741bf461c0e439611f3254b3544d43fb3ea5e57; #827 92fefc860d0caf64fc23fbe377dbc9a6bc334a0d; Main/Stable c9fadfcd0969e949a92f414b321627dd3d4fb0cc.",
+    "33 SHA-identische Source-/QA-Diff-Pfade und sämtliche Versionsspiegel 0.9.85.484, kein externes AI/IR10.8-Raster.",
+    "Vollständige Source-/Core-/Heavy-/Installer-/Worker-/Pages- und Security-Gates erst auf finale Kombination anwenden; kein automatisches PASS."
+  ]
+}

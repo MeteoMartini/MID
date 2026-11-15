@@ -12,7 +12,8 @@ import {VectorReferenceLayer} from './MapLibreLegacyCompat';
 import UnifiedVectorBasemap from './UnifiedVectorBasemap';
 import {compositeReferenceLayers} from './mapReferenceLayers';
 import {chooseSurroundingsCities,citiesFromMapFeatures,type SurroundingsCityCandidate} from './surroundingsCitySelection';
-import {loadSurroundingsTemperatures,type SurroundingsTemperatureSnapshot} from './currentSurroundingsTemperature';
+import {loadSurroundingsTemperatures} from './currentSurroundingsTemperature';
+import {currentSurroundingsTemperature,type SurroundingsTemperatureRequest} from './surroundingsTemperatureDisplay';
 import './CurrentSurroundings.css';
 
 export type SurroundingsBounds={west:number;south:number;east:number;north:number};
@@ -247,17 +248,28 @@ export default function CurrentSurroundings(props:Props){
  const temperatureTarget=mode==='cloud'?cloudTarget:Math.floor(now/(10*60000))*10*60000;
  const siteId=`site:${lat.toFixed(5)}:${lon.toFixed(5)}`;
  const temperaturePlaces=useMemo(()=>[...nearbyCities,{id:siteId,lat,lon}], [nearbyCities,siteId,lat,lon]);
- const [temperatureGrid,setTemperatureGrid]=useState<SurroundingsTemperatureSnapshot>();
+ const temperaturePlacesKey=useMemo(
+  ()=>temperaturePlaces.map(place=>`${place.id}:${place.lat.toFixed(5)}:${place.lon.toFixed(5)}`).join('|'),
+  [temperaturePlaces]
+ );
+ const temperatureInterpolate=mode==='cloud'&&cloudStep>0;
+ const [temperatureRequest,setTemperatureRequest]=useState<SurroundingsTemperatureRequest>();
  useEffect(()=>{
-  if(selection!==undefined||!nearbyCities.length){setTemperatureGrid(undefined);return;}
+  if(selection!==undefined||!nearbyCities.length){setTemperatureRequest(undefined);return;}
   const controller=new AbortController();
   // One bounded forecast request for up to four real places; entirely independent of radar.
-  void loadSurroundingsTemperatures(temperaturePlaces,temperatureTarget,controller.signal,mode==='cloud'&&cloudStep>0)
-   .then(result=>{if(!controller.signal.aborted)setTemperatureGrid(result)})
-   .catch(()=>{if(!controller.signal.aborted)setTemperatureGrid(undefined)});
+  // Bind the response to its requested time/places/method: the provider's validTime
+  // may be the same for multiple quarter-hour selections and cannot act as a request key.
+  const requested={targetTime:temperatureTarget,placesKey:temperaturePlacesKey,interpolate:temperatureInterpolate};
+  void loadSurroundingsTemperatures(temperaturePlaces,temperatureTarget,controller.signal,temperatureInterpolate)
+   .then(result=>{if(!controller.signal.aborted)setTemperatureRequest({...requested,snapshot:result})})
+   .catch(()=>{if(!controller.signal.aborted)setTemperatureRequest({...requested,snapshot:undefined})});
   return ()=>controller.abort();
- },[selection,temperatureTarget,temperaturePlaces,mode,cloudStep]);
- const temperatures=selection===undefined?temperatureGrid?.values:undefined;
+ },[selection,temperatureTarget,temperaturePlaces,temperaturePlacesKey,temperatureInterpolate,nearbyCities.length]);
+ const temperatureGrid=selection===undefined
+  ?currentSurroundingsTemperature(temperatureRequest,temperatureTarget,temperaturePlacesKey,temperatureInterpolate)
+  :undefined;
+ const temperatures=temperatureGrid?.values;
  const forecastSiteTemperature=mode==='cloud'&&cloudStep>0?temperatures?.[siteId]:undefined;
  const displaySiteTemperature=mode==='cloud'&&cloudStep>0?forecastSiteTemperature:selection===undefined&&Number.isFinite(temperature)?temperature:undefined;
  const visibleClouds=Boolean(clouds&&cloudError!==clouds);
@@ -271,6 +283,7 @@ export default function CurrentSurroundings(props:Props){
    <button type="button" aria-label="Wolkenprognose 15 Minuten zurück" disabled={cloudStep===0} onClick={()=>setCloudStep(v=>Math.max(0,v-1))}>−15 min</button>
    <input type="range" min={0} max={9} step={1} value={cloudStep}
     aria-label={`Wolkenprognose: ${cloudStep===0?'letzter Viertelstundentermin':`in ${cloudRelativeMinutes} Minuten`} · Ziel ${datedClock(cloudTarget)} Uhr`}
+    aria-valuetext={`${cloudStep===0?'Letzter Viertelstundentermin':`in ${cloudRelativeMinutes} Minuten`} · ${datedClock(cloudTarget)} Uhr`}
     onChange={event=>setCloudStep(Math.max(0,Math.min(9,Number(event.target.value))))}/>
    <button type="button" aria-label="Wolkenprognose 15 Minuten vor" disabled={cloudStep===9} onClick={()=>setCloudStep(v=>Math.min(9,v+1))}>+15 min</button>
    <output aria-live="polite" className="current-surroundings-time-readout">{cloudStep===0?'Letzter 15-min-Termin':`in ${cloudRelativeMinutes} min`} · {datedClock(cloudTarget)} Uhr</output>
