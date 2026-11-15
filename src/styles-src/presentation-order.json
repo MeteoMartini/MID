@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "description": "Canonical initial CSS order: 69 eager sources; optional pollen styles move only with the deferred PollenForecast module (CSS cascade regression must still prove historical order).",
+  "description": "Canonical initial CSS order: 68 eager sources. Pollen and MountainWeather own deferred stylesheets; historical cascade and browser parity must be verified.",
   "sources": [
     "src/styles-src/00-foundation.css",
     "src/styles-src/10-features.css",
@@ -63,7 +63,6 @@
     "src/midC18WorkPackageI.css",
     "src/midC18I7ResponsiveFixes.css",
     "src/midC18FourteenReplitFluidGrid.css",
-    "src/midC18MountainResponsiveFix.css",
     "src/midC18MapAndSevenDayAlignment.css",
     "src/midC18AuditFollowup.css",
     "src/midC21CurrentWeather.css",

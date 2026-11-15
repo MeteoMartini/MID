@@ -1,3 +1,10 @@
+# MID v0.9.85.483
+
+- **Startmodule entlastet:** Benachrichtigungen, iCloud-Sicherheitskopie, Wetterzwilling und Verbindungsdiagnose laden ihre Einstellungsoberflächen erst bei Bedarf. Bestehende Bedienung, Push-/Datenfachlogik und gespeicherte Einstellungen bleiben erhalten.
+- **Performancebudgets erweitert:** SHA-gebundene Produktionsbuild-Messung für Start-CSS und HTML-referenziertes JavaScript, mit zusätzlichen Obergrenzen und Negativtests. Fehlende Mess- und Herkunftsdaten gelten nicht als bestanden.
+- **Quellen und Warnungen unverändert:** Keine Änderung an Wettermodellen, amtlichen Warnungen, Prognose-Originalwerten oder physikalischen Einheiten. Bei der Performancearbeit wurden CSS-Änderungen nur mit gesondertem Vergleich geprüft.
+- **Umfeldwetter im Viertelstundentakt:** Die Wolken-/SigWx-Karte wählt feste UTC-Viertelstunden-Ziele mit gültigem Originalfeld-Vorrang, kompakter Quellenzeit und konsistenter Übergabe in die große Karte; Wettercodes und extreme Werte werden nicht künstlich interpoliert. Die ortsbezogene Temperatur wird von eigenen Best-Match-Stundenwerten abgeleitet und ist nicht als natives 15-Minuten-Original ausgewiesen.
+
 # MID v0.9.85.482
 
 - **Wetterdatenqualität verständlicher prüfen:** Die interne Datenquellenkontrolle unterscheidet jetzt technische Verbindungsprobleme von HTTP-Störungen des Wetterdienstes und tatsächlich fehlerhaften API-Antworten. Ein nicht erreichbarer Anbieter wird nicht länger fälschlich als geändertes Datenformat bezeichnet.

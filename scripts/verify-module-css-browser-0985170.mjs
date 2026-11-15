@@ -49,12 +49,13 @@ async function measureCssCoverage(item,width,height,theme){
 }
 async function snapshot(page){
  await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(120);
- return page.locator('#qa-feature').evaluate(root=>[...root.querySelectorAll('*')].map(node=>{const style=getComputedStyle(node),rect=node.getBoundingClientRect(),origin=root.getBoundingClientRect();return {tag:node.tagName,classes:node.getAttribute('class'),text:node.children.length?'':node.textContent.trim(),box:[rect.x-origin.x,rect.y-origin.y,rect.width,rect.height].map(x=>Math.round(x*100)/100),style:['display','position','color','backgroundColor','fontSize','fontWeight','lineHeight','whiteSpace','overflowX','overflowY','minWidth','minHeight','padding','margin','borderRadius','gridTemplateColumns','gap','fill','stroke','stopColor','stopOpacity'].map(key=>style[key])};}));
+ return page.locator('#qa-feature').evaluate(root=>[...root.querySelectorAll('*')].map(node=>{const style=getComputedStyle(node),rect=node.getBoundingClientRect(),origin=root.getBoundingClientRect();return {tag:node.tagName,classes:node.getAttribute('class'),text:node.children.length?'':node.textContent.trim().replace(/\bMID v\d+\.\d+\.\d+\.\d+\b/g,'MID v[VERSION]').replace(/(Kurzzeitspeicher · )\d+ s alt( · Cache maximal \d+ min)/g,'$1[AGE] s alt$2'),box:[rect.x-origin.x,rect.y-origin.y,rect.width,rect.height].map(x=>Math.round(x*100)/100),style:['display','position','color','backgroundColor','fontSize','fontWeight','lineHeight','whiteSpace','overflowX','overflowY','minWidth','minHeight','padding','margin','borderRadius','gridTemplateColumns','gap','fill','stroke','stopColor','stopOpacity'].map(key=>style[key])};}));
 }
 try{
- for(const [width,height]of [[320,568],[390,844],[412,915],[844,390],[834,1194],[1024,768],[1440,900]])for(const theme of ['light','dark']){
+ for(const [width,height]of [[320,568],[390,844],[412,915],[430,932],[844,390],[834,1194],[1024,768],[1440,900]])for(const theme of ['light','dark']){
   const current=await openPage(active,width,height,theme),reference=baseline?await openPage(baseline,width,height,theme):null;
   assert.ok(!current.requests.some(url=>/\/src\/(WidgetGenerator|MountainWeather)\.tsx/.test(url)),'Closed optional panels must not request their modules');
+  assert.ok(!current.requests.some(url=>url.includes('/src/midC18MountainResponsiveFix.css')),'Closed mountain view must not fetch its deferred CSS');
   for(const item of [current,reference].filter(Boolean)){await item.page.getByRole('button',{name:'Widget laden',exact:true}).click();await item.page.locator('.weatherwidget').waitFor();}
   assert.ok(current.requests.some(url=>url.includes('/src/WidgetGenerator.tsx')),'Widget module must load when opened');
   for(const view of ['cards','curve','ensemble']){
@@ -85,8 +86,21 @@ try{
   assert.equal(await current.page.evaluate(()=>window.qaEnsembleRequested),true,'Curve/ensemble must request canonical ensemble support');
   for(const item of [current,reference].filter(Boolean)){await item.page.getByRole('button',{name:'Bergwetter laden',exact:true}).click();try{await item.page.locator('.mountain-current-source').waitFor();await item.page.locator('.mountain-seven-day-row').first().waitFor();await item.page.waitForFunction(()=>document.querySelector('.mountain-enrichment-disclosure summary strong')?.textContent==='Datenhinweise');}catch(error){console.error(JSON.stringify({width,theme,baseline:item===reference,errors:item.errors,requests:item.requests.slice(-12),body:await item.page.locator('body').innerText()}));throw error;}}
   assert.ok(current.requests.some(url=>url.includes('/src/MountainWeather.tsx')),'Mountain module must load when opened');
+  assert.ok(current.requests.some(url=>url.includes('/src/midC18MountainResponsiveFix.css')),'Opening mountain weather must fetch its deferred responsive stylesheet');
   assert.equal(await current.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`${width}/${theme}/mountain: page overflow`);
   if(reference){assert.deepEqual(await snapshot(current.page),await snapshot(reference.page),`${width}/${theme}/mountain: visual/layout divergence from configured reference`);parity++;}cases++;
+  // Re-enter the lazy view after another view to catch stale styles, duplicate loading and geometry drift.
+  const firstCssRequests=current.requests.filter(url=>url.includes('/src/midC18MountainResponsiveFix.css')).length;
+  for(const item of [current,reference].filter(Boolean)){
+   await item.page.getByRole('button',{name:'Widget laden',exact:true}).click();
+   await item.page.locator('.weatherwidget').waitFor();
+   await item.page.getByRole('button',{name:'Bergwetter laden',exact:true}).click();
+   await item.page.locator('.mountain-seven-day-row').first().waitFor();
+  }
+  assert.equal(current.requests.filter(url=>url.includes('/src/midC18MountainResponsiveFix.css')).length,firstCssRequests,
+   `${width}/${theme}: mountain CSS must not be fetched twice after reopening`);
+  assert.equal(await current.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`${width}/${theme}/mountain-reentry: page overflow`);
+  if(reference){assert.deepEqual(await snapshot(current.page),await snapshot(reference.page),`${width}/${theme}/mountain-reentry: reference geometry/styles diverge`);parity++;}cases++;
   assert.deepEqual(current.errors,[],'Optional module caused a runtime error');if(reference)assert.deepEqual(reference.errors,[]);
   cssCoverage.push(await measureCssCoverage(current,width,height,theme));
   await current.context.close();if(reference)await reference.context.close();

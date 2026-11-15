@@ -102,6 +102,218 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+  draft-performance-build-evidence:
+    name: MID Draft · unabhängiger CSS/JS-Diagnosebuild
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.draft == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (startsWith(github.head_ref, 'chatgpt/') || startsWith(github.head_ref, 'codex/')) &&
+      contains(github.head_ref, '-performance-')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Performance-Draft auf exakten Quell-SHA binden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Node.js 22 für den unveränderten MID-Build
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Reproduzierbare Abhängigkeiten installieren
+        shell: bash
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: Read-only QA-Build und SHA-gebundene Startup-Budgets prüfen
+        shell: bash
+        env:
+          MID_EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          SOURCE_HEAD=$(git rev-parse HEAD)
+          echo "Diagnostic checkout SHA: $SOURCE_HEAD; expected: $MID_EXPECTED_SOURCE_SHA"
+          test "$SOURCE_HEAD" = "$MID_EXPECTED_SOURCE_SHA"
+          export GITHUB_SHA="$MID_EXPECTED_SOURCE_SHA"
+          npm run build
+          node scripts/test-bundle-budget-098594.mjs
+          node scripts/check-build-budget.mjs
+          node scripts/measure-startup-assets-0985482.mjs dist
+          node scripts/audit-css-move-candidates-0985482.mjs
+          node scripts/test-versioning.mjs
+          node -e 'const f=require("node:fs");const i=JSON.parse(f.readFileSync("dist/mid-build-identity.json"));if(i.sourceGitSha!==process.env.MID_EXPECTED_SOURCE_SHA)throw Error("Build-Identität passt nicht zum Performance-Draft-HEAD");console.log("SHA-bound diagnostic build",i.sourceGitSha,"fingerprint",i.assetsSha256)'
+          {
+            echo '### MID Performance-Draft: unabhängig gebaut (keine Releasefreigabe)'
+            echo
+            echo '```json'
+            node -e 'const j=require("./artifacts/build-budget.json");console.log(JSON.stringify({ok:j.ok,totals:j.totals,failures:j.failures},null,2))'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Diagnosedaten des Performance-Drafts sichern
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-draft-performance-build-evidence
+          path: |
+            artifacts/build-budget.json
+            artifacts/startup-assets-0985482.json
+            artifacts/css-move-risk-0985482.json
+            dist/mid-build-identity.json
+          if-no-files-found: warn
+          retention-days: 7
+
+
+
+  draft-css-mountain-browser-parity:
+    name: MID Draft · Mountain CSS Original-Vergleich (16 reale Chromium-Profile)
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.draft == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'chatgpt/v0.9.85.483-css-js-performance-integration'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 26
+    permissions:
+      contents: read
+    steps:
+      - name: Kandidatenquellen auf exakt geprüften SHA
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Verifizierten .482-Stable als unveränderliche Layoutreferenz laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: MeteoMartini/MID
+          ref: f9c0b182b0e11278651e2afa13039015e1aa0f0b
+          path: .mid-css-reference
+          persist-credentials: false
+      - name: Node 22 für unveränderte Vite-/Chromium-Fixtures
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          package-manager-cache: false
+      - name: Nur vertraglich festgeschriebene Pakete installieren
+        shell: bash
+        timeout-minutes: 8
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: Historischen CSS-Golden und echte Chromium-Viewport-Parität prüfen
+        timeout-minutes: 18
+        shell: bash
+        env:
+          MID_EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+          MID_PARITY_BASE: ${{ github.workspace }}/.mid-css-reference
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$MID_EXPECTED_SOURCE_SHA"
+          test "$(git -C .mid-css-reference rev-parse HEAD)" = "f9c0b182b0e11278651e2afa13039015e1aa0f0b"
+          export GITHUB_SHA="$MID_EXPECTED_SOURCE_SHA"
+          node scripts/test-deferred-mountain-css-0985483.mjs
+          node scripts/test-module-css-consolidation-0985170.mjs
+      - name: Regelverwendungsdiagnose ablegen (kein Release-Gate-Ersatz)
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-css-mountain-parity-evidence
+          path: artifacts/css-module-coverage.json
+          if-no-files-found: warn
+          retention-days: 7
+
+
+  draft-performance-map-postgc-evidence:
+    name: MID Draft · vollständiger 20-Zyklen-Post-GC-Kartentest
+    needs: draft-css-mountain-browser-parity
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.draft == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'chatgpt/v0.9.85.483-css-js-performance-integration' &&
+      needs['draft-css-mountain-browser-parity'].result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - name: Unveränderlichen PR-Quellstand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Node 22.16 einrichten
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          package-manager-cache: false
+      - name: Lockfile-Abhängigkeiten installieren
+        timeout-minutes: 8
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: RUC-Python-Testumgebung gemäß bestehendem Vollregressionsvertrag
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tools/ruc/requirements-pages.txt
+      - name: Reproduzierbare Python-/RUC-Abhängigkeiten
+        timeout-minutes: 5
+        run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+      - name: Alle unveränderten Kartenfälle des 1/3-Shards und 20 Post-GC-Rundwechsel
+        timeout-minutes: 18
+        shell: bash
+        env:
+          MID_EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+          MID_REGRESSION_SHARD: heavy-unified-map
+          MID_MAP_QA_SHARD: '1/3'
+          MID_REGRESSION_VERBOSE: '1'
+          MID_REGRESSION_JOBS: '1'
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$MID_EXPECTED_SOURCE_SHA"
+          export GITHUB_SHA="$MID_EXPECTED_SOURCE_SHA"
+          npm run build
+          npm run test:regressions
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+          import {mapBrowserCases} from './scripts/map-browser-shards.mjs';
+          const report=JSON.parse(readFileSync('/tmp/mid-map-runtime-baseline-1_3.json','utf8'));
+          assert.equal(report.schema,'mid.map.runtime.fixture.v2');
+          assert.equal(report.commit,process.env.MID_EXPECTED_SOURCE_SHA);
+          assert.equal(report.version,'0.9.85.483');
+          assert.equal(report.shard,'1/3');
+          const functional=report.cases.filter(x=>x.caseKind==='functional-matrix');
+          assert.equal(functional.length,mapBrowserCases('1/3').length,'Full mapped browser cases must execute');
+          const samples=report.cases.filter(x=>x.caseKind==='isolated-memory-cycles');
+          assert.equal(samples.length,1,'Exactly one full 20-cycle Post-GC memory case required');
+          const memory=samples[0].memoryProfile;
+          assert.ok(memory,'Missing real CDP-GC observations');
+          assert.equal(memory.completedCycles,20);
+          assert.deepEqual(memory.samples.map(x=>x.cycle),[0,5,10,15,20]);
+          for(const row of memory.samples)for(const k of ['usedHeapBytes','allocatedHeapBytes','documents','nodes','listeners'])
+            assert.ok(Number.isFinite(row[k])&&row[k]>=0,'Invalid '+k);
+          mkdirSync('artifacts',{recursive:true});
+          const artifact={schema:'mid.map.postgc.draft.v1',sourceSha:report.commit,
+            note:'Synthetic Chromium MapLibre fixture only: not a leak verdict, GPU metric, iOS or user CWV',
+            cases:functional.length,viewport:samples[0].width,theme:samples[0].theme,design:samples[0].design,memory};
+          writeFileSync('artifacts/map-postgc-0985483.json',JSON.stringify(artifact,null,2)+'\n');
+          console.log('MID_POST_GC_EVIDENCE '+JSON.stringify({sourceSha:report.commit,
+            mapCases:functional.length,cycles:memory.completedCycles,heapDeltaBytes:memory.heapDeltaBytes,
+            nodeDelta:memory.nodeDelta,listenerDelta:memory.listenerDelta}));
+          NODE
+      - name: Unveränderte Laufzeit-Samples speichern
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-performance-map-postgc-evidence
+          path: |
+            artifacts/map-postgc-0985483.json
+            /tmp/mid-map-runtime-baseline-1_3.json
+          if-no-files-found: warn
+          retention-days: 7
+
   draft-regression-preflight:
     name: MID Draft · gezielte Regressionen
     if: >-

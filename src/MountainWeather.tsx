@@ -1,3 +1,4 @@
+import './midC18MountainResponsiveFix.css';
 import {useDisplayPreference,displayChoice,displayBoolean} from './useDisplayPreference';
 import {formatVisibility,formatWeatherValue} from './weatherValueFormat';
 // Extracted from App: canonical MountainWeather implementation, shared by every consumer.

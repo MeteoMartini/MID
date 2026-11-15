@@ -11,7 +11,10 @@ describe('MID #344 Pollen CSS split: lossless source QA; browser parity separate
   expect(app).toContain("lazy(()=>import('./PollenForecast').then(module=>({default:module.PollenForecast})))");
   expect(component.startsWith("import './midPollen.css';\n")).toBe(true);
   expect(manifest.sources).not.toContain('src/midPollen.css');
-  expect(manifest.sources).toHaveLength(69);
+  expect(manifest.sources).toHaveLength(68);
+  expect(manifest.sources).not.toContain('src/midC18MountainResponsiveFix.css');
+  expect(read('src/MountainWeather.tsx')).toMatch(/^import '\.\/midC18MountainResponsiveFix\.css';\n/);
+  expect(read('src/midPresentation.css')).not.toContain(read('src/midC18MountainResponsiveFix.css'));
   expect(new Set(manifest.sources).size).toBe(manifest.sources.length);
   const generated=read('src/midPresentation.css'),pollen=read('src/midPollen.css');
   expect(generated).not.toContain('/* MID Pollenflug');
@@ -23,24 +26,24 @@ describe('MID #344 Pollen CSS split: lossless source QA; browser parity separate
   expect(vite).toContain('metadata?.importedCss');
   expect(vite).toContain('pollenRoots');
  });
- it('independently regenerates the 69-source cascade without changing the immutable golden',()=>{
+ it('independently regenerates the 68-source startup cascade with the original historical golden intact',()=>{
   const code=[
    "import assert from 'node:assert/strict';",
    "import {readFileSync} from 'node:fs';",
    "import {pathToFileURL} from 'node:url';",
    "import {activeCssSources,loadCssCascade,consolidateCssCascade,renderConsolidatedCss} from './scripts/lib/cssCascade.mjs';",
    "const root=pathToFileURL(process.cwd()+'/');",
-   "assert.equal(activeCssSources(root).length,69);",
+   "assert.equal(activeCssSources(root).length,68);",
    "const entries=loadCssCascade(root);",
    "consolidateCssCascade(entries);",
    "assert.equal(renderConsolidatedCss(entries),readFileSync('src/midPresentation.css','utf8'));",
-   "console.log('Canonical lazy-pollen CSS source cascade 69/69 exact, no browser claimed.');"
+   "console.log('Canonical CSS source cascade 68/68 exact; pollen and mountain deferred; no browser claimed.');"
   ].join('\n');
   const r=spawnSync(process.execPath,['--input-type=module','-e',code],{
    encoding:'utf8',timeout:30000,env:{...process.env,NODE_ENV:'production'}
   });
   expect(r.status,[r.stdout,r.stderr,r.error?.message].filter(Boolean).join('\n')).toBe(0);
-  expect(r.stdout).toContain('69/69 exact');
+  expect(r.stdout).toContain('68/68 exact');
   const original=read('scripts/test-module-css-consolidation-0985170.mjs');
   expect(original).toContain("originalEntries.splice(historicPollenIndex,0");
   expect(original).toContain("cssCascadeFingerprint(originalEntries),baseline.cssCascadeSha256");

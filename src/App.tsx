@@ -43,11 +43,15 @@ import {startVisibleSolarClock} from './visibleSolarClock';
 import {applyMountainProfile,defaultMountainConfig,mountainProfile,mountainProfileSourceLabel,normalizeMountainConfig,type MountainConfig,type MountainSeason} from './mountainSports';
 
 import {DEFAULT_PUSH_PRECIPITATION_ALERT,syncPushNotifications,type PushNotificationInterval,type PushPrecipitationAlertSettings,type PushPrecipitationDurationMinutes,type PushPrecipitationLeadMinutes,type PushPrecipitationThresholdMm,type PushRuleFavorite} from './pushNotifications';
-import {PushSettingsPanel} from './PushSettingsPanel';
+const LazyPushSettingsPanel=lazy(()=>import('./PushSettingsPanel').then(module=>({default:module.PushSettingsPanel})));
+function PushSettingsPanel(props:Parameters<typeof import('./PushSettingsPanel').PushSettingsPanel>[0]){return <Suspense fallback={<section className="settings-content-loading" role="status" aria-live="polite">Benachrichtigungseinstellungen werden geladen …</section>}><LazyPushSettingsPanel {...props}/></Suspense>}
 import {DeviceSyncSettings} from './DeviceSyncSettings';
-import {ICloudBackupSettings} from './ICloudBackupSettings';
-import {WeatherTwinSettings as WeatherTwinSettingsPanel} from './WeatherTwinSettings';
-import {DataConnectionDiagnostics} from './DataConnectionDiagnostics';
+const LazyICloudBackupSettings=lazy(()=>import('./ICloudBackupSettings').then(module=>({default:module.ICloudBackupSettings})));
+function ICloudBackupSettings(props:Parameters<typeof import('./ICloudBackupSettings').ICloudBackupSettings>[0]){return <Suspense fallback={<section className="settings-content-loading" role="status" aria-live="polite">iCloud-Sicherung wird geladen …</section>}><LazyICloudBackupSettings {...props}/></Suspense>}
+const LazyWeatherTwinSettingsPanel=lazy(()=>import('./WeatherTwinSettings').then(module=>({default:module.WeatherTwinSettings})));
+function WeatherTwinSettingsPanel(props:Parameters<typeof import('./WeatherTwinSettings').WeatherTwinSettings>[0]){return <Suspense fallback={<section className="settings-content-loading" role="status" aria-live="polite">Wetterzwilling-Einstellungen werden geladen …</section>}><LazyWeatherTwinSettingsPanel {...props}/></Suspense>}
+const LazyDataConnectionDiagnostics=lazy(()=>import('./DataConnectionDiagnostics').then(module=>({default:module.DataConnectionDiagnostics})));
+function DataConnectionDiagnostics(props:Parameters<typeof import('./DataConnectionDiagnostics').DataConnectionDiagnostics>[0]){return <Suspense fallback={<section className="settings-content-loading" role="status" aria-live="polite">Verbindungsdiagnose wird geladen …</section>}><LazyDataConnectionDiagnostics {...props}/></Suspense>}
 import {VentilationAssistantPanel} from './VentilationAssistantPanel';
 import {fetchConnectedStation,readConnectedStationConfig,type ConnectedStationObservation} from './connectedStation';
 import {readVentilationAssistantSettings,ventilationPushConfig,type VentilationAssistantSettings} from './ventilationAssistant';

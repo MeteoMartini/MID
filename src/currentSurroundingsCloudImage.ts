@@ -38,10 +38,12 @@ export function chooseSurroundingsCloudFrames(
    .sort((a,b)=>Math.abs(Date.parse(a.ref.time)-now)-Math.abs(Date.parse(b.ref.time)-now));
   if(records[0])candidates.push({modelId,model,ref:records[0].ref,independent:records[0].independent});
  }
- return candidates;
+ // An exact UTC original outranks an interpolated product from a higher-priority model.
+ // Within each class, preserve the established ICON family priority.
+ return candidates.sort((a,b)=>Number(Date.parse(b.ref.time)===now)-Number(Date.parse(a.ref.time)===now));
 }
 
-/** The highest-priority candidate remains the default; the loader may retry other proven models. */
+/** The highest-priority exact original wins; otherwise preserve established source order. */
 export function chooseSurroundingsCloudFrame(models:Record<string,SynopticModel>,now:number){
  return chooseSurroundingsCloudFrames(models,now)[0]??null;
 }
@@ -91,6 +93,14 @@ export async function loadVerifiedSurroundingsCloud(lat:number,lon:number,now:nu
   for(const selected of chooseSurroundingsCloudFrames(index.models,now)){
    const {modelId,model,ref,independent}=selected;
    try{
+    // Never interpolate when an exact SHA-verified original is available,
+    // even if two adjacent original frames also exist.
+    if(Date.parse(ref.time)===now){
+     const exact=independent
+      ?await loadCloudWeatherField(base,modelId,model,ref,signal)
+      :synopticCloudWeather(await loadSynopticField(base,modelId,model,ref,signal));
+     return displayCloudFrame(exact,model.label,lat,lon,now);
+    }
     const siblings=[
      ...(model.cloudWeatherFrames??[]).map(item=>({ref:item,independent:true})),
      ...model.frames.filter(item=>item.cloudWeather===true).map(item=>({ref:item,independent:false}))

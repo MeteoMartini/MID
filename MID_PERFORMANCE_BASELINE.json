@@ -12,7 +12,9 @@
     "largestJsGzipBytes": 950000,
     "initialCssGzipBytes": 320000,
     "initialCssBytes": 1760000,
-    "initialCssBrotliBytes": 225000
+    "initialCssBrotliBytes": 225000,
+    "initialJsBytes": 2400000,
+    "initialJsGzipBytes": 750000
   },
   "metricDefinitions": {
     "totalGzipBytes": "Diagnostische/hart gedeckelte gzip-9-Summe aller Dist-Dateien einschließlich bereits komprimierter Medien.",
@@ -20,6 +22,8 @@
     "staticMediaBytes": "Unkomprimierte Dateigröße bereits komprimierter statischer Medien/Fonts (.png/.jpg/.jpeg/.webp/.avif/.gif/.ico/.woff/.woff2/.ttf/.otf). Verhindert Medienwachstum unabhängig vom Codebudget.",
     "initialCssGzipBytes": "Harte gzip-9-Grenze von 320.000 B über alle aus dist/index.html referenzierten Stylesheets; kein gemessener Netztransfer.",
     "initialCssBytes": "Harte Rohbyte-Grenze aller im gebauten HTML direkt referenzierten Start-CSS-Dateien zusammen; kein heuristischer Einzelindex-Chunkschätzwert.",
-    "initialCssBrotliBytes": "Harte Brotli-6-Grenze von 225.000 B über alle aus dist/index.html referenzierten Stylesheets; kein gemessener Netztransfer oder Renderzeitwert."
+    "initialCssBrotliBytes": "Harte Brotli-6-Grenze von 225.000 B über alle aus dist/index.html referenzierten Stylesheets; kein gemessener Netztransfer oder Renderzeitwert.",
+    "initialJsBytes": "Rohbytes deduplizierter in dist/index.html per script type=module oder link rel=modulepreload referenzierter JS-Dateien; kein transitiver Importgraph, Netztransfer oder Heap.",
+    "initialJsGzipBytes": "Hartes Zusatzbudget: gzip-9-Summe der HTML-Startmodule und modulepreload-Assets; keine gemessene Netzwerkübertragung oder Laufzeit-Speicherbelegung."
   }
 }

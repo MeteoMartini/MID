@@ -168,7 +168,7 @@ for(const file of files.keys())assert.ok(!/from ['"]\.\/App['"]|import\(['"]\.\/
 assert.match(read('src/WidgetGenerator.tsx'),/SevenDayCurveOverview/,'Widget must retain the common curve renderer');
 assert.match(read('src/WidgetGenerator.tsx'),/freezeWidgetSvgPaintsForExport/,'PNG export must retain resolved SVG paints');
 assert.match(read('src/MountainWeather.tsx'),/mountainSportsForecast\(loc,config,controller.signal/,'Mountain data acquisition must retain cancellation');
-assert.deepEqual(activeCssSources(root),[...baseline.cssSources.filter(file=>file!=='src/midPollen.css'),'src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css','src/midC48TabletTimeline.css'],'Only reviewed lazy Pollen CSS may leave the original eager cascade; all other source order remains immutable');
+assert.deepEqual(activeCssSources(root),[...baseline.cssSources.filter(file=>file!=='src/midPollen.css'&&file!=='src/midC18MountainResponsiveFix.css'),'src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css','src/midC48TabletTimeline.css'],'Only reviewed Pollen and Mountain CSS may leave the original eager cascade; remaining order stays immutable');
 const originalEntries=loadCssCascade(root).filter(entry=>!['src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css','src/midC28MapPhase.css','src/midC48TabletTimeline.css'].includes(entry.file));
 // QA-only reconstruction of the *immutable* .169 stylesheet fingerprint.
 // Production stays split: Pollen CSS remains owned exclusively by its lazy
@@ -180,6 +180,13 @@ const pollenOnlyCss=read('src/midPollen.css');
 assert.ok(read('src/PollenForecast.tsx').startsWith("import './midPollen.css';\n"),'Deferred Pollen component must own the extracted CSS');
 assert.ok(pollenOnlyCss.includes('.pollen-forecast')&&pollenOnlyCss.includes(':root[data-theme="high-contrast"]'),'Pollen content and high-contrast contract must stay unchanged');
 originalEntries.splice(historicPollenIndex,0,{file:'src/midPollen.css',original:pollenOnlyCss,tree:postcss.parse(pollenOnlyCss)});
+const historicMountainIndex=baseline.cssSources.indexOf('src/midC18MountainResponsiveFix.css');
+assert.equal(historicMountainIndex,62,'Mountain responsive CSS must retain its original historic slot');
+const mountainStyle=read('src/midC18MountainResponsiveFix.css');
+assert.ok(read('src/MountainWeather.tsx').startsWith("import './midC18MountainResponsiveFix.css';\n"),'Only deferred mountain module may import its stylesheet');
+assert.ok(!read('src/midPresentation.css').includes(mountainStyle),'Deferred mountain CSS must not remain in the global build');
+originalEntries.splice(historicMountainIndex,0,{file:'src/midC18MountainResponsiveFix.css',original:mountainStyle,tree:postcss.parse(mountainStyle)});
+
 const entries=loadCssCascade(root),removed=consolidateCssCascade(entries);
 // C55: ten exact, intentionally reviewed dashboard/common-touch changes.
 // Require each complete current fragment exactly once, then restore ONLY it on
