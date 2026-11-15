@@ -64,7 +64,7 @@ class IR108Tests(unittest.TestCase):
         self.assertEqual(a["channelIdentity"], "AMBIGUOUS_IR_OR_WV")
         self.assertEqual(a["valueAndMissingQuality"], "NOT_EVALUATED")
 
-    def test_spectral_key_disambiguation_remains_historical_not_release(self):
+    def test_live_pdt32_spectral_key_disambiguation_remains_shadow_only(self):
         spectral = fixture()
         spectral.update({
             "productDefinitionTemplateNumber": 31,
@@ -77,7 +77,7 @@ class IR108Tests(unittest.TestCase):
         })
         result = validate_header(spectral, RUN)
         self.assertEqual(result["channelIdentity"],
-                         "HISTORICAL_DWD_SEVIRI_IR108_SPECTRAL_MATCH")
+                         "DWD_PDT32_SEVIRI_IR108_SPECTRAL_MATCH")
         self.assertAlmostEqual(result["centralWaveNumberPerMetre"], 92592.0)
         self.assertAlmostEqual(result["wavelengthMicrometres"], 10.8, places=1)
         self.assertEqual(result["valueAndMissingQuality"], "NOT_EVALUATED")
@@ -92,6 +92,7 @@ class IR108Tests(unittest.TestCase):
         for key, value in [
             ("satelliteSeries", 111), ("satelliteNumber", 4),
             ("instrumentType", 42), ("productDefinitionTemplateNumber", 0),
+            ("productDefinitionTemplateNumber", 31),
             ("numberOfContributingSpectralBands", 2),
             ("scaledValueOfCentralWaveNumber", 800000),
         ]:
@@ -190,13 +191,21 @@ class IR108Tests(unittest.TestCase):
             def fake_grib(path, run):
                 stem = path.name.split(".")[0]
                 n = int(stem[2:5]) * 4 + int(stem[6:8]) // 15
-                return validate_header(fixture(n), run)
+                meta = fixture(n)
+                meta.update({"productDefinitionTemplateNumber": 32,
+                             "numberOfContributingSpectralBands": 1,
+                             "satelliteSeries": 333, "satelliteNumber": 72,
+                             "instrumentType": 207,
+                             "scaleFactorOfCentralWaveNumber": 0,
+                             "scaledValueOfCentralWaveNumber": 92592})
+                return validate_header(meta, run)
             with patch("ir108_original_probe.inspect_local_grib", side_effect=fake_grib):
                 report = audit_manifest(manifest)
             self.assertEqual(report["candidateFrames"], 10)
             self.assertEqual(report["headerAndCadenceAudit"], "PASS")
+            self.assertEqual(report["spectralMatches"], 10)
             self.assertFalse(report["activationAuthorized"])
-            self.assertIn("independent calibrated", " ".join(report["blockers"]))
+            self.assertIn("all ten current-run", " ".join(report["blockers"]))
             duplicated = list(frames)
             duplicated[8] = {**duplicated[8], "sourceUrl": duplicated[7]["sourceUrl"]}
             manifest.write_text(json.dumps({"schema": SCHEMA, "run": RUN,

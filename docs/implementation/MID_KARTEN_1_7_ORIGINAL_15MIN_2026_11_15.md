@@ -86,3 +86,28 @@ Die amtliche DWD-Modellreferenz für ältere COSMO-D2-SynSat-Produkte beschreibt
 tools/ruc/ir108_original_probe.py liest diese **optionalen Rohfelder** aus dem echten GRIB-Header und prüft bei vollständigem vorhandenem Satz: ein spektrales Band, bekannte historische SEVIRI-Instrumentkennung und zu IR10.8 passende aus skalierter Wellenzahl errechnete Frequenz. Ein 6,2-µm-Wasserdampfkanal wird aktiv abgewiesen. Fehlt eines der spektralen Schlüsselfelder, ist das Ergebnis ausdrücklich AMBIGUOUS_IR_OR_WV und **keine** IR10.8-Zulassung. Der positive Status lautet bewusst HISTORICAL_DWD_SEVIRI_IR108_SPECTRAL_MATCH und **nicht** CURRENT_ICON_D2_IR108_QUALIFIED.
 
 Diese historischen 2018er Spektralwerte sind ein nachvollziehbarer, unabhängigerer Kanaltest als das Verzeichnis allein. Sie belegen **noch nicht** dieselbe Belegung in aktuellen ICON-D2-RUC-Payloads von November 2026. Ohne einen realen, zur amtlichen aktuellen Datenquelle gehörenden eCCodes-/Wellenzahl-/Wert-/Bitmap-Befund bleibt die Freigabescharte geschlossen. Der Status activationAuthorized bleibt unverändert false; RUC-/Browser-/Worker-Pipelines und bestehende Warn-/Signifikantwetterlogik werden nicht freigeschaltet. Die CI-Tests enthalten einen synthetischen IR10.8-Positivfall, einen ausdrücklich abgewiesenen WV6.2-Fall, abweichende Satelliteninstrumente und unvollständige Headerdaten.
+
+
+## Aktuelle DWD-Binärheader IR10.8 vs. WV6.2 – Live-Referenz vom 15.11.2026
+
+**Vorrangiger Nachweis gegenüber der zuvor nur historischen Kalibrierung:** Aus dem offiziellen Laufverzeichnis 2026-11-15T15:00 UTC wurden zwei echte GRIB2-Antwortkörper mit GRIB-Magic und 7777-Endmarkierung für Prognoselead PT000H15M gelesen. Der direkt aus Rohbytes geprüfte WMO-Satellitenheader ergibt:
+
+| Feld | SYNMSG_BT_CL_IR10.8 | SYNMSG_BT_CL_WV6.2 |
+| --- | --- | --- |
+| Größe | 827488 Byte | 768809 Byte |
+| GRIB-Edition / Disziplin | 2 / 3 | 2 / 3 |
+| Produktdefinition | 4.32 | 4.32 |
+| Kategorie / Parameter | 1 / 14 | 1 / 14 |
+| Satellitenserie / Satellit / Instrument | 333 / 72 / 207 | 333 / 72 / 207 |
+| Anzahl spektraler Bänder | 1 | 1 |
+| Wellenzahlskala / skalierter Wert | 0 / 92592 | 0 / 161290 |
+| GRIB2-Abschnitt 6 | vorhanden, Länge 67761 Byte | vorhanden, Länge 67761 Byte |
+
+Die Werte sind mit der amtlichen WMO-/ECMWF-Produktdefinition 4.32 und dem historischen DWD-PseudoSat-Profil konsistent:
+https://codes.ecmwf.int/grib/format/grib2/templates/4/32/
+
+Wichtig: Das ist ein **aktueller Zwei-Dateien-Headernachweis**, kein Wertedecode, keine Bitmap-Zellprüfung und kein vollständiger zehn-Frame-Originalsatz. Ein positiver Header beweist weder tatsächliche Wolkentypen noch eine korrekte georeferenzierte Prognosekarte. Die IR-Kanäle sind synthetische Modell-Helligkeitstemperaturen, keine gemessenen Satellitenbilder.
+
+Der QA-Prüfer fordert für ICON-D2-RUC-SynSat dieses Datenformats ab jetzt Template 4.32 mit genau einem Band, Serie 333, Satellit 72, Instrument 207 und zentraler Wellenzahl innerhalb des engen nachgewiesenen IR10.8-Fensters. WMO-Template 4.30/4.31, Wasserdampfkanal 6.2 µm, unbekannte Kanäle oder unvollständige ecCodes-Metadaten dürfen nicht still als qualifizierter IR10.8-Datensatz durchgehen. Die Zustandskennung lautet DWD_PDT32_SEVIRI_IR108_SPECTRAL_MATCH; trotz Matching bleibt activationAuthorized=false, bis **alle zehn Dateien**, native Bitmapwerte, Zell-/Geografiezugriff, Renderer, Ressourcengrenzen und die MID-Release-Gates unabhängig nachgewiesen sind. Es werden keine zusätzlichen Datenquellen, Gebühren oder Produktionsschreibrechte eingeführt.
+
+Die weitere ressourcenschonende Kartenimplementierung soll den bestehenden, SHA-verifizierten nearest-native-cell-RUC-Kartenlookup wiederverwenden, statt eine zweite räumliche Interpolationspipeline zu erzeugen. Dieser Ansatz ist noch nicht freigeschaltet und bedarf eines identischen GRID-/CLAT-/CLON-Nachweises am realen Source-SHA.

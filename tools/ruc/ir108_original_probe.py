@@ -64,9 +64,10 @@ def step_seconds(value: object, units: int) -> int:
     return int(result)
 
 
-# Historical DWD COSMO-D2 SEVIRI/MSG calibration, *not* independently
-# verified for current ICON-D2-RUC files. ecCodes GRIB2 template 4.31 provides
-# these exact spectral keys; do not infer a channel from parameter 3/1/14 alone.
+# Reconfirmed on actual official ICON-D2-RUC IR10.8 and WV6.2 GRIB2
+# header bytes from 15-Nov-2026 15Z run, forecast 15 minutes, via WMO
+# product definition template 4.32. Earlier COSMO/SEVIRI calibration is
+# consistent but does not replace individual source-file validation.
 IR108_CENTRAL_WAVENUMBER = 92592.0  # m^-1 ~ 10.8 micrometers
 WV62_CENTRAL_WAVENUMBER = 161290.0  # m^-1 ~ 6.2 micrometers
 EXPECTED_SATELLITE = (333, 72, 207)
@@ -85,7 +86,7 @@ def validate_spectral_channel(meta: dict) -> dict:
     template = int(meta["productDefinitionTemplateNumber"])
     count = int(meta["numberOfContributingSpectralBands"])
     sat = tuple(int(meta[key]) for key in ("satelliteSeries", "satelliteNumber", "instrumentType"))
-    if template not in (30, 31, 32) or count != 1:
+    if template != 32 or count != 1:
         raise IR108QualificationError("unsupported satellite GRIB template/band count")
     if sat != EXPECTED_SATELLITE:
         raise IR108QualificationError("uncalibrated satellite series/id/instrument")
@@ -98,7 +99,7 @@ def validate_spectral_channel(meta: dict) -> dict:
         raise IR108QualificationError("WV6.2 is not an IR10.8 source field")
     if abs(wave_number - IR108_CENTRAL_WAVENUMBER) > 150:
         raise IR108QualificationError("unverified satellite channel central wave number")
-    return {"channelIdentity": "HISTORICAL_DWD_SEVIRI_IR108_SPECTRAL_MATCH",
+    return {"channelIdentity": "DWD_PDT32_SEVIRI_IR108_SPECTRAL_MATCH",
             "spectralEvidence": "GRIB2_SATELLITE_BAND_METADATA",
             "centralWaveNumberPerMetre": wave_number,
             "wavelengthMicrometres": 1e6 / wave_number,
@@ -327,13 +328,13 @@ def audit_manifest(path: Path) -> dict:
     return {"schema": SCHEMA, "run": run, "firstValid": first_valid,
             "candidateFrames": len(ordered), "records": ordered,
             "headerAndCadenceAudit": "PASS",
-            "historicalSpectralMatches": sum(
-                item["channelIdentity"] == "HISTORICAL_DWD_SEVIRI_IR108_SPECTRAL_MATCH"
+            "spectralMatches": sum(
+                item["channelIdentity"] == "DWD_PDT32_SEVIRI_IR108_SPECTRAL_MATCH"
                 for item in ordered
             ),
             "activationAuthorized": False,
             "blockers": [
-                "independent calibrated IR10.8-versus-WV6.2 identity",
+                "all ten current-run IR10.8 files require actual spectrally decoded GRIB and value audit",
                 "native value/bitmap/range and CLAT-CLON geographic verification",
                 "bounded georeferenced raster renderer and cache budget",
                 "source/installer/browser/production gates on an unchanged SHA",
