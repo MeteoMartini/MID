@@ -42,7 +42,7 @@ describe('MID Umfeld-Wetter: Temperaturwerte dürfen nicht über Zieltermine wan
   expect(currentSurroundingsTemperature(next,t0+15*60_000,keyA,false)).toBeUndefined();
  });
  it('retains NoData on a failed request, missing context or invalid UTC target',()=>{
-  expect(currentSurroundingsTemperature(state(t0,keyA,false,undefined),t0,keyA,false)).toBeUndefined();
+  expect(currentSurroundingsTemperature({...state(),snapshot:undefined},t0,keyA,false)).toBeUndefined();
   expect(currentSurroundingsTemperature(undefined,t0,keyA,false)).toBeUndefined();
   expect(currentSurroundingsTemperature(state(),NaN,keyA,false)).toBeUndefined();
   expect(currentSurroundingsTemperature(state(),t0,'',false)).toBeUndefined();
