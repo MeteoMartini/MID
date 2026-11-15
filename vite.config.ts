@@ -41,6 +41,11 @@ export default defineConfig({
       const systemRoot=Object.values(bundle).find(chunk=>chunk.type==='chunk'&&chunk.facadeModuleId?.endsWith('/src/SystemUpdateManager.tsx'));
       if(!systemRoot)throw new Error('Missing deferred system update controls');
       visit(systemRoot.fileName);
+      // Ventilation UI now loads on expansion; keep its JS and dependencies in
+      // the trusted offline shell without executing the panel on app startup.
+      const ventilationRoot=Object.values(bundle).find(chunk=>chunk.type==='chunk'&&chunk.facadeModuleId?.endsWith('/src/VentilationAssistantPanel.tsx'));
+      if(!ventilationRoot)throw new Error('Missing deferred ventilation assistant controls');
+      visit(ventilationRoot.fileName);
       // Export modules are fetched for offline use without eagerly executing them.
       // Their shared map dependencies are already loaded when an export is usable.
       const mapRoot=Object.values(bundle).find(chunk=>chunk.type==='chunk'&&chunk.facadeModuleId?.endsWith('/src/UnifiedWeatherMap.tsx'));

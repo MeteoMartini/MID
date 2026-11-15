@@ -36,6 +36,21 @@ export function selectVerifiedSurroundingsRadarFrame(
  return loaded;
 }
 
+/** OPERA raster is a genuine observation, not a time-interpolated forecast.
+ * Match its entire location/bbox request identity on every render; even a
+ * valid timestamp from a previous location must never flash under a new map.
+ * The future tolerance is only for source-clock skew, not a nowcast.
+ */
+export type SurroundingsOperaOriginal={url:string;time:number;requestKey:string};
+export function selectVerifiedSurroundingsOperaFrame<T extends SurroundingsOperaOriginal>(
+ frame:T|undefined,requestKey:string,now:number
+):T|undefined{
+ if(!frame||!requestKey||frame.requestKey!==requestKey||
+  !frame.url.startsWith('data:image/png;base64,')||!Number.isFinite(frame.time)||
+  !Number.isFinite(now)||frame.time<now-45*60_000||frame.time>now+90_000)return undefined;
+ return frame;
+}
+
 /** A future step is NOWCAST, never an old radar frame or observational satellite. */
 export function radarOriginalForStep(catalog:CompositeProductTimes|undefined,now:number,step:number,inDwdArea=true):SurroundingsRadarOriginal|undefined{
  if(!catalog||!inDwdArea)return undefined;

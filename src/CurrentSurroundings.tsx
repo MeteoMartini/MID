@@ -4,7 +4,7 @@ import {formatWeatherValue} from "./weatherValueFormat";
 import {ecmwfTemperatureColor} from "./temperatureTone";
 import {useSurroundingsCloudImage} from "./currentSurroundingsCloudImage";
 import {surroundingsQuarterHourTarget} from "./surroundingsQuarterHour";
-import {radarOriginalForStep,nearestVerifiedOriginal,surroundingsRadarTarget,selectVerifiedSurroundingsRadarFrame,SURROUNDINGS_RADAR_MIN_STEP,SURROUNDINGS_RADAR_MAX_STEP} from './surroundingsRadarTimeline';
+import {radarOriginalForStep,nearestVerifiedOriginal,surroundingsRadarTarget,selectVerifiedSurroundingsRadarFrame,selectVerifiedSurroundingsOperaFrame,SURROUNDINGS_RADAR_MIN_STEP,SURROUNDINGS_RADAR_MAX_STEP} from './surroundingsRadarTimeline';
 import {useDisplayPreference,displayChoice} from './useDisplayPreference';
 import {PRECIPITATION_TYPE_COLORS,radarDbzColor} from './radarColorTables';
 import {loadModelMapGeography,type ModelMapGeography} from './modelMapGeography';
@@ -77,12 +77,12 @@ export default function CurrentSurroundings(props:Props){
  const cloudTarget=surroundingsQuarterHourTarget(now,cloudStep);
  const cloudRelativeMinutes=Math.max(0,Math.ceil((cloudTarget-now)/60000));
  const cloudForecast=useSurroundingsCloudImage(mode==='cloud',lat,lon,cloudTarget);
- const [opera,setOpera]=useState<{url:string;time:number}>();
+ const [opera,setOpera]=useState<{url:string;time:number;requestKey:string}>();
  const [operaFinished,setOperaFinished]=useState(false);
  const [imageError,setImageError]=useState('');
  const [cloudError,setCloudError]=useState('');
  const [showPhase,setShowPhase]=useState(false);
- const [phaseImage,setPhaseImage]=useState<{url?:string;time:number}>();
+ const [phaseImage,setPhaseImage]=useState<{url?:string;time:number;requestKey:string}>();
  const [phaseLoading,setPhaseLoading]=useState(false);
  const [mapCities,setMapCities]=useState<SurroundingsCityCandidate[]>([]);
  const [mapViewport,setMapViewport]=useState<{width:number;height:number}|null>(null);
@@ -136,6 +136,8 @@ export default function CurrentSurroundings(props:Props){
  const west=Math.max(-180,Math.min(177.2,lon-1.4)),south=Math.max(-85,Math.min(83.7,lat-.65));
  const east=west+2.8,north=south+1.3;
  const bounds=[west,south,east,north].join(',');
+ // Request identity includes the exact selected location and the WMS bbox.
+ const operaRequestKey=JSON.stringify([lat,lon,bounds]);
  const [geography,setGeography]=useState<ModelMapGeography>();
  useEffect(()=>{
   let active=true;
@@ -219,7 +221,7 @@ export default function CurrentSurroundings(props:Props){
    if(!covered)return;
    context.putImageData(image,0,0);
    const time=Date.parse(frame.time);
-   setOpera({url:canvas.toDataURL(),time});
+   setOpera({url:canvas.toDataURL(),time,requestKey:operaRequestKey});
    if(!showPhase)return;
    const [{loadWeatherPhaseGrid},{buildPhaseDisplay,paintPhaseRaster}]=await Promise.all([
     import('./WeatherMapsData'),import('./RadarModelPrecipTypeOverlay')
@@ -232,14 +234,14 @@ export default function CurrentSurroundings(props:Props){
     lat:north-y*(north-south)/canvas.height,
     lng:west+x*(east-west)/canvas.width
    }));
-   setPhaseImage({url:phase.colors.size?canvas.toDataURL():undefined,time});
+   setPhaseImage({url:phase.colors.size?canvas.toDataURL():undefined,time,requestKey:operaRequestKey});
   }
   void load().catch(()=>{}).finally(()=>{if(!controller.signal.aborted){setOperaFinished(true);setPhaseLoading(false)}});
   return ()=>controller.abort();
- },[needsOpera,showPhase,lat,lon,bounds,catalog?.checkedAt]);
- const displayedOpera=needsOpera&&opera&&opera.time>=now-45*60000?opera:undefined;
+ },[needsOpera,showPhase,lat,lon,bounds,operaRequestKey,catalog?.checkedAt]);
+ const displayedOpera=needsOpera?selectVerifiedSurroundingsOperaFrame(opera,operaRequestKey,now):undefined;
  const displayedRadar=mode==='radar'?selectVerifiedSurroundingsRadarFrame(loaded,radar,radarOriginal):undefined;
- const displayedPhase=showPhase&&displayedOpera&&phaseImage?.time===displayedOpera.time?phaseImage:undefined;
+ const displayedPhase=showPhase&&displayedOpera&&phaseImage?.requestKey===operaRequestKey&&phaseImage?.time===displayedOpera.time?phaseImage:undefined;
  const displayTime=displayedOpera?.time??displayedRadar?.time;
  const temperatureTarget=mode==='cloud'?cloudTarget:radarTarget;
  const siteId=`site:${lat.toFixed(5)}:${lon.toFixed(5)}`;

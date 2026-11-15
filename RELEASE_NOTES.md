@@ -1,5 +1,7 @@
 # MID v0.9.85.484
 
+- **Umfeldkarte auch bei Radar-Ersatzdaten korrekt:** Die unabhängige europäische OPERA-Radarquelle sowie ihre Niederschlagsart verwenden jetzt eine an Ort, Kartenausschnitt und tatsächlichen Beobachtungstermin gebundene Bildidentität. Beim Wechsel wird kein altes Bild als neues ausgegeben.
+- **Lüftungsassistent startet gezielter:** Seine Bedienoberfläche wird erst beim Öffnen der bestehenden Sektion geladen. Nach vollständiger Offline-Installation bleibt der benötigte Code über den vorhandenen Offline-Mechanismus verfügbar; Wetter-/Sensorlogik und gespeicherte Einstellungen bleiben erhalten.
 - **Karten-Originale ohne Altbild:** Beim Zeit- oder Ortswechsel werden Radar- und Wolkenbilder erst nach vollständiger Prüfung von Quelle, Zeitpunkt und Ausschnitt angezeigt; alte Bilder erscheinen nicht kurz unter falscher Zeit.
 - **CSS-Diagnose robuster:** Die verpflichtende CSS-Quellprüfung verwendet den tatsächlichen Repositorypfad, auch wenn sie aus einem anderen Arbeitsverzeichnis gestartet wird; fehlende Daten bestehen die Prüfung nicht.
 - **Umfeld-Radar im Viertelstundenraster:** Radar/Satellit erhalten eine kompakte −15-/+15-Minuten-Zeitachse mit persistent gewählter Darstellungsart. Die Quellenzeit bleibt getrennt vom gewünschten Termin; fehlende Beobachtungs- oder Nowcast-Bilder werden nicht ersetzt.
