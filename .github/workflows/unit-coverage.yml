@@ -102,6 +102,68 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+  draft-performance-build-evidence:
+    name: MID Draft · unabhängiger CSS/JS-Diagnosebuild
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.draft == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (startsWith(github.head_ref, 'chatgpt/') || startsWith(github.head_ref, 'codex/')) &&
+      contains(github.head_ref, '-performance-')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Performance-Draft auf exakten Quell-SHA binden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Node.js 22 für den unveränderten MID-Build
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Reproduzierbare Abhängigkeiten installieren
+        shell: bash
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: Read-only QA-Build und SHA-gebundene Startup-Budgets prüfen
+        shell: bash
+        env:
+          MID_EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          SOURCE_HEAD=$(git rev-parse HEAD)
+          echo "Diagnostic checkout SHA: $SOURCE_HEAD; expected: $MID_EXPECTED_SOURCE_SHA"
+          test "$SOURCE_HEAD" = "$MID_EXPECTED_SOURCE_SHA"
+          export GITHUB_SHA="$MID_EXPECTED_SOURCE_SHA"
+          npm run build
+          node scripts/test-bundle-budget-098594.mjs
+          node scripts/check-build-budget.mjs
+          node scripts/measure-startup-assets-0985482.mjs dist
+          node -e 'const f=require("node:fs");const i=JSON.parse(f.readFileSync("dist/mid-build-identity.json"));if(i.sourceGitSha!==process.env.MID_EXPECTED_SOURCE_SHA)throw Error("Build-Identität passt nicht zum Performance-Draft-HEAD");console.log("SHA-bound diagnostic build",i.sourceGitSha,"fingerprint",i.assetsSha256)'
+          {
+            echo '### MID Performance-Draft: unabhängig gebaut (keine Releasefreigabe)'
+            echo
+            echo '```json'
+            node -e 'const j=require("./artifacts/build-budget.json");console.log(JSON.stringify({ok:j.ok,totals:j.totals,failures:j.failures},null,2))'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Diagnosedaten des Performance-Drafts sichern
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-draft-performance-build-evidence
+          path: |
+            artifacts/build-budget.json
+            artifacts/startup-assets-0985482.json
+            dist/mid-build-identity.json
+          if-no-files-found: warn
+          retention-days: 7
+
+
   draft-regression-preflight:
     name: MID Draft · gezielte Regressionen
     if: >-
