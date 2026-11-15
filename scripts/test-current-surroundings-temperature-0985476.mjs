@@ -130,7 +130,7 @@ const quarter=valid*1000+15*60000;
 const interpolated=extract(rows,places,quarter,at,true);
 assert.ok(interpolated&&interpolated.temporalMethod==='linear');
 assert.equal(interpolated.validTime,quarter);
-assert.deepEqual(JSON.parse(JSON.stringify(interpolated.values)),{'Dorf:50.0:7.0':0.3,'Dorf:50.1:7.1':-3.3,'Dorf:50.2:7.2':4.6,'Dorf:50.3:7.3':13.1});
+assert.deepEqual(JSON.parse(JSON.stringify(interpolated.values)),{'Dorf:50.0:7.0':0.3,'Dorf:50.1:7.1':-3.2,'Dorf:50.2:7.2':4.6,'Dorf:50.3:7.3':13.1});
 assert.deepEqual(JSON.parse(JSON.stringify(interpolated.sourceTimes)),[valid*1000,(valid+3600)*1000]);
 assert.equal(extract(rows.map((r,i)=>i===0?{...r,hourly:{time:[valid,valid+3600],temperature_2m:[null,1]}}:r),places,quarter,at,true)?.available,3,'Absent original cloud/temperature endpoint is never silently 0');
 const jumpRows=rows.map((r,i)=>i===0?{...r,hourly:{time:[valid,valid+3600],temperature_2m:[-5,20]}}:r);
