@@ -1,3 +1,7 @@
+## MID v0.9.85.483 · MID LC 1.5 – SHA-verifizierter Performance-/Umfeld-Handoff (QA)
+
+Geprüfte Provenienz: Stable f9c0b182b0e11278651e2afa13039015e1aa0f0b, Performance #819 dcba04bfeb58ef4a3fa007922ec35faaddbc991f, Karten #820 2e1465456f46e33dd03f89ed2bfe1ba62c8cfbaf. SHA-identische Produkt-/Test-Dateien aus aktuellen Spezial-Drafts; keine Doppelübernahme von #815/#817 und kein externes AI-Router-Deployment. IR10.8-Offline-Auditor bleibt `activationAuthorized: false` wegen IR/WV-Zuordnung und fehlendem echten Originaldaten-/Renderer-Nachweis. Aktuell nur QA-Kandidat; vollständige Source-/Core-/Heavy-/Browser-/Review-/Installer-/Worker-/Pages-/Stable-Gates am finalen Kombinations-SHA stehen aus. Details `docs/implementation/MID_LC15_RELEASE_TRAIN_483_2026_11_15.md`.
+
 ## MID v0.9.85.483 · CSS-/JS-Performance, Regressionsvorbeugung und kontrollierte Integrationsbasis (QA-Kandidat)
 
 **Basis und Provenienz:** verifizierter `mid-stable=f9c0b182b0e11278651e2afa13039015e1aa0f0b`, v0.9.85.482. Die 16 ausgewählten, ursprünglichen QA-Git-Blobs des unabhängigen Performance-PR #815 (Head `8022f1d744c5226c829de93fc0167e4863fbec69`) sind SHA-identisch selektiv übernommen; die .482-API-Fehlerdiagnostik bleibt als Stable-Grundlage erhalten. Keine Rebase- oder Force-Push-Operation, keine Direktänderung von `main` oder `mid-stable`. Versionsspiegel auf v0.9.85.483 synchronisiert; vier neue Regressionen vollständig registriert, vorhandene Core-Shard-Positionen beibehalten.

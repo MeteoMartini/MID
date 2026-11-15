@@ -1,0 +1,15 @@
+# MID LC 1.5 · v0.9.85.483 · Performance + Umfeldwetter (SHA-gebundener Source-Kandidat)
+
+**QA-only Status:** Keine Produktionsfreigabe aus diesem Dokument. Geprüfter Ausgangs-Stable `f9c0b182b0e11278651e2afa13039015e1aa0f0b`, v0.9.85.482, fünf aktive Branch-Rulesets. Performance-Quelle PR [#819](https://github.com/MeteoMartini/MID/pull/819) @ `dcba04bfeb58ef4a3fa007922ec35faaddbc991f`, Kartenquelle PR [#820](https://github.com/MeteoMartini/MID/pull/820) @ `2e1465456f46e33dd03f89ed2bfe1ba62c8cfbaf`. Die Quell-Dateimengen sind disjunkt, der gemeinsame Versionssatz 0.9.85.483 kommt ausschließlich aus #819. Alte QA-Drafts #815/#817/#728 nicht gesondert doppelt portieren. AI-Router #821 ist bewusst kein Teil dieses Builds (separate Berechtigungs-, Zero-Cost-, Anbieter- und Deploymentfreigabe).
+
+## Nutzerwirkung
+
+- Bereits vorhandene Push-, iCloud-, Wetterzwilling- und Diagnoseeinstellungen werden per React.lazy bei Bedarf geladen. Produkt- und Speichervertrag der Einstellungen bleibt unverändert; CSS-Diagnose und realer Browser-A/B-Abgleich des Mountain-Stils nur nach exakten Testergebnissen beurteilen.
+- Die kompakte Umfeldkarte verwendet feste UTC-Viertelstunden-Zieltermine, +120-min-Vertrag ohne fehlende Zukunftsschritte, gleiche Zielzeit für Cloud/SigWx, lokale 2m-Temperatur und Kartenübergabe sowie Original-Synoptikfeld-Vorrang vor engen zulässigen Zwischenbildern. Modelle, Läufe, Raster und Gültigkeit bleiben SHA-/Run-/Gebiets-geprüft. WMO-4677-SigWx-Codes niemals interpolieren; Extreme nicht glätten, Missing bleibt Missing und keine Anzeige als 0. Ortsgebundene Open-Meteo-Best-Match-Hourly-Temperatur ist kein gemeinsames nativer ICON- oder ECMWF-Original.
+- Das isolierte DWD-RUC-IR10.8-QA-Inventar lädt keine Live-Daten, gibt keine Raster frei und besitzt `activationAuthorized: false` wegen unaufgelöster IR/WV6.2-Kanalidentität, Bitmap/Werte-/Geo-/Lizenz-/Originaldatenprüfung. Weder die amtlichen DWD-Warnungen noch produktive Karten, Worker, WMO-Codes oder der Datenquellenvertrag werden dadurch erweitert.
+
+## Kontroll- und Releasepfad
+
+Die getrennten Draft-Jobs sind nur Vorprüfungen. Der kombinierte SHA erfordert selbst: `npm ci`, TypeScript, sämtliche Version-/Source-Verträge, vier Core- und sechs Heavy-Regressionen, wissenschaftliche Negativtests, DWD-RUC-Gates, Browser- und Offline-/PWA-Prüfungen, gemessene Startup-/CSS-/JS-Budgets, Review-/Security-Triage einschließlich Cubic ohne unendliche Blockerschleife, Stale-/NoData-Prüfung und Einheiten-/Zeitsemantik. Browser-Matrix 320/390/430/834/1024/1440px, Light/Dark, Tastatur/Touch/Fokus, lange Ortsnamen, Dynamic Type, MapLibre/WebGL und Heap nach GC. Nicht ausgeführte reale iOS-/VoiceOver-Tests dürfen nicht als bestanden gelten. Kein Absenken von CI-Gates.
+
+Freigabe ausschließlich: Source-PR-Gate → kontrollierter SHA-gebundener Merge → serverseitiges ZIP → `install-mid.yml` → Worker-/Pages-Gates → Stable-Promotion. Keine direkten `main`/`mid-stable`-Writes, keine neuen Kosten, Secrets oder ungeprüften API-/Modellquellen. Neuere parallele SHA-/Pfad-Änderungen vor Veröffentlichung erneut verifizieren.
