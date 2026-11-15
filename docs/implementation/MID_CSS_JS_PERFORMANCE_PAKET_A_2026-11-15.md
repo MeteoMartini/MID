@@ -1,6 +1,6 @@
 # MID Design 1.0 · Performance Paket A – reproduzierbare Startup-Evidenz
 
-**Status: QA-DRAFT / kein Release, keine vollständige Performance-Baseline.**
+**Status: QA-DRAFT / kein Release. Statische Baseline verifiziert, vollständige Browser-/Memory-Abnahme noch offen.**
 
 ## Provenienz und Abgrenzung
 
@@ -18,9 +18,9 @@ node scripts/test-startup-asset-evidence-0985482.mjs
 node scripts/measure-startup-assets-0985482.mjs dist
 ```
 
-Erforderlich: `dist/index.html`, `dist/version.json`, `dist/mid-build-identity.json`, `dist/assets`. Das Ergebnis `artifacts/startup-assets-0985482.json` enthält Quell-SHA, Version sowie rohe/gzip-9-Start-JS- und Start-CSS-Bytes (CSS zusätzlich Brotli-6). Fehlende JavaScript-/Stylesheetdateien und unvollständige Herkunftsangaben führen zum Fehler. Deduplizierte Startreferenzen werden jeweils einmal gezählt.
+Erforderlich: `dist/index.html`, `dist/version.json`, `dist/mid-build-identity.json`, `dist/assets`. Vor der Messung prüft `verifyStartupBuildIdentity.mjs` den vollständigen unveränderten Asset-Fingerprint des Produktionsbuilds; fehlende oder geänderte Dateien blockieren. Das Ergebnis `artifacts/startup-assets-0985482.json` enthält Quell-SHA, Version sowie rohe/gzip-9-Start-JS- und Start-CSS-Bytes (CSS zusätzlich Brotli-6). Fehlende JavaScript-/Stylesheetdateien und unvollständige Herkunftsangaben führen zum Fehler. Deduplizierte Startreferenzen werden jeweils einmal gezählt.
 
-**Grenzen:** Dies ist eine statische HTML-Referenzinventur, **kein** kompletter transitiver JS-Importgraph, kein Netztransfer und keine Browser-/Heap-/GPU-Messung. Ein fehlender Messwert ist UNVERIFIED, niemals null oder bestanden. Ein echter .481-Produktionsbuild wurde mit dem neuen Skript noch **nicht** vermessen.
+**Grenzen:** Dies ist eine statische HTML-Referenzinventur, **kein** kompletter transitiver JS-Importgraph, kein Netztransfer und keine Browser-/Heap-/GPU-Messung. Ein fehlender Messwert ist UNVERIFIED, niemals null oder bestanden. Das original SHA-verifizierte `.481`-Installer-Artefakt wurde mit dem neuen Skript **erfolgreich** vermessen. Zahlen, Original-SHAs, CDP-Einzelprofile, NoData- und Browsergrenzen: `docs/implementation/MID_PERFORMANCE_PAKET_A_RELEASE481_EVIDENCE_2026-11-15.md`. Kein vollständiger transitive JS-Importgraph/Memory-Leak-Nachweis.
 
 ## Vorgesehene Paket-Reihenfolge und Akzeptanz
 
