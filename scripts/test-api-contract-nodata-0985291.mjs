@@ -37,17 +37,30 @@ try{
  await writeFile(preload,`
 globalThis.fetch=async raw=>{
  const url=new URL(raw),model=url.searchParams.get('models'),mode=process.env.MID_API_FIXTURE;
+ if(model==='best_match'&&mode==='required-transport')throw new TypeError('fetch failed',{cause:Object.assign(new Error('Private diagnostic cause must not be logged'),{code:'ENOTFOUND'})});
+ if(model==='best_match'&&mode==='required-http-503')return new Response(JSON.stringify({reason:'temporary provider failure'}),{status:503,headers:{'Content-Type':'application/json'}});
  const hourly={time:Array.from({length:8},(_,i)=>'2026-10-18T'+String(i).padStart(2,'0')+':00')};
  for(const key of (url.searchParams.get('hourly')||'').split(','))hourly[key]=Array(8).fill(2);
  if(hourly.temperature_2m_max)hourly.temperature_2m_max=Array(8).fill(4);
  if(mode==='required-missing'&&model==='ecmwf_aifs_europe_ensemble')hourly.cloud_cover=Array(8).fill(null);
  if(mode==='optional-missing'&&model==='meteofrance_arpege_europe')hourly.temperature_2m=Array(8).fill(null);
  if(mode==='false-extrema'&&hourly.temperature_2m_min){hourly.temperature_2m_min=[null,2,3];hourly.temperature_2m_max=[7,2,3]}
- return new Response(JSON.stringify({hourly,daily:{moon_phase:[0.5]}}),{status:200,headers:{'Content-Type':'application/json'}});
+ return new Response(JSON.stringify({hourly,daily:{moon_phase:mode==='required-bad-schema'&&model==='best_match'?undefined:[0.5]}}),{status:200,headers:{'Content-Type':'application/json'}});
 };
 `);
  const run=mode=>spawnSync(process.execPath,['--import',preload,'scripts/check-api-contracts.mjs'],{cwd:process.cwd(),env:{...process.env,MID_API_FIXTURE:mode},encoding:'utf8',timeout:15000});
  const valid=run('valid');assert.equal(valid.status,0,valid.stderr);
+ const transport=run('required-transport');
+ assert.equal(transport.status,1,transport.stderr);
+ assert.match(transport.stderr,/Open-Meteo Best Match \+ Mond: Transportfehler \(DNS\).*Antwortschema nicht überprüfbar/);
+ assert.doesNotMatch(transport.stderr,/Private diagnostic cause must not be logged/,'No raw transport error details or nested causes in logs');
+ const outage=run('required-http-503');
+ assert.equal(outage.status,1,outage.stderr);
+ assert.match(outage.stderr,/Open-Meteo Best Match \+ Mond: Provider HTTP 503 \(kein Schemaurteil\)/);
+ assert.doesNotMatch(outage.stderr,/Vertrag ungültig \(HTTP 503\)/,'HTTP outage is not falsely classified as schema violation');
+ const badSchema=run('required-bad-schema');
+ assert.equal(badSchema.status,1,badSchema.stderr);
+ assert.match(badSchema.stderr,/Open-Meteo Best Match \+ Mond: Vertrag ungültig \(HTTP 200\)/);
  const missing=run('required-missing');assert.equal(missing.status,1,missing.stderr);assert.match(missing.stderr,/Kritische API-Vertragsfehler.*\nECMWF AIFS Europe Ensemble/s);
  const optional=run('optional-missing');assert.equal(optional.status,0,optional.stderr);assert.match(optional.stderr,/Optionale Provider-Degradation.*meteofrance_arpege_europe/s);
  const extrema=run('false-extrema');assert.equal(extrema.status,1,extrema.stderr);assert.match(extrema.stderr,/ECMWF IFS native 3h Min\/Max/);

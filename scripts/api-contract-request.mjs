@@ -3,6 +3,29 @@ export function isTransientApiStatus(status){
  return value===408||value===425||value===429||(value>=500&&value<=599);
 }
 
+
+/** The HTTP/JSON contract is a separate verdict from a failed transport.
+ * Only disclose bounded error classes; never URLs, query strings or raw causes.
+ * A classification never turns a required health check into a success.
+ */
+export function classifyApiTransportError(error){
+ const pending=[error],seen=new Set();
+ for(let index=0;index<8&&pending.length;index++){
+  const current=pending.shift();
+  if(!current||typeof current!=='object'||seen.has(current))continue;
+  seen.add(current);
+  const code=String(current.code||'').toUpperCase(),name=String(current.name||'');
+  if(code==='ENOTFOUND'||code==='EAI_AGAIN')return 'DNS';
+  if(code.startsWith('CERT_')||code.startsWith('ERR_TLS_')||code==='UNABLE_TO_VERIFY_LEAF_SIGNATURE'||code==='DEPTH_ZERO_SELF_SIGNED_CERT')return 'TLS';
+  if(code==='ETIMEDOUT'||code.includes('TIMEOUT')||name==='TimeoutError')return 'TIMEOUT';
+  if(name==='AbortError')return 'ABORTED';
+  if(['ECONNRESET','ECONNREFUSED','EHOSTUNREACH','ENETUNREACH','EPIPE'].includes(code))return 'CONNECTIVITY';
+  if(current.cause)pending.push(current.cause);
+  if(Array.isArray(current.errors))pending.push(...current.errors.slice(0,3));
+ }
+ return 'UNCLASSIFIED_TRANSPORT';
+}
+
 function retryAfterMs(response){
  const raw=response?.headers?.get?.('retry-after');
  if(!raw)return 0;
