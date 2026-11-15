@@ -28,6 +28,7 @@ describe('MID P1 artipacked: prevent persistent checkout access tokens',()=>{
    const active=readFileSync(new URL('../../.github/workflows/'+name,import.meta.url),'utf8');
    const mirror=readFileSync(new URL('../../ci/github/workflows/'+name,import.meta.url),'utf8');
    expect(active).toBe(mirror);
+   if(name==='install-mid.yml')expect(active).toBe(readFileSync(new URL('../../workflow-patches/install-mid.yml',import.meta.url),'utf8'));
    expect(secure(active,count)).toBe(true);
    expect(checkoutConfigs(active).every(x=>/^[0-9a-f]{40}$/.test(x.sha))).toBe(true);
    expect(secure(active.replace('persist-credentials: false','persist-credentials: true'),count)).toBe(false);

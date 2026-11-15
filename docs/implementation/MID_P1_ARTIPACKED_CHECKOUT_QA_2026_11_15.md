@@ -24,3 +24,7 @@ Only `persist-credentials: false` is added. All checkout action SHAs, refs and f
 **Pending qualification:** actual GitHub Unit/Coverage on the exact new head, optional zizmor readback and a functional review that independent API/deploy jobs are unaffected. Intended reduction in `artipacked`: **13 → 0**, not claimed until supported by the new scanner artifact. Existing 2 High `dangerous-triggers`, 2 Low, 14 Informational, review/TOCTOU issue #740, QA #775 and PR #824 stay distinct; no zizmor suppression.
 
 **Release:** QA Draft only, no Ready/Merge/ZIP/Installer/Worker/Pages/Stable release. The Lead-Chat integrates selectively with a new version after live SHAs, independent security disposition and complete existing release gates.
+
+## Additional installer source mirror (QA gate)
+
+The original `scripts/test-installer-sharding-0985193.mjs` also requires byte-identical `workflow-patches/install-mid.yml` alongside `ci/github/workflows/install-mid.yml` and `.github/workflows/install-mid.yml`. The first Draft CI `#43742482341` was correctly blocked by that extra mirror, not by product regression; this patch restores the third byte-exact copy, and extends the new Vitest mutation/identity guard. **Never suppress or weaken the original installer regression.** New GitHub CI and zizmor evidence must be independently rechecked on this new SHA.
