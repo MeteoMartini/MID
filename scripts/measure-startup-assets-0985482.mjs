@@ -3,6 +3,7 @@ import {readFile,readdir,mkdir,writeFile} from 'node:fs/promises';
 import {resolve,relative,extname,join} from 'node:path';
 import {gzipSync,brotliCompressSync,constants} from 'node:zlib';
 import {startupAssetEvidence} from './lib/startupAssetEvidence.mjs';
+import {verifyStartupBuildIdentity} from './lib/verifyStartupBuildIdentity.mjs';
 
 const root=resolve(process.argv[2]??'dist');
 const index=await readFile(join(root,'index.html'),'utf8');
@@ -27,6 +28,8 @@ const provenance={version:version.version??null,buildIdentity};
 if(!provenance.version||provenance.version!==buildIdentity.version||!buildIdentity?.sourceGitSha||!/^[0-9a-f]{40}$/.test(buildIdentity.sourceGitSha)){
  throw Error('Missing version or full Git SHA in built identity');
 }
+// Reject incomplete/corrupted built assets, not only a plausible source SHA.
+await verifyStartupBuildIdentity(root,buildIdentity);
 const result={...report,provenance};
 await mkdir('artifacts',{recursive:true});
 await writeFile('artifacts/startup-assets-0985482.json',JSON.stringify(result,null,2)+'\n');
