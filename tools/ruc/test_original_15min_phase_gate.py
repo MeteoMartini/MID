@@ -166,7 +166,10 @@ class Native15MinGspPhaseTests(unittest.TestCase):
                 for product in RATE_PARAMETERS:
                     self.assertEqual(report["products"][product]["originals"], 10)
                 # No mock ecCodes read is trusted to hide altered source bytes.
-                (rates.parent/"frames"/"PRG_GSP"/name(4)).write_bytes(b"TAMPERED")
+                tampered_path = rates.parent/"frames"/"PRG_GSP"/name(4)
+                changed = bytearray(tampered_path.read_bytes())
+                changed[16] ^= 0x01  # same length, wrong digest; tests SHA guard itself
+                tampered_path.write_bytes(changed)
                 with self.assertRaisesRegex(PhaseOriginalError, "SHA256"):
                     audit_rate_manifest(rates, ir)
 
