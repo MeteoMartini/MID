@@ -386,7 +386,7 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: node tools/ci/mid-draft-regression-preflight.mjs --base "$BASE_SHA" --head "$HEAD_SHA" --run
 
-draft-css-cdp-real-browser-evidence:
+  draft-css-cdp-real-browser-evidence:
     name: MID Draft · echte Chromium CSS-CDP-Belege (${{ matrix.fixture }})
     if: >-
       github.event_name == 'pull_request' &&
