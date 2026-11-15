@@ -80,7 +80,15 @@ export function assertCssRuleUsageComplete(result,label='CSS rule usage'){
       !Number.isSafeInteger(s.usedBytes)||s.usedBytes<0||s.usedBytes>s.rawBytes||
       s.unusedBytes!==s.rawBytes-s.usedBytes)){
   const status=integrity?.status??'MISSING_INTEGRITY';
-  throw Error(label+': incomplete CSS rule usage evidence ('+status+'); browser coverage QA must not pass');
+  // Counts only: never print CSS source text, URLs, or untrusted stylesheet content in CI logs.
+  const details={tracked:integrity?.trackedStyleSheetCount??null,
+   readable:integrity?.readableStyleSheetCount??null,
+   returnedSheets:Array.isArray(sheets)?sheets.length:null,
+   unreadable:integrity?.unreadableStyleSheetIds?.length??null,
+   unknown:integrity?.unknownUsageStyleSheetIds?.length??null,
+   empty:integrity?.emptyStyleSheetIds?.length??null,
+   invalidRanges:integrity?.invalidRuleRanges??null};
+  throw Error(label+': incomplete CSS rule usage evidence ('+status+', counts='+JSON.stringify(details)+'); browser coverage QA must not pass');
  }
  return result;
 }
