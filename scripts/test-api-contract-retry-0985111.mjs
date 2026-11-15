@@ -1,5 +1,14 @@
 import assert from 'node:assert/strict';
-import {fetchJsonWithRetry,isTransientApiStatus} from './api-contract-request.mjs';
+import {fetchJsonWithRetry,isTransientApiStatus,classifyApiTransportError} from './api-contract-request.mjs';
+
+
+const rootError=(code)=>new TypeError('fetch failed',{cause:Object.assign(new Error('hidden cause details'),{code})});
+for(const [code,expected] of [['ENOTFOUND','DNS'],['EAI_AGAIN','DNS'],['CERT_HAS_EXPIRED','TLS'],['UNABLE_TO_VERIFY_LEAF_SIGNATURE','TLS'],['UND_ERR_CONNECT_TIMEOUT','TIMEOUT'],['ECONNRESET','CONNECTIVITY']]){
+ assert.equal(classifyApiTransportError(rootError(code)),expected,'Only structured transport codes classify network failure');
+}
+assert.equal(classifyApiTransportError(Object.assign(new Error('slow'),{name:'TimeoutError'})),'TIMEOUT');
+assert.equal(classifyApiTransportError(new TypeError('fetch failed')),'UNCLASSIFIED_TRANSPORT');
+assert.equal(classifyApiTransportError(new Error('https://secret.example/?token=private')),'UNCLASSIFIED_TRANSPORT');
 
 const response=(status,payload={ok:true},headers={})=>({
  ok:status>=200&&status<300,
@@ -58,5 +67,8 @@ assert.equal(isTransientApiStatus(404),false);
 const source=await import('node:fs/promises').then(({readFile})=>readFile(new URL('./check-api-contracts.mjs',import.meta.url),'utf8'));
 assert.match(source,/fetchJsonWithRetry\(url\)/,'API-Vertragsprüfung muss den Retry-Helper verwenden.');
 assert.match(source,/Vertrag ungültig \(HTTP \$\{response\.status\}\)/,'Inhaltlich ungültige HTTP-Antworten bleiben echte Vertragsfehler.');
+
+assert.ok(source.includes('Provider HTTP ${response.status} (kein Schemaurteil)'), 'Provider HTTP 5xx must not be mislabeled as a JSON contract violation.');
+assert.ok(source.includes('Transportfehler (${classifyApiTransportError(error)})'), 'Transport failures must retain a fail-closed but transport-specific verdict.');
 
 console.log('MID v0.9.85.111: API-Vertragsprüfung wiederholt nur transiente Transport-/HTTP-Fehler begrenzt und bleibt danach fail-closed.');

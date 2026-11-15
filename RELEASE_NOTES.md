@@ -1,3 +1,9 @@
+# MID v0.9.85.482
+
+- **Wetterdatenqualität verständlicher prüfen:** Die interne Datenquellenkontrolle unterscheidet jetzt technische Verbindungsprobleme von HTTP-Störungen des Wetterdienstes und tatsächlich fehlerhaften API-Antworten. Ein nicht erreichbarer Anbieter wird nicht länger fälschlich als geändertes Datenformat bezeichnet.
+- **Keine falschen Erfolgsmeldungen:** Fällt ein erforderlicher Datenabruf aus, bleibt der Qualitätscheck fehlgeschlagen. Fehlende Werte bleiben fehlend; die vorhandenen begrenzten Wiederholungsversuche bleiben unverändert.
+- **Datensparsame Diagnose:** Netzwerkfehler werden ohne sensible URL- oder Tokeninhalte protokolliert. Prognosemodelle, Wetterkarten, Warnungen und Bedienoberfläche sind unverändert.
+
 # MID v0.9.85.481
 
 - **Wetter im Umfeld:** Im Wolken-/SigWx-Modus sind „Jetzt“ sowie +15, +30, +45, +60, +75, +90, +105 und +120 Minuten auf einer kompakten, gut bedienbaren Zeitachse auswählbar. Die absolute Zielzeit wird nur einmal sichtbar angegeben und beim Öffnen der großen Karte übergeben.
