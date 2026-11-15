@@ -1,3 +1,9 @@
+# MID v0.9.85.483
+
+- **Startmodule entlastet:** Der Benachrichtigungs-Einstellungsbereich wird erst bei Bedarf nachgeladen; die bisherigen Push-Funktionen und gespeicherten Einstellungen bleiben erhalten.
+- **Performancebudgets erweitert:** SHA-gebundene Produktionsbuild-Messung für Start-CSS und HTML-referenziertes JavaScript, mit zusätzlichen Obergrenzen und Negativtests. Fehlende Mess- und Herkunftsdaten gelten nicht als bestanden.
+- **Responsive und Wetterdaten unverändert:** Keine unqualifizierte Verschiebung globaler CSS-Regeln und keine Änderungen an Wettermodellen, amtlichen Warnungen, Niederschlags-/Zeiteinheiten oder Originaldaten.
+
 # MID v0.9.85.482
 
 - **Wetterdatenqualität verständlicher prüfen:** Die interne Datenquellenkontrolle unterscheidet jetzt technische Verbindungsprobleme von HTTP-Störungen des Wetterdienstes und tatsächlich fehlerhaften API-Antworten. Ein nicht erreichbarer Anbieter wird nicht länger fälschlich als geändertes Datenformat bezeichnet.
