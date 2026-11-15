@@ -93,5 +93,32 @@ await check(async()=>{
 });
 await check(async()=>{assert.throws(()=>createMidAiGlobalAdmission({storage,now:()=>timestamp}),
  e=>e.reason==='PROTECTED_SQLITE_AND_INDEPENDENT_VERIFIER_REQUIRED')});
+// OpenRouter :free must enforce 20 reservations in any rolling 60-second
+// interval even when 25 separately authorized one-shots arrive concurrently.
+const minuteSubject='f'.repeat(64);
+const minuteAgent=createMidAiGlobalAdmission({storage,
+ verifyIndependentGrant:async r=>proof(r,{
+  provider:'openrouter',model:'cohere/north-mini-code:free',
+  quotaSubject:minuteSubject,maxDailyRequests:50
+ }),now:()=>timestamp});
+await check(async()=>{
+ const results=await Promise.allSettled(Array.from({length:25},(_,i)=>
+  minuteAgent.reserve(request('openrouter-minute-'+String(i).padStart(3,'0')))));
+ assert.equal(results.filter(x=>x.status==='fulfilled').length,20);
+ assert.equal(results.filter(x=>x.status==='rejected' &&
+  x.reason?.reason==='VERIFIED_FREE_MINUTE_QUOTA_EXHAUSTED').length,5);
+ const rows=sql.exec('SELECT COUNT(*) AS used FROM mid_ai_claims WHERE quota_subject=?',minuteSubject).toArray();
+ assert.equal(rows[0].used,20);
+});
+await check(async()=>{
+ timestamp+=60_000;
+ const r=await minuteAgent.reserve(request('openrouter-next-minute'));
+ assert.equal(r.status,'RESERVED_NO_DISPATCH');
+ assert.equal(r.remainingRequests,29);
+ timestamp-=1_000;
+ await blocked(()=>minuteAgent.reserve(request('openrouter-clock-rollback')),
+  'MINUTE_QUOTA_INTEGRITY_ERROR');
+ timestamp+=1_000;
+});
 console.log('MID AI Router SQLite durable admission QA OK; scenarios='+scenarios+
  '; no external model, credentials, deployment or network.');

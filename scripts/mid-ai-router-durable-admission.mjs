@@ -41,6 +41,7 @@ export function createMidAiGlobalAdmission({
     daily_cap INTEGER NOT NULL CHECK(daily_cap BETWEEN 1 AND 1000),
     PRIMARY KEY(quota_subject,utc_day)
    )`);
+   storage.sql.exec('CREATE INDEX IF NOT EXISTS mid_ai_claims_minute_idx ON mid_ai_claims(quota_subject,claimed_at_ms)');
  }catch{error('SQLITE_SCHEMA_UNAVAILABLE');}
  return Object.freeze({
   async reserve(request){
@@ -96,6 +97,20 @@ export function createMidAiGlobalAdmission({
           rows[0].daily_cap!==proof.maxDailyRequests))
          error('QUOTA_CAP_DRIFT');
        if(used>=proof.maxDailyRequests)error('VERIFIED_FREE_QUOTA_EXHAUSTED');
+       // Unfunded OpenRouter :free accounts are limited to 20 RPM.
+       // One rolling minute is reserved atomically with the global request.
+       // The signed issuer must independently attest any stricter live limit.
+       if(proof.provider==='openrouter'){
+         const minute=sqlRows(storage,
+           'SELECT COUNT(*) AS used, MAX(claimed_at_ms) AS newest FROM mid_ai_claims WHERE quota_subject=? AND claimed_at_ms>?',
+           proof.quotaSubject,stamp-60000);
+         if(minute.length!==1 || !Number.isSafeInteger(minute[0].used) ||
+            minute[0].used<0 ||
+            (minute[0].newest!==null &&
+             (!Number.isSafeInteger(minute[0].newest) || minute[0].newest>stamp)))
+           error('MINUTE_QUOTA_INTEGRITY_ERROR');
+         if(minute[0].used>=20)error('VERIFIED_FREE_MINUTE_QUOTA_EXHAUSTED');
+       }
        storage.sql.exec(`INSERT INTO mid_ai_claims
         (request_id,grant_digest,task_digest,model_id,provider,stable_sha,
          quota_subject,utc_day,claimed_at_ms) VALUES (?,?,?,?,?,?,?,?,?)`,
