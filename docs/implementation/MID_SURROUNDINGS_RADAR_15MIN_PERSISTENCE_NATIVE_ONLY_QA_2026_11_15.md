@@ -48,3 +48,24 @@ Die bestehende `test-current-surroundings-temperature-0985476.mjs` ruft nun zus�
 ## OPERA-Ortswechsel-Guard 1.8 (15.11.2026, nur QA)
 
 Der bisherige Fallback setzte `opera` und `phaseImage` nur nach Zeit in den View-State. Bei raschem Orts-/BBox-Wechsel konnte deshalb ein noch frisches OPERA-Bild vom vorherigen Ort kurzfristig über der neuen Umfeldkarte erscheinen. Der reine `selectVerifiedSurroundingsOperaFrame`-Guard bindet nun lokale OPERA-Raster und das Niederschlagsart-Overlay an die exakte `[lat,lon,bbox]`-Anfrage sowie das originale UTC-Beobachtungsfenster (max. 45 min Vergangenheit, max. 90 s Uhrtoleranz Zukunft). Ein fremder oder veralteter Frame wird sofort NoData statt als Bild für den aktuellen Ort ausgegeben. Kein zusätzlicher Abruf, kein Modellblend, keine Warnungsänderung. Vitest-Negativfälle für Ort, BBox, Alter, Zukunft, URI und phasengebundene Bildzeit sind ergänzt. Browser-/Source-/Release-Gates bleiben getrennt erforderlich.
+
+
+## MID-Karten 1.8 – echte 15-min-GSP-Raten statt erfundener WW-Zwischenwerte (15.11.2026)
+
+**Amtlicher Source-Abgleich:** DWD ICON-Modell-/RUC-Parameterreferenz 2025, Tabelle 5.6 (DWD-Datei `icon_d2_dbbeschr_aktuell.pdf`), führt `PRR_GSP` (`0/1/77`), `PRS_GSP` (`0/1/56`) und `PRG_GSP` (`0/1/75`) ausdrücklich als **momentane** großräumige Niederschlagsraten (`kg m^-2 s^-1`, Oberfläche) auf. RUC-Ausgabekatalog führt für diese Produkte jeweils 15 Minuten. Damit ist die sofortige Phase aus nachweislich originalen Regen-/Schnee-/Graupel-Raten zeitlich besser geeignet als die unqualifizierte Differenzierung kumulierter `RAIN_GSP`-/`SNOW_GSP`-/`GRAU_GSP`-Mengen. Die drei Raten decken **nicht** sämtliche konvektiven Prozesse, Gewitter, Hagel, Nebel, Gewitterböen, örtliche Glätte oder WMO-4677-`WW` ab. Ein reines Nullsignal ist **keine** meteorologische Entwarnung. Etwaige spezifische Warnungen bleiben ausschließlich amtlich.
+
+**Neu, strikt offline:** `tools/ruc/original_15min_phase_gate.py` kombiniert nur dann drei zusätzliche Originalfeldgruppen mit dem bestehenden echten IR10.8-Zehn-Frame-Manifest, wenn alle 40 GRIB-Originaldateien dasselbe `run`, die zehn identischen UTC-`valid`-Stempel, native 542040-Punkte-/UUID-/Surface-Geometrie, eindeutige offizielle DWD-`/r/<run>/s/PTxxxHyyM.grib2`-Dateipfade, Bytes/SHA256 und exakt passende Parameterkennungen besitzen. Das eCCodes-Read-only-Audit fordert `stepType=instant`, `startStep=endStep` (15-min-Takt, keine kumulierte Menge), kg m^-2 s^-1, die vorhandene MID-Native-Bitmap-Logik, die Original-Extrema und explizites Missing-vs.-genuines-Nullsignal. Zeit-/Orts-/Raster-Mischung, beschädigte Datei, leere Folge, falscher Wettercode oder Grid-/GRIB-Drift bleiben **fail-closed**. Keine Sensor-/WMO-/DWD-Warn-Ersatzbehauptung und keine temporal/spatial interpolierten Frames. Der physikalische Engineering-Sanity-Deckel von 1 kg m^-2 s^-1 führt nur zur Zurückweisung extremer oder fehlerhafter Quellen, niemals zu Clip/Glättung.
+
+**Realnachweis-CLI** (erst nach unabhängigem privaten Staging; keine API-Key-/Worker-/Browser-Netzwerkanfrage im Audit):
+
+```bash
+python3 tools/ruc/original_15min_phase_gate.py \
+  --ir-manifest /sicheres-staging/ir108/manifest.json \
+  --rates-manifest /sicheres-staging/gsp-raten/manifest.json
+```
+
+Das separate Raten-Manifest hat `schema=mid.dwd.icon-d2-ruc.gsp-phase-15min.shadow.v1`, `run`, `firstValid` und `products` mit exakt zehn `{name,sourceUrl,sha256}`-Einträgen pro `PRR_GSP`/`PRS_GSP`/`PRG_GSP`. Rohdateien sind nur lokal unter `frames/<PRODUCT>/<PT...>.grib2` zulässig. Der bisherige IR10.8-Shadow-Stager wird **nicht** mit zusätzlichen unkontrollierten Produktdownloads erweitert. Die CI führt ausschließlich deterministische negative/positive Offline-Fixtures `test_original_15min_phase_gate.py` aus, niemals echte DWD-Downloads. Kein Code/Asset in `src/`, Worker, RUC-Prozessor oder Pages wird dadurch aktiviert.
+
+**Harte Restgates:** (1) tatsächlicher aktueller 10+30 Original-GRIB-Datensatz, Spektral-, SHA-, eCCodes-, 542040-Zell- und Bitmap-Nachweis am identischen Run; (2) CLAT/CLON-georeferenzierte Darstellung des IR10.8-Brightness-Temperaturbildes mit getrenntem MID-GSP-Momentanphasen-Overlay und korrekter Legende/Quellen- und NoData-Beschriftung, kein WMO-Wettercode; (3) Limit für +0..+120min, Cache-/Browser-Netz-/RAM-Budgets, 320px bis Tablet/Light-Dark und reale iOS-Abnahme; (4) vollständiger Source-/PR-/Review-/Installer-/Worker-/Pages-/Stable-Pfad nach autorisierter Produktentscheidung. **`activationAuthorized=false` bleibt unbedingte Regel.**
+
+Quellen: https://www.dwd.de/SharedDocs/downloads/DE/modelldokumentationen/nwv/icon_d2/icon_d2_dbbeschr_aktuell.pdf?nn=344870&view=nasPublication und https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/ .

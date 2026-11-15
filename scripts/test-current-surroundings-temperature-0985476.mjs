@@ -320,4 +320,13 @@ const irFixtureResult=execFileSync('python3',[
 assert.equal(typeof irFixtureResult,'string');
 console.log('MID: native IR10.8 spectral/bitmap, ten-frame UTC cadence and bounded original-staging offline QA passed.');
 
+// Same-run, original-time, native-grid 15-minute GSP rates (rain/snow/graupel).
+// This is metadata/bitmap shadow QA only, never a synthetic WMO 4677 WW code.
+const phaseOriginalFixtureResult=execFileSync('python3',[
+ '-m','unittest','discover','-s','tools/ruc','-p','test_original_15min_phase_gate.py'
+],{cwd:fileURLToPath(new URL('../',import.meta.url)),encoding:'utf8',timeout:15000});
+assert.equal(typeof phaseOriginalFixtureResult,'string');
+console.log('MID: original 15-min IR/GSP phase-rate SHA, grid, valid-time and NoData SHADOW QA passed.');
+
+
 console.log('MID: georeferenced city temperatures, shared basemap and NoData/pixel-collision contracts passed.');
