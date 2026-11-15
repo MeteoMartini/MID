@@ -237,7 +237,7 @@ def audit_manifest(path: Path) -> dict:
             raise IR108QualificationError("invalid manifest frame")
         url = frame.get("sourceUrl")
         check_source_url(url)
-        if urlsplit(url).path.split("/")[9] != run[:-1]:
+        if urlsplit(url).path.split("/")[9] != utc(run).strftime("%Y-%m-%dT%H:%M"):
             raise IR108QualificationError("DWD source URL initialization does not match the manifest")
         if frame.get("name") in names or url in urls or frame.get("sha256") in digests:
             raise IR108QualificationError("duplicate source URL, hash or local frame name")
