@@ -68,7 +68,7 @@ const source=await import('node:fs/promises').then(({readFile})=>readFile(new UR
 assert.match(source,/fetchJsonWithRetry\(url\)/,'API-Vertragsprüfung muss den Retry-Helper verwenden.');
 assert.match(source,/Vertrag ungültig \(HTTP \$\{response\.status\}\)/,'Inhaltlich ungültige HTTP-Antworten bleiben echte Vertragsfehler.');
 
-assert.match(source,/Provider HTTP \\$\\{response\\.status\\} \\(kein Schemaurteil\\)/,'Provider HTTP 5xx must not be mislabeled as a JSON contract violation.');
-assert.match(source,/Transportfehler \\(\\$\\{classifyApiTransportError\\(error\\)\\}\\)/,'Transport failures must retain a fail-closed but transport-specific verdict.');
+assert.ok(source.includes('Provider HTTP ${response.status} (kein Schemaurteil)'), 'Provider HTTP 5xx must not be mislabeled as a JSON contract violation.');
+assert.ok(source.includes('Transportfehler (${classifyApiTransportError(error)})'), 'Transport failures must retain a fail-closed but transport-specific verdict.');
 
 console.log('MID v0.9.85.111: API-Vertragsprüfung wiederholt nur transiente Transport-/HTTP-Fehler begrenzt und bleibt danach fail-closed.');
