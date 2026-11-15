@@ -104,7 +104,8 @@ assert.ok(radar.includes('relative=relativeLabel(targetSeconds,referenceSeconds)
 assert.ok(!radar.includes("liveFollow&&selectedFrame?.live?'Jetzt':relativeLabel"),'Ein zukünftiger nächstverfügbarer Modelltermin darf niemals fälschlich Jetzt anzeigen.');
 assert.ok(radar.includes('<span><strong>Legende</strong>')&&!radar.includes("absoluteTime||(showRadar?provider:'Komposit')"),'Legende dient dem Layerkontext, nicht einer mehrfachen Zeitanzeige.');
 assert.ok(radar.includes('valueLabel={relative}')&&radar.includes('className="composite-timeline-valid-at"'),'Relative und absolute Gültigkeit stehen gemeinsam an der einzigen Zeitachse.');
-assert.ok(radar.includes('Kartenzeitschritt wählen')&&radar.includes('rangeLabel={'),'Slider ist für Screenreader mit realem Modelltermin beschriftet.');
+assert.ok(radar.includes('rangeLabel="Kartenzeitschritt wählen"')&&radar.includes('rangeValueText={selectedFrame?')&&radar.includes('timeISO={selectedFrame?new Date(targetMs).toISOString():undefined}'),'Ein stabiler Range-Name, dynamische geprüfte Modell-/Messzeit und ISO-Gültigkeit sind Pflicht.');
+assert.ok((await readFile(new URL('../src/WeatherMapsPanel.tsx',import.meta.url),'utf8')).includes('valueText={selectedTime?'),'Die zweite Kartenoberfläche darf den expliziten Slider-Override nicht ohne echte Gültigkeitszeit ausgeben.');
 const responsive=await readFile(new URL('../src/mapCanvasResponsive.css',import.meta.url),'utf8');
 assert.ok(responsive.includes('composite-timeline-valid-at')&&responsive.includes('composite-direct-time{display:none'),'Kleine Bildschirme zeigen vollständige Zeit im Zeitband, nicht als zweite Pille oder Terminauswahl.');
 assert.ok(!radar.includes('className="composite-map-absolute-clock"'),'Zweites Zeit-Overlay unten rechts ist nicht zulässig.');
