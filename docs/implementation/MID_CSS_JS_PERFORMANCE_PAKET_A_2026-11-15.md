@@ -7,7 +7,7 @@
 - Geprüfte Ausgangsbasis: `main=mid-stable=19a8af8f5d0c47784acde7628746fa9020ef4f62`, v0.9.85.481, fünf aktive Rulesets (15.11.2026).
 - Zugehörige Arbeiten: Issue #344, Auditbacklog #422 und historischer CSS-Dokumentations-Draft #651. Kein konkurrierender CSS-Eingriff.
 - Der bestehende CSS-HTML-Messpfad aus `scripts/lib/initialCssBudget.mjs` bleibt maßgeblich. Diese Ergänzung erfasst initiale HTML-`type=module`- und `rel=modulepreload`-JS-Referenzen; `rel=mid-offline` wird ausdrücklich nicht als Startdownload gezählt.
-- Vorhandene Budgets, Kaskaden, Module, Versionen, CI- und Release-Gates sind unverändert.
+- Vorhandene Budgets, Kaskaden, App-Module, Versionsspiegel und Release-Gates bleiben unverändert. Der neue Negativtest ist in beiden verbindlichen Regressionsinventaren von `MID_BASELINE.json` ergänzt, ohne einen bestehenden Test zu entfernen.
 
 ## Ausführung
 
