@@ -143,6 +143,8 @@ jobs:
           node scripts/test-bundle-budget-098594.mjs
           node scripts/check-build-budget.mjs
           node scripts/measure-startup-assets-0985482.mjs dist
+          node scripts/audit-css-move-candidates-0985482.mjs
+          node scripts/test-versioning.mjs
           node -e 'const f=require("node:fs");const i=JSON.parse(f.readFileSync("dist/mid-build-identity.json"));if(i.sourceGitSha!==process.env.MID_EXPECTED_SOURCE_SHA)throw Error("Build-Identität passt nicht zum Performance-Draft-HEAD");console.log("SHA-bound diagnostic build",i.sourceGitSha,"fingerprint",i.assetsSha256)'
           {
             echo '### MID Performance-Draft: unabhängig gebaut (keine Releasefreigabe)'
@@ -159,6 +161,7 @@ jobs:
           path: |
             artifacts/build-budget.json
             artifacts/startup-assets-0985482.json
+            artifacts/css-move-risk-0985482.json
             dist/mid-build-identity.json
           if-no-files-found: warn
           retention-days: 7
