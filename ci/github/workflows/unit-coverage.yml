@@ -167,6 +167,63 @@ jobs:
           retention-days: 7
 
 
+
+  draft-css-mountain-browser-parity:
+    name: MID Draft · Mountain CSS Original-Vergleich (14 reale Chromium-Profile)
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.draft == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'chatgpt/v0.9.85.483-css-js-performance-integration'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 26
+    permissions:
+      contents: read
+    steps:
+      - name: Kandidatenquellen auf exakt geprüften SHA
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Verifizierten .482-Stable als unveränderliche Layoutreferenz laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: MeteoMartini/MID
+          ref: f9c0b182b0e11278651e2afa13039015e1aa0f0b
+          path: .mid-css-reference
+          persist-credentials: false
+      - name: Node 22 für unveränderte Vite-/Chromium-Fixtures
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          package-manager-cache: false
+      - name: Nur vertraglich festgeschriebene Pakete installieren
+        shell: bash
+        timeout-minutes: 8
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: Historischen CSS-Golden und echte Chromium-Viewport-Parität prüfen
+        timeout-minutes: 18
+        shell: bash
+        env:
+          MID_EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+          MID_PARITY_BASE: ${{ github.workspace }}/.mid-css-reference
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$MID_EXPECTED_SOURCE_SHA"
+          test "$(git -C .mid-css-reference rev-parse HEAD)" = "f9c0b182b0e11278651e2afa13039015e1aa0f0b"
+          export GITHUB_SHA="$MID_EXPECTED_SOURCE_SHA"
+          node scripts/test-deferred-mountain-css-0985483.mjs
+          node scripts/test-module-css-consolidation-0985170.mjs
+          node scripts/verify-module-css-browser-0985170.mjs
+      - name: Regelverwendungsdiagnose ablegen (kein Release-Gate-Ersatz)
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-css-mountain-parity-evidence
+          path: artifacts/css-module-coverage.json
+          if-no-files-found: warn
+          retention-days: 7
+
   draft-regression-preflight:
     name: MID Draft · gezielte Regressionen
     if: >-
