@@ -2,7 +2,7 @@ import {readFile,readdir,mkdir,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {gzipSync,brotliCompressSync,constants} from 'node:zlib';
-import {initialCssAssetStats} from './lib/initialCssBudget.mjs';
+import {startupAssetEvidence} from './lib/startupAssetEvidence.mjs';
 
 const root=path.resolve(process.argv[2]||'dist');
 const baseline=JSON.parse(await readFile(new URL('../MID_PERFORMANCE_BASELINE.json',import.meta.url),'utf8'));
@@ -19,7 +19,8 @@ for(const file of files){
 }
 const js=assets.filter(x=>x.extension==='.js');
 const css=assets.filter(x=>x.extension==='.css');
-const initialCss=initialCssAssetStats(await readFile(path.join(root,'index.html'),'utf8'),assets);
+const startup=startupAssetEvidence(await readFile(path.join(root,'index.html'),'utf8'),assets);
+const initialCss=startup.css,initialJs=startup.js;
 const compressible=assets.filter(x=>COMPRESSIBLE_EXTENSIONS.has(x.extension));
 const staticMedia=assets.filter(x=>STATIC_MEDIA_EXTENSIONS.has(x.extension));
 const totals={
@@ -34,12 +35,16 @@ const totals={
   initialCssGzipBytes:initialCss.gzipBytes,
   initialCssBrotliBytes:initialCss.brotliBytes,
   initialCssFileCount:initialCss.entries.length,
+  initialJsBytes:initialJs.bytes,
+  initialJsGzipBytes:initialJs.gzipBytes,
+  initialJsFileCount:initialJs.entries.length,
   largestJsGzipBytes:Math.max(0,...js.map(x=>x.gzipBytes)),
 };
 const failures=[];
 for(const [key,limit] of Object.entries(baseline.limits||{}))if(Number.isFinite(limit)&&totals[key]>limit)failures.push(`${key}: ${totals[key]} > ${limit}`);
 await mkdir('artifacts',{recursive:true});
-await writeFile('artifacts/build-budget.json',JSON.stringify({schema:2,ok:!failures.length,totals,initialCssAssets:initialCss.entries,definitions:baseline.metricDefinitions||{},assets:[...assets].sort((a,b)=>b.gzipBytes-a.gzipBytes||a.file.localeCompare(b.file)),failures},null,2)+'\n');
+await writeFile('artifacts/build-budget.json',JSON.stringify({schema:2,ok:!failures.length,totals,initialCssAssets:initialCss.entries,initialJsAssets:initialJs.entries,definitions:baseline.metricDefinitions||{},assets:[...assets].sort((a,b)=>b.gzipBytes-a.gzipBytes||a.file.localeCompare(b.file)),failures},null,2)+'\n');
 if(failures.length){console.error(failures.join('\n'));process.exit(1)}
 console.log(`Build-Budget bestanden: ${totals.assetCount} Dateien · Code/Text gzip ${totals.compressibleGzipBytes} B · statische Medien ${totals.staticMediaBytes} B.`);
 console.log(`Initiales CSS aus gebautem HTML: ${initialCss.entries.length} Datei(en) · ${initialCss.bytes} B roh · ${initialCss.gzipBytes} B gzip-9 · ${initialCss.brotliBytes} B Brotli-6. Kein gemessener Netztransfer oder CSS-Parse-Zeitwert.`);
+console.log(`Initiales HTML-JS: ${initialJs.entries.length} Datei(en) · ${initialJs.bytes} B roh · ${initialJs.gzipBytes} B gzip-9. Modulepreload ist enthalten, nicht aber transitive/lazy Module, Netztransfer oder Heap.`);
