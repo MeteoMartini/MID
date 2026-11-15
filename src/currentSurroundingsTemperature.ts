@@ -27,7 +27,7 @@ export function surroundingsTemperatureUrl(places:readonly SurroundingsTemperatu
  url.searchParams.set('timezone','GMT');
  url.searchParams.set('timeformat','unixtime');
  url.searchParams.set('past_hours','2');
- url.searchParams.set('forecast_hours','3');
+ url.searchParams.set('forecast_hours','4');
  url.searchParams.set('cell_selection','land');
  return url.toString();
 }
