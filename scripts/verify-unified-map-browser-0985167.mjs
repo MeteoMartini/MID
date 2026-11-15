@@ -145,8 +145,16 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
   const value=typeof choice==='string'?choice:
    await direct.locator('option').evaluateAll((options,label)=>options.find(option=>option.label===label)?.value??null,choice.label);
   assert.match(value??'',/^\d+$/,'Term must exist in the real product timeline');
-  if(compactTimeline)await timelineRange.fill(value);
-  else await direct.selectOption(value);
+  if(compactTimeline){
+   // Exercise the accessible native range control like a real user; Playwright's
+   // value-only fill can lose the React input/change sequence after model rerenders.
+   const max=Number(await timelineRange.getAttribute('max'));
+   const target=Number(value);
+   await timelineRange.focus();
+   if(target===0)await timelineRange.press('Home');
+   else if(target===max)await timelineRange.press('End');
+   else await timelineRange.fill(value);
+  }else await direct.selectOption(value);
   await page.waitForFunction(expected=>document.querySelector('select[aria-label="Kartentermin auswählen"]')?.value===expected,value).catch(async error=>{
    const detail=await page.evaluate(()=>({
     model:document.querySelector('select[aria-label="Modell für Parameter"]')?.value,
