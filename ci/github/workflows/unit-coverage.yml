@@ -385,3 +385,40 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: node tools/ci/mid-draft-regression-preflight.mjs --base "$BASE_SHA" --head "$HEAD_SHA" --run
+
+  draft-ventilation-on-demand-types:
+    name: MID Draft · Ventilation on-demand Typecheck (read-only)
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.draft == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'chatgpt/v0.9.85.485-ventilation-on-demand-qa' &&
+      github.event.pull_request.base.sha == 'c9fadfcd0969e949a92f414b321627dd3d4fb0cc'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    permissions:
+      contents: read
+    steps:
+      - name: Quellcode exakt vom Pull-Request-HEAD laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Node 22.16 für TypeScript-Checks
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Reproduzierbare QA-Abhängigkeiten
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: TypeScript und On-demand-Offline-Guards auf identischem SHA
+        shell: bash
+        env:
+          MID_EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$MID_EXPECTED_SHA"
+          npm run verify:types
+          npx vitest run tests/unit/mid-ventilation-on-demand.test.ts --no-coverage
+          echo "TypeScript and conditional ventilation/offline controls passed; no build or release."
