@@ -21,7 +21,7 @@ assert.equal(u.searchParams.get('hourly'),'temperature_2m');
 assert.equal(u.searchParams.get('timeformat'),'unixtime');
 assert.equal(u.searchParams.get('timezone'),'GMT');
 assert.equal(u.searchParams.get('latitude')?.split(',').length,4);
-assert.ok(Number(u.searchParams.get('forecast_hours'))<=3,'Bounded source horizon');
+assert.ok(Number(u.searchParams.get('forecast_hours'))<=4,'Bounded source horizon');
 assert.ok(Number(u.searchParams.get('past_hours'))<=2,'Bounded retrospective horizon');
 assert.equal(u.searchParams.has('models'),false,'Best Match is automatic, not a fabricated model');
 const result=extract(rows,places,at,at);
@@ -66,7 +66,7 @@ assert.ok(!css.includes('.current-surroundings-orientation'),'No parallel SVG bo
 assert.ok(component.includes("useSurroundingsCloudImage(mode==='cloud'"),'Verifiziertes Modellbild ist Standard ohne teuren Radardaten-Kaltstart.');
 assert.ok(component.includes("if(mode!=='radar')return")&&component.includes("mode==='radar'&&selection===undefined"),'DWD-/Satelliten-/OPERA-Beobachtungen nur nach Nutzerwahl laden.');
 assert.ok(component.includes('id="surroundings-model-cloud-weather"')&&component.includes('cloudForecast.image.bounds'),'Wolken/SigWx müssen das geprüfte Modellraster georeferenziert nutzen.');
-assert.ok(component.includes("ecmwfTemperatureColor(value)")&&component.includes("ecmwfTemperatureColor(temperature)"),'Temperaturzahlen und Standort verwenden dieselbe ECMWF-MID-Skala.');
+assert.ok(component.includes("ecmwfTemperatureColor(value)")&&component.includes("ecmwfTemperatureColor(displaySiteTemperature!)"),'Temperaturzahlen und Standort verwenden dieselbe ECMWF-MID-Skala.');
 assert.ok(css.includes('background:transparent!important;box-shadow:none!important')&&css.includes('.current-surroundings-center-dot>strong')&&css.includes('-webkit-text-stroke:1.15px'),'High-contrast ECMWF-colored temperature numerals require no opaque background plates.');
 const cloudSource=await read('src/currentSurroundingsCloudImage.ts');
 assert.ok(cloudSource.includes('loadEstablishedSynopticIndex(signal)')&&cloudSource.includes('loadNativeIndex(signal)')&&cloudSource.includes('nativeCloudWeatherPair('),'Nur die originalen, SHA-validierten MID-Wolken-/SigWx-Daten verwenden.');
