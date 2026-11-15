@@ -47,7 +47,7 @@ export function MidMapLibre({center,zoom,minZoom=2,maxZoom=14,className,scrollZo
 }
 
 export function MapInteraction({enabled}:{enabled:boolean}){const map=useMidMap();useEffect(()=>{if(!map)return;const actions=[map.dragPan,map.touchZoomRotate,map.doubleClickZoom,map.boxZoom,map.keyboard];for(const action of actions)enabled?action.enable():action.disable();map.touchZoomRotate.disableRotation()},[map,enabled]);return null}
-export function MapCenter({latitude,longitude,zoom,fly=false,revision=0}:{latitude:number;longitude:number;zoom?:number;fly?:boolean;revision?:number}){const map=useMidMap();useEffect(()=>{if(!map)return;const options={center:[longitude,latitude] as [number,number],...(zoom!==undefined?{zoom}:{})};if(fly)map.flyTo({...options,duration:650,essential:true});else map.jumpTo(options)},[map,latitude,longitude,zoom,fly,revision]);return null}
+export function MapCenter({latitude,longitude,zoom,fly=false,revision=0}:{latitude:number;longitude:number;zoom?:number;fly?:boolean;revision?:number}){const map=useMidMap();useEffect(()=>{if(!map)return;const options={center:[longitude,latitude] as [number,number],...(zoom!==undefined?{zoom}:{})};if(fly)map.flyTo({...options,duration:650});else map.jumpTo(options)},[map,latitude,longitude,zoom,fly,revision]);return null}
 export function MapFitBounds({south,west,north,east,maxZoom,padding=22}:{south:number;west:number;north:number;east:number;maxZoom?:number;padding?:number}){const map=useMidMap();useEffect(()=>{if(!map)return;map.fitBounds([[west,south],[east,north]],{padding,maxZoom,duration:0})},[map,south,west,north,east,maxZoom,padding]);return null}
 
 function safeId(value:string){return value.replace(/[^a-zA-Z0-9_-]/g,'_')}

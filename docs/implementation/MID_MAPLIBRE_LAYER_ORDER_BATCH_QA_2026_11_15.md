@@ -25,6 +25,17 @@ Die ursprüngliche numerische Z-Index-Sortierung, `map.moveLayer`, vorhandene So
 - Entfernen/Neureihen vor Flush → letztes Register gewinnt;
 - Source-Kopplung an die vorhandene MID-Ordnung und unveränderte Registrierungs-/Unregistrierungspfade.
 
+## Zusätzlich: Bewegungsreduktion beim Kartensprung
+
+Die MID-Komponente `MapCenter` hatte beim optionalen `fly`-Wechsel `map.flyTo({…, duration:650, essential:true})` gesetzt. Laut aktueller offizieller MapLibre-API verhindert `essential:true` **ausdrücklich** die Betriebssystempräferenz `prefers-reduced-motion`. Bei MID ist der kamerageführte Flug keine fachlich notwendige Datendarstellung, sondern eine Komfortanimation. Daher entfernt dieser QA-Patch ausschließlich `essential:true`. Für normale Einstellungen bleibt `flyTo` bei 650 ms unverändert; bei reduzierter Bewegung lässt MapLibre die Animation automatisch aus und führt den Zielpositionswechsel entsprechend `jumpTo` aus. `fly=false` bleibt exakt `jumpTo`. Dadurch keine zusätzliche Einstellung oder neue Karte.
+
+Quellen:
+- https://maplibre.org/maplibre-gl-js/docs/API/classes/Map/
+- https://maplibre.org/maplibre-gl-js/docs/API/type-aliases/AnimationOptions/
+- https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions
+
+Anmerkung: Das W3C-Kriterium 2.3.3 für Animation durch Interaktion liegt auf **Stufe AAA**, nicht AA. Die Korrektur verbessert die Rücksicht auf Bewegungsempfindlichkeit über das MID-AA-Ziel hinaus, ersetzt aber keine reale iOS-/VoiceOver-Prüfung.
+
 ## Risiken und Release-Gates
 
 Auch bei bestandenen reinen Scheduler-Unit-Tests ist ein durchgängiger Browser-/GPU-/MapLibre-Profilvergleich Pflicht: Map/Umfeldwetter, Radar/WMS/HTML-Marker, Isolinien, Warnung/Legende, Z-Index über mehrere Modell-/Stilwechsel, 320/390/430px + Tablet hoch/quer + Desktop, Light/Dark, Zoom/Fokus und WebGL-Kontextverlust. Abweichende Interaktionen oder verdeckte Wetterwarnungen sind Stop-Kriterien.

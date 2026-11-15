@@ -50,6 +50,13 @@ describe('MID Karten: MapLibre Layerreihenfolge ohne redundante Reorder-Pässe',
   await Promise.resolve();
   expect(observed).toEqual([['isobars','cloud']]);
  });
+ it('MapLibre flyTo honors operating-system reduced motion (no forced essential flight)',()=>{
+  const core=readFileSync('src/MapLibreCore.tsx','utf8');
+  const center=core.slice(core.indexOf('export function MapCenter('),core.indexOf('export function MapFitBounds('));
+  expect(center).toContain('map.flyTo({...options,duration:650})');
+  expect(center).not.toContain('essential:true');
+  expect(center).toContain('else map.jumpTo(options)');
+ });
  it('actual MapLibre registry remains z-index sorted, with unregistration and a single microtask',()=>{
   const core=readFileSync('src/MapLibreCore.tsx','utf8');
   expect(core).toContain('const scheduleLayerOrder=createMapLayerOrderScheduler<MidMap>();');
