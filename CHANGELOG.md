@@ -1,3 +1,13 @@
+# MID v0.9.85.480
+
+- Umfeldwetter startet mit der hochwertigen MID-Kartenbasis und einer geprüften Modellkarte für Wolken + signifikantes Wetter (SigWx) statt langsamer Radar-/Satelliten-Vorababrufe. Beobachtungsradar und Satellit bleiben auf Wunsch über eine separate Ansicht erreichbar.
+- Gut erkennbare Temperaturzahlen mit der appweiten ECMWF-orientierten Farbskala werden direkt an geografisch belegten Orten gezeigt; der ausgewählte Standort ist zusätzlich markiert. Farbige und schwarze Hintergrundplatten um die Zahlen entfallen.
+- Karten-Zeitleiste: Der relative Zeitschritt und die absolute Gültigkeitszeit stehen gemeinsam im Zeitband, auch auf schmalen Displays. Überflüssige doppelte Zeitangaben und eine zusätzliche Karten-Pille werden vermieden.
+- MID unterscheidet Modellvorhersage, Beobachtung, Modelllauf und Gültigkeitszeit eindeutig. Fehlende Wolken-/SigWx-Felder werden nicht als wolkenfrei oder als amtliche Warnungen ausgegeben.
+
+- Ortsbezogener Modell-Fallback: Fehlt ein brauchbares, zeitlich gültiges ICON-D2-Wolken-/SigWx-Feld, werden weitere SHA-überprüfte regionale und überregionale Modelle geprüft. Unbekannte Daten bleiben als solche gekennzeichnet.
+- Widget-PNG-Export robuster: Eine vollständig überprüfte neue PNG-Datei ersetzt die vorherige atomar. Fehlgeschlagene Schreibvorgänge oder Wiederholungsversuche löschen die bisher gültige Ausgabe nicht.
+
 # MID v0.9.85.479
 
 - Changelog direkt in MID öffnen und über „Zurück zu MID“ zur bisherigen App-Ansicht zurückkehren – ohne neuen Browser-Tab oder PWA-Fenster.

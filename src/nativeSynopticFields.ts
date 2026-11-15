@@ -11,7 +11,7 @@ export type SynopticIndex={schema:string;models:Record<string,SynopticModel>};
 export const OPTIONAL_D2_CLOUD_HOURS=Object.freeze([13,14,16,17]);
 const HOURS=[0,3,6,9,12,15,18,21,24,30,36,42,48,60,72,180,...Array.from({length:13},(_,i)=>96+i*24)],CORE_HOURS=[0,3,6,9,12,18,24,36,48],MODELS=['icon-d2','icon-eu','icon','gfs','ifs'],MAX_HORIZON:Record<string,number>={'icon-d2':48,'icon-eu':120,icon:180,gfs:384,ifs:360};
 const sha=async(bytes:ArrayBuffer)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
-async function loadEstablishedSynopticIndex(signal:AbortSignal){
+export async function loadEstablishedSynopticIndex(signal:AbortSignal){
  const r=await fetch(`/ruc/latest.json?mid_synoptic=${Date.now()}`,{signal,cache:'no-store'});if(!r.ok)throw Error('Synoptik-Katalog nicht verfügbar.');const meta=await r.json(),key=meta.synopticFields?.key,match=typeof key==='string'?key.match(/^runs\/[a-zA-Z0-9_-]+__synoptic_(?:optional_d2_)?([a-f0-9]{16})\/synoptic-fields\/index.json$/):null;if(!match)throw Error('Synoptik-Datenkatalog noch nicht veröffentlicht. Bitte erneut laden.');
  const response=await fetch(`/ruc/${key}`,{signal});if(!response.ok)throw Error('Synoptik-Index nicht erreichbar.');const bytes=await response.arrayBuffer();if((await sha(bytes)).slice(0,16)!==match[1])throw Error('Synoptik-Index-Prüfsumme ungültig.');const index=JSON.parse(new TextDecoder().decode(bytes)) as SynopticIndex;
  if(index.schema!=='mid.synoptic.fields.v1'||!index.models||Object.keys(index.models).length>5)throw Error('Synoptik-Schema ungültig.');

@@ -63,6 +63,61 @@ assert.ok(component.includes('current-surroundings-city-marker'),'Use MapLibre H
 assert.ok(css.includes('.current-surroundings-city-value'),'Readable city labels');
 assert.ok(css.includes('text-overflow:ellipsis')&&css.includes('max-width:min(124px,38vw)'),'Long named places cannot overflow narrow map labels');
 assert.ok(!css.includes('.current-surroundings-orientation'),'No parallel SVG border renderer');
+assert.ok(component.includes("useSurroundingsCloudImage(mode==='cloud'"),'Verifiziertes Modellbild ist Standard ohne teuren Radardaten-Kaltstart.');
+assert.ok(component.includes("if(mode!=='radar')return")&&component.includes("mode==='radar'&&selection===undefined"),'DWD-/Satelliten-/OPERA-Beobachtungen nur nach Nutzerwahl laden.');
+assert.ok(component.includes('id="surroundings-model-cloud-weather"')&&component.includes('cloudForecast.image.bounds'),'Wolken/SigWx müssen das geprüfte Modellraster georeferenziert nutzen.');
+assert.ok(component.includes("ecmwfTemperatureColor(value)")&&component.includes("ecmwfTemperatureColor(temperature)"),'Temperaturzahlen und Standort verwenden dieselbe ECMWF-MID-Skala.');
+assert.ok(css.includes('background:transparent!important;box-shadow:none!important')&&css.includes('.current-surroundings-center-dot>strong'),'Temperaturen dürfen nicht durch Hintergrundplatten verdeckt sein.');
+const cloudSource=await read('src/currentSurroundingsCloudImage.ts');
+assert.ok(cloudSource.includes('loadEstablishedSynopticIndex(signal)')&&cloudSource.includes('loadNativeIndex(signal)')&&cloudSource.includes('nativeCloudWeatherPair('),'Nur die originalen, SHA-validierten MID-Wolken-/SigWx-Daten verwenden.');
+assert.ok(cloudSource.includes("cloudWeatherRaster(data,'pseudo')")&&cloudSource.includes('admissibleSurroundingsCloudTime'),'Kein Fake-Satellitenbild und keine ungebundene Modellzeit.');
+assert.ok(cloudSource.includes('setResult(previous=>previous.image&&admissibleSurroundingsCloudTime('),'Still-valid model images must remain visible until replacement or expiry.');
+assert.ok(component.includes("cloudForecast.unavailable?' · Aktualisierung nicht erreichbar':''"),'Failed model update must be visibly declared.');
+assert.ok(component.includes("selection===undefined&&Number.isFinite(temperature)"),'Current site temperature must not masquerade as a future radar value.');
+const compiledCloud=ts.transpileModule(cloudSource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022},reportDiagnostics:true});
+assert.equal(compiledCloud.diagnostics?.length??0,0);
+const cloudExports={};
+runInNewContext(compiledCloud.outputText,{exports:cloudExports,require:()=>({}),Date,Number,Math,Array,Object,String,JSON,Set},{timeout:1000});
+const {admissibleSurroundingsCloudTime:validCloudTime,chooseSurroundingsCloudFrame:chooseCloud}=cloudExports;
+const modelNow=Date.parse('2026-11-14T20:00:00Z'),modelRun=new Date(modelNow-3600000).toISOString(),modelTime=new Date(modelNow).toISOString();
+const modelRef={hour:1,time:modelTime,file:'icon-d2-cw-001.bin',sha256:'a'.repeat(64),bytes:123,decodedBytes:321,encoding:'gzip-json'};
+const modelCatalog={'icon-d2':{label:'DWD ICON-D2',run:modelRun,frames:[],cloudWeatherFrames:[modelRef]}};
+assert.equal(validCloudTime(modelTime,modelRun,modelNow),true);
+assert.equal(chooseCloud(modelCatalog,modelNow)?.modelId,'icon-d2');
+assert.equal(chooseCloud(modelCatalog,modelNow)?.ref.time,modelTime);
+assert.equal(validCloudTime(new Date(modelNow+4*3600000).toISOString(),modelRun,modelNow),false,'Future SigWx may not masquerade as current weather.');
+assert.equal(validCloudTime(modelTime,new Date(modelNow-25*3600000).toISOString(),modelNow),false,'Retired model run is not current.');
+assert.equal(validCloudTime('not-a-date',modelRun,modelNow),false);
+assert.equal(chooseCloud({},modelNow),null,'No proven model frame is unknown, never clear sky.');
+
+const {chooseSurroundingsCloudFrames:chooseCloudFrames}=cloudExports;
+const euCatalog={...modelCatalog,'icon-eu':{...modelCatalog['icon-d2'],label:'DWD ICON-EU',cloudWeatherFrames:[{...modelRef,file:'icon-eu-cw-001.bin'}]}};
+assert.equal(chooseCloudFrames(euCatalog,modelNow).map(item=>item.modelId).join(','),'icon-d2,icon-eu','A valid second model must remain available, not be discarded by priority');
+assert.ok(cloudSource.includes('for(const selected of chooseSurroundingsCloudFrames(index.models,now))'),'After invalid regional coverage the loader must try the next verified model');
+const accessedModels=[];
+let attemptedNativeFallback=0;
+const mockedModule={};
+const outsideD2={model:'icon-d2',run:modelRun,time:modelTime,lats:[48,49],lons:[5,6],cloud:[50,50,50,50],weather:[null,null,null,null]};
+const insideEu={model:'icon-eu',run:modelRun,time:modelTime,lats:[40,50],lons:[10,30],cloud:[50,50,50,50],weather:[null,null,null,null]};
+runInNewContext(compiledCloud.outputText,{
+ exports:mockedModule,
+ require:(id)=>{
+  if(id==='./cloudWeatherData')return {
+   loadCloudWeatherField:async(_base,modelId)=>{accessedModels.push(modelId);return modelId==='icon-d2'?outsideD2:insideEu},
+   cloudWeatherRaster:()=> 'data:image/png;base64,verified-mock'
+  };
+  if(id==='./nativeSynopticFields')return {loadEstablishedSynopticIndex:async()=>({index:{models:euCatalog},base:'https://example.invalid/'})};
+  if(id==='./nativeModelFields')return {loadNativeIndex:async()=>{attemptedNativeFallback++;throw Error('Unnecessary native fallback')}};
+  return {};
+ },
+ Date,Number,Math,Array,Object,String,JSON,Set,Error,Promise
+},{timeout:1000});
+const euImage=await mockedModule.loadVerifiedSurroundingsCloud(45,20,modelNow,{aborted:false});
+assert.equal(euImage.model,'DWD ICON-EU','The out-of-ICON-D2 location must use the valid EU field');
+assert.equal(accessedModels.join(','),'icon-d2,icon-eu','Only confirmed SHA-bound fields may be retried in declared priority order');
+assert.equal(attemptedNativeFallback,0,'Do not discard an available EU field in favor of a D2-only fallback');
+
+assert.equal(chooseCloud({'icon-d2':{...modelCatalog['icon-d2'],cloudWeatherFrames:[{...modelRef,time:new Date(modelNow+5*3600000).toISOString()}]}},modelNow),null,'Wrong forecast validity never renders as actual weather.');
 const citySource=await read('src/surroundingsCitySelection.ts');
 const cityJs=ts.transpileModule(citySource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022},reportDiagnostics:true});
 assert.equal(cityJs.diagnostics?.length??0,0);
