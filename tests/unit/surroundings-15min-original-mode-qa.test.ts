@@ -3,7 +3,7 @@ import {matchesSurroundingsCloudRequest} from '../../src/surroundingsCloudOrigin
 import {describe,expect,it} from 'vitest';
 import {
  radarOriginalForStep,nearestVerifiedOriginal,sourceOriginalTimes,
- surroundingsRadarTarget,selectVerifiedSurroundingsRadarFrame,SURROUNDINGS_RADAR_MIN_STEP,SURROUNDINGS_RADAR_MAX_STEP
+ surroundingsRadarTarget,selectVerifiedSurroundingsRadarFrame,selectVerifiedSurroundingsOperaFrame,SURROUNDINGS_RADAR_MIN_STEP,SURROUNDINGS_RADAR_MAX_STEP
 } from '../../src/surroundingsRadarTimeline';
 
 const now=Date.parse('2026-11-15T12:07:00Z');
@@ -46,6 +46,23 @@ describe('Umfeld Rad/Sat: 15-min selector uses only admitted ORIGINAL source tim
   expect(selectVerifiedSurroundingsRadarFrame(data,'',expected)).toBeUndefined();
   expect(selectVerifiedSurroundingsRadarFrame(data,wms,undefined)).toBeUndefined();
   expect(selectVerifiedSurroundingsRadarFrame(undefined,wms,expected)).toBeUndefined();
+ });
+ it('OPERA fallback never reuses observations or phase from a foreign location',()=>{
+  const url='data:image/png;base64,aa';
+  const frame={url,time:now-2*60_000,requestKey:JSON.stringify([50.7,7.1,'7,50,8,51'])};
+  expect(selectVerifiedSurroundingsOperaFrame(frame,frame.requestKey,now)).toBe(frame);
+  expect(selectVerifiedSurroundingsOperaFrame(frame,JSON.stringify([50.8,7.1,'7,50,8,51']),now)).toBeUndefined();
+  expect(selectVerifiedSurroundingsOperaFrame(frame,JSON.stringify([50.7,7.1,'8,50,9,51']),now)).toBeUndefined();
+  expect(selectVerifiedSurroundingsOperaFrame(frame,'',now)).toBeUndefined();
+  expect(selectVerifiedSurroundingsOperaFrame({...frame,time:now-46*60_000},frame.requestKey,now)).toBeUndefined();
+  expect(selectVerifiedSurroundingsOperaFrame({...frame,time:now+91_000},frame.requestKey,now)).toBeUndefined();
+  expect(selectVerifiedSurroundingsOperaFrame({...frame,url:'invalid'},frame.requestKey,now)).toBeUndefined();
+  expect(selectVerifiedSurroundingsOperaFrame(undefined,frame.requestKey,now)).toBeUndefined();
+  const ui=readFileSync('src/CurrentSurroundings.tsx','utf8');
+  expect(ui).toContain('selectVerifiedSurroundingsOperaFrame(opera,operaRequestKey,now)');
+  expect(ui).toContain('phaseImage?.requestKey===operaRequestKey');
+  expect(ui).toContain('setOpera({url:canvas.toDataURL(),time,requestKey:operaRequestKey})');
+  expect(ui).toContain('setPhaseImage({url:phase.colors.size?canvas.toDataURL():undefined,time,requestKey:operaRequestKey})');
  });
  it('normalises original source times in seconds/milliseconds/ISO, without rounding validity',()=>{
   const input=[new Date(now-5*60000).toISOString(),(now-5*60000)/1000,now-5*60000,'not-a-time'];
