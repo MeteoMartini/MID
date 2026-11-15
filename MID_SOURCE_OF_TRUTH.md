@@ -1,3 +1,8 @@
+# MID v0.9.85.481 · Viertelstunden-Umfeldwetter und ortsgebundene Werte (Source-Kandidat)
+
+Verifizierter Start `main=mid-stable=11d5793546f15e384bb36d7b7111818f41904bae`, v0.9.85.480. Im bestehenden Umfeld-Wetter nutzt die Karte gemeinsame MapLibre-Vektorgeografie und SHA-/Zeit-/Raster-geprüfte Wolken-/SigWx-Modellfelder. Bis +120 Minuten sind 15-Minuten-Ziele auswählbar, ohne kategoriale SigWx-Originalfelder oder amtliche Warnungen zu interpolieren. Bei glatten Wolkenänderungen wird eine ausdrücklich deklarierte zeitliche Visualisierung aus zwei gleichen Modellläufen erstellt; scharfe Änderungen, fehlende Werte und Modellwechsel bleiben ungeschönt oder NoData. Ortstemperaturen benutzen den realen Best-Match-Hourly-Pfad, keine Raster-Zufallspunkte; 15-Minuten-Zwischenwerte erfordern vollständige, plausible Stundenpaare. Die zentralen Temperaturziffern werden stärker kontrastiert, Ortsnamen nicht doppelt gezeichnet. Diese Source-Kandidatur ist keine QA-/Release-Freigabe; Originale, Prüfnachweise und Grenzen stehen im technischen Changelog.
+
+
 # MID v0.9.85.480 · schnelle Umfeld-Modellkarte und kompakter Kartenzeitvertrag (Source-Kandidat)
 
 Leitchat-Integration: vier SHA-identische Widget-QA-Dateien aus #810; private atomare PNG-Ersetzung und Negativ-/Concurrency-Tests. Für Orte außerhalb der ersten Modellabdeckung wird ein bestätigtes Folge-Modell statt eines ungeprüften D2-only-Abbruchs versucht; fehlende Felder bleiben NoData. Unabhängige Gesamt-/Browser-/Geräte-/Release-Abnahme noch ausstehend. Vor Freigabe aktuelle Spezialbranch-Änderungen neu verifizieren.

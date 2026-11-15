@@ -1,3 +1,10 @@
+# MID v0.9.85.481
+
+- **Wetter im Umfeld:** Im Wolken-/SigWx-Modus sind „Jetzt“ sowie +15, +30, +45, +60, +75, +90, +105 und +120 Minuten auf einer kompakten, gut bedienbaren Zeitachse auswählbar. Die absolute Zielzeit wird nur einmal sichtbar angegeben und beim Öffnen der großen Karte übergeben.
+- **Meteorologisch nachvollziehbar:** 15-Minuten-Zwischenbilder der Wolkendecke entstehen ausschließlich zwischen zwei zeitlich höchstens eine Stunde getrennten, SHA-geprüften Originalfeldern desselben Modelllaufs auf identischem Raster. Die kategorischen WMO-SigWx-Codes werden nicht interpoliert; rasche Wolkenwechsel, fehlende Zellen und nicht passende Originalfelder werden nicht künstlich geglättet. Modell- und Originalgültigkeiten sowie Zwischenberechnung werden kenntlich gemacht.
+- **Temperaturen:** Die farbigen 2-m-Zahlen sind klarer konturiert, größer und weiterhin ohne deckende Hintergrundplatten. Die Basiskarte zeigt Ortsnamen nur einmal. Orts- und zukünftige Standorttemperaturen stammen aus realem Open-Meteo-Best-Match-Abruf; Zwischenwerte erfordern vollständige Stundenoriginale und plausible Änderungen. Fehlende Daten werden nicht als 0 dargestellt.
+- **Responsive und sicher:** Touchbedienung und Zeitanzeige auf schmalen Smartphone-, Tablet- und Desktopansichten berücksichtigt; Radar/Satellit bleiben ausschließlich nach ausdrücklicher Auswahl aktiv. Kein neuer kostenpflichtiger Dienst, keine Anpassung amtlicher Warnstufen oder Schutzregeln.
+
 # MID v0.9.85.480
 
 - Umfeldwetter startet mit der hochwertigen MID-Kartenbasis und einer geprüften Modellkarte für Wolken + signifikantes Wetter (SigWx) statt langsamer Radar-/Satelliten-Vorababrufe. Beobachtungsradar und Satellit bleiben auf Wunsch über eine separate Ansicht erreichbar.

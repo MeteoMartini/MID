@@ -145,9 +145,39 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
   const value=typeof choice==='string'?choice:
    await direct.locator('option').evaluateAll((options,label)=>options.find(option=>option.label===label)?.value??null,choice.label);
   assert.match(value??'',/^\d+$/,'Term must exist in the real product timeline');
-  if(compactTimeline)await timelineRange.fill(value);
-  else await direct.selectOption(value);
-  await page.waitForFunction(expected=>document.querySelector('select[aria-label="Kartentermin auswählen"]')?.value===expected,value);
+  if(compactTimeline){
+   // Exercise the accessible native range control like a real user; Playwright's
+   // value-only fill can lose the React input/change sequence after model rerenders.
+   const max=Number(await timelineRange.getAttribute('max'));
+   const target=Number(value);
+   await page.evaluate(()=>{
+    const input=document.querySelector('.composite-timeline-range input[type="range"]');
+    window.__qaTimelineInputEvents=[];
+    for(const type of ['keydown','input','change','keyup']){
+     input?.addEventListener(type,event=>window.__qaTimelineInputEvents.push({type,key:event.key||'',raw:event.target.value,time:Math.round(performance.now())}),true);
+    }
+   });
+   await timelineRange.focus();
+   if(target===0)await timelineRange.press('Home');
+   else if(target===max)await timelineRange.press('End');
+   else await timelineRange.fill(value);
+  }else await direct.selectOption(value);
+  await page.waitForFunction(expected=>document.querySelector('select[aria-label="Kartentermin auswählen"]')?.value===expected,value).catch(async error=>{
+   const detail=await page.evaluate(()=>({
+    timeline:{rangeCount:document.querySelectorAll('.composite-timeline-range input[type="range"]').length,rangeDisabled:document.querySelector('.composite-timeline-range input[type="range"]')?.disabled,rangeMin:document.querySelector('.composite-timeline-range input[type="range"]')?.min,rangeAria:document.querySelector('.composite-timeline-range input[type="range"]')?.getAttribute('aria-label'),selectDisabled:document.querySelector('select[aria-label="Kartentermin auswählen"]')?.disabled,options:[...document.querySelectorAll('select[aria-label="Kartentermin auswählen"] option')].map(option=>({value:option.value,validTime:option.dataset.validTime,disabled:option.disabled})).slice(0,12),focused:document.activeElement?.outerHTML?.slice(0,320)},
+    model:document.querySelector('select[aria-label="Modell für Parameter"]')?.value,
+    select:document.querySelector('select[aria-label="Kartentermin auswählen"]')?.value,
+    range:document.querySelector('.composite-timeline-range input[type="range"]')?.value,
+    max:document.querySelector('.composite-timeline-range input[type="range"]')?.max,
+    status:document.querySelector('.unified-layer-status')?.textContent?.slice(0,400),
+    busy:document.querySelector('.unified-layer-status')?.getAttribute('aria-busy'),
+    timelineEvents:JSON.stringify(window.__qaTimelineInputEvents||[]),
+    liveButton:document.querySelector('.composite-live-button')?.className,
+    chosenTime:document.querySelector('select[aria-label="Kartentermin auswählen"] option:checked')?.getAttribute('data-valid-time')
+   }));
+   console.error('Selected source term did not commit',{expected:value,detail});
+   throw error;
+  });
   assert.equal(await timelineRange.inputValue(),value,'Visible range and exact source term stay synchronized');
  }
  await chooseTerm('0');
@@ -207,7 +237,18 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  await satelliteSwitch.click();await verifyPresentationHint('Linien empfohlen');
  await radarSwitch.click();await satelliteSwitch.click();assert.equal(await radarSwitch.getAttribute('aria-pressed'),'true');assert.equal(await satelliteSwitch.getAttribute('aria-pressed'),'false');
  await page.waitForFunction(()=>window.__qaMap?.getLayer('model-pressure-centers-labels'));
- await page.getByLabel('Modell für Parameter').selectOption('icon-eu');const exactPressure=direct.locator(`option[data-valid-time="${Math.floor((runMs+3*hour)/1000)}"]`);await exactPressure.waitFor({state:'attached'});await chooseTerm(await exactPressure.getAttribute('value'));await page.waitForFunction(()=>window.__qaMap?.getLayer('unified-wms-pressure-isobars-line-dashed')).catch(async e=>{console.error('Pressure frame',{width,theme,design,status:await page.locator('.unified-layer-status').innerText(),fieldRequests:requests.filter(u=>u.endsWith('.bin')),errors,visibleLayers:await page.evaluate(()=>window.__qaMap?.getStyle()?.layers?.filter(l=>/pressure|isobar/.test(l.id)).map(l=>l.id)??[]).catch(()=>[])});throw e});
+ await page.getByLabel('Modell für Parameter').selectOption('icon-eu');
+ // The old model can also have a +3h option. An attached DOM option does not
+ // prove the newly selected model's times and status have finished updating.
+ await page.waitForFunction(()=>{
+  const status=document.querySelector('.unified-layer-status');
+  const active=document.querySelector('select[aria-label="Modell für Parameter"]');
+  return active?.value==='icon-eu'&&status?.textContent?.includes('ICON-EU')&&
+   status?.getAttribute('aria-busy')==='false'&&!status.textContent.includes('Rohdaten laden');
+ });
+ const exactPressure=direct.locator(`option[data-valid-time="${Math.floor((runMs+3*hour)/1000)}"]`);
+ await exactPressure.waitFor({state:'attached'});
+ await chooseTerm(await exactPressure.getAttribute('value'));await page.waitForFunction(()=>window.__qaMap?.getLayer('unified-wms-pressure-isobars-line-dashed')).catch(async e=>{console.error('Pressure frame',{width,theme,design,status:await page.locator('.unified-layer-status').innerText(),fieldRequests:requests.filter(u=>u.endsWith('.bin')),errors,visibleLayers:await page.evaluate(()=>window.__qaMap?.getStyle()?.layers?.filter(l=>/pressure|isobar/.test(l.id)).map(l=>l.id)??[]).catch(()=>[])});throw e});
  assert.equal(await page.evaluate(()=>window.__qaMap.getStyle().layers.some(l=>l.id.startsWith('unified-dwd-'))),false,'Pure numerical pressure lines replace the fixed WMS line image');
  await page.getByLabel('Modell für Parameter').selectOption('icon-d2');await page.waitForFunction(()=>window.__qaMap?.getLayer('model-pressure-centers-labels'));
  await measuredReload();assert.equal(await radarSwitch.getAttribute('aria-pressed'),'true');assert.equal(await satelliteSwitch.getAttribute('aria-pressed'),'false');
@@ -426,7 +467,14 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  heldSynoptic='icon-d2-042.bin';releaseSynoptic=null;const failedSynopticPending=new Promise(resolve=>{synopticReached=resolve});failSynoptic=true;await chooseTerm(String(Number(lastTerm)-1));await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('Neuer Termin lädt'));await waitForHeldSynoptic(failedSynopticPending);assert.ok(releaseSynoptic);releaseSynoptic();heldSynoptic=null;await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('Prüfsumme ungültig'));assert.ok(await page.evaluate(()=>window.__qaMap.getStyle().layers.some(l=>l.id.startsWith('synoptic-thetae-layer-'))),'Failed successor does not clear the prior frame');failSynoptic=false;await chooseTerm('0');
  synopticMissing=true;await page.locator('.unified-source-info').last().locator('summary').click();await page.getByRole('button',{name:'Rasterkatalog aktualisieren',exact:true}).click();await page.getByRole('button',{name:'Synoptik erneut laden',exact:true}).waitFor();assert.ok((await page.locator('.unified-layer-status').innerText()).includes('noch nicht veröffentlicht'));synopticMissing=false;await page.getByRole('button',{name:'Synoptik erneut laden',exact:true}).click();await page.waitForFunction(()=>{const t=document.querySelector('.unified-layer-status')?.textContent||'';return t.includes('INIT')&&!t.includes('Rohdaten laden')});await verifyPresentationHint('MSL-Isobaren');
 
- await page.getByLabel('Modell für Parameter').selectOption('icon-eu');await page.waitForFunction(ms=>document.querySelector('[aria-label="Kartentermin auswählen"] option:last-child')?.textContent.includes(new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',timeZone:'Europe/Berlin'}).format(new Date(ms))),runMs+72*hour);const horizonTime=Math.floor((runMs+72*hour)/1000),horizonOption=direct.locator(`option[data-valid-time="${horizonTime}"]`);await chooseTerm({label:await horizonOption.innerText()});await keyboardMap.focus();await page.keyboard.press('ArrowRight');assert.equal(Number(await direct.locator('option:checked').getAttribute('data-valid-time')),horizonTime,'Keyboard clamps at the published horizon');await page.waitForFunction(()=>!document.querySelector('.unified-layer-status')?.textContent.includes('Neuer Termin lädt'));assert.ok(requests.some(u=>u.endsWith('icon-eu-072.bin')),'The real +72h object reaches the common map');const selectedValidTime=await direct.locator('option:checked').getAttribute('data-valid-time');assert.equal(Number(selectedValidTime),Math.floor((runMs+72*hour)/1000));holdCatalog=true;releaseCatalog=null;const cataloguePending=new Promise(resolve=>{catalogBlocked=resolve});await page.getByRole('button',{name:'Rasterkatalog aktualisieren',exact:true}).click();await Promise.race([cataloguePending,new Promise((_,reject)=>{const timer=setTimeout(()=>reject(new Error('Catalogue refresh never reached the held fixture request')),30000);cataloguePending.then(()=>clearTimeout(timer))})]);await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.getAttribute('aria-busy')==='true');assert.ok(releaseCatalog,'The refresh request is held at the actual catalogue boundary');assert.equal(await direct.locator('option:checked').getAttribute('data-valid-time'),selectedValidTime,'Selected valid time remains visible during a delayed catalogue refresh');assert.equal(await page.getByLabel('Modell für Parameter').inputValue(),'icon-eu');holdCatalog=false;releaseCatalog();await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.getAttribute('aria-busy')==='false');assert.equal(await direct.locator('option:checked').getAttribute('data-valid-time'),selectedValidTime,'Selected valid time survives the completed catalogue refresh');await page.getByLabel('Modell für Parameter').selectOption('icon-d2');await page.waitForFunction(expected=>Number(document.querySelector('[aria-label="Kartentermin auswählen"] option:checked')?.getAttribute('data-valid-time'))===expected,Math.floor((runMs+48*hour)/1000));assert.ok(await direct.locator('option').count()>=13,'The shorter model retains its real forecast terms when switching from +72h');
+ await page.getByLabel('Modell für Parameter').selectOption('icon-eu');await page.waitForFunction(ms=>document.querySelector('[aria-label="Kartentermin auswählen"] option:last-child')?.textContent.includes(new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',timeZone:'Europe/Berlin'}).format(new Date(ms))),runMs+72*hour);const horizonTime=Math.floor((runMs+72*hour)/1000),horizonOption=direct.locator(`option[data-valid-time="${horizonTime}"]`);await chooseTerm({label:await horizonOption.innerText()});await keyboardMap.focus();await page.keyboard.press('ArrowRight');assert.equal(Number(await direct.locator('option:checked').getAttribute('data-valid-time')),horizonTime,'Keyboard clamps at the published horizon');await page.waitForFunction(expected=>{
+   const status=document.querySelector('.unified-layer-status')?.textContent||'';
+   const time=new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}).format(new Date(expected));
+   return status.includes('ICON-EU')&&status.includes(time)&&!status.includes('Rohdaten laden')&&!status.includes('Neuer Termin lädt');
+  },runMs+72*hour,{timeout:30000}).catch(async error=>{
+   console.error('Exact +72h source field did not become ready',{width,theme,design,model:await page.getByLabel('Modell für Parameter').inputValue(),term:await direct.inputValue(),selectedTime:await direct.locator('option:checked').getAttribute('data-valid-time'),status:await page.locator('.unified-layer-status').innerText(),recentBinaryRequests:requests.filter(url=>url.endsWith('.bin')).slice(-15)});
+   throw error;
+  });assert.ok(requests.some(u=>u.endsWith('icon-eu-072.bin')),'The real +72h SHA-verified original object reaches the common map before the status becomes ready');const selectedValidTime=await direct.locator('option:checked').getAttribute('data-valid-time');assert.equal(Number(selectedValidTime),Math.floor((runMs+72*hour)/1000));holdCatalog=true;releaseCatalog=null;const cataloguePending=new Promise(resolve=>{catalogBlocked=resolve});await page.getByRole('button',{name:'Rasterkatalog aktualisieren',exact:true}).click();await Promise.race([cataloguePending,new Promise((_,reject)=>{const timer=setTimeout(()=>reject(new Error('Catalogue refresh never reached the held fixture request')),30000);cataloguePending.then(()=>clearTimeout(timer))})]);await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.getAttribute('aria-busy')==='true');assert.ok(releaseCatalog,'The refresh request is held at the actual catalogue boundary');assert.equal(await direct.locator('option:checked').getAttribute('data-valid-time'),selectedValidTime,'Selected valid time remains visible during a delayed catalogue refresh');assert.equal(await page.getByLabel('Modell für Parameter').inputValue(),'icon-eu');holdCatalog=false;releaseCatalog();await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.getAttribute('aria-busy')==='false');assert.equal(await direct.locator('option:checked').getAttribute('data-valid-time'),selectedValidTime,'Selected valid time survives the completed catalogue refresh');await page.getByLabel('Modell für Parameter').selectOption('icon-d2');await page.waitForFunction(expected=>Number(document.querySelector('[aria-label="Kartentermin auswählen"] option:checked')?.getAttribute('data-valid-time'))===expected,Math.floor((runMs+48*hour)/1000));assert.ok(await direct.locator('option').count()>=13,'The shorter model retains its real forecast terms when switching from +72h');
  for(const [modelId,end] of [['gfs',384],['ifs',360]]){await page.getByLabel('Modell für Parameter').selectOption(modelId);const endTime=Math.floor((runMs+end*hour)/1000);await page.waitForFunction(ms=>Boolean(document.querySelector('[aria-label="Kartentermin auswählen"] option[data-valid-time="'+ms+'"]')),endTime);const option=direct.locator(`option[data-valid-time="${endTime}"]`),endLabel=await option.innerText();assert.match(endLabel,/\b(?:Mo|Di|Mi|Do|Fr|Sa|So)\b/,'Long-range dropdown includes two-letter weekday');await chooseTerm({label:endLabel});await page.waitForFunction(ms=>{const text=document.querySelector('.unified-layer-status')?.textContent||'',date=new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',timeZone:'Europe/Berlin'}).format(new Date(ms));return text.includes(date)&&!text.includes('Neuer Termin lädt')&&!text.includes('Rohdaten laden')},endTime*1000);await keyboardMap.focus();await page.keyboard.press('ArrowRight');assert.equal(Number(await direct.locator('option:checked').getAttribute('data-valid-time')),endTime,'Keyboard reaches and clamps at complete model horizon');assert.ok(requests.some(u=>u.endsWith(`${modelId}-${end}.bin`)),'Published endpoint reaches the common map');}await page.getByLabel('Modell für Parameter').selectOption('icon-d2');await page.waitForFunction(ms=>Number(document.querySelector('[aria-label="Kartentermin auswählen"] option:checked')?.getAttribute('data-valid-time'))===ms,Math.floor((runMs+48*hour)/1000));
  if(profileMemory){
   const session=await context.newCDPSession(page),tracePath=process.env.MID_MAP_TRACE==='1'?'/tmp/mid-map-cycles-390-light-next.json':null;
@@ -537,6 +585,34 @@ async function verifySurroundings(width,theme){
   await page.locator('.current-surroundings-maplibre canvas').first().waitFor({timeout:30000});
   await page.locator('.current-surroundings-center-dot').waitFor({timeout:30000});
   assert.equal(requests.some(value=>new URL(value).searchParams.get('mode')==='composite-times'),false,'No eager DWD radar on initial cloud preview');
+  // .481: real mobile cloud scrubber, source-time truthful even when original data unavailable.
+  const cloudTimeline=page.locator('.current-surroundings-cloud-timeline'),quarter=cloudTimeline.locator('input[type="range"]');
+  await quarter.waitFor();
+  assert.equal(await quarter.inputValue(),'0','Cloud starts at the current time');
+  const cloudPrev=page.getByRole('button',{name:'Wolkenprognose 15 Minuten zurück',exact:true});
+  const cloudNext=page.getByRole('button',{name:'Wolkenprognose 15 Minuten vor',exact:true});
+  assert.equal(await cloudPrev.isDisabled(),true);
+  for(let step=1;step<=8;step++){
+   await cloudNext.click();
+   assert.equal(await quarter.inputValue(),String(step),'Each click advances exactly 15 min');
+   assert.ok((await cloudTimeline.locator('output').innerText()).includes('+'+String(step*15)+' min'),'Relative time is visible in a single clock');
+  }
+  assert.equal(await cloudNext.isDisabled(),true,'The cloud forecast cannot exceed +120 min');
+  const readout=cloudTimeline.locator('output');
+  assert.equal(await readout.isVisible(),true);
+  assert.match(await readout.innerText(),/\d{2}\.\d{2}\./,'The same time band shows the absolute date');
+  const bounds=await cloudTimeline.evaluate(el=>({
+   buttons:[...el.querySelectorAll('button')].map(node=>node.getBoundingClientRect().height),
+   range:el.querySelector('input[type="range"]')?.getBoundingClientRect().height,
+   overflow:el.scrollWidth>el.clientWidth+1
+  }));
+  assert.ok(bounds.buttons.every(v=>v>=44)&&bounds.range>=44,'Minimum 44px touch targets');
+  assert.equal(bounds.overflow,false,'No mobile time scrubber overflow');
+  await cloudPrev.click();
+  assert.equal(await quarter.inputValue(),'7','Backwards is one 15-min step');
+  await quarter.fill('0');
+  assert.equal(await quarter.inputValue(),'0','Slider returns to live');
+  assert.equal(requests.some(v=>new URL(v).searchParams.get('mode')==='composite-times'),false,'No eager radar network even while browsing future cloud frames');
   await page.getByRole('button',{name:'Radar / Satellit',exact:true}).click();
   assert.equal(await page.getByRole('button',{name:'Radar / Satellit',exact:true}).getAttribute('aria-pressed'),'true','Explicit radar selection activated');
   const radarObserved=page.getByRole('status').filter({hasText:'DWD-Radar · Beobachtung'});

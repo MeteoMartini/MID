@@ -68,12 +68,14 @@ export default function CurrentSurroundings(props:Props){
  const {lat,lon,name,timezone,temperature,temperatureTime,onOpen}=props;
  const heading=useId();
  const [mode,setMode]=useState<'cloud'|'radar'>('cloud');
+ const [cloudStep,setCloudStep]=useState(0); // 0=live, 1..8=+15 to +120 min
  const [catalog,setCatalog]=useState<CompositeProductTimes>();
  const [failed,setFailed]=useState(false);
  const [selection,setSelection]=useState<number>();
  const [loaded,setLoaded]=useState<{url:string;time:number;kind:'Beobachtung'|'Nowcast'}>();
  const [now,setNow]=useState(Date.now);
- const cloudForecast=useSurroundingsCloudImage(mode==='cloud',lat,lon,now);
+ const cloudTarget=now+cloudStep*15*60000;
+ const cloudForecast=useSurroundingsCloudImage(mode==='cloud',lat,lon,cloudTarget);
  const [opera,setOpera]=useState<{url:string;time:number}>();
  const [operaFinished,setOperaFinished]=useState(false);
  const [imageError,setImageError]=useState('');
@@ -240,25 +242,37 @@ export default function CurrentSurroundings(props:Props){
  const displayedRadar=loaded&&loaded.time>=now-45*60000?loaded:undefined;
  const displayedPhase=showPhase&&displayedOpera&&phaseImage?.time===displayedOpera.time?phaseImage:undefined;
  const displayTime=displayedOpera?.time??displayedRadar?.time;
- const temperatureTarget=Math.floor(now/(10*60000))*10*60000;
+ const temperatureTarget=mode==='cloud'&&cloudStep>0?Math.floor(cloudTarget/(15*60000))*15*60000:Math.floor(now/(10*60000))*10*60000;
+ const siteId=`site:${lat.toFixed(5)}:${lon.toFixed(5)}`;
+ const temperaturePlaces=useMemo(()=>[...nearbyCities,{id:siteId,lat,lon}], [nearbyCities,siteId,lat,lon]);
  const [temperatureGrid,setTemperatureGrid]=useState<SurroundingsTemperatureSnapshot>();
  useEffect(()=>{
   if(selection!==undefined||!nearbyCities.length){setTemperatureGrid(undefined);return;}
   const controller=new AbortController();
   // One bounded forecast request for up to four real places; entirely independent of radar.
-  void loadSurroundingsTemperatures(nearbyCities,temperatureTarget,controller.signal)
+  void loadSurroundingsTemperatures(temperaturePlaces,temperatureTarget,controller.signal,mode==='cloud'&&cloudStep>0)
    .then(result=>{if(!controller.signal.aborted)setTemperatureGrid(result)})
    .catch(()=>{if(!controller.signal.aborted)setTemperatureGrid(undefined)});
   return ()=>controller.abort();
- },[selection,temperatureTarget,nearbyCities]);
+ },[selection,temperatureTarget,temperaturePlaces,mode,cloudStep]);
  const temperatures=selection===undefined?temperatureGrid?.values:undefined;
+ const forecastSiteTemperature=mode==='cloud'&&cloudStep>0?temperatures?.[siteId]:undefined;
+ const displaySiteTemperature=mode==='cloud'&&cloudStep>0?forecastSiteTemperature:selection===undefined&&Number.isFinite(temperature)?temperature:undefined;
  const visibleClouds=Boolean(clouds&&cloudError!==clouds);
  return <section className="card current-surroundings" aria-labelledby={heading}>
-  <header><h2 id={heading}>Wetter im Umfeld</h2><button type="button" onClick={()=>onOpen(mode==='radar'?displayTime:undefined,{west,south,east,north})}>Karte öffnen</button></header>
+  <header><h2 id={heading}>Wetter im Umfeld</h2><button type="button" onClick={()=>onOpen(mode==='cloud'&&cloudStep>0?cloudTarget:mode==='radar'?displayTime:undefined,{west,south,east,north})}>Karte öffnen</button></header>
   <div className="current-surroundings-display-modes" role="group" aria-label="Kartendarstellung wählen">
    <button type="button" aria-pressed={mode==='cloud'} onClick={()=>{setMode('cloud');setSelection(undefined)}}>Wolken + Wetter</button>
    <button type="button" aria-pressed={mode==='radar'} onClick={()=>setMode('radar')}>Radar / Satellit</button>
   </div>
+  {mode==='cloud'&&<div className="current-surroundings-cloud-timeline" role="group" aria-label="Wolken und SigWx: Prognosezeit in 15-Minuten-Schritten bis zwei Stunden">
+   <button type="button" aria-label="Wolkenprognose 15 Minuten zurück" disabled={cloudStep===0} onClick={()=>setCloudStep(v=>Math.max(0,v-1))}>−15 min</button>
+   <input type="range" min={0} max={8} step={1} value={cloudStep}
+    aria-label={`Wolkenprognose: ${cloudStep===0?'Jetzt':`+${cloudStep*15} Minuten`} · Ziel ${datedClock(cloudTarget)} Uhr`}
+    onChange={event=>setCloudStep(Math.max(0,Math.min(8,Number(event.target.value))))}/>
+   <button type="button" aria-label="Wolkenprognose 15 Minuten vor" disabled={cloudStep===8} onClick={()=>setCloudStep(v=>Math.min(8,v+1))}>+15 min</button>
+   <output aria-live="polite" className="current-surroundings-time-readout">{cloudStep===0?'Jetzt':`+${cloudStep*15} min`} · {datedClock(cloudTarget)} Uhr</output>
+  </div>}
   {mode==='radar'&&<div className="current-surroundings-controls">
    <button type="button" aria-pressed={selection===undefined} onClick={()=>setSelection(undefined)}>Jetzt</button>
    <button type="button" aria-pressed={showPhase} disabled={selection!==undefined} onClick={()=>setShowPhase(value=>!value)}>Niederschlagsart</button>
@@ -280,17 +294,19 @@ export default function CurrentSurroundings(props:Props){
     {nearbyCities.map((place,index)=>{
      const value=temperatures?.[place.id];if(value===undefined)return null;
      const degrees=formatWeatherValue(value,'temperature','overview');
-     return <HtmlMarker key={place.id} latitude={place.lat} longitude={place.lon} anchor="center" zIndex={850+index}
+     return <HtmlMarker key={place.id} latitude={place.lat} longitude={place.lon} anchor="bottom" zIndex={850+index}
       className={`current-surroundings-city-marker priority-${index}`}
-      html={`<span class="current-surroundings-city-value" role="img" aria-label="${mapSafe(place.name)}: ${degrees} Grad Celsius, Open-Meteo Best Match"><b>${mapSafe(place.name)}</b><strong style="color:${ecmwfTemperatureColor(value)}">${degrees}°</strong></span>`}/>;
+      html={`<span class="current-surroundings-city-value" role="img" aria-label="${mapSafe(place.name)}: ${degrees} Grad Celsius, Open-Meteo Best Match"><strong style="color:${ecmwfTemperatureColor(value)}">${degrees}°</strong></span>`}/>;
     })}
     <HtmlMarker latitude={lat} longitude={lon} anchor="center" className="current-surroundings-center-marker" zIndex={920}
-     html={`<span class="current-surroundings-center-dot" role="img" aria-label="Gewählter Ort: ${mapSafe(name)}${selection===undefined&&Number.isFinite(temperature)?`, ${formatWeatherValue(temperature,'temperature','overview')} Grad Celsius`:''}">${selection===undefined&&Number.isFinite(temperature)?`<strong style="color:${ecmwfTemperatureColor(temperature)}">${formatWeatherValue(temperature,'temperature','overview')}°</strong>`:''}</span>`}/>
+     html={`<span class="current-surroundings-center-dot" role="img" aria-label="Gewählter Ort: ${mapSafe(name)}${displaySiteTemperature!==undefined?`, ${formatWeatherValue(displaySiteTemperature!,'temperature','overview')} Grad Celsius`:''}">${displaySiteTemperature!==undefined?`<strong style="color:${ecmwfTemperatureColor(displaySiteTemperature!)}">${formatWeatherValue(displaySiteTemperature!,'temperature','overview')}°</strong>`:''}</span>`}/>
    </MidMapLibre>
    <figcaption className="current-surroundings-map-caption">Standort: {name}</figcaption>
   </figure>
   <p role="status" className="current-surroundings-data-status">{mode==='cloud'
-   ?cloudForecast.image?<>Modellbild · {cloudForecast.image.model} · gültig {datedClock(Date.parse(cloudForecast.image.validTime))} · INIT {datedClock(Date.parse(cloudForecast.image.run))} · schematische Wolken + SigWx, keine Beobachtung{cloudForecast.loading?' · neuer Stand wird geprüft':''}{cloudForecast.unavailable?' · Aktualisierung nicht erreichbar':''}</>
+   ?cloudForecast.image?<>Modellprognose · {cloudForecast.image.model} · {cloudForecast.image.temporalMethod==='cloud-linear'&&cloudForecast.image.originalTimes
+     ?<>Wolken aus Originalterminen {clock(Date.parse(cloudForecast.image.originalTimes[0]))}/{clock(Date.parse(cloudForecast.image.originalTimes[1]))} Uhr zeitlich interpoliert · SigWx-Kategorie vom Original {clock(Date.parse(cloudForecast.image.sigwxTime??cloudForecast.image.originalTimes[0]))} Uhr</>
+     :<>Originaltermin {datedClock(Date.parse(cloudForecast.image.validTime))} Uhr</>} · Bildtermin {datedClock(Date.parse(cloudForecast.image.validTime))} Uhr · INIT {datedClock(Date.parse(cloudForecast.image.run))} Uhr · Ziel {datedClock(cloudTarget)} Uhr · keine Beobachtung{cloudForecast.loading?' · neuer Stand wird geprüft':''}{cloudForecast.unavailable?' · Aktualisierung nicht erreichbar':''}</>
     :cloudForecast.loading?'Verifiziertes Modell-Wolkenbild wird geladen …':'Kein gültiges Wolken-/SigWx-Modellbild für Ort und Termin; keine Satellitenbeobachtung oder Entwarnung.'
    :displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</p>
   <details className="current-surroundings-sources">
@@ -299,7 +315,9 @@ export default function CurrentSurroundings(props:Props){
   {mode==='radar'&&visibleClouds&&satelliteTime!==undefined&&<p>Bewölkung · {satellite?.provider==='dwd'?'DWD':'EUMETSAT'} · Beobachtung {clock(satelliteTime)} Uhr</p>}
   {Number.isFinite(temperature)&&temperatureTime&&<p>Temperatur am gewählten Ort · {temperatureTime.slice(11,16)} Uhr</p>}
   {selection===undefined&&(temperatureGrid&&temperatures&&Object.keys(temperatures).length
-   ?<p>Umfeldtemperaturen · {temperatureGrid.source} {temperatureGrid.modelLabel} · gültig {datedClock(temperatureGrid.validTime)} · {temperatureGrid.available}/{temperatureGrid.requested} Orte · einzelner Modelllauf nicht ausgewiesen</p>
+   ?<p>Umfeldtemperaturen · {temperatureGrid.source} {temperatureGrid.modelLabel} · {temperatureGrid.temporalMethod==='linear'&&temperatureGrid.sourceTimes
+     ?<>aus Stundenoriginalen {clock(temperatureGrid.sourceTimes[0])}/{clock(temperatureGrid.sourceTimes[1])} Uhr interpoliert · Ziel {datedClock(temperatureGrid.validTime)}</>
+     :<>Originaltermin {datedClock(temperatureGrid.validTime)}</>} · {temperatureGrid.available}/{temperatureGrid.requested} Orte · einzelner Modelllauf nicht ausgewiesen</p>
    :<p>Umfeldtemperaturen · Kein zeitlich und räumlich belegtes Temperaturfeld verfügbar</p>)}
   </details>
   {mode==='radar'&&selection===undefined&&showPhase&&(displayedPhase?.url

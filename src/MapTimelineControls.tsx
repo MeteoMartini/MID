@@ -1,5 +1,5 @@
 import {Pause,Play,SkipBack,SkipForward} from 'lucide-react';
-import type {ReactNode} from 'react';
+import {useEffect,useRef,type ReactNode} from 'react';
 
 export type MapTimelineMarker={
  key:string;
@@ -67,11 +67,26 @@ type MapTimelineRangeProps={
 };
 
 export function MapTimelineRange({className,markerClassName,index,count,canAnimate,onSeek,rangeLabel,countLabel,markers=[],children}:MapTimelineRangeProps){
- const lastIndex=Math.max(0,count-1),selectedIndex=Math.min(index,lastIndex);
+ const lastIndex=Math.max(0,count-1),selectedIndex=Math.max(0,Math.min(index,lastIndex));
+ // React's onChange may not commit every native range input after an asynchronous
+ // model/term switch. Keep pointer, touch and keyboard events on one idempotent path.
+ const lastDispatched=useRef(selectedIndex);
+ useEffect(()=>{lastDispatched.current=selectedIndex},[selectedIndex]);
+ const commitSeek=(value:number)=>{
+  if(!Number.isFinite(value))return;
+  const next=Math.max(0,Math.min(lastIndex,Math.round(value)));
+  if(lastDispatched.current===next)return;
+  lastDispatched.current=next;
+  onSeek(next);
+ };
  return <label className={`map-timeline-range ${className}`} style={{position:'relative'}}>
   {countLabel!==undefined&&countLabel!==null&&<span className="map-timeline-count">{countLabel}</span>}
   {markers.length>0&&<div className={`map-timeline-markers ${markerClassName}`} aria-hidden="true">{markers.map((marker,markerIndex)=><i key={marker.key} className={`${marker.phase||'available'}${markerIndex===selectedIndex?' active':''}`}/>)}</div>}
-  <input type="range" min={0} max={lastIndex} value={selectedIndex} disabled={!canAnimate} onChange={event=>onSeek(Number(event.target.value))} aria-label={rangeLabel}/>
+  <input type="range" min={0} max={lastIndex} value={selectedIndex} disabled={!canAnimate}
+   onInput={event=>commitSeek(Number(event.currentTarget.value))}
+   onChange={event=>commitSeek(Number(event.currentTarget.value))}
+   onKeyDown={event=>{if(event.key==='Home'||event.key==='End'){event.preventDefault();commitSeek(event.key==='Home'?0:lastIndex)}}}
+   aria-label={rangeLabel}/>
   {children}
  </label>;
 }
