@@ -32,6 +32,19 @@
 - CDP `Performance.getMetrics` meldete **vor** kontrollierter GC und mit aktiver Instrumentierung einen ungewöhnlich hohen JS-Heap (ca. 1,14 GB nach Aktuell, ca. 1,35 GB nach Karten). Ursache nicht nachgewiesen; weder Leak noch App-RAM als bestätigte Diagnose ausgeben. Die spätere Browser-Session war nicht mehr erreichbar; ein zweiter externer GC-Durchgang wurde wegen erschöpftem vorhandenem Dienstkontingent nicht ausgeführt. **Status: memory anomaly / UNVERIFIED AFTER GC.**
 - Keine echten WKWebView-/iOS-/VoiceOver-Messungen; keine instrumentierte repräsentative Kalt-/Warmcache-Serie. Lokale Chromium-Ausführung per localhost und file-URL wurde in dieser Umgebung ausdrücklich administrativ blockiert, sodass deren angezeigte Browserfehler **keine MID-App-Daten** sind.
 
+## Paket B · konservative CSS-Modulprüfung (Quellmessung, keine Migration)
+
+Das neue read-only Skript `node scripts/audit-css-move-candidates-0985482.mjs` überprüfte alle **69** kanonischen Eager-CSS-Quellen gegen spätere Regeln auf identische Selektoren mit denselben CSS-Eigenschaften. Es ist eine konservative **Untergrenze** möglicher Kaskadenkonflikte, keine Positivfreigabe.
+
+| Kandidat | Quellbytes | Direkte spätere Selektor-/Eigenschaftskollisionen | Ergebnis |
+|---|---:|---:|---|
+| `styles-src/25-extreme-outlook.css` | 24.083 | 29 | Nicht blind auslagern |
+| `midC14MapWorkspace.css` | 24.906 | 47 | Nicht blind auslagern |
+| `midC18MountainResponsiveFix.css` | 2.535 | 0 | Nur Kandidat, noch kein Browser-/Ownerbeweis |
+| `midC18FourteenReplitFluidGrid.css` | 12.828 | 0 | Nur Kandidat, möglicher Eager-ForecastCockpit-Verbrauch offen |
+
+Die großen Einstiegspakete enthalten historisch überlagerte, teils komponentenübergreifende Regeln. Ein Nullwert in dieser **engen** statischen Prüfung beweist keine visuelle oder responsive Parität nach dynamischem Nachladen. Insbesondere gilt `test-module-css-consolidation-0985170.mjs` mit fixierter historischer Kaskade, und jeder tatsächliche Eingriff benötigt einen separat nachgewiesenen CSS-Load-Order-Vertrag plus Browsermatrix. Bis dahin bleiben die 69 Dateien und die generierte `midPresentation.css` unverändert.
+
 ## Risiko- und QA-Entscheidung
 
 **Paket A teilweise verifiziert:** Immutable Assetprovenienz und statisches initiales CSS/JS sind gemessen. Vollständige Browsermatrix, echter Netztransfer, GC-/GPU-/WKWebView-Speicher und Wiederholbarkeit bleiben offen.
