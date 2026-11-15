@@ -61,9 +61,11 @@ describe('MID Umfeld-Wetter: Temperaturwerte dürfen nicht über Zieltermine wan
   expect(helper).toContain('state.placesKey!==placesKey');
   expect(helper).toContain('state.interpolate!==interpolate');
   expect(ui).toContain('controller.abort()');
-  expect(ui).toContain('aria-label="Wolkenprognosezeit wählen"');
+  // Preserve the previously browser-verified dynamic accessible label, and
+  // add the semantic slider value. Neither Chromium nor a screenreader loses the date.
+  expect(ui).toContain('aria-label={`Wolkenprognose:');
   expect(ui).toContain('aria-valuetext={');
   expect(ui).toContain('Letzter Viertelstundentermin');
-  expect(ui).not.toContain('aria-label={`Wolkenprognose:');
+  expect(ui).not.toContain('aria-label="Wolkenprognosezeit wählen"');
  });
 });

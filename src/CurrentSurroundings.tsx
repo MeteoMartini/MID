@@ -282,7 +282,7 @@ export default function CurrentSurroundings(props:Props){
   {mode==='cloud'&&<div className="current-surroundings-cloud-timeline" role="group" aria-label="Wolken und SigWx: Prognosezeit in 15-Minuten-Schritten über mindestens zwei Stunden">
    <button type="button" aria-label="Wolkenprognose 15 Minuten zurück" disabled={cloudStep===0} onClick={()=>setCloudStep(v=>Math.max(0,v-1))}>−15 min</button>
    <input type="range" min={0} max={9} step={1} value={cloudStep}
-    aria-label="Wolkenprognosezeit wählen"
+    aria-label={`Wolkenprognose: ${cloudStep===0?'letzter Viertelstundentermin':`in ${cloudRelativeMinutes} Minuten`} · Ziel ${datedClock(cloudTarget)} Uhr`}
     aria-valuetext={`${cloudStep===0?'Letzter Viertelstundentermin':`in ${cloudRelativeMinutes} Minuten`} · ${datedClock(cloudTarget)} Uhr`}
     onChange={event=>setCloudStep(Math.max(0,Math.min(9,Number(event.target.value))))}/>
    <button type="button" aria-label="Wolkenprognose 15 Minuten vor" disabled={cloudStep===9} onClick={()=>setCloudStep(v=>Math.min(9,v+1))}>+15 min</button>
