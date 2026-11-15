@@ -306,9 +306,9 @@ assert.ok(css.includes('.current-surroundings-data-status>strong')&&css.includes
 // Native IR10.8 source must remain offline/read-only until an independently calibrated
 // channel identity and real GRIB/bitmap/georeferencing evidence exist.
 const irFixtureResult=execFileSync('python3',[
- '-m','unittest','discover','-s','tools/ruc','-p','test_ir108_original_probe.py'
+ '-m','unittest','discover','-s','tools/ruc','-p','test_ir108*.py'
 ],{cwd:fileURLToPath(new URL('../',import.meta.url)),encoding:'utf8',timeout:15000});
 assert.equal(typeof irFixtureResult,'string');
-console.log('MID: native IR10.8 metadata, 10-frame UTC cadence, digest and fail-closed shadow QA passed.');
+console.log('MID: native IR10.8 official r/run/s/PT lead, 10-frame staging, digest, UTC cadence and fail-closed shadow QA passed.');
 
 console.log('MID: georeferenced city temperatures, shared basemap and NoData/pixel-collision contracts passed.');

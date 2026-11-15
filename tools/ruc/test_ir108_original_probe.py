@@ -13,13 +13,19 @@ from unittest.mock import patch
 
 from ir108_original_probe import (
     SCHEMA, IR108QualificationError, NATIVE_GRID, audit_manifest,
-    check_source_url, step_seconds, validate_frame_sequence, validate_header,
+    check_source_url, source_lead_seconds, step_seconds, validate_frame_sequence, validate_header,
 )
 
 RUN = "2026-11-15T00:00:00Z"
 FIRST = "2026-11-15T00:00:00Z"
-URL = ("https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/"
-       "SYNMSG_BT_CL_IR10.8/r/2026-11-15T00:00/20261115_0015.grib2.bz2")
+URL_BASE = ("https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/"
+            "SYNMSG_BT_CL_IR10.8/r/2026-11-15T00%3A00/s/")
+URL = URL_BASE + "PT000H15M.grib2"
+
+
+def grib_filename(index):
+    return f"PT{index//4:03d}H{(index%4)*15:02d}M.grib2"
+
 
 
 def fixture(index=1):
@@ -112,11 +118,17 @@ class IR108Tests(unittest.TestCase):
 
     def test_source_directory_is_channel_claim_not_header_proof(self):
         check_source_url(URL)
+        self.assertEqual(source_lead_seconds(URL), 900)
+        self.assertEqual(source_lead_seconds(URL_BASE + "PT002H15M.grib2"), 8100)
         for url in [
             URL.replace("SYNMSG_BT_CL_IR10.8", "SYNMSG_BT_CL_WV6.2"),
             URL.replace("opendata.dwd.de", "opendata.dwd.de.evil.example"),
             URL.replace("https://", "http://"),
             URL + "?token=opaque",
+            URL.replace("/s/", "/"),
+            URL.replace("PT000H15M.grib2", "PT000H15M.grib2.bz2"),
+            URL.replace("PT000H15M.grib2", "PT000H17M.grib2"),
+            URL.replace("PT000H15M.grib2", "PT028H00M.grib2"),
             "https://opendata.dwd.de/weather/nwp/icon-d2/grib/00/synmsg_bt_cl_ir10.8/",
         ]:
             with self.subTest(url=url):
@@ -130,18 +142,17 @@ class IR108Tests(unittest.TestCase):
             folder.mkdir()
             frames = []
             for i in range(10):
-                name = f"IR_{i:02d}.grib2.bz2"
+                name = grib_filename(i)
                 raw = b"not-a-real-grib-unit-test-" + bytes([i]) * 120
                 (folder / name).write_bytes(raw)
-                frames.append({"name": name,
-                               "sourceUrl": URL.replace("20261115_0015.grib2.bz2",
-                                                       f"20261115_{i*15:04d}.grib2.bz2"),
+                frames.append({"name": name, "sourceUrl": URL_BASE + grib_filename(i),
                                "sha256": hashlib.sha256(raw).hexdigest()})
             manifest = base / "manifest.json"
             manifest.write_text(json.dumps({"schema": SCHEMA, "run": RUN,
                                             "firstValid": FIRST, "frames": frames}))
             def fake_grib(path, run):
-                n = int(path.stem.split(".")[0].split("_")[1])
+                stem = path.name.split(".")[0]
+                n = int(stem[2:5]) * 4 + int(stem[6:8]) // 15
                 return validate_header(fixture(n), run)
             with patch("ir108_original_probe.inspect_local_grib", side_effect=fake_grib):
                 report = audit_manifest(manifest)
@@ -157,9 +168,18 @@ class IR108Tests(unittest.TestCase):
                 audit_manifest(manifest)
             bad_run = list(frames)
             bad_run[8] = {**bad_run[8], "sourceUrl": bad_run[8]["sourceUrl"]
-                          .replace("2026-11-15T00:00", "2026-11-15T01:00")}
+                          .replace("2026-11-15T00%3A00", "2026-11-15T01%3A00")}
             manifest.write_text(json.dumps({"schema": SCHEMA, "run": RUN,
                                             "firstValid": FIRST, "frames": bad_run}))
+            with self.assertRaises(IR108QualificationError):
+                audit_manifest(manifest)
+            manifest.write_text(json.dumps({"schema": SCHEMA, "run": RUN,
+                                            "firstValid": FIRST, "frames": frames}))
+            wrong_filename_lead = list(frames)
+            wrong_filename_lead[8] = {**wrong_filename_lead[8],
+                                      "sourceUrl": URL_BASE + "PT003H00M.grib2"}
+            manifest.write_text(json.dumps({"schema": SCHEMA, "run": RUN,
+                                            "firstValid": FIRST, "frames": wrong_filename_lead}))
             with self.assertRaises(IR108QualificationError):
                 audit_manifest(manifest)
             manifest.write_text(json.dumps({"schema": SCHEMA, "run": RUN,

@@ -20,7 +20,7 @@ import stat
 import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, unquote
 
 SCHEMA = "mid.dwd.icon-d2-ruc.ir108.shadow.v1"
 PRODUCT = "SYNMSG_BT_CL_IR10.8"
@@ -98,20 +98,36 @@ def validate_header(meta: dict, run: str) -> dict:
             "valueAndMissingQuality": "NOT_EVALUATED"}
 
 
-def check_source_url(url: str) -> None:
+def source_lead_seconds(url: str) -> int:
+    """Strictly bind the published DWD r/<run>/s/PTxxxHyyM.grib2 layout."""
     try:
         parts = urlsplit(url)
     except (ValueError, TypeError) as exc:
         raise IR108QualificationError("invalid source URL") from exc
     segments = parts.path.split("/")
-    expected = ["", "weather", "nwp", "v1", "m", "icon-d2-ruc",
-                "p", PRODUCT, "r"]
+    prefix = ["", "weather", "nwp", "v1", "m", "icon-d2-ruc",
+              "p", PRODUCT, "r"]
     if (parts.scheme != "https" or parts.netloc != "opendata.dwd.de"
             or parts.username or parts.password or parts.query or parts.fragment
-            or segments[:len(expected)] != expected or len(segments) != len(expected) + 2
-            or any(part in ("", ".", "..") for part in segments[len(expected):])
-            or re.fullmatch(r"[A-Za-z0-9_.-]+\.gr(?:ib|b)2(?:\.bz2)?", segments[-1]) is None):
-        raise IR108QualificationError("source URL not bound to an official DWD IR10.8 GRIB file")
+            or segments[:len(prefix)] != prefix or len(segments) != len(prefix) + 3
+            or segments[len(prefix) + 1] != "s"):
+        raise IR108QualificationError("source URL not bound to DWD IR10.8 r/<run>/s directory")
+    run_directory = unquote(segments[len(prefix)])
+    if not re.fullmatch(r"20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}", run_directory):
+        raise IR108QualificationError("invalid DWD source run directory")
+    utc(run_directory + ":00Z")
+    filename = segments[-1]
+    match = re.fullmatch(r"PT(\d{3})H(00|15|30|45)M\.grib2", filename)
+    if match is None:
+        raise IR108QualificationError("DWD IR10.8 file must use native PTxxxHyyM.grib2 naming")
+    lead = (int(match[1]) * 60 + int(match[2])) * 60
+    if lead > MAX_LEAD_SECONDS:
+        raise IR108QualificationError("DWD IR10.8 lead exceeds current verified bound")
+    return lead
+
+
+def check_source_url(url: str) -> None:
+    source_lead_seconds(url)
 
 
 def validate_frame_sequence(records: list[dict], run: str, first_valid: str) -> list[dict]:
@@ -237,7 +253,7 @@ def audit_manifest(path: Path) -> dict:
             raise IR108QualificationError("invalid manifest frame")
         url = frame.get("sourceUrl")
         check_source_url(url)
-        if urlsplit(url).path.split("/")[9] != utc(run).strftime("%Y-%m-%dT%H:%M"):
+        if unquote(urlsplit(url).path.split("/")[9]) != utc(run).strftime("%Y-%m-%dT%H:%M"):
             raise IR108QualificationError("DWD source URL initialization does not match the manifest")
         if frame.get("name") in names or url in urls or frame.get("sha256") in digests:
             raise IR108QualificationError("duplicate source URL, hash or local frame name")
@@ -251,6 +267,8 @@ def audit_manifest(path: Path) -> dict:
         if _sha256(local) != digest:
             raise IR108QualificationError("source SHA-256 differs from manifest")
         record = inspect_local_grib(local, run)
+        if record["leadSeconds"] != source_lead_seconds(url):
+            raise IR108QualificationError("DWD source filename lead differs from decoded GRIB validity")
         record["sha256"] = digest
         output.append(record)
     ordered = validate_frame_sequence(output, run, first_valid)

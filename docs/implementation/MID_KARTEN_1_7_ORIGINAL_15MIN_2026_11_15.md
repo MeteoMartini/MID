@@ -42,3 +42,35 @@ Fachliche Metadatenprüfung: `GRIB edition=2`, DWD centre 78, `discipline/catego
 **Sicherheitsergebnis:** Auch bei formal bestandenem Header-/Cadence-Audit bleibt `activationAuthorized: false` mit ausdrücklich offenen Prüfungen für IR/WV-Identität, Bitmap/Missing/physikalische Werte, CLAT/CLON-Georeferenzierung, Bildrenderer, Lastbudget und Source-/Release-Gates. Der QA-Pfad erzeugt weder veröffentlichte Raster noch PseudoSat-Bilder und verändert keine bestehende MID-Wettersemantik. Keine stillschweigende Übernahme als `CLCT` oder `WW`.
 
 Die deterministische Python-Negativ-/Positivtestreihe `tools/ruc/test_ir108_original_probe.py` ist an die bereits selektierte GitHub-Draft-Regression `scripts/test-current-surroundings-temperature-0985476.mjs` angebunden, mit synthetischen Rohheadern und ohne DWD-/Netzwerkabruf. Das **beweist keine tatsächliche Datenabdeckung**, sondern schützt die fachliche Zulassungslogik. Ein echter unabhängiger, reproduzierbarer zehn-Frame-DWD-GRIB-Decode- und Datensatzabgleich steht weiterhin vor einer eventuellen späteren Aktivierung.
+
+
+## Amtlich live verifizierte Originaldateinamen und begrenztes Staging (15.11.2026)
+
+Ein tatsächlicher **Live-Verzeichnisabruf** beim DWD am 15.11.2026 zeigte den ICON-D2-RUC-IR10.8-Lauf vom **15.11.2026 15:00 UTC** und echte Viertelstunden-Dateieinträge:
+https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/SYNMSG_BT_CL_IR10.8/r/2026-11-15T15%3A00/s/
+
+Die amtliche Verzeichnisauflistung verzeichnet:
+- PT000H00M.grib2 – 827 804 Byte,
+- PT000H15M.grib2 – 827 488 Byte,
+- PT000H30M.grib2 – 827 894 Byte,
+- PT001H00M.grib2 – 826 661 Byte,
+- PT002H00M.grib2 – 827 672 Byte,
+- PT002H15M.grib2 – 829 150 Byte.
+
+Diese Live-Verzeichniseinträge belegen native Viertelstunden-Angebote an der Quelle. Sie ersetzen **keinen** Download der Binärinhalte, kein GRIB-Werte-/Bitmap-Audit, keinen Kanalidentitätsnachweis und kein tatsächliches georeferenziertes Bild. Für neue Abrufe immer den neuesten DWD-Lauf erneut bestimmen.
+
+**Korrektur gegenüber dem früheren QA-Entwurf:** Das Original-DWD-Layout lautet .../p/SYNMSG_BT_CL_IR10.8/r/<YYYY-MM-DDTHH:MM>/s/PTxxxHyyM.grib2. Die zuvor angenommene direkt unter dem Laufverzeichnis liegende Datei ohne s/ bzw. frei benannte .bz2-Datei entspricht dem amtlichen Katalog **nicht**. Der Quellvalidator prüft jetzt zwingend die s/-Ebene und den aus dem Dateinamen stammenden Vorhersageschritt gegen die tatsächlich decodierte GRIB-Gültigkeit.
+
+**Nichtproduktiver Originaldaten-Stager:** tools/ruc/ir108_stage_originals.py kann nach explizitem lokalen Start den offiziellen DWD-Verzeichnisindex prüfen, einen vollständigen Satz von zehn benachbarten Originalterminen auswählen und ausschließlich diese zehn öffentlichen Dateien in ein neues privates Verzeichnis herunterladen. HTTPS-Herkunft ist fest auf den DWD gebunden, Redirects bleiben untersagt, jede Datei ist auf maximal 8 MiB begrenzt. Rohes GRIB-Magic/Endmarkierung, Content-Length, SHA-256 und eindeutige Pfade werden geprüft. Erst nach vollständigem Satz wird das lokale Kandidatenverzeichnis atomar angelegt; bei Fehlern wird die gesamte Zwischenstufe verworfen. Manifest und lokale GRIB-Dateien werden **nicht** zu MID, GitHub Pages, Worker oder Browser veröffentlicht.
+
+Beispiel für ein explizit gestartetes lokales QA-Staging:
+
+    python tools/ruc/ir108_stage_originals.py \
+      --run 2026-11-15T15:00:00Z \
+      --first-valid 2026-11-15T15:30:00Z \
+      --output /privates/verzeichnis/ir108-20261115T1500
+
+    python tools/ruc/ir108_original_probe.py \
+      --manifest /privates/verzeichnis/ir108-20261115T1500/manifest.json
+
+**Keine eigenständige Source-/Produktfreigabe:** Der Stager ist weder ein MID-Worker noch Teil des produktiven RUC-Preprocessors. Er rendert keine Wetterkarte, publiziert nichts und verändert keine Vorhersagewerte. Die CI-Regressionsprüfung verwendet ausschließlich synthetische HTML-/GRIB-Transport-Fixtures **ohne DWD-Netzwerk**. Ein positiver Download plus Headernachweis lässt activationAuthorized=false, bis IR10.8 gegenüber WV6.2 zweifelsfrei unterschieden wird, Werte/Bitmap/CLAT-/CLON-Koordinaten samt Kartenrenderer, Quelle/Gültigkeitszeit/Wettercode-Kombination, Performance und alle MID-Release-Gates real validiert wurden. Kein amtliches Satellitenbild und keine Umdeutung in CLCT-Prozent.
