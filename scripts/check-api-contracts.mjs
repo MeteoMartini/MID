@@ -1,4 +1,4 @@
-import {fetchJsonWithRetry} from './api-contract-request.mjs';
+import {fetchJsonWithRetry,classifyApiTransportError} from './api-contract-request.mjs';
 import {finiteSeries,rangeSeries,distinctExtrema} from './api-contract-series.mjs';
 
 const failures=[],warnings=[],checks=[];
@@ -9,12 +9,12 @@ async function jsonCheck(name,url,validate,{required=true}={}){
   checks.push({name,status:response.status,ok:valid,required,attemptsUsed});
   if(!valid){
    const suffix=attemptsUsed>1?` nach ${attemptsUsed} Abrufversuchen`:'';
-   const message=`${name}: Vertrag ungültig (HTTP ${response.status})${suffix}`;
+   const message=response.ok?`${name}: Vertrag ungültig (HTTP ${response.status})${suffix}`:`${name}: Provider HTTP ${response.status} (kein Schemaurteil)${suffix}`;
    (required?failures:warnings).push(message);
   }
   return valid;
  }catch(error){
-  const message=`${name}: ${error instanceof Error?error.message:String(error)} nach 3 Abrufversuchen`;
+  const message=`${name}: Transportfehler (${classifyApiTransportError(error)}), Antwortschema nicht überprüfbar · nach 3 Abrufversuchen`;
   checks.push({name,status:0,ok:false,required,attemptsUsed:3});
   (required?failures:warnings).push(message);
   return false;
