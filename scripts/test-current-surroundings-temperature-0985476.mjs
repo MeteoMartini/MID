@@ -130,8 +130,12 @@ const utcAt=Date.parse('2026-11-14T12:04:43.721Z');
 assert.equal(targetQuarter(utcAt,0),Date.parse('2026-11-14T12:00:00Z'));
 assert.equal(targetQuarter(utcAt,1),Date.parse('2026-11-14T12:15:00Z'));
 assert.equal(targetQuarter(utcAt,8),Date.parse('2026-11-14T14:00:00Z'));
+assert.equal(targetQuarter(utcAt,9),Date.parse('2026-11-14T14:15:00Z'));
+const justBeforeQuarter=Date.parse('2026-11-14T12:14:59.999Z');
+assert.ok(targetQuarter(justBeforeQuarter,9)-justBeforeQuarter>=120*60000,
+ 'The last 15-minute model target must cover at least two hours from now, even seconds before a slot boundary');
 assert.equal(targetQuarter(Date.parse('2026-10-25T01:59:30Z'),1),Date.parse('2026-10-25T02:00:00Z'),'DST cannot produce a local-only model slot');
-assert.ok(Number.isNaN(targetQuarter(NaN,1))&&Number.isNaN(targetQuarter(utcAt,-1))&&Number.isNaN(targetQuarter(utcAt,9)));
+assert.ok(Number.isNaN(targetQuarter(NaN,1))&&Number.isNaN(targetQuarter(utcAt,-1))&&Number.isNaN(targetQuarter(utcAt,10)));
 assert.ok(component.includes('const cloudTarget=surroundingsQuarterHourTarget(now,cloudStep)')&&component.includes("const temperatureTarget=mode==='cloud'?cloudTarget"),
  'Map, temperatures and clouds share one quarter-hour target');
 assert.ok(component.includes("mode==='cloud'?cloudTarget:mode==='radar'?displayTime:undefined"),
@@ -188,7 +192,7 @@ assert.equal(chooseCloud({'icon-d2':{...modelCatalog['icon-d2'],cloudWeatherFram
 // .481: Nine reachable 15-minute targets, genuine source-time labeling, no eager radar.
 // Dates are derived from one absolute target; no unverified 15-minute WMO observations.
 assert.ok(component.includes('const [cloudStep,setCloudStep]=useState(0)')&&component.includes('const cloudTarget=surroundingsQuarterHourTarget(now,cloudStep)'),'Cloud timeline has bounded 15-minute positions');
-assert.ok(component.includes('min={0} max={8} step={1}')&&component.includes('Wolkenprognose 15 Minuten vor')&&component.includes('Wolkenprognose 15 Minuten zurück'),'Real accessible 0–120-min control with 15-min steps');
+assert.ok(component.includes('min={0} max={9} step={1}')&&component.includes('Wolkenprognose 15 Minuten vor')&&component.includes('Wolkenprognose 15 Minuten zurück'),'Real accessible quarter-hour control covering at least +120 min');
 assert.ok(component.includes('cloudForecast.image.temporalMethod')&&component.includes('cloudForecast.image.sigwxTime')&&component.includes('cloudForecast.image.originalTimes'),'No fabricated 15-minute original times, discrete SigWx source preserved');
 assert.ok(component.includes("mode==='radar'&&selection===undefined")&&component.includes("if(mode!=='radar')return"),'Cloud forecast must not trigger DWD radar/satellite by default');
 assert.ok(css.includes('current-surroundings-cloud-timeline')&&css.includes('min-height:44px')&&css.includes('grid-column:1/-1'),'Mobile timeline keeps the clock readable and touch targets accessible');
