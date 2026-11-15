@@ -150,6 +150,13 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
    // value-only fill can lose the React input/change sequence after model rerenders.
    const max=Number(await timelineRange.getAttribute('max'));
    const target=Number(value);
+   await page.evaluate(()=>{
+    const input=document.querySelector('.composite-timeline-range input[type="range"]');
+    window.__qaTimelineInputEvents=[];
+    for(const type of ['keydown','input','change','keyup']){
+     input?.addEventListener(type,event=>window.__qaTimelineInputEvents.push({type,key:event.key||'',raw:event.target.value,time:Math.round(performance.now())}),true);
+    }
+   });
    await timelineRange.focus();
    if(target===0)await timelineRange.press('Home');
    else if(target===max)await timelineRange.press('End');
@@ -163,7 +170,10 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
     range:document.querySelector('.composite-timeline-range input[type="range"]')?.value,
     max:document.querySelector('.composite-timeline-range input[type="range"]')?.max,
     status:document.querySelector('.unified-layer-status')?.textContent?.slice(0,400),
-    busy:document.querySelector('.unified-layer-status')?.getAttribute('aria-busy')
+    busy:document.querySelector('.unified-layer-status')?.getAttribute('aria-busy'),
+    timelineEvents:window.__qaTimelineInputEvents||[],
+    liveButton:document.querySelector('.composite-live-button')?.className,
+    chosenTime:document.querySelector('select[aria-label="Kartentermin auswählen"] option:checked')?.getAttribute('data-valid-time')
    }));
    console.error('Selected source term did not commit',{expected:value,detail});
    throw error;
