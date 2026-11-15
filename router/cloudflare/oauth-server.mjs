@@ -6,6 +6,7 @@
  */
 import {WorkerEntrypoint} from 'cloudflare:workers';
 import {OAuthAuthorizationServer} from '@cloudflare/workers-oauth-provider';
+import {renderMidAiConsentPage,validateMidAiConsentScopes} from './consent-page.mjs';
 const deny=reason=>{throw new Error('MID_OAUTH_'+reason)};
 const exact=x=>typeof x==='string'&&/^https:\/\/[a-z0-9.-]+(?:\/[a-z0-9/_-]*)?$/.test(x)&&!x.includes('..');
 function configured(env){
@@ -22,25 +23,6 @@ const service=env=>new OAuthAuthorizationServer({
  scopesSupported:['mid-ai:read','mid-ai:infer-public'],
  clientIdMetadataDocumentEnabled:true
 });
-const esc=x=>String(x).replace(/[&<>"']/g,c=>({
- '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-})[c]);
-function consentPage(label,handle){
- return '<!doctype html><html lang="de"><head><meta charset="utf-8">'+
-  '<meta name="viewport" content="width=device-width,initial-scale=1">'+
-  '<title>MID AI Router OAuth</title></head><body><main><h1>MID AI Router</h1>'+
-  '<p>Client: '+esc(label)+'</p><p>Nur öffentliche, anonymisierte Anfragen. '+
-  'Externe Modellkosten benötigen eine zusätzliche signierte Freigabe.</p>'+
-  '<form method="POST" action="/authorize">'+
-  '<input type="hidden" name="handle" value="'+esc(handle)+'">'+
-  '<label><input type="checkbox" name="scope" value="mid-ai:read" checked required>'+
-  ' Modelle und Pläne lesen</label><p><label>'+
-  '<input type="checkbox" name="scope" value="mid-ai:infer-public">'+
-  ' Öffentliche Free-Modellanfragen nach Einzelfreigabe ausführen</label></p>'+
-  '<button type="submit" name="decision" value="approve">Freigeben</button> '+
-  '<button type="submit" name="decision" value="deny" formnovalidate>Ablehnen</button>'+
-  '</form></main></body></html>';
-}
 const base64=bytes=>btoa(String.fromCharCode(...new Uint8Array(bytes)))
  .replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
 async function githubIdentity(code,verifier,env){
@@ -82,8 +64,7 @@ export default class MidAiAuthServer extends WorkerEntrypoint{
     const consent=await oauth.beginConsent(original);
     consent.headers.set('content-type','text/html; charset=utf-8');
     consent.headers.set('cache-control','no-store');
-    return new Response(consentPage(info?.client?.clientName||original.clientId,
-     consent.handle),{headers:consent.headers});
+    return new Response(renderMidAiConsentPage(info,consent.handle),{headers:consent.headers});
    }
    if(path==='/authorize'&&request.method==='POST'){
     const form=await request.formData();
@@ -92,11 +73,11 @@ export default class MidAiAuthServer extends WorkerEntrypoint{
      const rejected=await oauth.denyConsent(request,handle);
      return new Response(null,{status:302,headers:rejected.headers});
     }
-    const selected=[...new Set(form.getAll('scope').map(String))];
-    if(!selected.includes('mid-ai:read')||
-       selected.some(s=>s!=='mid-ai:read'&&s!=='mid-ai:infer-public'))
-     deny('INVALID_SCOPES');
+    const selected=form.getAll('scope').map(String);
     const approved=await oauth.approveConsent(request,handle,{scope:selected});
+    // SDK allows any supported scope; MID permits only those requested by
+    // this exact browser-bound client transaction. Never grant unrequested write.
+    validateMidAiConsentScopes(approved.request.scope,selected);
     const verifier=base64(crypto.getRandomValues(new Uint8Array(32)));
     const upstream=await oauth.beginUpstream(approved.request,{
      data:{verifier,selected},headers:approved.headers

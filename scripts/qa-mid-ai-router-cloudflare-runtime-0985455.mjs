@@ -25,6 +25,8 @@ assert.match(resource,/MID_AI_LIVE_DISPATCH_ARMED/);tests++;
 assert.match(resource,/principalDigest\(/);tests++;
 assert.match(issuer,/OAuthAuthorizationServer/);tests++;
 assert.match(issuer,/beginConsent/);tests++;
+assert.match(issuer,/renderMidAiConsentPage\(info,consent\.handle\)/);tests++;
+assert.match(issuer,/validateMidAiConsentScopes\(approved\.request\.scope,selected\)/);tests++;
 assert.match(issuer,/approveConsent/);tests++;
 assert.match(issuer,/beginUpstream/);tests++;
 assert.match(issuer,/finishUpstream/);tests++;
