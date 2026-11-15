@@ -43,7 +43,8 @@ import {startVisibleSolarClock} from './visibleSolarClock';
 import {applyMountainProfile,defaultMountainConfig,mountainProfile,mountainProfileSourceLabel,normalizeMountainConfig,type MountainConfig,type MountainSeason} from './mountainSports';
 
 import {DEFAULT_PUSH_PRECIPITATION_ALERT,syncPushNotifications,type PushNotificationInterval,type PushPrecipitationAlertSettings,type PushPrecipitationDurationMinutes,type PushPrecipitationLeadMinutes,type PushPrecipitationThresholdMm,type PushRuleFavorite} from './pushNotifications';
-import {PushSettingsPanel} from './PushSettingsPanel';
+const LazyPushSettingsPanel=lazy(()=>import('./PushSettingsPanel').then(module=>({default:module.PushSettingsPanel})));
+function PushSettingsPanel(props:Parameters<typeof import('./PushSettingsPanel').PushSettingsPanel>[0]){return <Suspense fallback={<section className="settings-content-loading" role="status" aria-live="polite">Benachrichtigungseinstellungen werden geladen …</section>}><LazyPushSettingsPanel {...props}/></Suspense>}
 import {DeviceSyncSettings} from './DeviceSyncSettings';
 import {ICloudBackupSettings} from './ICloudBackupSettings';
 import {WeatherTwinSettings as WeatherTwinSettingsPanel} from './WeatherTwinSettings';
