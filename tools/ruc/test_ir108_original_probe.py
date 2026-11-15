@@ -67,7 +67,7 @@ class IR108Tests(unittest.TestCase):
     def test_live_pdt32_spectral_key_disambiguation_remains_shadow_only(self):
         spectral = fixture()
         spectral.update({
-            "productDefinitionTemplateNumber": 31,
+            "productDefinitionTemplateNumber": 32,
             "numberOfContributingSpectralBands": 1,
             "satelliteSeries": 333,
             "satelliteNumber": 72,
