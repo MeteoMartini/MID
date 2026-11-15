@@ -1,5 +1,7 @@
 # MID v0.9.85.484
 
+- **Karten-Originale ohne Altbild:** Beim Zeit- oder Ortswechsel werden Radar- und Wolkenbilder erst nach vollständiger Prüfung von Quelle, Zeitpunkt und Ausschnitt angezeigt; alte Bilder erscheinen nicht kurz unter falscher Zeit.
+- **CSS-Diagnose robuster:** Die verpflichtende CSS-Quellprüfung verwendet den tatsächlichen Repositorypfad, auch wenn sie aus einem anderen Arbeitsverzeichnis gestartet wird; fehlende Daten bestehen die Prüfung nicht.
 - **Umfeld-Radar im Viertelstundenraster:** Radar/Satellit erhalten eine kompakte −15-/+15-Minuten-Zeitachse mit persistent gewählter Darstellungsart. Die Quellenzeit bleibt getrennt vom gewünschten Termin; fehlende Beobachtungs- oder Nowcast-Bilder werden nicht ersetzt.
 - **Echte Wolken-/SigWx-Zeitstempel:** Die Umfeldkarte zeigt nur nachgewiesene Originaltermine und meldet fehlende Viertelstunden als nicht verfügbar. Die native lückenlose Viertelstunden-Datenpipeline ist weiterhin offen.
 - **Schonendere Kartenbedienung:** Gleichzeitig geladene Kartenlayer benötigen weniger unnötige Sortierungen. Optionale Kartenflüge berücksichtigen die Geräteeinstellung für reduzierte Bewegung.

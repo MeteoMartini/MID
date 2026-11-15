@@ -1,8 +1,9 @@
 import {readFileSync} from 'node:fs';
+import {matchesSurroundingsCloudRequest} from '../../src/surroundingsCloudOriginalGuard';
 import {describe,expect,it} from 'vitest';
 import {
  radarOriginalForStep,nearestVerifiedOriginal,sourceOriginalTimes,
- surroundingsRadarTarget,SURROUNDINGS_RADAR_MIN_STEP,SURROUNDINGS_RADAR_MAX_STEP
+ surroundingsRadarTarget,selectVerifiedSurroundingsRadarFrame,SURROUNDINGS_RADAR_MIN_STEP,SURROUNDINGS_RADAR_MAX_STEP
 } from '../../src/surroundingsRadarTimeline';
 
 const now=Date.parse('2026-11-15T12:07:00Z');
@@ -33,6 +34,19 @@ describe('Umfeld Rad/Sat: 15-min selector uses only admitted ORIGINAL source tim
   expect(nearestVerifiedOriginal([now-2*60000],now+15*60000,now,true)).toBeUndefined();
   expect(nearestVerifiedOriginal([now+15*60000],now+15*60000,now,true)).toBe(now+15*60000);
  });
+ it('rejects radar frames from the wrong location/bbox, time, source or phase during scrubbing',()=>{
+  const wms='https://example.invalid/wms?layers=radar&bbox=7,50,8,51&time=2026-11-15T12%3A02%3A00Z';
+  const data={url:wms,time:now-5*60000,kind:'Beobachtung' as const};
+  const expected={time:data.time,kind:'Beobachtung' as const};
+  expect(selectVerifiedSurroundingsRadarFrame(data,wms,expected)).toBe(data);
+  expect(selectVerifiedSurroundingsRadarFrame(data,wms.replace('bbox=7,50,8,51','bbox=8,50,9,51'),expected)).toBeUndefined();
+  expect(selectVerifiedSurroundingsRadarFrame(data,wms.replace('layers=radar','layers=nowcast'),expected)).toBeUndefined();
+  expect(selectVerifiedSurroundingsRadarFrame(data,wms,{...expected,time:expected.time+900000})).toBeUndefined();
+  expect(selectVerifiedSurroundingsRadarFrame(data,wms,{...expected,kind:'Nowcast'})).toBeUndefined();
+  expect(selectVerifiedSurroundingsRadarFrame(data,'',expected)).toBeUndefined();
+  expect(selectVerifiedSurroundingsRadarFrame(data,wms,undefined)).toBeUndefined();
+  expect(selectVerifiedSurroundingsRadarFrame(undefined,wms,expected)).toBeUndefined();
+ });
  it('normalises original source times in seconds/milliseconds/ISO, without rounding validity',()=>{
   const input=[new Date(now-5*60000).toISOString(),(now-5*60000)/1000,now-5*60000,'not-a-time'];
   expect(sourceOriginalTimes(input)).toEqual([now-5*60000]);
@@ -46,9 +60,20 @@ describe('Umfeld Rad/Sat: 15-min selector uses only admitted ORIGINAL source tim
   expect(ui).toContain('onChange={event=>setRadarStep(');
   expect(ui).toContain('radarOriginalForStep(catalog,now,radarStep,dwdArea)');
   expect(ui).toContain("radarStep>0?undefined:nearestVerifiedOriginal(satellite?.times,radarTarget,now)");
-  expect(ui).toContain('loaded.time===target');
+  expect(ui).toContain('selectVerifiedSurroundingsRadarFrame(loaded,radar,radarOriginal)');
   expect(ui).toContain('displayedOpera=needsOpera');
   expect(ui).not.toContain('Radar-Nowcast-Termin');
+ });
+ it('cloud originals never survive an unmatched quarter-hour, location or missing provenance',()=>{
+  const valid=Date.parse('2026-11-15T12:15:00Z');
+  const image={validTime:new Date(valid).toISOString(),requestLatitude:50.7800,requestLongitude:7.1100};
+  expect(matchesSurroundingsCloudRequest(image,50.7800,7.1100,valid)).toBe(true);
+  expect(matchesSurroundingsCloudRequest(image,50.7800,7.1100,valid+900000)).toBe(false);
+  expect(matchesSurroundingsCloudRequest(image,50.7801,7.1100,valid)).toBe(false);
+  expect(matchesSurroundingsCloudRequest(image,50.7800,7.1101,valid)).toBe(false);
+  expect(matchesSurroundingsCloudRequest({validTime:image.validTime},50.7800,7.1100,valid)).toBe(false);
+  expect(matchesSurroundingsCloudRequest({...image,validTime:'invalid'},50.7800,7.1100,valid)).toBe(false);
+  expect(matchesSurroundingsCloudRequest(image,50.7800,7.1100,NaN)).toBe(false);
  });
  it('Cloud/SigWx runtime never constructs a pseudo 15-minute interpolated image',()=>{
   const cloud=readFileSync('src/currentSurroundingsCloudImage.ts','utf8');
@@ -58,6 +83,7 @@ describe('Umfeld Rad/Sat: 15-min selector uses only admitted ORIGINAL source tim
   expect(loader).not.toContain('interpolateVerifiedSurroundingsCloud(');
   expect(loader).not.toContain('const blend=');
   expect(cloud).toContain('previous.image&&Date.parse(previous.image.validTime)===target');
+  expect(cloud).toContain('matchesSurroundingsCloudRequest(result.image,lat,lon,target)');
   const ui=readFileSync('src/CurrentSurroundings.tsx','utf8');
   expect(ui).not.toContain("cloudForecast.image.temporalMethod==='cloud-linear'");
  });

@@ -22,6 +22,20 @@ export function nearestVerifiedOriginal(values:ProductTime[]|undefined,target:nu
  );
  return frames.sort((a,b)=>Math.abs(a-target)-Math.abs(b-target)||b-a)[0];
 }
+/** Match the fully resolved WMS URL (provider, layer, bbox, source time) as well
+ * as original validity/phase. A frame cached for another location, timestamp
+ * or observation/nowcast type must never appear while a new image loads.
+ */
+export function selectVerifiedSurroundingsRadarFrame(
+ loaded:(SurroundingsRadarOriginal&{url:string})|undefined,
+ requestedUrl:string,
+ requested:SurroundingsRadarOriginal|undefined
+):(SurroundingsRadarOriginal&{url:string})|undefined{
+ if(!loaded||!requested||!requestedUrl||
+  loaded.url!==requestedUrl||loaded.time!==requested.time||loaded.kind!==requested.kind)return undefined;
+ return loaded;
+}
+
 /** A future step is NOWCAST, never an old radar frame or observational satellite. */
 export function radarOriginalForStep(catalog:CompositeProductTimes|undefined,now:number,step:number,inDwdArea=true):SurroundingsRadarOriginal|undefined{
  if(!catalog||!inDwdArea)return undefined;
