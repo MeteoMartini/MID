@@ -72,7 +72,7 @@ const cloudSource=await read('src/currentSurroundingsCloudImage.ts');
 assert.ok(cloudSource.includes('loadEstablishedSynopticIndex(signal)')&&cloudSource.includes('loadNativeIndex(signal)')&&cloudSource.includes('nativeCloudWeatherPair('),'Nur die originalen, SHA-validierten MID-Wolken-/SigWx-Daten verwenden.');
 assert.ok(cloudSource.includes("cloudWeatherRaster(data,'pseudo')")&&cloudSource.includes('admissibleSurroundingsCloudTime'),'Kein Fake-Satellitenbild und keine ungebundene Modellzeit.');
 assert.ok(cloudSource.includes('setResult(previous=>previous.image&&admissibleSurroundingsCloudTime('),'Still-valid model images must remain visible until replacement or expiry.');
-assert.ok(component.includes("cloudForecast.unavailable?' · Aktualisierung nicht erreichbar':''"),'Failed model update must be visibly declared.');
+assert.ok(component.includes("cloudForecast.unavailable&&<small>"),'Failed model update must be visibly declared.');
 assert.ok(component.includes("selection===undefined&&Number.isFinite(temperature)")&&component.includes('forecastSiteTemperature'),'Present observed/MID site value cannot masquerade as a future model value');
 const compiledCloud=ts.transpileModule(cloudSource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022},reportDiagnostics:true});
 assert.equal(compiledCloud.diagnostics?.length??0,0);
@@ -208,4 +208,29 @@ const vector=fromTiles([
 assert.equal(vector.length,1,'Duplicated vector tile features cannot become duplicate map labels');
 assert.equal(choose(vector,{lat:46.97,lon:11},{west:9.6,east:12.4,south:46.32,north:47.62})[0]?.name,'Ötztal');
 assert.ok(component.includes('<MapFitBounds south={south} west={west} north={north} east={east} padding={8} maxZoom={7}/>'),'MapLibre fitBounds must provide a finite maxZoom to prevent an invalid NaN camera');
+
+// MID-Karten 1.7: same PseudoSat/SigWx canvas as the canonical map, compact source truth and 15-min fallback.
+const sharedMapCloud=await read('src/CloudSignificantWeather.tsx');
+assert.ok(sharedMapCloud.includes('cloudWeatherRaster(data,mode)')&&cloudSource.includes("cloudWeatherRaster(data,'pseudo')"),
+ 'Detail map and surroundings must consume the same canonical cloud/SigWx renderer.');
+assert.ok(sharedMapCloud.includes('resampling="nearest"')&&component.includes('resampling="nearest" zIndex={270}'),
+ 'No visually different interpolation filter between model map and surroundings image.');
+const statusStart=component.indexOf('<div role="status" aria-live="polite" className="current-surroundings-data-status">');
+const statusEnd=component.indexOf('<details className="current-surroundings-sources">',statusStart);
+assert.ok(statusStart>=0&&statusEnd>statusStart,'One compact, live-annotated weather-image status must exist.');
+const shortStatus=component.slice(statusStart,statusEnd);
+assert.ok(shortStatus.includes('PseudoSat + SigWx')&&shortStatus.includes('Gültig ')&&shortStatus.includes('INIT ')&&shortStatus.includes('keine Beobachtung'),
+ 'Compact status identifies model image, source validity, initialization and non-observation.');
+assert.ok(!shortStatus.includes('Wolken aus Originalterminen')&&!shortStatus.includes('Bildtermin'),
+ 'Detailed temporal algorithm and duplicate image terminology must not flood the compact status.');
+assert.ok(component.includes("cloudForecast.image.temporalMethod==='cloud-linear'")&&
+ component.includes('cloudForecast.image.originalTimes')&&component.includes('cloudForecast.image.sigwxTime'),
+ 'Expanded provenance retains exact cloud interpolation and discrete SigWx-original times.');
+assert.ok(shortStatus.includes('Math.abs(Date.parse(cloudForecast.image.validTime)-cloudTarget)>90*1000'),
+ 'A stale/original image may never masquerade as the selected future 15-min target.');
+assert.ok(shortStatus.includes('cloudForecast.loading&&<small>')&&shortStatus.includes('cloudForecast.unavailable&&<small>'),
+ 'Refresh/failure states remain explicit without blanking the verified prior frame.');
+assert.ok(css.includes('.current-surroundings-data-status>strong')&&css.includes('overflow-wrap:anywhere'),
+ '320px and Dynamic Type must wrap compact metadata without obstructing the map.');
+
 console.log('MID: georeferenced city temperatures, shared basemap and NoData/pixel-collision contracts passed.');

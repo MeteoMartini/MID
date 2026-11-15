@@ -286,7 +286,7 @@ export default function CurrentSurroundings(props:Props){
     <MapFitBounds south={south} west={west} north={north} east={east} padding={8} maxZoom={7}/>
     <UnifiedVectorBasemap dark={darkMap}/>
     {mode==='cloud'&&cloudForecast.image&&<ImageQuadLayer id="surroundings-model-cloud-weather" url={cloudForecast.image.url}
-     bounds={cloudForecast.image.bounds} zIndex={270} frameKey={`${cloudForecast.image.run}:${cloudForecast.image.validTime}`}/>}
+     bounds={cloudForecast.image.bounds} resampling="nearest" zIndex={270} frameKey={`${cloudForecast.image.run}:${cloudForecast.image.validTime}:pseudo`}/>}
     {mode==='radar'&&visibleClouds&&<ImageQuadLayer id="surroundings-clouds" url={clouds} bounds={mapBounds} zIndex={220} onError={()=>setCloudError(clouds)}/>}
     {mode==='radar'&&(displayedOpera??displayedRadar)&&<ImageQuadLayer id="surroundings-radar" url={displayedPhase?.url??(displayedOpera??displayedRadar)!.url} bounds={mapBounds} zIndex={360}/>}
     <VectorReferenceLayer url={referenceTileUrl} glyphsUrl={referenceGlyphsUrl} layers={mapReferences} zIndex={790}/>
@@ -303,15 +303,25 @@ export default function CurrentSurroundings(props:Props){
    </MidMapLibre>
    <figcaption className="current-surroundings-map-caption">Standort: {name}</figcaption>
   </figure>
-  <p role="status" className="current-surroundings-data-status">{mode==='cloud'
-   ?cloudForecast.image?<>Modellprognose · {cloudForecast.image.model} · {cloudForecast.image.temporalMethod==='cloud-linear'&&cloudForecast.image.originalTimes
-     ?<>Wolken aus Originalterminen {clock(Date.parse(cloudForecast.image.originalTimes[0]))}/{clock(Date.parse(cloudForecast.image.originalTimes[1]))} Uhr zeitlich interpoliert · SigWx-Kategorie vom Original {clock(Date.parse(cloudForecast.image.sigwxTime??cloudForecast.image.originalTimes[0]))} Uhr</>
-     :<>Originaltermin {datedClock(Date.parse(cloudForecast.image.validTime))} Uhr</>} · Bildtermin {datedClock(Date.parse(cloudForecast.image.validTime))} Uhr · INIT {datedClock(Date.parse(cloudForecast.image.run))} Uhr · Ziel {datedClock(cloudTarget)} Uhr · keine Beobachtung{cloudForecast.loading?' · neuer Stand wird geprüft':''}{cloudForecast.unavailable?' · Aktualisierung nicht erreichbar':''}</>
-    :cloudForecast.loading?'Verifiziertes Modell-Wolkenbild wird geladen …':'Kein gültiges Wolken-/SigWx-Modellbild für Ort und Termin; keine Satellitenbeobachtung oder Entwarnung.'
-   :displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</p>
+  <div role="status" aria-live="polite" className="current-surroundings-data-status">{mode==='cloud'
+   ?cloudForecast.image?<><strong>Modellprognose · {cloudForecast.image.model} · PseudoSat + SigWx</strong>
+     <span>Gültig {datedClock(Date.parse(cloudForecast.image.validTime))} Uhr · INIT {datedClock(Date.parse(cloudForecast.image.run))} Uhr · keine Beobachtung</span>
+     {Math.abs(Date.parse(cloudForecast.image.validTime)-cloudTarget)>90*1000&&
+      <small>Gewählt: {datedClock(cloudTarget)} Uhr · hierfür nur anderer belegter Modelltermin verfügbar</small>}
+     {cloudForecast.loading&&<small>Neuer Modellstand wird geprüft.</small>}
+     {cloudForecast.unavailable&&<small>Aktualisierung nicht erreichbar; letzter gültiger Bildstand.</small>}
+    </>
+    :<span>{cloudForecast.loading?'Verifiziertes PseudoSat-/SigWx-Modellbild wird geladen …':'Kein gültiges Wolken-/SigWx-Modellbild für Ort und Termin; keine Satellitenbeobachtung oder Entwarnung.'}</span>
+   :<span>{displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</span>}</div>
   <details className="current-surroundings-sources">
    <summary>Quellen und Datenstand</summary>
    <p>Kartengrundlage · MID-Kartenbereich, OpenFreeMap / OpenStreetMap; Orte Natural Earth und Kartenkacheln</p>
+   {mode==='cloud'&&cloudForecast.image&&<p>Wolken + SigWx · dieselbe schematische PseudoSat-Rasterdarstellung wie im MID-Kartenbereich; Modell {cloudForecast.image.model}, INIT {datedClock(Date.parse(cloudForecast.image.run))} Uhr, Bild gültig {datedClock(Date.parse(cloudForecast.image.validTime))} Uhr.
+    {cloudForecast.image.temporalMethod==='cloud-linear'&&cloudForecast.image.originalTimes
+     ?<> Wolkenanteile aus Originalterminen {datedClock(Date.parse(cloudForecast.image.originalTimes[0]))}/{datedClock(Date.parse(cloudForecast.image.originalTimes[1]))} Uhr zeitlich visualisiert; kategoriale WMO-SigWx-Werte unverändert vom nächstgelegenen Original {datedClock(Date.parse(cloudForecast.image.sigwxTime??cloudForecast.image.originalTimes[0]))} Uhr. Keine eigenständige 15-Minuten-WMO-Modellanalyse.</>
+     :<> Original-Modelltermin ohne zusätzliche zeitliche Interpolation.</>}
+    {Math.abs(Date.parse(cloudForecast.image.validTime)-cloudTarget)>90*1000&&<> Gewählter Zieltermin {datedClock(cloudTarget)} Uhr wird von diesem Bild nicht exakt repräsentiert.</>}
+    {' '}Kein Satellitenbild und keine amtliche Warnung; Datenlücken bleiben NoData.</p>}
   {mode==='radar'&&visibleClouds&&satelliteTime!==undefined&&<p>Bewölkung · {satellite?.provider==='dwd'?'DWD':'EUMETSAT'} · Beobachtung {clock(satelliteTime)} Uhr</p>}
   {Number.isFinite(temperature)&&temperatureTime&&<p>Temperatur am gewählten Ort · {temperatureTime.slice(11,16)} Uhr</p>}
   {selection===undefined&&(temperatureGrid&&temperatures&&Object.keys(temperatures).length
