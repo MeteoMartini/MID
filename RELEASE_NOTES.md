@@ -1,5 +1,7 @@
 # MID v0.9.85.484
 
+- **Umfeld-Radar im Viertelstundenraster:** Radar/Satellit erhalten eine kompakte −15-/+15-Minuten-Zeitachse mit persistent gewählter Darstellungsart. Die Quellenzeit bleibt getrennt vom gewünschten Termin; fehlende Beobachtungs- oder Nowcast-Bilder werden nicht ersetzt.
+- **Echte Wolken-/SigWx-Zeitstempel:** Die Umfeldkarte zeigt nur nachgewiesene Originaltermine und meldet fehlende Viertelstunden als nicht verfügbar. Die native lückenlose Viertelstunden-Datenpipeline ist weiterhin offen.
 - **Schonendere Kartenbedienung:** Gleichzeitig geladene Kartenlayer benötigen weniger unnötige Sortierungen. Optionale Kartenflüge berücksichtigen die Geräteeinstellung für reduzierte Bewegung.
 - **Verlässliche Kartenzeiten:** Die Zeitregler der Wetter- und Kompositkarten geben ihren tatsächlichen Gültigkeitszeitpunkt und die Phase (Beobachtung, Nowcast oder Modellprognose) auch für Screenreader verständlich an. Die sichtbare Kartenzeit bleibt kompakt.
 - **Korrekte Temperatur am gewählten Termin:** Beim schnellen Wechsel zwischen Viertelstunden und Orten blendet die Umfeldkarte keine Temperatur mehr ein, die noch zu einer vorherigen Anfrage gehört. Modellherkunft und Original- beziehungsweise Zwischenwert bleiben unterscheidbar; fehlende Daten werden nicht als null angezeigt.

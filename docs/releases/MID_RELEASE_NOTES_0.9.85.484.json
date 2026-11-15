@@ -7,13 +7,17 @@
     "Karten-Zeitleisten zeigen ihren tatsächlichen Zeitpunkt einschließlich Screenreader-Ansage.",
     "Umfeldtemperatur bleibt bei Zeit-/Ortswechseln korrekt gebunden, und schnelle PseudoSat-Zeitsprünge laden weniger unnötige Bilder.",
     "Wartung und CI reduzieren Credential-Persistenz und liefern vollständige überprüfbare Scannerbefunde.",
-    "Kartenlayer werden beim gleichzeitigen Laden effizienter angeordnet; optionale Kameraflüge respektieren reduzierte Bewegung."
+    "Kartenlayer werden beim gleichzeitigen Laden effizienter angeordnet; optionale Kameraflüge respektieren reduzierte Bewegung.",
+    "Umfeld-Radar/Satellit: in 15-Minuten-Schritten navigieren und die zuletzt ausgewählte Kartenart automatisch wiederherstellen; echte Beobachtungs- und Nowcastzeiten werden kenntlich gemacht.",
+    "Wolken und signifikantes Wetter: Originaltermine bevorzugen, fehlende Viertelstunden nicht mehr durch künstliche Zwischenbilder auffüllen."
   ],
   "internal": [
     "Quell-SHAs PR #825 11a2c028c5a966094b7d15711b7c65bca4ffe58a; #824 f82c01b0a4fb7a23a1ea9c681ebfcf0b62381c3a; #826 b741bf461c0e439611f3254b3544d43fb3ea5e57; #827 92fefc860d0caf64fc23fbe377dbc9a6bc334a0d; Main/Stable c9fadfcd0969e949a92f414b321627dd3d4fb0cc.",
     "33 SHA-identische Source-/QA-Diff-Pfade und sämtliche Versionsspiegel 0.9.85.484, kein externes AI/IR10.8-Raster.",
     "Vollständige Source-/Core-/Heavy-/Installer-/Worker-/Pages- und Security-Gates erst auf finale Kombination anwenden; kein automatisches PASS.",
     "PR #830 SHA 98387916d0dd3a2e93ac01d0a424c560fa603dc4: 4 disjunkte MapLibre-Layer-/QA-/Dokumentationsdateien, keine gemessene Laufzeitersparnis, kein eigener .485-Build.",
-    "Issue #829: bestandswahrender API-Quotencircuit je exakter Origin, Pflicht-HTTP-429/NoData bleibt BLOCKED und nicht als Schema-PASS klassifiziert."
+    "Issue #829: bestandswahrender API-Quotencircuit je exakter Origin, Pflicht-HTTP-429/NoData bleibt BLOCKED und nicht als Schema-PASS klassifiziert.",
+    "LC 1.7: #832 @ aa727db59e18020068edfe762d6491eaeae3bd82 selektiv mit #828 zusammengeführt; identische CloudScheduler/TemperaturDisplay-Git-Blobs nicht dupliziert, 828-aria-valuetext gezielt erhalten; vollständiger Viertelstunden-Cloud/SigWx-Originaldatensatz nicht freigegeben.",
+    "LC 1.7: fünf langlebige CSS-CDP-/Browser-/Unit-/Doku-Git-Blobs #831 @ bc9d356e0d3806a59f3d113fce75ba98cd4f85ba importiert, temporäre #831 unit-coverage-Workflowspiegel ausdrücklich ausgeschlossen; QA-Erfolge des Herkunftsbranches übertragen sich nicht auf kombinierten Commit."
   ]
 }
