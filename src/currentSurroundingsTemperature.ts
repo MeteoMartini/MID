@@ -59,7 +59,7 @@ export function extractSurroundingsTemperatures(
   // Hourly forecasts may be +/-30 minutes from now. Reject stale/foreign frames.
   if(best<0||delta>32*MINUTE)continue;
   let value:unknown=temps[best],time=(times[best] as number)*1000;
-  let valueMethod:'original'|'linear'='original',endpoints:[number,number]|undefined;
+  let valueMethod:'original'|'linear'='original',endpoints:[number,number]|undefined,rejected=false;
   if(interpolate){
    for(let k=0;k<times.length-1;k++){
     const start=times[k],end=times[k+1];
@@ -72,11 +72,11 @@ export function extractSurroundingsTemperatures(
     if(finite(low)&&finite(high)&&low>=-100&&low<=65&&high>=-100&&high<=65&&Math.abs(high-low)<=8){
      value=Math.round((low+(high-low)*(targetTime-a)/(b-a))*10)/10;
      time=targetTime;valueMethod='linear';endpoints=[a,b];
-    }
+    }else rejected=true; // Missing endpoints and extremes are NoData at subhourly target.
     break;
    }
   }
-  if(!finite(value)||value < -100||value > 65)continue;
+  if(rejected||!finite(value)||value < -100||value > 65)continue;
   if(validTime!==undefined&&(time!==validTime||method!==valueMethod))continue;
   if(endpoints&&sourceTimes&&(endpoints[0]!==sourceTimes[0]||endpoints[1]!==sourceTimes[1]))continue;
   validTime=time;method=valueMethod;
