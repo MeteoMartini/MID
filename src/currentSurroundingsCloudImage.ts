@@ -137,10 +137,11 @@ export function useSurroundingsCloudImage(enabled:boolean,lat:number,lon:number,
  useEffect(()=>{
   if(!enabled){setResult({image:null,loading:false,unavailable:false});return}
   const controller=new AbortController();
-  setResult(previous=>previous.image&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,targetBucket*15*60000)
+  setResult(previous=>previous.image&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,target)
    ?{...previous,loading:true,unavailable:false}
    :{image:null,loading:true,unavailable:false});
-  const now=targetBucket*15*60000;
+  // Bucket changes limit network reloads; raster time uses the precise selected instant.
+  const now=target;
   const timer=window.setTimeout(()=>{
    if(!controller.signal.aborted){
     setResult(previous=>previous.image&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,now)
