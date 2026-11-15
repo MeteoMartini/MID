@@ -25,6 +25,7 @@ export const REGRESSION_CORE_STABLE_ADDITIONS=Object.freeze([
  Object.freeze({test:'test-current-surroundings-temperature-0985476.mjs',destination:'core-4/4'}),
  Object.freeze({test:'test-lazy-notifications-settings-0985482.mjs',destination:'core-1/4'}),
  Object.freeze({test:'test-lazy-optional-settings-0985483.mjs',destination:'core-1/4'}),
+ Object.freeze({test:'test-deferred-mountain-css-0985483.mjs',destination:'core-3/4'}),
  Object.freeze({test:'test-startup-asset-evidence-0985482.mjs',destination:'core-3/4'}),
  Object.freeze({test:'test-startup-js-gate-0985482.mjs',destination:'core-4/4'})
 ]);
