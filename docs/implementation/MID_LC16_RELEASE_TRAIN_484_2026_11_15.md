@@ -20,3 +20,7 @@ P1-Ledger #824 ist read-only und darf trotz aufgezeichneter Finding-Zahlen nicht
 4. Externe Modelle/AI Router, neue Cloudflare-Namespaces, DWD-IR10.8-Raster bleiben ausdrücklich unberührt.
 
 Weitere Änderungen in den Spezial-PRs sind vor Ready erneut gegen genau diese Quell-SHAs zu vergleichen. Automatisches GitHub-Workflow-Dispatch aus einem Draft ist keine Freigabe.
+
+## Zusatzqualifikation für #740/#775 (noch keine Produktionsfreigabe)
+
+Aus dem unabhängig verifizierten alten QA-PR #775 @ `aae5d6731e34b20c5d439bfa3c7b572e9c89d772` wurden nur der isolierte `mid-native-review-policy.mjs`-Readback-Prüfer und der echte Git-Blob-/ZIP-Inhaltsprüfer `verify-source-release-zip.py` übernommen, **nicht** die ältere .460-Releasebasis oder ihre Regelkonfiguration. Der Readback-Prüfer erzwingt in dieser Fortsetzung genau `['squash']`, keine weiteren Mergeverfahren. Die neue Vitest-Regression prüft 15 negative Ruleset-Varianten und generiert lokal einen echten Git-Commit samt Positiv-/Negativ-ZIPs. Separater technischer Nachweis: `docs/implementation/MID_LC16_NATIVE_REVIEW_PILOT_2026_11_15.md`. Keine GitHub-Ruleset-, Workflow-, Worker-, Package- oder Secrets-Änderungen durch dieses Zusatzpaket. Die native Review-TOCTOU-Abnahme und sichere produktive ZIP-/dist-Transportschaltung bleiben offen; PR #828 muss Draft bleiben, bis die notwendige fachliche Freigabe nachgewiesen ist.
