@@ -1,5 +1,6 @@
 import {createContext,useContext,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {rasterTileRetryDelayMs} from './mapLayerRecovery';
+import {createMapLayerOrderScheduler} from './mapLayerOrderScheduler';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './mapPopupTheme.css';
@@ -51,8 +52,9 @@ export function MapFitBounds({south,west,north,east,maxZoom,padding=22}:{south:n
 
 function safeId(value:string){return value.replace(/[^a-zA-Z0-9_-]/g,'_')}
 const orderedLayers=new WeakMap<MidMap,Map<string,number>>();
+const scheduleLayerOrder=createMapLayerOrderScheduler<MidMap>();
 function applyLayerOrder(map:MidMap){const registry=orderedLayers.get(map);if(!registry)return;const ordered=[...registry.entries()].filter(([id])=>Boolean(map.getLayer(id))).sort((a,b)=>a[1]-b[1]);for(const [id] of ordered){try{map.moveLayer(id)}catch{}}}
-export function registerMapLayerOrder(map:MidMap,id:string,zIndex=0){let registry=orderedLayers.get(map);if(!registry){registry=new Map();orderedLayers.set(map,registry)}registry.set(id,zIndex);queueMicrotask(()=>applyLayerOrder(map))}
+export function registerMapLayerOrder(map:MidMap,id:string,zIndex=0){let registry=orderedLayers.get(map);if(!registry){registry=new Map();orderedLayers.set(map,registry)}registry.set(id,zIndex);scheduleLayerOrder(map,()=>applyLayerOrder(map))}
 export function unregisterMapLayerOrder(map:MidMap,id:string){const registry=orderedLayers.get(map);registry?.delete(id);if(registry&&!registry.size)orderedLayers.delete(map)}
 export function wmsTileUrl(base:string,params:Record<string,string|number|boolean|undefined>){
  const [path,query='']=base.split('?'),search=new URLSearchParams(query),version=String(params.version??'1.1.1');
