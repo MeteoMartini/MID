@@ -153,7 +153,7 @@ export function useSurroundingsCloudImage(enabled:boolean,lat:number,lon:number,
    :{image:null,loading:true,unavailable:false});
   // Bucket changes limit network reloads; raster time uses the precise selected instant.
   const now=target;
-  let requestTimeout:ReturnType<typeof setTimeout>|undefined;
+  let requestTimeout:number|undefined; // window.setTimeout is a DOM timer, even with Node ambient types
   // Coalesce rapid UTC quarter-hour scrubs before initiating any SHA-bound
   // field download/raster decode. Replaced requests are never started.
   const cancelPending=deferSurroundingsCloudRead(()=>{
