@@ -3,6 +3,7 @@ import {readFile,readdir,mkdir,writeFile} from 'node:fs/promises';
 import {resolve,relative,extname,join} from 'node:path';
 import {gzipSync,brotliCompressSync,constants} from 'node:zlib';
 import {startupAssetEvidence} from './lib/startupAssetEvidence.mjs';
+import {offlineShellAssetEvidence} from './lib/offlineShellAssetEvidence.mjs';
 import {verifyStartupBuildIdentity} from './lib/verifyStartupBuildIdentity.mjs';
 
 const root=resolve(process.argv[2]??'dist');
@@ -20,6 +21,7 @@ for(const file of files){
   brotliBytes:extension==='.css'?brotliCompressSync(data,{params:{[constants.BROTLI_PARAM_QUALITY]:6}}).length:undefined});
 }
 const report=startupAssetEvidence(index,assets);
+const offlineShell=offlineShellAssetEvidence(index,assets,report);
 const version=JSON.parse(await readFile(join(root,'version.json'),'utf8'));
 const buildIdentity=JSON.parse(await readFile(join(root,'mid-build-identity.json'),'utf8'));
 const provenance={version:version.version??null,buildIdentity};
@@ -30,9 +32,11 @@ if(!provenance.version||provenance.version!==buildIdentity.version||!buildIdenti
 }
 // Reject incomplete/corrupted built assets, not only a plausible source SHA.
 await verifyStartupBuildIdentity(root,buildIdentity);
-const result={...report,provenance};
+const result={...report,offlineShell,provenance};
 await mkdir('artifacts',{recursive:true});
 await writeFile('artifacts/startup-assets-0985482.json',JSON.stringify(result,null,2)+'\n');
 console.log(JSON.stringify({schema:result.schema,version:result.provenance.version,sourceGitSha:buildIdentity.sourceGitSha,
  initialCssRaw:result.css.bytes,initialCssGzip:result.css.gzipBytes,initialCssBrotli:result.css.brotliBytes,
- htmlReferencedJsRaw:result.js.bytes,htmlReferencedJsGzip:result.js.gzipBytes,jsFiles:result.js.entries.length},null,2));
+ htmlReferencedJsRaw:result.js.bytes,htmlReferencedJsGzip:result.js.gzipBytes,jsFiles:result.js.entries.length,
+ offlineShellRaw:result.offlineShell.total.bytes,offlineShellGzip:result.offlineShell.total.gzipBytes,
+ offlineShellOnlyGzip:result.offlineShell.offlineOnly.gzipBytes},null,2));
