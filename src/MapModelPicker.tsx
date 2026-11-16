@@ -64,7 +64,7 @@ export function MapModelPicker<T extends MapModelChoice>({label,value,groups,fal
  const [open,setOpen]=useState(false);
  const root=useRef<HTMLDivElement>(null),trigger=useRef<HTMLButtonElement>(null);
  const buttons=useRef<Array<HTMLButtonElement|null>>([]);
- const listId=useId();
+ const listId=useId(),selectedNameId=useId();
  const models=groups.flatMap(group=>group.models);
  const current=models.find(item=>item.id===value);
  const currentName=withoutEmoji(current?.displayLabel??fallbackLabel??value);
@@ -95,10 +95,10 @@ export function MapModelPicker<T extends MapModelChoice>({label,value,groups,fal
  let index=-1;
  return <div className="mid-map-model-picker" ref={root} onKeyDown={onKeyDown}>
   <button ref={trigger} type="button" className="mid-map-model-picker-trigger"
-   aria-label={label} aria-expanded={open} aria-controls={listId} data-model-id={value}
+   aria-label={label} aria-describedby={selectedNameId} aria-expanded={open} aria-controls={listId} data-model-id={value}
    onClick={()=>setOpen(value=>!value)}>
    <MapModelFlag modelId={value}/>
-   <span className="mid-map-model-picker-value">{currentName}</span>
+   <span id={selectedNameId} className="mid-map-model-picker-value">{currentName}</span>
    <ChevronDown aria-hidden="true" size={17}/>
   </button>
   {open&&<div id={listId} className="mid-map-model-picker-menu" role="group" aria-label={label+' auswählen'}>
