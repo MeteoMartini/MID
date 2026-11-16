@@ -1,10 +1,11 @@
 /** Read-only CSS ownership preflight; exact selector/property collisions are a
  * LOWER BOUND on cascade risk, never proof of safe runtime relocation.
  */
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {loadCssCascade} from './lib/cssCascade.mjs';
+import {cssCandidateOwnerEvidence} from './lib/cssCandidateOwnerEvidence.mjs';
 
 const root=pathToFileURL(resolve(process.argv[2]??'.')+'/');
 const entries=loadCssCascade(root);
@@ -21,6 +22,10 @@ function rows(entry){const result=[];entry.tree.walkRules(rule=>{
 });return result;}
 const parsed=entries.map(entry=>({file:entry.file,rows:rows(entry),bytes:Buffer.byteLength(entry.original)}));
 const results=[];
+const crossOwnerCandidate='src/midC18FourteenReplitFluidGrid.css';
+const reviewedOwners=Object.fromEntries(await Promise.all([
+ 'src/App.tsx','src/MountainWeather.tsx','src/ForecastCockpit.tsx'
+].map(async file=>[file,await readFile(resolve(process.argv[2]??'.',file),'utf8')])));
 const mountainCssFile=resolve(process.argv[2]??'.','src/midC18MountainResponsiveFix.css');
 const mountainCssText=await (await import('node:fs/promises')).readFile(mountainCssFile,'utf8');
 const mountainModuleText=await (await import('node:fs/promises')).readFile(resolve(process.argv[2]??'.','src/MountainWeather.tsx'),'utf8');
@@ -38,9 +43,12 @@ for(const candidate of desired){
   const shared=[...new Set(rule.props)].filter(prop=>follow.props.includes(prop));
   if(shared.length)collisions.push({selector:rule.selector,properties:shared,overriddenIn:e.file});
  }
+ const ownerEvidence=candidate===crossOwnerCandidate?cssCandidateOwnerEvidence(entries[i].original,reviewedOwners):null;
  results.push({file:candidate,sourceBytes:current.bytes,ruleSelectors:current.rows.length,
   sameSelectorPropertyCollisions:collisions.length,examples:collisions.slice(0,12),
-  status:collisions.length?'BLOCKED_STATIC_COLLISIONS':'UNVERIFIED_NEEDS_OWNERSHIP_BROWSER_QA'});
+  ...(ownerEvidence?{ownerEvidence}:{}),
+  status:collisions.length?'BLOCKED_STATIC_COLLISIONS':
+   ownerEvidence?.blockers.length?'BLOCKED_CROSS_MODULE_OWNERSHIP':'UNVERIFIED_NEEDS_OWNERSHIP_BROWSER_QA'});
 }
 const report={schema:'mid.css-move-risk.v1',kind:'read-only lower-bound collision inventory, not safe-move proof',
  eagerCssSourceCount:parsed.length,candidates:results};
