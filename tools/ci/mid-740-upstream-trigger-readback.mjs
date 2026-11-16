@@ -8,6 +8,9 @@ import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 const R='MeteoMartini/MID',ID=1305110795,P='repos/'+R+'/';
 const WID=358449552,WP='.github/workflows/chatgpt-pr-gate.yml',WN='MID ChatGPT/Codex Source-PR Gate';
+// The workflow registry name and actual workflow-run display name are distinct.
+// Original GitHub REST /actions/runs/43874951889 proves RUN_NAME below.
+const RUN_NAME='MID-Agent-Quellstand prüfen';
 const SHA=/^[0-9a-f]{40}$/;
 const BRANCH=/^(?:chatgpt|codex)\/[^/]+(?:\/[^/]+)*$/;
 const core=['Source-Kern vollständig prüfen','Determine whether complete original RUC admission is required',
@@ -22,7 +25,7 @@ const blocked=reason=>Object.freeze({schema:'mid.740.upstream-trigger-qa.v1',sta
  upstreamGateMetadataCoherent:false,sourceGateRosterVerified:false,
  trustedProductionTriggerAuthenticated:false,sourceBotProducerVerified:false,
  nativeReviewEnforced:false,installerAuthorized:false,releaseAuthorized:false});
-const reviewRun=x=>x?.id&&positive(x.id)&&x.workflow_id===WID&&x.path===WP&&x.name===WN&&
+const reviewRun=x=>x?.id&&positive(x.id)&&x.workflow_id===WID&&x.path===WP&&x.name===RUN_NAME&&
  x.event==='pull_request'&&x.status==='completed'&&x.conclusion==='success'&&
  x.run_attempt===1&&SHA.test(x.head_sha??'')&&BRANCH.test(x.head_branch??'')&&
  x.repository?.id===ID&&x.head_repository?.id===ID;

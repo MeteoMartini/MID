@@ -11,7 +11,7 @@ const optional=['Extremwetterpolygone · echte Browserpixel','RUC +27h Kern, EPS
  'Admit three genuine DWD 27h original runs, codec and contour (read-only)'];
 function fixture(){
  const gate={id:111,workflow_id:WID,path:'.github/workflows/chatgpt-pr-gate.yml',
-  name:'MID ChatGPT/Codex Source-PR Gate',event:'pull_request',status:'completed',
+  name:'MID-Agent-Quellstand prüfen',event:'pull_request',status:'completed',
   conclusion:'success',run_attempt:1,head_sha:SHA,head_branch:BR,
   repository:{id:RID},head_repository:{id:RID},
   updated_at:'2026-11-16T10:05:00Z'};
@@ -30,7 +30,7 @@ function fixture(){
   run_started_at:'2026-11-16T10:05:11Z'};
  const d:Record<string,any>={
   'actions/runs/111':gate,
-  ['actions/workflows/'+WID]:{id:WID,path:gate.path,name:gate.name,state:'active'},
+  ['actions/workflows/'+WID]:{id:WID,path:gate.path,name:'MID ChatGPT/Codex Source-PR Gate',state:'active'},
   'git/ref/heads/main':{ref:'refs/heads/main',object:{type:'commit',sha:BASE}},
   'git/ref/heads/mid-stable':{ref:'refs/heads/mid-stable',object:{type:'commit',sha:BASE}},
   'actions/runs/111/jobs?per_page=100&page=1':{total_count:jobs.length,jobs},
@@ -68,6 +68,8 @@ describe('#740 producer-side original workflow_run gate receipt (QA only)',()=>{
   ['wrong attempt',x=>{x.args.producerAttempt=2}],
   ['producer workflow SHA unknown',x=>{x.args.producerWorkflowSha='main'}],
   ['untrusted event action',x=>{x.event.action='requested'}],
+  ['source run name must differ from workflow registry',x=>{x.event.workflow_run.name='MID ChatGPT/Codex Source-PR Gate'}],
+  ['source registry name must remain authentic',x=>{x.d['actions/workflows/'+WID].name='MID-Agent-Quellstand prüfen'}],
   ['wrong gate ID',x=>{x.args.gateRunId=112}],
   ['source required job skipped',x=>{x.d['actions/runs/111/jobs?per_page=100&page=1'].jobs[0].conclusion='skipped'}],
   ['duplicate source PR',x=>{x.d['pulls?state=open&base=main&per_page=100&page=1'].push({...x.d['pulls/999'],number:998})}],

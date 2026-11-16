@@ -11,7 +11,7 @@ const optional=['Extremwetterpolygone · echte Browserpixel','RUC +27h Kern, EPS
  'Admit three genuine DWD 27h original runs, codec and contour (read-only)'];
 function fixture(){
  const gate={id:111,workflow_id:WID,path:'.github/workflows/chatgpt-pr-gate.yml',
-  name:'MID ChatGPT/Codex Source-PR Gate',event:'pull_request',status:'completed',
+  name:'MID-Agent-Quellstand prüfen',event:'pull_request',status:'completed',
   conclusion:'success',run_attempt:1,head_sha:SHA,head_branch:BR,
   repository:{id:RID},head_repository:{id:RID},pull_requests:[]};
  const pr={number:999,state:'open',draft:false,merged_at:null,
@@ -20,7 +20,7 @@ function fixture(){
   ...optional.map(name=>({name,conclusion:'skipped'}))].map((x,i)=>({...x,id:i+1,status:'completed'}));
  const d:Record<string,any>={
   ['actions/runs/111']:gate,
-  ['actions/workflows/'+WID]:{id:WID,path:gate.path,name:gate.name,state:'active'},
+  ['actions/workflows/'+WID]:{id:WID,path:gate.path,name:'MID ChatGPT/Codex Source-PR Gate',state:'active'},
   'git/ref/heads/main':{ref:'refs/heads/main',object:{type:'commit',sha:BASE}},
   'git/ref/heads/mid-stable':{ref:'refs/heads/mid-stable',object:{type:'commit',sha:BASE}},
   'actions/runs/111/jobs?per_page=100&page=1':{total_count:jobs.length,jobs},
@@ -53,6 +53,9 @@ describe('MID #740 source-gate webhook / GitHub REST independent binding, QA-onl
   ['event does not match run ID',x=>{x.event.workflow_run.id=112}],
   ['fork event',x=>{x.event.workflow_run.head_repository.id=2}],
   ['workflow swapped',x=>{x.event.workflow_run.workflow_id=9}],
+  ['workflow name used as run display name',x=>{x.event.workflow_run.name='MID ChatGPT/Codex Source-PR Gate'}],
+  ['wrong source run display name',x=>{x.d['actions/runs/111'].name='Unexpected runner'}],
+  ['registry name cannot pretend to be run name',x=>{x.d['actions/workflows/'+WID].name='MID-Agent-Quellstand prüfen'}],
   ['workflow source revision mismatched',x=>{x.d['actions/runs/111'].head_sha=BASE}],
   ['rerun attempt 2',x=>{x.event.workflow_run.run_attempt=2}],
   ['incomplete run',x=>{x.event.workflow_run.status='in_progress'}],
