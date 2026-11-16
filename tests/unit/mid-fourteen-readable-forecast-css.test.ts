@@ -41,6 +41,17 @@ describe('MID 14-day forecast: readable responsive CSS',()=>{
   expect(mobile && rules[1].parent?.name).toBe('media');
   expect(rules[1].parent?.params).toBe('(max-width:720px)');
  });
+ it('gives the complete weather label a full header row on narrow phones without moving shared navigation',()=>{
+  const selector="html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row>header";
+  const rules=findRules(selector);
+  const narrow=rules.find(rule=>rule.parent?.name==='media'&&rule.parent?.params==='(max-width:430px)');
+  expect(narrow).toBeDefined();
+  const declarationsMap=declarations(narrow);
+  expect(declarationsMap['grid-template-columns']).toBe('minmax(0,1fr) auto');
+  expect(declarationsMap['grid-template-areas']).toContain('"heading heading"');
+  expect(declarationsMap['grid-template-areas']).toContain('"temps confidence"');
+  expect(declarationsMap['align-items']).toBe('start');
+ });
  it('retains the shared mobile navigation safe-area and mountain touch rules',()=>{
   const navigation=root.toString();
   expect(navigation).toContain('.navigation-bottom-tabs .modern-forecast-horizons');
