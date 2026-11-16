@@ -1,0 +1,62 @@
+name: MID RUC real same-run CLAT/CLON + IR10.8/GSP private raster QA (read-only)
+on:
+  push:
+    branches: [chatgpt/v0.9.85.485-surroundings-radar-native-qa]
+    paths: ['.github/workflows/mid-ruc-real-private-preview-qa.yml', 'tools/ruc/qa_ruc_same_run_preview.py']
+permissions:
+  contents: read
+concurrency:
+  group: mid-ruc-real-private-preview-qa
+  cancel-in-progress: false
+jobs:
+  private-original-map:
+    if: "${{ github.event.head_commit.message == 'qa(ruc): real same-run coordinate and private IR GSP image proof' }}"
+    name: Same-run native coordinates + 10 real IR/GSP preview pairs (NO PUBLISH)
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact SHA without retained credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Verify mirrors and protected main/Stable immutable parent
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/chatgpt/v0.9.85.485-surroundings-radar-native-qa
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          cmp .github/workflows/mid-ruc-real-private-preview-qa.yml ci/github/workflows/mid-ruc-real-private-preview-qa.yml
+          main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          test "$stable" = "$main"
+          test "$stable" = c9fadfcd0969e949a92f414b321627dd3d4fb0cc
+          compare="$(gh api "repos/$GITHUB_REPOSITORY/compare/$stable...$GITHUB_SHA")"
+          jq -e --arg stable "$stable" '.status == "ahead" and .merge_base_commit.sha == $stable' <<< "$compare" >/dev/null
+          echo 'Read-only QA, no source release / worker / pages / installer / stable mutation.'
+      - name: Existing ecCodes/native RUC Python environment
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Existing science and private-lookup adversarial tests
+        shell: bash
+        timeout-minutes: 7
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+          python -m unittest discover -s tools/ruc -p 'test_qa_ruc_same_run_preview.py' -v
+          python -m unittest discover -s tools/ruc -p 'test_ir108_gsp_native_preview.py'
+          python -m unittest discover -s tools/ruc -p 'test_original_15min_phase_gate.py'
+      - name: Real same-run CLAT/CLON SHA + 10 IR/GSP native private PNG/phase previews
+        shell: bash
+        timeout-minutes: 15
+        run: |
+          set -euo pipefail
+          umask 077
+          python tools/ruc/qa_ruc_same_run_preview.py --lookback-hours 10
+          echo 'Private raster generated, audited and deleted; NO artifact, NO forecast product, NO warning or release.'

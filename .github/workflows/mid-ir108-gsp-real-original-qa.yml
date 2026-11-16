@@ -1,0 +1,125 @@
+name: MID IR10.8+GSP real 40-original read-only one-shot QA
+on:
+  push:
+    branches: [chatgpt/v0.9.85.485-surroundings-radar-native-qa]
+    paths: ['.github/workflows/mid-ir108-gsp-real-original-qa.yml']
+permissions:
+  contents: read
+concurrency:
+  group: mid-ir108-gsp-real-original-qa
+  cancel-in-progress: false
+jobs:
+  official-originals:
+    if: "${{ github.event.head_commit.message == 'qa(ir108): one-shot real 40-original DWD shadow verification' }}"
+    name: One DWD run, ten IR10.8 and thirty GSP original GRIBs (no publish)
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    permissions:
+      contents: read
+    steps:
+      - name: Exact SHA, no persisted credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Mirror and protected Stable/Main SHA admission
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          cmp ci/github/workflows/mid-ir108-gsp-real-original-qa.yml .github/workflows/mid-ir108-gsp-real-original-qa.yml
+          main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          test "$main" = "$stable"
+          test "$stable" = c9fadfcd0969e949a92f414b321627dd3d4fb0cc
+          compare="$(gh api "repos/$GITHUB_REPOSITORY/compare/$stable...$GITHUB_SHA")"
+          jq -e --arg stable "$stable" '.status == "ahead" and .merge_base_commit.sha == $stable' <<< "$compare" >/dev/null
+          echo "Exact source and Stable lineage admitted; read-only and NO RELEASE."
+      - name: Existing Python/ecCodes runner
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Existing MID science requirements and whole-inventory-before-decoding adversarial tests
+        shell: bash
+        timeout-minutes: 6
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+          python -c "from eccodes import codes_get_api_version; print('ecCodes API', codes_get_api_version())"
+          python -m unittest discover -s tools/ruc -p 'test_ir108_*.py'
+          # All foreign/duplicate/missing original manifests must fail before
+          # any ecCodes call; never accept a fake-GRIB fixture as data proof.
+          python -m unittest discover -s tools/ruc -p 'test_original_15min_phase_gate.py'
+          python -m unittest discover -s tools/ruc -p 'test_stage_original_15min_gsp.py'
+      - name: Select an actual complete official DWD run, no guessed original availability
+        id: choose
+        shell: bash
+        timeout-minutes: 5
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os,sys
+          from datetime import datetime,timedelta,timezone
+          from pathlib import Path
+          from urllib.request import build_opener
+          sys.path.insert(0,str(Path('tools/ruc').resolve()))
+          from ir108_stage_originals import NoRedirects,read_index,make_plan
+          from stage_original_15min_gsp import read_inventory,plan_ten
+          from original_15min_phase_gate import RATE_PARAMETERS
+          now=datetime.now(timezone.utc).replace(minute=0,second=0,microsecond=0)
+          opener=build_opener(NoRedirects())
+          run=None
+          for age in (2,3,4,5):
+              candidate=(now-timedelta(hours=age)).strftime('%Y-%m-%dT%H:%M:%SZ')
+              try:
+                  make_plan(candidate,candidate,read_index(candidate,opener))
+                  for product in RATE_PARAMETERS:
+                      plan_ten(product,candidate,candidate,read_inventory(product,candidate,opener))
+              except (ValueError,OSError,TimeoutError) as exc:
+                  print(f'No original 40-frame admission at age {age}h: {type(exc).__name__} {str(exc)[:130]}')
+                  continue
+              run=candidate
+              break
+          if run is None:
+              raise SystemExit('NO DATA: no complete official four-product original inventory in bounded four-run search')
+          print('DWD original 10+30 UTC index inventory verified for run',run)
+          with open(os.environ['GITHUB_OUTPUT'],'a',encoding='utf-8') as stream:
+              stream.write('run='+run+'\n')
+          PY
+      - name: Download original DWD GRIBs and validate real ecCodes source bytes/bitmap/spectrum
+        shell: bash
+        timeout-minutes: 11
+        env:
+          MODEL_RUN: ${{ steps.choose.outputs.run }}
+        run: |
+          set -euo pipefail
+          test -n "$MODEL_RUN"
+          mkdir -p "$RUNNER_TEMP/mid-ir108-evidence"
+          python tools/ruc/ir108_stage_originals.py --run "$MODEL_RUN" --first-valid "$MODEL_RUN" --output "$RUNNER_TEMP/mid-ir108-evidence/ir"
+          python tools/ruc/stage_original_15min_gsp.py --run "$MODEL_RUN" --first-valid "$MODEL_RUN" --output "$RUNNER_TEMP/mid-ir108-evidence/gsp"
+          test "$(find "$RUNNER_TEMP/mid-ir108-evidence/ir/frames" -name '*.grib2' -type f | wc -l)" -eq 10
+          test "$(find "$RUNNER_TEMP/mid-ir108-evidence/gsp/frames" -name '*.grib2' -type f | wc -l)" -eq 30
+          python tools/ruc/original_15min_phase_gate.py --ir-manifest "$RUNNER_TEMP/mid-ir108-evidence/ir/manifest.json" --rates-manifest "$RUNNER_TEMP/mid-ir108-evidence/gsp/manifest.json" > "$RUNNER_TEMP/mid-ir108-evidence/report.json"
+          python - <<'PY'
+          import json,os,pathlib
+          report=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'mid-ir108-evidence/report.json').read_bytes())
+          assert report['schema']=='mid.dwd.icon-d2-ruc.gsp-phase-15min.shadow.v1'
+          assert report['run']==os.environ['MODEL_RUN']
+          assert report['originalIRFrames']==10 and report['originalRateFrames']==30
+          assert report['sourceIdentityAndNativeValues']=='AUDITED_WITH_ECCODES'
+          assert report['activationAuthorized'] is False
+          assert set(report['products'])=={'PRR_GSP','PRS_GSP','PRG_GSP'}
+          assert all(item['originals']==10 for item in report['products'].values())
+          print('REAL ORIGINAL GRIB 40-field ecCodes source QA PASSED',report['run'])
+          print('Product missing and true intensity:', {k:(v['missingCells'],v['maximumOriginalRateKgM2S']) for k,v in report['products'].items()})
+          print('No renderer/georeference/mobile/production approval, activationAuthorized=false.')
+          PY
+      - name: Erase source GRIBs and reports without uploading an artifact
+        if: always()
+        shell: bash
+        run: |
+          rm -rf "$RUNNER_TEMP/mid-ir108-evidence"
+          echo 'Read-only one-shot original GRIB data discarded; no production writes, no archive.'

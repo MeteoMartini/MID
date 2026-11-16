@@ -9,7 +9,10 @@ const native=readFileSync('src/NativeModelMap.tsx','utf8');
 const unified=readFileSync('src/UnifiedWeatherMap.tsx','utf8');
 const exporter=readFileSync('src/cloudWeatherExport.ts','utf8');
 const cloud=readFileSync('src/cloudWeatherData.ts','utf8');
-assert.match(vector,/pseudoLight=cloudContrast&&!dark/,'Pseudo-color gating must not affect normal satellite or light basemap');
+assert.match(vector,/pseudoClouds=cloudContrast/,'Pseudo grayscale cloud backdrop must be shared across light and dark themes');
+assert.match(vector,/pseudoClouds\?PSEUDO_SAT_BASEMAP.land/);
+assert.match(vector,/pseudoClouds\?PSEUDO_SAT_BASEMAP.water/);
+assert.match(readFileSync('src/CurrentSurroundings.tsx','utf8'),/UnifiedVectorBasemap dark={darkMap} cloudContrast={mode==='cloud'&&Boolean\(cloudForecast.image\)}/,'Surroundings must use precisely the main map pseudo-satellite basemap only when source frame verified');
 assert.match(vector,/sourceLayer:'water'/,'Vector water features required');
 assert.match(vector,/PSEUDO_SAT_BASEMAP.land/);
 assert.match(vector,/PSEUDO_SAT_BASEMAP.water/);
@@ -18,6 +21,7 @@ assert.match(unified,/cloudContrast:settings.enabled&&isCloudWeather&&cloudWeath
 assert.match(exporter,/geography\.countries/,'Natural Earth countries must provide exported land mask');
 assert.match(exporter,/states\.flatMap\(s=>s\.rings\)/,'German state polygons must prevent Germany being painted as water');
 assert.match(exporter,/PSEUDO_SAT_BASEMAP.water/);
+assert.match(exporter,/stroke="#d9e2e8" stroke-opacity="\.76"/,'Satellite-style borders stay legible over dark neutral exported basemap');
 assert.match(cloud,/if\(!style&&\(cover===null\|\|cover===0\)\)return \[0,0,0,0\]/,'Missing/cloud-free pixels remain transparent');
 const temp=mkdtempSync(path.resolve('.mid-map-basemap-'));
 try{
@@ -26,6 +30,14 @@ try{
  const {PSEUDO_SAT_BASEMAP:c}=await import(pathToFileURL(path.join(temp,'palette.mjs')));
  const {cloudWeatherSvg}=await import(pathToFileURL(path.join(temp,'export.mjs')));
  assert.notEqual(c.land,c.water);assert.notEqual(c.landcover,c.water);
+ const channels=value=>[1,3,5].map(i=>parseInt(value.slice(i,i+2),16));
+ for(const [label,shade] of Object.entries(c)){
+  const rgb=channels(shade);
+  assert.ok(Math.max(...rgb)-Math.min(...rgb)<18,label+' remains neutral satellite-gray');
+  assert.ok(rgb.every(n=>n>=40&&n<120),label+' is a professional low-luminance backdrop');
+ }
+ assert.match(vector,/pseudoClouds\?PSEUDO_SAT_BASEMAP.land:dark\?/);
+ assert.match(vector,/pseudoClouds\?PSEUDO_SAT_BASEMAP.water:dark\?/);
  const frame={model:'icon-d2',run:'2026-10-17T00:00:00Z',time:'2026-10-17T06:00:00Z',lats:[47,55],lons:[4,16],cloud:[0],weather:[0]};
  const countries=[[[5,48],[9,48],[9,53],[5,53],[5,48]]];
  const pseudo=cloudWeatherSvg(frame,'data:image/png;base64,AA==',[],[],'pseudo',null,null,countries);

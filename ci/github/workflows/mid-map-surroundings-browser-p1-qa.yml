@@ -1,0 +1,65 @@
+name: MID maps surroundings responsive real-Chrome source-fixture QA (read-only)
+on:
+  push:
+    branches: [chatgpt/v0.9.85.485-surroundings-radar-native-qa]
+    paths: ['.github/workflows/mid-map-surroundings-browser-p1-qa.yml', 'scripts/qa-surroundings-browser-responsive-0985485.mjs']
+permissions:
+  contents: read
+concurrency:
+  group: mid-map-surroundings-browser-p1-qa
+  cancel-in-progress: false
+jobs:
+  real-chrome-source-fixtures:
+    if: "${{ github.event.head_commit.message == 'qa(maps): responsive native surroundings browser smoke' || github.event.head_commit.message == 'qa(maps): portable validated radar PNG across Chrome and WebKit' }}"
+    name: Real React/MapLibre Chrome 5 widths x 2 themes; original timing and persistence (NO RELEASE)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact SHA without retained credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Verify branch, mirrored QA and immutable main/stable lineage
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/chatgpt/v0.9.85.485-surroundings-radar-native-qa
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          cmp .github/workflows/mid-map-surroundings-browser-p1-qa.yml ci/github/workflows/mid-map-surroundings-browser-p1-qa.yml
+          main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          test "$main" = "$stable"
+          test "$stable" = c9fadfcd0969e949a92f414b321627dd3d4fb0cc
+          compare="$(gh api "repos/$GITHUB_REPOSITORY/compare/$stable...$GITHUB_SHA")"
+          jq -e --arg stable "$stable" '.status == "ahead" and .merge_base_commit.sha == $stable' <<< "$compare" >/dev/null
+          echo "Stable/main SHA verified; browser fixture only; no Worker/Pages/installer/release writes."
+      - name: Install existing MID Node toolchain
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          package-manager-cache: false
+      - name: Reproducible npm dependency install and existing real Chrome check
+        shell: bash
+        timeout-minutes: 6
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+          command -v google-chrome
+          google-chrome --version
+          npm exec --yes --package=playwright@1.56.1 -- which playwright
+      - name: P1 320-1440px / light-dark / original timestamp / no stale / 44px UI QA
+        shell: bash
+        timeout-minutes: 15
+        env:
+          NODE_ENV: test
+          VITE_WORKER_SAME_ORIGIN_PATH: /__qa-worker
+        run: |
+          set -euo pipefail
+          node scripts/qa-surroundings-browser-responsive-0985485.mjs
+          echo "Browser smoke only; fixture WMS/radar, not actual DWD field, iOS, WebKit or human visual acceptance."

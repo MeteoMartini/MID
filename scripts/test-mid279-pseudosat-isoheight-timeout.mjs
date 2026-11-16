@@ -40,7 +40,7 @@ try{
  const map=readFileSync('src/UnifiedWeatherMap.tsx','utf8'),panel=readFileSync('src/RadarPanel.tsx','utf8'),base=readFileSync('src/UnifiedVectorBasemap.tsx','utf8'),app=readFileSync('src/App.tsx','utf8');
  for(const token of ['useRawDisplayPreference','readUnifiedMapSettings','CLOUD_WEATHER_ISOHEIGHTS_KEY','parseCloudWeatherToggle','matchingCloudIsoheights(cloudData,selectedCloudIsoheights)','cloudContrast:settings.enabled&&isCloudWeather','heightsActive?<GeoJsonLayers'])assert.ok(map.includes(token),token);
  assert.match(panel,/cloudContrast=\{Boolean\(unified\.cloudContrast&&modelAtSelectedTime\)\}/);
- assert.match(base,/PSEUDO_SAT_BASEMAP\.water/,'Vector basemap must use the shared water tone');assert.match(base,/PSEUDO_SAT_BASEMAP\.land/,'Vector basemap must use the shared land tone');assert.match(base,/cloudContrast&&!dark/);
+ assert.match(base,/PSEUDO_SAT_BASEMAP\.water/,'Vector basemap must use the shared water tone');assert.match(base,/PSEUDO_SAT_BASEMAP\.land/,'Vector basemap must use the shared land tone');assert.match(base,/pseudoClouds=cloudContrast/,'PseudoSat contrast applies equally to light and dark when source cloud pixels are verified');
  assert.match(app,/forecastTimeoutRetryState\.current\.attempts<1/,'Only one automatic timeout retry');
  assert.match(app,/id===seq\.current&&document\.visibilityState/,'Retries bound to active location generation');
  assert.match(app,/Wetter erneut laden/,'Manual recovery control');

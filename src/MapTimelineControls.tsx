@@ -1,5 +1,5 @@
 import {Pause,Play,SkipBack,SkipForward} from 'lucide-react';
-import {useEffect,useRef,type ReactNode} from 'react';
+import {type ReactNode} from 'react';
 
 export type MapTimelineMarker={
  key:string;
@@ -68,15 +68,15 @@ type MapTimelineRangeProps={
 
 export function MapTimelineRange({className,markerClassName,index,count,canAnimate,onSeek,rangeLabel,countLabel,markers=[],children}:MapTimelineRangeProps){
  const lastIndex=Math.max(0,count-1),selectedIndex=Math.max(0,Math.min(index,lastIndex));
- // React's onChange may not commit every native range input after an asynchronous
- // model/term switch. Keep pointer, touch and keyboard events on one idempotent path.
- const lastDispatched=useRef(selectedIndex);
- useEffect(()=>{lastDispatched.current=selectedIndex},[selectedIndex]);
+ // The rendered, controlled source index is the only acknowledgement of a
+ // seek. A cached "last dispatched" index can equal an old Home/End request
+ // while an asynchronously refreshed model now displays another index, causing
+ // a real keyboard press to be dropped with preventDefault() and no input event.
+ // Duplicate native input/change events are harmless idempotent seeks.
  const commitSeek=(value:number)=>{
   if(!Number.isFinite(value))return;
   const next=Math.max(0,Math.min(lastIndex,Math.round(value)));
-  if(lastDispatched.current===next)return;
-  lastDispatched.current=next;
+  if(next===selectedIndex)return;
   onSeek(next);
  };
  return <label className={`map-timeline-range ${className}`} style={{position:'relative'}}>
