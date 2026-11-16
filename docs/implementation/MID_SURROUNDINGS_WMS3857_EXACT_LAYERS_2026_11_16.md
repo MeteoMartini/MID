@@ -1,7 +1,7 @@
 # MID-Karten 1.12 · P1 #853 – metrische WMS-Georeferenzierung (isolierter QA-Kandidat)
 
 **NICHT AKTIVIERT · KEIN MERGE · KEIN RELEASE.**
-Verifizierte Ausgangsbasis am 16.11.2026: `main=mid-stable=a78465b655d25cafc9ecc0390080694cb7aca957` / v0.9.85.486, fünf aktive Rulesets. Der Leitchat bearbeitet dieselbe Kartenansicht in [Draft #858](https://github.com/MeteoMartini/MID/pull/858). Deshalb werden `CurrentSurroundings.tsx`, die WMS-Bildanforderungen, Worker, CI und Release-Verträge **nicht** geändert. Nur eine neue, bisher ungenutzte Geometrie-Hilfsfunktion plus Tests.
+Verifizierte Ausgangsbasis am 16.11.2026: `main=mid-stable=a78465b655d25cafc9ecc0390080694cb7aca957` / v0.9.85.486, fünf aktive Rulesets. Der Leitchat bearbeitet dieselbe Kartenansicht in [Draft #858](https://github.com/MeteoMartini/MID/pull/858). Deshalb werden `CurrentSurroundings.tsx`, die WMS-Bildanforderungen, Worker, CI und Release-Verträge **nicht** geändert. Die geometrischen, WMS-Request- und rein optischen Alpha-Algorithmen werden bis zur Originalanbieter-Abnahme **ausschließlich als QA-Helfer unter `tests/helpers/`** geführt; sie sind bewusst keine ungenutzten `src/`-Laufzeitmodule.
 
 ## Originaldienste am 16.11.2026 tatsächlich gelesen
 
@@ -12,7 +12,7 @@ Verifizierte Ausgangsbasis am 16.11.2026: `main=mid-stable=a78465b655d25cafc9ecc
 
 ## Geometrie und meteorologischer Vertrag
 
-Vorliegende `surroundingsViewportRaster.ts` errechnet bereits die komplette sichtbare Kamera inklusive Overscan, gibt aber für externe WMS eine EPSG:4326-BBOX aus. Ein solches Bild besitzt zwischen seinen Ecken gleichmäßig verteilte **Breitengrad**-Pixel; MapLibre platziert das Quad auf einer WebMercator-Karte. Der resultierende Zwischenpixel-Lagefehler liegt bei einem 1,3-Grad-Bild um 50,82° N in der Größenordnung von 0,5 km, auch wenn alle vier Randpixel sichtbar sind. OPERA/Phase verwenden bereits eigenes inverses Mercator-Y-Sampling und sind davon unabhängig.
+Die allein im LC-Draft enthaltene `surroundingsViewportRaster.ts` errechnet bereits die komplette sichtbare Kamera inklusive Overscan, gibt aber für externe WMS eine EPSG:4326-BBOX aus. Ein solches Bild besitzt zwischen seinen Ecken gleichmäßig verteilte **Breitengrad**-Pixel; MapLibre platziert das Quad auf einer WebMercator-Karte. Der resultierende Zwischenpixel-Lagefehler liegt bei einem 1,3-Grad-Bild um 50,82° N in der Größenordnung von 0,5 km, auch wenn alle vier Randpixel sichtbar sind. OPERA/Phase verwenden bereits eigenes inverses Mercator-Y-Sampling und sind davon unabhängig.
 
 Der neue, ausschließlich geometrische `planSurroundingsMercatorWms(geoBounds)` konvertiert den unveränderten tatsächlichen geografischen Kamera-Umriss in eine metrische `EPSG:3857`-BBOX `xMin,yMin,xMax,yMax`, rundet die Außenkanten auf 1 mm nach außen und berechnet WIDTH/HEIGHT entsprechend der **projizierten Meter-Abmessungen**, streng innerhalb des unveränderten 512×256-Rasterbudgets. Die ursprünglichen WGS84-Ecken bleiben unverändert für die `ImageQuadLayer`-Georeferenzierung. Antimeridian, Pole, nicht endliche Koordinaten und pathologische Maße werden abgelehnt. Der Planer enthält keinerlei Wetter-/Zeit-/Warn-/NoData-Feld.
 
@@ -24,3 +24,21 @@ Der neue, ausschließlich geometrische `planSurroundingsMercatorWms(geoBounds)` 
 4. Keine Änderung an RUC, Quellen-/WMO-/DWD-Warnsemantik, Security #740, Version, Workern oder geschützten Release-Gates. Source-PR-Gate → SHA-Merge → serverseitiges ZIP → `install-mid.yml` → Worker-/Pages-Gates → Stable-Promotion weiterhin zwingend.
 
 Diese QA liefert nur eine unabhängige mathematische Vorqualifikation; sie darf nicht eigenständig aktiviert oder als stabil ausgeliefert gemeldet werden.
+
+## Späterer kombinierter QA-Befund: Dead-Code-Schutz muss erhalten bleiben
+
+Der Leitchat hatte am unveröffentlichten HEAD `c62b585fc5cc820d66d9f6b345a20e2f2ffce919` zunächst sieben byteidentische Quellblobs aus #861 selektiv integriert. Die gekoppelte [Draft-CI #43956713690](https://github.com/MeteoMartini/MID/actions/runs/43956713690) zeigte **Vitest SUCCESS**, aber die gezielten Regressionen **FAIL**: `scripts/test-interaction-performance-cleanup-08155.mjs` erkannte die drei bewusst noch inaktiven Module `src/surroundingsMercatorWmsPlan.ts`, `src/surroundingsProjectedWmsRequest.ts` und `src/surroundingsWmsPixelEvidence.ts` als **unerwartet nicht aus `src/main.tsx` erreichbare Laufzeitmodule**. Dieses fachlich berechtigte Gate wird **nicht** aufgeweicht und es werden keine Schein-Imports in den Laufzeitgraphen aufgenommen.
+
+**Spezialchat-Reparatur, ausschließlich QA-Branch:** Die drei geprüften Helfer wurden vor einer produktiven Aktivierung nach `tests/helpers/` verlagert; zugehörige Vitest-Imports führen jetzt ausschließlich zu diesem Testpfad. Die Helfer bewahren die ursprünglichen Inhalte, außer dem relativ angepassten Typimport `WmsProvider` in der Request-Datei. Die drei verwaisten `src/`-Dateien werden entfernt. Dadurch bleiben der Laufzeitgraph und der ursprüngliche Dead-Code-Schutz unverändert. Bei **späterer** fachlich berechtigter Verwendung im Karten-UI dürfen die Helfer als wirklich genutzte `src/`-Module wieder eingeführt werden – erst nach Originalbildprüfung und SHA-gebundener Integrations-QA. Der Leitchat muss die veraltete erste Kopie unter `src/` bei der selektiven Nachintegration entfernen; seine derzeitige CI ist **nicht** grün.
+
+### Transparenz und meteorologische Gültigkeit
+
+Die Funktion `inspectSurroundingsWmsAlpha` zeigt aus decodierten RGBA-Bildpunkten nur optische Sichtbarkeit. Weder vollständig transparenter Radarhintergrund noch ein vollständig opaker EUMETSAT-GeoColour-/NASA-Black-Marble-Hintergrund ist ein Beleg für gültige Niederschlags- oder Wolkenwerte. `meteorologicalCoverage=null` und `precipitationRate=null` bleiben ausdrücklich unbekannt. Gültigkeitsmasken, konkrete Originalzeiten, räumliche Innenkontrollpunkte und NoData-vs-0 müssen aus der tatsächlichen Providerdaten-Semantik separat hergeleitet werden.
+
+### Originalnutzungsrechte (produktbezogen, nicht verallgemeinern)
+
+- DWD-Informationen zu frei zugänglichen Geodaten und Geodiensten erlauben Wiederverwendung mit geeigneter Quellenangabe: [DWD Copyright/Geodienste](https://kunden.dwd.de/agrobereg/ext_copyright.jsp). Die Bedingungen des konkret eingebundenen RV-Layers und mögliche Drittrechte sind vor einer Weiterveröffentlichung anhand des aktuellen Originaldienstes zu bestätigen.
+- [EUMETSAT GeoColour-Produktkatalog EO:EUM:DAT:0913](https://user.eumetsat.int/catalogue/EO:EUM:DAT:0913) gibt **Free and unrestricted – CC BY 4.0** an. Die Produktbeschreibung verlangt bei Nutzung außerhalb EUMETView **EUMETSAT und NASA** als Attribution; die statischen NASA-Black-Marble-Nachtlichter sind keine Beobachtungswolken.
+- [EUMETSAT FCI HRFI Level 1c EO:EUM:DAT:0665](https://api.eumetsat.int/data/browse/1.0.0/collections/EO%3AEUM%3ADAT%3A0665?format=html) nennt **NRTLicense, GeneralLicense** für die Level-1c-Daten. Dies darf **nicht** unbesehen als Lizenz des gerenderten WMS-IR10.5-Layers übernommen werden; umgekehrt darf der ausdrücklich freie GeoColour-Katalog **nicht** pauschal als Freigabe für alle MTG-WMS-Layer gelten. Den IR-WMS-spezifischen Status vor Release gesondert qualifizieren. Keine kostenpflichtige Produktlizenz ohne Nutzerfreigabe.
+
+**QA-Status dieser Ergänzung:** Inhaltliche Neuzuordnung bis zum letzten erfolgreichen Draft-SHA in einem unveröffentlichten Spezial-Branch; erst neue vollständige GitHub-Checks am aktuellen HEAD dürfen einen Regressionserfolg belegen. Keine Änderung an main/stable, Warnungen, Workern oder Releases.
