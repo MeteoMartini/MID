@@ -931,6 +931,10 @@ async function verifyDesktopModelFlags(){
   await page.keyboard.press('End');
   assert.equal(await options.last().evaluate(node=>document.activeElement===node),true,
    'Keyboard End focuses last listed source without changing selected model');
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  assert.equal(await options.last().evaluate(node=>document.activeElement===node),true,
+   'Keyboard focus survives deferred portal autofocus after End');
+  assert.equal(await trigger.getAttribute('data-model-id'),'ifs','End never selects a different weather model');
   await page.keyboard.press('Escape');
   assert.equal(await trigger.getAttribute('aria-expanded'),'false',
    'Escape closes menu; selected value stays unchanged');
