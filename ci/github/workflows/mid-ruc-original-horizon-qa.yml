@@ -1,0 +1,53 @@
+name: MID RUC IR10.8/GSP 3-run native quarter-hour catalogue QA (read-only)
+on:
+  push:
+    branches: [chatgpt/v0.9.85.485-surroundings-radar-native-qa]
+    paths: ['.github/workflows/mid-ruc-original-horizon-qa.yml']
+permissions:
+  contents: read
+concurrency:
+  group: mid-ruc-original-horizon-catalogue-qa
+  cancel-in-progress: false
+jobs:
+  original-catalogue:
+    if: "${{ github.event.head_commit.message == 'qa(ruc): three-run original catalogue horizon check' }}"
+    name: Three real official DWD runs, four product inventories (NO RELEASE)
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact untrusted QA head without credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Verify branch, mirror, Stable lineage and read-only execution
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/chatgpt/v0.9.85.485-surroundings-radar-native-qa
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          cmp .github/workflows/mid-ruc-original-horizon-qa.yml ci/github/workflows/mid-ruc-original-horizon-qa.yml
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          test "$stable" = "$main"
+          test "$stable" = c9fadfcd0969e949a92f414b321627dd3d4fb0cc
+          compare="$(gh api "repos/$GITHUB_REPOSITORY/compare/$stable...$GITHUB_SHA")"
+          jq -e --arg stable "$stable" '.status == "ahead" and .merge_base_commit.sha == $stable' <<< "$compare" >/dev/null
+          echo 'Read-only source/stable lineage admitted; catalogue metadata only, no GRIB downloads.'
+      - name: Run pure standard-library negative and boundary regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s tools/ruc -p 'test_qa_ruc_original_horizon_inventory.py' -v
+      - name: Inspect 3 genuine complete DWD runs and 4 original product lists
+        shell: bash
+        timeout-minutes: 6
+        run: |
+          set -euo pipefail
+          python3 tools/ruc/qa_ruc_original_horizon_inventory.py --lookback-hours 10
+          echo 'No real GRIB value, geographic mapping, renderer, warnings, release or live activation verified.'
