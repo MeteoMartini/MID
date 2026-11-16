@@ -965,7 +965,7 @@ function knownForecastProbability(value:unknown){return typeof value==='number'&
 function minutelySunshineValuesForHour(w:Weather,time:string){
  const times=(w.minutely_15?.time??[]) as string[],values=(w.minutely_15?.sunshine_duration??[]) as (number|string|null)[],offset=w.utc_offset_seconds;
  // No UTC-zero fallback: only a known provider offset may align 15-min accumulations.
- if(!Number.isFinite(offset))return[];
+ if(typeof offset!=='number'||!Number.isFinite(offset))return[];
  // These are raw Open-Meteo endpoints: their response offset is fixed. Real
  // user-local events continue to use the IANA-aware localIsoEpoch path.
  const endpoint=(stamp:string)=>localIsoEpoch(String(stamp),undefined,offset);
