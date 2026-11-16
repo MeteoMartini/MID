@@ -204,11 +204,18 @@ jobs:
             jq -r '(.status // "BLOCKED") + ": " + (.reason // "UNKNOWN")' "$RUNNER_TEMP/mid740-native-review-readback.json" >&2
             exit 1
           fi
-          jq -e '.status == "LEGACY_MAIN_WRITES_BLOCK_NO_BYPASS_CUTOVER_QA_ONLY" and
+          jq -e '(
+              (.status == "LEGACY_MAIN_WRITES_BLOCK_NO_BYPASS_CUTOVER_QA_ONLY" and
+                .rulesetBypassActorsVerified == true and
+                .productionReleaseIntegrationAlwaysBypasses == true)
+              or
+              (.status == "BYPASS_ACTORS_UNVERIFIED_CUTOVER_BLOCKED_QA_ONLY" and
+                .rulesetBypassActorsVerified == false and
+                .productionReleaseIntegrationAlwaysBypasses == null)
+            ) and
             .registryAndRuleDetailsVerified == true and
             .twoLegacyMainWritePathsSHAAndBlobVerified == true and
             .productionRulesetHasRequiredPR == false and
-            .productionReleaseIntegrationAlwaysBypasses == true and
             .nativeReviewEnforcementVerified == false and
             .noBypassCutoverCompatible == false and
             .cutoverAuthorized == false and .releaseAuthorized == false' "$RUNNER_TEMP/mid740-native-review-readback.json"

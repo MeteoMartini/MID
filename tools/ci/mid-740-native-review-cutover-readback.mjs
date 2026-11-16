@@ -39,7 +39,8 @@ function detailsOK(all){
  const ids=new Set();
  for(const r of all){
   if(!RULE_IDS.includes(r?.id)||ids.has(r.id)||r.enforcement!=='active'||
-     !Array.isArray(r.rules)||!Array.isArray(r.bypass_actors)||
+     !Array.isArray(r.rules)||
+     (r.bypass_actors!=null&&!Array.isArray(r.bypass_actors))||
      !Array.isArray(r.conditions?.ref_name?.include))return false;
   ids.add(r.id);
  }
@@ -54,10 +55,15 @@ function detailsOK(all){
  const rules=new Set(p.rules.map(x=>x.type));
  if(!['deletion','non_fast_forward','update'].every(x=>rules.has(x))||
     rules.has('pull_request'))return false;
- if(p.bypass_actors.length!==1||
-    p.bypass_actors[0].actor_id!==5059236||
-    p.bypass_actors[0].actor_type!=='Integration'||
-    p.bypass_actors[0].bypass_mode!=='always')return false;
+ // Actions' least-privilege token can redact bypass_actors on every rule;
+ // this never counts as proof of any specific actor or absence of bypass.
+ if(Array.isArray(p.bypass_actors)&&
+    (p.bypass_actors.length!==1||
+     p.bypass_actors[0].actor_id!==5059236||
+     p.bypass_actors[0].actor_type!=='Integration'||
+     p.bypass_actors[0].bypass_mode!=='always'))return false;
+ if(Array.isArray(st.bypass_actors)&&st.bypass_actors.length!==0)
+  return false;
  const checked=st.rules.find(r=>r.type==='required_status_checks');
  return !!checked?.parameters?.required_status_checks?.some(c=>
     c.context==='MID / release-candidate-quality'&&c.integration_id===5059236);
@@ -116,6 +122,10 @@ export async function inspectMid740NativeReviewCutover(get){
   ].map(x=>x?'1':'0').join('');
   return deny('ACTIVE_RULESET_OR_BYPASS_DRIFT_'+fields+'_'+flags);
  }
+ const redactedCount=details.filter(r=>r.bypass_actors==null).length;
+ if(redactedCount!==0&&redactedCount!==details.length)
+  return deny('PARTIAL_BYPASS_VISIBILITY_INCONSISTENT');
+ const allBypassActorsVisible=redactedCount===0;
  const code=files.map((f,i)=>blob(f,WORKFLOWS[i]));
  if(code.some(s=>!s))return deny('TRUSTED_WORKFLOW_BLOB_INVALID');
  if(!code[0].includes('git push origin HEAD:main')||
@@ -149,12 +159,17 @@ export async function inspectMid740NativeReviewCutover(get){
   return deny('FINAL_POLICY_OR_STABLE_RACE');
  return Object.freeze({
   schema:'mid.740.native-review-cutover.v1',
-  status:'LEGACY_MAIN_WRITES_BLOCK_NO_BYPASS_CUTOVER_QA_ONLY',
+  status:allBypassActorsVisible?
+   'LEGACY_MAIN_WRITES_BLOCK_NO_BYPASS_CUTOVER_QA_ONLY':
+   'BYPASS_ACTORS_UNVERIFIED_CUTOVER_BLOCKED_QA_ONLY',
   stableSha:EXPECTED_STABLE,
   registryAndRuleDetailsVerified:true,
   twoLegacyMainWritePathsSHAAndBlobVerified:true,
   productionRulesetHasRequiredPR:false,
-  productionReleaseIntegrationAlwaysBypasses:true,
+  rulesetBypassActorsVerified:allBypassActorsVisible,
+  // null means unknown: do not turn redacted data into a false fact.
+  productionReleaseIntegrationAlwaysBypasses:
+   allBypassActorsVisible?true:null,
   stableRequiredStatusCheckObserved:true,
   classicProtection:classic,
   // Not a guarantee of missing reviews outside the observable rulesets.
@@ -177,7 +192,8 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
   }));
   const result=await inspectMid740NativeReviewCutover(get);
   process.stdout.write(JSON.stringify(result)+'\n');
-  if(result.status!=='LEGACY_MAIN_WRITES_BLOCK_NO_BYPASS_CUTOVER_QA_ONLY')
+  if(!['LEGACY_MAIN_WRITES_BLOCK_NO_BYPASS_CUTOVER_QA_ONLY',
+   'BYPASS_ACTORS_UNVERIFIED_CUTOVER_BLOCKED_QA_ONLY'].includes(result.status))
    process.exitCode=1;
  }catch{
   process.stdout.write(JSON.stringify(deny('CLI_READBACK_FAILED'))+'\n');

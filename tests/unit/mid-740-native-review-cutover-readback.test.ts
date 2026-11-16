@@ -54,6 +54,7 @@ describe('#740 native review cutover: real GitHub rulesets and legacy main write
    registryAndRuleDetailsVerified:true,
    twoLegacyMainWritePathsSHAAndBlobVerified:true,
    productionRulesetHasRequiredPR:false,
+   rulesetBypassActorsVerified:true,
    productionReleaseIntegrationAlwaysBypasses:true,
    classicProtection:{main:'UNVERIFIED','mid-stable':'UNVERIFIED'},
    protectedBranchPoliciesFullyVisible:false,
@@ -61,6 +62,28 @@ describe('#740 native review cutover: real GitHub rulesets and legacy main write
    noBypassCutoverCompatible:false,
    installerAuthorized:false,cutoverAuthorized:false,releaseAuthorized:false
   });
+ });
+ it('redacted GitHub Actions bypass actor fields remain explicitly UNVERIFIED and blocked',async()=>{
+  const x=fixture();
+  for(const id of IDs)delete x.d[R+'/rulesets/'+id].bypass_actors;
+  const result=await check(x.get);
+  expect(result).toMatchObject({
+   status:'BYPASS_ACTORS_UNVERIFIED_CUTOVER_BLOCKED_QA_ONLY',
+   registryAndRuleDetailsVerified:true,
+   twoLegacyMainWritePathsSHAAndBlobVerified:true,
+   rulesetBypassActorsVerified:false,
+   productionReleaseIntegrationAlwaysBypasses:null,
+   nativeReviewEnforcementVerified:false,
+   noBypassCutoverCompatible:false,
+   cutoverAuthorized:false,releaseAuthorized:false
+  });
+ });
+ it('partial actor field redaction never silently qualifies the full policy',async()=>{
+  const x=fixture();
+  delete x.d[R+'/rulesets/23963851'].bypass_actors;
+  const result=await check(x.get);
+  expect(result).toMatchObject({status:'BLOCKED',
+    reason:'PARTIAL_BYPASS_VISIBILITY_INCONSISTENT'});
  });
  it('a readable classic branch protection is still NOT a positive cutover authorization',async()=>{
   const x=fixture();
