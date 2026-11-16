@@ -95,6 +95,27 @@ describe('MID Design18 CSSOM parity QA is evidence-only and fail closed',()=>{
   const c=pair();c.stable[1].identity.version='0.9.85.488';
   expect(()=>compareCssomCases(c)).toThrow(/cross-case build identity drift/);
  });
+ it('captures only when the Playwright-facing viewport, stylesheet, theme and DOM targets agree',async()=>{
+  const source=entry(ids[0]);
+  const page={
+   locator:(_selector:string)=>({waitFor:async()=>undefined}),
+   evaluate:async (_fn:unknown,params?:unknown)=>params?{
+    environment:{width:390,height:844,devicePixelRatio:1,actualTheme:'light'},
+    readiness:source.readiness,rootTokens:source.rootTokens,elements:source.elements,
+   }:undefined,
+   viewportSize:()=>({width:390,height:844}),
+   context:()=>({browser:()=>({version:()=> '144.0.0'})}),
+  };
+  const options={buildIdentity:source.identity,caseId:ids[0],fixtureSha256:'f'.repeat(64),
+   theme:'light',readySelector:'#root',targets:[{id:'navigation',selector:'nav[aria-label="Hauptnavigation"]'}]};
+  const recorded=await captureCssomCase(page,options);
+  expect(recorded.environment.actualTheme).toBe('light');
+  expect(recorded.elements).toHaveLength(1);
+  expect(recorded.releaseAuthorized).toBe(false);
+  await expect(captureCssomCase(page,{...options,theme:'dark'})).rejects.toThrow(/actual DOM theme/);
+  await expect(captureCssomCase({...page,viewportSize:()=>({width:430,height:844})},options))
+   .rejects.toThrow(/viewport mismatch/);
+ });
  it('reports full responsive cases only when explicitly listed, never from zero matches',()=>{
   expect(()=>compareCssomCases({...pair(),requiredCaseIds:[ids[0]]})).toThrow(/manifest/);
   const invalid=pair();invalid.candidate[0].elements[0].rect.height=0;
