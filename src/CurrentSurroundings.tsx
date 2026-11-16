@@ -11,7 +11,7 @@ import {loadModelMapGeography,type ModelMapGeography} from './modelMapGeography'
 import {browserExternalWeatherFallbackAllowed} from './workerClient';
 import {MidMapLibre,ImageQuadLayer,HtmlMarker,MapFitBounds,useMidMap} from './MapLibreCore';
 import SurroundingsViewportCapture from './SurroundingsViewportCapture';
-import type {SurroundingsRasterPlan} from './surroundingsViewportRaster';
+import {mercatorLatitudeAtImageFraction,type SurroundingsRasterPlan} from './surroundingsViewportRaster';
 import {VectorReferenceLayer} from './MapLibreLegacyCompat';
 import UnifiedVectorBasemap from './UnifiedVectorBasemap';
 import {compositeReferenceLayers} from './mapReferenceLayers';
@@ -223,10 +223,12 @@ export default function CurrentSurroundings(props:Props){
    const context=canvas.getContext('2d');
    if(!context)return;
    const {west,south,east,north}=admittedRasterPlan.bounds;
+   // Raster rows are evenly spaced in WebMercator Y on the map, not in latitude degrees.
+   const rowLatitudes=Array.from({length:canvas.height},(_,y)=>mercatorLatitudeAtImageFraction(north,south,(y+.5)/canvas.height));
    const image=context.createImageData(canvas.width,canvas.height);
    let covered=false;
    for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){
-    const point=operaRasterPoint(raster,north-(y+.5)*(north-south)/canvas.height,west+(x+.5)*(east-west)/canvas.width);
+    const point=operaRasterPoint(raster,rowLatitudes[y],west+(x+.5)*(east-west)/canvas.width);
     covered ||= point.covered;
     if(point.dbz!==undefined)image.data.set(radarDbzColor(point.dbz),(y*canvas.width+x)*4);
    }
@@ -243,7 +245,7 @@ export default function CurrentSurroundings(props:Props){
    if(controller.signal.aborted||grid.error||grid.stale||!Number.isFinite(modelTime)||Math.abs(modelTime-time)>20*60000||(grid.modelAgeHours??0)>16)return;
    const phase=buildPhaseDisplay(grid,raster);
    if(phase.colors.size)paintPhaseRaster(context,raster,grid,phase,(x,y)=>({
-    lat:north-y*(north-south)/canvas.height,
+    lat:rowLatitudes[Math.floor(y)],
     lng:west+x*(east-west)/canvas.width
    }));
    setPhaseImage({url:phase.colors.size?canvas.toDataURL():undefined,time,requestKey:operaRequestKey});
