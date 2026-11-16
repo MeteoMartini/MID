@@ -13,10 +13,13 @@ const block=reason=>({ok:false,reason:'MID_REVIEW_'+reason,mergeAuthorized:false
 // so a later independent GitHub approval must address *each* one.
 export function criticalMidReviewItems(body){
  if(typeof body!=='string')return null;
- const tagged=[...body.matchAll(/<violation\b[^>]*>\s*(P[01])\s*:/gi)];
- if(tagged.length)return tagged.map(match=>match[1].toUpperCase());
- return [...body.matchAll(/(?:^|\n)\s*(?:[-*]\s*)?(P[01])\s*:/gi)]
-  .map(match=>match[1].toUpperCase());
+ // A Cubic XML violation and an independent plain/Markdown finding can
+ // coexist in one body. Scan ALL severity markers in source order; taking
+ // only the XML matches would silently discard later critical findings.
+ // Conservative over-detection blocks a merge for independent disposition.
+ const matches=[...body.matchAll(/\b(P[01])(?:\*\*|\])?\s*(?::|[—–-](?=\s))/gi)];
+ if(matches.length>1000)return null; // refuse unbounded/incomplete evidence
+ return matches.map(match=>match[1].toUpperCase());
 }
 function validMidEvidence(uri,headSha,number){
  try{
@@ -92,9 +95,11 @@ export function assessMidPremerge({before,after,main,stable,data,number,sha,bran
  // An attesting review MUST come from a different authenticated human, be
  // later than the finding, bind the exact source SHA, and enumerate every
  // critical item with a GitHub evidence reference. No self-approval.
- const critical=submitted.map(r=>({review:r,items:r.state==='COMMENTED'?
-  criticalMidReviewItems(r.body):[]})).filter(x=>x.items?.length);
- if(critical.some(x=>!x.items))return block('CRITICAL_REVIEW_EVIDENCE_INVALID');
+ const classified=submitted.map(r=>({review:r,items:
+  ['COMMENTED','APPROVED'].includes(r.state)?criticalMidReviewItems(r.body):[]}));
+ // Never silently drop invalid/oversized review evidence during filtering.
+ if(classified.some(x=>x.items===null))return block('CRITICAL_REVIEW_EVIDENCE_INVALID');
+ const critical=classified.filter(x=>x.items.length);
  if(critical.length){
   const author=before?.user?.login?.toLowerCase();
   if(!author||after?.user?.login?.toLowerCase()!==author)return block('AUTHOR_UNVERIFIED');

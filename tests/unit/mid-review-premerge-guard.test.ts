@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
-import {assessMidPremerge as check,collectMidReviews} from '../../tools/ci/mid-review-premerge-guard.mjs';
+import {assessMidPremerge as check,collectMidReviews,criticalMidReviewItems} from '../../tools/ci/mid-review-premerge-guard.mjs';
 const sha='a'.repeat(40),stable='b'.repeat(40),branch='chatgpt/v0.9.85.455-review-native-guard';
 const pr={number:777,state:'open',draft:false,base:{ref:'main',sha:stable},head:{ref:branch,sha,repo:{full_name:'MeteoMartini/MID'}},user:{login:'coder'}};
 const meta={number:777,headRefOid:sha,headRefName:branch,baseRefName:'main',state:'OPEN',isDraft:false};
@@ -71,6 +71,33 @@ describe('SHA-bound MID merge-time review guard',()=>{
   expect(checkReviews([cubic,review('APPROVED','r-unsafe','reviewer','2026-11-11T15:03:00Z',unsafe+'\n'+line(2))]).ok).toBe(false);
   const late=review('COMMENTED','PRR_lateP1x','cubic-dev-ai','2026-11-11T15:04:00Z','P1: later untriaged review');
   expect(checkReviews([cubic,complete,late]).ok).toBe(false);
+ });
+ it('counts mixed Cubic XML, plain and Markdown severity markers without losing critical items',()=>{
+  const body='<violation number="1">\\nP1: native seasonal interval bug</violation>\\n'+
+   'P0: unsafe release race\\n**P1**: provenance bypass\\n[P0]: unsafe package';
+  expect(criticalMidReviewItems(body)).toEqual(['P1','P0','P1','P0']);
+  const finding=review('COMMENTED','PRR_mixedcritical','cubic-dev-ai','2026-11-11T15:00:00Z',body);
+  const evidence='https://github.com/MeteoMartini/MID/blob/'+sha+'/src/nativeSeasonalComposite.ts';
+  const attest=(i:number)=>'MID-740-DISPOSITION v1 sha='+sha+
+   ' review=PRR_mixedcritical item='+i+' result=fixed evidence='+evidence;
+  const checkBody=(approved:string)=>check(input({data:{meta,threads:[],reviews:[finding,
+   review('APPROVED','r-mixedapproval','independent','2026-11-11T15:01:00Z',approved)],truncated:false}}));
+  expect(checkBody([1,2,3].map(attest).join('\\n'))).toMatchObject({
+   ok:false,reason:'MID_REVIEW_CRITICAL_REVIEW_UNATTESTED'});
+  expect(checkBody([1,2,3,4].map(attest).join('\\n'))).toMatchObject({
+   ok:true,criticalItemCount:4,mergeAuthorized:false,releaseAuthorized:false});
+ });
+ it('fails closed on oversized or unclassified severity evidence',()=>{
+  const oversized=('P1: critical item\\n').repeat(1001);
+  expect(criticalMidReviewItems(oversized)).toBeNull();
+  const reviewBody=review('COMMENTED','PRR_largecritical','cubic-dev-ai','2026-11-11T15:00:00Z',oversized);
+  expect(check(input({data:{meta,threads:[],reviews:[reviewBody],truncated:false}})))
+   .toMatchObject({ok:false,reason:'MID_REVIEW_CRITICAL_REVIEW_EVIDENCE_INVALID'});
+ });
+ it('does not treat a P1 warning inside an approving review as a clean merge',()=>{
+  const reviewBody=review('APPROVED','r-approvalwarning','independent','2026-11-11T15:01:00Z','P1: issue remains open');
+  expect(check(input({data:{meta,threads:[],reviews:[reviewBody],truncated:false}})))
+   .toMatchObject({ok:false,reason:'MID_REVIEW_CRITICAL_REVIEW_UNATTESTED'});
  });
  it('requires GraphQL review bodies for complete critical evidence',async()=>{
   const missing=page([], [{id:'no-body',state:'COMMENTED',author:{login:'cubic-dev-ai'},
