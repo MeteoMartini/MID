@@ -38,9 +38,10 @@ describe('MID #853: full-viewport Rad/Sat integration without source or time fab
   expect(ui).toContain('rasterPlan.bounds.north,rasterPlan.bounds.east');
   expect(ui).toContain("mode==='radar'&&visibleClouds&&mapBounds&&<ImageQuadLayer");
   expect(ui).toContain("mode==='radar'&&mapBounds&&(displayedOpera??displayedRadar)&&<ImageQuadLayer");
-  expect(ui).toContain("const {west,south,east,north}=rasterPlan.bounds;");
-  expect(ui).toContain('canvas.width=Math.max(16,Math.ceil(rasterPlan.width/2));');
-  expect(ui).toContain('canvas.height=Math.max(16,Math.ceil(rasterPlan.height/2));');
+  expect(ui).toContain("const {west,south,east,north}=admittedRasterPlan.bounds;");
+  expect(ui).toContain('const admittedRasterPlan=rasterPlan;');
+  expect(ui).toContain('canvas.width=Math.max(16,Math.ceil(admittedRasterPlan.width/2));');
+  expect(ui).toContain('canvas.height=Math.max(16,Math.ceil(admittedRasterPlan.height/2));');
   expect(ui).toContain('lat:north-y*(north-south)/canvas.height');
   expect(ui).toContain('lng:west+x*(east-west)/canvas.width');
  });
