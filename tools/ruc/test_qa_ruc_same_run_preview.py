@@ -10,7 +10,7 @@ from unittest.mock import patch
 from ir108_original_probe import NATIVE_GRID
 from qa_ruc_same_run_preview import (
     COORDS, GRID_FILENAME, GeoPreviewError, coordinate_source,
-    read_coordinate_grib, qa_lookup_manifest,
+    read_coordinate_grib, decode_coordinate_original, qa_lookup_manifest,
 )
 
 RUN="2026-11-16T08:00:00Z"
@@ -71,6 +71,17 @@ class SameRunTests(unittest.TestCase):
                 continue
             with self.assertRaises(GeoPreviewError):
                 read_coordinate_grib("CLON",RUN,candidate)
+    def test_real_eccodes_file_source_requires_os_fileno(self):
+        # Regression for the first real DWD coordinate QA failure: the
+        # native ecCodes binding cannot read a BytesIO (no fileno).
+        def require_descriptor(source):
+            self.assertIsInstance(source.fileno(), int)
+            raise GeoPreviewError("os-file-descriptor-verified")
+        with patch("eccodes.codes_grib_new_from_file",
+                   side_effect=require_descriptor):
+            with self.assertRaisesRegex(GeoPreviewError, "os-file-descriptor-verified"):
+                decode_coordinate_original(b"GRIB"+b"x"*100+b"7777","CLAT",RUN)
+
     def test_private_manifest_is_sha_bound_and_explicitly_unapproved(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)

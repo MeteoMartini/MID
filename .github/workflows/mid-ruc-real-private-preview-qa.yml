@@ -2,7 +2,7 @@ name: MID RUC real same-run CLAT/CLON + IR10.8/GSP private raster QA (read-only)
 on:
   push:
     branches: [chatgpt/v0.9.85.485-surroundings-radar-native-qa]
-    paths: ['.github/workflows/mid-ruc-real-private-preview-qa.yml']
+    paths: ['.github/workflows/mid-ruc-real-private-preview-qa.yml', 'tools/ruc/qa_ruc_same_run_preview.py']
 permissions:
   contents: read
 concurrency:

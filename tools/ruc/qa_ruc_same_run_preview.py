@@ -86,8 +86,11 @@ def read_coordinate_grib(param: str, run: str, opener=None) -> tuple[bytes, str]
 
 def decode_coordinate_original(raw: bytes, param: str, run: str) -> np.ndarray:
     from eccodes import codes_grib_new_from_file, codes_get, codes_release
-    import io
-    with io.BytesIO(raw) as source:
+    # ecCodes requires a real fileno(); a BytesIO stream fails only on
+    # actual GRIB sources, which synthetic header tests did not expose.
+    with tempfile.TemporaryFile(mode="w+b") as source:
+        source.write(raw)
+        source.seek(0)
         gid = codes_grib_new_from_file(source)
         if gid is None:
             raise GeoPreviewError("no decodable native coordinate GRIB")
