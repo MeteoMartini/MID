@@ -73,7 +73,11 @@ assert.ok(css.includes('background:transparent!important;box-shadow:none!importa
 const cloudSource=await read('src/currentSurroundingsCloudImage.ts');
 assert.ok(cloudSource.includes('loadEstablishedSynopticIndex(signal)')&&cloudSource.includes('loadNativeIndex(signal)')&&cloudSource.includes('nativeCloudWeatherPair('),'Nur die originalen, SHA-validierten MID-Wolken-/SigWx-Daten verwenden.');
 assert.ok(cloudSource.includes("cloudWeatherRaster(data,'pseudo')")&&cloudSource.includes('admissibleSurroundingsCloudTime'),'Kein Fake-Satellitenbild und keine ungebundene Modellzeit.');
-assert.ok(cloudSource.includes('setResult(previous=>previous.image&&Date.parse(previous.image.validTime)===target&&admissibleSurroundingsCloudTime('),'Still-valid model images must remain visible until replacement or expiry.');
+assert.ok(cloudSource.includes('const exact=previous.image&&Date.parse(previous.image.validTime)===target&&admissibleSurroundingsCloudTime(')&&
+ cloudSource.includes('matchesSurroundingsCloudReference(previous.reference,lat,lon,target)')&&
+ cloudSource.includes('matchesSurroundingsCloudRequest(result.image,lat,lon,target)')&&
+ cloudSource.includes('const reference=!image&&result.reference&&matchesSurroundingsCloudReference('),
+ 'An exact original remains valid; a separate earlier reference must be bound to the same target and location, never rendered as an exact original.');
 assert.ok(component.includes("cloudForecast.unavailable&&<small>"),'Failed model update must be visibly declared.');
 assert.ok(component.includes("(mode==='cloud'||radarAtNow)&&Number.isFinite(temperature)")&&component.includes('forecastSiteTemperature'),'Present observed/MID site value cannot masquerade as a future model value');
 const compiledCloud=ts.transpileModule(cloudSource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022},reportDiagnostics:true});
