@@ -1,5 +1,5 @@
 import {describe,expect,it} from 'vitest';
-import {planSurroundingsViewportRaster,type SurroundingsGeoBounds} from '../../src/surroundingsViewportRaster';
+import {planSurroundingsViewportRaster,mercatorLatitudeAtImageFraction,type SurroundingsGeoBounds} from '../../src/surroundingsViewportRaster';
 
 const focus:SurroundingsGeoBounds={west:5.7,south:50.17,east:8.5,north:51.47};
 const viewports=[
@@ -87,6 +87,43 @@ describe('MID Karten #853: map-visible viewport raster footprint – QA-only',()
   ];
   for(const bounds of invalid)
    expect(planSurroundingsViewportRaster(bounds,{width:390,height:220})).toBeUndefined();
+ });
+
+ it('samples north-up OPERA and phase raster rows at Mercator Y rather than linear degrees',()=>{
+  const northern=mercatorLatitudeAtImageFraction(51.47,50.17,0);
+  const southern=mercatorLatitudeAtImageFraction(51.47,50.17,1);
+  const midpoint=mercatorLatitudeAtImageFraction(51.47,50.17,.5);
+  expect(northern).toBe(51.47);
+  expect(southern).toBe(50.17);
+  // At 50.82°N a wrong linear-degree centre misses by about 0.5 km,
+  // a meaningful amount for 1 km radar and mixed-phase placement.
+  expect(midpoint).toBeGreaterThan(50.823);
+  expect(midpoint).toBeLessThan(50.826);
+  expect(midpoint).not.toBeCloseTo((51.47+50.17)/2,3);
+  for(let fraction=.05;fraction<=1;fraction+=.05){
+   const lat=mercatorLatitudeAtImageFraction(51.47,50.17,fraction);
+   expect(lat).toBeLessThanOrEqual(51.47);
+   expect(lat).toBeGreaterThanOrEqual(50.17);
+  }
+  const regular=Array.from({length:128},(_,y)=>
+   mercatorLatitudeAtImageFraction(51.47,50.17,(y+.5)/128));
+  expect(regular).toHaveLength(128);
+  expect(regular[0]).toBeGreaterThan(regular.at(-1)!);
+  expect(regular.every(Number.isFinite)).toBe(true);
+ });
+
+ it('keeps symmetric equatorial rows stable and measures stronger bias at 65°N',()=>{
+  expect(mercatorLatitudeAtImageFraction(.65,-.65,.5)).toBeCloseTo(0,9);
+  const high=mercatorLatitudeAtImageFraction(65.65,64.35,.5);
+  expect(high).toBeGreaterThan(65.007);
+  expect(high).toBeLessThan(65.009);
+ });
+
+ it('rejects invalid or out-of-image Mercator sampling rather than inventing coordinates',()=>{
+  for(const [north,south,fraction] of [
+   [50,51,.5],[50,50,.5],[86,80,.5],[50,-86,.5],
+   [51,50,-.01],[51,50,1.01],[NaN,50,.5],[51,50,Infinity],[51,50,NaN]
+  ])expect(()=>mercatorLatitudeAtImageFraction(north,south,fraction)).toThrow(RangeError);
  });
 
  it('is purely geometric: cannot manufacture weather fields, original times or NoData decisions',()=>{
