@@ -192,10 +192,11 @@ async function oneIntegrated(width,height,theme){
     return label&&Number.parseFloat(getComputedStyle(label).fontSize)>=target;
    },base*2-.5,{timeout:3500,polling:40});
   }catch(error){
-   throw new Error('Real Chromium 200% CSS font never settled: '+JSON.stringify({
-    width,theme,base,arrival:cssArrival,current:await page.locator('.cockpit-fourteen-card .cockpit-fourteen-weather-label').evaluate(n=>({
-     font:getComputedStyle(n).fontSize,transition:getComputedStyle(n).transition,animations:n.getAnimations().map(a=>({kind:a.constructor.name,state:a.playState}))}))
-   })}),{cause:error});
+   const current=await page.locator('.cockpit-fourteen-card .cockpit-fourteen-weather-label').evaluate(node=>{
+    const cs=getComputedStyle(node);
+    return {font:cs.fontSize,transition:cs.transition,animations:node.getAnimations().map(a=>({kind:a.constructor.name,state:a.playState}))};
+   });
+   throw new Error('Real Chromium 200% CSS font never settled: '+JSON.stringify({width,theme,base,arrival:cssArrival,current}),{cause:error});
   }
   const cssSettled=await page.locator('.cockpit-fourteen-card .cockpit-fourteen-weather-label').evaluate(n=>({
    font:getComputedStyle(n).fontSize,transitions:n.getAnimations().map(a=>({kind:a.constructor.name,state:a.playState}))
