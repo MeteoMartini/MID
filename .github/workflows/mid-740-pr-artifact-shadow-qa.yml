@@ -19,6 +19,8 @@ on:
       - 'tests/unit/mid-740-live-cubic-review-readback.test.ts'
       - 'tools/ci/mid-review-premerge-guard.mjs'
       - 'tools/ci/mid-740-upstream-trigger-readback.mjs'
+      - 'tools/ci/mid-740-producer-gate-receipt-qa.mjs'
+      - 'tests/unit/mid-740-producer-gate-receipt-qa.test.ts'
       - 'tests/unit/mid-740-upstream-trigger-readback.test.ts'
       - 'tests/unit/mid-740-historical-chain-readback.test.ts'
       - 'tests/unit/mid-740-pr-artifact-shadow.test.ts'
@@ -184,6 +186,14 @@ jobs:
           fi
           jq -e '.status == "BLOCKED" and .reason == "TRUSTED_WORKFLOW_RUN_CONTEXT_REQUIRED" and
             .installerAuthorized == false and .releaseAuthorized == false' "$RUNNER_TEMP/mid740-untrusted-event.json"
+          # A PR event is NEVER accepted as producer-side workflow_run receipt.
+          if node tools/ci/mid-740-producer-gate-receipt-qa.mjs > "$RUNNER_TEMP/mid740-receipt-untrusted.json"; then
+            echo "::error::PR context could forge producer gate receipt"
+            exit 1
+          fi
+          jq -e '.status == "BLOCKED" and .reason == "TRUSTED_WORKFLOW_RUN_CONTEXT_REQUIRED" and
+            .trustedProductionReceiptAttested == false and
+            .installerAuthorized == false and .releaseAuthorized == false' "$RUNNER_TEMP/mid740-receipt-untrusted.json"
           node tools/ci/mid-740-historical-chain-readback.mjs > "$RUNNER_TEMP/mid740-real-history.json"
           jq -e '.status == "HISTORIC_LEGACY_LINEAGE_QA_ONLY" and
             .sourceGateVerified == true and .gitParentChainVerified == true and
