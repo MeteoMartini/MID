@@ -96,8 +96,8 @@ try{
  const mappingFragment=readFileSync('src/weather-src/20-mapping-day-character.tsfrag','utf8');
  const assembledWeather=readFileSync('src/weather.ts','utf8');
  assert.ok(assembledWeather.includes(mappingFragment),'Source fragment must match generated production module exactly');
- assert.doesNotMatch(mappingFragment,/Number\\(w\\.utc_offset_seconds\\)\\s*\\|\\|\\s*0/,'Provider offset never silently becomes UTC');
+ assert.ok(!mappingFragment.includes('Number(w.utc_offset_seconds)||0'),'Provider offset never silently becomes UTC');
  assert.match(mappingFragment,/const noon=providerIsoEpoch/,'Daylight-noon fallback shares the canonical provider epoch parser');
- assert.match(mappingFragment,/const leadHours=\\(providerIsoEpoch/,'Daily lead uses the same provider epoch policy');
+ assert.ok(mappingFragment.includes('const leadHours=(providerIsoEpoch'),'Daily lead uses the same provider epoch policy');
  console.log('PASS actual provider hourly/minutely/calendar/ensemble mappings: fixed UTC provenance, DST 23/25h, unique repeated-hour keys, half/quarter-hour offsets, missing coverage and immutable raw values');
 }finally{rmSync(dir,{recursive:true,force:true})}
