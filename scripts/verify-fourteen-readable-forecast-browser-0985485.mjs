@@ -262,7 +262,7 @@ async function oneIntegrated(width,height,theme){
 try{
  for(const [width,height] of [[320,740],[360,780],[375,812],[390,844],[430,932],[834,1112],[1024,768],[1440,900]])
   for(const theme of ['light','dark'])await one(width,height,theme);
- for(const [width,height] of [[320,740],[390,844],[393,852],[402,874],[414,896],[430,932],[834,1112],[1440,900]]
+ for(const [width,height] of [[320,740],[390,844],[393,852],[402,874],[414,896],[430,932],[834,1112],[1440,900]])
   for(const theme of ['light','dark'])await oneIntegrated(width,height,theme);
  writeFileSync(join(out,'report.json'),JSON.stringify(report,null,2)+'\n');
  console.log('MID DESIGN14 BROWSER QA SUCCESS: '+report.results.length+' real React/CSS viewport/theme contexts (16 isolated + 16 full ForecastCockpit); screenshots + evidence in coverage/mid-design14-browser-qa. NO iOS/VoiceOver/full-App.tsx parity claim.');
