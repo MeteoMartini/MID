@@ -81,7 +81,7 @@ describe('Design 1.7 – fail-closed CSS cross-selector cascade evidence',()=>{
  });
  it('marks escaped and non-ASCII class names uncertain instead of matching truncated anchors',()=>{
   const report=cssSelectorRiskEvidence([
-   css('candidate.css',String.raw\`.card\:active{padding:4px}.métric{padding:8px}\`),
+   css('candidate.css',String.raw`.card\:active{padding:4px}.métric{padding:8px}`),
    css('later.css','.shell .card{padding:10px}')
   ],'candidate.css');
   expect(report.potentialPairs).toBe(0);
@@ -92,7 +92,7 @@ describe('Design 1.7 – fail-closed CSS cross-selector cascade evidence',()=>{
  it('records uncertain later selectors separately from eligible matches',()=>{
   const report=cssSelectorRiskEvidence([
    css('candidate.css','.card{padding:4px}'),
-   css('later.css',String.raw\`.card\:hover{padding:9px}.wrapper .card{padding:11px}\`)
+   css('later.css',String.raw`.card\:hover{padding:9px}.wrapper .card{padding:11px}`)
   ],'candidate.css');
   expect(report.ambiguousLaterSelectors).toBe(1);
   expect(report.potentialPairs).toBe(1);
