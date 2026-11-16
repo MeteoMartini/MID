@@ -285,7 +285,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  await page.waitForFunction(()=>{
   const status=document.querySelector('.unified-layer-status');
   const active=document.querySelector('.mid-map-model-picker-trigger');
-  return active?.value==='icon-eu'&&status?.textContent?.includes('ICON-EU')&&
+  return active?.getAttribute('data-model-id')==='icon-eu'&&status?.textContent?.includes('ICON-EU')&&
    status?.getAttribute('aria-busy')==='false'&&!status.textContent.includes('Rohdaten laden');
  });
  const exactPressure=direct.locator(`option[data-valid-time="${Math.floor((runMs+3*hour)/1000)}"]`);
