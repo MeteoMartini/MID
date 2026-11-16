@@ -14,6 +14,8 @@ export function validateFullAppFixture(value){
    fail('location coordinates must be finite latitude/longitude');
  if(typeof loc.timezone!=='string'||!/^[A-Za-z_]+(?:\/[A-Za-z0-9_+\-]+)+$/.test(loc.timezone)||loc.timezone.length>80)
    fail('fixture requires IANA-style timezone');
+ if(Object.keys(loc).some(key=>!['name','latitude','longitude','timezone'].includes(key)))
+  fail('unexpected nested location properties; no tokens or user profile data allowed');
  if(v.theme!=='light'&&v.theme!=='dark')fail('theme must be light or dark');
  if(typeof v.priorMapIntent!=='boolean')fail('priorMapIntent must be an explicit boolean');
  // Fixture is deliberately *only* local UI configuration, no credentials/API mocks.
