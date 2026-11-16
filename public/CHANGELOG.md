@@ -1,3 +1,9 @@
+# MID v0.9.85.485
+
+- 14-Tage-Vorhersage: Wetterbeschreibungen werden in der kompakten Ansicht vollständig umbrochen statt mit Auslassungspunkten abgeschnitten.
+- Die kompakte 14-Tage-Darstellung nutzt besser lesbare Zahlen und Beschriftungen; kleine Smartphones erhalten eine geordnetere Kopfzeile.
+- Die technische CSS-Prüfung erkennt gemeinsame Navigations-, Berg- und Vorhersageregeln, bevor eine spätere Lazy-Auslagerung diese versehentlich entfernt.
+
 # MID v0.9.85.484
 
 - **Schonendere Kartenbedienung:** Gleichzeitige Kartenlayer werden in einem Sortierdurchlauf geordnet, statt wiederholt neu angeordnet. Optionale Kartensprünge respektieren die Einstellung für reduzierte Bewegung.
