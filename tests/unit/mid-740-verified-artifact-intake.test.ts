@@ -53,6 +53,7 @@ function scenario(root:string){
  const replies:any={
   [path+'/actions/runs/123']:runMeta,
   [path+'/actions/workflows/567']:{id:567,path:'.github/workflows/agent-source-release.yml',state:'active'},
+  [path+'/actions/runs/123/attempts/1/jobs?per_page=100&page=1']:{total_count:1,jobs:[{id:789,run_id:123,head_sha:workflowSha,name:'PR mergen, Release-ZIP erzeugen und Installer starten',status:'completed',conclusion:'success',started_at:'2026-11-16T10:00:20Z',completed_at:'2026-11-16T10:04:50Z'}]},
   [path+'/actions/artifacts/456']:artifact,
   [path+'/actions/runs/123/artifacts?per_page=100&page=1']:
    {total_count:1,artifacts:[{...artifact,workflow_run:{...artifact.workflow_run}}]}
@@ -78,6 +79,7 @@ describe('MID #740 complete artifact intake: mocked API + real binary ZIP and Gi
    const result=await intake(x.inputs,{get:x.get,fetcher:x.fetcher});
    expect(result).toMatchObject({mainSha:x.inputs.sourceMergeSha,
     metadataVerified:true,downloadAndGitTreeVerified:true,
+    producerJobVerified:true,producerIdentityReread:true,
     nativeGitHubReviewVerified:false,installerAuthorized:false,releaseAuthorized:false});
    expect(existsSync(x.inputs.artifactDirectory)).toBe(true);
   }finally{rmSync(root,{recursive:true,force:true})}
