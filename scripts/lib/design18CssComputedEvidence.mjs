@@ -121,6 +121,14 @@ export function compareCssomCases({stable,candidate,requiredCaseIds}){
   }
   if(requiredCaseIds.some(id=>!map.has(id)))fail(name+' missing required responsive/theme/view case');
  }
+ const first=requiredCaseIds[0],stableIdentity=a.get(first).identity,candidateIdentity=b.get(first).identity;
+ if(stableIdentity.sourceGitSha===candidateIdentity.sourceGitSha)fail('identical source SHA cannot be A/B');
+ for(const caseId of requiredCaseIds){
+  for(const [item,expected,name] of [[a.get(caseId),stableIdentity,'stable'],[b.get(caseId),candidateIdentity,'candidate']]){
+   for(const field of ['sourceGitSha','assetsSha256','version'])
+    if(item.identity[field]!==expected[field])fail(name+' cross-case build identity drift: '+caseId+'/'+field);
+  }
+ }
  const differences=[];let differenceCount=0;
  function different(caseId,target,property,oldValue,newValue){
   differenceCount++;
