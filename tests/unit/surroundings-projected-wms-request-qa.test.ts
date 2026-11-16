@@ -81,6 +81,15 @@ describe('MID #853: EPSG:3857 original WMS routing contract (inactive QA)',()=>{
     expect(buildSurroundingsProjectedWmsRequest(dwd,'dwd','dwd:Radar_rv_product_1x1km_ger',date,{...plan,imageBounds:{west:6,east:8,north:87,south:50}})).toBeUndefined();
   });
 
+  it('rejects matching-looking but geographically inconsistent projected source footprints',()=>{
+    const slightlyShifted={...plan,imageBounds:{...plan.imageBounds,north:plan.imageBounds.north+0.1}};
+    const shiftedBBox={...plan,bbox:plan.bbox.replace(/^[-\\d.]+/, '123000.000')};
+    const onePixelShift={...plan,width:plan.width-1};
+    for(const wrong of [slightlyShifted,shiftedBBox,onePixelShift]){
+      expect(buildSurroundingsProjectedWmsRequest(dwd,'dwd','dwd:Radar_rv_product_1x1km_ger',date,wrong)).toBeUndefined();
+    }
+  });
+
   it('is deterministic and only constructs URL/geometry – never declares source coverage, weather or warnings',()=>{
     const a=buildSurroundingsProjectedWmsRequest(dwd,'dwd','dwd:Radar_rv_product_1x1km_ger',date,plan)!;
     const b=buildSurroundingsProjectedWmsRequest(dwd,'dwd','dwd:Radar_rv_product_1x1km_ger',date,plan)!;
