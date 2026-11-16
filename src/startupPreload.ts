@@ -25,7 +25,7 @@ type StartupPreload={
 }
 const STARTUP_PRELOAD_REUSE_MS=45_000
 let active:StartupPreload|null=null
-let activeExpiryTimer:ReturnType<typeof setTimeout>|null=null
+let activeExpiryTimer:number|null=null
 function locationKey(location:Location){return`${Number(location.latitude).toFixed(5)}:${Number(location.longitude).toFixed(5)}`}
 function readStartupLocation():Location|null{try{const raw=localStorage.getItem(LOCATION_STORAGE_KEY);if(!raw)return null;const location=JSON.parse(raw) as Location;return Number.isFinite(Number(location.latitude))&&Number.isFinite(Number(location.longitude))?location:null}catch{return null}}
 function wantsStartupEnsemble(){try{const settings=JSON.parse(localStorage.getItem(FORECAST_DISPLAY_SETTINGS_KEY)||'{}'),twin=JSON.parse(localStorage.getItem(WEATHER_TWIN_SETTINGS_KEY)||'{}'),cockpit=settings?.presentationMode==='cockpit-tabs'||settings?.presentationMode==='cockpit-ribbons';return twin?.enabled!==false||cockpit||localStorage.getItem(ACTIVE_HORIZON_KEY)==='fourteen-day'||localStorage.getItem(ENSEMBLE_MODULE_KEY)==='1'}catch{return true}}
@@ -73,8 +73,8 @@ export function beginStartupDashboardPreload(){
  activeExpiryTimer=window.setTimeout(()=>{if(active===record){active=null;activeExpiryTimer=null}},STARTUP_PRELOAD_REUSE_MS);
  return record
 }
-export function startupForecastForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>45_000)return null;return active.promise}
-export function startupStationForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>45_000)return null;return active.stationPromise}
-export function startupStationEnrichmentForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>45_000)return null;return active.stationEnrichmentPromise}
-export function startupRadarForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>45_000)return null;return active.radarPromise}
-export function startupEnsembleForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>45_000)return null;return active.ensemblePromise}
+export function startupForecastForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>=STARTUP_PRELOAD_REUSE_MS)return null;return active.promise}
+export function startupStationForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>=STARTUP_PRELOAD_REUSE_MS)return null;return active.stationPromise}
+export function startupStationEnrichmentForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>=STARTUP_PRELOAD_REUSE_MS)return null;return active.stationEnrichmentPromise}
+export function startupRadarForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>=STARTUP_PRELOAD_REUSE_MS)return null;return active.radarPromise}
+export function startupEnsembleForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>=STARTUP_PRELOAD_REUSE_MS)return null;return active.ensemblePromise}
