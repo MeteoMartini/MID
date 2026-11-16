@@ -1,3 +1,12 @@
+## MID v0.9.85.486 · 2026-11-16 · Karten-Home-End und 14-Tage-Responsive-QA
+
+- Additional QA source: #846 HEAD e70b5aa36a1832aba6a1c081add4f839c629dc5a, exactly two original Git blobs; MapTimelineControls + associated unit file already identical with #842 and therefore not imported again. Deferred-ACK Home/End is tested in real React/Chromium by mandatory map heavy regression; no skip or timeout dilution.
+- Stable-Source ccd1c0f60d67925aa01dd8d946b490fde4142709 (v0.9.85.485); n=11 selektive (9 Produkt-/QA + 2 echte React-Browser-QA), SHA-identische Dateiübernahmen aus #842 HEAD 3d9a1bb489bb8bc0b7d15699957b6289398dfd07 (2) und #844 HEAD 7d7422ab868dc0cda3094f24b97ad21e7a8f88f7 (7), disjunkte Pfade.
+- Vorherige Draft-Gates: #842 Vitest #43862446558 SUCCESS; #844 Vitest #43865229772 SUCCESS mit 32 Chromium-Fixtures. Kein PASS des neuen kombinierten Heads ohne eigene Gates.
+- Die am .485-Source-Gate einmal beobachtete 1440px-Index-Race (select 0→1) ist NICHT durch diesen Home-/End-Fix allein als behoben nachgewiesen; Map-Heavy-Gates vollständig wiederholen und Fehler separat triagieren.
+- Keine Änderung an WMO/DWD-Warnungen, meteorologischen Quellen, Modelllauf, Akkumulation, Missing-Data-Semantik oder Worker-Laufzeitlogik. Issue #740/#839 bleibt beim Sicherheits-Spezialchat.
+- Freigabe nur nach full Source-PR-Gate → kontrolliertem SHA-Merge → serverseitigem ZIP → install-mid.yml → Worker/Pages → Stable. Kein Vorziehen von übersprungenen Checks.
+
 ## MID v0.9.85.485 · 2026-11-16 · 14-Tage-Lesbarkeit und CSS-Eigentümerprüfung
 
 - Quellbasis mid-stable/main 8f4c950c3d0311f33ed3f9b89d0101d6cd556113 / v0.9.85.484; Spezial-Draft #840 head dd90d5b64f6aeb4ac0f517bc0aa64329e26ee722 (4 Dateien), #841 head d327e6154dc26d696c74379f6dec994ccf57631b (8 Dateien), QA-Intake #843 head 3418396a29e7b8c5682aeef6addfa1ab61c9cf55.
