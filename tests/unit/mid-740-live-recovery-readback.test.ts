@@ -25,8 +25,8 @@ function fixture(){
  };
  for(const a of assets)responses['releases/assets/'+a.id]=structuredClone(a);
  const get=async(path:string)=>{
-  if(!path.startsWith(PREFIX))throw Error('WRONG_PATH');
-  const name=path.slice(PREFIX.length);
+  if(path!==PREFIX.slice(0,-1)&&!path.startsWith(PREFIX))throw Error('WRONG_PATH');
+  const name=path===PREFIX.slice(0,-1)?'':path.slice(PREFIX.length);
   if(!(name in responses))throw Error('MISSING');
   return structuredClone(responses[name]);
  };
