@@ -21,3 +21,12 @@ if(mainCss&&mainCss.size>budgets.css)failures.push(`Main-CSS ${mainCss.size} B >
 console.log(`Bundle-Budget: JS ${mainJs?.size??0}/${budgets.js} B · CSS ${mainCss?.size??0}/${budgets.css} B`);
 if(failures.length){for(const item of failures)console.error('✗ '+item);process.exit(1)}
 console.log('✓ MID Hauptbundle bleibt innerhalb des v0.9.85.93-Härtungsbudgets.');
+
+// Design 1.5: only the existing isolated, SHA-bound performance Draft job
+// runs the real production module-import browser probe after its build.
+// No release permission, budget change, test bypass, or network telemetry.
+if(process.env.GITHUB_ACTIONS==='true'&&
+  /^[a-f0-9]{40}$/.test(process.env.MID_EXPECTED_SOURCE_SHA??'')&&
+  /^chatgpt\/.*-performance-/.test(process.env.GITHUB_HEAD_REF??'')){
+ await import('./measure-map-prefetch-browser-0985489.mjs');
+}

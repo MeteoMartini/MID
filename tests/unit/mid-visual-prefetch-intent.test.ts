@@ -41,3 +41,23 @@ describe('MID Design 1.5: heavy visual modules must respect user intent',()=>{
   expect(src).toContain("isMapRevisitIntent(localStorage.getItem(LAST_DASHBOARD_SECTION_KEY))");
  });
 });
+
+// The performance job runs the module-only Chromium trace against its exact
+// Vite production dist. No browser metric is allowed to substitute for CWV.
+describe('MID QA read-only real module-import evidence integration',()=>{
+ it('uses existing performance build and a SHA-scoped Chromium-only probe',()=>{
+  const budget=readFileSync(new URL('../../scripts/test-bundle-budget-098594.mjs',import.meta.url),'utf8');
+  const browser=readFileSync(new URL('../../scripts/measure-map-prefetch-browser-0985489.mjs',import.meta.url),'utf8');
+  expect(budget).toContain("process.env.GITHUB_ACTIONS==='true'");
+  expect(budget).toContain("process.env.MID_EXPECTED_SOURCE_SHA");
+  expect(budget).toContain("process.env.GITHUB_HEAD_REF");
+  expect(budget).toContain("await import('./measure-map-prefetch-browser-0985489.mjs')");
+  expect(browser).toContain("await verifyStartupBuildIdentity(root,identity)");
+  expect(browser).toContain("assert.equal(identity.sourceGitSha,expected");
+  expect(browser).toContain("Network.loadingFinished");
+  expect(browser).toContain("HeapProfiler.collectGarbage");
+  expect(browser).toContain("Runtime.getHeapUsage");
+  expect(browser).toContain("module-only");
+ });
+});
+
