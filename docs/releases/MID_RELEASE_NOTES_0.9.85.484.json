@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "version": "0.9.85.484",
+  "date": "2026-11-15",
+  "title": "Karten-Zeitqualität, Umfeldwetter und sichere Codeprüfung",
+  "external": [
+    "Karten-Zeitleisten zeigen ihren tatsächlichen Zeitpunkt einschließlich Screenreader-Ansage.",
+    "Umfeldtemperatur bleibt bei Zeit-/Ortswechseln korrekt gebunden, und schnelle PseudoSat-Zeitsprünge laden weniger unnötige Bilder.",
+    "Wartung und CI reduzieren Credential-Persistenz und liefern vollständige überprüfbare Scannerbefunde.",
+    "Kartenlayer werden beim gleichzeitigen Laden effizienter angeordnet; optionale Kameraflüge respektieren reduzierte Bewegung.",
+    "Umfeld-Radar/Satellit: in 15-Minuten-Schritten navigieren und die zuletzt ausgewählte Kartenart automatisch wiederherstellen; echte Beobachtungs- und Nowcastzeiten werden kenntlich gemacht.",
+    "Wolken und signifikantes Wetter: Originaltermine bevorzugen, fehlende Viertelstunden nicht mehr durch künstliche Zwischenbilder auffüllen.",
+    "Umfeldkarten blenden bei Orts- und Zeitwechseln keine Bilder vom vorherigen Zielort oder Zeitpunkt unter dem neuen Zeitstempel ein.",
+    "Umfeldwetter: Europäische OPERA-Radarbilder und Phasenüberlagerungen bleiben bei Zeit-/Ortswechseln an Originaltermin und Kartenausschnitt gebunden; keine irreführenden Fremdortbilder.",
+    "Lüftungsassistent: Die weiterhin aufklappbare Oberfläche lädt ihre UI erst bei Benutzung; bei abgeschlossener Offline-Installation wird der Modulcode vorgehalten.",
+    "Startbudgetprüfung zählt kodierte Pfadumgehungen nicht mehr als echte lokale Startdateien; normale gültige Assets bleiben unverändert.",
+    "Die technische Qualitätssicherung erfasst die für Offline-Betrieb deklarierten Module separat von den direkt beim Start referenzierten Dateien, ohne daraus Ladezeitgewinne abzuleiten."
+  ],
+  "internal": [
+    "Quell-SHAs PR #825 11a2c028c5a966094b7d15711b7c65bca4ffe58a; #824 f82c01b0a4fb7a23a1ea9c681ebfcf0b62381c3a; #826 b741bf461c0e439611f3254b3544d43fb3ea5e57; #827 92fefc860d0caf64fc23fbe377dbc9a6bc334a0d; Main/Stable c9fadfcd0969e949a92f414b321627dd3d4fb0cc.",
+    "33 SHA-identische Source-/QA-Diff-Pfade und sämtliche Versionsspiegel 0.9.85.484, kein externes AI/IR10.8-Raster.",
+    "Vollständige Source-/Core-/Heavy-/Installer-/Worker-/Pages- und Security-Gates erst auf finale Kombination anwenden; kein automatisches PASS.",
+    "PR #830 SHA 98387916d0dd3a2e93ac01d0a424c560fa603dc4: 4 disjunkte MapLibre-Layer-/QA-/Dokumentationsdateien, keine gemessene Laufzeitersparnis, kein eigener .485-Build.",
+    "Issue #829: bestandswahrender API-Quotencircuit je exakter Origin, Pflicht-HTTP-429/NoData bleibt BLOCKED und nicht als Schema-PASS klassifiziert.",
+    "LC 1.7: #832 @ aa727db59e18020068edfe762d6491eaeae3bd82 selektiv mit #828 zusammengeführt; identische CloudScheduler/TemperaturDisplay-Git-Blobs nicht dupliziert, 828-aria-valuetext gezielt erhalten; vollständiger Viertelstunden-Cloud/SigWx-Originaldatensatz nicht freigegeben.",
+    "LC 1.7: fünf langlebige CSS-CDP-/Browser-/Unit-/Doku-Git-Blobs #831 @ bc9d356e0d3806a59f3d113fce75ba98cd4f85ba importiert, temporäre #831 unit-coverage-Workflowspiegel ausdrücklich ausgeschlossen; QA-Erfolge des Herkunftsbranches übertragen sich nicht auf kombinierten Commit.",
+    "LC 1.7 QA-Nachtrag: #832 HEAD 9731f02c44367764093f4485f2cbcd1a54e2c72c; SHA-gebundene Radar-URL/Art/Zeit-Identität und synchrone Cloud-Zeit-/Ort-Identität. Zwei Python-IR10.8-Offline-/Stage-Tools sowie erweiterte IR-Testlauf-Datei bleiben ohne unabhängige Datenqualifikation bewusst im Quell-Draft, nicht in der Releasekombination.",
+    "CSS-Owner QA #826 HEAD 537ae9b697a78dc338155f58b2b642cdf75dff32: kanonisches Manifest strikt relativ zum Skript statt cwd, Missing immer Fehler auch außerhalb CI; gezielter foreign-cwd Vitest. Keine CSS-Löschung, keine CSS-Budget-Schwächung.",
+    "LC 1.7 #832 HEAD 5d045f4b6e587a50efcc5d704ee7798b50bdcdfc: OPERA original source requestKey and 45min/90sec freshness limits; exact source blobs for radar helper and expanded regression; narrow CurrentSurroundings merge preserving aria-valuetext from #833. No IR10.8 staging or spectral model publication.",
+    "LC 1.7 #834 HEAD cc46de12729f2f2d63898c12755c18f75d32ee4e: five lasting original blobs (App.tsx, vite.config.ts, on-demand Vitest, strict ventilation regression and QA document) adopted. Temporary unit-coverage workflow mirrors excluded. Historical source run 43765507092 had a stale eager-JSX string assertion, corrected by the specialist's newer source SHA: exact-head targeted regression, Vitest and TS check SUCCESS. Actual final combined Vite bundle/Browser/Offline E2E remains independently unverified.",
+    "LC1.7 #835 QA-Draft SHA a82440de4ef2e4f88f281c9a6d5f0622ca8993f2: 5 exakte Git-Blobs für kodierte Dot-Segment-URL-Inventar-Fail-Closed (JS/CSS) und bestehende registrierte positive/negative Budgettests. Quelle auf Stable c9fadfcd0969e949a92f414b321627dd3d4fb0cc, 0 Pfadüberschneidungen, Vitest und gezielte Draft-Regressionschecks auf Spezial-HEAD SUCCESS; Integration am neuen kombinierten SHA separat neu prüfen. Keine Änderung an Budgetgrenzen, Browser-/Network-Zahlen oder Wetter-/Worker-Verhalten.",
+    "LC17 #836 latest source HEAD e69b6831ab775e6cb9792b73f232a28ce5f77791, Stable base c9fadfcd0969e949a92f414b321627dd3d4fb0cc: 4 aktuelle originale Git-Blobs, kein Pfadkonflikt; SHA-gebundenes offlineShell-Assetinventar additiv zu scripts/measure-startup-assets-0985482.mjs, formatgetrennte raw/gzip/Brotli- und HTML-Start-vs-Offline-Metriken. Die nachträgliche Quellhärtung verweigert Browser-Preload-/modulepreload-/prefetch-/stylesheet-Mischlinks; zusätzlich synthetischer kompletter Dist-Identitäts-/Mess-Smoketest. Beide gezielten GitHub-Draft-Jobs am exakten Spezial-HEAD SUCCESS. Keine Änderung an Startup-Budgets, der Produktions-Vite-Konfiguration, Meteorologie, Workflows oder Stable. Finaler integrierter SHA und echtes Production-dist/Browsertest stehen aus.",
+    "LC1.7 / DWD-D2 #446: gezielte konservative Python-Evidenzregression für originale +47/+48h CCSDS-Skalenfaktoren und winzige ungleichnullige ecCodes-referenceValue. Der Test reproduziert 1 negative Zelle um -0.001953125 mm im synthetischen 4er-Feld, prüft Originalwerte unverändert, NoData-Preservation und weiterhin productionApproved:false. Keine Änderung an assess_original_packing, Native-Admitter, Rundungstoleranz, D2-Herkunft, Renderer oder Produktionsfreigabe; neues Original-GRIB/Signer/E2E-Gate weiterhin separat rot/unbewiesen.",
+    "MID LC 1.8: Nicht produktionsreife Issue-#740-Review-/ZIP-/Cutover-QA ist bewusst aus dieser .484-Produktfassung herausgenommen und wird ausschließlich im Spezialchat MID Release Konzept 1.3/QA-Draft #839 weiterbearbeitet. Kein #740-Sicherheitsabschluss und keine Änderung der bestehenden produktiven Schutzregeln. Bei jedem Release bleiben kritische Befunde und sämtliche unveränderten Source-/Review-/Installer-/Worker-/Pages-/Stable-Gates verbindlich."
+  ]
+}

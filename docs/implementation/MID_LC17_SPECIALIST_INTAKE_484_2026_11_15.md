@@ -1,0 +1,22 @@
+# MID LC 1.7 – unabhängiger Spezialchat-Intake v0.9.85.484 · 15.11.2026
+
+**Status: QA DRAFT / NO RELEASE.** Alle folgenden Quellen basieren auf `main=mid-stable=c9fadfcd0969e949a92f414b321627dd3d4fb0cc` / v0.9.85.483, fünf aktive Rulesets. LC-Branch vor Transport HEAD `3e5b4b8a9edf9d9dde89ae5eb99d29dc44b3edcb` in [PR #833](https://github.com/MeteoMartini/MID/pull/833). Ohne erneute finale CI keine Aussage über den kombinierten HEAD.
+
+## Karten-/Umfeld-Intake
+- Quelle [#832](https://github.com/MeteoMartini/MID/pull/832), HEAD `5d045f4b6e587a50efcc5d704ee7798b50bdcdfc`, genau ein fachlich relevanter neuer Commit seit dem zuvor integrierten `9731f02c44367764093f4485f2cbcd1a54e2c72c`.
+- Unveränderte aktuelle Blob-Versionen `src/surroundingsRadarTimeline.ts` und `tests/unit/surroundings-15min-original-mode-qa.test.ts`; `src/CurrentSurroundings.tsx` ist als aktuelle Quellfassung plus **eine** erhaltene `aria-valuetext`-Cloudsliderzeile aus #833 neu geblobbelt.
+- OPERA-Datenbild und Radarphase tragen `requestKey=JSON.stringify([lat,lon,bounds])` und nur original verifizierte Zeit. Auswahl lehnt anderes Kartengebiet, Abgelaufenes sowie Zukunftsbeobachtung unabhängig von aktuellen Renderzuständen ab. Kein fremdes vorheriges OPERA-Bild beim Ortswechsel oder Zeit-Scrub.
+- **Explizit nicht integriert:** DWD IR10.8-Spectral-/GRIB-/Stage-Offline-Experimente aus dem Spezialbranch. IR-SynSat ist keine nachgewiesene viertelstündliche CLCT/SigWx-Paarquelle; weder RUC-Produktionsfelder noch Wettercodes wurden fingiert oder neu freigegeben.
+
+## Lüftungs-UI-/Offline-Intake
+- Quelle [#834](https://github.com/MeteoMartini/MID/pull/834), aktuelle selbständig nachgebesserte SHA `cc46de12729f2f2d63898c12755c18f75d32ee4e`. Übernommen werden **fünf langlebige Git-Blob-Originale**: `src/App.tsx`, `vite.config.ts`, `tests/unit/mid-ventilation-on-demand.test.ts`, `scripts/test-ventilation-assistant-095345.mjs`, `docs/implementation/MID_DESIGN12_VENTILATION_LAZY_QA_2026_11_15.md`.
+- Neue `React.lazy`-Ladegrenze nur für `VentilationAssistantPanel`, unter dem unveränderten `CollapsibleModule` mit Loadingstatus, `role=status` und `aria-live=polite`. Keine neue meteorologische Berechnung, kein Netatmo-/Push-/Worker-Logiktransfer, keine Änderung am Lese-/Warnmodell.
+- `vite.config.ts` nimmt dynamischen Ventilation-JS-Chunk und dessen direkte statische Imports/CSS in die bereits etablierte Offline-Shell-Verlinkung auf. Offlineverfügbarkeit wird erst nach erfolgreicher Service-Worker-Installation garantiert; kein leerer Cache als PASS.
+- **Nicht integriert:** zwei ausdrücklich temporäre Workflowspiegel `.github/workflows/unit-coverage.yml` und `ci/github/workflows/unit-coverage.yml`, keinerlei Permission-/Secret-/Bot-Änderungen.
+- Nachweis der Ursache aus **fehlgeschlagenem alten Draft #834**: [Run 43765507092](https://github.com/MeteoMartini/MID/actions/runs/43765507092) rot bei `test-ventilation-assistant-095345.mjs`, weil eine vormals gültige statische JSX-Zeichenkette geprüft wurde. Parallelchat hat **selbständig** eine stärker spezifizierte neue Regression ergänzt (Lazy-Import, eingeklapptes Dashboard, Live-Region, Offlinemodul und CSS, negative fehlende Chunk-Fälle), mit **PASS** von Vitest 5+V8, gezielten Regressionen und TypeScript am neuen SHA `cc46de...`.
+- Noch KEINE quantitative Startup-JS-gzip-/Brotli-/FCP-/INP-Verbesserung bewiesen. CI-Source-Build und reale Browser-/Cache-/PWA-Abnahme am **kombinierten** Commit notwendig.
+
+## Bleibende Gates
+- #740 native Review-TOCTOU: Aktuelle Produktionsbranch-Regel hat lediglich deletion/non-fast-forward/update und einen Releasebot-Bypass, **keine** native Pull-Request-/Review-Zwangsregel. Sicheres Umschalten erfordert eine separat owner-autorisierte Bot-/ZIP-Transportqualifikation; ein grüner Readback ist keine Freigabe. GitHub-Dokumentation: https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets .
+- #829 Open-Meteo HTTP 429 auf Pflichtpfaden; kein automatisches Schema-PASS. DWD TOT_PREC Run 43749744387: Originaldatenphysik nicht unabhängig erklärt; keine 15min/IR-/Saisonkarten-Freigabe.
+- Draft-Quelltests dürfen nicht als vollständiges Source-Gate 4/4, Heavy 6/6, E2E/Browser/Responsive/QA/WMO-/Security-Review/Installer/Worker/Pages/Stable deklariert werden. Kein Merge/Zip/Release vor rechtmäßiger vollständiger Gate-Kette und erneutem Stable-SHA-Readback.

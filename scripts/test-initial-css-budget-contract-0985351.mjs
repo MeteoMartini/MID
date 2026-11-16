@@ -19,4 +19,17 @@ assert.deepEqual([stats.bytes,stats.gzipBytes,stats.brotliBytes],[155,80,53],'Al
 assert.throws(()=>initialCssAssetStats('<link rel="stylesheet" href="./assets/missing.css">',assets),/fehlt/);
 assert.throws(()=>initialCssAssetStats('<link rel="stylesheet" href="https://cdn.example/remote.css">',assets),/Externes/);
 assert.throws(()=>initialCssAssetStats('<main>no CSS</main>',assets),/kein auswertbares/);
-console.log('Initial CSS budgets: multiple assets, duplicates, lazy exclusion, Missing and external guard checked.');
+// Encoded paths must be checked before the URL parser removes dot segments.
+for(const unsafe of [
+ './%2e%2e/assets/index-a.css',
+ './.%2E/assets/index-a.css',
+ './%2e/assets/index-a.css',
+ './assets/%2e%2e/index-a.css',
+ './assets/../index-a.css',
+ './assets%2findex-a.css',
+ './assets\\index-a.css',
+]){
+ assert.throws(()=>initialCssAssetStats('<link rel="stylesheet" href="'+unsafe+'">',assets),/Unsicherer/);
+}
+assert.equal(initialCssAssetStats('<link rel="stylesheet" href="./assets/index-a.css?build=1">',assets).bytes,100);
+console.log('Initial CSS budgets: multiple assets, duplicates, lazy exclusion, Missing, external, encoded traversal and safe query guards checked.');

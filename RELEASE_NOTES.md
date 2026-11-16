@@ -1,3 +1,19 @@
+# MID v0.9.85.484
+
+- **Offline-Assets transparent geprüft:** Die technische Qualitätsprüfung trennt tatsächlich deklarierte Offline-Shell-Dateigrößen von Start-JavaScript und Start-CSS und erkennt außerdem unzulässige Preload-Mischdeklarationen. Es wird keine ungemessene Beschleunigung behauptet.
+- **Verlässlichere Startasset-Prüfung:** Die technischen Startbudgetkontrollen weisen auch kodierte unzulässige Dateipfade zurück und verwechseln sie nicht mit tatsächlich ausgelieferten JavaScript- oder CSS-Dateien.
+- **Umfeldkarte auch bei Radar-Ersatzdaten korrekt:** Die unabhängige europäische OPERA-Radarquelle sowie ihre Niederschlagsart verwenden jetzt eine an Ort, Kartenausschnitt und tatsächlichen Beobachtungstermin gebundene Bildidentität. Beim Wechsel wird kein altes Bild als neues ausgegeben.
+- **Lüftungsassistent startet gezielter:** Seine Bedienoberfläche wird erst beim Öffnen der bestehenden Sektion geladen. Nach vollständiger Offline-Installation bleibt der benötigte Code über den vorhandenen Offline-Mechanismus verfügbar; Wetter-/Sensorlogik und gespeicherte Einstellungen bleiben erhalten.
+- **Karten-Originale ohne Altbild:** Beim Zeit- oder Ortswechsel werden Radar- und Wolkenbilder erst nach vollständiger Prüfung von Quelle, Zeitpunkt und Ausschnitt angezeigt; alte Bilder erscheinen nicht kurz unter falscher Zeit.
+- **CSS-Diagnose robuster:** Die verpflichtende CSS-Quellprüfung verwendet den tatsächlichen Repositorypfad, auch wenn sie aus einem anderen Arbeitsverzeichnis gestartet wird; fehlende Daten bestehen die Prüfung nicht.
+- **Umfeld-Radar im Viertelstundenraster:** Radar/Satellit erhalten eine kompakte −15-/+15-Minuten-Zeitachse mit persistent gewählter Darstellungsart. Die Quellenzeit bleibt getrennt vom gewünschten Termin; fehlende Beobachtungs- oder Nowcast-Bilder werden nicht ersetzt.
+- **Echte Wolken-/SigWx-Zeitstempel:** Die Umfeldkarte zeigt nur nachgewiesene Originaltermine und meldet fehlende Viertelstunden als nicht verfügbar. Die native lückenlose Viertelstunden-Datenpipeline ist weiterhin offen.
+- **Schonendere Kartenbedienung:** Gleichzeitig geladene Kartenlayer benötigen weniger unnötige Sortierungen. Optionale Kartenflüge berücksichtigen die Geräteeinstellung für reduzierte Bewegung.
+- **Verlässliche Kartenzeiten:** Die Zeitregler der Wetter- und Kompositkarten geben ihren tatsächlichen Gültigkeitszeitpunkt und die Phase (Beobachtung, Nowcast oder Modellprognose) auch für Screenreader verständlich an. Die sichtbare Kartenzeit bleibt kompakt.
+- **Korrekte Temperatur am gewählten Termin:** Beim schnellen Wechsel zwischen Viertelstunden und Orten blendet die Umfeldkarte keine Temperatur mehr ein, die noch zu einer vorherigen Anfrage gehört. Modellherkunft und Original- beziehungsweise Zwischenwert bleiben unterscheidbar; fehlende Daten werden nicht als null angezeigt.
+- **Flüssigeres PseudoSat-Bedienen:** Schnell überstrichene Zeitpunkte lösen erst nach einer kurzen Ruhephase teure Wolken-/Wetterbild-Abrufe aus. Die tatsächlichen Originalfelder und die fachlichen Grenzen ihrer Darstellung bleiben bestehen.
+- **Sicherere Wartung:** GitHub-Checkout-Schritte speichern in 13 weiteren Fällen keine Zugangsdaten dauerhaft. Der Codeprüfer protokolliert Sicherheitsbefunde vollständig statt sie zu verkürzen, ohne daraus eine Freigabe abzuleiten.
+
 # MID v0.9.85.483
 
 - **Startmodule entlastet:** Benachrichtigungen, iCloud-Sicherheitskopie, Wetterzwilling und Verbindungsdiagnose laden ihre Einstellungsoberflächen erst bei Bedarf. Bestehende Bedienung, Push-/Datenfachlogik und gespeicherte Einstellungen bleiben erhalten.

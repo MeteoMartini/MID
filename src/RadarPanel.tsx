@@ -693,6 +693,8 @@ const applyLineTonePreset=(value:ModelLineTone)=>{setModelLineTone(value);if(val
      onSeek={nextIndex=>{setPlaying(false);setLiveFollow(false);seek(nextIndex)}}
      onLive={goLive}
      rangeLabel={`Kartenzeitschritt wählen · ${relative} · ${formatInZone(targetMs,timezone,{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}`}
+     rangeValueText={selectedFrame?`${relative} · ${formatInZone(targetMs,timezone,{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} Uhr · ${selectedFrame.phase==='forecast'?'Modellprognose':selectedFrame.phase==='nowcast'?'Nowcast':'Beobachtung'}`:'Kein bestätigter Kartentermin'}
+     timeISO={selectedFrame?new Date(targetMs).toISOString():undefined}
      countLabel={null}
      valueLabel={relative}
      detailLabel={<span className="composite-timeline-valid-at">{formatInZone(targetMs,timezone,{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} Uhr</span>}

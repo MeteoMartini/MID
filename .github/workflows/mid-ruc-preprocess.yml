@@ -51,6 +51,7 @@ jobs:
       - name: Letzten geprüften MID-Stable-Stand laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           ref: mid-stable
           fetch-depth: 1
       - name: Verwendeten MID-Stable-Stand festhalten
@@ -189,6 +190,7 @@ jobs:
       - name: Producer-Stable oder aktuellen Stable für explizite Wiederverwendung laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           ref: ${{ needs.calculate.outputs.stable_sha || 'mid-stable' }}
           fetch-depth: 1
       - name: Aufbereitungsquelle festhalten
@@ -486,6 +488,7 @@ jobs:
       - name: Aktuellen MID-Stable-Stand erst im Publish-Lock laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           ref: mid-stable
           fetch-depth: 1
       - name: RUC-Basis und laufendes Release gegen aktuellen MID-Stable-Stand prüfen

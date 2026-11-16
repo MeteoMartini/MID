@@ -19,8 +19,13 @@ function localAsset(url){
  // A base-relative URL is safe; parent-relative traversal and encoded path
  // separators are not valid generated Vite asset references for MID.
  if(/%(?:2f|5c)/i.test(url)||url.includes('\\'))throw Error('Invalid startup asset path');
- const rawSegments=url.split(/[?#]/,1)[0].split('/');
- if(rawSegments.includes('..'))throw Error('Unsafe startup asset path');
+ // Decode BEFORE WHATWG URL normalization: the URL parser erases %2e%2e
+ // traversal segments, which would otherwise make an unsafe reference look local.
+ let decodedInputPath;
+ try{decodedInputPath=decodeURIComponent(url.split(/[?#]/,1)[0]);}
+ catch{throw Error('Invalid startup asset encoding');}
+ const rawSegments=decodedInputPath.split('/');
+ if(rawSegments.some((segment,index)=>segment==='..'||(segment==='.'&&index>0)))throw Error('Unsafe startup asset path');
  const parsed=new URL(url,'https://mid-local.invalid/');
  const decoded=decodeURIComponent(parsed.pathname);
  const segments=decoded.split('/').filter(Boolean);

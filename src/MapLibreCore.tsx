@@ -1,5 +1,6 @@
 import {createContext,useContext,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {rasterTileRetryDelayMs} from './mapLayerRecovery';
+import {createMapLayerOrderScheduler} from './mapLayerOrderScheduler';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './mapPopupTheme.css';
@@ -46,13 +47,14 @@ export function MidMapLibre({center,zoom,minZoom=2,maxZoom=14,className,scrollZo
 }
 
 export function MapInteraction({enabled}:{enabled:boolean}){const map=useMidMap();useEffect(()=>{if(!map)return;const actions=[map.dragPan,map.touchZoomRotate,map.doubleClickZoom,map.boxZoom,map.keyboard];for(const action of actions)enabled?action.enable():action.disable();map.touchZoomRotate.disableRotation()},[map,enabled]);return null}
-export function MapCenter({latitude,longitude,zoom,fly=false,revision=0}:{latitude:number;longitude:number;zoom?:number;fly?:boolean;revision?:number}){const map=useMidMap();useEffect(()=>{if(!map)return;const options={center:[longitude,latitude] as [number,number],...(zoom!==undefined?{zoom}:{})};if(fly)map.flyTo({...options,duration:650,essential:true});else map.jumpTo(options)},[map,latitude,longitude,zoom,fly,revision]);return null}
+export function MapCenter({latitude,longitude,zoom,fly=false,revision=0}:{latitude:number;longitude:number;zoom?:number;fly?:boolean;revision?:number}){const map=useMidMap();useEffect(()=>{if(!map)return;const options={center:[longitude,latitude] as [number,number],...(zoom!==undefined?{zoom}:{})};if(fly)map.flyTo({...options,duration:650});else map.jumpTo(options)},[map,latitude,longitude,zoom,fly,revision]);return null}
 export function MapFitBounds({south,west,north,east,maxZoom,padding=22}:{south:number;west:number;north:number;east:number;maxZoom?:number;padding?:number}){const map=useMidMap();useEffect(()=>{if(!map)return;map.fitBounds([[west,south],[east,north]],{padding,maxZoom,duration:0})},[map,south,west,north,east,maxZoom,padding]);return null}
 
 function safeId(value:string){return value.replace(/[^a-zA-Z0-9_-]/g,'_')}
 const orderedLayers=new WeakMap<MidMap,Map<string,number>>();
+const scheduleLayerOrder=createMapLayerOrderScheduler<MidMap>();
 function applyLayerOrder(map:MidMap){const registry=orderedLayers.get(map);if(!registry)return;const ordered=[...registry.entries()].filter(([id])=>Boolean(map.getLayer(id))).sort((a,b)=>a[1]-b[1]);for(const [id] of ordered){try{map.moveLayer(id)}catch{}}}
-export function registerMapLayerOrder(map:MidMap,id:string,zIndex=0){let registry=orderedLayers.get(map);if(!registry){registry=new Map();orderedLayers.set(map,registry)}registry.set(id,zIndex);queueMicrotask(()=>applyLayerOrder(map))}
+export function registerMapLayerOrder(map:MidMap,id:string,zIndex=0){let registry=orderedLayers.get(map);if(!registry){registry=new Map();orderedLayers.set(map,registry)}registry.set(id,zIndex);scheduleLayerOrder(map,()=>applyLayerOrder(map))}
 export function unregisterMapLayerOrder(map:MidMap,id:string){const registry=orderedLayers.get(map);registry?.delete(id);if(registry&&!registry.size)orderedLayers.delete(map)}
 export function wmsTileUrl(base:string,params:Record<string,string|number|boolean|undefined>){
  const [path,query='']=base.split('?'),search=new URLSearchParams(query),version=String(params.version??'1.1.1');

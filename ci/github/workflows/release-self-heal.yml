@@ -21,6 +21,9 @@ jobs:
     name: Releasefehler klassifizieren und sicher erneut versuchen
     if: >-
       github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.event == 'workflow_dispatch' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
       github.event.workflow_run.run_attempt < 3
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -67,6 +70,23 @@ jobs:
             echo "::error::Classifier checkout differs from the exact protected Stable SHA."
             exit 1
           fi
+          # A workflow_run notification never grants a retry by itself.
+          # Read exact fresh installer metadata; foreign, push-origin and stale
+          # runs must not cause a privileged rerun, even with a failing log.
+          current_main="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
+          installer_run="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}")"
+          if ! jq -e --arg repo "$GITHUB_REPOSITORY" --arg main "$current_main" \
+              --argjson runId "$RUN_ID" --argjson attempt "$RUN_ATTEMPT" \
+              '(.id == $runId) and (.path == ".github/workflows/install-mid.yml") and
+               (.event == "workflow_dispatch") and (.head_branch == "main") and
+               (.head_repository.full_name == $repo) and (.head_sha == $main) and
+               (.status == "completed") and (.conclusion == "failure") and
+               (.run_attempt == $attempt)' <<<"$installer_run" >/dev/null; then
+            echo "retry=false" >> "$GITHUB_OUTPUT"
+            echo "reason=foreign-or-stale-installer" >> "$GITHUB_OUTPUT"
+            echo "::notice::Installer source/event/branch/SHA does not match protected current main; no retry."
+            exit 0
+          fi
           # Bootstrap before first Stable promotion: never run untrusted main/PR code.
           if [ ! -f tools/ci/release-self-heal-classify.mjs ]; then
             echo "retry=false" >> "$GITHUB_OUTPUT"
@@ -74,11 +94,16 @@ jobs:
             echo "::notice::Trusted classifier is not yet in Stable; no automatic retry."
             exit 0
           fi
-          gh run view "$RUN_ID" --repo "$GITHUB_REPOSITORY" --log-failed > /tmp/mid-failed.log 2>&1 || true
-          gh api --method GET "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/jobs?per_page=100" > /tmp/mid-failed-jobs.json
+          # Isolated first-writer-only diagnostics: never reuse a predictable
+          # shared /tmp path while processing downloaded failure logs.
+          umask 077
+          scratch="$(mktemp -d "${RUNNER_TEMP:-/tmp}/mid-self-heal.XXXXXXXX")"
+          trap 'rm -rf -- "$scratch"' EXIT
+          gh run view "$RUN_ID" --repo "$GITHUB_REPOSITORY" --log-failed > "$scratch/failed.log" 2>&1 || true
+          gh api --method GET "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/jobs?per_page=100" > "$scratch/jobs.json"
           # Trusted Stable classifier never approves a release: it only retries
           # exactly the failed jobs on the same SHA, once for one known browser timeout.
-          env -u GH_TOKEN node tools/ci/release-self-heal-classify.mjs /tmp/mid-failed.log /tmp/mid-failed-jobs.json "$RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+          env -u GH_TOKEN node tools/ci/release-self-heal-classify.mjs "$scratch/failed.log" "$scratch/jobs.json" "$RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
 
       - name: Nur temporär klassifizierte Fehler automatisch erneut ausführen
         if: steps.classify.outputs.retry == 'true'

@@ -32,7 +32,17 @@ need(ventSettings,'Keine automatische Fenster-, Lüfter- oder Anlagensteuerung.'
 need(push,'ventilationPushConfig','Lüftungsregeln werden nicht in den bestehenden Pushdienst synchronisiert.');
 need(worker,'mid-ventilation-','Worker-Push für neue Lüftungsfenster fehlt.');
 need(modules,"'ventilation'",'Dashboardmodul Lüftungsassistent fehlt.');
-need(app,'<VentilationAssistantPanel/>','Lüftungsassistent wird im Dashboard nicht gerendert.');
+// Rendering contract changed intentionally: only the UI shell is deferred;
+ // the existing Netatmo/Worker meteorology and the advice behavior above remain mandatory.
+need(app,"const LazyVentilationAssistantPanel=lazy(()=>import('./VentilationAssistantPanel').then(module=>({default:module.VentilationAssistantPanel})))",'Lüftungsassistent muss aus dem App-Einstieg bedarfsgesteuert geladen werden.');
+need(app,'<LazyVentilationAssistantPanel/>','Lüftungsassistent wird im Dashboard nicht gerendert.');
+if(app.includes("import {VentilationAssistantPanel} from './VentilationAssistantPanel'"))failures.push('Lüftungs-UI darf nicht erneut statisch beim App-Start importiert werden.');
+const ventilationStart=app.indexOf("case'ventilation':return <CollapsibleModule"),ventilationEnd=app.indexOf("case'mountain':",ventilationStart);
+const ventilationView=ventilationStart>=0&&ventilationEnd>ventilationStart?app.slice(ventilationStart,ventilationEnd):'';
+need(ventilationView,'defaultOpen={false}','Der Lüftungsassistent muss standardmäßig geschlossen bleiben.');
+need(ventilationView,'<Suspense fallback=','Beim optionalen Lüftungs-UI fehlt der zugängliche Ladezustand.');
+need(ventilationView,'role="status"','Beim optionalen Lüftungs-UI fehlt die Statussemantik.');
+need(ventilationView,'<LazyVentilationAssistantPanel/>','Lüftungs-UI muss erst als Kind der aufklappbaren Sektion gemountet werden.');
 need(panel,'Empfehlung, keine automatische Fenstersteuerung','Dashboard kennzeichnet die rein beratende Stufe 1 nicht.');
 need(styles,'.ventilation-assistant-panel','Styling für Lüftungsassistent fehlt.');
 if(/call_service|fan\.turn_on|cover\.open_cover/.test(ventilation+panel+ventSettings))failures.push('Stufe 1 enthält unerwartete Aktor-/Service-Steuerung.');
