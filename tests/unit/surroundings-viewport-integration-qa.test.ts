@@ -46,6 +46,19 @@ describe('MID #853: full-viewport Rad/Sat integration without source or time fab
   expect(ui).toContain('lng:west+x*(east-west)/canvas.width');
  });
 
+ it('unmounts a stale geographical image on resize before the new footprint is ready',()=>{
+  // ImageQuadLayer fades old frames while a new URL loads. That fade is
+  // legitimate for a same-footprint time update, not for a different BBOX.
+  expect(ui).toContain('key={`surroundings-clouds:${operaRequestKey}`}');
+  expect(ui).toContain('key={`surroundings-radar:${operaRequestKey}`}');
+  expect(ui).toContain('const operaRequestKey=JSON.stringify([lat,lon,bounds,rasterPlan?.width,rasterPlan?.height]);');
+  expect(ui).toContain("mode==='radar'&&visibleClouds&&mapBounds&&<ImageQuadLayer");
+  expect(ui).toContain("mode==='radar'&&mapBounds&&(displayedOpera??displayedRadar)&&<ImageQuadLayer");
+  // The key must not incorporate selected radar/satellite time: normal
+  // same-footprint updates should continue to use the existing smooth fade.
+  expect(ui).not.toContain('key={`surroundings-radar:${radarTarget}');
+ });
+
  it('keeps the unchanged selected-location focus and independent original times',()=>{
   expect(ui).toContain('const east=west+2.8,north=south+1.3;');
   expect(ui).toContain("onOpen(mode==='cloud'?cloudTarget:mode==='radar'?displayTime:undefined,{west,south,east,north})");
