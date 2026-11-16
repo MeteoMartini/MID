@@ -16,7 +16,7 @@ describe('MID 14-day forecast: readable responsive CSS',()=>{
  it('never introduces sub-10.5px font declarations in the dense 14-day stylesheet',()=>{
   const fontSizes:number[]=[];
   root.walkDecls('font-size',decl=>{
-   const match=/^([0-9]+(?:\\.[0-9]+)?)px$/.exec(decl.value);
+   const match=/^([0-9]+(?:\.[0-9]+)?)px$/.exec(decl.value);
    if(match)fontSizes.push(Number(match[1]));
   });
   expect(fontSizes.length).toBeGreaterThan(15);
