@@ -60,4 +60,43 @@ describe('Design 1.7 – fail-closed CSS cross-selector cascade evidence',()=>{
   expect(report.safeToDefer).toBe(false);
   expect(['UNVERIFIED_NO_STATIC_MATCH','POTENTIAL_CROSS_SELECTOR_CASCADE_RISK']).toContain(report.status);
  });
+
+ it('ignores dotted strings in attribute selectors and quoted pseudo parameters',()=>{
+  const report=cssSelectorRiskEvidence([
+   css('candidate.css','[data-caption=".card"]{padding:4px}:lang(".card"){padding:5px}'),
+   css('later.css','.shell .card{padding:8px}')
+  ],'candidate.css');
+  expect(report.potentialPairs).toBe(0);
+  expect(report.unclassifiedRules).toBe(2);
+  expect(report.safeToDefer).toBe(false);
+ });
+ it('keeps real classes in functional selectors while ignoring attribute literals',()=>{
+  const report=cssSelectorRiskEvidence([
+   css('candidate.css','[data-icon=".fake"] :is(.card,.tile){padding:4px}'),
+   css('later.css','.shell .card{padding:8px}')
+  ],'candidate.css');
+  expect(report.potentialPairs).toBe(1);
+  expect(report.affectedClasses).toEqual(['card']);
+  expect(report.safeToDefer).toBe(false);
+ });
+ it('marks escaped and non-ASCII class names uncertain instead of matching truncated anchors',()=>{
+  const report=cssSelectorRiskEvidence([
+   css('candidate.css',String.raw\`.card\:active{padding:4px}.métric{padding:8px}\`),
+   css('later.css','.shell .card{padding:10px}')
+  ],'candidate.css');
+  expect(report.potentialPairs).toBe(0);
+  expect(report.ambiguousCandidateSelectors).toBe(2);
+  expect(report.unclassifiedRules).toBe(2);
+  expect(report.safeToDefer).toBe(false);
+ });
+ it('records uncertain later selectors separately from eligible matches',()=>{
+  const report=cssSelectorRiskEvidence([
+   css('candidate.css','.card{padding:4px}'),
+   css('later.css',String.raw\`.card\:hover{padding:9px}.wrapper .card{padding:11px}\`)
+  ],'candidate.css');
+  expect(report.ambiguousLaterSelectors).toBe(1);
+  expect(report.potentialPairs).toBe(1);
+  expect(report.affectedClasses).toEqual(['card']);
+ });
+
 });
