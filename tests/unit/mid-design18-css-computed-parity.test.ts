@@ -78,6 +78,14 @@ describe('MID Design18 CSSOM parity QA is evidence-only and fail closed',()=>{
    theme:'light',readySelector:'#root',targets:[{id:'x',selector:'nav'},{id:'x',selector:'#root'}],
   })).rejects.toThrow(/duplicate declared target/);
  });
+ it('rejects cross-case source, asset and version drift even when each case is valid',()=>{
+  const a=pair();a.stable[1].identity.assetsSha256='c'.repeat(64);
+  expect(()=>compareCssomCases(a)).toThrow(/cross-case build identity drift/);
+  const b=pair();b.candidate[1].identity.sourceGitSha='d'.repeat(40);
+  expect(()=>compareCssomCases(b)).toThrow(/cross-case build identity drift/);
+  const c=pair();c.stable[1].identity.version='0.9.85.488';
+  expect(()=>compareCssomCases(c)).toThrow(/cross-case build identity drift/);
+ });
  it('reports full responsive cases only when explicitly listed, never from zero matches',()=>{
   expect(()=>compareCssomCases({...pair(),requiredCaseIds:[ids[0]]})).toThrow(/manifest/);
   const invalid=pair();invalid.candidate[0].elements[0].rect.height=0;
