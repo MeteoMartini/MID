@@ -57,7 +57,7 @@ describe('MID Design18 CSSOM parity QA is evidence-only and fail closed',()=>{
   const y=pair();y.candidate[0].environment.fixtureSha256='e'.repeat(64);
   expect(()=>compareCssomCases(y)).toThrow(/environment mismatch/);
   const z=pair();z.candidate[1].environment.theme='light';
-  expect(()=>compareCssomCases(z)).toThrow(/environment mismatch/);
+  expect(()=>compareCssomCases(z)).toThrow(/actual DOM theme|environment mismatch/);
  });
  it('rejects duplicate, invisible or unmatched selectors and incomplete font/CSS readiness',()=>{
   const v=entry(ids[0]);v.elements.push(v.elements[0]);
