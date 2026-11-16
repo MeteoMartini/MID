@@ -60,4 +60,3 @@ describe('MID QA read-only real module-import evidence integration',()=>{
   expect(browser).toContain("module-only");
  });
 });
-
