@@ -42,7 +42,7 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
-      - name: Existing MID science requirement set and adversarial unit tests
+      - name: Existing MID science requirements and whole-inventory-before-decoding adversarial tests
         shell: bash
         timeout-minutes: 6
         run: |
@@ -50,6 +50,8 @@ jobs:
           python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
           python -c "from eccodes import codes_get_api_version; print('ecCodes API', codes_get_api_version())"
           python -m unittest discover -s tools/ruc -p 'test_ir108_*.py'
+          # All foreign/duplicate/missing original manifests must fail before
+          # any ecCodes call; never accept a fake-GRIB fixture as data proof.
           python -m unittest discover -s tools/ruc -p 'test_original_15min_phase_gate.py'
           python -m unittest discover -s tools/ruc -p 'test_stage_original_15min_gsp.py'
       - name: Select an actual complete official DWD run, no guessed original availability
