@@ -211,7 +211,7 @@ async function oneIntegrated(width,height,theme){
    });
    throw new Error('Real Chromium 200% CSS font never settled: '+JSON.stringify({width,theme,base,arrival:cssArrival,current}),{cause:error});
   }
-  const cssSettled=await page.locator('.cockpit-fourteen-card .cockpit-fourteen-weather-label').evaluate(n=>({
+  const cssSettled=await page.locator('.cockpit-fourteen-card .cockpit-fourteen-weather-label').first().evaluate(n=>({
    font:getComputedStyle(n).fontSize,transitions:n.getAnimations().map(a=>({kind:a.constructor.name,state:a.playState}))
   }));
   console.log('MID design14 CSSOM font transition '+width+' '+theme+': '+JSON.stringify({arrival:cssArrival,settled:cssSettled}));
