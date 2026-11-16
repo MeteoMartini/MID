@@ -199,7 +199,11 @@ jobs:
             .inlineComments == 21 and .realEvidenceRead == true and
             .nativeReviewEnforced == false and
             .mergeAuthorized == false and .releaseAuthorized == false' "$RUNNER_TEMP/mid740-live-cubic.json"
-          node tools/ci/mid-740-native-review-cutover-readback.mjs > "$RUNNER_TEMP/mid740-native-review-readback.json"
+          if ! node tools/ci/mid-740-native-review-cutover-readback.mjs > "$RUNNER_TEMP/mid740-native-review-readback.json"; then
+            # Print only the bounded fail-closed enum; never tokens/API bodies.
+            jq -r '(.status // "BLOCKED") + ": " + (.reason // "UNKNOWN")' "$RUNNER_TEMP/mid740-native-review-readback.json" >&2
+            exit 1
+          fi
           jq -e '.status == "LEGACY_MAIN_WRITES_BLOCK_NO_BYPASS_CUTOVER_QA_ONLY" and
             .registryAndRuleDetailsVerified == true and
             .twoLegacyMainWritePathsSHAAndBlobVerified == true and

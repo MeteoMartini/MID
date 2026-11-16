@@ -66,6 +66,7 @@ export async function inspectMid740NativeReviewCutover(get){
  if(typeof get!=='function')return deny('NO_AUTHENTICATED_READER');
  const read=x=>get(ROOT+'/'+x);
  let repository,main,stable,list,details,files;
+ let readPhase='REPOSITORY_BRANCH_AND_RULESET_LIST';
  try{
   [repository,main,stable,list]=await Promise.all([
    get(ROOT),read('branches/main'),read('branches/mid-stable'),
@@ -75,12 +76,13 @@ export async function inspectMid740NativeReviewCutover(get){
      new Set(list.map(x=>x.id)).size!==list.length||
      list.some(x=>!RULE_IDS.includes(x.id)||x.enforcement!=='active'))
    return deny('RULESET_REGISTRY_DRIFT');
+  readPhase='RULESET_DETAILS_AND_STABLE_WORKFLOW_BLOBS';
   [details,files]=await Promise.all([
    Promise.all(RULE_IDS.map(id=>read('rulesets/'+id))),
    Promise.all(WORKFLOWS.map(path=>read(
     'contents/'+path+'?ref='+EXPECTED_STABLE)))
   ]);
- }catch{return deny('GITHUB_METADATA_UNAVAILABLE')}
+ }catch{return deny('GITHUB_METADATA_UNAVAILABLE_'+readPhase)}
  if(repository?.id!==1305110795||repository.full_name!=='MeteoMartini/MID'||
     repository.owner?.type!=='User'||
     !validRef(main,'main')||!validRef(stable,'mid-stable')||
