@@ -611,6 +611,93 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
    perfRows.push({width,theme,design,caseKind:profileMemory?'isolated-memory-cycles':'functional-matrix',memoryProfile,readyMs:readyMs===null?null:Math.round(readyMs*100)/100,...summarizePhases(perfPhases)});
   }cases++;console.log(`Map case ${cases}: ${width}px ${theme} ${design} passed · ${((performance.now()-caseStarted)/1000).toFixed(1)} s`);await context.close();
 }
+/** #853: read back actual GPU pixels from a synthetic opaque WMS original.
+ * Distinguish a real filled image on every canvas edge from a correctly
+ * positioned but transparent or narrow ImageQuad. This does NOT certify
+ * DWD/EUMETSAT/OPERA source validity or real iOS rendering.
+ */
+async function assertSurroundingsViewportPixels(page,requests,width,theme){
+ await page.waitForFunction(()=>{
+  const map=window.__qaMap;
+  return Boolean(map?.getStyle()?.layers?.some(layer=>layer.id.startsWith('surroundings-radar-layer-')&&
+   map.getPaintProperty(layer.id,'raster-opacity')>.98));
+ },null,{timeout:30000});
+ const footprint=await page.evaluate(()=>{
+  const map=window.__qaMap;
+  const bounds=map.getBounds();
+  const images=Object.entries(map.getStyle().sources).filter(([id,s])=>id.startsWith('surroundings-radar-source-')&&s.type==='image');
+  const [id]=images.at(-1)||[];
+  const source=id?map.getSource(id):null;
+  const corners=source?.serialize()?.coordinates;
+  const canvas=map.getCanvas();
+  return {
+   visible:{west:bounds.getWest(),south:bounds.getSouth(),east:bounds.getEast(),north:bounds.getNorth()},
+   corners,canvas:{width:canvas.width,height:canvas.height}
+  };
+ });
+ assert.equal(footprint.corners?.length,4,'Actual MapLibre ImageSource quad must be installed');
+ const [[west,north],[east,north2],[east2,south],[west2,south2]]=footprint.corners;
+ assert.ok([west,north,east,north2,east2,south,west2,south2].every(Number.isFinite));
+ assert.ok(Math.abs(north-north2)<1e-6&&Math.abs(east-east2)<1e-6&&Math.abs(west-west2)<1e-6&&Math.abs(south-south2)<1e-6,
+  'Image source corners preserve a georeferenced rectangle');
+ for(const edge of ['west','south']){
+  assert.ok(footprint.corners&&({west,south})[edge]<footprint.visible[edge],
+   `Image quad must extend beyond visible ${edge} canvas boundary`);
+ }
+ for(const edge of ['east','north']){
+  assert.ok(({east,north})[edge]>footprint.visible[edge],
+   `Image quad must extend beyond visible ${edge} canvas boundary`);
+ }
+ const radarWms=requests.map(value=>new URL(value))
+  .filter(url=>url.searchParams.get('mode')==='composite-wms'&&url.searchParams.get('layers')==='dwd:Radar_rv_product_1x1km_ger');
+ assert.ok(radarWms.length>0,'Actual browser requested original DWD radar WMS through worker proxy');
+ const latest=radarWms.at(-1),bbox=latest.searchParams.get('bbox')?.split(',').map(Number),w=Number(latest.searchParams.get('width')),h=Number(latest.searchParams.get('height'));
+ assert.equal(bbox?.length,4,'WMS request must contain four BBOX degrees');
+ assert.ok(w>=16&&w<=512&&h>=16&&h<=256&&w*h<=131072,'Existing bounded WMS pixel request budget');
+ for(const [actual,expected]of bbox.map((v,i)=>[v,[west,south,east,north][i]]))
+  assert.ok(Math.abs(actual-expected)<.000002,'WMS and MapLibre quad must have identical geographic edges');
+ const geoRatio=(east-west)/(north-south);
+ assert.ok(Math.abs(w/h-geoRatio)/geoRatio<.015,'WMS pixel aspect follows the EPSG:4326 BBOX');
+ const edgeColors=await page.evaluate(async()=>{
+  const map=window.__qaMap,canvas=map.getCanvas(),gl=canvas.getContext('webgl2')||canvas.getContext('webgl');
+  if(!gl)return {error:'WebGL canvas context unavailable'};
+  const points={
+   left:[[.07,.23],[.07,.5],[.07,.77]],
+   right:[[.93,.23],[.93,.5],[.93,.77]],
+   top:[[.23,.07],[.5,.07],[.77,.07]],
+   bottom:[[.23,.93],[.5,.93],[.77,.93]],
+   center:[[.5,.5]]
+  };
+  return await new Promise((resolve,reject)=>{
+   let settled=false;
+   const timeout=setTimeout(()=>{if(!settled){settled=true;map.off('render',capture);reject(Error('No WebGL render event for radar pixels'))}},5000);
+   const capture=()=>{
+    if(settled)return;
+    settled=true;clearTimeout(timeout);
+    const result={};
+    for(const [edge,coordinates] of Object.entries(points)){
+     result[edge]=coordinates.map(([u,v])=>{
+      const rgba=new Uint8Array(4);
+      gl.readPixels(Math.round(u*(canvas.width-1)),Math.round((1-v)*(canvas.height-1)),1,1,gl.RGBA,gl.UNSIGNED_BYTE,rgba);
+      return Array.from(rgba);
+     });
+    }
+    resolve(result);
+   };
+   map.once('render',capture);map.triggerRepaint();
+  });
+ });
+ assert.equal(edgeColors?.error,undefined,JSON.stringify(edgeColors));
+ // Reference roads/labels can tint the sentinel, so check its distinctive
+ // magenta dominance rather than demanding exact RGB from a composited GPU pixel.
+ // Pale basemap pixels have no red/blue dominance over green and remain rejected.
+ const opaqueMagenta=p=>p[3]>=200&&p[0]>=170&&p[2]>=170&&p[0]-p[1]>=110&&p[2]-p[1]>=110;
+ for(const edge of ['left','right','top','bottom','center'])
+  assert.ok(edgeColors[edge].some(opaqueMagenta),
+   `Real WebGL readPixels: opaque synthetic WMS image must reach ${edge} canvas zone at ${width}px/${theme}; ${JSON.stringify(edgeColors[edge])}`);
+ console.log(`Surroundings #853: live WMS BBOX and GPU edge-pixels at ${width}px/${theme} passed`);
+}
+
 async function verifySurroundings(width,theme){
  const context=await browser.newContext({viewport:{width,height:780},colorScheme:theme});
  try{
@@ -724,6 +811,13 @@ async function verifySurroundings(width,theme){
    })).catch(e=>({inspectionError:String(e)}));
    throw new Error('Umfeld-Radar-Fixturnier (echte Bilddaten erforderlich): '+JSON.stringify({state,requests:requests.slice(-16),pageErrors:errors})+'; Ursache: '+String(error));
   }
+  // #853: catalog RGB is stale, so the genuine time-matching IR original must be used.
+  await page.waitForFunction(()=>document.querySelector('.current-surroundings-sources')?.textContent?.includes('Infrarot (IR)'),null,{timeout:30000});
+  const originalSatelliteRequests=requests.map(value=>new URL(value)).filter(url=>url.searchParams.get('mode')==='composite-wms'&&url.searchParams.get('layers')?.startsWith('mtg_fd:'));
+  assert.ok(originalSatelliteRequests.some(url=>url.searchParams.get('layers')==='mtg_fd:ir105_hrfi'),'Real Chromium requests the time-matching IR source');
+  assert.equal(originalSatelliteRequests.some(url=>url.searchParams.get('layers')==='mtg_fd:rgb_geocolour'),false,'A stale RGB catalog entry cannot suppress the valid IR original');
+  // #853: actual Chrome GPU readback and real WMS source/quad geometry, not a CSS-only assertion.
+  await assertSurroundingsViewportPixels(page,requests,width,theme);
   // #795/.478 replaces the old approximate SVG borders with the real MapLibre vector basemap.
   // The independent radar admission still requires a real rendered frame after explicit selection.
   await page.locator('.current-surroundings-maplibre canvas').first().waitFor({timeout:30000});
@@ -886,7 +980,7 @@ async function verifySurroundingsOpenMap(){
 
 const focusedCases=process.env.GITHUB_ACTIONS!=='true'&&process.env.MID_MAP_QA_FOCUSED==='1'?[320,390,430,1024,1440].flatMap(width=>['light','dark'].map(theme=>({width,theme,design:'next'}))):null;
 const assignedCases=seasonalDraftPilot?seasonalDraftKeys.map(key=>seasonalDraftAllowed.get(key)):focusedCases??mapBrowserCases(process.env.MID_MAP_QA_SHARD);
-try{await verifyDesktopModelFlags();await verifySurroundingsOpenMap();await verifyHomeEndControlledSeek();for(const {width,theme,design} of assignedCases)if(design==='next'&&[320,390,430,834].includes(width))await verifySurroundings(width,theme);for(const width of [...new Set(assignedCases.map(row=>row.width))]){const variants=assignedCases.filter(row=>row.width===width),concurrency=mapBrowserCaseConcurrency(width);/* Bound synthetic MapLibre software-GPU contention; all cases and all assertions remain mandatory. */for(let offset=0;offset<variants.length;offset+=concurrency){const results=await Promise.allSettled(variants.slice(offset,offset+concurrency).map(({theme,design})=>verifyCase(width,theme,design)));for(const result of results)if(result.status==='rejected')throw result.reason;}}assert.equal(cases,assignedCases.length,'Complete assigned viewport/theme/design coverage');if(perfEnabled&&mapBrowserMemoryProbe(process.env.MID_MAP_QA_SHARD))await verifyCase(390,'light','next',true);if(perfRows.length){
+try{await verifyDesktopModelFlags();await verifySurroundingsOpenMap();await verifyHomeEndControlledSeek();for(const {width,theme,design} of assignedCases)if(design==='next'&&[320,390,430,834,844,1024,1440].includes(width))await verifySurroundings(width,theme);for(const width of [...new Set(assignedCases.map(row=>row.width))]){const variants=assignedCases.filter(row=>row.width===width),concurrency=mapBrowserCaseConcurrency(width);/* Bound synthetic MapLibre software-GPU contention; all cases and all assertions remain mandatory. */for(let offset=0;offset<variants.length;offset+=concurrency){const results=await Promise.allSettled(variants.slice(offset,offset+concurrency).map(({theme,design})=>verifyCase(width,theme,design)));for(const result of results)if(result.status==='rejected')throw result.reason;}}assert.equal(cases,assignedCases.length,'Complete assigned viewport/theme/design coverage');if(perfEnabled&&mapBrowserMemoryProbe(process.env.MID_MAP_QA_SHARD))await verifyCase(390,'light','next',true);if(perfRows.length){
  const rows=perfRows.sort((a,b)=>a.width-b.width||a.theme.localeCompare(b.theme)||a.design.localeCompare(b.design));
  const report={schema:'mid.map.runtime.fixture.v2',version:JSON.parse(readFileSync(new URL('../package.json',import.meta.url))).version,commit:process.env.GITHUB_SHA||null,shard:process.env.MID_MAP_QA_SHARD||'all',kind:'synthetic-Vite-MapLibre-fixture-not-user-CWV',cases:rows};
  const serialized=JSON.stringify(report),safeShard=String(report.shard).replace(/[^A-Za-z0-9_-]/g,'_');

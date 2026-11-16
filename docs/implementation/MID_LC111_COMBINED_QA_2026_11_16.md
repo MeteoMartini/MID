@@ -21,3 +21,9 @@
 - Scientific integrity: keine Interpolation oder Nullfüllung, keine Änderung an Radar/PoP/Phase, Observations-/RUC-/Warnungs-/UTC-Daten und keinerlei Modell-/Provider-Repriorisierung; native Wetterdatenrequest- und Abbruchprioritäten bleiben Vertragsbestand.
 - Fachliche QA-Grenze: Einzeldraft #855 hatte Vitest, gezielte Regression und isolierten Vite-Browserimport-Test erfolgreich; dabei beobachtete 16 JS-Requests / 1 CSS-Datei und ca. 4 MB importbezogener Post-GC-Heap **sind Kosten eines isolierten Imports, keine reale Einsparungsprognose**. Ohne echte Full-App-Stable-vs-Candidate-A/B, dynamische Navigation, Offline/SW, 20-Cycle-Post-GC, Touch/Fokus und iOS/WebKit kein Release.
 - Auch der neue 66-Dateien-Leithead benötigt eine **frische eigene SHA-gebundene** Kombinations-CI, Source/Core/Heavy-/Browser-/Review-/Installer-/Worker-/Pages-/Stable-Gates. Die unabhängigen #856-Viewport-/Projektionsarbeiten und #740-/Release-Sicherheitsarbeiten wurden nicht importiert. Kein Ready/Release.
+
+## Fortsetzung: #856 Radar/Sat-Viewport (genaues 14-Datei-Integrationsinventar)
+
+Basis #858 `a51c281aee8fabfce149790a1017ef3267804335`, Spezial-#856 `db51e48f9baa30aa82c094ea923d6c11166236fb`, v0.9.85.487 Quelle, keine Überschneidung mit #855-Daten-/Visualintent. Zwölf der Spezialdateien werden als originale SHA-identische Blobs übernommen; beide gemeinsam geänderten Dateien werden konfliktig hunk- und quellenverifiziert statt überschrieben. Cloudreferenz/Browserflags/Map-Open bleiben wirksam. WMS-Projektionsfrage, reale Provider-Originale, komplette App-/iOS-Abnahme und Full-Gates offen; keine Release-Sicherheitsarbeit; QA-Draft.
+
+Detaillierter Reproduktionsnachweis: `docs/implementation/MID_LC111_MAPS856_SELECTIVE_MERGE_QA_2026_11_16.md`.

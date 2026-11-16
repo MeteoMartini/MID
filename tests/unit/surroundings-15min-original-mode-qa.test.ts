@@ -1,5 +1,6 @@
 import {readFileSync} from 'node:fs';
 import {matchesSurroundingsCloudRequest} from '../../src/surroundingsCloudOriginalGuard';
+import {selectSurroundingsSatelliteOriginal} from '../../src/surroundingsSatelliteOriginal';
 import {describe,expect,it} from 'vitest';
 import {
  radarOriginalForStep,nearestVerifiedOriginal,sourceOriginalTimes,
@@ -61,7 +62,8 @@ describe('Umfeld Rad/Sat: 15-min selector uses only admitted ORIGINAL source tim
   const ui=readFileSync('src/CurrentSurroundings.tsx','utf8');
   expect(ui).toContain('selectVerifiedSurroundingsOperaFrame(opera,operaRequestKey,now)');
   expect(ui).toContain('phaseImage?.requestKey===operaRequestKey');
-  expect(ui).toContain('setOpera({url:canvas.toDataURL(),time,requestKey:operaRequestKey})');
+  expect(ui).toContain('setOpera({url:canvas.toDataURL(),time,requestKey:operaRequestKey,coverage});');
+  expect(ui).toContain("if(!coverage||coverage.kind==='none')return;");
   expect(ui).toContain('setPhaseImage({url:phase.colors.size?canvas.toDataURL():undefined,time,requestKey:operaRequestKey})');
  });
  it('normalises original source times in seconds/milliseconds/ISO, without rounding validity',()=>{
@@ -76,7 +78,11 @@ describe('Umfeld Rad/Sat: 15-min selector uses only admitted ORIGINAL source tim
   expect(ui).toContain('Radar und Satellit 15 Minuten vor');
   expect(ui).toContain('onChange={event=>setRadarStep(');
   expect(ui).toContain('radarOriginalForStep(catalog,now,radarStep,dwdArea)');
-  expect(ui).toContain("radarStep>0?undefined:nearestVerifiedOriginal(satellite?.times,radarTarget,now)");
+  expect(ui).toContain('selectSurroundingsSatelliteOriginal(catalog,radarTarget,now,radarStep)');
+  const rgb={provider:'eumetsat' as const,layer:'mtg_fd:rgb_geocolour',label:'RGB',times:[observed],timeVerified:true};
+  const ir={provider:'eumetsat' as const,layer:'mtg_fd:ir105_hrfi',label:'IR',times:[observed],timeVerified:true};
+  expect(selectSurroundingsSatelliteOriginal({satelliteRgbProduct:rgb,satelliteIrProduct:ir},now,now,1)).toBeUndefined();
+  expect(selectSurroundingsSatelliteOriginal({satelliteRgbProduct:rgb,satelliteIrProduct:ir},now,now,0)?.spectrum).toBe('RGB');
   expect(ui).toContain('selectVerifiedSurroundingsRadarFrame(loaded,radar,radarOriginal)');
   expect(ui).toContain('displayedOpera=needsOpera');
   expect(ui).not.toContain('Radar-Nowcast-Termin');
