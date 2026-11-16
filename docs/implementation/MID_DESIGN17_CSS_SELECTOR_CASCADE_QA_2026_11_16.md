@@ -8,6 +8,14 @@ Der bestehende read-only Audit scripts/audit-css-move-candidates-0985482.mjs erk
 
 Die neue reine Hilfsfunktion cssSelectorRiskEvidence verwendet die unveränderte kanonische PostCSS-Kaskade aus scripts/lib/cssCascade.mjs. Sie bildet über alle späteren Quellen einen Klassen-/Eigenschaftsindex, dokumentiert abweichende Selektoren, Dateinamen, Zeilen, @media-/@supports-Kontexte und !important-Markierungen. Identische Selektorpaare bleiben Gegenstand des bestehenden Audits. Ein separates CLI erzeugt artifacts/css-selector-risk-design17.json für die drei bestehenden Kandidaten: 25-extreme-outlook.css, midC14MapWorkspace.css und midC18FourteenReplitFluidGrid.css.
 
+
+## MID Design 1.7 – gezielte Selektorlexik-Härtung
+
+Die erste Regex-basierte Klassenerkennung konnte Punkte in quotierten Attributwerten (beispielsweise \`[data-hint=".card"]\`) versehentlich als echte Klassenanker melden und Escape-Sequenzen in CSS-Klassennamen zu falschen Teilklassen kürzen. Diese Arbeit ergänzt einen bewusst konservativen Scanner ohne zusätzliche npm-Abhängigkeit: Quotes und Attributklammern werden übersprungen, funktionale Selektoren wie \`:is(.card,.tile)\` bleiben erfassbar, Escape-/nicht-ASCII-Namen werden **nicht** stillschweigend als verkürzte Klassen übernommen. Die Felder \`ambiguousCandidateSelectors\` und \`ambiguousLaterSelectors\` machen diese Ungewissheit im JSON-Bericht und in der CLI-Zusammenfassung sichtbar.
+
+Damit wird der statische Bericht genauer, aber ausdrücklich nicht vollständig: CSS-Identifier-Lexik, Selektorlisten, Shadow DOM, Spezifität, \`@layer\`, \`@scope\`, CSS-Variablen, verschachtelte Regeln und der reale Browser-DOM-Kaskadenzustand werden nicht abschließend bewiesen. Ein Nulltreffer oder unbekannter Klassenausdruck bedeutet weiterhin **nicht sicher auslagerbar**. Keine Änderung an CSS-Quellen, Benutzeroberfläche, Netzwerkpfad oder Produktionsbuild. Regressionsfälle für quotierte Punktwerte, gültige funktionale Klassen, Escapes und Nicht-ASCII-Klassen werden ergänzt; ihre echte CI-Bewertung ist jeweils auf den finalen Branch-HEAD zu beziehen.
+
+
 ## Wissenschaftlich-technische Aussagegrenzen
 
 Gleiche CSS-Klasse und Eigenschaft beweisen nicht identische DOM-Zielknoten, weshalb Fehlalarme möglich sind. Umgekehrt deckt der Heuristikindex weder klassenlose/komplexe bzw. escaped Selektoren noch shorthand-/Custom-Property-Abhängigkeiten, @layer-Reihenfolgen und den realen DOM-/CSSOM-/Browserzustand vollständig ab. Er ist eine untere Schranke der statisch gefundenen Risikomuster, KEIN vollständiger Konformitätsbeweis. Deshalb liefert die API safeToDefer=false auch bei null Treffern. Keine produktive CSS-Verschiebung oder behauptete Netzwerk-/RAM-/Startzeitverbesserung.
