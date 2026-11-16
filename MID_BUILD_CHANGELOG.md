@@ -1,3 +1,17 @@
+## MID v0.9.85.485 · 2026-11-16 · 14-Tage-Lesbarkeit und CSS-Eigentümerprüfung
+
+- Quellbasis mid-stable/main 8f4c950c3d0311f33ed3f9b89d0101d6cd556113 / v0.9.85.484; Spezial-Draft #840 head dd90d5b64f6aeb4ac0f517bc0aa64329e26ee722 (4 Dateien), #841 head d327e6154dc26d696c74379f6dec994ccf57631b (8 Dateien), QA-Intake #843 head 3418396a29e7b8c5682aeef6addfa1ab61c9cf55.
+- Alle zwölf Git-Blobs unverändert übernommen; vorherige Stable-Quellblobs identisch oder jeweilige Datei neu. Unabhängiger kombinierter Vitest/Regression Pilot #43862957994 SUCCESS (volle Source/Core/Heavy/Installer/Worker/Pages-Gates separat erforderlich).
+- 14-Tage-Regressionsmatrix: CSS-Textfluss, CSS-Kaskade/Quellfingerprint und reale React/Chromium-Viewport-Checks aus Spezial-Draft; native iOS-/WebKit-/VoiceOver-/Dynamic-Type-Abnahme nicht vorgetäuscht.
+- Kein CSS-Lazy-Split und keine neuen Wetter-/WMO-/DWD-/NoData-/Warnungsänderungen. #740 Native-Review-/ZIP-Cutover ausschließlich in Spezial-Chat Release Konzept 1.4, dort weiterhin offen. Keine neuen Anbieter/Abos.
+
+## MID v0.9.85.485 · 2026-11-16 · LC 1.9 14-Tage-Wettertexte / CSS-Ownership (SOURCE-KANDIDAT, NO RELEASE)
+
+- Source of truth am Start `main=mid-stable=8f4c950c3d0311f33ed3f9b89d0101d6cd556113` / v0.9.85.484; fünf Rulesets aktiv. PR #843 erhält exakt 4 originale Git-Blobs aus QA-Draft #840 head dd90d5b64f6aeb4ac0f517bc0aa64329e26ee722 und 8 aus Design-Draft #841 head d327e6154dc26d696c74379f6dec994ccf57631b; Quellpfade gegenüber altem Stable entweder unverändert oder neu. Integrationstree 4b9c4d9d6d669989e4dbd4fbffd0b237eef191ad, QA-HEAD 3418396a29e7b8c5682aeef6addfa1ab61c9cf55.
+- QA-HEAD-Draft-Pilot GitHub Run 43862957994 completed/success (gezielte Regressionen und Vitest/Coverage); keine vollständigen Source-/Heavy-/Release-Gates. Versionsspiegel werden für .485 vorbereitet, ein neuer Source-HEAD benötigt unabhängige vollständige CI und SHA-gebundene Reviewprüfung.
+- Fachlich: 14-Tage-Wetterbeschreibung ohne ellipsis, lesbarere Metadaten und 390px-Header-Layout; CSS-Cross-Owner-Guard ist eine Lesesicherung, kein CSS-Split. Originaltext, Wetterwerte, NoData, WMO-/DWD-Warnsemantik, RUC und iOS-native Implementierung unverändert. Browsermatrix aus Spezial-Draft (24 Chromium-Fälle) ist keine physische iOS-/VoiceOver-/WebKit-Abnahme. 200%-Text-Stress bleibt separat zu prüfen.
+- Keine doppelte Übernahme der in .484 integrierten Umfeld-/Radar-/Lüftungs-/Offline-Hilfsdateien. Sicherheits-Issue #740 verbleibt im Spezialchat; vorhandene GitHub-Protection-/Review-/Installer-Gates dürfen nicht abgeschwächt oder übergangen werden. Kein Release, bis Source-Gate, SHA-Bot, ZIP, Installer, Worker, Pages und Stable nachweislich erfolgreich sind.
+
 ## MID v0.9.85.484 · 2026-11-15 · Karten-Zeitqualität, Umfeldwetter und sichere Codeprüfung
 
 - Quell-SHAs PR #825 11a2c028c5a966094b7d15711b7c65bca4ffe58a; #824 f82c01b0a4fb7a23a1ea9c681ebfcf0b62381c3a; #826 b741bf461c0e439611f3254b3544d43fb3ea5e57; #827 92fefc860d0caf64fc23fbe377dbc9a6bc334a0d; Main/Stable c9fadfcd0969e949a92f414b321627dd3d4fb0cc.

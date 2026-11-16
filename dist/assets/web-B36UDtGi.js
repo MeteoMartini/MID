@@ -1,0 +1,1 @@
+import{da as e}from"./index-DBz7faSH.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};

@@ -1,3 +1,9 @@
+# MID v0.9.85.485 · LC 1.9 – 14-Tage-Lesbarkeit und CSS-Owner-Guard (SOURCE-KANDIDAT, KEIN RELEASE)
+
+Verifizierter Ausgangs-Stable `main=mid-stable=8f4c950c3d0311f33ed3f9b89d0101d6cd556113` / v0.9.85.484, fünf aktive Rulesets. Zwei aktuelle Spezial-Drafts #840 `dd90d5b64f6aeb4ac0f517bc0aa64329e26ee722` und #841 `d327e6154dc26d696c74379f6dec994ccf57631b` wurden als exakt zwölf unveränderte Git-Blobs in den autorisierten LC-Integrationsbranch eingebracht (#843). 14-Tage-Wettertext wird vollständig umbrochen; kompakte Wetterwerte besser lesbar, bei schmalen Geräten neue Kopfgeometrie. PostCSS-Owner-Guard verhindert die unbelegte Lazy-Verlagerung gemeinsam genutzter Navigation-/Berg-/Prognose-CSS-Regeln; er setzt `safeToDefer` ausdrücklich nicht auf true.
+
+QA-Intake SHA `3418396a29e7b8c5682aeef6addfa1ab61c9cf55` mit gezielter kombinierter Draft-CI #43862957994 SUCCESS, jedoch **keine** Freigabe des versionierten Release-HEADs. Ohne erfolgreiche neue Source-/Core-/Heavy-/Review-/Budget-/Browser-/Installer-/Worker-/Pages-/Stable-Gates keine Veröffentlichung. Browser-QA nicht als native iOS-/VoiceOver-Abnahme ausgeben. #740 bleibt der Sicherheits-Spezialarbeit zugeordnet; kritische Sachbefunde werden nicht ignoriert. Keine Änderung an WMO/DWD-Warnungen, meteorologischen Quellen, Feldwerten oder RUC-Produktion.
+
 # MID v0.9.85.484 · MID LC 1.6 – konsolidierter Integrationskandidat (DRAFT, KEIN RELEASE)
 
 Zusätzlicher Sicherheits-Intake in den v0.9.85.484-Source-Draft: Privilegierte Release- und Self-Heal-workflow_run-Jobs filtern interne Quell- und Installer-Events vor Token-/Retry-Verwendung; frischer Retry-Readback per Run-ID/Workflowpfad/Event/Repository/main-SHA/Attempt; Logs nur in privatem mktemp-Verzeichnis. Kanonische CI-Spiegel und ausführende jq-Testfälle bleiben gebunden. #740 TOCTOU und vollständige Merge-/Installer-/Stable-Abnahme weiterhin offen; keine automatische Freigabe.
