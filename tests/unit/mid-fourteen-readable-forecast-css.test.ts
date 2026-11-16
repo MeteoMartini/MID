@@ -44,7 +44,7 @@ describe('MID 14-day forecast: readable responsive CSS',()=>{
  it('gives the complete weather label a full header row on narrow phones without moving shared navigation',()=>{
   const selector="html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row>header";
   const rules=findRules(selector);
-  const narrow=rules.find(rule=>rule.parent?.name==='media'&&rule.parent?.params==='(max-width:375px)');
+  const narrow=rules.find(rule=>rule.parent?.name==='media'&&rule.parent?.params==='(max-width:390px)');
   expect(narrow).toBeDefined();
   const declarationsMap=declarations(narrow);
   expect(declarationsMap['grid-template-columns']).toBe('minmax(0,1fr) auto');
