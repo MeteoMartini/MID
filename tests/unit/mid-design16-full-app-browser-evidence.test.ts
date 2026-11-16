@@ -33,6 +33,7 @@ describe('MID Design 1.6 – real-page lab evidence can never authorize release'
   expect(()=>validateFullAppFixture({...fixture(),theme:'unknown'})).toThrow(/theme/);
   expect(()=>validateFullAppFixture({...fixture(),priorMapIntent:undefined})).toThrow(/explicit boolean/);
   expect(()=>validateFullAppFixture({...fixture(),apiToken:'must-not-leak'})).toThrow(/unexpected fixture/);
+  expect(()=>validateFullAppFixture({...fixture(),location:{...fixture().location,apiToken:'must-not-leak'}})).toThrow(/unexpected nested location/);
  });
  it('requires an actual Chromium pointer, visible map, FCP, complete network and GC samples',()=>{
   expect(()=>validateFullAppSample({...sample('cold'),mapReady:false})).toThrow(/map or actual/);
