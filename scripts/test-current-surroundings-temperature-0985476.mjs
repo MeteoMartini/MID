@@ -8,6 +8,12 @@ import ts from 'typescript-strada';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
 const [helper,component,css]=await Promise.all([read('src/currentSurroundingsTemperature.ts'),read('src/CurrentSurroundings.tsx'),read('src/CurrentSurroundings.css')]);
+
+const timelineSeek=await read('src/MapTimelineControls.tsx');
+assert.match(timelineSeek,/if\(next===selectedIndex\)return;/,'Only confirmed, controlled range index may suppress seek');
+assert.doesNotMatch(timelineSeek,/lastDispatched\.current===next/,'Never discard Home/End after an asynchronous model/term rerender');
+assert.match(timelineSeek,/event\.preventDefault\(\);commitSeek\(event\.key==='Home'\?0:lastIndex\)/,'Keyboard Home/End must still commit the physical range limits');
+
 const compiled=ts.transpileModule(helper,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022},reportDiagnostics:true});
 assert.equal(compiled.diagnostics?.length??0,0);
 const exports={};
