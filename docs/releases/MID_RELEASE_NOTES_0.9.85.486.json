@@ -9,7 +9,8 @@
     "Lesbarkeit und Textvergrößerung sind für zusätzliche Bildschirmgrößen im Chromium-Browser geprüft; eine native iOS-/VoiceOver-Abnahme ist damit nicht ersetzt."
   ],
   "internal": [
-    "Stable-Source ccd1c0f60d67925aa01dd8d946b490fde4142709 (v0.9.85.485); n=9 selektive, SHA-identische Dateiübernahmen aus #842 HEAD 3d9a1bb489bb8bc0b7d15699957b6289398dfd07 (2) und #844 HEAD 7d7422ab868dc0cda3094f24b97ad21e7a8f88f7 (7), disjunkte Pfade.",
+    "Stable-Source ccd1c0f60d67925aa01dd8d946b490fde4142709 (v0.9.85.485); n=11 selektive (9 Produkt-/QA + 2 echte React-Browser-QA), SHA-identische Dateiübernahmen aus #842 HEAD 3d9a1bb489bb8bc0b7d15699957b6289398dfd07 (2) und #844 HEAD 7d7422ab868dc0cda3094f24b97ad21e7a8f88f7 (7), disjunkte Pfade.",
+    "Zusätzlicher Spezial-Draft #846 HEAD e70b5aa36a1832aba6a1c081add4f839c629dc5a: 2 SHA-identische, rein testseitige Blobs im existierenden realen MapLibre/Chromium-Regressionsrunner; verzögerte Home-Wiederholung und End/Home nach Modellwechsel über React-19-Komponente. Der zwei produktive/Unit-Dateien umfassende #842-Fix bleibt byteidentisch, kein Doppelimport. Kein eigener Release- oder Quellgate-PASS dieser kombinierten Integration vor neuer vollständiger CI.",
     "Vorherige Draft-Gates: #842 Vitest #43862446558 SUCCESS; #844 Vitest #43865229772 SUCCESS mit 32 Chromium-Fixtures. Kein PASS des neuen kombinierten Heads ohne eigene Gates.",
     "Die am .485-Source-Gate einmal beobachtete 1440px-Index-Race (select 0→1) ist NICHT durch diesen Home-/End-Fix allein als behoben nachgewiesen; Map-Heavy-Gates vollständig wiederholen und Fehler separat triagieren.",
     "Keine Änderung an WMO/DWD-Warnungen, meteorologischen Quellen, Modelllauf, Akkumulation, Missing-Data-Semantik oder Worker-Laufzeitlogik. Issue #740/#839 bleibt beim Sicherheits-Spezialchat.",

@@ -1,6 +1,7 @@
 ## MID v0.9.85.486 · 2026-11-16 · Karten-Home-End und 14-Tage-Responsive-QA
 
-- Stable-Source ccd1c0f60d67925aa01dd8d946b490fde4142709 (v0.9.85.485); n=9 selektive, SHA-identische Dateiübernahmen aus #842 HEAD 3d9a1bb489bb8bc0b7d15699957b6289398dfd07 (2) und #844 HEAD 7d7422ab868dc0cda3094f24b97ad21e7a8f88f7 (7), disjunkte Pfade.
+- Additional QA source: #846 HEAD e70b5aa36a1832aba6a1c081add4f839c629dc5a, exactly two original Git blobs; MapTimelineControls + associated unit file already identical with #842 and therefore not imported again. Deferred-ACK Home/End is tested in real React/Chromium by mandatory map heavy regression; no skip or timeout dilution.
+- Stable-Source ccd1c0f60d67925aa01dd8d946b490fde4142709 (v0.9.85.485); n=11 selektive (9 Produkt-/QA + 2 echte React-Browser-QA), SHA-identische Dateiübernahmen aus #842 HEAD 3d9a1bb489bb8bc0b7d15699957b6289398dfd07 (2) und #844 HEAD 7d7422ab868dc0cda3094f24b97ad21e7a8f88f7 (7), disjunkte Pfade.
 - Vorherige Draft-Gates: #842 Vitest #43862446558 SUCCESS; #844 Vitest #43865229772 SUCCESS mit 32 Chromium-Fixtures. Kein PASS des neuen kombinierten Heads ohne eigene Gates.
 - Die am .485-Source-Gate einmal beobachtete 1440px-Index-Race (select 0→1) ist NICHT durch diesen Home-/End-Fix allein als behoben nachgewiesen; Map-Heavy-Gates vollständig wiederholen und Fehler separat triagieren.
 - Keine Änderung an WMO/DWD-Warnungen, meteorologischen Quellen, Modelllauf, Akkumulation, Missing-Data-Semantik oder Worker-Laufzeitlogik. Issue #740/#839 bleibt beim Sicherheits-Spezialchat.
