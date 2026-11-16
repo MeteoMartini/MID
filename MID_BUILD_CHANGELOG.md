@@ -1,3 +1,10 @@
+## MID v0.9.85.485 · 2026-11-16 · 14-Tage-Lesbarkeit und CSS-Eigentümerprüfung
+
+- Quellbasis mid-stable/main 8f4c950c3d0311f33ed3f9b89d0101d6cd556113 / v0.9.85.484; Spezial-Draft #840 head dd90d5b64f6aeb4ac0f517bc0aa64329e26ee722 (4 Dateien), #841 head d327e6154dc26d696c74379f6dec994ccf57631b (8 Dateien), QA-Intake #843 head 3418396a29e7b8c5682aeef6addfa1ab61c9cf55.
+- Alle zwölf Git-Blobs unverändert übernommen; vorherige Stable-Quellblobs identisch oder jeweilige Datei neu. Unabhängiger kombinierter Vitest/Regression Pilot #43862957994 SUCCESS (volle Source/Core/Heavy/Installer/Worker/Pages-Gates separat erforderlich).
+- 14-Tage-Regressionsmatrix: CSS-Textfluss, CSS-Kaskade/Quellfingerprint und reale React/Chromium-Viewport-Checks aus Spezial-Draft; native iOS-/WebKit-/VoiceOver-/Dynamic-Type-Abnahme nicht vorgetäuscht.
+- Kein CSS-Lazy-Split und keine neuen Wetter-/WMO-/DWD-/NoData-/Warnungsänderungen. #740 Native-Review-/ZIP-Cutover ausschließlich in Spezial-Chat Release Konzept 1.4, dort weiterhin offen. Keine neuen Anbieter/Abos.
+
 ## MID v0.9.85.485 · 2026-11-16 · LC 1.9 14-Tage-Wettertexte / CSS-Ownership (SOURCE-KANDIDAT, NO RELEASE)
 
 - Source of truth am Start `main=mid-stable=8f4c950c3d0311f33ed3f9b89d0101d6cd556113` / v0.9.85.484; fünf Rulesets aktiv. PR #843 erhält exakt 4 originale Git-Blobs aus QA-Draft #840 head dd90d5b64f6aeb4ac0f517bc0aa64329e26ee722 und 8 aus Design-Draft #841 head d327e6154dc26d696c74379f6dec994ccf57631b; Quellpfade gegenüber altem Stable entweder unverändert oder neu. Integrationstree 4b9c4d9d6d669989e4dbd4fbffd0b237eef191ad, QA-HEAD 3418396a29e7b8c5682aeef6addfa1ab61c9cf55.
