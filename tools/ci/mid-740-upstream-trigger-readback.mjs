@@ -95,7 +95,7 @@ export async function assessMid740UpstreamTrigger({event,repository,expectedGate
    get(P+'git/ref/heads/main'),get(P+'git/ref/heads/mid-stable')
   ]);
  }catch{return blocked('FINAL_READBACK_UNAVAILABLE')}
- if(!matchPr(afterPr,e,main.object.sha)||!sameRun(e,afterRun)||
+ if(afterPr?.number!==pr.number||!matchPr(afterPr,e,main.object.sha)||!sameRun(e,afterRun)||
     !branchSha(afterMain,'main',main.object.sha)||
     !branchSha(afterStable,'mid-stable',main.object.sha))
   return blocked('FINAL_SOURCE_GATE_RACE');

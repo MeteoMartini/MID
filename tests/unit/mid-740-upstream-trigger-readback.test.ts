@@ -74,6 +74,7 @@ describe('MID #740 source-gate webhook / GitHub REST independent binding, QA-onl
     ...structuredClone(x.d['pulls?state=open&base=main&per_page=100&page=1'][0]),number:998})}],
   ['missing REST response',x=>{delete x.d['actions/runs/111']}],
   ['final head drift',x=>{x.d['pulls/999'].head.sha=BASE}],
+  ['final PR identity swapped',x=>{x.d['pulls/999'].number=998}],
   ['final source drift',x=>{x.d['pulls/999'].base.sha=SHA}]
  ] as [string,(x:ReturnType<typeof fixture>)=>void][])('%s fails closed',async(_,mutate)=>{
   expect((await outcome(mutate)).status).toBe('BLOCKED');
