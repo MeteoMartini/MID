@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {existsSync,mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {downloadMid740Envelope as download} from '../../tools/ci/mid-740-download-artifact-envelope.mjs';
+import {downloadMid740Envelope as download,writeAllChunk} from '../../tools/ci/mid-740-download-artifact-envelope.mjs';
 
 const api='https://api.github.com/repos/MeteoMartini/MID/actions/artifacts/12/zip';
 const signed='https://production.mid.blob.core.windows.net/bucket/download?sv=signed';
@@ -21,6 +21,19 @@ function mock({location=signed,body=data,cdStatus=200}={}){
  };
  return {sent,fetcher};
 }
+describe('MID #740: full binary disk writes',()=>{
+ it('retries kernel partial writes and blocks zero or invalid writes',()=>{
+  const calls:number[][]=[];
+  const data=new Uint8Array([1,2,3,4,5]);
+  const written=writeAllChunk(10,data,(_fd:number,_data:Uint8Array,offset:number,length:number)=>{
+   calls.push([offset,length]);return Math.min(length,2);
+  });
+  expect(written).toBe(5);
+  expect(calls).toEqual([[0,5],[2,3],[4,1]]);
+  expect(()=>writeAllChunk(10,data,()=>0)).toThrow('MID_740_INCOMPLETE_DISK_WRITE');
+  expect(()=>writeAllChunk(10,data,()=>6)).toThrow('MID_740_INCOMPLETE_DISK_WRITE');
+ });
+});
 describe('MID #740: GitHub archive bytes from exact ID without redirect credential leak',()=>{
  it('downloads exact binary digest; never forwards GitHub authorization to CDN',async()=>{
   const root=mkdtempSync(join(tmpdir(),'mid740-fetch-'));

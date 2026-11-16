@@ -35,6 +35,17 @@ function safeOutput(p){
    realpathSync(parent)!==parent||existsSync(output))reject('UNSAFE_OUTPUT_PATH');
  return {output,parent};
 }
+export function writeAllChunk(fd,chunk,writer=writeSync){
+ if(!(chunk instanceof Uint8Array))reject('UNEXPECTED_DOWNLOAD_CHUNK');
+ let offset=0;
+ while(offset<chunk.byteLength){
+  const n=writer(fd,chunk,offset,chunk.byteLength-offset);
+  if(!Number.isSafeInteger(n)||n<=0||n>chunk.byteLength-offset)
+   reject('INCOMPLETE_DISK_WRITE');
+  offset+=n;
+ }
+ return offset;
+}
 export async function downloadMid740Envelope({artifact,output,token}={},
  fetcher=fetch){
  if(!Number.isSafeInteger(artifact?.id)||artifact.id<=0||
@@ -81,7 +92,7 @@ export async function downloadMid740Envelope({artifact,output,token}={},
    bytes+=chunk.byteLength;
    if(bytes>MAX_BYTES||bytes>artifact.size_in_bytes)reject('OVERSIZED_DOWNLOAD');
    hasher.update(chunk);
-   writeSync(fd,chunk);
+   writeAllChunk(fd,chunk);
   }
   closeSync(fd);fd=null;
   const digest=hasher.digest('hex');
