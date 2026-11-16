@@ -7,12 +7,20 @@ const DIGEST='d'.repeat(64),TREE='e'.repeat(40);
 const PATH='.github/workflows/agent-source-release.yml';
 const GATEPATH='.github/workflows/chatgpt-pr-gate.yml';
 const ARTURL='https://api.github.com/repos/'+R+'/actions/artifacts/333';
+const core=['Source-Kern vollständig prüfen','Determine whether complete original RUC admission is required',
+ 'Agent-Quellstand vollständig prüfen',...[1,2,3,4].map(i=>'Core-Regression · core-'+i+'/4'),
+ 'Heavy-Regression · heavy-browser-state ·','Heavy-Regression · heavy-mountain-visual ·',
+ 'Heavy-Regression · heavy-native-map ·',
+ ...[1,2,3].map(i=>'Heavy-Regression · heavy-unified-map · '+i+'/3')];
+const optional=['Extremwetterpolygone · echte Browserpixel','RUC +27h Kern, EPS und Gesamtpaket',
+ 'Admit three genuine DWD 27h original runs, codec and contour (read-only)'];
 function fixture(){
  const gate={id:111,workflow_id:358449552,path:GATEPATH,
   name:'MID-Agent-Quellstand prüfen',event:'pull_request',
   run_attempt:1,head_sha:HEAD,head_branch:'chatgpt/v0.9.85.487-qa',
   repository:{id:RID},head_repository:{id:RID},
-  status:'completed',conclusion:'success',updated_at:'2026-11-16T10:04:00Z'};
+  status:'completed',conclusion:'success',
+  run_started_at:'2026-11-16T10:00:00Z',updated_at:'2026-11-16T10:04:00Z'};
  const producer={id:222,workflow_id:358777143,path:PATH,
   name:'Geprüften Agent-PR automatisch veröffentlichen',
   event:'workflow_run',run_attempt:1,head_sha:BASE,head_branch:'main',
@@ -35,8 +43,16 @@ function fixture(){
   updated_at:'2026-11-16T10:08:00Z'};
  const commit={sha:MERGE,tree:{sha:TREE},parents:[{sha:BASE}]};
  const headCommit={sha:HEAD,tree:{sha:TREE},parents:[{sha:BASE}]};
+ const jobs=[...core.map(name=>({name,conclusion:'success'})),
+  ...optional.map(name=>({name,conclusion:'skipped'}))].map((job,i)=>({
+   ...job,id:i+1,run_id:111,run_attempt:1,head_sha:HEAD,
+   status:'completed',started_at:'2026-11-16T10:01:00Z',
+   completed_at:job.conclusion==='skipped'?
+    '2026-11-16T10:00:59Z':'2026-11-16T10:03:00Z'
+  }));
  const data:Record<string,any>={
   'actions/runs/111':gate,
+  'actions/runs/111/attempts/1/jobs?per_page=100&page=1':{total_count:jobs.length,jobs},
   'actions/workflows/358449552':{id:358449552,path:GATEPATH,
    name:gate.name,state:'active'},
   'actions/runs/222':producer,
@@ -81,6 +97,7 @@ describe('#740 producer completion -> source PR squash -> actual source artifact
    sourceHeadSha:HEAD,sourceBaseSha:BASE,sourceMergeSha:MERGE,
    sourceGateRunId:111,sourcePrNumber:999,producerRunId:222,artifactId:333,
    sourcePrBotMergeAndParentReadbackVerified:true,
+   originalSourceGateAttemptJobsVerified:true,
    sourceGitTreeSha:TREE,sourceDiffEquivalenceVerified:true,
    producerArtifactInventoryAndCausalityReadbackVerified:true,
    postVerificationRaceReadbackVerified:true,
@@ -97,6 +114,16 @@ describe('#740 producer completion -> source PR squash -> actual source artifact
   ['forged installer permission',x=>{x.intake.installerAuthorized=true}],
   ['unverified original artifact',x=>{x.intake.artifactSha256='0'.repeat(64)}],
   ['untrusted gate outcome',x=>{x.data['actions/runs/111'].conclusion='skipped'}],
+  ['source required core job skipped',x=>{x.data['actions/runs/111/attempts/1/jobs?per_page=100&page=1'].jobs[0].conclusion='skipped'}],
+  ['source required heavy shard removed',x=>{const y=x.data['actions/runs/111/attempts/1/jobs?per_page=100&page=1'];y.jobs.splice(9,1);y.total_count--;}],
+  ['source job wrong attempt',x=>{x.data['actions/runs/111/attempts/1/jobs?per_page=100&page=1'].jobs[0].run_attempt=2}],
+  ['source job wrong head SHA',x=>{x.data['actions/runs/111/attempts/1/jobs?per_page=100&page=1'].jobs[0].head_sha=BASE}],
+  ['source job belongs to foreign run',x=>{x.data['actions/runs/111/attempts/1/jobs?per_page=100&page=1'].jobs[0].run_id=222}],
+  ['source duplicate job ID',x=>{x.data['actions/runs/111/attempts/1/jobs?per_page=100&page=1'].jobs[1].id=1}],
+  ['source unexpected skipped job',x=>{const y=x.data['actions/runs/111/attempts/1/jobs?per_page=100&page=1'];y.jobs.push({...y.jobs[0],id:99,name:'unknown required',conclusion:'skipped'});y.total_count++;}],
+  ['source incomplete job inventory',x=>{x.data['actions/runs/111/attempts/1/jobs?per_page=100&page=1'].total_count=100}],
+  ['source success job has reversed chronology',x=>{x.data['actions/runs/111/attempts/1/jobs?per_page=100&page=1'].jobs[0].completed_at='2026-11-16T10:00:58Z'}],
+  ['source job finishes after gate completed',x=>{x.data['actions/runs/111/attempts/1/jobs?per_page=100&page=1'].jobs[0].completed_at='2026-11-16T10:06:00Z'}],
   ['wrong gate workflow registry',x=>{x.data['actions/workflows/358449552'].path='other'}],
   ['wrong gate HEAD',x=>{x.data['actions/runs/111'].head_sha=BASE}],
   ['source branch switch',x=>{x.data['pulls/999'].head.ref='replit/fake'}],
@@ -145,6 +172,18 @@ describe('#740 producer completion -> source PR squash -> actual source artifact
    if(path===P+'git/commits/'+HEAD&&++reads===2)
     result.tree.sha='f'.repeat(40);
    return result;
+  };
+  expect((await assess({premergeReceipt:x.receipt,
+   verifiedIntake:x.intake,sourceMergeSha:MERGE},get)).reason)
+   .toBe('FINAL_UPSTREAM_MERGE_OR_PRODUCER_RACE');
+ });
+ it('blocks an original-source-gate job identity change after artifact verification',async()=>{
+  const x=fixture();let count=0;
+  const get=async(path:string)=>{
+   const value=await x.get(path);
+   if(path===P+'actions/runs/111/attempts/1/jobs?per_page=100&page=1'&&++count===2)
+    value.jobs[0].head_sha=BASE;
+   return value;
   };
   expect((await assess({premergeReceipt:x.receipt,
    verifiedIntake:x.intake,sourceMergeSha:MERGE},get)).reason)

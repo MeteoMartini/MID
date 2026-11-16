@@ -40,6 +40,37 @@ const jobsOk=x=>{
  // Any new (unknown) job must be successful; skip is allowed only for known optional jobs.
  return [...names].every(([name,state])=>state==='success'||optional.includes(name));
 };
+/**
+ * Finished source-gate job evidence for post-merge QA. The original webhook
+ * was examined pre-merge; this fresh attempt-scoped GitHub REST readback must
+ * still prove every mandatory source/core/heavy job on the *same* source SHA.
+ * The fingerprint is an identity snapshot, not a credential or attestation.
+ */
+export function fingerprintMid740OriginalGateJobs(run,inventory){
+ if(!reviewRun(run)||!jobsOk(inventory))return null;
+ const start=Date.parse(run.run_started_at??'');
+ const finish=Date.parse(run.updated_at??'');
+ if(!Number.isFinite(start)||!Number.isFinite(finish)||finish<start)
+  return null;
+ const ids=new Set();
+ const entries=[];
+ for(const j of inventory.jobs){
+  if(!positive(j?.id)||ids.has(j.id)||j.run_id!==run.id||
+     j.run_attempt!==1||j.head_sha!==run.head_sha)return null;
+  ids.add(j.id);
+  const begun=Date.parse(j.started_at??'');
+  const ended=Date.parse(j.completed_at??'');
+  if(!Number.isFinite(begun)||!Number.isFinite(ended)||
+     begun<start||ended<start||begun>finish||ended>finish||
+     (j.conclusion==='success'&&begun>ended))return null;
+  // GitHub sometimes timestamps skipped jobs with end < start.
+  entries.push([j.id,j.name,j.run_id,j.run_attempt,j.head_sha,
+   j.status,j.conclusion,j.started_at,j.completed_at]);
+ }
+ entries.sort((a,b)=>a[0]-b[0]);
+ return JSON.stringify([run.id,run.run_attempt,run.head_sha,
+  run.run_started_at,run.updated_at,inventory.total_count,entries]);
+}
 const branchSha=(x,branch,sha)=>x?.ref==='refs/heads/'+branch&&
  x.object?.type==='commit'&&x.object.sha===sha;
 const sameRun=(a,b)=>reviewRun(b)&&a.id===b.id&&

@@ -27,3 +27,10 @@ Die konsumierten Receipt-/Intake-Objekte sind zunächst **Caller-Input** und dah
 - GitHub: https://docs.github.com/en/rest/actions/workflow-runs
 - GitHub: https://docs.github.com/en/rest/actions/artifacts
 - Issue: https://github.com/MeteoMartini/MID/issues/740
+
+
+## MID Release Konzept 1.6 · Authentifizierter Attempt-1-Source-Gate-Jobroster (QA-only)
+
+Die nachgelagerte Kausalitätsprüfung liest zusätzlich **unabhängig** die vollständige GitHub-REST-Jobliste des ursprünglichen Source-Gate-Runs unter `actions/runs/<id>/attempts/1/jobs?per_page=100&page=1`, vor und nach Prüfung des Producer-Artefakts. Der vorhandene Source-Gate-Rostervertrag (13 verpflichtende Core-/Heavy-/Source-Jobs, drei bekannte optionale Jobs) wird dabei unverändert wiederverwendet. Jeder Job muss zum tatsächlichen Run und Attempt 1 mit Original-HEAD-SHA gehören, eindeutig sein, und plausible Jobzeiten innerhalb des Original-Runs besitzen. Bei `skipped` darf GitHubs originaler Zeitstempel geringfügig rückwärts erscheinen; `success` benötigt echte positive Dauer. Fehlende, doppelte, inkonsistente oder erneut veränderte Jobs blockieren. Das Ergebnis `originalSourceGateAttemptJobsVerified:true` ist **nur** authentifizierbares GitHub-Metadaten-QA, kein signiertes Original-Receipt und keine native Mergezeit-/Installer-Freigabe.
+
+Der Original-REST-Readback des `.486`-Source-Gates [#43874951889](https://github.com/MeteoMartini/MID/actions/runs/43874951889) bestätigte 16 Jobobjekte auf Attempt 1 mit Original-HEAD `e39cf853ab0e893f08012c3b3ebe7be1b96d658b`: 13 verpflichtende Jobs erfolgreich, drei optionale übersprungen. Die Originaljobzeiten werden vom neuen Prüfcode realitätsgetreu berücksichtigt. Die Unit-/QA-Ausführung auf dem nächsten GitHub-PR-HEAD ist separat SHA-gebunden zu prüfen.

@@ -6,6 +6,7 @@
  * authorize an installer, GitHub ruleset change, merge, or release.
  */
 import {collectMid740GitHubReadback} from './mid-740-github-artifact-readback.mjs';
+import {fingerprintMid740OriginalGateJobs} from './mid-740-upstream-trigger-readback.mjs';
 
 const REPO='MeteoMartini/MID',ROOT='repos/'+REPO+'/',REPO_ID=1305110795;
 const SOURCE_WORKFLOW_ID=358449552,PRODUCER_WORKFLOW_ID=358777143;
@@ -84,15 +85,16 @@ export async function assessMid740PostProducerCausality({
     meta.producerRun.name!==PRODUCER_NAME)
   return blocked('PRODUCER_OR_ORIGINAL_DIGEST_MISMATCH');
 
- let gate,gateRegistry,pr,merge,sourceHead,stable;
+ let gate,gateRegistry,pr,merge,sourceHead,stable,gateJobs;
  try{
-  [gate,gateRegistry,pr,merge,sourceHead,stable]=await Promise.all([
+  [gate,gateRegistry,pr,merge,sourceHead,stable,gateJobs]=await Promise.all([
    get(ROOT+'actions/runs/'+r.sourceGateRunId),
    get(ROOT+'actions/workflows/'+SOURCE_WORKFLOW_ID),
    get(ROOT+'pulls/'+r.prNumber),
    get(ROOT+'git/commits/'+sourceMergeSha),
    get(ROOT+'git/commits/'+r.sourceHeadSha),
-   get(ROOT+'git/ref/heads/mid-stable')
+   get(ROOT+'git/ref/heads/mid-stable'),
+   get(ROOT+'actions/runs/'+r.sourceGateRunId+'/attempts/1/jobs?per_page=100&page=1')
   ]);
  }catch{return blocked('UPSTREAM_MERGE_OR_STABLE_READ_UNAVAILABLE')}
  if(gate?.id!==r.sourceGateRunId||
@@ -106,6 +108,9 @@ export async function assessMid740PostProducerCausality({
     gateRegistry.path!==SOURCE_PATH||gateRegistry.name!==SOURCE_NAME||
     gateRegistry.state!=='active')
   return blocked('ORIGINAL_SOURCE_GATE_IDENTITY_DRIFT');
+ const originalGateRoster=fingerprintMid740OriginalGateJobs(gate,gateJobs);
+ if(originalGateRoster===null)
+  return blocked('ORIGINAL_SOURCE_GATE_ATTEMPT_JOB_ROSTER_UNVERIFIED');
  if(pr?.number!==r.prNumber||pr.state!=='closed'||pr.merged!==true||
     pr.draft!==false||pr.merge_commit_sha!==sourceMergeSha||
     pr.base?.ref!=='main'||pr.base.sha!==r.sourceBaseSha||
@@ -141,9 +146,9 @@ export async function assessMid740PostProducerCausality({
  // Final independent REST readback, including a second full producer-artifact
  // inventory. A changed source gate, merge, PR, artifact, stable, or producer
  // invalidates this QA result; the installer must still recheck separately.
- let after,gate2,pr2,merge2,sourceHead2,stable2;
+ let after,gate2,pr2,merge2,sourceHead2,stable2,gateJobs2;
  try{
-  [after,gate2,pr2,merge2,sourceHead2,stable2]=await Promise.all([
+  [after,gate2,pr2,merge2,sourceHead2,stable2,gateJobs2]=await Promise.all([
    collectMid740GitHubReadback({runId:r.producerRunId,
     artifactId:i.artifactId,sourceMergeSha,
     trustedWorkflowSha:r.producerWorkflowSha},get),
@@ -151,12 +156,14 @@ export async function assessMid740PostProducerCausality({
    get(ROOT+'pulls/'+r.prNumber),
    get(ROOT+'git/commits/'+sourceMergeSha),
    get(ROOT+'git/commits/'+r.sourceHeadSha),
-   get(ROOT+'git/ref/heads/mid-stable')
+   get(ROOT+'git/ref/heads/mid-stable'),
+   get(ROOT+'actions/runs/'+r.sourceGateRunId+'/attempts/1/jobs?per_page=100&page=1')
   ]);
  }catch{return blocked('FINAL_CAUSALITY_READBACK_UNAVAILABLE')}
  if(runIdentity(meta.producerRun)!==runIdentity(after.producerRun)||
     artifactIdentity(meta.artifact)!==artifactIdentity(after.artifact)||
     runIdentity(gate)!==runIdentity(gate2)||
+    fingerprintMid740OriginalGateJobs(gate2,gateJobs2)!==originalGateRoster||
     prIdentity(pr)!==prIdentity(pr2)||
     commitIdentity(merge)!==commitIdentity(merge2)||
     commitIdentity(sourceHead)!==commitIdentity(sourceHead2)||
@@ -172,6 +179,7 @@ export async function assessMid740PostProducerCausality({
   producerRunId:r.producerRunId,producerAttempt:1,
   artifactId:i.artifactId,artifactSha256:i.artifactSha256,
   sourcePrBotMergeAndParentReadbackVerified:true,
+  originalSourceGateAttemptJobsVerified:true,
   sourceGitTreeSha:sourceHead.tree.sha,
   sourceDiffEquivalenceVerified:true,
   producerArtifactInventoryAndCausalityReadbackVerified:true,
