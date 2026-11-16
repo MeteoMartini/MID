@@ -19,7 +19,10 @@ const require=createRequire(import.meta.url);
 const playwrightBinary=realpathSync(execFileSync('npm',[
   'exec','--yes','--package=playwright@1.56.1','--','which','playwright'
 ],{encoding:'utf8',timeout:120000}).trim());
-const {chromium}=require(join(dirname(dirname(playwrightBinary)),'playwright'));
+const {chromium,webkit}=require(join(dirname(dirname(playwrightBinary)),'playwright'));
+const browserFlavor=process.env.MID_QA_BROWSER||'chrome';
+if(!['chrome','webkit'].includes(browserFlavor))throw Error('Unsupported fixture browser');
+
 const cases=[
   {width:320,height:720,theme:'light'},
   {width:320,height:720,theme:'dark'},
@@ -39,7 +42,7 @@ const report={schema:'mid.maps.surroundings.browser-responsive-qa.v1',
   sourceScope:'REAL_CHROME_REACT_MAPLIBRE_WITH_DETERMINISTIC_SOURCE_FIXTURES',
   isGenuineDwdOriginalData:false,realIosOrVoiceOverVerified:false,
   manualImageQualityVerified:false,activationAuthorized:false,releaseAuthorized:false,
-  cases:[]};
+  cases:[],browserFlavor};
 
 process.env.VITE_WORKER_SAME_ORIGIN_PATH='/__qa-worker';
 const server=await createServer({root,cacheDir:join(root,'node_modules/.vite-mid-surroundings-smoke'),
@@ -53,7 +56,9 @@ const server=await createServer({root,cacheDir:join(root,'node_modules/.vite-mid
   }}]});
 await server.listen();
 const base='http://127.0.0.1:'+server.httpServer.address().port;
-const browser=await chromium.launch({channel:'chrome',headless:true,
+const browser=browserFlavor==='webkit'
+ ?await webkit.launch({headless:true})
+ :await chromium.launch({channel:'chrome',headless:true,
   args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 
 async function validateLayout(page,label){
@@ -97,7 +102,8 @@ async function validateLayout(page,label){
 async function runCase(spec){
  const context=await browser.newContext({viewport:{width:spec.width,height:spec.height},
    colorScheme:spec.theme,locale:'de-DE',timezoneId:'Europe/Berlin',
-   reducedMotion:'reduce',deviceScaleFactor:1});
+   reducedMotion:'reduce',deviceScaleFactor:1,
+   ...(browserFlavor==='webkit'&&spec.width<=390?{isMobile:true,hasTouch:true}:{})});
  const page=await context.newPage(),errors=[];
  const label=spec.width+'/'+spec.height+'/'+spec.theme;
  const observed=new Date(Date.now()-5*60000).toISOString();
@@ -174,7 +180,7 @@ async function runCase(spec){
    assert.ok(screen.byteLength>10000,label+': empty viewport screenshot');
    const snapSha=createHash('sha256').update(screen).digest('hex');
    assert.deepEqual(errors,[],label+': uncaught browser JS errors');
-   console.log('MID_P1_SURROUNDINGS_CASE_PASS '+JSON.stringify({
+   console.log('MID_P1_SURROUNDINGS_CASE_PASS '+JSON.stringify({browserFlavor,
      viewport:label,checks:'cloud+radar+original-only+no-stale+persist+reload+44px+overflow',
      screenshotSha256:snapSha,screenshotBytes:screen.length,
      radarOriginalTimesRequests:timesCalls}));
@@ -193,5 +199,5 @@ try{
    assert.notEqual(pair[0].screenshotSha256,pair[1].screenshotSha256,
      'Light/dark screenshot identical; theme response not visually established');
  }
- console.log('MID_P1_SURROUNDINGS_CHROME_RESPONSIVE_FIXTURE_QA_PASS '+JSON.stringify(report));
+ console.log('MID_P1_SURROUNDINGS_'+browserFlavor.toUpperCase()+'_RESPONSIVE_FIXTURE_QA_PASS '+JSON.stringify(report));
 }finally{await browser.close();await server.close();}
