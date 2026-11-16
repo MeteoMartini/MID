@@ -134,8 +134,8 @@ async function oneIntegrated(width,height,theme){
  page.on('pageerror',e=>errors.push(String(e?.message||e)));
  await page.addInitScript(theme=>{
   localStorage.setItem('theme',theme);
-  document.documentElement.dataset.theme=theme;
-  document.documentElement.classList.toggle('dark',theme==='dark');
+  const apply=()=>{document.documentElement.dataset.theme=theme;document.documentElement.classList.toggle('dark',theme==='dark')};
+  if(document.documentElement)apply();else document.addEventListener('DOMContentLoaded',apply,{once:true});
  },theme);
  try{
   await page.goto(url+'?full=1',{waitUntil:'domcontentloaded',timeout:30000});
