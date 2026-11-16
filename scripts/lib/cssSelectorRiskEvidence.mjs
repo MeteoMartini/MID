@@ -5,11 +5,54 @@
  * The candidate will load AFTER every remaining eager stylesheet, so only
  * rules appearing AFTER it in today's canonical cascade can invert priority.
  */
-const CLASS_RE=/\.(-?[_a-zA-Z][-_a-zA-Z0-9]*)/g;
 const MAX_EXAMPLES=16;
 
-function classes(selector){
-  return [...new Set([...selector.matchAll(CLASS_RE)].map(match=>match[1]))];
+/** Conservative ASCII CSS-class scanner, not a full selector parser.
+ * Never mistake a dotted attribute value or quoted pseudo argument for a
+ * class. Escaped/non-ASCII class names stay explicitly uncertain instead
+ * of silently becoming truncated class names.
+ */
+function classAnchors(selector){
+  if(typeof selector!=='string')throw TypeError('CSS selector must be text');
+  const names=new Set();
+  let quoted=null,attributes=0,ambiguous=false;
+  for(let i=0;i<selector.length;i++){
+    const char=selector[i],next=selector[i+1];
+    if(quoted){
+      if(char==='\\'){i++;continue}
+      if(char===quoted)quoted=null;
+      continue;
+    }
+    if(char==="'"||char==='"'){quoted=char;continue}
+    if(char==='/'&&next==='*'){
+      const end=selector.indexOf('*/',i+2);
+      if(end<0){ambiguous=true;break}
+      i=end+1;continue;
+    }
+    if(char==='\\'){ambiguous=true;i++;continue}
+    if(char==='['){attributes++;continue}
+    if(char===']'){
+      if(attributes)attributes--;
+      else ambiguous=true;
+      continue;
+    }
+    if(attributes||char!=='.')continue;
+    let cursor=i+1,candidate='';
+    const first=selector[cursor]??'';
+    if(!/[-_a-zA-Z]/.test(first)){
+      if(first&&first.codePointAt(0)>127)ambiguous=true;
+      continue;
+    }
+    for(;cursor<selector.length;cursor++){
+      const value=selector[cursor];
+      if(/[-_a-zA-Z0-9]/.test(value)){candidate+=value;continue}
+      if(value==='\\'||value.codePointAt(0)>127){ambiguous=true;candidate=''}
+      break;
+    }
+    if(candidate)names.add(candidate);
+    i=cursor-1;
+  }
+  return {names:[...names],ambiguous:ambiguous||Boolean(quoted)||attributes>0};
 }
 function context(rule){
   const out=[];
@@ -36,8 +79,9 @@ function rules(entry){
     if(isKeyframe(rule))return;
     const decls=declarations(rule);
     if(!decls.length)return;
+    const anchors=classAnchors(rule.selector??'');
     result.push({file:entry.file,selector:rule.selector??'',line:rule.source?.start?.line??null,
-      classes:classes(rule.selector??''),declarations:decls,conditions:context(rule)});
+      classes:anchors.names,selectorAmbiguous:anchors.ambiguous,declarations:decls,conditions:context(rule)});
   });
   return result;
 }
@@ -67,9 +111,11 @@ export function cssSelectorRiskEvidence(entries,candidateFile){
       byClassProperty.get(key).push({row,decl});
     }
   }
-  let potentialPairs=0,unclassifiedRules=0;
+  let potentialPairs=0,unclassifiedRules=0,ambiguousCandidateSelectors=0;
+  const ambiguousLaterSelectors=later.filter(row=>row.selectorAmbiguous).length;
   const affectedClasses=new Set(),affectedFiles=new Set(),examples=[];
   for(const left of candidate){
+    if(left.selectorAmbiguous)ambiguousCandidateSelectors++;
     if(!left.classes.length){unclassifiedRules++;continue}
     for(const className of left.classes)for(const declaration of left.declarations){
       const matches=byClassProperty.get(JSON.stringify([className,declaration.property]))||[];
@@ -94,9 +140,9 @@ export function cssSelectorRiskEvidence(entries,candidateFile){
     candidateFile,candidateRuleCount:candidate.length,laterEagerFiles:entries.length-index-1,
     laterRuleCount:later.length,potentialPairs,
     affectedClasses:[...affectedClasses].sort(),affectedFiles:[...affectedFiles].sort(),
-    unclassifiedRules,examples,
+    unclassifiedRules,ambiguousCandidateSelectors,ambiguousLaterSelectors,examples,
     method:'Shared CSS class AND identical property in different selectors; potential change in order after asynchronous import',
-    caveat:'Lower-bound static heuristic; may overreport DOM overlap and underreport complex/cross-property cascade effects, selectors without classes, escaped identifiers, @layer and variable dependencies',
+    caveat:'Lower-bound static heuristic; may overreport DOM overlap and underreport complex/cross-property cascade effects, selectors without classes, escaped/non-ASCII identifiers, @layer and variable dependencies. Ambiguous selectors are counted, never proof of safe removal.',
     status:potentialPairs?'POTENTIAL_CROSS_SELECTOR_CASCADE_RISK':'UNVERIFIED_NO_STATIC_MATCH',
     safeToDefer:false,
   };
