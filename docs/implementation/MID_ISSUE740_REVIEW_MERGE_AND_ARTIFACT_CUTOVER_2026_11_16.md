@@ -11,9 +11,9 @@
 
 ## In diesem QA-Draft implementiert
 - `tools/ci/mid-review-premerge-guard.mjs`: GitHub-GraphQL liest zusätzlich `PullRequestReview.body` und `author.__typename`, alle Review-Seiten bleiben SHA-gebunden. Auch **P0/P1 in reinem COMMENTED-Reviewtext ohne offene Threads** sperren bis zu einem **späteren** unabhängigen `APPROVED`-Review eines GitHub-*User*, der nicht der PR-Autor oder Befundautor ist. Der Dispositions-Review muss jeden kritischen Fund **einzeln** nach Quelle und HEAD mit einem belastbaren Repository-Evidenzlink referenzieren, z. B.:
-  
+
   `MID-740-DISPOSITION v1 sha=<40-hex> review=<GitHub-Review-ID> item=1 result=fixed evidence=https://github.com/MeteoMartini/MID/blob/<40-hex>/src/... `
-  
+
   Für jede weitere kritische Fundstelle eine weitere Zeile. Widersprüche, Duplikate, zu frühe Reviews, fremde HEADs, fehlende Reviewtexte oder nicht zulässige URLs sind **BLOCKED**. Eine Review-Aussage ist nur ein authenticated **Dispositionsnachweis**, **kein** unabhängiger Beweis der Fehlerfreiheit; tatsächliche Code-/Test-/Physikbeweise bleiben nötig. `mergeAuthorized:false` und `releaseAuthorized:false` bleiben in allen Zweigen erhalten.
 - `tests/unit/mid-review-premerge-guard.test.ts`: aktuelle und neue adversariale Fälle gegen den Original-P1-Fehlertyp, überzählige/fehlende Items, alte SHAs, Selbstbestätigung, andere Domains, neue späte P1 und vollständige GraphQL-Body-Readbacks. Kein Token, keine selbständige Thread-Schließung.
 - `tools/ci/mid-740-package-handoff-pilot.mjs` + Unit-Tests: **nur parametrisierter Offlinevertrag** für zukünftigen immutable Actions-Artifact-Transport mit Producer-Run, Run-SHA, eindeutiger Artifact-ID/Digest, heruntergeladener Hülle, exakt geprüftem Original-Git-Tree und nativer Reviewdisposition. Weder signiert das Werkzeug fremde Daten noch zieht es GitHub-Artefakte tatsächlich herunter; es meldet selbst beim synthetischen Positivfall `releaseAuthorized:false`. Das Original-Workflowspiegel-Testmodell hält den **derzeitigen ZIP-Push-Konflikt** bewusst sichtbar.
