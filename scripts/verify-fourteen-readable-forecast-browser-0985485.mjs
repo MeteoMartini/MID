@@ -72,9 +72,11 @@ async function one(width,height,theme){
  try{
   await page.goto(url,{waitUntil:'domcontentloaded',timeout:30000});
   await page.locator('summary').filter({hasText:'Alle 14 Tageswerte'}).waitFor({timeout:30000});
-  assert.equal(await page.locator('.cockpit-fourteen-card').count(),0,'14-day detail must start closed');
+  assert.equal(await page.locator('.cockpit-fourteen-card').count(),14,'All fourteen cards remain in the closed details DOM');
+  assert.equal(await page.locator('.cockpit-fourteen-card').first().isVisible(),false,'14-day cards must start visually hidden');
   await page.locator('summary').filter({hasText:'Alle 14 Tageswerte'}).click();
   await page.locator('.cockpit-fourteen-card').first().waitFor({timeout:30000});
+  assert.equal(await page.locator('.cockpit-fourteen-card').first().isVisible(),true,'14-day cards must be visible once details is opened');
   assert.equal(await page.locator('.cockpit-fourteen-card').count(),14,'All 14 day cards must render');
   await page.locator('.cockpit-fourteen-weather-label').first().evaluate((node,t)=>{node.textContent=t;},longText);
   await page.evaluate(()=>document.fonts.ready);
