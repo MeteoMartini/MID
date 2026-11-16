@@ -1,8 +1,10 @@
 /** Read-only SHA-bound build inventory. Run only against a COMPLETE production dist. */
 import {readFile,readdir,mkdir,writeFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import {resolve,relative,extname,join} from 'node:path';
 import {gzipSync,brotliCompressSync,constants} from 'node:zlib';
 import {startupAssetEvidence} from './lib/startupAssetEvidence.mjs';
+import {startupTransitiveGraph} from './lib/startupTransitiveGraph.mjs';
 import {offlineShellAssetEvidence} from './lib/offlineShellAssetEvidence.mjs';
 import {verifyStartupBuildIdentity} from './lib/verifyStartupBuildIdentity.mjs';
 
@@ -17,8 +19,13 @@ const assets=[];
 for(const file of files){
  const extension=extname(file).toLowerCase();if(extension!=='.js'&&extension!=='.css')continue;
  const data=await readFile(file);
- assets.push({file:relative(root,file),extension,bytes:data.length,gzipBytes:gzipSync(data,{level:9}).length,
-  brotliBytes:extension==='.css'?brotliCompressSync(data,{params:{[constants.BROTLI_PARAM_QUALITY]:6}}).length:undefined});
+ const item={file:relative(root,file),extension,bytes:data.length,gzipBytes:gzipSync(data,{level:9}).length,
+  brotliBytes:extension==='.css'?brotliCompressSync(data,{params:{[constants.BROTLI_PARAM_QUALITY]:6}}).length:undefined};
+ if(extension==='.js'){
+  item.source=data.toString('utf8');
+  item.sha256=createHash('sha256').update(data).digest('hex');
+ }
+ assets.push(item);
 }
 const report=startupAssetEvidence(index,assets);
 const offlineShell=offlineShellAssetEvidence(index,assets,report);
@@ -32,11 +39,17 @@ if(!provenance.version||provenance.version!==buildIdentity.version||!buildIdenti
 }
 // Reject incomplete/corrupted built assets, not only a plausible source SHA.
 await verifyStartupBuildIdentity(root,buildIdentity);
-const result={...report,offlineShell,provenance};
+// Read-only additive graph. Any unresolved eager static import or corrupt JS
+// invalidates startup evidence: never report it as zero or omit the failure.
+const staticJsGraph=startupTransitiveGraph(report,assets.filter(asset=>asset.extension==='.js'));
+const result={...report,offlineShell,provenance,staticJsGraph};
 await mkdir('artifacts',{recursive:true});
 await writeFile('artifacts/startup-assets-0985482.json',JSON.stringify(result,null,2)+'\n');
 console.log(JSON.stringify({schema:result.schema,version:result.provenance.version,sourceGitSha:buildIdentity.sourceGitSha,
  initialCssRaw:result.css.bytes,initialCssGzip:result.css.gzipBytes,initialCssBrotli:result.css.brotliBytes,
  htmlReferencedJsRaw:result.js.bytes,htmlReferencedJsGzip:result.js.gzipBytes,jsFiles:result.js.entries.length,
  offlineShellRaw:result.offlineShell.total.bytes,offlineShellGzip:result.offlineShell.total.gzipBytes,
- offlineShellOnlyGzip:result.offlineShell.offlineOnly.gzipBytes},null,2));
+ offlineShellOnlyGzip:result.offlineShell.offlineOnly.gzipBytes,
+ staticJsFiles:staticJsGraph.staticClosureFiles,staticJsAdditionalFiles:staticJsGraph.additionalStaticFiles,
+ staticJsRaw:staticJsGraph.staticClosureBytes,staticJsGzip:staticJsGraph.staticClosureGzipBytes,
+ dynamicImportsExcluded:staticJsGraph.dynamicImportCount},null,2));

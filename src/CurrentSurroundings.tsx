@@ -306,6 +306,10 @@ export default function CurrentSurroundings(props:Props){
     <UnifiedVectorBasemap dark={darkMap}/>
     {mode==='cloud'&&cloudForecast.image&&<ImageQuadLayer id="surroundings-model-cloud-weather" url={cloudForecast.image.url}
      bounds={cloudForecast.image.bounds} resampling="nearest" zIndex={270} frameKey={`${cloudForecast.image.run}:${cloudForecast.image.validTime}:pseudo`}/>}
+    {mode==='cloud'&&!cloudForecast.image&&cloudForecast.reference&&<ImageQuadLayer
+     id="surroundings-original-reference-cloud-weather" url={cloudForecast.reference.url}
+     bounds={cloudForecast.reference.bounds} resampling="nearest" zIndex={270}
+     frameKey={`${cloudForecast.reference.run}:${cloudForecast.reference.validTime}:reference:${cloudTarget}`}/>}
     {mode==='radar'&&visibleClouds&&<ImageQuadLayer id="surroundings-clouds" url={clouds} bounds={mapBounds} zIndex={220} onError={()=>setCloudError(clouds)}/>}
     {mode==='radar'&&(displayedOpera??displayedRadar)&&<ImageQuadLayer id="surroundings-radar" url={displayedPhase?.url??(displayedOpera??displayedRadar)!.url} bounds={mapBounds} zIndex={360}/>}
     <VectorReferenceLayer url={referenceTileUrl} glyphsUrl={referenceGlyphsUrl} layers={mapReferences} zIndex={790}/>
@@ -330,6 +334,12 @@ export default function CurrentSurroundings(props:Props){
      {cloudForecast.loading&&<small>Neuer Modellstand wird geprüft.</small>}
      {cloudForecast.unavailable&&<small>Aktualisierung nicht erreichbar; letzter gültiger Bildstand.</small>}
     </>
+    :cloudForecast.reference?<><strong>Referenzbild · {cloudForecast.reference.model} · Wolken + SigWx</strong>
+     <span>Original gültig {datedClock(Date.parse(cloudForecast.reference.validTime))} Uhr · INIT {datedClock(Date.parse(cloudForecast.reference.run))} Uhr</span>
+     <small>Gewählt: {datedClock(cloudTarget)} Uhr · hierfür kein bestätigtes Original. Das Referenzbild gilt ausdrücklich NICHT für den gewählten 15-Minuten-Termin.</small>
+     {cloudForecast.loading&&<small>Originaldaten werden neu geprüft.</small>}
+     {cloudForecast.unavailable&&<small>Aktualisierung nicht erreichbar; vorhandenes Referenzbild ist keine aktuelle Prognose.</small>}
+    </>
     :<span>{cloudForecast.loading?'Verifiziertes PseudoSat-/SigWx-Modellbild wird geladen …':'Kein gültiges Wolken-/SigWx-Modellbild für Ort und Termin; keine Satellitenbeobachtung oder Entwarnung.'}</span>
    :<span>{displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:radarStep!==0&&(!radar||target===undefined)?'Kein originales Radar-/Nowcast-Bild für diesen 15-Minuten-Termin':failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</span>}</div>
   <details className="current-surroundings-sources">
@@ -339,6 +349,16 @@ export default function CurrentSurroundings(props:Props){
     Original-Modelltermin ohne zeitliche Interpolation; fehlt der 15-Minuten-Originaltermin, bleibt der Zieltermin NoData.
     {Math.abs(Date.parse(cloudForecast.image.validTime)-cloudTarget)>90*1000&&<> Gewählter Zieltermin {datedClock(cloudTarget)} Uhr wird von diesem Bild nicht exakt repräsentiert.</>}
     {' '}Kein Satellitenbild und keine amtliche Warnung; Datenlücken bleiben NoData.</p>}
+   {mode==='cloud'&&!cloudForecast.image&&cloudForecast.reference&&<p>
+    Separates Wolken-/SigWx-Referenzbild aus SHA-geprüftem Modelloriginal,
+    gültig {datedClock(Date.parse(cloudForecast.reference.validTime))} Uhr,
+    Modell {cloudForecast.reference.model},
+    INIT {datedClock(Date.parse(cloudForecast.reference.run))} Uhr.
+    Der gewählte Zieltermin {datedClock(cloudTarget)} Uhr besitzt kein bestätigtes Original;
+    die Referenz ist höchstens 45 Minuten älter und wird weder als Viertelstundenprognose,
+    als Satellitenbeobachtung noch als WMO-Warnung ausgegeben. Keine zeitliche Interpolation,
+    kein Wettercode-Blending, kein Missing→0. Klare Wolken- oder Wetterfelder können
+    transparente Bildbereiche ergeben. Karte öffnen verwendet weiterhin die gewählte Zielzeit.</p>}
   {mode==='radar'&&visibleClouds&&satelliteTime!==undefined&&<p>Bewölkung · {satellite?.provider==='dwd'?'DWD':'EUMETSAT'} · Originalbeobachtung {datedClock(satelliteTime)} Uhr · Radar-/Satellitentermine getrennt</p>}
   {Number.isFinite(temperature)&&temperatureTime&&<p>Temperatur am gewählten Ort · {temperatureTime.slice(11,16)} Uhr</p>}
   {(mode==='cloud'||radarAtNow)&&(temperatureGrid&&temperatures&&Object.keys(temperatures).length

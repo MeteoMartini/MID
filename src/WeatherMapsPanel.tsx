@@ -3,6 +3,7 @@ import {AppInfoHint} from './AppInfoPopover';
 import NativeModelMap from './NativeModelMap';
 import {alphabeticalMapOptions} from './mapOptionOrdering';
 import {groupedMapModelOptions,mapModelDisplayLabel,mapModelSourceGrid} from './mapModelPresentation';
+import {MapModelPicker} from './MapModelPicker';
 import PrecipitationTotalsMap,{type WeatherMapFavoriteLocation} from './PrecipitationTotalsMap';
 import ModelMapContextOverlay from './ModelMapContextOverlay';
 import ModelMapProbe from './ModelMapProbe';
@@ -78,7 +79,11 @@ function WeatherMapsPanel({latitude,longitude,timezone,locationName,favorites=[]
   </header>:null}
   <div className="weather-maps-primary-controls" aria-label="Primäre Kartenauswahl">
    <label><span>Kartenprodukt</span><select aria-label="Kartenprodukt" value={product.id} onChange={event=>chooseProduct(event.target.value)}>{!products.some(item=>item.id===product.id)&&<option value={product.id} disabled>{product.label} · derzeit nicht verfügbar</option>}{['Niederschlag','Temperatur','Wind','Druck & Höhen','Weitere Wetterfelder'].map(family=>{const matching=alphabeticalMapOptions(products.filter(item=>weatherMapProductFamily(item)===family));return matching.length?<optgroup key={family} label={family}>{matching.map(item=><option key={item.id} value={item.id}>{item.label}</option>)}</optgroup>:null})}</select></label>
-   <label><span>Modell</span><select aria-label="Modell" value={modelId} onChange={event=>chooseModel(event.target.value as WeatherMapModelId)}>{!modelOptions.some(item=>item.id===modelId)&&<option value={modelId} disabled>{mapModelDisplayLabel({...model,sourceGrid:'mixed'})} · derzeit nicht verfügbar</option>}{groupedMapModelOptions(modelOptions).map(group=><optgroup key={group.id} label={group.label}>{group.models.map(item=><option key={item.id} value={item.id}>{item.displayLabel}</option>)}</optgroup>)}</select></label>
+   <div className="mid-map-model-field"><span>Modell</span><MapModelPicker
+ label="Modell" value={modelId} groups={groupedMapModelOptions(modelOptions)}
+ fallbackLabel={!modelOptions.some(item=>item.id===modelId)
+  ?mapModelDisplayLabel({...model,sourceGrid:'mixed'})+' · derzeit nicht verfügbar':undefined}
+ onChange={value=>chooseModel(value as WeatherMapModelId)}/></div>
   </div>
   {isTotals?<PrecipitationTotalsMap favorites={favorites} embedded basemap={basemap} kind={product.source==='observed-totals'?'observed':'forecast'}/>:product.source==='native'&&product.nativeKind?<NativeModelMap kind={product.nativeKind} label={product.label} favorites={favorites} basemap={basemap} unit={unit}/>:<>
   <div className="model-map-layout"><div className="model-map-main">

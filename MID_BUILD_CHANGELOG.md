@@ -1,3 +1,20 @@
+## MID v0.9.85.487 · LC 1.11: SHA-gebündelter #854/#857-Integrationsstand (QA-DRAFT, NO RELEASE)
+
+- Verifizierte Basis `main=mid-stable=a78465b655d25cafc9ecc0390080694cb7aca957`; fünf aktive Rulesets; Spezial- und Security-Aufgaben separat.
+- Disjunkte Integrationsquellen: [#854](https://github.com/MeteoMartini/MID/pull/854) @ `897ccbb90aa06926ab7b7245f2d370dd19e74c9c` (48 Pfade) sowie [#857](https://github.com/MeteoMartini/MID/pull/857) @ `204aad6bb1c0745a388d751814cccc2cb40d38a0` (4 Pfade), gemeinsames Intervall **0 Überschneidungen**. Ausgangstree von #854 `f24613764d31aed95ae6856fd0556b277421a5ce`; die vier Original-Git-Blobs von #857 werden selektiv hinzugefügt, keine Last-Writer-Wins-Mergeannahmen.
+- Wetterzeit: fehlender/ungültiger Open-Meteo-Offset ersetzt keine belastbaren Viertelstunden-Sonnenscheindaten. Echte 0-Offsets und vorhandene Stundenwerte bleiben zulässig; die Tageszeitberechnung folgt der bestehenden `providerIsoEpoch`-Semantik und die generierte `src/weather.ts` dem normativen Fragment. Externe Zeitreferenz: https://open-meteo.com/en/docs.
+- Die .487-Versionsspiegel und bereits qualifizierten Karten-/Umfeld-/Modellflaggen-/JS-/IR-QA-Inhalte stammen unverändert aus #854; der durch #857 ergänzte Test ist schon im Stable-Baseline-Testinventar. Keine neuen RUC-Aktivierungen, Warnquellen, Security-/Release-Gates, iOS-Nativquellen oder Kosten.
+- **Keine** READY-/Merge-/Release-Freigabe. Individuelle Draft-CIs ersetzen nicht die frische kombinierte CI und die vollständigen Source-/Core-/Heavy-/Review-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates. #855 und #856 werden wegen paralleler fortlaufender QA bzw. `CurrentSurroundings.tsx`-Konflikt bewusst nicht eingebracht. #740/#839 Release-Sicherheit separat und unverändert.
+
+## MID v0.9.85.487 · 2026-11-16 · LC 1.10: Umfeld-Kartenöffnung, Originalreferenz, Modellflaggen und JS-/IR-QA (SOURCE-KANDIDAT, NO RELEASE)
+
+- Geprüfter vorheriger Stable: main=mid-stable=a78465b655d25cafc9ecc0390080694cb7aca957 / v0.9.85.486; fünf aktive GitHub-Rulesets.
+- Herkunft: #848 bbb3bbdfd46ab75de44d5e691c6c699bdc7cee7f (4 QA-Blobs); #850 a372df5f442797c9ad3432ae6dd7416202a40d9e (6 Original-Blobs); #851 0f18921c99c492f061b95e411b72de6bae411d3b (5 Original-Blobs); #852 da9175f8abe7393f0851e7da1fd9733d21d418a1 (12 Original-Blobs).
+- 28 eindeutige QA-Dateipfade, 27 ursprüngliche Git-Blobs unverändert; genau ein gemeinsames scripts/verify-unified-map-browser-0985167.mjs vorwärts/rückwärts aus Originalpatches bytegleich gemergt, resultierender Blob dd99696c345c2efaf35eb12767a0884b72f6fbc0. QA-Parent/HEAD 18a587ad482a82d6d20e394580955c2559077e9c direkt auf Stable.
+- Fachlich: Cloud/SigWx-15-Minuten-Ziel bleibt bei fehlendem Original NoData; nur ältere bis 45 min SHA-verifizierte Originale werden als Referenz beschriftet. MapLibre-Kamera erlaubt keine undefinierte maxZoom-Option; geografische Bounds validiert. Desktop-Modellflaggen als SVG statt unzuverlässige native Emoji-Optionen. IR10.8/GSP-Paar- und JS-Startup-Graph-Ergebnisse sind ausschließlich Diagnose/Regression, keine Daten-/Performance-Freigabe.
+- Kein WMO/DWD-Warnungsumbau, keine RUC-/Worker-Produktivdatenänderung und keine #740-Sicherheits-Arbeit. #853 Rad/Sat-Crop noch offen; keine Behauptung physischer Windows-/iOS-/VoiceOver-Abnahme.
+- Vor jedem tatsächlichen Release vollständige Source-/Core-/Heavy-/Browser-/Review-/Budget-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates auf neuem versioniertem SHA. Kein Draft-/Cubic-PASS als Freigabe.
+
 ## MID v0.9.85.486 · 2026-11-16 · Karten-Home-End und 14-Tage-Responsive-QA
 
 - Additional QA source: #846 HEAD e70b5aa36a1832aba6a1c081add4f839c629dc5a, exactly two original Git blobs; MapTimelineControls + associated unit file already identical with #842 and therefore not imported again. Deferred-ACK Home/End is tested in real React/Chromium by mandatory map heavy regression; no skip or timeout dilution.

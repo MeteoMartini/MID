@@ -1,3 +1,11 @@
+# MID v0.9.85.487
+
+- **Umfeldwetter: Wolken und signifikantes Wetter besser nachvollziehbar.** Fehlt für die gewählte Viertelstunde ein bestätigtes Original, kann ein nachweislich früheres Bild ausdrücklich als Referenz angezeigt werden. Die gewählte Zielzeit bleibt als Datenlücke gekennzeichnet; es werden keine Wettercodes dazwischen erfunden.
+- **Kartenöffnung robuster.** Die große Karte begrenzt den Kamera-Zoom beim Übergang aus dem Umfeldwetter auf gültige Werte und behandelt die betreffenden Kartenbounds explizit.
+- **Modellauswahl auf Desktop besser erkennbar.** Landes- und EU-Kennzeichen erhalten grafische SVG-Symbole, statt allein auf systemabhängige Emoji-Flaggen in nativen Auswahlfeldern angewiesen zu sein.
+- **Erweiterte Qualitätskontrollen.** Originalbildpaare sowie der statische JavaScript-Importgraph werden zusätzlich überprüft. Die Importgraph-Messung beweist keine messbare Lade- oder Speicherersparnis.
+- **Meteorologische Transparenz bleibt erhalten.** Keine erfundenen 15-Minuten-Originale, keine Änderung amtlicher DWD-Warnungen, keine Freigabe zusätzlicher RUC-Originaldaten. Breites Umfeld-Radar/Sat-BBox und reale iOS-/VoiceOver-Tests bleiben gesonderte Abnahmen.
+
 # MID v0.9.85.486
 
 - Die Kartenzeitachse verarbeitet Home/End auch nach neu eingetroffenen Modell- und Zeitdaten zuverlässiger.
