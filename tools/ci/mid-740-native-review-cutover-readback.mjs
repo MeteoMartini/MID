@@ -89,8 +89,33 @@ export async function inspectMid740NativeReviewCutover(get){
     main.commit.sha!==EXPECTED_STABLE||stable.commit.sha!==EXPECTED_STABLE)
   return deny('STABLE_OR_REPOSITORY_DRIFT');
  if(!detailsOK(details)||details.some(d=>
-     list.find(r=>r.id===d.id)?.name!==d.name))
-  return deny('ACTIVE_RULESET_OR_BYPASS_DRIFT');
+     list.find(r=>r.id===d.id)?.name!==d.name)){
+  // Deliberately report only bounded booleans from public policy metadata.
+  // Never print GitHub API response bodies, credentials or raw errors.
+  const p=details.find(r=>r.id===23963851);
+  const st=details.find(r=>r.id===21919727);
+  const fields=details.map(r=>String(r?.id)+
+   (r?.enforcement==='active'?'A':'I')+
+   (Array.isArray(r?.rules)?'R':'X')+
+   (Array.isArray(r?.bypass_actors)?'B':'X')+
+   (Array.isArray(r?.conditions?.ref_name?.include)?'C':'X')).join('_');
+  const flags=[
+   p?.name==='MID Production Branch Guard',
+   st?.name==='MID Stable Protection',
+   JSON.stringify(p?.conditions?.ref_name?.include?.slice()?.sort())===
+    JSON.stringify(['refs/heads/main','refs/heads/mid-stable'].sort()),
+   JSON.stringify(st?.conditions?.ref_name?.include)===
+    JSON.stringify(['refs/heads/mid-stable']),
+   p?.bypass_actors?.length===1,
+   p?.bypass_actors?.[0]?.actor_id===5059236,
+   p?.bypass_actors?.[0]?.bypass_mode==='always',
+   !!st?.rules?.find(r=>r.type==='required_status_checks')?.
+    parameters?.required_status_checks?.some(c=>
+     c.context==='MID / release-candidate-quality'&&c.integration_id===5059236),
+   details.every(d=>list.find(r=>r.id===d.id)?.name===d.name)
+  ].map(x=>x?'1':'0').join('');
+  return deny('ACTIVE_RULESET_OR_BYPASS_DRIFT_'+fields+'_'+flags);
+ }
  const code=files.map((f,i)=>blob(f,WORKFLOWS[i]));
  if(code.some(s=>!s))return deny('TRUSTED_WORKFLOW_BLOB_INVALID');
  if(!code[0].includes('git push origin HEAD:main')||
