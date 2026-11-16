@@ -1,5 +1,5 @@
 import type {WmsProvider} from './CompositeData';
-import type {SurroundingsMercatorWmsPlan} from './surroundingsMercatorWmsPlan';
+import {planSurroundingsMercatorWms,type SurroundingsMercatorWmsPlan} from './surroundingsMercatorWmsPlan';
 
 /** Unactivated request adapter for MID's allowlisted composite-wms Worker route.
  * Source-product time validity, original alpha and actual coverage must be
@@ -43,6 +43,12 @@ export function buildSurroundingsProjectedWmsRequest(
   if(![west,south,east,north].every(Number.isFinite)||
     west!>=east!||south!>=north!||west!< -180||east!>180||
     south!<=-85.0511287798066||north!>=85.0511287798066)return undefined;
+  // The source image must represent EXACTLY the rectangle pinned onto the
+  // MapLibre quad. Prevent plausible-but-wrong BBOX and corner combinations.
+  // The quantization belongs to the planner alone (outward 1 mm rounding).
+  const canonical=planSurroundingsMercatorWms(plan.imageBounds);
+  if(!canonical||canonical.bbox!==plan.bbox||
+    canonical.width!==plan.width||canonical.height!==plan.height)return undefined;
   const coordinates=plan.bbox.split(',');
   if(coordinates.length!==4||coordinates.some(value=>!/^[-]?\d+\.\d{3}$/.test(value)))return undefined;
   const [xMin,yMin,xMax,yMax]=coordinates.map(Number);
