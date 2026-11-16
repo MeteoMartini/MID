@@ -16,3 +16,25 @@ export function matchesSurroundingsCloudRequest(
   Number.isFinite(Date.parse(image.validTime))&&Date.parse(image.validTime)===targetUtcMs&&
   image.requestLatitude===latitude&&image.requestLongitude===longitude;
 }
+
+/** A distinct reference preview, NEVER an original for the selected target.
+ * The UTC target and exact coordinates are bound at request creation. An older
+ * frame may be viewed only as a visibly labelled reference (up to 45 minutes),
+ * not as a computed 15-minute SigWx product. No stale cross-target reuse.
+ */
+export type SurroundingsCloudReferenceIdentity=SurroundingsCloudRequestIdentity&{
+ requestTargetTime?:string;
+};
+export const MAX_SURROUNDINGS_CLOUD_REFERENCE_LAG_MS=45*60_000;
+export function matchesSurroundingsCloudReference(
+ reference:SurroundingsCloudReferenceIdentity,
+ latitude:number,longitude:number,targetUtcMs:number
+):boolean{
+ const source=Date.parse(reference.validTime);
+ return Number.isFinite(latitude)&&Number.isFinite(longitude)&&Number.isFinite(targetUtcMs)&&
+  Number.isFinite(source)&&
+  Number.isFinite(Date.parse(reference.requestTargetTime??''))&&
+  Date.parse(reference.requestTargetTime??'')===targetUtcMs&&
+  source<targetUtcMs&&targetUtcMs-source<=MAX_SURROUNDINGS_CLOUD_REFERENCE_LAG_MS&&
+  reference.requestLatitude===latitude&&reference.requestLongitude===longitude;
+}
