@@ -223,14 +223,22 @@ def audit_rate_manifest(rate_manifest: Path, ir_manifest: Path) -> dict:
     required = [entry["valid"] for entry in ir["records"]]
     if len(required) != 10 or len(set(required)) != 10:
         raise PhaseOriginalError("IR has no unique ten original times")
+    # First admit the ENTIRE four-product UTC/run/source inventory before
+    # ecCodes sees any GRIB. This is critical both for fail-closed security and
+    # for deterministic adversarial tests in an environment WITH ecCodes.
+    # Previously a malformed PRS_GSP entry could follow valid PRR_GSP fake
+    # bytes, so the test failed on an unrelated decoder error first.
     seen_hashes = set()
-    counts = {}
+    seen_urls = set()
+    planned = {}
+    expected = set(required)
+    initial = utc(run)
     for product in RATE_PARAMETERS:
         entries = products[product]
         if not isinstance(entries, list) or len(entries) != 10:
             raise PhaseOriginalError("ten genuine rate frames per product required")
-        records = {}
-        root = rate_manifest.parent / "frames" / product
+        rows = []
+        seen_leads = set()
         for entry in entries:
             if not isinstance(entry, dict):
                 raise PhaseOriginalError("invalid rate source entry")
@@ -239,9 +247,25 @@ def audit_rate_manifest(rate_manifest: Path, ir_manifest: Path) -> dict:
                     or not SHA.fullmatch(digest)):
                 raise PhaseOriginalError("invalid source filename or digest")
             lead = source_lead(url, product, run)
-            if name != urlsplit(url).path.split("/")[-1] or digest in seen_hashes:
+            if (name != urlsplit(url).path.split("/")[-1] or digest in seen_hashes
+                    or url in seen_urls or lead in seen_leads):
                 raise PhaseOriginalError("source URL/file/hash mismatch or duplicate")
             seen_hashes.add(digest)
+            seen_urls.add(url)
+            seen_leads.add(lead)
+            rows.append((name, digest, lead))
+        # A correct count alone does not show that the products coincide with
+        # the SAME ten IR10.8 original UTC steps. Refuse before any GRIB read.
+        claimed = {(initial + timedelta(seconds=lead)).isoformat(
+            timespec="seconds").replace("+00:00", "Z") for _, _, lead in rows}
+        if claimed != expected:
+            raise PhaseOriginalError("rate original UTC inventory differs from IR10.8")
+        planned[product] = rows
+    counts = {}
+    for product, rows in planned.items():
+        records = {}
+        root = rate_manifest.parent / "frames" / product
+        for name, digest, lead in rows:
             file = _checked_local(name, root)
             hasher = hashlib.sha256()
             with file.open("rb") as src:
@@ -250,10 +274,11 @@ def audit_rate_manifest(rate_manifest: Path, ir_manifest: Path) -> dict:
             if hasher.hexdigest() != digest:
                 raise PhaseOriginalError("source GRIB SHA256 mismatch")
             record = inspect_rate_grib(file, product, run)
-            if record["leadSeconds"] != lead or record["valid"] in records:
+            if (record["leadSeconds"] != lead
+                    or record["valid"] in records):
                 raise PhaseOriginalError("original lead/time duplicated or differs from GRIB")
             records[record["valid"]] = record
-        if set(records) != set(required):
+        if set(records) != expected:
             raise PhaseOriginalError("missing, shifted or spliced original IR/phase timestamps")
         counts[product] = {
             "originals": len(records),

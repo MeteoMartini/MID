@@ -217,8 +217,22 @@ class Native15MinGspPhaseTests(unittest.TestCase):
             wrong_url = json.loads(json.dumps(original))
             wrong_url["products"]["PRS_GSP"][0]["sourceUrl"] = url("PRR_GSP", 0)
             variants.append(wrong_url)
+            shifted = json.loads(json.dumps(original))
+            shifted["products"]["PRG_GSP"][9]["sourceUrl"] = url("PRG_GSP", 10)
+            shifted["products"]["PRG_GSP"][9]["name"] = name(10)
+            variants.append(shifted)
+            duplicated = json.loads(json.dumps(original))
+            duplicated["products"]["PRS_GSP"][5]["sourceUrl"] = url("PRS_GSP", 4)
+            duplicated["products"]["PRS_GSP"][5]["name"] = name(4)
+            variants.append(duplicated)
+            # Every foreign or incomplete inventory MUST fail before touching
+            # even one synthetic GRIB payload. With actual ecCodes installed,
+            # the previous one-pass scanner mistakenly entered PRR decoding
+            # before examining the deliberately wrong later PRS source.
             with patch("original_15min_phase_gate.audit_manifest",
-                       return_value=ir_report):
+                       return_value=ir_report), patch(
+                           "original_15min_phase_gate.inspect_rate_grib",
+                           side_effect=AssertionError("No decoding before whole-inventory validation")):
                 for variant in variants:
                     rates.write_text(json.dumps(variant))
                     with self.subTest(variant=variant.get("run")), self.assertRaises(
