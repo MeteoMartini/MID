@@ -1,3 +1,9 @@
+# MID v0.9.85.485
+
+- 14-Tage-Prognose: vollständige Wetterbeschreibungen ohne Ellipsis, bessere Lesbarkeit in kompakten Datenzeilen und responsive Zweizeilen-Anordnung bis 390 px.
+- CSS-Qualitätssicherung erkennt gemeinsam genutzte Regeln für Navigation, Bergansicht und 14-Tage-Prognose, bevor eine riskante Lazy-Auslagerung erfolgt.
+- Wetterdaten, Quellen, amtliche Warnungen und bestehende Kartenfunktionen bleiben unverändert.
+
 # MID v0.9.85.484
 
 - **Offline-Assets transparent geprüft:** Die technische Qualitätsprüfung trennt tatsächlich deklarierte Offline-Shell-Dateigrößen von Start-JavaScript und Start-CSS und erkennt außerdem unzulässige Preload-Mischdeklarationen. Es wird keine ungemessene Beschleunigung behauptet.

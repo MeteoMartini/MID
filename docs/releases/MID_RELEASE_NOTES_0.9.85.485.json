@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "version": "0.9.85.485",
+  "date": "2026-11-16",
+  "title": "14-Tage-Lesbarkeit und sichere CSS-Eigentümerschaft",
+  "external": [
+    "Die 14-Tage-Prognose zeigt Wetterbeschreibungen vollständig statt abgeschnitten; kompakte Beschriftungen sind lesbarer.",
+    "Auf kleinen Smartphones erhält die Wetterbeschreibung mehr Platz, während Navigation und andere Wetterfunktionen erhalten bleiben."
+  ],
+  "internal": [
+    "Ausgangsbasis mid-stable/main 8f4c950c3d0311f33ed3f9b89d0101d6cd556113 (v0.9.85.484). Nur 12 SHA-identische Dateiblobs aus #841 HEAD d327e6154dc26d696c74379f6dec994ccf57631b und #840 HEAD dd90d5b64f6aeb4ac0f517bc0aa64329e26ee722 übernommen; die beiden Diff-Pfadgruppen sind disjunkt und überschneiden #833 nicht.",
+    "CSS-Owner-QA markiert geteilte 14-Tage-Styles als BLOCKED_CROSS_MODULE_OWNERSHIP; kein CSS-Lazy-Split, keine Wetter-/Warnungs-/Worker-Änderung.",
+    "Ursprungs-Drafts haben gezielte Vitest-Ergebnisse und #841 24 Chromium-Fälle; die vereinigte .485-Quelle ist vor einem eigenständigen Source-/Core-/Heavy-/Browser-/Review-/Security-/Installer-/Pages-/Stable-Gate NICHT freigegeben.",
+    "MID Release Konzept 1.4 / Issue #740 und Karten-/RUC-Draft #832 bleiben getrennte Arbeitsstränge; keine native iOS- oder VoiceOver-Abnahme behauptet."
+  ]
+}
