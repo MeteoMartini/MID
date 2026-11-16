@@ -25438,7 +25438,7 @@ html[data-mid-design='next'] .cockpit-focus-card.fourteen.mid-forecast-row-detai
 }
 
 /* MID Design 1.4: narrow phones give the complete weather description a full row. */
-@media(max-width:375px){
+@media(max-width:390px){
  html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row>header{
   grid-template-columns:minmax(0,1fr) auto!important;
   grid-template-areas:
