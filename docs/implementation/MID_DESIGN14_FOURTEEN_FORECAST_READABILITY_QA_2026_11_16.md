@@ -29,3 +29,9 @@
 - Vite CSS-Chunks und Preloads: https://vite.dev/guide/features
 - CSS-Kaskade/Spezifität: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_cascade/Cascade
 - WCAG 2.2: https://www.w3.org/TR/WCAG22/ (kein numerischer allgemeiner CSS-Font-Mindestwert behauptet)
+
+## QA-Iteration nach erster CI (exakte GitHub-Evidenz)
+- Erster Draft-HEAD `6579c7fba36754f70529b2c0eaa1e056e4763980`: [Run 43831597827](https://github.com/MeteoMartini/MID/actions/runs/43831597827) **FAIL**. Gezielter Job erwartete aus dem historischen 14-Tage-Vertrag wörtlich `10px` / `9.5px` für Sonne/UVI; Vitest erkannte zusätzlich den fehlenden synchronisierten `src/midPresentation.css`-Aggregatstand. Keiner dieser Fehler wurde übergangen oder ein Test entfernt.
+- Korrektur 1: Generiertes `src/midPresentation.css` aus verifiziertem Basisblob `a22efbecf86a9043dc8be77472d580fd776e43ae` durch **genau einen**, byteverifizierten Austausch des vollständigen 12.823-Byte-Original-CSS-Quellblocks mit dem neuen 12.869-Byte-Block aktualisiert. Ergebnisblob `3b283957ae1ad643641d6a66995281370e760a9f`; der Generator-/68-Quellen-Kanon muss die Parität in CI noch bestätigen. Kein unabhängiger JS-/CSS-Produktionsbuild durch diesen Schritt.
+- Korrektur 2: Bestehender `scripts/test-fourteen-day-replit-fluid-grid-098593.mjs` auf die **bewusst geänderten** Sonne/UVI-Schriftwerte aktualisiert und um positive Prüfung des Wettertextumbruchs ergänzt; übrige historische Assertions unverändert. **Keine** Testabschaltung, Budgetanhebung, Regel- oder Releaseänderung.
+- Diese Iteration ändert zusammen exakt fünf langlebige Pfade: Ausgangs-CSS, generiertes Aggregat, bestehende 14-Tage-Regression, neuer Vitest, Dokumentation. Der alte rote HEAD darf **nicht** als erfolgreich ausgegeben werden. Aktuelle CI gilt ausschließlich für ihren jeweils genannten HEAD.
