@@ -13,6 +13,7 @@ from ir108_original_probe import NATIVE_GRID
 from ir108_gsp_native_preview import (
     NODATA, PHASE_IDS, PreviewError, create_private_preview, kelvin_gray,
     png_rgba, sample_native_image, verified_ruc_lookup,
+    order_original_frame_sources,
 )
 
 RUN = "2026-11-15T15:00:00Z"
@@ -135,6 +136,34 @@ class NativeIrShadowTests(unittest.TestCase):
         with self.assertRaisesRegex(PreviewError,"oversized"):
             png_rgba(2000,2000,b"")
 
+    def test_reordered_manifest_must_match_all_original_utc_leads(self):
+        def records(product):
+            directory = "SYNMSG_BT_CL_IR10.8" if product is None else product
+            result=[]
+            for i in range(10):
+                name=f"PT{i//4:03d}H{(i%4)*15:02d}M.grib2"
+                result.append({"sourceUrl":
+                    f"https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/"
+                    f"p/{directory}/r/2026-11-15T15%3A00/s/{name}",
+                    "name":name})
+            return result
+        ir={"frames":list(reversed(records(None)))}
+        gsp={"products":{p:list(reversed(records(p))) if p=="PRS_GSP"
+                         else records(p) for p in ("PRR_GSP","PRS_GSP","PRG_GSP")}}
+        ordered_ir,ordered_rates=order_original_frame_sources(ir,gsp,RUN,RUN)
+        self.assertEqual(ordered_ir[0]["name"],"PT000H00M.grib2")
+        self.assertEqual(ordered_ir[-1]["name"],"PT002H15M.grib2")
+        self.assertEqual(ordered_rates["PRS_GSP"][0]["name"],"PT000H00M.grib2")
+        self.assertEqual(ordered_rates["PRS_GSP"][-1]["name"],"PT002H15M.grib2")
+        gsp["products"]["PRS_GSP"][2]=gsp["products"]["PRS_GSP"][1]
+        with self.assertRaisesRegex(PreviewError,"duplicated original"):
+            order_original_frame_sources(ir,gsp,RUN,RUN)
+        gsp["products"]["PRS_GSP"]=records("PRS_GSP")
+        ir["frames"][0]["sourceUrl"]=ir["frames"][0]["sourceUrl"].replace(
+            "SYNMSG_BT_CL_IR10.8","SYNMSG_BT_CL_WV6.2")
+        with self.assertRaises(PreviewError):
+            order_original_frame_sources(ir,gsp,RUN,RUN)
+
     def test_private_candidate_has_ten_sha_bound_original_frames_no_activation(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)
@@ -153,7 +182,11 @@ class NativeIrShadowTests(unittest.TestCase):
                     name=f"PT{i//4:03d}H{(i%4)*15:02d}M.grib2"
                     payload=b"GRIB"+bytes([i])*100+b"7777"
                     (directory/name).write_bytes(payload)
-                    rows.append({"name":name,"sha256":hashlib.sha256(payload).hexdigest()})
+                    product_dir="SYNMSG_BT_CL_IR10.8" if product=="IR" else product
+                    official_url=(f"https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/"
+                        f"p/{product_dir}/r/2026-11-15T15%3A00/s/{name}")
+                    rows.append({"name":name,"sha256":hashlib.sha256(payload).hexdigest(),
+                                 "sourceUrl":official_url})
                 frames[product]=rows
             ir_manifest=ir/"manifest.json"
             rate_manifest=gsp/"manifest.json"

@@ -21,8 +21,8 @@ import zlib
 from datetime import datetime, timezone
 from pathlib import Path
 
-from ir108_original_probe import NATIVE_GRID, MAX_COMPRESSED_BYTES, utc
-from original_15min_phase_gate import RATE_PARAMETERS, audit_rate_manifest, phase_cell
+from ir108_original_probe import NATIVE_GRID, MAX_COMPRESSED_BYTES, utc, source_lead_seconds
+from original_15min_phase_gate import RATE_PARAMETERS, audit_rate_manifest, phase_cell, source_lead
 
 SCHEMA = "mid.ir108-gsp.original-native-preview.shadow.v1"
 NODATA = 0xffffffff
@@ -255,6 +255,50 @@ def _decode_native(path: Path, points: int):
     return result
 
 
+def order_original_frame_sources(ir_doc: dict, rate_doc: dict,
+                                 run: str, first_valid: str):
+    """Order by *verified source lead*, never arbitrary JSON list position.
+
+    The independent ecCodes audit validates each immutable source URL against
+    decoded GRIB UTC validity. This pure re-indexing keeps IR and all three
+    native instantaneous rate fields on the SAME original UTC target even when
+    the source manifest entries arrive in a different order.
+    """
+    start = int((utc(first_valid)-utc(run)).total_seconds())
+    leads = tuple(start+900*i for i in range(10))
+    if start < 0 or start % 900 or leads[-1] > 14*3600:
+        raise PreviewError("IR/GSP preview outside official RUC 0..14h horizon")
+    if not isinstance(ir_doc, dict) or not isinstance(rate_doc, dict):
+        raise PreviewError("invalid original source manifests")
+    if not isinstance(rate_doc.get("products"), dict) or set(rate_doc["products"]) != set(RATE_PARAMETERS):
+        raise PreviewError("missing or foreign original GSP phase product")
+    def order(records, product):
+        if not isinstance(records, list) or len(records) != 10:
+            raise PreviewError("exactly ten native original source frames required")
+        seen = {}
+        for record in records:
+            if not isinstance(record, dict):
+                raise PreviewError("invalid original source entry")
+            url = record.get("sourceUrl")
+            if not isinstance(url, str):
+                raise PreviewError("source URL identity missing")
+            try:
+                lead = (source_lead_seconds(url) if product is None
+                        else source_lead(url, product, run))
+            except (ValueError, TypeError) as exc:
+                raise PreviewError("invalid original lead/official source URL") from exc
+            if lead in seen:
+                raise PreviewError("duplicated original UTC validity in source list")
+            seen[lead] = record
+        if set(seen) != set(leads):
+            raise PreviewError("IR and GSP source UTC leads are not identical")
+        return [seen[lead] for lead in leads]
+    ir = order(ir_doc.get("frames"), None)
+    rates = {product: order(rate_doc["products"][product], product)
+             for product in RATE_PARAMETERS}
+    return ir, rates
+
+
 def create_private_preview(source: Path, ir_manifest: Path,
                            gsp_manifest: Path, output: Path) -> dict:
     """After *independent real* 40-GRIB admission, make ten private frame pairs.
@@ -274,8 +318,8 @@ def create_private_preview(source: Path, ir_manifest: Path,
     lookup = verified_ruc_lookup(source, run)
     ir_doc = json.loads(_safe_file(ir_manifest, max_bytes=2_000_000))
     rate_doc = json.loads(_safe_file(gsp_manifest, max_bytes=2_000_000))
-    if len(ir_doc["frames"]) != 10 or any(len(rate_doc["products"][p]) != 10 for p in RATE_PARAMETERS):
-        raise PreviewError("original source frame inventory differs from qualified audit")
+    ordered_ir, ordered_rates = order_original_frame_sources(
+        ir_doc, rate_doc, run, admitted["firstValid"])
     sources = {str(p): hashlib.sha256(_safe_file(p, max_bytes=2_000_000)).hexdigest()
                for p in (ir_manifest, gsp_manifest)}
     staging = Path(tempfile.mkdtemp(prefix=".mid-ir108-gsp-preview-", dir=output.parent))
@@ -284,10 +328,10 @@ def create_private_preview(source: Path, ir_manifest: Path,
         for i in range(10):
             # The source auditor verified the UTC/lead/order; each decoded
             # original is rechecked by its immutable digest here.
-            ir_ref = ir_doc["frames"][i]
+            ir_ref = ordered_ir[i]
             ir = _decode_native(_staged_frame(ir_manifest, ir_ref, None), lookup["nativePoints"])
             fields = [_decode_native(_staged_frame(gsp_manifest,
-                     rate_doc["products"][p][i], p), lookup["nativePoints"])
+                     ordered_rates[p][i], p), lookup["nativePoints"])
                       for p in RATE_PARAMETERS]
             sampled = sample_native_image(lookup, ir, *fields)
             png = png_rgba(lookup["width"], lookup["height"], sampled["rgba"])

@@ -115,3 +115,8 @@ python3 tools/ruc/ir108_gsp_native_preview.py \
 ```
 
 **Nicht mit einem produktiven Build/Release gleichsetzen.** Ausstehend: realer 40-Feld-Download/Decode und echte Lauf-/Grib-/Grid-/Extrem-Nachweise, Originaldatensatz-auf-Karte-Inspektion, CSS-token-geführte phasenspezifische Live-Überlagerung, dynamische WebGL-/WebKit-/iOS-/VoiceOver-Performance/Barrierefreiheit und vollständige Source-/Review-/Installer-/Worker-/Pages-/Stable-Gates. Keine Bild- oder Warnungsbehauptung bei nicht belegten Originalframes.
+
+
+### GSP-Original-UTC-Sortiervertrag 1.8 (16.11.2026)
+
+Eine zulässige 10×IR- und 30×GSP-Originaldateienmenge kann in JSON in beliebiger Reihenfolge stehen; die eCCodes-Originaladmission prüft vollständige UTC-Inventare, verlangt aber keine sortierte Listenposition. Der private Renderer **sortiert jede Parameterliste ausdrücklich nach dem bereits durch Original-GRIB/Gültigkeit belegten DWD-Source-Vorlauf** und vergleicht dann alle Produkte mit derselben 10×15-Minuten-UTC-Achse. Unterschiedliche, doppelte, fremde oder fehlende Leads werden vor dem ersten Pixel NoData/Fail-Closed statt einer zeitlich falschen Regen-/Schnee-Overlay-Zuordnung. Die zusätzliche Offline-Regression mischt gezielt IR- und Schnee-Ratenlisten und verweigert Dublikate und WV-Fremdkanäle. Das hält WMO-/Warnungslogik unberührt und ersetzt ausdrücklich keinen realen 40-GRIB-ecCodes-/QA-Lauf.
