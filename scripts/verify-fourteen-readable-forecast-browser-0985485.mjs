@@ -170,10 +170,9 @@ async function oneIntegrated(width,height,theme){
   });
   assert.ok(original.rootScrollWidth<=original.viewWidth+2,'Full ForecastCockpit document must not horizontally overflow');
   // A diagnostic 200% *text-only* stress test; distinct from native browser zoom/VoiceOver.
-  await card.locator('.cockpit-fourteen-weather-label').evaluate(n=>{
-   const font=Number.parseFloat(getComputedStyle(n).fontSize);
-   n.style.setProperty('font-size',(font*2)+'px','important');
-  });
+  // Keep the text-only stress stylesheet active across asynchronous React re-renders.
+  // This is NOT native user-agent zoom: it exercises the existing responsive CSS layout.
+  await page.addStyleTag({content:`html[data-mid-design='next'] .cockpit-fourteen-day .cockpit-fourteen-weather-label{font-size:${base*2}px!important;}`});
   const enlarged=await page.evaluate(()=>{
    const card=document.querySelector('.cockpit-fourteen-card'),label=card.querySelector('.cockpit-fourteen-weather-label');
    const box=card.getBoundingClientRect(),text=label.getBoundingClientRect(),range=document.createRange();range.selectNodeContents(label);
@@ -184,7 +183,7 @@ async function oneIntegrated(width,height,theme){
     fontPx:Number.parseFloat(style.fontSize),fragments:rects,rootScrollWidth:document.documentElement.scrollWidth,viewWidth:document.documentElement.clientWidth};
   });
   assert.equal(enlarged.label.text,longText,'200% text stress must retain entire weather description');
-  assert.ok(enlarged.fontPx>=2*base-.5,'Text-only 200% zoom stress must actually double the font');
+  assert.ok(enlarged.fontPx>=2*base-.5,`Text-only 200% stress not applied: base ${base}px; computed ${enlarged.fontPx}px`);
   assert.ok(enlarged.label.scroll<=enlarged.label.client+2,'200% text-only long label is vertically clipped');
   assert.ok(enlarged.fragments.length>0,'200% text-only long label must render visible text');
   assert.ok(enlarged.fragments.every(q=>q.x>=enlarged.card.x-2&&q.right<=enlarged.card.right+2&&q.y>=enlarged.card.y-2&&q.bottom<=enlarged.card.bottom+2),'200% text-only long label extends outside its forecast card');
