@@ -11,6 +11,9 @@
 - Der Map-Idle-Timer, seine Netzwerk-/Daten-/Visibility-Gates und sämtliche Intent-Handler bleiben unverändert. Nur bei nachgewiesenem früheren Kartenbereich im bestehenden lokalen `mid:last-dashboard-section:v1` (composite/weather-maps) darf Leerlaufvorladung stattfinden. Kein neuer Storage-Key, kein Schreiben, kein Tracking.
 - Keine CSS-Regel, Cascade-Quelle, PWA-Precache-Definition, Offlinefunktion, Worker, Wetterquelle, amtliche Warnung oder Buildbudget geändert.
 
+## Ergänzung: spekulative Splash-Visuals auf Data-Saver/2G unterbinden
+Die frühere Karte-Idle-Policy war bereits netzwerkbewusst; `preloadInterfaceChunks` im Splash umging dieses Gate jedoch für gespeichertes `composite` und explizite Ensemble-Visualpräferenzen. Der vorhandene boolesche `constrained`-Wert wird nun an die reine UI-Vorladung übergeben und blockiert **beide** optionalen UI-Imports auf Data-Saver/2G. Diese Bedingung greift vor Lesen der UI-Vorladungspräferenzen. Die separaten fachlichen Forecast-/Stations-/Radar-/Ensemble-Datenrequests inklusive Source, Priority, Abort und Timer bleiben unverändert, ebenso die React.lazy-/Fokus-/Touch-/Viewport-Bedarfspfade. Zwei originale Tests prüfen die Policy und dass der boolesche Wert wirklich an den UI-Pfad weitergereicht wird. Eine echte RAM-/Transferreduktion und Ersttipperparität auf langsamer Verbindung bleibt ein eigener A/B-Beleg.
+
 ## Qualität / Grenzen
 `tests/unit/mid-visual-prefetch-intent.test.ts` und `scripts/test-c14-map-workspace-098534.mjs` prüfen erlaubte und fehlende Präferenzen, Kartenintent, negative Kontexte und Erhalt vorhandener UI-Intentpfade. Echter Vite-Produktionsbuild, Budgetvergleich, vollständige Regression, Netzwerk-/Heap-Kalt-/Warmcache-A/B und Desktop/iOS-Sichtparität sind eigene Freigabekriterien. Nur tatsächlich ausgeführte Gates gelten als grün. Statische Chunkgrenzen sind kein RAM-Nachweis.
 

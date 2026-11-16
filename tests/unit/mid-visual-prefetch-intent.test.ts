@@ -30,6 +30,8 @@ describe('MID Design 1.5: heavy visual modules must respect user intent',()=>{
   expect(src).toContain('const ensembleRequest=ensemble?startupRequest(');
   expect(src).toContain("if(ensemble&&wantsStartupEnsembleInterface())jobs.push(import('./EnsemblePanel'))");
   expect(src).toContain("if(last==='composite')jobs.push(import('./RadarPanel'))");
+  expect(src).toContain('function preloadInterfaceChunks(ensemble:boolean,constrained:boolean){if(constrained)return Promise.resolve();');
+  expect(src).toContain('Promise.race([forecastRequest.promise,stationRequest.promise,radarRequest.promise,delay(700)]).then(()=>preloadInterfaceChunks(ensemble,constrained))');
  });
  it('preserves map navigation/viewport/keyboard/touch warmup independent of idle choice',()=>{
   const src=readFileSync(new URL('../../src/App.tsx',import.meta.url),'utf8');
