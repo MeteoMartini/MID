@@ -111,7 +111,7 @@ export function cssSelectorRiskEvidence(entries,candidateFile){
       byClassProperty.get(key).push({row,decl});
     }
   }
-  let potentialPairs=0,unclassifiedRules=0,ambiguousCandidateSelectors=0;
+  let potentialPairs=0,matchingImportancePairs=0,differentImportancePairs=0,unclassifiedRules=0,ambiguousCandidateSelectors=0;
   const ambiguousLaterSelectors=later.filter(row=>row.selectorAmbiguous).length;
   const affectedClasses=new Set(),affectedFiles=new Set(),examples=[];
   for(const left of candidate){
@@ -124,9 +124,13 @@ export function cssSelectorRiskEvidence(entries,candidateFile){
         // CSS audit. Focus on additional, differently written selectors.
         if(left.selector===right.selector)continue;
         potentialPairs++;
+        // Source order alone can only be a tiebreaker when importance matches.
+        // Equal importance still does NOT establish equal specificity, layer, DOM or scope.
+        const sameImportance=declaration.important===laterDecl.important;
+        if(sameImportance)matchingImportancePairs++;else differentImportancePairs++;
         affectedClasses.add(className);affectedFiles.add(right.file);
         if(examples.length<MAX_EXAMPLES)examples.push({
-          className,property:declaration.property,
+          className,property:declaration.property,importanceRelation:sameImportance?'MATCH':'DIFFERENT',
           candidate:{file:left.file,line:left.line,selector:left.selector.slice(0,220),
             important:declaration.important,conditions:left.conditions},
           later:{file:right.file,line:right.line,selector:right.selector.slice(0,220),
@@ -138,11 +142,11 @@ export function cssSelectorRiskEvidence(entries,candidateFile){
   return {
     schema:'mid.css-selector-risk-evidence.v1',
     candidateFile,candidateRuleCount:candidate.length,laterEagerFiles:entries.length-index-1,
-    laterRuleCount:later.length,potentialPairs,
+    laterRuleCount:later.length,potentialPairs,matchingImportancePairs,differentImportancePairs,
     affectedClasses:[...affectedClasses].sort(),affectedFiles:[...affectedFiles].sort(),
     unclassifiedRules,ambiguousCandidateSelectors,ambiguousLaterSelectors,examples,
     method:'Shared CSS class AND identical property in different selectors; potential change in order after asynchronous import',
-    caveat:'Lower-bound static heuristic; may overreport DOM overlap and underreport complex/cross-property cascade effects, selectors without classes, escaped/non-ASCII identifiers, @layer and variable dependencies. Ambiguous selectors are counted, never proof of safe removal.',
+    caveat:'Conservative static heuristic: only matchingImportancePairs can be affected by source order under the same author origin; equal importance does not prove equal specificity, layer, scope or DOM targeting. Different-importance matches remain informational. Incomplete for shorthands, custom properties, @layer, @scope, classless or escaped/non-ASCII selectors. Never proof of safe CSS relocation.',
     status:potentialPairs?'POTENTIAL_CROSS_SELECTOR_CASCADE_RISK':'UNVERIFIED_NO_STATIC_MATCH',
     safeToDefer:false,
   };

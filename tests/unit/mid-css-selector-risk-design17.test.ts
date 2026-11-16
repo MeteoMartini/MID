@@ -105,6 +105,29 @@ describe('Design 1.7 – fail-closed CSS cross-selector cascade evidence',()=>{
  });
 
 
+ it('separates unequal importance from source-order candidates without claiming visual parity',()=>{
+  const report=cssSelectorRiskEvidence([
+   css('candidate.css','.card{color:red!important;background:black}'),
+   css('later.css','.shell .card{color:blue;background:white!important}')
+  ],'candidate.css');
+  expect(report.potentialPairs).toBe(2);
+  expect(report.matchingImportancePairs).toBe(0);
+  expect(report.differentImportancePairs).toBe(2);
+  expect(report.examples.map((x:{importanceRelation:string})=>x.importanceRelation)).toEqual(['DIFFERENT','DIFFERENT']);
+  expect(report.safeToDefer).toBe(false);
+ });
+ it('reports equal-importance declarations only as potential ordering risks',()=>{
+  const report=cssSelectorRiskEvidence([
+   css('candidate.css','.card{color:red;padding:4px!important}'),
+   css('later.css','.shell .card{color:blue;padding:5px!important}')
+  ],'candidate.css');
+  expect(report.potentialPairs).toBe(2);
+  expect(report.matchingImportancePairs).toBe(2);
+  expect(report.differentImportancePairs).toBe(0);
+  expect(report.examples.every((x:{importanceRelation:string})=>x.importanceRelation==='MATCH')).toBe(true);
+  expect(report.safeToDefer).toBe(false);
+ });
+
  it('runs the real diagnostic CLI for all canonical CSS candidates without granting a move',async()=>{
   const repoRoot=fileURLToPath(new URL('../../',import.meta.url));
   const cwd=await mkdtemp(join(tmpdir(),'mid-design17-selector-risk-'));
@@ -124,6 +147,9 @@ describe('Design 1.7 – fail-closed CSS cross-selector cascade evidence',()=>{
    for(const row of report.candidates){
     expect(row.safeToDefer).toBe(false);
     expect(Number.isInteger(row.potentialPairs)).toBe(true);
+    expect(row.matchingImportancePairs+row.differentImportancePairs).toBe(row.potentialPairs);
+    expect(Number.isInteger(row.matchingImportancePairs)).toBe(true);
+    expect(Number.isInteger(row.differentImportancePairs)).toBe(true);
     expect(Number.isInteger(row.ambiguousCandidateSelectors)).toBe(true);
     expect(Number.isInteger(row.ambiguousLaterSelectors)).toBe(true);
     expect(row.status).toMatch(/^(POTENTIAL_CROSS_SELECTOR_CASCADE_RISK|UNVERIFIED_NO_STATIC_MATCH)$/);

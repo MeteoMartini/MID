@@ -16,6 +16,12 @@ Die erste Regex-basierte Klassenerkennung konnte Punkte in quotierten Attributwe
 Damit wird der statische Bericht genauer, aber ausdrücklich nicht vollständig: CSS-Identifier-Lexik, Selektorlisten, Shadow DOM, Spezifität, `@layer`, `@scope`, CSS-Variablen, verschachtelte Regeln und der reale Browser-DOM-Kaskadenzustand werden nicht abschließend bewiesen. Ein Nulltreffer oder unbekannter Klassenausdruck bedeutet weiterhin **nicht sicher auslagerbar**. Keine Änderung an CSS-Quellen, Benutzeroberfläche, Netzwerkpfad oder Produktionsbuild. Regressionsfälle für quotierte Punktwerte, gültige funktionale Klassen, Escapes und Nicht-ASCII-Klassen werden ergänzt; ihre echte CI-Bewertung ist jeweils auf den finalen Branch-HEAD zu beziehen.
 
 
+## MID Design 1.7 – Importance-bewusste Risikoklassifikation
+
+Die zusätzliche read-only Auswertung trennt alle bisher unverändert als `potentialPairs` gezählten statischen Paare in `matchingImportancePairs` und `differentImportancePairs`. Der Bericht erhält damit eine nachvollziehbare Einordnung: Unterschiedliche `!important`-Prioritäten sind innerhalb derselben Autor-Herkunft keine bloße Source-Order-Kollision; bei gleicher Priorität kann die Einfügereihenfolge relevant sein, muss es aber wegen Selektorspezifität, `@layer`, `@scope`, Medienbedingungen oder tatsächlich unterschiedlichen DOM-Zielknoten nicht sein. Auch `matchingImportancePairs` sind ausdrücklich **keine gezählten UI-Fehler**. Die Summe beider Teilmengen muss exakt `potentialPairs` ergeben und wird in der realen 68-Quellen-CLI-Regression geprüft.
+
+Offizielle fachliche Referenz: https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Cascade/Specificity und https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Cascade/Introduction. Keine Änderung des globalen CSS, keine selbstständige Freigabe einer Lazy-Auslagerung, keine Änderung von Buildbudgets oder Release-Gates.
+
 ## Wissenschaftlich-technische Aussagegrenzen
 
 Gleiche CSS-Klasse und Eigenschaft beweisen nicht identische DOM-Zielknoten, weshalb Fehlalarme möglich sind. Umgekehrt deckt der Heuristikindex weder klassenlose/komplexe bzw. escaped Selektoren noch shorthand-/Custom-Property-Abhängigkeiten, @layer-Reihenfolgen und den realen DOM-/CSSOM-/Browserzustand vollständig ab. Er ist eine untere Schranke der statisch gefundenen Risikomuster, KEIN vollständiger Konformitätsbeweis. Deshalb liefert die API safeToDefer=false auch bei null Treffern. Keine produktive CSS-Verschiebung oder behauptete Netzwerk-/RAM-/Startzeitverbesserung.
