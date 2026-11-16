@@ -42,8 +42,12 @@ describe('MID #853: full-viewport Rad/Sat integration without source or time fab
   expect(ui).toContain('const admittedRasterPlan=rasterPlan;');
   expect(ui).toContain('canvas.width=Math.max(16,Math.ceil(admittedRasterPlan.width/2));');
   expect(ui).toContain('canvas.height=Math.max(16,Math.ceil(admittedRasterPlan.height/2));');
-  expect(ui).toContain('lat:north-y*(north-south)/canvas.height');
+  expect(ui).toContain('const rowLatitudes=Array.from({length:canvas.height},(_,y)=>mercatorLatitudeAtImageFraction(north,south,(y+.5)/canvas.height));');
+  expect(ui).toContain('operaRasterPoint(raster,rowLatitudes[y],west+(x+.5)*(east-west)/canvas.width)');
+  expect(ui).toContain('lat:rowLatitudes[Math.floor(y)]');
+  expect(ui).not.toContain('lat:north-y*(north-south)/canvas.height');
   expect(ui).toContain('lng:west+x*(east-west)/canvas.width');
+  expect(ui).toContain("import {mercatorLatitudeAtImageFraction,type SurroundingsRasterPlan} from './surroundingsViewportRaster';");
  });
 
  it('unmounts a stale geographical image on resize before the new footprint is ready',()=>{
