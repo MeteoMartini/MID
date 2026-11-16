@@ -87,6 +87,12 @@ class Native15MinGspPhaseTests(unittest.TestCase):
                 with self.assertRaises(PhaseOriginalError):
                     source_lead(forged, product, RUN)
 
+    def test_ruc_gsp_native_quarter_horizon_is_only_0_to_14h(self):
+        self.assertEqual(source_lead(url("PRR_GSP", 56), "PRR_GSP", RUN), 14*3600)
+        for index in (57, 60, 108):
+            with self.assertRaisesRegex(PhaseOriginalError, "horizon"):
+                source_lead(url("PRG_GSP", index), "PRG_GSP", RUN)
+
     def test_original_bitmap_missing_extremes_and_genuine_zero(self):
         result = audit_rate_values([0., None, float("nan"), .00004, .15],
                                    points=5)

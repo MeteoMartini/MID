@@ -90,3 +90,28 @@ Der dritte Befehl ist der separate **reale** ecCodes-/Bitmap-/Spektral-/40-Origi
 Zusätzliche `tools/ruc/test_stage_original_15min_gsp.py`-Offline-Regressionsfälle decken drei echte Katalogidentitäten, 30-Originale-Budget/Manifest, vollständige Zeiten, fehlende Originale **ohne anschließende Downloads**, falsche Zeiten, Korruption, Redirect, Längenfehler und Symlink/atomare Rücknahme ab. Diese Fixtures sind keine echten heruntergeladenen DWD-GRIBs. Der bestehende gezielte Kartenregressionseinstieg führt sie gemeinsam mit IR10.8- und GSP-Raten-Originaldaten-Gates aus. Keine grüne Produktionsbehauptung ohne echte qualifizierte Ausgangsbytes und vollständige Geräte-/Review-/Release-Prüfungen.
 
 Amtlicher Quellenkatalog: https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/ ; WMO/ECMWF-GRIB-Bitmap-Auswertung: https://confluence.ecmwf.int/spaces/UDOC/pages/169541899/What+is+the+GRIB+bitmap+-+ecCodes+GRIB+FAQ .
+
+
+## Native-Preview 1.8 – Pixel-Originale und festes IR10.8-Brightness-Raster (16.11.2026, SHADOW ONLY)
+
+Der bestehende, SHA-gebundene MID-RUC-Lookup `latest.json`/`lookup.bin` liefert das einzig zugelassene nativ→Kartenpixel-Mapping. Er wird **nicht** durch ein neues geographisches Regridding oder ein zweite Rasterquelle ersetzt. Neuer nur privat/möglichst kurzlebig genutzter Modulpfad: `tools/ruc/ir108_gsp_native_preview.py` und `test_ir108_gsp_native_preview.py`.
+
+Vor jedem Bild ist ein **tatsächlich erfolgreicher** `audit_rate_manifest` aus 10 originalen IR10.8- und 30 originalen GSP-GRIBs mit ecCodes/GRIB-Bitmap/Spektralkanal/UTC/SHA/Einheiten nötig; eine Fixture, Download-Hülle oder Schema-Datei allein erfüllt das Gate nicht. Zusätzlich müssen der originale RUC-`lookup.bin`-SHA und Größen-/Run-/Rasterprüfungen grün sein. Ein IR-/GSP-Datensatz eines anderen Modelllaufs als der `lookup.bin`-Erzeugung wird **nicht** gerendert. Die nativen Originalwerte und Fehlmasken werden unverändert für SHA-/Extremprüfung erhalten. Die vorhandenen `uint32-le`-Lookup-Indizes übernehmen die bisherige source-first Geographie; `0xffffffff` bleibt NoData. Rasterzeilen werden aus dem südorientierten Lookup in ein nordorientiertes PNG umgesetzt, ohne räumliche oder zeitliche Interpolation. Bildgrenzen sind explizite Halbzellkanten, nicht unmarkierte Zentren.
+
+Der private IR10.8-`png-rgba8-north-up`-Preview verwendet **eine über alle zehn Frames feste** lineare Abbildung der synthetischen *Brightness Temperature* von 170–340 K in Grauwerte (cold/high weiß, warm/dunkel); diese feste Skala ist **kein** Wolkenanteil, keine Temperatur in 2 m, keine Satellitenbeobachtung und keine automatische Min/Max-Reskalierung je Frame. Originale Kelvin-Extrema werden nicht geclippt/geglättet, nur ihre **Preview-Farbdarstellung** außerhalb der festen Anzeigegrenzen gesättigt. Die getrennte `zlib-uint8-phase-id-north-up`-Datei enthält ausschließlich interne, noch **nicht** app-weit eingefärbte GSP-Signatur-IDs: **255=fehlende Originaldaten**; **0=belegtes GSP-Nullsignal** (keine meteorologische Entwarnung); 1=Regen, 2=Schnee, 3=Graupel, 4=Mischung. Diese Palette wird **nicht** als UI-Farbvertrag eingeführt. Alle Datenlöcher sind im IR-PNG transparent; fehlende Originaldaten werden nie als meteorologische 0 dargestellt. Die Wetterfarben später ausschließlich aus MID-Parameter-/Niederschlagsphase-CSS-Verträgen verwenden.
+
+Offline-Budget je Frame maximal 2.5 Mio. Kartenzellen, 14 MiB PNG und 14 MiB Phasenraster; 10 Frames sequenziell (keine native 40-Frame-Memory-Wand), serverseitig privates atomar umbenanntes Preview-Verzeichnis mit Einzel-SHA256, absoluter UTC-Gültigkeitszeit, Modelllauf, BBox, nachgewiesenem Lookup-SHA und `activationAuthorized=false`. Der RUC-Snapshot und Quellmanifeste bleiben unverändert; Quellmanifest und Lookup werden vor finalem atomaren Handoff erneut SHA-geprüft. Kein JS/CSS/ImageQuadLayer-/Worker-/Pages-/Installer-/Stable-Produktcode wird geändert.
+
+Für RUC-IR/GSP gilt laut aktuellem DWD Database Reference v2.5.2, Kapitel 11, **0–14 h** im 15-min-Takt. Deshalb ist der bisher zulässige GSP-Lead >14h in `source_lead` und `stage_original_15min_gsp.plan_ten` jetzt ausdrücklich verboten. Der **separat bestehende** IR-Stager bleibt vorerst bewusst unverändert; der kombinierte Renderer kann aufgrund des engeren GSP-Gates keine unzulässigen gemeinsamen Frames >14h anzeigen.
+
+Nach tatsächlich erfolgreicher 40-Original-ecCodes-Qualifikation und einem **zum identischen Run** passenden privaten RUC-Lookup:
+
+```bash
+python3 tools/ruc/ir108_gsp_native_preview.py \
+ --ruc-source /privat/ruc-original-matched-run \
+ --ir-manifest /privat/ir108/manifest.json \
+ --gsp-manifest /privat/gsp/manifest.json \
+ --output /privat/ir108_gsp_preview
+```
+
+**Nicht mit einem produktiven Build/Release gleichsetzen.** Ausstehend: realer 40-Feld-Download/Decode und echte Lauf-/Grib-/Grid-/Extrem-Nachweise, Originaldatensatz-auf-Karte-Inspektion, CSS-token-geführte phasenspezifische Live-Überlagerung, dynamische WebGL-/WebKit-/iOS-/VoiceOver-Performance/Barrierefreiheit und vollständige Source-/Review-/Installer-/Worker-/Pages-/Stable-Gates. Keine Bild- oder Warnungsbehauptung bei nicht belegten Originalframes.

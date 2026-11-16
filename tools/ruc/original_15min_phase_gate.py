@@ -51,7 +51,7 @@ def source_lead(url: str, product: str, run: str) -> int:
     if match is None:
         raise PhaseOriginalError("rate filename not a canonical 15-minute DWD GRIB")
     lead = (int(match[1]) * 60 + int(match[2])) * 60
-    if lead > 27 * 3600:
+    if lead > 14 * 3600:
         raise PhaseOriginalError("rate source lead exceeds ICON-D2-RUC horizon")
     return lead
 

@@ -71,7 +71,7 @@ def plan_ten(product: str, run: str, first_valid: str, inventory: set[str]) -> l
     for index in range(FRAME_COUNT):
         valid = first + timedelta(minutes=15 * index)
         lead = int((valid - reference).total_seconds())
-        if not 0 <= lead <= 27 * 3600 or lead % 900:
+        if not 0 <= lead <= 14 * 3600 or lead % 900:
             raise PhaseOriginalError("original lead outside a single ICON-D2-RUC cycle")
         name = f"PT{lead // 3600:03d}H{(lead // 60) % 60:02d}M.grib2"
         if name not in inventory:
