@@ -302,7 +302,7 @@ export default function CurrentSurroundings(props:Props){
   <figure ref={mapFigureRef} className="current-surroundings-map" aria-label={`Wetterbild um ${name}: MID-Kartenbasis und Temperaturen an benannten Orten`}>
    <MidMapLibre center={[lat,lon]} zoom={7} scrollZoom={false} interactive={false} navigationControl={false} className="current-surroundings-maplibre">
     <MapFitBounds south={south} west={west} north={north} east={east} padding={8} maxZoom={7}/>
-    <UnifiedVectorBasemap dark={darkMap}/>
+    <UnifiedVectorBasemap dark={darkMap} cloudContrast={mode==='cloud'&&Boolean(cloudForecast.image)}/>
     {mode==='cloud'&&cloudForecast.image&&<ImageQuadLayer id="surroundings-model-cloud-weather" url={cloudForecast.image.url}
      bounds={cloudForecast.image.bounds} resampling="nearest" zIndex={270} frameKey={`${cloudForecast.image.run}:${cloudForecast.image.validTime}:pseudo`}/>}
     {mode==='radar'&&visibleClouds&&<ImageQuadLayer id="surroundings-clouds" url={clouds} bounds={mapBounds} zIndex={220} onError={()=>setCloudError(clouds)}/>}
@@ -334,7 +334,7 @@ export default function CurrentSurroundings(props:Props){
   <details className="current-surroundings-sources">
    <summary>Quellen und Datenstand</summary>
    <p>Kartengrundlage · MID-Kartenbereich, OpenFreeMap / OpenStreetMap; Orte Natural Earth und Kartenkacheln</p>
-   {mode==='cloud'&&cloudForecast.image&&<p>Wolken + SigWx · dieselbe schematische PseudoSat-Rasterdarstellung wie im MID-Kartenbereich; Modell {cloudForecast.image.model}, INIT {datedClock(Date.parse(cloudForecast.image.run))} Uhr, Bild gültig {datedClock(Date.parse(cloudForecast.image.validTime))} Uhr.
+   {mode==='cloud'&&cloudForecast.image&&<p>Wolken + SigWx · satellitenähnliche, neutrale Grauwert-Kontrastdarstellung aus originalen modellierten Bewölkungsprozenten, im MID-Kartenbereich identisch; Modell {cloudForecast.image.model}, INIT {datedClock(Date.parse(cloudForecast.image.run))} Uhr, Bild gültig {datedClock(Date.parse(cloudForecast.image.validTime))} Uhr.
     Original-Modelltermin ohne zeitliche Interpolation; fehlt der 15-Minuten-Originaltermin, bleibt der Zieltermin NoData.
     {Math.abs(Date.parse(cloudForecast.image.validTime)-cloudTarget)>90*1000&&<> Gewählter Zieltermin {datedClock(cloudTarget)} Uhr wird von diesem Bild nicht exakt repräsentiert.</>}
     {' '}Kein Satellitenbild und keine amtliche Warnung; Datenlücken bleiben NoData.</p>}

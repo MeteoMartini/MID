@@ -118,13 +118,19 @@ export function writeCloudWeatherIsoheights(enabled:boolean){
 export function cloudWeatherPixel(cloud:number|null,weather:number|null,mode:CloudWeatherRenderMode='pseudo'):[number,number,number,number]{
  if(mode!=='pseudo')throw new Error('Nur das schematische Modell-Wolkenbild ist freigegeben.');
  const style=significantWeatherStyle(weather);
- // White cloud cover over any basemap; categorical WW paint on top. No fake image detail.
+ // Fixed neutral IR-inspired visual contrast for original CLCT percentage,
+ // NOT infrared brightness temperature or manufactured satellite texture.
+ // The same per-cell treatment is shared by main map, surroundings and export.
+ // Categorical WW categories remain in their existing canonical colors.
  const cover=cloud===null||!Number.isFinite(cloud)?null:Math.max(0,Math.min(100,cloud));
  // Canonical fully transparent pixel: missing fields and confirmed clear sky are never white cloud pixels.
  if(!style&&(cover===null||cover===0))return [0,0,0,0];
- const baseAlpha=cover===null?0:Math.round(2.15*cover);
- const shade=cover===null?231:Math.round(227+cover*.21);
- const base:[number,number,number]=[shade,Math.min(255,shade+3),Math.min(255,shade+7)];
+ const ratio=cover===null?0:cover/100;
+ // A gentle fixed transfer function makes partial coverage legible over the
+ // dark satellite-style background without inventing sub-grid cloud detail.
+ const baseAlpha=Math.round(224*Math.pow(ratio,.80));
+ const shade=Math.round(225+27*Math.pow(ratio,.65));
+ const base:[number,number,number]=[shade,shade,shade];
  if(!style)return [base[0],base[1],base[2],baseAlpha];
  const rgb=[1,3,5].map(j=>parseInt(style.color.slice(j,j+2),16));
  const phenomenonAlpha=style.codes.some(code=>code>=40&&code<=49)?200:231;

@@ -10,7 +10,16 @@ try{
  const rgba=(cover,ww,mode='pseudo')=>m.cloudWeatherPixel(cover,ww,mode);
  assert.deepEqual(rgba(null,null),[0,0,0,0]);
  assert.equal(rgba(0,0)[3],0);
- assert.ok(rgba(100,0)[3]>rgba(25,0)[3]&&rgba(25,0)[3]>0);
+ assert.ok(rgba(100,0)[3]>rgba(75,0)[3]&&rgba(75,0)[3]>rgba(50,0)[3]&&rgba(50,0)[3]>rgba(25,0)[3]&&rgba(25,0)[3]>0);
+ for(const cover of [5,25,50,75,100]){
+  const pixel=rgba(cover,0);
+  assert.equal(pixel[0],pixel[1],'satellite-style CLCT is neutral gray');
+  assert.equal(pixel[1],pixel[2],'satellite-style CLCT is neutral gray');
+ }
+ assert.deepEqual(rgba(100,0),[252,252,252,224],'Full original CLCT never creates fake brightening beyond fixed range');
+ assert.equal(rgba(0,0)[3],0,'verified cloudless source remains transparent, not black or missing');
+ assert.deepEqual(rgba(null,null),[0,0,0,0],'missing source remains no-data, not zero cloud');
+
  assert.throws(()=>rgba(null,61,'standard'),/schematische Modell-Wolkenbild/,'User-authorized pseudo-only contract rejects old mode');
  assert.equal(rgba(null,61)[3],231);
  assert.ok(rgba(95,null)[3]>0);
