@@ -37,10 +37,10 @@ export function assessMid740PackageHandoff(input={}){
     !SHA.test(zipVerification?.verifiedSourceSha??'')||
     !/^[a-f0-9]{64}$/.test(zipVerification?.zipSha256??'')||
     zipVerification?.allGitTreeFilesByteAndModeExact!==true||
-    zipVerification?.unexpectedFiles===true)
+    zipVerification?.unexpectedFiles!==false)
   reasons.push('ZIP_TREE_IDENTITY_UNVERIFIED');
  if(reviewReadback?.authoritativeNativeRuleAtMerge!==true||
-    reviewReadback?.noReviewBypass===false||
+    reviewReadback?.noReviewBypass!==true||
     reviewReadback?.allCriticalFindingsDispositioned!==true)
   reasons.push('NATIVE_REVIEW_OR_DISPOSITION_UNVERIFIED');
  // Deliberately not a release proof: the caller must independently authenticate

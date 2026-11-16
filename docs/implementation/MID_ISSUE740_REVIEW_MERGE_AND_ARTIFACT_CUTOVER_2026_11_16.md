@@ -24,6 +24,8 @@
 
 Eine gezielte Negativprobe zeigte, dass der bisherige Parser gemischte strukturierte `<violation>`-Einträge und eigenständige P0/P1-Zeilen nicht vollständig erfasste (XML-Treffer verdrängten Freitexttreffer). Der isolierte #839-QA-Nachfolgepatch erfasst alle expliziten P0/P1-Markierungen in unveränderter Reihenfolge, auch Markdown-Angaben, und verweigert unvollständige/überlange Befundinventare statt sie auszufiltern. Entsprechende reale Vitest-Negativtests verlangen für vier kritische Befunde vier getrennte, späte, fremd-authentifizierte Einzeldispositionen. Auch eine formale `APPROVED`-Review mit explizitem P1 bleibt fachlich BLOCKED, solange kein unabhängiger späterer Beleg existiert.
 
+Der zusätzliche #740-Artefaktpilot akzeptiert ab der nachfolgenden QA-Härtung **nur** explizites `noReviewBypass===true` und `unexpectedFiles===false`. Fehlende/null/mehrdeutige Attestierungen gelten ausdrücklich als unbestätigt; zwei neue Negativtests sichern die fehlenden Schlüssel. Diese Metadatenklassifikation ersetzt keine echte GitHub-Artefakt- oder native GitHub-Review-Authentifizierung.
+
 **Sicherheitsgrenze:** Die rein textbasierte Bewertung kann semantisch anders formulierte kritische Reviews nicht vollständig erkennen. Ohne unabhängigen formalen GitHub-Pflichtstatus, vollständige Review-/Artifact-Provenienz und authentifizierten Producer→Installer-Test bleibt `mergeAuthorized:false`, `releaseAuthorized:false`; das native TOCTOU-Gate ist NICHT abgeschlossen. Der Reviewguard allein ist kein Merge-Schutz.
 
 ## Nachhaltige Produktionseinführung – strikt in dieser Reihenfolge

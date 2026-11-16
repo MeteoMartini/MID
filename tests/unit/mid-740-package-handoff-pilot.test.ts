@@ -39,6 +39,8 @@ describe('MID #740: immutable Actions artifact handoff (QA-only design)',()=>{
  ['additional archive payload',x=>{x.zipVerification.unexpectedFiles=true}],
  ['no native rule',x=>{x.reviewReadback.authoritativeNativeRuleAtMerge=false}],
  ['ruleset bypass',x=>{x.reviewReadback.noReviewBypass=false}],
+ ['missing no-bypass evidence',x=>{delete x.reviewReadback.noReviewBypass}],
+ ['unknown extra ZIP members',x=>{delete x.zipVerification.unexpectedFiles}],
  ['untriaged P1',x=>{x.reviewReadback.allCriticalFindingsDispositioned=false}],
  ] as [string,(x:any)=>void][])('%s fails closed',(_,alter)=>{
   const item=example();alter(item);
