@@ -17,6 +17,16 @@ try{
   assert.equal(pixel[1],pixel[2],'satellite-style CLCT is neutral gray');
  }
  assert.deepEqual(rgba(100,0),[252,252,252,224],'Full original CLCT never creates fake brightening beyond fixed range');
+ let lastAlpha=-1,lastTone=-1;
+ for(let cloudCover=0;cloudCover<=100;cloudCover+=.1){
+  const [r,g,b,a]=rgba(cloudCover,0);
+  assert.ok(r>=lastTone&&a>=lastAlpha,'Monotonic fixed satellite-style shade/transparency at '+cloudCover);
+  assert.equal(r,g);assert.equal(g,b);
+  lastTone=r;lastAlpha=a;
+ }
+ const renderer=readFileSync('src/cloudWeatherData.ts','utf8');
+ assert.match(renderer,/PSEUDO_SAT_TONE_LUT=Array\.from/,'Heavy mobile raster loops require precomputed color transfer');
+ assert.match(renderer,/PSEUDO_SAT_TONE_LUT\[cover===null\?0:Math\.round\(cover\*10\)\]/);
  assert.equal(rgba(0,0)[3],0,'verified cloudless source remains transparent, not black or missing');
  assert.deepEqual(rgba(null,null),[0,0,0,0],'missing source remains no-data, not zero cloud');
 

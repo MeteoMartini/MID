@@ -114,6 +114,15 @@ export function readCloudWeatherIsoheights():boolean{
 export function writeCloudWeatherIsoheights(enabled:boolean){
  try{writeDurableStorageValue(CLOUD_WEATHER_ISOHEIGHTS_KEY,String(enabled))}catch{/* unavailable storage: retain visible in-memory selection */ }
 }
+/** Fixed 0.1%-granularity VISUAL tone lookup for native CLCT values.
+ * Precomputes expensive powers once; avoid repeated Math.pow in 1600² canvas
+ * pixels or on every 15-minute scrub. The original meteorological percentage
+ * and its provenance are NEVER quantized, smoothed or altered.
+ */
+const PSEUDO_SAT_TONE_LUT=Array.from({length:1001},(_,i)=>{
+ const cover=i/1000;
+ return [Math.round(225+27*Math.pow(cover,.65)),Math.round(224*Math.pow(cover,.80))] as const;
+});
 /** Display-only RGBA. No radiometry, inferred intensity or categorical interpolation. */
 export function cloudWeatherPixel(cloud:number|null,weather:number|null,mode:CloudWeatherRenderMode='pseudo'):[number,number,number,number]{
  if(mode!=='pseudo')throw new Error('Nur das schematische Modell-Wolkenbild ist freigegeben.');
@@ -125,11 +134,9 @@ export function cloudWeatherPixel(cloud:number|null,weather:number|null,mode:Clo
  const cover=cloud===null||!Number.isFinite(cloud)?null:Math.max(0,Math.min(100,cloud));
  // Canonical fully transparent pixel: missing fields and confirmed clear sky are never white cloud pixels.
  if(!style&&(cover===null||cover===0))return [0,0,0,0];
- const ratio=cover===null?0:cover/100;
- // A gentle fixed transfer function makes partial coverage legible over the
- // dark satellite-style background without inventing sub-grid cloud detail.
- const baseAlpha=Math.round(224*Math.pow(ratio,.80));
- const shade=Math.round(225+27*Math.pow(ratio,.65));
+ // Fixed 0.1% display precision, never a meteorological interpolation.
+ // The tonal LUT is identical for every frame, forecast model and viewport.
+ const [shade,baseAlpha]=PSEUDO_SAT_TONE_LUT[cover===null?0:Math.round(cover*10)];
  const base:[number,number,number]=[shade,shade,shade];
  if(!style)return [base[0],base[1],base[2],baseAlpha];
  const rgb=[1,3,5].map(j=>parseInt(style.color.slice(j,j+2),16));

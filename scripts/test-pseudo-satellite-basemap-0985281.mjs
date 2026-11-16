@@ -21,6 +21,7 @@ assert.match(unified,/cloudContrast:settings.enabled&&isCloudWeather&&cloudWeath
 assert.match(exporter,/geography\.countries/,'Natural Earth countries must provide exported land mask');
 assert.match(exporter,/states\.flatMap\(s=>s\.rings\)/,'German state polygons must prevent Germany being painted as water');
 assert.match(exporter,/PSEUDO_SAT_BASEMAP.water/);
+assert.match(exporter,/stroke="#d9e2e8" stroke-opacity="\.76"/,'Satellite-style borders stay legible over dark neutral exported basemap');
 assert.match(cloud,/if\(!style&&\(cover===null\|\|cover===0\)\)return \[0,0,0,0\]/,'Missing/cloud-free pixels remain transparent');
 const temp=mkdtempSync(path.resolve('.mid-map-basemap-'));
 try{
