@@ -184,8 +184,8 @@ describe('MID map model identity: flag, family and fine-to-coarse ordering',()=>
   expect(map).toContain('groupedMapModelOptions(');
   expect(panel).toContain('groupedMapModelOptions(modelOptions)');
   expect(panel).toContain("mapModelDisplayLabel({...model,sourceGrid:'mixed'})"); // unavailable option has no verified grid
-  expect(map).toContain('value={c.id}>{c.displayLabel}');
-  expect(panel).toContain('value={item.id}>{item.displayLabel}');
+  expect(map).toContain('groups={shownSourceGroups}');
+  expect(panel).toContain('groups={groupedMapModelOptions(modelOptions)}');
   expect(map).toContain('unifiedSources(');
   expect(panel).toContain('weatherMapCatalogExcludes(');
   expect(map).toContain('Katalog wird geprüft / nicht verfügbar');

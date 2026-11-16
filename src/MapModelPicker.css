@@ -1,0 +1,17 @@
+/* Browser-rendered flags; never rely on OS-native emoji support in <option>. */
+.mid-map-model-field{display:grid;gap:6px;min-width:0;font-size:13px;font-weight:600}
+.mid-map-model-picker{position:relative;min-width:0;width:100%;font-size:14px}
+.mid-map-model-picker-trigger,.mid-map-model-picker-option{display:flex;align-items:center;gap:9px;width:100%;min-height:44px;box-sizing:border-box;color:var(--text);background:var(--surface);border:1px solid var(--border);font:inherit;text-align:left}
+.mid-map-model-picker-trigger{border-radius:10px;padding:7px 9px}
+.mid-map-model-picker-trigger>svg:last-child{flex-shrink:0;margin-left:auto}
+.mid-map-model-picker-value,.mid-map-model-picker-option>span{min-width:0;flex:1;overflow-wrap:anywhere}
+.mid-map-model-flag{display:block;flex:0 0 27px;width:27px;height:18px;max-width:none;max-height:none;border-radius:2px}
+.mid-map-model-picker-menu{position:absolute;z-index:1100;top:calc(100% + 4px);left:0;width:100%;max-height:min(52vh,420px);overflow:auto;overscroll-behavior:contain;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 32px rgb(0 0 0 / .22);padding:4px;box-sizing:border-box}
+.mid-map-model-picker-heading{font-size:11px;font-weight:700;line-height:1.4;color:var(--muted);padding:9px 8px 4px;overflow-wrap:anywhere}
+.mid-map-model-picker-option{padding:8px 7px;border:0;border-radius:8px;min-height:44px}
+.mid-map-model-picker-option:hover,.mid-map-model-picker-option:focus-visible{background:color-mix(in srgb,var(--primary) 12%,var(--surface))}
+.mid-map-model-picker-option[aria-pressed="true"]{background:color-mix(in srgb,var(--primary) 10%,var(--surface));font-weight:700}
+.mid-map-model-picker-trigger:focus-visible,.mid-map-model-picker-option:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.mid-map-model-picker-option>svg:last-child:not(.mid-map-model-flag){flex-shrink:0;color:var(--primary)}
+@media(max-width:480px){.mid-map-model-picker{font-size:16px}.mid-map-model-picker-menu{max-height:min(55svh,400px)}}
+@media(prefers-reduced-motion:reduce){.mid-map-model-picker *{scroll-behavior:auto}}
