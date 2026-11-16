@@ -49,4 +49,3 @@ export function renderMidAiConsentPage(details,handle,scopeProof){
   '<button type="submit" name="decision" value="deny" formnovalidate>Ablehnen</button></p>'+
   '</form></main></body></html>';
 }
-
