@@ -1,3 +1,9 @@
+# MID v0.9.85.486
+
+- Die Kartenzeitachse verarbeitet Home/End auch nach neu eingetroffenen Modell- und Zeitdaten zuverlässiger.
+- Die 14-Tage-Prognose ordnet Wetterbeschreibung und Kennwerte auf Smartphones bis 430 CSS px klarer an, ohne Wettertext abzuschneiden.
+- Lesbarkeit und Textvergrößerung sind für zusätzliche Bildschirmgrößen im Chromium-Browser geprüft; eine native iOS-/VoiceOver-Abnahme ist damit nicht ersetzt.
+
 # MID v0.9.85.485
 
 - 14-Tage-Vorhersage: Wetterbeschreibungen werden in der kompakten Ansicht vollständig umbrochen statt mit Auslassungspunkten abgeschnitten.
