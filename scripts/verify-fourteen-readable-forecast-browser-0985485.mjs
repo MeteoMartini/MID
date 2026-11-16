@@ -43,12 +43,12 @@ const fixture=join(root,'src/__mid_design14_fixture_qa.tsx');
 const fixtureSource=[
  "import React from 'react';",
  "import {createRoot} from 'react-dom/client';",
- "import {FourteenDayHorizon} from 'virtual:mid-design14-entry';",
+ "import {FourteenDayHorizon,ForecastCockpit} from 'virtual:mid-design14-entry';",
  "import '/src/midPresentation.css';",
  'const days='+JSON.stringify(days)+';',
  'const hours='+JSON.stringify(hours)+';',
  'const location='+JSON.stringify(location)+';',
- "function QA(){return <div className='app navigation-bottom-tabs'><main className='forecast-cockpit modern-workspace' data-workspace-mode='true'><FourteenDayHorizon ensemble={[]} days={days} hours={hours} scenarios={[]} climate={[]} selectedDate={days[0].date} onSelectedDate={()=>{}} loading={false} unit='kn' advancedMode={false} confidenceDisplayMode='standard' timezone='Europe/Berlin' location={location}/></main></div>}",
+ "function QA(){const full=new URLSearchParams(window.location.search).has('full');return <div className='app navigation-bottom-tabs'>{full?<main className='qa-full-cockpit-host'><ForecastCockpit mode='cockpit-tabs' hours={hours} minutes15={[]} days={days} ensemble={[]} scenarios={[]} climate={[]} timezone='Europe/Berlin' unit='kn' selectedDate={days[0].date} onSelectedDate={()=>{}} availability={{shortTerm:false,sevenDay:false,fourteenDay:true}} sourceLabel='QA fixture — keine Echtwetterdaten' updatedLabel='Testlauf' ensembleLoading={false} location={location} showDwdPrecipitationTypeRadar={false} advancedMode={false} confidenceDisplayMode='standard' navigationHorizon='fourteen-day'/></main>:<main className='forecast-cockpit modern-workspace' data-workspace-mode='true'><FourteenDayHorizon ensemble={[]} days={days} hours={hours} scenarios={[]} climate={[]} selectedDate={days[0].date} onSelectedDate={()=>{}} loading={false} unit='kn' advancedMode={false} confidenceDisplayMode='standard' timezone='Europe/Berlin' location={location}/></main>}</div>}",
  "createRoot(document.getElementById('root')).render(<QA/>);"
 ].join('\n');
 const server=await createServer({root,server:{host:'127.0.0.1',port:0,hmr:false},plugins:[{
@@ -123,9 +123,88 @@ async function one(width,height,theme){
   console.log('MID design14 real React/CSS Chromium '+width+'x'+height+' '+theme+': PASS; '+measure.lineRects.length+' text fragments');
  }finally{await context.close();}
 }
+
+/** Integration preflight: real exported ForecastCockpit, including tabs and footer,
+ * with deterministic weather fixtures and the unchanged canonical CSS cascade.
+ * This is intentionally NOT the production App.tsx application/bootstrap path.
+ */
+async function oneIntegrated(width,height,theme){
+ const context=await browser.newContext({viewport:{width,height},colorScheme:theme,reducedMotion:'reduce'});
+ const page=await context.newPage(),errors=[];
+ page.on('pageerror',e=>errors.push(String(e?.message||e)));
+ await page.addInitScript(theme=>{
+  localStorage.setItem('theme',theme);
+  document.documentElement.dataset.theme=theme;
+  document.documentElement.classList.toggle('dark',theme==='dark');
+ },theme);
+ try{
+  await page.goto(url+'?full=1',{waitUntil:'domcontentloaded',timeout:30000});
+  const shell=page.locator('section.forecast-cockpit');
+  await shell.waitFor({timeout:30000});
+  assert.equal(await shell.count(),1,'Exactly one full ForecastCockpit section must render');
+  await page.locator('summary').filter({hasText:'Alle 14 Tageswerte'}).waitFor({timeout:30000});
+  assert.equal(await page.locator('.cockpit-fourteen-card').count(),14,'Full cockpit must render all fourteen daily cards');
+  const heading=page.locator('summary').filter({hasText:'Alle 14 Tageswerte'});
+  assert.equal(await page.locator('.cockpit-fourteen-card').first().isVisible(),false,'Full cockpit details must begin closed');
+  await heading.click();
+  const card=page.locator('.cockpit-fourteen-card').first();
+  await card.waitFor({timeout:30000});
+  assert.equal(await card.isVisible(),true,'Full cockpit details must open from real summary');
+  assert.equal(await card.getAttribute('role'),'button','Daily forecast has keyboard button semantics');
+  assert.equal(await card.getAttribute('aria-expanded'),'false','Daily forecast starts collapsed');
+  await card.focus();
+  await card.press('Enter');
+  await page.locator('[data-mid-forecast-detail="fourteen"]').first().waitFor({timeout:15000});
+  assert.equal(await card.getAttribute('aria-expanded'),'true','Enter must reveal same-row details');
+  await card.press('Space');
+  assert.equal(await card.getAttribute('aria-expanded'),'false','Space must collapse same-row details');
+  await card.locator('.cockpit-fourteen-weather-label').evaluate((node,t)=>{node.textContent=t;},longText);
+  await page.evaluate(()=>document.fonts.ready);
+  const base=await card.locator('.cockpit-fourteen-weather-label').evaluate(n=>Number.parseFloat(getComputedStyle(n).fontSize));
+  assert.ok(base>=11,'Default label font must be >=11px');
+  const original=await page.evaluate(()=>{
+   const card=document.querySelector('.cockpit-fourteen-card'),label=card.querySelector('.cockpit-fourteen-weather-label');
+   const box=card.getBoundingClientRect(),text=label.getBoundingClientRect(),range=document.createRange();range.selectNodeContents(label);
+   return {width:box.width,height:box.height,textHeight:text.height,fragments:range.getClientRects().length,
+    rootScrollWidth:document.documentElement.scrollWidth,viewWidth:document.documentElement.clientWidth};
+  });
+  assert.ok(original.rootScrollWidth<=original.viewWidth+2,'Full ForecastCockpit document must not horizontally overflow');
+  // A diagnostic 200% *text-only* stress test; distinct from native browser zoom/VoiceOver.
+  await card.locator('.cockpit-fourteen-weather-label').evaluate(n=>{
+   const font=Number.parseFloat(getComputedStyle(n).fontSize);
+   n.style.setProperty('font-size',(font*2)+'px','important');
+  });
+  const enlarged=await page.evaluate(()=>{
+   const card=document.querySelector('.cockpit-fourteen-card'),label=card.querySelector('.cockpit-fourteen-weather-label');
+   const box=card.getBoundingClientRect(),text=label.getBoundingClientRect(),range=document.createRange();range.selectNodeContents(label);
+   const rects=[...range.getClientRects()].map(r=>({x:r.x,right:r.right,y:r.y,bottom:r.bottom}));
+   const style=getComputedStyle(label);
+   return {card:{x:box.x,right:box.right,y:box.y,bottom:box.bottom,height:box.height},
+    label:{x:text.x,right:text.right,y:text.y,bottom:text.bottom,scroll:label.scrollHeight,client:label.clientHeight,text:label.textContent},
+    fontPx:Number.parseFloat(style.fontSize),fragments:rects,rootScrollWidth:document.documentElement.scrollWidth,viewWidth:document.documentElement.clientWidth};
+  });
+  assert.equal(enlarged.label.text,longText,'200% text stress must retain entire weather description');
+  assert.ok(enlarged.fontPx>=2*base-.5,'Text-only 200% zoom stress must actually double the font');
+  assert.ok(enlarged.label.scroll<=enlarged.label.client+2,'200% text-only long label is vertically clipped');
+  assert.ok(enlarged.fragments.length>0,'200% text-only long label must render visible text');
+  assert.ok(enlarged.fragments.every(q=>q.x>=enlarged.card.x-2&&q.right<=enlarged.card.right+2&&q.y>=enlarged.card.y-2&&q.bottom<=enlarged.card.bottom+2),'200% text-only long label extends outside its forecast card');
+  assert.ok(enlarged.rootScrollWidth<=enlarged.viewWidth+2,'200% text-only stress creates horizontal page scrolling');
+  if(width===320||width===390){
+   const screenshot=join(out,'cockpit-integrated-zoom200-'+width+'-'+theme+'.png');
+   await card.screenshot({path:screenshot,animations:'disabled'});
+   report.results.push({mode:'full-forecast-cockpit',width,height,theme,status:'PASS',original,enlarged,
+    screenshot:screenshot.split('/').pop(),nativeTextZoom:false});
+  }else report.results.push({mode:'full-forecast-cockpit',width,height,theme,status:'PASS',original,enlarged,nativeTextZoom:false});
+  assert.deepEqual(errors,[],'Full ForecastCockpit triggered runtime errors');
+  console.log('MID design14 integrated ForecastCockpit '+width+'x'+height+' '+theme+': PASS; keyboard Enter/Space + 200% text-only stress');
+ }finally{await context.close();}
+}
+
 try{
  for(const [width,height] of [[320,740],[360,780],[375,812],[390,844],[430,932],[834,1112],[1024,768],[1440,900]])
   for(const theme of ['light','dark'])await one(width,height,theme);
+ for(const [width,height] of [[320,740],[390,844],[834,1112],[1440,900]])
+  for(const theme of ['light','dark'])await oneIntegrated(width,height,theme);
  writeFileSync(join(out,'report.json'),JSON.stringify(report,null,2)+'\n');
- console.log('MID DESIGN14 BROWSER QA SUCCESS: '+report.results.length+' real React/CSS viewport/theme contexts; screenshots + evidence in coverage/mid-design14-browser-qa. NO iOS/VoiceOver/full-app parity claim.');
+ console.log('MID DESIGN14 BROWSER QA SUCCESS: '+report.results.length+' real React/CSS viewport/theme contexts (16 isolated + 8 full ForecastCockpit); screenshots + evidence in coverage/mid-design14-browser-qa. NO iOS/VoiceOver/full-App.tsx parity claim.');
 }finally{await browser.close();await server.close();}
