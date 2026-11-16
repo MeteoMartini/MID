@@ -1,0 +1,26 @@
+# MID-Karten 1.12 · P1 #853 – metrische WMS-Georeferenzierung (isolierter QA-Kandidat)
+
+**NICHT AKTIVIERT · KEIN MERGE · KEIN RELEASE.**
+Verifizierte Ausgangsbasis am 16.11.2026: `main=mid-stable=a78465b655d25cafc9ecc0390080694cb7aca957` / v0.9.85.486, fünf aktive Rulesets. Der Leitchat bearbeitet dieselbe Kartenansicht in [Draft #858](https://github.com/MeteoMartini/MID/pull/858). Deshalb werden `CurrentSurroundings.tsx`, die WMS-Bildanforderungen, Worker, CI und Release-Verträge **nicht** geändert. Nur eine neue, bisher ungenutzte Geometrie-Hilfsfunktion plus Tests.
+
+## Originaldienste am 16.11.2026 tatsächlich gelesen
+
+* **DWD:** [GetCapabilities WMS 1.1.1](https://maps.dwd.de/geoserver/wms?service=WMS&request=GetCapabilities&version=1.1.1), HTTP 200 XML, updateSequence `29568`. Der konkrete Layer `dwd:Radar_rv_product_1x1km_ger` besitzt ausdrücklich eine BoundingBox mit `SRS=EPSG:3857`, eine Time-Dimension in 5-Minuten-Schritten und eine räumliche Abdeckung über Teilen Mitteleuropas. DWD kündigt zum **24.11.2026** eine Erweiterung der Radar-Scanreichweite von 150 auf 180 km an. Das verändert künftige echte Abdeckung/NoData; BBox-Ausmaße allein sind kein Gültigkeitsbeweis. Die alte DWD-Einzel-Layer-URL `/geoserver/dwd/RV-Produkt/wms` liefert gegenwärtig 404; die Haupt- und Workspace-WMS-Dienste antworten.
+* **EUMETSAT:** [GetCapabilities WMS 1.3.0](https://view.eumetsat.int/geoserver/wms?service=WMS&request=GetCapabilities&version=1.3.0), HTTP 200 XML, updateSequence `5539`. Der Root-Layer nennt `EPSG:3857`; die beiden Produktschichten `mtg_fd:rgb_geocolour` und `mtg_fd:ir105_hrfi` nennen direkt `EPSG:4326` und `CRS:84`. Ihre Time-Dimension ist jeweils `PT10M`. Originale RGB- und IR-Gültigkeitszeiten bleiben getrennt.
+* **Echte GetMap-Kurzprüfung:** Für jeden der drei **konkreten** Layer mit EPSG:3857, 64×64 px, Zeit `2026-11-16T19:00:00Z` und metrischer BBOX `701313,6411711,990743,6800125` lieferte der Anbieter `HTTP 200` und `Content-Type: image/png`. Bei DWD wurden WMS 1.1.1 + `srs`, bei EUMETSAT WMS 1.3.0 + `crs` benutzt. Dies ist ein echter Dienstannahme-Nachweis, **nicht** der Nachweis valider Bildpixel, Fehlerfreier Georeferenzierung, ausreichender Abdeckung, richtiger Alpha-/NoData-Pixel oder Rechten.
+* **Rechte:** [GeoColour-Produktinformation](https://view.eumetsat.int/productviewer/productDetails/mtg_fd%3Argb_geocolour) nennt EUMETSAT und NASA (Black Marble) für Attribution außerhalb EUMETView. Aktuelle Produkt-/Nutzungsbedingungen vor finaler Verwendung getrennt überprüfen.
+
+## Geometrie und meteorologischer Vertrag
+
+Vorliegende `surroundingsViewportRaster.ts` errechnet bereits die komplette sichtbare Kamera inklusive Overscan, gibt aber für externe WMS eine EPSG:4326-BBOX aus. Ein solches Bild besitzt zwischen seinen Ecken gleichmäßig verteilte **Breitengrad**-Pixel; MapLibre platziert das Quad auf einer WebMercator-Karte. Der resultierende Zwischenpixel-Lagefehler liegt bei einem 1,3-Grad-Bild um 50,82° N in der Größenordnung von 0,5 km, auch wenn alle vier Randpixel sichtbar sind. OPERA/Phase verwenden bereits eigenes inverses Mercator-Y-Sampling und sind davon unabhängig.
+
+Der neue, ausschließlich geometrische `planSurroundingsMercatorWms(geoBounds)` konvertiert den unveränderten tatsächlichen geografischen Kamera-Umriss in eine metrische `EPSG:3857`-BBOX `xMin,yMin,xMax,yMax`, rundet die Außenkanten auf 1 mm nach außen und berechnet WIDTH/HEIGHT entsprechend der **projizierten Meter-Abmessungen**, streng innerhalb des unveränderten 512×256-Rasterbudgets. Die ursprünglichen WGS84-Ecken bleiben unverändert für die `ImageQuadLayer`-Georeferenzierung. Antimeridian, Pole, nicht endliche Koordinaten und pathologische Maße werden abgelehnt. Der Planer enthält keinerlei Wetter-/Zeit-/Warn-/NoData-Feld.
+
+## Vor einer Nutzung zwingend
+
+1. Der Leitchat muss nach aktuellem SHA-Abgleich die Hilfe selektiv in [#858](https://github.com/MeteoMartini/MID/pull/858) aufnehmen. WMS-Request und Raster-Image müssen dieselbe geografische Kamerafläche und die berechnete metrische BBOX verwenden, `srs`/Version (DWD) bzw. `crs`/Version (EUMETSAT) korrekt koppeln und den vollständigen CRS-/Geometrie-/Bildmaß-/UTC-/Orts-Key für Stale-Abort benutzen. Keine ganze `CurrentSurroundings.tsx` blind kopieren.
+2. Echtbild- und PNG-Alpha-/NoData-Prüfung: DWD-Radar, MTG GeoColour RGB und MTG IR10.5 unabhängig; gültige Original-Zeitstempel, transparentes NoData und echte Pixel-Koordinaten an Ecken **und innen** überprüfen. Kein HTTP-200/PNG als Abdeckungsbeweis, kein NoData=0.
+3. Komplette Browser- und WebKit-Randpixel-/Geogrid-Tests 320/390/430/834/1024/1440 px, Light/Dark, Resize, Orientierung, erstes Tippen, Offline, Phasen- und Bildwechsel sowie gegebene Performancebudgets. Chromium ist kein reales iOS- oder VoiceOver-Gate.
+4. Keine Änderung an RUC, Quellen-/WMO-/DWD-Warnsemantik, Security #740, Version, Workern oder geschützten Release-Gates. Source-PR-Gate → SHA-Merge → serverseitiges ZIP → `install-mid.yml` → Worker-/Pages-Gates → Stable-Promotion weiterhin zwingend.
+
+Diese QA liefert nur eine unabhängige mathematische Vorqualifikation; sie darf nicht eigenständig aktiviert oder als stabil ausgeliefert gemeldet werden.
