@@ -6,7 +6,8 @@
  */
 import {WorkerEntrypoint} from 'cloudflare:workers';
 import {OAuthAuthorizationServer} from '@cloudflare/workers-oauth-provider';
-import {renderMidAiConsentPage,rememberMidAiOAuthRequestedScopes,verifyMidAiOAuthRequestedScopes} from './consent-page.mjs';
+import {renderMidAiConsentPage} from './consent-page.mjs';
+import {issueMidAiScopeProof,verifyMidAiScopeProof} from './consent-proof.mjs';
 const deny=reason=>{throw new Error('MID_OAUTH_'+reason)};
 const exact=x=>typeof x==='string'&&/^https:\/\/[a-z0-9.-]+(?:\/[a-z0-9/_-]*)?$/.test(x)&&!x.includes('..');
 function configured(env){
@@ -62,13 +63,11 @@ export default class MidAiAuthServer extends WorkerEntrypoint{
     const original=await oauth.parseAuthRequest(request);
     const info=await oauth.describeConsent(original);
     const consent=await oauth.beginConsent(original);
-    // Preserve original client-requested scopes independently: the SDK
-    // overwrites approved.request.scope with the form-selected scopes.
-    await rememberMidAiOAuthRequestedScopes({kv:this.env.OAUTH_KV,
+    const proof=await issueMidAiScopeProof({secret:this.env.MID_AI_CONSENT_HMAC_KEY,
      handle:consent.handle,request:original});
     consent.headers.set('content-type','text/html; charset=utf-8');
     consent.headers.set('cache-control','no-store');
-    return new Response(renderMidAiConsentPage(info,consent.handle),{headers:consent.headers});
+    return new Response(renderMidAiConsentPage(info,consent.handle,proof),{headers:consent.headers});
    }
    if(path==='/authorize'&&request.method==='POST'){
     const form=await request.formData();
@@ -82,8 +81,8 @@ export default class MidAiAuthServer extends WorkerEntrypoint{
     // The SDK intentionally allows more scopes than requested and replaces
     // approved.request.scope with selected. Verify the separately saved,
     // original browser-bound scope evidence before beginning upstream auth.
-    await verifyMidAiOAuthRequestedScopes({kv:this.env.OAUTH_KV,
-     handle,approvedRequest:approved.request,selected});
+    await verifyMidAiScopeProof({secret:this.env.MID_AI_CONSENT_HMAC_KEY,
+     handle,proof:String(form.get('scope_proof')||''),request:approved.request,selected});
     const verifier=base64(crypto.getRandomValues(new Uint8Array(32)));
     const upstream=await oauth.beginUpstream(approved.request,{
      data:{verifier,selected},headers:approved.headers

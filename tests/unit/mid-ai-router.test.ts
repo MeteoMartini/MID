@@ -170,14 +170,14 @@ describe('MID AI Router: OAuth consent and exact client-scoped permission gate',
 
 describe('MID AI Router: original OAuth requested scopes survive SDK consent mutation', () => {
   it('rejects forged extra inference scopes using protected original handle-bound evidence', () => {
-    const script=fileURLToPath(new URL('../../scripts/qa-mid-ai-router-consent-scope-0985487.mjs',import.meta.url));
+    const script=fileURLToPath(new URL('../../scripts/qa-mid-ai-router-consent-proof-0985487.mjs',import.meta.url));
     const r=spawnSync(process.execPath,[script],{
       cwd:root,timeout:20_000,encoding:'utf8',maxBuffer:128*1024,
       env:{PATH:process.env.PATH||''},stdio:['ignore','pipe','pipe']
     });
     expect(r.error).toBeUndefined();
     expect(r.status,r.stderr||r.stdout).toBe(0);
-    expect(r.stdout).toMatch(/MID AI Router original OAuth scope binding QA OK; scenarios=20; no network, tokens, storage billing or deployment\./);
+    expect(r.stdout).toMatch(/MID AI Router stateless consent proof QA OK; cases=20; no extra KV, tokens, network or deployment\./);
     expect(r.stderr).toBe('');
   });
 });
