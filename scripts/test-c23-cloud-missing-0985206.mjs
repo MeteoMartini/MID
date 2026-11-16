@@ -34,6 +34,18 @@ assert.ok(Number.isNaN(missingGroup.probability),'3h A3 missing PoP remains miss
 const knownGroup=m.detailHoursByResolution(detailRows.map(row=>({...row,precipitation:0,rain:0,showers:0,snowfall:0,probability:0})),'3h','Europe/Berlin')[0];
 assert.equal(knownGroup.precipitation,0,'3h A3 valid dry 0mm retained');
 assert.equal(knownGroup.probability,0,'3h A3 valid 0% retained');assert.equal(m.detailHoursByResolution(detailRows.map(h=>({...h,code:61,precipitation:1,rain:1})),'3h','Europe/Berlin')[0].code,61,'rain must survive dry sky reconciliation');
+// C42: a 3h gust peak needs all real hour originals, not Number(null) → 0.
+const gustGroup=rows=>m.detailHoursByResolution(rows,'3h','Europe/Berlin')[0];
+assert.equal(gustGroup(detailRows.map((row,i)=>({...row,wind:8,gust:[7,14,11][i]}))).gust,14,'real three-hour max gust must remain the extremum');
+assert.equal(gustGroup(detailRows.map(row=>({...row,wind:10,gust:9}))).gust,10,'a validated gust may not be below a valid same-slot mean wind');
+assert.equal(gustGroup(detailRows.map(row=>({...row,wind:0,gust:0}))).gust,0,'genuine 0 km/h gust remains zero');
+for(const unavailable of [null,undefined,'',NaN,Infinity,-1]){
+ const row=gustGroup(detailRows.map((hour,i)=>({...hour,gust:i===1?unavailable:14,wind:8})));
+ assert.ok(Number.isNaN(row.gust),'one unavailable/invalid original hour must not become 0 or a false complete gust maximum: '+String(unavailable));
+}
+assert.ok(Number.isNaN(gustGroup(detailRows.slice(0,2).map(row=>({...row,gust:14,wind:8}))).gust),'two valid actual hours are incomplete for a three-hour peak');
+// A missing gust series must never become a surrogate wind value, even when mean wind is valid.
+assert.ok(Number.isNaN(gustGroup(detailRows.map(row=>({...row,gust:null,wind:9}))).gust),'known mean wind does not prove missing gust observations');
 assert.equal(m.shortTermCloudLabel(0),'0 %');assert.equal(meanCloudLayer([{cloud:0},{cloud:null}],'cloud'),0);
 const quarters=Array.from({length:8},(_,i)=>({...base,epoch:Date.UTC(2026,9,8,15,30)+i*900000,time:new Date(Date.UTC(2026,9,8,15,30)+i*900000).toISOString(),cloud:[60,60,55,40,35,30,30,30][i],sunshineDuration:[900,900,900,300,600,600,0,0][i]}));
 const points=m.shortTermNinetyMinutePoints(m.buildShortTermForecast(quarters,hours,'Europe/Berlin',now,{active:false}),now);assert.equal(points.length,6);assert.deepEqual(points.map(p=>p.timeLabel),['17:30','17:45','18:00','18:15','18:30','18:45']);
