@@ -88,8 +88,10 @@ export default function CurrentSurroundings(props:Props){
  const [phaseLoading,setPhaseLoading]=useState(false);
  const [mapCities,setMapCities]=useState<SurroundingsCityCandidate[]>([]);
  const [mapViewport,setMapViewport]=useState<{width:number;height:number}|null>(null);
- // Only the actual MapLibre camera can certify a full-viewport radar/satellite footprint.
- const [rasterPlan,setRasterPlan]=useState<SurroundingsRasterPlan|undefined>();
+ // Bind camera geometry to the requested location. Even if the parent changes
+ // coordinates without remounting, an old image plan must not survive that switch.
+ const [rasterState,setRasterState]=useState<{lat:number;lon:number;plan:SurroundingsRasterPlan|undefined}>();
+ const rasterPlan=rasterState?.lat===lat&&rasterState.lon===lon?rasterState.plan:undefined;
  const mapFigureRef=useRef<HTMLElement|null>(null);
  const darkMap=useDarkMapTheme();
  useEffect(()=>{
@@ -311,7 +313,7 @@ export default function CurrentSurroundings(props:Props){
   <figure ref={mapFigureRef} className="current-surroundings-map" aria-label={`Wetterbild um ${name}: MID-Kartenbasis und Temperaturen an benannten Orten`}>
    <MidMapLibre center={[lat,lon]} zoom={7} scrollZoom={false} interactive={false} navigationControl={false} className="current-surroundings-maplibre">
     <MapFitBounds south={south} west={west} north={north} east={east} padding={8} maxZoom={7}/>
-    <SurroundingsViewportCapture onChange={setRasterPlan}/>
+    <SurroundingsViewportCapture onChange={plan=>setRasterState({lat,lon,plan})}/>
     <UnifiedVectorBasemap dark={darkMap}/>
     {mode==='cloud'&&cloudForecast.image&&<ImageQuadLayer id="surroundings-model-cloud-weather" url={cloudForecast.image.url}
      bounds={cloudForecast.image.bounds} resampling="nearest" zIndex={270} frameKey={`${cloudForecast.image.run}:${cloudForecast.image.validTime}:pseudo`}/>}
