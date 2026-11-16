@@ -192,9 +192,22 @@ async function oneIntegrated(width,height,theme){
     return label&&Number.parseFloat(getComputedStyle(label).fontSize)>=target;
    },base*2-.5,{timeout:3500,polling:40});
   }catch(error){
-   const current=await page.locator('.cockpit-fourteen-card .cockpit-fourteen-weather-label').evaluate(node=>{
-    const cs=getComputedStyle(node);
-    return {font:cs.fontSize,transition:cs.transition,animations:node.getAnimations().map(a=>({kind:a.constructor.name,state:a.playState}))};
+   const current=await page.evaluate(()=>{
+    const node=document.querySelector('.cockpit-fourteen-card .cockpit-fourteen-weather-label');
+    const cs=getComputedStyle(node),cssMatches=[],errors=[];
+    const walk=(list,sheet,media='all')=>{
+     for(const rule of list){
+      if(rule.type===4&&!matchMedia(rule.conditionText).matches)continue;
+      if(rule.cssRules){walk(rule.cssRules,sheet,rule.conditionText||media);continue;}
+      if(!rule.selectorText||!rule.style?.getPropertyValue('font-size'))continue;
+      try{if(node.matches(rule.selectorText))cssMatches.push({sheet,media,selector:rule.selectorText.slice(0,250),font:rule.style.getPropertyValue('font-size'),priority:rule.style.getPropertyPriority('font-size'),transition:rule.style.getPropertyValue('transition')});}
+      catch(e){errors.push(String(e).slice(0,90));}
+     }
+    };
+    [...document.styleSheets].forEach((sheet,i)=>{try{walk(sheet.cssRules,'sheet'+i+':'+(sheet.href||'inline'))}catch(e){errors.push('sheet'+i+': '+String(e).slice(0,120))}});
+    return {font:cs.fontSize,transition:cs.transition,transitionProperty:cs.transitionProperty,transitionDuration:cs.transitionDuration,
+     animations:node.getAnimations().map(a=>({kind:a.constructor.name,state:a.playState,transitionProperty:a.transitionProperty||null})),
+     cssMatches:cssMatches.slice(-45),errors};
    });
    throw new Error('Real Chromium 200% CSS font never settled: '+JSON.stringify({width,theme,base,arrival:cssArrival,current}),{cause:error});
   }
