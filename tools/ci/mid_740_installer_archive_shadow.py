@@ -63,9 +63,40 @@ def git_blob_sha(data):
     return hashlib.sha1(b'blob ' + str(len(data)).encode('ascii') + b'\0' + data).hexdigest()
 
 
-def verify_file(path, envelope_digest, event_sha, git_blobs=None):
+def git_tree_sha(files):
+    """Git SHA-1 tree OID from verified file bytes and Git file modes."""
+    root = {}
+    for path, (mode, oid) in files.items():
+        parts = check_path(path).split('/')
+        cursor = root
+        for part in parts[:-1]:
+            cursor = cursor.setdefault(part, {})
+            if not isinstance(cursor, dict):
+                raise Rejected('DIST_TREE_FILE_DIRECTORY_CONFLICT')
+        if parts[-1] in cursor:
+            raise Rejected('DUPLICATE_DIST_TREE_ENTRY')
+        cursor[parts[-1]] = (mode, oid)
+
+    def oid(node):
+        buffer = bytearray()
+        for name, value in sorted(node.items(), key=lambda item:
+                (item[0] + ('/' if isinstance(item[1], dict) else '')).encode('utf8')):
+            if isinstance(value, dict):
+                mode, item_sha = '40000', oid(value)
+            else:
+                mode, item_sha = value
+            buffer.extend(mode.encode('ascii') + b' ' + name.encode('utf8') +
+                          b'\0' + bytes.fromhex(item_sha))
+        return hashlib.sha1(b'tree ' + str(len(buffer)).encode('ascii') +
+                            b'\0' + buffer).hexdigest()
+    return oid(root)
+
+
+def verify_file(path, envelope_digest, event_sha, git_blobs=None, expected_dist_tree_sha=None):
     if not DIGEST.fullmatch(envelope_digest) or not SHA.fullmatch(event_sha):
         raise Rejected('BAD_EXPECTED_IDENTITY')
+    if expected_dist_tree_sha is not None and not GIT_SHA.fullmatch(expected_dist_tree_sha):
+        raise Rejected('INVALID_DIST_TREE_SHA')
     git_blobs = {} if git_blobs is None else git_blobs
     if not isinstance(git_blobs, dict) or len(git_blobs) > 256 or any(
         not isinstance(path_name, str) or not GIT_SHA.fullmatch(git_sha)
@@ -113,7 +144,7 @@ def verify_file(path, envelope_digest, event_sha, git_blobs=None):
             tarhash, tarsize = sha256_of_stream(gz)
         if tarhash != manifest['archiveSha256']:
             raise Rejected('TAR_SHA_MISMATCH')
-        seen=set(); n=0; dirs=0; total_size=0; verified_blobs=0
+        seen=set(); n=0; dirs=0; total_size=0; verified_blobs=0; dist_files={}
         with outer.open('release.tar.gz') as gz:
             with tarfile.open(fileobj=gz,mode='r|gz') as tf:
                 for member in tf:
@@ -143,7 +174,7 @@ def verify_file(path, envelope_digest, event_sha, git_blobs=None):
                     if reader is None:
                         raise Rejected('UNREADABLE_MEMBER')
                     sha = hashlib.sha256()
-                    gitsha = hashlib.sha1() if name in required_blobs else None
+                    gitsha = hashlib.sha1() if name in required_blobs or (expected_dist_tree_sha is not None and name.startswith('dist/')) else None
                     if gitsha is not None:
                         gitsha.update(b'blob '+str(member.size).encode('ascii')+b'\0')
                     read_bytes = 0
@@ -157,21 +188,33 @@ def verify_file(path, envelope_digest, event_sha, git_blobs=None):
                             gitsha.update(chunk)
                     if read_bytes != member.size:
                         raise Rejected('INCOMPLETE_FILE_STREAM')
-                    if gitsha is not None:
-                        if gitsha.hexdigest() != git_blobs[name]:
+                    if name in required_blobs:
+                        if gitsha is None or gitsha.hexdigest() != git_blobs[name]:
                             raise Rejected('GIT_BLOB_SHA_MISMATCH')
                         verified_blobs += 1
+                    if expected_dist_tree_sha is not None and name.startswith('dist/'):
+                        dist_files[name[len('dist/'):]] = (
+                            '100755' if member.mode & 0o111 else '100644',
+                            gitsha.hexdigest())
                     if sha.hexdigest() != files[name]:
                         raise Rejected('MANIFEST_FILE_DIGEST_MISMATCH')
                     seen.add(name)
         if seen != expected:
             raise Rejected('MISSING_FILES')
+        dist_verified = False
+        if expected_dist_tree_sha is not None:
+            if not {'dist/index.html','dist/version.json','dist/sw.js'}.issubset(seen):
+                raise Rejected('MISSING_CORE_DIST_RECOVERY_FILES')
+            if git_tree_sha(dist_files) != expected_dist_tree_sha:
+                raise Rejected('DIST_GIT_TREE_SHA_MISMATCH')
+            dist_verified = True
         return {'schema':'mid.740.real-installer-artifact-shadow.v1',
                 'status':'BYTE_INTEGRITY_CONFIRMED','localEnvelopeSha256':observed,
                 'envelopeBytes':count,'tarSha256':tarhash,'tarBytes':tarsize,
                 'eventSha':event_sha,'verifiedFiles':len(seen),
                 'verifiedDirectories':dirs,'totalExpandedFileBytes':total_size,
                 'independentGitBlobMatches':verified_blobs,'fullGitTreeVerified':False,
+                'distGitTreeVerified':dist_verified,'distGitTreeFiles':len(dist_files),
                 'producerVerified':False,'nativeReviewVerified':False,
                 'releaseAuthorized':False,'installerAuthorized':False,
                 'recoveryAuthorized':False}
@@ -182,10 +225,11 @@ if __name__ == '__main__':
     p.add_argument('--expected-envelope-sha256',required=True)
     p.add_argument('--event-sha',required=True)
     p.add_argument('--git-blobs-json',default=None)
+    p.add_argument('--expected-dist-tree-sha',default=None)
     a=p.parse_args()
     try:
         blobs = {} if a.git_blobs_json is None else json.loads(Path(a.git_blobs_json).read_text())
-        print(json.dumps(verify_file(a.file,a.expected_envelope_sha256,a.event_sha,blobs),sort_keys=True))
+        print(json.dumps(verify_file(a.file,a.expected_envelope_sha256,a.event_sha,blobs,a.expected_dist_tree_sha),sort_keys=True))
     except (Rejected,zipfile.BadZipFile,tarfile.TarError,ValueError,OSError,KeyError,TypeError,EOFError) as exc:
         print(json.dumps({'schema':'mid.740.real-installer-artifact-shadow.v1',
                           'status':'BLOCKED','reason':str(exc),

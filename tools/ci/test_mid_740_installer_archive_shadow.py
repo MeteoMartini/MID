@@ -63,6 +63,34 @@ class ArtifactTests(unittest.TestCase):
         for k in ('releaseAuthorized','installerAuthorized','producerVerified','recoveryAuthorized'):
             self.assertFalse(proof[k])
 
+    def test_entire_dist_git_tree_parity_and_tamper(self):
+        # Independent fixed Git-tree expectation, no call into the verifier's
+        # Git-tree implementation for the expected value.
+        self.files={
+            'dist/index.html':b'<html>ok</html>\n',
+            'dist/sw.js':b'// offline\n',
+            'dist/version.json':b'{"version":"0.9.85.485"}\n',
+        }
+        raw=b''
+        for name in ('index.html','sw.js','version.json'):
+            data=self.files['dist/'+name]
+            sha=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).digest()
+            raw+=b'100644 '+name.encode()+b'\0'+sha
+        expected=hashlib.sha1(b'tree '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+        path,sha=self.fixture()
+        report=verify_file(path,sha,EVENT,expected_dist_tree_sha=expected)
+        self.assertTrue(report['distGitTreeVerified'])
+        self.assertEqual(report['distGitTreeFiles'],3)
+        self.assertFalse(report['releaseAuthorized'])
+        with self.assertRaisesRegex(Rejected,'DIST_GIT_TREE_SHA_MISMATCH'):
+            verify_file(path,sha,EVENT,expected_dist_tree_sha='0'*40)
+
+    def test_missing_core_dist_file_blocks_recovery_tree(self):
+        self.files={'dist/index.html':b'<html>ok</html>\n'}
+        path,sha=self.fixture()
+        with self.assertRaisesRegex(Rejected,'MISSING_CORE_DIST_RECOVERY_FILES'):
+            verify_file(path,sha,EVENT,expected_dist_tree_sha='0'*40)
+
     def test_wrong_outer_digest(self):
         path,_=self.fixture()
         with self.assertRaisesRegex(Rejected,'ENVELOPE_SHA_MISMATCH'):
