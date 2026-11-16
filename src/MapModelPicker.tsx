@@ -95,7 +95,7 @@ export function MapModelPicker<T extends MapModelChoice>({label,value,groups,fal
  let index=-1;
  return <div className="mid-map-model-picker" ref={root} onKeyDown={onKeyDown}>
   <button ref={trigger} type="button" className="mid-map-model-picker-trigger"
-   aria-label={label} aria-expanded={open} aria-controls={listId}
+   aria-label={label} aria-expanded={open} aria-controls={listId} data-model-id={value}
    onClick={()=>setOpen(value=>!value)}>
    <MapModelFlag modelId={value}/>
    <span className="mid-map-model-picker-value">{currentName}</span>
