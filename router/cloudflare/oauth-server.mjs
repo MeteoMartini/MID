@@ -6,7 +6,7 @@
  */
 import {WorkerEntrypoint} from 'cloudflare:workers';
 import {OAuthAuthorizationServer} from '@cloudflare/workers-oauth-provider';
-import {renderMidAiConsentPage,validateMidAiConsentScopes} from './consent-page.mjs';
+import {renderMidAiConsentPage,rememberMidAiOAuthRequestedScopes,verifyMidAiOAuthRequestedScopes} from './consent-page.mjs';
 const deny=reason=>{throw new Error('MID_OAUTH_'+reason)};
 const exact=x=>typeof x==='string'&&/^https:\/\/[a-z0-9.-]+(?:\/[a-z0-9/_-]*)?$/.test(x)&&!x.includes('..');
 function configured(env){
@@ -62,6 +62,10 @@ export default class MidAiAuthServer extends WorkerEntrypoint{
     const original=await oauth.parseAuthRequest(request);
     const info=await oauth.describeConsent(original);
     const consent=await oauth.beginConsent(original);
+    // Preserve original client-requested scopes independently: the SDK
+    // overwrites approved.request.scope with the form-selected scopes.
+    await rememberMidAiOAuthRequestedScopes({kv:this.env.OAUTH_KV,
+     handle:consent.handle,request:original});
     consent.headers.set('content-type','text/html; charset=utf-8');
     consent.headers.set('cache-control','no-store');
     return new Response(renderMidAiConsentPage(info,consent.handle),{headers:consent.headers});
@@ -75,9 +79,11 @@ export default class MidAiAuthServer extends WorkerEntrypoint{
     }
     const selected=form.getAll('scope').map(String);
     const approved=await oauth.approveConsent(request,handle,{scope:selected});
-    // SDK allows any supported scope; MID permits only those requested by
-    // this exact browser-bound client transaction. Never grant unrequested write.
-    validateMidAiConsentScopes(approved.request.scope,selected);
+    // The SDK intentionally allows more scopes than requested and replaces
+    // approved.request.scope with selected. Verify the separately saved,
+    // original browser-bound scope evidence before beginning upstream auth.
+    await verifyMidAiOAuthRequestedScopes({kv:this.env.OAUTH_KV,
+     handle,approvedRequest:approved.request,selected});
     const verifier=base64(crypto.getRandomValues(new Uint8Array(32)));
     const upstream=await oauth.beginUpstream(approved.request,{
      data:{verifier,selected},headers:approved.headers
