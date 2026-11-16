@@ -84,13 +84,14 @@ export async function assessMid740PostProducerCausality({
     meta.producerRun.name!==PRODUCER_NAME)
   return blocked('PRODUCER_OR_ORIGINAL_DIGEST_MISMATCH');
 
- let gate,gateRegistry,pr,merge,stable;
+ let gate,gateRegistry,pr,merge,sourceHead,stable;
  try{
-  [gate,gateRegistry,pr,merge,stable]=await Promise.all([
+  [gate,gateRegistry,pr,merge,sourceHead,stable]=await Promise.all([
    get(ROOT+'actions/runs/'+r.sourceGateRunId),
    get(ROOT+'actions/workflows/'+SOURCE_WORKFLOW_ID),
    get(ROOT+'pulls/'+r.prNumber),
    get(ROOT+'git/commits/'+sourceMergeSha),
+   get(ROOT+'git/commits/'+r.sourceHeadSha),
    get(ROOT+'git/ref/heads/mid-stable')
   ]);
  }catch{return blocked('UPSTREAM_MERGE_OR_STABLE_READ_UNAVAILABLE')}
@@ -119,6 +120,13 @@ export async function assessMid740PostProducerCausality({
     stable?.object?.type!=='commit'||
     stable.object.sha!==r.sourceBaseSha)
   return blocked('SOURCE_MERGE_PARENT_OR_STABLE_DRIFT');
+ // Exact Git tree IDs commit every tracked path, blob OID and Git mode.
+ // Equality plus the verified squash parent on the PR's original base means
+ // the complete source PR diff relative to base matches the merged diff.
+ if(sourceHead?.sha!==r.sourceHeadSha||
+    !SHA.test(sourceHead.tree?.sha??'')||
+    sourceHead.tree.sha!==merge.tree.sha)
+  return blocked('SOURCE_PR_HEAD_TREE_NOT_IDENTICAL_TO_MERGE');
 
  // Chronology is necessary but NOT sufficient: the causal source comes from
  // exact GitHub run/PR/commit/artifact identities, never timestamps alone.
@@ -133,15 +141,16 @@ export async function assessMid740PostProducerCausality({
  // Final independent REST readback, including a second full producer-artifact
  // inventory. A changed source gate, merge, PR, artifact, stable, or producer
  // invalidates this QA result; the installer must still recheck separately.
- let after,gate2,pr2,merge2,stable2;
+ let after,gate2,pr2,merge2,sourceHead2,stable2;
  try{
-  [after,gate2,pr2,merge2,stable2]=await Promise.all([
+  [after,gate2,pr2,merge2,sourceHead2,stable2]=await Promise.all([
    collectMid740GitHubReadback({runId:r.producerRunId,
     artifactId:i.artifactId,sourceMergeSha,
     trustedWorkflowSha:r.producerWorkflowSha},get),
    get(ROOT+'actions/runs/'+r.sourceGateRunId),
    get(ROOT+'pulls/'+r.prNumber),
    get(ROOT+'git/commits/'+sourceMergeSha),
+   get(ROOT+'git/commits/'+r.sourceHeadSha),
    get(ROOT+'git/ref/heads/mid-stable')
   ]);
  }catch{return blocked('FINAL_CAUSALITY_READBACK_UNAVAILABLE')}
@@ -150,6 +159,7 @@ export async function assessMid740PostProducerCausality({
     runIdentity(gate)!==runIdentity(gate2)||
     prIdentity(pr)!==prIdentity(pr2)||
     commitIdentity(merge)!==commitIdentity(merge2)||
+    commitIdentity(sourceHead)!==commitIdentity(sourceHead2)||
     stable2?.object?.sha!==stable.object.sha)
   return blocked('FINAL_UPSTREAM_MERGE_OR_PRODUCER_RACE');
 
@@ -162,12 +172,14 @@ export async function assessMid740PostProducerCausality({
   producerRunId:r.producerRunId,producerAttempt:1,
   artifactId:i.artifactId,artifactSha256:i.artifactSha256,
   sourcePrBotMergeAndParentReadbackVerified:true,
+  sourceGitTreeSha:sourceHead.tree.sha,
+  sourceDiffEquivalenceVerified:true,
   producerArtifactInventoryAndCausalityReadbackVerified:true,
   postVerificationRaceReadbackVerified:true,
   // The premerge receipt and intake proof are supplied objects; this module
   // does not authenticate their production origin or re-verify ZIP bytes.
   originalProducerReceiptAttested:false,
-  sourceDiffEquivalenceVerified:false,nativeGitHubReviewVerified:false,
+  nativeGitHubReviewVerified:false,
   installerAuthorized:false,recoveryAuthorized:false,releaseAuthorized:false
  });
 }

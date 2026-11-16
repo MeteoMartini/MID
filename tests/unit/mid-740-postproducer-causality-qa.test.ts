@@ -34,6 +34,7 @@ function fixture(){
   created_at:'2026-11-16T10:07:00Z',
   updated_at:'2026-11-16T10:08:00Z'};
  const commit={sha:MERGE,tree:{sha:TREE},parents:[{sha:BASE}]};
+ const headCommit={sha:HEAD,tree:{sha:TREE},parents:[{sha:BASE}]};
  const data:Record<string,any>={
   'actions/runs/111':gate,
   'actions/workflows/358449552':{id:358449552,path:GATEPATH,
@@ -46,6 +47,7 @@ function fixture(){
   'git/ref/heads/main':{ref:'refs/heads/main',object:{type:'commit',sha:MERGE}},
   'git/ref/heads/mid-stable':{ref:'refs/heads/mid-stable',object:{type:'commit',sha:BASE}},
   ['git/commits/'+MERGE]:commit,
+  ['git/commits/'+HEAD]:headCommit,
   'pulls/999':pr
  };
  const receipt={schema:'mid.740.premerge-producer-receipt.v1',
@@ -79,9 +81,10 @@ describe('#740 producer completion -> source PR squash -> actual source artifact
    sourceHeadSha:HEAD,sourceBaseSha:BASE,sourceMergeSha:MERGE,
    sourceGateRunId:111,sourcePrNumber:999,producerRunId:222,artifactId:333,
    sourcePrBotMergeAndParentReadbackVerified:true,
+   sourceGitTreeSha:TREE,sourceDiffEquivalenceVerified:true,
    producerArtifactInventoryAndCausalityReadbackVerified:true,
    postVerificationRaceReadbackVerified:true,
-   originalProducerReceiptAttested:false,sourceDiffEquivalenceVerified:false,
+   originalProducerReceiptAttested:false,
    nativeGitHubReviewVerified:false,installerAuthorized:false,
    recoveryAuthorized:false,releaseAuthorized:false
   });
@@ -106,6 +109,10 @@ describe('#740 producer completion -> source PR squash -> actual source artifact
   ['source merge commit wrong parent',x=>{x.data['git/commits/'+MERGE].parents[0].sha=HEAD}],
   ['unexpected merge topology',x=>{x.data['git/commits/'+MERGE].parents.push({sha:HEAD})}],
   ['source merge invalid Git tree',x=>{x.data['git/commits/'+MERGE].tree.sha='none'}],
+  ['source PR head commit identity mismatch',x=>{x.data['git/commits/'+HEAD].sha=MERGE}],
+  ['source PR head Git tree not byte/mode-identical',x=>{x.data['git/commits/'+HEAD].tree.sha='f'.repeat(40)}],
+  ['source PR head Git tree missing',x=>{x.data['git/commits/'+HEAD].tree.sha='invalid'}],
+  ['source PR head commit unavailable',x=>{delete x.data['git/commits/'+HEAD]}],
   ['stable changed before installer',x=>{x.data['git/ref/heads/mid-stable'].object.sha=MERGE}],
   ['artifact prior to merge',x=>{x.data['actions/artifacts/333'].created_at='2026-11-16T10:05:30Z'}],
   ['producer created before source gate completed',x=>{x.data['actions/runs/222'].created_at='2026-11-16T10:03:00Z'}],
@@ -125,6 +132,18 @@ describe('#740 producer completion -> source PR squash -> actual source artifact
   const get=async(path:string)=>{
    const result=await x.get(path);
    if(path===P+'pulls/999'&&++reads===2)result.merged_by.id=1;
+   return result;
+  };
+  expect((await assess({premergeReceipt:x.receipt,
+   verifiedIntake:x.intake,sourceMergeSha:MERGE},get)).reason)
+   .toBe('FINAL_UPSTREAM_MERGE_OR_PRODUCER_RACE');
+ });
+ it('blocks a late source-head Git tree swap between GitHub REST readbacks',async()=>{
+  const x=fixture();let reads=0;
+  const get=async(path:string)=>{
+   const result=await x.get(path);
+   if(path===P+'git/commits/'+HEAD&&++reads===2)
+    result.tree.sha='f'.repeat(40);
    return result;
   };
   expect((await assess({premergeReceipt:x.receipt,
