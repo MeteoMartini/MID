@@ -4,6 +4,7 @@ import {execFileSync} from 'node:child_process';
 import {createRequire} from 'node:module';
 import {createHash} from 'node:crypto';
 import {dirname,join,resolve} from 'node:path';
+import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
 import {createServer} from 'vite';
 import {midCssQaBrowserExecutable} from './lib/cssQaBrowserExecutable.mjs';
@@ -12,7 +13,12 @@ const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const require=createRequire(import.meta.url);
 const exe=midCssQaBrowserExecutable();
 assert.ok(exe,'MID Design 1.4 browser QA requires a real executable Chromium; no silent skip');
-const cli=realpathSync(execFileSync('npm',['exec','--yes','--package=playwright@1.56.1','--','which','playwright'],{encoding:'utf8',timeout:50000}).trim());
+// Playwright CLI resolution gets an isolated npm cache: this Vitest suite runs
+// concurrently with the existing smoke test, which uses the default _npx path.
+// Never mutate or delete the shared npm cache, and never mask a missing browser.
+const cli=realpathSync(execFileSync('npm',['exec','--yes','--package=playwright@1.56.1','--','which','playwright'],{
+ encoding:'utf8',timeout:80000,env:{...process.env,npm_config_cache:join(tmpdir(),'mid-design14-playwright-npx-cache')}
+}).trim());
 const {chromium}=require(join(dirname(dirname(cli)),'playwright'));
 const iso='2026-11-16',baseDate=Date.parse(iso+'T00:00:00Z');
 const location={id:'design14-qa',name:'Niederkassel-Rheidt · Testort',latitude:50.8,longitude:7.05,elevation:55,country:'Deutschland',country_code:'DE',timezone:'Europe/Berlin'};
