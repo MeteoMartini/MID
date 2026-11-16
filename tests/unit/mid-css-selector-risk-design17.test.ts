@@ -1,5 +1,10 @@
 import {describe,it,expect} from 'vitest';
 import postcss from 'postcss';
+import {execFileSync} from 'node:child_process';
+import {mkdtemp,readFile,rm} from 'node:fs/promises';
+import {join} from 'node:path';
+import {tmpdir} from 'node:os';
+import {fileURLToPath} from 'node:url';
 import {cssSelectorRiskEvidence} from '../../scripts/lib/cssSelectorRiskEvidence.mjs';
 import {loadCssCascade} from '../../scripts/lib/cssCascade.mjs';
 
@@ -97,6 +102,38 @@ describe('Design 1.7 – fail-closed CSS cross-selector cascade evidence',()=>{
   expect(report.ambiguousLaterSelectors).toBe(1);
   expect(report.potentialPairs).toBe(1);
   expect(report.affectedClasses).toEqual(['card']);
+ });
+
+
+ it('runs the real diagnostic CLI for all canonical CSS candidates without granting a move',async()=>{
+  const repoRoot=fileURLToPath(new URL('../../',import.meta.url));
+  const cwd=await mkdtemp(join(tmpdir(),'mid-design17-selector-risk-'));
+  try{
+   const stdout=execFileSync(process.execPath,[join(repoRoot,'scripts/audit-css-selector-risk-design17.mjs')],{
+    cwd,encoding:'utf8',timeout:45_000,stdio:['ignore','pipe','pipe'],
+   });
+   expect(stdout).toContain('MID_DESIGN17_CSS_SELECTOR_RISK');
+   const report=JSON.parse(await readFile(join(cwd,'artifacts/css-selector-risk-design17.json'),'utf8'));
+   expect(report.schema).toBe('mid.design17.css-selector-risk-report.v1');
+   expect(report.eagerSources).toBeGreaterThan(60);
+   expect(report.candidates.map((x:{candidateFile:string})=>x.candidateFile)).toEqual([
+    'src/styles-src/25-extreme-outlook.css',
+    'src/midC14MapWorkspace.css',
+    'src/midC18FourteenReplitFluidGrid.css',
+   ]);
+   for(const row of report.candidates){
+    expect(row.safeToDefer).toBe(false);
+    expect(Number.isInteger(row.potentialPairs)).toBe(true);
+    expect(Number.isInteger(row.ambiguousCandidateSelectors)).toBe(true);
+    expect(Number.isInteger(row.ambiguousLaterSelectors)).toBe(true);
+    expect(row.status).toMatch(/^(POTENTIAL_CROSS_SELECTOR_CASCADE_RISK|UNVERIFIED_NO_STATIC_MATCH)$/);
+   }
+   console.log('MID_DESIGN17_REAL_CASCADE_QA '+JSON.stringify(report.candidates.map(
+    (row:{candidateFile:string;potentialPairs:number;ambiguousCandidateSelectors:number;safeToDefer:boolean})=>({
+     file:row.candidateFile,staticRiskPairs:row.potentialPairs,ambiguous:row.ambiguousCandidateSelectors,safeToDefer:row.safeToDefer
+    })
+   )));
+  }finally{await rm(cwd,{recursive:true,force:true})}
  });
 
 });
