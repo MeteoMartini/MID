@@ -7,7 +7,7 @@ function fixture(){
  const pr:any={number:839,state:'open',draft:true,
    head:{sha,ref:branch,repo:{id:RID}},base:{ref:'main',sha:base}};
  const run:any={id:111,workflow_id:370984997,run_attempt:2,
-   path:'.github/workflows/unit-coverage.yml',event:'pull_request',
+   path:'.github/workflows/mid-740-pr-artifact-shadow-qa.yml',event:'pull_request',
    head_branch:branch,head_sha:sha,repository:{id:RID},
    head_repository:{id:RID},status:'in_progress',conclusion:null,
    run_started_at:'2026-11-16T13:00:00Z',
@@ -22,6 +22,7 @@ function fixture(){
    ...art,workflow_run:{...art.workflow_run}}]};
  const data:any={
   [p+'/actions/runs/111']:run,
+  [p+'/actions/workflows/370984997']:{id:370984997,path:'.github/workflows/mid-740-pr-artifact-shadow-qa.yml',state:'active'},
   [p+'/actions/artifacts/222']:art,
   [p+'/pulls/839']:pr,
   [p+'/git/ref/heads/main']:{object:{sha:base}},
@@ -53,6 +54,8 @@ describe('MID #740 PR-only upload/download shadow provenance',()=>{
   ['PR base changed',(x:any)=>{x.pr.base.sha=sha}],
   ['wrong workflow ID',(x:any)=>{x.run.workflow_id=2}],
   ['wrong workflow path',(x:any)=>{x.run.path='.github/workflows/agent-source-release.yml'}],
+  ['inactive workflow',(x:any)=>{x.data[p+'/actions/workflows/370984997'].state='disabled_manually'}],
+  ['registry wrong workflow',(x:any)=>{x.data[p+'/actions/workflows/370984997'].path='.github/workflows/unit-coverage.yml'}],
   ['wrong event',(x:any)=>{x.run.event='workflow_run'}],
   ['rerun attempt drift',(x:any)=>{x.run.run_attempt=1}],
   ['foreign run repository',(x:any)=>{x.run.repository.id=3}],

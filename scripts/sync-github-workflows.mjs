@@ -48,6 +48,7 @@ export const managedFiles=[
  ['workflows/mid-code-revision.yml','workflows/mid-code-revision.yml'],
  ['workflows/branch-cleanup.yml','workflows/branch-cleanup.yml'],
  ['workflows/unit-coverage.yml','workflows/unit-coverage.yml'],
+ ['workflows/mid-740-pr-artifact-shadow-qa.yml','workflows/mid-740-pr-artifact-shadow-qa.yml'],
  ['workflows/widget-export.yml','workflows/widget-export.yml'],
  ['workflows/mid-ruc-preprocess.yml','workflows/mid-ruc-preprocess.yml'],
  ['workflows/mid-ruc-schedule-watchdog.yml','workflows/mid-ruc-schedule-watchdog.yml'],
