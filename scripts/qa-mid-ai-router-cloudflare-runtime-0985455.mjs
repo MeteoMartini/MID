@@ -25,7 +25,7 @@ assert.match(resource,/MID_AI_LIVE_DISPATCH_ARMED/);tests++;
 assert.match(resource,/principalDigest\(/);tests++;
 assert.match(issuer,/OAuthAuthorizationServer/);tests++;
 assert.match(issuer,/beginConsent/);tests++;
-assert.match(issuer,/renderMidAiConsentPage\(info,consent\.handle\)/);tests++;
+assert.match(issuer,/renderMidAiConsentPage\(info,consent\.handle,proof\)/);tests++;
 assert.match(issuer,/issueMidAiScopeProof/);tests++;
 assert.match(issuer,/verifyMidAiScopeProof/);tests++;
 assert.match(issuer,/MID_AI_CONSENT_HMAC_KEY/);tests++;
