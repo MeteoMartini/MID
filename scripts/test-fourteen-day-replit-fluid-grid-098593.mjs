@@ -31,8 +31,10 @@ need('Kompakter Tageskopf',layout,'grid-template-areas:"heading temps confidence
 need('Kompakte Metazeile',fourteen,'cockpit-fourteen-compact-meta');
 need('Sonne/UVI-Renderer bleibt definiert',cockpit,'className="cockpit-fourteen-sun-uvi"');
 need('Sonne/UVI bleibt in der Metazeile',fourteen,'<FourteenDaySunUvi');
-need('Sonne/UVI nutzt lesbare Desktopgröße',layout,".cockpit-fourteen-sun-uvi>b{\n font-size:10px!important;");
-need('UVI nutzt lesbare Größe',layout,".cockpit-fourteen-sun-uvi>small{\n font-size:9.5px!important;");
+need('Sonne/UVI nutzt lesbare Desktopgröße',layout,".cockpit-fourteen-sun-uvi>b{\n font-size:10.5px!important;");
+need('UVI nutzt lesbare Größe',layout,".cockpit-fourteen-sun-uvi>small{\n font-size:10.5px!important;");
+need('Wetterbeschreibung ohne Ellipsis',layout,'overflow-wrap:anywhere!important;');
+need('Wetterbeschreibung darf umbrechen',layout,'white-space:normal!important;');
 need('Sonne/UVI reserviert Breite statt Quetschung',layout,'min-width:max-content!important');
 need('Niederschlag direkt in Metazeile',fourteen,'className="precipitation"');
 need('Wind/Böen direkt in Metazeile',fourteen,'className={`wind warning-');
