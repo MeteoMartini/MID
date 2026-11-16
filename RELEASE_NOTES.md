@@ -1,3 +1,10 @@
+# MID v0.9.85.486
+
+- **Karten-Zeitachse mit zuverlässigeren Home-/End-Tasten:** Nach asynchronen Terminwechseln wird eine neue Tastatureingabe nicht mehr durch einen veralteten internen Seek-Cache unterdrückt. Gültige Originalzeiten und Screenreader-Zeitangaben bleiben unverändert.
+- **14-Tage-Prognose auf weiteren Smartphonegrößen lesbarer:** Für 393–430 CSS px ordnen sich Wetterbeschreibung, Temperatur und Ensemble-Vertrauen platzsparend über zwei Zeilen an. Sehr kleine Zusatzwerte werden auf mindestens 10,5 CSS px angehoben.
+- **Zusätzliche responsive Qualitätskontrollen:** 32 echte Chromium-Layoutfälle einschließlich simulierter 200%-Textvergrößerung und 14-Tage-Cockpit-Ansicht schützen Textumbruch, Touchziele und Überlauf.
+- **Wetterdaten und amtliche Warnungen unverändert:** Keine neuen Modelle, gefälschten 15-Minuten-Wolkenbilder, geänderten Einheiten oder Warnungsregeln.
+
 # MID v0.9.85.485
 
 - 14-Tage-Vorhersage: Wetterbeschreibungen werden in der kompakten Ansicht vollständig umbrochen statt mit Auslassungspunkten abgeschnitten.

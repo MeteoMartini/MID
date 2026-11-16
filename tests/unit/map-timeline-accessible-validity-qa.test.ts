@@ -68,4 +68,15 @@ describe('MID Karten: semantische, quellgetreue Timeline ohne zweite Zeitpille',
   expect(shared).toContain('<time dateTime={timeISO}');
   expect(composite).not.toContain('composite-map-absolute-clock');
  });
+ it('never loses Home/End after a refreshed controlled timeline index',()=>{
+  const shared=readFileSync('src/MapTimelineControls.tsx','utf8');
+  const range=shared.split('export function MapTimelineRange(')[1]?.split('type MapTimelineLiveButtonProps=')[0]??'';
+  expect(range).toContain('selectedIndex=Math.max(0,Math.min(index,lastIndex))');
+  expect(range).toContain('if(next===selectedIndex)return;');
+  expect(range).not.toContain('lastDispatched');
+  expect(range).toContain("event.preventDefault();commitSeek(event.key==='Home'?0:lastIndex)");
+  expect(range).toContain('onInput={event=>commitSeek(Number(event.currentTarget.value))}');
+  expect(range).toContain('onChange={event=>commitSeek(Number(event.currentTarget.value))}');
+  expect(range).toContain('aria-valuetext={valueText}');
+ });
 });

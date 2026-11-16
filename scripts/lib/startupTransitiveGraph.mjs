@@ -4,7 +4,7 @@
  */
 import {createHash} from 'node:crypto';
 import {posix} from 'node:path';
-import * as ts from 'typescript';
+import ts from 'typescript-strada';
 
 const SHA256=/^[a-f0-9]{64}$/;
 function validPath(file){

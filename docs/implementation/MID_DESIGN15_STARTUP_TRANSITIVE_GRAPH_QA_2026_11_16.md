@@ -1,3 +1,11 @@
+## Fortführung auf v0.9.85.486 (16.11.2026)
+
+Live main=mid-stable `a78465b655d25cafc9ecc0390080694cb7aca957`; fünf GitHub-Rulesets aktiv. Die vier ursprünglichen QA-Dateien wurden unverändert als gesicherte Git-Blobs übernommen, bis auf die zwingende Parser-Korrektur im Helper. Frühere Kandidatenbasis .485 ist historisch und nicht länger maßgeblich. Keine Änderung des Produktcodes, Haupt-CSS, Budgets, Workflows, Release- oder Wettersemantik.
+
+Die ersten zwei QA-Runs #43875599204 und #43876096384 waren RED (3 neue Unit-Tests wegen `ts.ScriptTarget` undefined); kein PASS. Root Cause: `typescript@7.0.2` statt des im Repository für die klassische Compiler-AST-API installierten Alias `typescript-strada@npm:typescript@6.0.3`. Bestehende Generatoren verwenden denselben Alias. Der neue QA-Code importiert deshalb `ts` ausschließlich aus `typescript-strada`, ohne Abhängigkeitsupdate. Neue Tests und echter SHA-gebundener dist-Bericht sind erst nach erfolgreichem neuen CI nachgewiesen.
+
+---
+
 # MID Design 1.5 – statischer JS-Startimportgraph (QA-Draft)
 
 **Basis:** 16.11.2026, main=mid-stable ccd1c0f60d67925aa01dd8d946b490fde4142709, veröffentlichte Version 0.9.85.485 und fünf aktive Schutzrulesets. Nur neue additive Diagnose-, Test- und Dokumentationspfade. Kein App-/Worker-/Wetter-/CSS-/Budget-/Workflow-/Releaseeingriff.
