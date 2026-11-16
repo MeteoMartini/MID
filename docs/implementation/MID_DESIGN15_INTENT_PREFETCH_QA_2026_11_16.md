@@ -37,3 +37,10 @@ Der vorhandene `MID Draft · unabhängiger CSS/JS-Diagnosebuild` ruft über sein
 **Testumfang:** Bestehende harte Splash- und Intent-Regressionen mit zusätzlicher Retention-/Abort-Prüfung; neuer Vitest-Test `tests/unit/mid-startup-preload-lifecycle-qa.test.ts` mit Fake-Timern und gemockter fachlicher Daten-I/O für 44.999/45.000 ms, Ortswechsel und abgebrochene Karten-UI-Vorladung. Dies ist keine reale WebKit-/Netzwerk-/GPU-/Heap-A/B-Qualifizierung.
 
 **Freigabegates:** Exakte aktuelle Branch-HEAD-Vitest/Target-Regressions/TypeScript/Produktions-Diagnosebuild ablesen; dann echte Stable-vs-Draft-App-A/B-Messung und 20-Zyklen-Post-GC mit aufgezeichnetem identischem Wetterfixture, CSS-Parität, Offline/Reopen, Touch/Fokus/Light/Dark/320–1440px und native iOS-/VoiceOver-Abnahme. Solange das fehlt: QA-DRAFT, **kein READY, kein MERGE/RELEASE**.
+
+
+## MID Design 1.6 · zusätzlicher Abbruch-/Neustartfall
+
+Die Lifecycle-Qualifizierung deckte einen zweiten, zuvor ungeschützten Pfad auf: Ein expliziter `active.abort()` stoppte Datencontroller und verzögerten UI-Warmup, beließ aber seinen Promise-Datensatz bis zum Ablauf der regulären 45-Sekunden-Frist im `active`-Singleton. Ein direkt folgender Start mit **demselben** gespeicherten Ort konnte deshalb die bereits abgebrochene Vorladung statt eines frischen Requests wiederverwenden. Der Abbruch löscht nun den zugehörigen `active`-Zeiger und dessen Ablaufzeitgeber **nur bei identischer Datensatzidentität**; ein inzwischen neuer Datensatz wird nicht verworfen. Bestehende Forecast-/Stations-/Radar-/Ensemble-Requestpfade bleiben unverändert.
+
+Ein zusätzlicher echter Vitest-Modultest mit gemockter meteorologischer Außen-I/O und Fake-Timern prüft genau diesen `abort → same-location restart`-Fall, ob die neue Anfrage ausgelöst wird und ihr eigener 45-Sekunden-Ablauf greift. Das ist eine funktionale Zuverlässigkeitsprüfung und **keine Messung von Heap-Reduktion, CSS-Code-Splitting oder WebKit-/iOS-Performance**. Der PR bleibt unabhängig vom Draft-CI-Ausgang **NO READY / NO RELEASE** bis zu finalen Source-, Heavy-, Browser-, Installer-, Worker-/Pages- und Stable-Gates.
