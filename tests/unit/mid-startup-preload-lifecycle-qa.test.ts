@@ -78,6 +78,21 @@ describe('MID Design 1.6 – bounded startup promise lifetime',()=>{
   expect(api.startupForecastForLocation(other)).toBeNull();
  });
 
+ it('does not reuse an explicitly aborted startup lease for the same location',async()=>{
+  const api=await import('../../src/startupPreload');
+  const first=api.beginStartupDashboardPreload();
+  expect(first).not.toBeNull();
+  first?.abort();
+  expect(api.startupForecastForLocation(home)).toBeNull();
+  const restarted=api.beginStartupDashboardPreload();
+  expect(restarted).not.toBeNull();
+  expect(restarted).not.toBe(first);
+  expect(api.startupForecastForLocation(home)).toBe(restarted?.promise);
+  expect(calls.forecast).toHaveBeenCalledTimes(2);
+  await vi.advanceTimersByTimeAsync(45_000);
+  expect(api.startupForecastForLocation(home)).toBeNull();
+ });
+
  it('does not import a previously selected map renderer after startup was aborted',async()=>{
   lastSection='composite';
   const api=await import('../../src/startupPreload');
