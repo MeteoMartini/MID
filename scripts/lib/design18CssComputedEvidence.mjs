@@ -40,6 +40,7 @@ export function validateCssomCase(value){
     !Number.isSafeInteger(e.height)||e.height<240||e.height>4096)
    fail('viewport dimensions invalid');
  positive(e.devicePixelRatio,'devicePixelRatio');
+ if(e.actualTheme!==e.theme)fail('actual DOM theme does not match requested light/dark scenario');
  const ready=object(v.readiness,'readiness');
  if(ready.readySelectorMatched!==1||ready.fontsStatus!=='loaded'||
     !Number.isSafeInteger(ready.styleSheetCount)||ready.styleSheetCount<1)
@@ -55,6 +56,8 @@ export function validateCssomCase(value){
   const rect=object(el.rect,'rect');
   for(const p of ['x','y','width','height'])finite(rect[p],'rect.'+p);
   if(rect.width<=0||rect.height<=0)fail('invisible or collapsed target: '+el.id);
+  if(rect.x>=e.width||rect.y>=e.height||rect.x+rect.width<=0||rect.y+rect.height<=0)
+   fail('target outside visible viewport: '+el.id);
   const styles=object(el.computed,'computed style');
   if(Object.keys(styles).length!==STYLE_PROPERTIES.length)fail('incomplete computed-style inventory');
   for(const p of STYLE_PROPERTIES)if(typeof styles[p]!=='string'||!styles[p].trim())
@@ -84,7 +87,8 @@ export async function captureCssomCase(page,{buildIdentity,caseId,fixtureSha256,
   const rectOf=el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}};
   const match=document.querySelectorAll(readySelector);
   return {
-   environment:{width:window.innerWidth,height:window.innerHeight,devicePixelRatio:window.devicePixelRatio},
+   environment:{width:window.innerWidth,height:window.innerHeight,devicePixelRatio:window.devicePixelRatio,
+    actualTheme:document.documentElement.dataset.theme??null},
    readiness:{readySelectorMatched:match.length,fontsStatus:document.fonts.status,styleSheetCount:document.styleSheets.length},
    rootTokens:Object.fromEntries(tokens.map(p=>[p,getComputedStyle(document.documentElement).getPropertyValue(p).trim()])),
    elements:targets.map(({id,selector})=>{
@@ -134,7 +138,7 @@ export function compareCssomCases({stable,candidate,requiredCaseIds}){
   differenceCount++;
   if(differences.length<150)differences.push({caseId,target,property,stable:oldValue,candidate:newValue});
  }
- const envKeys=['browser','browserVersion','caseId','fixtureSha256','theme','width','height','devicePixelRatio'];
+ const envKeys=['browser','browserVersion','caseId','fixtureSha256','theme','actualTheme','width','height','devicePixelRatio'];
  for(const caseId of requiredCaseIds){
   const left=a.get(caseId),right=b.get(caseId);
   if(left.identity.sourceGitSha===right.identity.sourceGitSha)fail('identical source SHA cannot be A/B');
