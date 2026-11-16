@@ -23,7 +23,9 @@ type StartupPreload={
  interfacePromise:Promise<void>;
  abort:()=>void;
 }
+const STARTUP_PRELOAD_REUSE_MS=45_000
 let active:StartupPreload|null=null
+let activeExpiryTimer:ReturnType<typeof setTimeout>|null=null
 function locationKey(location:Location){return`${Number(location.latitude).toFixed(5)}:${Number(location.longitude).toFixed(5)}`}
 function readStartupLocation():Location|null{try{const raw=localStorage.getItem(LOCATION_STORAGE_KEY);if(!raw)return null;const location=JSON.parse(raw) as Location;return Number.isFinite(Number(location.latitude))&&Number.isFinite(Number(location.longitude))?location:null}catch{return null}}
 function wantsStartupEnsemble(){try{const settings=JSON.parse(localStorage.getItem(FORECAST_DISPLAY_SETTINGS_KEY)||'{}'),twin=JSON.parse(localStorage.getItem(WEATHER_TWIN_SETTINGS_KEY)||'{}'),cockpit=settings?.presentationMode==='cockpit-tabs'||settings?.presentationMode==='cockpit-ribbons';return twin?.enabled!==false||cockpit||localStorage.getItem(ACTIVE_HORIZON_KEY)==='fourteen-day'||localStorage.getItem(ENSEMBLE_MODULE_KEY)==='1'}catch{return true}}
@@ -42,7 +44,7 @@ function startupRequest<T>(timeoutMs:number,run:(signal:AbortSignal)=>Promise<T>
 }
 export function beginStartupDashboardPreload(){
  const location=readStartupLocation();if(!location||navigator.onLine===false)return null;
- const key=locationKey(location);if(active&&active.key===key&&Date.now()-active.startedAt<45_000)return active;
+ const key=locationKey(location);if(active&&active.key===key&&Date.now()-active.startedAt<STARTUP_PRELOAD_REUSE_MS)return active;
  active?.abort();
  const ensemble=wantsStartupEnsemble(),timeZone=location.timezone||(location.autolocated?Intl.DateTimeFormat().resolvedOptions().timeZone:undefined);
  const forecastRequest=startupRequest(STARTUP_PRELOAD_FORECAST_TIMEOUT_MS,signal=>forecast(location.latitude,location.longitude,signal,{priority:'foreground',forceFresh:false,timeZone,elevation:location.elevation}));
@@ -60,8 +62,16 @@ export function beginStartupDashboardPreload(){
  // parallel zur Prognose. Auf Data-Saver/2G bleibt der bisherige sparsame Pfad erhalten.
  const stationEnrichmentRequest=!constrained?startupRequest(STARTUP_PRELOAD_STATION_ENRICHMENT_TIMEOUT_MS,async signal=>{await stationRequest.promise;await delay(70);if(signal.aborted)throw signal.reason;return station(location.latitude,location.longitude,location.country_code||location.country,location.elevation,location,signal,false,false)}):null;
  const ensembleRequest=ensemble?startupRequest(STARTUP_PRELOAD_ENSEMBLE_TIMEOUT_MS,async signal=>{await delay(constrained?650:440);if(signal.aborted)throw signal.reason;return ensembles(location.latitude,location.longitude,signal,'foreground',location.timezone)}):null;
- const interfacePromise=Promise.race([forecastRequest.promise,stationRequest.promise,radarRequest.promise,delay(700)]).then(()=>preloadInterfaceChunks(ensemble,constrained)),abort=()=>{forecastRequest.controller.abort();stationRequest.controller.abort();stationEnrichmentRequest?.controller.abort();radarRequest.controller.abort();ensembleRequest?.controller.abort()};
- active={key,startedAt:Date.now(),promise:forecastRequest.promise,stationPromise:stationRequest.promise,stationEnrichmentPromise:stationEnrichmentRequest?.promise??null,radarPromise:radarRequest.promise,ensemblePromise:ensembleRequest?.promise??null,interfacePromise,abort};return active
+ let invalidated=false;
+ const interfacePromise=Promise.race([forecastRequest.promise,stationRequest.promise,radarRequest.promise,delay(700)]).then(()=>invalidated?undefined:preloadInterfaceChunks(ensemble,constrained)),abort=()=>{invalidated=true;forecastRequest.controller.abort();stationRequest.controller.abort();stationEnrichmentRequest?.controller.abort();radarRequest.controller.abort();ensembleRequest?.controller.abort()};
+ const record:StartupPreload={key,startedAt:Date.now(),promise:forecastRequest.promise,stationPromise:stationRequest.promise,stationEnrichmentPromise:stationEnrichmentRequest?.promise??null,radarPromise:radarRequest.promise,ensemblePromise:ensembleRequest?.promise??null,interfacePromise,abort};
+ active=record;
+ if(activeExpiryTimer!==null)window.clearTimeout(activeExpiryTimer);
+ // All network requests time out much earlier. No consumer can reuse this lease after 45 s.
+ // Retire its promise references so large resolved forecast/ensemble responses are not
+ // kept alive indefinitely by this module's singleton; newer locations retain their lease.
+ activeExpiryTimer=window.setTimeout(()=>{if(active===record){active=null;activeExpiryTimer=null}},STARTUP_PRELOAD_REUSE_MS);
+ return record
 }
 export function startupForecastForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>45_000)return null;return active.promise}
 export function startupStationForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>45_000)return null;return active.stationPromise}
