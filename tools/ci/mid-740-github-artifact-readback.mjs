@@ -24,6 +24,13 @@ export async function collectMid740GitHubReadback({runId,artifactId,sourceMergeS
     run.event!=='workflow_run'||run.head_branch!=='main'||
     run.status!=='completed'||run.conclusion!=='success')
   fail('UNTRUSTED_RUN_OR_UNPROVEN_ATTEMPT');
+ let registry;
+ try{registry=await get(prefix+'/actions/workflows/'+run.workflow_id)}
+ catch{fail('WORKFLOW_REGISTRY_UNAVAILABLE')}
+ if(registry?.id!==run.workflow_id||
+    registry.path!=='.github/workflows/agent-source-release.yml'||
+    registry.state!=='active')
+  fail('WORKFLOW_REGISTRY_DRIFT');
  const w=artifact?.workflow_run;
  if(artifact?.id!==artifactId||artifact.name!=='mid-release-'+sourceMergeSha||
     artifact.expired!==false||!/^sha256:[a-f0-9]{64}$/.test(artifact.digest??'')||
@@ -55,8 +62,12 @@ export async function collectMid740GitHubReadback({runId,artifactId,sourceMergeS
     found.workflow_run?.head_sha!==trustedWorkflowSha)
   fail('ARTIFACT_INVENTORY_MISMATCH');
  const started=Date.parse(run.run_started_at??'');
+ const completed=Date.parse(run.updated_at??'');
  const created=Date.parse(artifact.created_at??'');
- if(!Number.isFinite(started)||!Number.isFinite(created)||created<started)
+ const artifactUpdated=Date.parse(artifact.updated_at??'');
+ if(![started,completed,created,artifactUpdated].every(Number.isFinite)||
+    completed<started||created<started||created>completed||
+    artifactUpdated<created||artifactUpdated>completed)
   fail('UNVERIFIED_ARTIFACT_CHRONOLOGY');
  return Object.freeze({
   schema:'mid.740.github-readback.v1',mainSha:sourceMergeSha,trustedWorkflowSha,

@@ -43,14 +43,16 @@ function scenario(root:string){
   head_repository:{id:rid},head_sha:workflowSha,
   path:'.github/workflows/agent-source-release.yml',event:'workflow_run',
   head_branch:'main',status:'completed',conclusion:'success',
-  run_started_at:'2026-11-16T10:00:00Z'};
+  run_started_at:'2026-11-16T10:00:00Z',updated_at:'2026-11-16T10:05:00Z'};
  const artifact={id:456,name:'mid-release-'+sha,expired:false,
   digest:'sha256:'+digest,size_in_bytes:bytes.length,url:api+'456',
   archive_download_url:api+'456/zip',created_at:'2026-11-16T10:01:00Z',
+  updated_at:'2026-11-16T10:02:00Z',
   workflow_run:{id:123,repository_id:rid,head_repository_id:rid,
    head_branch:'main',head_sha:workflowSha}};
  const replies:any={
   [path+'/actions/runs/123']:runMeta,
+  [path+'/actions/workflows/567']:{id:567,path:'.github/workflows/agent-source-release.yml',state:'active'},
   [path+'/actions/artifacts/456']:artifact,
   [path+'/actions/runs/123/artifacts?per_page=100&page=1']:
    {total_count:1,artifacts:[{...artifact,workflow_run:{...artifact.workflow_run}}]}
