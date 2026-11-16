@@ -29,6 +29,30 @@ export async function verifyMid740ArtifactIntake({
  const meta=await collectMid740GitHubReadback({
   runId,artifactId,sourceMergeSha,trustedWorkflowSha
  },get);
+ const jobPath='repos/MeteoMartini/MID/actions/runs/'+runId+
+  '/attempts/1/jobs?per_page=100&page=1';
+ const checkedJob=async()=>{
+  const list=await get(jobPath),job=list?.jobs?.[0];
+  const time=[meta.producerRun.run_started_at,meta.producerRun.updated_at,
+    job?.started_at,job?.completed_at].map(x=>Date.parse(x??''));
+  if(list?.total_count!==1||list.jobs?.length!==1||
+     !Number.isSafeInteger(job?.id)||job.id<1||job.run_id!==runId||
+     job.head_sha!==trustedWorkflowSha||
+     job.name!=='PR mergen, Release-ZIP erzeugen und Installer starten'||
+     job.status!=='completed'||job.conclusion!=='success'||
+     !time.every(Number.isFinite)||time[0]>time[2]||
+     time[2]>time[3]||time[3]>time[1])
+    reject('PRODUCER_JOB_NOT_VERIFIED');
+  return JSON.stringify([job.id,job.run_id,job.head_sha,job.name,
+    job.started_at,job.completed_at]);
+ };
+ const beforeJob=await checkedJob();
+ const identity=x=>JSON.stringify([
+  x.producerRun.id,x.producerRun.run_attempt,x.producerRun.updated_at,
+  x.artifact.id,x.artifact.name,x.artifact.digest,x.artifact.size_in_bytes,
+  x.artifact.created_at,x.artifact.updated_at
+ ]);
+ const beforeIdentity=identity(meta);
  const envelope=resolve(envelopeOutput??'');
  const outputDir=resolve(artifactDirectory??'');
  if(envelope===outputDir||existsSync(envelope)||existsSync(outputDir))
@@ -64,11 +88,22 @@ export async function verifyMid740ArtifactIntake({
    reject('INCOMPLETE_FINAL_PROOF');
   const refreshed=await get('repos/MeteoMartini/MID/git/ref/heads/main');
   if(refreshed?.object?.sha!==sourceMergeSha)reject('MAIN_CHANGED_AFTER_DOWNLOAD');
+  // Re-read the complete producer run, workflow registry and artifact inventory
+  // after verifying original downloaded bytes and the complete source Git tree.
+  const after=await collectMid740GitHubReadback({
+   runId,artifactId,sourceMergeSha,trustedWorkflowSha
+  },get);
+  const afterJob=await checkedJob();
+  if(identity(after)!==beforeIdentity||afterJob!==beforeJob)
+   reject('PRODUCER_CHANGED_AFTER_DOWNLOAD');
+  const finalMain=await get('repos/MeteoMartini/MID/git/ref/heads/main');
+  if(finalMain?.object?.sha!==sourceMergeSha)reject('FINAL_MAIN_RACE');
   return Object.freeze({
    schema:'mid.740.end-to-end-intake-qa.v1',
    mainSha:sourceMergeSha,producerRunId:runId,artifactId,
    artifactSha256:transfer.envelopeSha256,
    downloadAndGitTreeVerified:true,metadataVerified:true,
+   producerJobVerified:true,producerIdentityReread:true,
    nativeGitHubReviewVerified:false,installerAuthorized:false,
    releaseAuthorized:false
   });
