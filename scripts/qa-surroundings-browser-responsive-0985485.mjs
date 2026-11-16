@@ -1,5 +1,5 @@
 /**
- * MID Karten P1: real-Chrome, real React/MapLibre surroundings UI,
+ * MID Karten P1: real Chrome/WebKit, real React/MapLibre surroundings UI,
  * SOURCE-FIXTURE browser behavior QA, NOT real GRIB/WMS or iOS proof.
  *
  * The existing full unified-map-browser verification owns the broad matrix.
@@ -12,6 +12,7 @@ import {readFileSync,realpathSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {inflateSync} from 'node:zlib';
 import {createServer} from 'vite';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
@@ -36,10 +37,56 @@ const cases=[
   {width:1440,height:900,theme:'dark'},
 ];
 const fixturePng=Buffer.from(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL/nwAAAABJRU5ErkJggg==','base64'
+  'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAGklEQVR4nGMUCej5zyXCz8AioiHJwCXCzwAAIakCpKJXidwAAAAASUVORK5CYII=','base64'
 );
+// Chrome accepted an older malformed 1px PNG fixture, whereas Linux WebKit
+// correctly refused its bad IDAT CRC. Validate *every* PNG chunk checksum and
+// the decompressed payload BEFORE invoking either browser; never weaken the
+// original-source timing/no-stale assertions to accommodate corrupt test data.
+function crc32(buffer){
+ let crc=0xffffffff;
+ for(const byte of buffer){
+  crc^=byte;
+  for(let bit=0;bit<8;bit++)crc=(crc&1)?((crc>>>1)^0xedb88320):(crc>>>1);
+ }
+ return (crc^0xffffffff)>>>0;
+}
+function validateFixturePng(png){
+ assert.ok(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])),
+  'WMS QA fixture missing PNG signature');
+ let off=8,ihdr=false,iend=false,idats=[];
+ while(off<png.length){
+  assert.ok(off+12<=png.length,'Truncated PNG header');
+  const size=png.readUInt32BE(off);
+  assert.ok(size<=1024&&off+size+12<=png.length,'Unbounded or missing PNG chunk');
+  const type=png.subarray(off+4,off+8).toString('ascii');
+  const bytes=png.subarray(off+4,off+8+size);
+  const actual=png.readUInt32BE(off+8+size);
+  assert.equal(crc32(bytes),actual,'PNG '+type+' CRC mismatch (browser may silently ignore corrupt image)');
+  if(type==='IHDR'){
+   assert.ok(!ihdr&&size===13,'Duplicate/invalid PNG IHDR');
+   assert.equal(png.readUInt32BE(off+8),2);
+   assert.equal(png.readUInt32BE(off+12),2);
+   assert.equal(png[off+16],8);
+   assert.equal(png[off+17],6);
+   ihdr=true;
+  }else if(type==='IDAT')idats.push(png.subarray(off+8,off+8+size));
+  else if(type==='IEND'){assert.equal(size,0);iend=true;}
+  off+=size+12;
+ }
+ assert.ok(ihdr&&iend&&idats.length>0,'Incomplete RGBA PNG');
+ assert.equal(inflateSync(Buffer.concat(idats)).length,18,'Unexpected RGBA+filter scanlines');
+ assert.equal(createHash('sha256').update(png).digest('hex'),
+  '7b4257a5f4be3c68b224c14fb4876592cfece3e08ad42ce74040c5436deefad9',
+  'Accidentally changed portable 2x2 radar source fixture');
+}
+validateFixturePng(fixturePng);
+const broken=Buffer.from(fixturePng);
+broken[broken.length-17]^=1;
+assert.throws(()=>validateFixturePng(broken),'Corrupted IDAT CRC must fail closed');
+
 const report={schema:'mid.maps.surroundings.browser-responsive-qa.v1',
-  sourceScope:'REAL_CHROME_REACT_MAPLIBRE_WITH_DETERMINISTIC_SOURCE_FIXTURES',
+  sourceScope:'REAL_BROWSER_REACT_MAPLIBRE_WITH_DETERMINISTIC_SOURCE_FIXTURES',
   isGenuineDwdOriginalData:false,realIosOrVoiceOverVerified:false,
   manualImageQualityVerified:false,activationAuthorized:false,releaseAuthorized:false,
   cases:[],browserFlavor};
@@ -139,8 +186,21 @@ async function runCase(spec){
    assert.equal(timesCalls,0,label+': cloud original scrub caused radar calls');
    await radar.click();
    assert.equal(await radar.getAttribute('aria-pressed'),'true');
-   await page.getByRole('status').filter({hasText:'DWD-Radar · Beobachtung'})
-     .waitFor({timeout:45000});
+   try{
+     await page.getByRole('status').filter({hasText:'DWD-Radar · Beobachtung'})
+       .waitFor({timeout:45000});
+   }catch(error){
+     const detail=await page.evaluate(()=>({
+       statuses:[...document.querySelectorAll('.current-surroundings [role="status"]')]
+         .map(node=>node.textContent?.slice(0,200)),
+       mode:[...document.querySelectorAll('.current-surroundings-display-modes button')]
+         .map(node=>({text:node.textContent,pressed:node.getAttribute('aria-pressed')})),
+       hasCanvas:!!document.querySelector('.current-surroundings-maplibre canvas')
+     }));
+     throw new Error('WebKit/Chrome radar source-image observation did not render: '+
+       JSON.stringify({detail,sourceCatalogueCalls:timesCalls,pageErrors:errors,browserFlavor})+
+       '; original assertion: '+String(error));
+   }
    assert.ok(timesCalls>0,label+': no original source catalogue queried');
    await validateLayout(page,label+' radar');
    const radarRange=page.getByRole('slider',{name:/Radar\/Satellit/});

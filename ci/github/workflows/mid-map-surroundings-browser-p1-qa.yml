@@ -2,7 +2,7 @@ name: MID maps surroundings responsive real-Chrome source-fixture QA (read-only)
 on:
   push:
     branches: [chatgpt/v0.9.85.485-surroundings-radar-native-qa]
-    paths: ['.github/workflows/mid-map-surroundings-browser-p1-qa.yml']
+    paths: ['.github/workflows/mid-map-surroundings-browser-p1-qa.yml', 'scripts/qa-surroundings-browser-responsive-0985485.mjs']
 permissions:
   contents: read
 concurrency:
@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   real-chrome-source-fixtures:
-    if: "${{ github.event.head_commit.message == 'qa(maps): responsive native surroundings browser smoke' }}"
+    if: "${{ github.event.head_commit.message == 'qa(maps): responsive native surroundings browser smoke' || github.event.head_commit.message == 'qa(maps): portable validated radar PNG across Chrome and WebKit' }}"
     name: Real React/MapLibre Chrome 5 widths x 2 themes; original timing and persistence (NO RELEASE)
     runs-on: ubuntu-24.04
     timeout-minutes: 22

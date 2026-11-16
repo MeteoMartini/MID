@@ -2,7 +2,7 @@ name: MID maps surroundings WebKit responsive fixture QA (read-only)
 on:
   push:
     branches: [chatgpt/v0.9.85.485-surroundings-radar-native-qa]
-    paths: ['.github/workflows/mid-map-surroundings-webkit-p1-qa.yml']
+    paths: ['.github/workflows/mid-map-surroundings-webkit-p1-qa.yml', 'scripts/qa-surroundings-browser-responsive-0985485.mjs']
 permissions:
   contents: read
 concurrency:
@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   webkit-responsive:
-    if: "${{ github.event.head_commit.message == 'qa(maps): linux WebKit responsive surroundings smoke' }}"
+    if: "${{ github.event.head_commit.message == 'qa(maps): linux WebKit responsive surroundings smoke' || github.event.head_commit.message == 'qa(maps): portable validated radar PNG across Chrome and WebKit' }}"
     name: Linux WebKit source-fixture 5 widths x 2 themes + touch (NOT REAL iOS)
     runs-on: ubuntu-24.04
     timeout-minutes: 25
