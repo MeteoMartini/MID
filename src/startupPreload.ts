@@ -1,4 +1,5 @@
 import {ensembles,forecast,radarNowcast,station,type EnsembleForecastBundle,type Location,type RadarNowcast,type Station,type Weather} from './weather'
+import {shouldPreloadEnsembleVisual} from './visualPreloadIntent'
 
 const LOCATION_STORAGE_KEY='mid:lastLocation'
 const FORECAST_DISPLAY_SETTINGS_KEY='mid:forecastDisplaySettings'
@@ -28,7 +29,10 @@ function readStartupLocation():Location|null{try{const raw=localStorage.getItem(
 function wantsStartupEnsemble(){try{const settings=JSON.parse(localStorage.getItem(FORECAST_DISPLAY_SETTINGS_KEY)||'{}'),twin=JSON.parse(localStorage.getItem(WEATHER_TWIN_SETTINGS_KEY)||'{}'),cockpit=settings?.presentationMode==='cockpit-tabs'||settings?.presentationMode==='cockpit-ribbons';return twin?.enabled!==false||cockpit||localStorage.getItem(ACTIVE_HORIZON_KEY)==='fourteen-day'||localStorage.getItem(ENSEMBLE_MODULE_KEY)==='1'}catch{return true}}
 function delay(ms:number){return new Promise<void>(resolve=>window.setTimeout(resolve,ms))}
 function constrainedStartupNetwork(){try{const connection=(navigator as Navigator&{connection?:{saveData?:boolean;effectiveType?:string}}).connection;return connection?.saveData===true||connection?.effectiveType==='slow-2g'||connection?.effectiveType==='2g'}catch{return false}}
-function preloadInterfaceChunks(ensemble:boolean){const jobs:Promise<unknown>[]=[];if(ensemble)jobs.push(import('./EnsemblePanel'));try{const last=localStorage.getItem('mid:last-dashboard-section:v1');if(last==='composite')jobs.push(import('./RadarPanel'))}catch{}return Promise.allSettled(jobs).then(()=>undefined)}
+// Ensemble *data* preloading remains governed by wantsStartupEnsemble().
+// The heavy visual renderer is a separate, explicitly view-driven decision.
+function wantsStartupEnsembleInterface(){try{const settings=JSON.parse(localStorage.getItem(FORECAST_DISPLAY_SETTINGS_KEY)||'{}');return shouldPreloadEnsembleVisual({presentationMode:settings?.presentationMode,activeHorizon:localStorage.getItem(ACTIVE_HORIZON_KEY),ensembleModuleOpen:localStorage.getItem(ENSEMBLE_MODULE_KEY)})}catch{return false}}
+function preloadInterfaceChunks(ensemble:boolean){const jobs:Promise<unknown>[]=[];if(ensemble&&wantsStartupEnsembleInterface())jobs.push(import('./EnsemblePanel'));try{const last=localStorage.getItem('mid:last-dashboard-section:v1');if(last==='composite')jobs.push(import('./RadarPanel'))}catch{}return Promise.allSettled(jobs).then(()=>undefined)}
 function startupRequest<T>(timeoutMs:number,run:(signal:AbortSignal)=>Promise<T>){
  const controller=new AbortController(),timer=window.setTimeout(()=>controller.abort(new DOMException('Startvorladung hat ihr Zeitlimit erreicht.','TimeoutError')),timeoutMs);
  const promise=run(controller.signal).then(value=>value).catch(()=>null).finally(()=>window.clearTimeout(timer));

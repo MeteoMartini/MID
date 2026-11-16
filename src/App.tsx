@@ -17,6 +17,7 @@ import {AlertTriangle,BadgeCheck,Bell,CalendarDays,CalendarRange,ChevronDown,Che
 import {createPortal} from 'react-dom';
 import {useBottomNavigationAnchor} from './useBottomNavigationAnchor';
 import {mayWarmMapDuringIdle} from './mapIdlePreload';
+import {isMapRevisitIntent} from './visualPreloadIntent';
 import {AppInfoHint as InfoHint} from './AppInfoPopover';
 import {AppPortalPopover as PortalPopover} from './AppPortalPopover';
 import {useAppLayerFocus} from './AppPortalPopover';
@@ -476,7 +477,8 @@ function DashboardSectionNavigation({searchOpen,settings,layoutMode,navigationMo
  // The pointer/focus intent path still works if this nonessential task never runs.
  useEffect(()=>{
   const connection=(navigator as Navigator&{connection?:{saveData?:boolean;effectiveType?:string}}).connection;
-  const allowed=()=>mayWarmMapDuringIdle({weatherReady,mapAvailable,mapActive:activeId==='composite'||activeId==='weather-maps',searchOpen,drawerOpen,documentVisible:document.visibilityState==='visible',online:navigator.onLine!==false,saveData:connection?.saveData===true,effectiveType:connection?.effectiveType});
+  const priorMapIntent=()=>{try{return isMapRevisitIntent(localStorage.getItem(LAST_DASHBOARD_SECTION_KEY))}catch{return false}};
+  const allowed=()=>mayWarmMapDuringIdle({weatherReady,mapAvailable,priorMapIntent:priorMapIntent(),mapActive:activeId==='composite'||activeId==='weather-maps',searchOpen,drawerOpen,documentVisible:document.visibilityState==='visible',online:navigator.onLine!==false,saveData:connection?.saveData===true,effectiveType:connection?.effectiveType});
   if(!allowed())return;
   let cancelled=false,idleHandle:number|undefined;
   const timer=window.setTimeout(()=>{
