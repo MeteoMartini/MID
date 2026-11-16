@@ -13,6 +13,8 @@ on:
       - 'ci/github/workflows/mid-740-pr-artifact-shadow-qa.yml'
       - 'tools/ci/mid-740-pr-artifact-shadow.mjs'
       - 'tools/ci/mid-740-historical-chain-readback.mjs'
+      - 'tools/ci/mid-740-upstream-trigger-readback.mjs'
+      - 'tests/unit/mid-740-upstream-trigger-readback.test.ts'
       - 'tests/unit/mid-740-historical-chain-readback.test.ts'
       - 'tests/unit/mid-740-pr-artifact-shadow.test.ts'
       - 'docs/implementation/MID_740_PR_ARTIFACT_HANDOFF_SHADOW_2026_11_16.md'
@@ -170,6 +172,13 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXPECTED_PR_HEAD"
+          # A normal PR event MUST NOT pass a privileged workflow_run trust gate.
+          if node tools/ci/mid-740-upstream-trigger-readback.mjs > "$RUNNER_TEMP/mid740-untrusted-event.json"; then
+            echo "::error::Untrusted PR context passed a workflow_run-only gate"
+            exit 1
+          fi
+          jq -e '.status == "BLOCKED" and .reason == "TRUSTED_WORKFLOW_RUN_CONTEXT_REQUIRED" and
+            .installerAuthorized == false and .releaseAuthorized == false' "$RUNNER_TEMP/mid740-untrusted-event.json"
           node tools/ci/mid-740-historical-chain-readback.mjs > "$RUNNER_TEMP/mid740-real-history.json"
           jq -e '.status == "HISTORIC_LEGACY_LINEAGE_QA_ONLY" and
             .sourceGateVerified == true and .gitParentChainVerified == true and
