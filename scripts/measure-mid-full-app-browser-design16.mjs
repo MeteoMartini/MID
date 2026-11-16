@@ -135,7 +135,7 @@ try{
  }
  if(!binary)throw Error('Chromium executable missing: cannot claim browser QA');
  profile=await mkdtemp(join(tmpdir(),'mid-design16-real-page-'));
- chrome=spawn(binary,['--headless=new','--no-sandbox','--disable-dev-shm-usage',
+ chrome=spawn(binary,['--headless=new','--disable-dev-shm-usage',
   '--remote-debugging-address=127.0.0.1','--remote-debugging-port=0','--user-data-dir='+profile,'about:blank'],
   {stdio:['ignore','ignore','pipe']});
  let version;
