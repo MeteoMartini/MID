@@ -58,9 +58,16 @@ function scenario(root:string){
   [path+'/actions/runs/123/artifacts?per_page=100&page=1']:
    {total_count:1,artifacts:[{...artifact,workflow_run:{...artifact.workflow_run}}]}
  };
- let mainSha=sha,mainReads=0;
- const get=async(key:string)=>key===path+'/git/ref/heads/main'?
-  {object:{sha:++mainReads===2?mainSha:sha}}:replies[key];
+ let mainSha=sha,mainReads=0,artifactReads=0;
+ let afterFirstArtifactRead:(()=>void)|undefined;
+ const onSecondArtifactRead=(f:()=>void)=>{afterFirstArtifactRead=f};
+ const get=async(key:string)=>{
+  if(key===path+'/git/ref/heads/main')
+   return {object:{sha:++mainReads>=2?mainSha:sha}};
+  if(key===path+'/actions/artifacts/456'&&++artifactReads===2)
+   afterFirstArtifactRead?.();
+  return key in replies?structuredClone(replies[key]):undefined;
+ };
  const fetcher=async(url:string)=>url===api+'456/zip'?
   new Response(null,{status:302,headers:{location:cdn}}):
   new Response(bytes,{status:200});
@@ -69,7 +76,8 @@ function scenario(root:string){
   envelopeOutput:join(root,'downloaded.zip'),
   artifactDirectory:join(root,'verified'),
   token:'trusted-test-token'};
- return {inputs,get,fetcher,setCurrentMain:(next:string)=>{mainSha=next;}};
+ return {inputs,get,fetcher,replies,onSecondArtifactRead,
+  setCurrentMain:(next:string)=>{mainSha=next;}};
 }
 describe('MID #740 complete artifact intake: mocked API + real binary ZIP and Git validation',()=>{
  it('validates bytes and Git-blob identity but NEVER authorizes installer/release',async()=>{
@@ -82,6 +90,35 @@ describe('MID #740 complete artifact intake: mocked API + real binary ZIP and Gi
     producerJobVerified:true,producerIdentityReread:true,
     nativeGitHubReviewVerified:false,installerAuthorized:false,releaseAuthorized:false});
    expect(existsSync(x.inputs.artifactDirectory)).toBe(true);
+  }finally{rmSync(root,{recursive:true,force:true})}
+ },60000);
+ it('rejects changed artifact identity after verifying real ZIP and Git bytes',async()=>{
+  const root=mkdtempSync(join(tmpdir(),'mid740-intake-artifact-race-'));
+  try{
+   const x=scenario(root);
+   x.onSecondArtifactRead(()=>{
+    const digest='sha256:'+'f'.repeat(64);
+    x.replies[path+'/actions/artifacts/456'].digest=digest;
+    x.replies[path+'/actions/runs/123/artifacts?per_page=100&page=1'].artifacts[0].digest=digest;
+   });
+   await expect(intake(x.inputs,{get:x.get,fetcher:x.fetcher}))
+    .rejects.toThrow('MID_740_INTAKE_PRODUCER_CHANGED_AFTER_DOWNLOAD');
+   expect(existsSync(x.inputs.envelopeOutput)).toBe(false);
+   expect(existsSync(x.inputs.artifactDirectory)).toBe(false);
+  }finally{rmSync(root,{recursive:true,force:true})}
+ },60000);
+ it('rejects changed producer job status after verifying real ZIP and Git bytes',async()=>{
+  const root=mkdtempSync(join(tmpdir(),'mid740-intake-job-race-'));
+  try{
+   const x=scenario(root);
+   x.onSecondArtifactRead(()=>{
+    x.replies[path+'/actions/runs/123/attempts/1/jobs?per_page=100&page=1']
+     .jobs[0].conclusion='failure';
+   });
+   await expect(intake(x.inputs,{get:x.get,fetcher:x.fetcher}))
+    .rejects.toThrow('MID_740_INTAKE_PRODUCER_JOB_NOT_VERIFIED');
+   expect(existsSync(x.inputs.envelopeOutput)).toBe(false);
+   expect(existsSync(x.inputs.artifactDirectory)).toBe(false);
   }finally{rmSync(root,{recursive:true,force:true})}
  },60000);
  it('fails closed on a main race after ZIP verification and cleans downloaded files',async()=>{
