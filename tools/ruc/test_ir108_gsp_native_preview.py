@@ -9,6 +9,7 @@ import zlib
 from pathlib import Path
 from unittest.mock import patch
 
+from ir108_original_probe import NATIVE_GRID
 from ir108_gsp_native_preview import (
     NODATA, PHASE_IDS, PreviewError, create_private_preview, kelvin_gray,
     png_rgba, sample_native_image, verified_ruc_lookup,
@@ -17,14 +18,14 @@ from ir108_gsp_native_preview import (
 RUN = "2026-11-15T15:00:00Z"
 
 
-def lookup_fixture(root, *, run="2026-11-15T15:00", cells=(0,NODATA,1,2)):
+def lookup_fixture(root, *, run="2026-11-15T15:00", cells=(0,NODATA,1,2), points=4):
     source = Path(root)/"source"
     source.mkdir()
     raw = b"".join(struct.pack("<I", i) for i in cells)
     (source/"lookup.bin").write_bytes(raw)
     data = {
         "schema": "mid.dwd.ruc.grid.v2", "run": run,
-        "pointCount": 4, "grid": {"nx": 2, "ny": 2, "lonMin": 7.0,
+        "pointCount": points, "grid": {"nx": 2, "ny": 2, "lonMin": 7.0,
                                 "latMin": 50.0, "dx": .025, "dy": .025,
                                 "maxNearestKm": 3.0},
         "lookup": {"dtype": "uint32-le", "nodata": NODATA},
@@ -137,7 +138,9 @@ class NativeIrShadowTests(unittest.TestCase):
     def test_private_candidate_has_ten_sha_bound_original_frames_no_activation(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)
-            source=lookup_fixture(temp)
+            # Full real DWD native point inventory; only the geographic
+            # lookup is 2x2, ensuring production keeps strict 542040 cells.
+            source=lookup_fixture(temp, points=NATIVE_GRID[3])
             ir=root/"ir"
             gsp=root/"gsp"
             (ir/"frames").mkdir(parents=True)
@@ -159,9 +162,11 @@ class NativeIrShadowTests(unittest.TestCase):
                 product:frames[product] for product in ("PRR_GSP","PRS_GSP","PRG_GSP")}}))
             admission={"sourceIdentityAndNativeValues":"AUDITED_WITH_ECCODES",
                        "run":RUN,"firstValid":RUN}
-            decoded=[170.0,340.0,math.nan,280.0]
+            decoded=[170.0,340.0,math.nan,280.0]+[math.nan]*(NATIVE_GRID[3]-4)
+            zero_rates=[0.0]*NATIVE_GRID[3]
             def fake_decode(path,points):
-                return decoded if path.parent==ir/"frames" else [0.0]*4
+                self.assertEqual(points,NATIVE_GRID[3])
+                return decoded if path.parent==ir/"frames" else zero_rates
             out=root/"preview"
             with patch("ir108_gsp_native_preview.audit_rate_manifest",
                        return_value=admission),patch(
