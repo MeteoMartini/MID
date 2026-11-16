@@ -55,6 +55,8 @@ describe('MID QA read-only real module-import evidence integration',()=>{
   expect(browser).toContain("await verifyStartupBuildIdentity(root,identity)");
   expect(browser).toContain("assert.equal(identity.sourceGitSha,expected");
   expect(browser).toContain("Network.loadingFinished");
+  expect(browser).toContain("'text/css':'text/javascript'");
+  expect(browser).toContain('cssGzipBodyBytes');
   expect(browser).toContain("HeapProfiler.collectGarbage");
   expect(browser).toContain("Runtime.getHeapUsage");
   expect(browser).toContain("module-only");

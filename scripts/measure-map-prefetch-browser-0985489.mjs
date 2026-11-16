@@ -25,7 +25,7 @@ const chunks=Object.fromEntries(modules.map(name=>{
  assert.equal(found.length,1,'Missing or ambiguous Vite JS chunk '+name);
  return [name,found[0]];
 }));
-const jsFiles=new Set(names.filter(f=>/^[A-Za-z0-9._-]+\.js$/.test(f)));
+const builtFiles=new Set(names.filter(f=>/^[A-Za-z0-9._-]+\.(?:js|css)$/.test(f)));
 const profile=await mkdtemp(join(tmpdir(),'mid-map-module-probe-'));
 let server,chrome,socket,sessionId,seq=0,startup;
 const pending=new Map(),requests=new Map(),exceptions=[];
@@ -58,10 +58,10 @@ try{
    if(url.pathname==='/probe'){
     res.writeHead(200,{'Content-Type':'text/html;charset=utf-8','Cache-Control':'no-store'});res.end(html);return;
    }
-   const found=/^\/assets\/([A-Za-z0-9._-]+\.js)$/.exec(url.pathname);
-   if(!found||!jsFiles.has(found[1])){res.writeHead(404);res.end();return}
+   const found=/^\/assets\/([A-Za-z0-9._-]+\.(?:js|css))$/.exec(url.pathname);
+   if(!found||!builtFiles.has(found[1])){res.writeHead(404);res.end();return}
    const data=await readFile(join(root,'assets',found[1])),gzip=gzipSync(data,{level:9});
-   res.writeHead(200,{'Content-Type':'text/javascript','Content-Encoding':'gzip',
+   res.writeHead(200,{'Content-Type':found[1].endsWith('.css')?'text/css':'text/javascript','Content-Encoding':'gzip',
     'Content-Length':String(gzip.length),'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});
    res.end(gzip);
   }catch(error){res.writeHead(500);res.end(String(error?.message??error))}
@@ -120,19 +120,28 @@ try{
  const before=(await cdp('Runtime.getHeapUsage')).result;
  await delay(2800);
  const loaded=()=>[...requests.values()].filter(x=>x.url.includes('/assets/')&&x.url.endsWith('.js'));
+ const cssLoaded=()=>[...requests.values()].filter(x=>x.url.includes('/assets/')&&x.url.endsWith('.css'));
  assert.equal(loaded().length,0,'Unexpected real map JS module request before warmup');
+ assert.equal(cssLoaded().length,0,'Unexpected map CSS request before warmup');
  const started=performance.now();
  assert.equal(await evaluate('window.__midImport()',90000),'fulfilled','Real built modules failed to import');
  const duration=Math.round(performance.now()-started);
  await cdp('HeapProfiler.collectGarbage');
  const after=(await cdp('Runtime.getHeapUsage')).result;
  assert.deepEqual(exceptions,[],'Uncaught errors during real module loading');
- const rows=loaded();
+ const rows=loaded(),cssRows=cssLoaded();
  assert(rows.length>=4,'Expected multiple real Vite JS chunks after warmup');
+ assert(cssRows.length>0,'Vite must load the associated deferred map CSS as well');
  for(const name of modules)assert(rows.some(row=>row.url.endsWith('/'+chunks[name])),'Missing real map chunk: '+name);
- assert(rows.every(x=>x.status===200&&x.finished&&!x.failed&&!x.cached),
+ assert([...rows,...cssRows].every(x=>x.status===200&&x.finished&&!x.failed&&!x.cached),
   'Missing, cached, failing or pending requests invalidate cold-browser evidence');
  const files=await Promise.all(rows.map(async x=>{
+  const name=new URL(x.url).pathname.split('/').at(-1);
+  const content=await readFile(join(root,'assets',name));
+  return {name,rawBytes:content.length,gzipBodyBytes:gzipSync(content,{level:9}).length,
+   cdpEncodedDataLength:x.wireBytes};
+ }));
+ const cssFiles=await Promise.all(cssRows.map(async x=>{
   const name=new URL(x.url).pathname.split('/').at(-1);
   const content=await readFile(join(root,'assets',name));
   return {name,rawBytes:content.length,gzipBodyBytes:gzipSync(content,{level:9}).length,
@@ -145,14 +154,17 @@ try{
   noImport:{waitMs:2800,productionMapJsRequests:0},
   warmImport:{requestCount:files.length,rawJsBytes:files.reduce((a,b)=>a+b.rawBytes,0),
    gzipBodyBytes:files.reduce((a,b)=>a+b.gzipBodyBytes,0),
+   cssRequestCount:cssFiles.length,cssRawBytes:cssFiles.reduce((a,b)=>a+b.rawBytes,0),
+   cssGzipBodyBytes:cssFiles.reduce((a,b)=>a+b.gzipBodyBytes,0),
    cdpEncodedDataLength:files.reduce((a,b)=>a+(b.cdpEncodedDataLength??0),0),
    importElapsedMs:duration,postGcHeapBefore:before.usedSize,postGcHeapAfter:after.usedSize,
-   postGcHeapDelta:after.usedSize-before.usedSize,files}
+   postGcHeapDelta:after.usedSize-before.usedSize,files,cssFiles}
  };
  await mkdir('artifacts',{recursive:true});
  await writeFile('artifacts/map-prefetch-import-evidence-0985489.json',JSON.stringify(result,null,2)+'\n');
  console.log('MID_MAP_MODULE_IMPORT_EVIDENCE '+JSON.stringify({sha:identity.sourceGitSha,
   js:files.length,gzipBytes:result.warmImport.gzipBodyBytes,
+  css:cssFiles.length,cssGzipBytes:result.warmImport.cssGzipBodyBytes,
   gcHeapDelta:result.warmImport.postGcHeapDelta,importElapsedMs:duration,
   scope:'module-only, not full-app A/B or native memory'}));
 }finally{
