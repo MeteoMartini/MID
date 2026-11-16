@@ -73,8 +73,8 @@ describe('SHA-bound MID merge-time review guard',()=>{
   expect(checkReviews([cubic,complete,late]).ok).toBe(false);
  });
  it('counts mixed Cubic XML, plain and Markdown severity markers without losing critical items',()=>{
-  const body='<violation number="1">\\nP1: native seasonal interval bug</violation>\\n'+
-   'P0: unsafe release race\\n**P1**: provenance bypass\\n[P0]: unsafe package';
+  const body='<violation number="1">\nP1: native seasonal interval bug</violation>\n'+
+   'P0: unsafe release race\n**P1**: provenance bypass\n[P0]: unsafe package';
   expect(criticalMidReviewItems(body)).toEqual(['P1','P0','P1','P0']);
   const finding=review('COMMENTED','PRR_mixedcritical','cubic-dev-ai','2026-11-11T15:00:00Z',body);
   const evidence='https://github.com/MeteoMartini/MID/blob/'+sha+'/src/nativeSeasonalComposite.ts';
@@ -82,13 +82,13 @@ describe('SHA-bound MID merge-time review guard',()=>{
    ' review=PRR_mixedcritical item='+i+' result=fixed evidence='+evidence;
   const checkBody=(approved:string)=>check(input({data:{meta,threads:[],reviews:[finding,
    review('APPROVED','r-mixedapproval','independent','2026-11-11T15:01:00Z',approved)],truncated:false}}));
-  expect(checkBody([1,2,3].map(attest).join('\\n'))).toMatchObject({
+  expect(checkBody([1,2,3].map(attest).join('\n'))).toMatchObject({
    ok:false,reason:'MID_REVIEW_CRITICAL_REVIEW_UNATTESTED'});
-  expect(checkBody([1,2,3,4].map(attest).join('\\n'))).toMatchObject({
+  expect(checkBody([1,2,3,4].map(attest).join('\n'))).toMatchObject({
    ok:true,criticalItemCount:4,mergeAuthorized:false,releaseAuthorized:false});
  });
  it('fails closed on oversized or unclassified severity evidence',()=>{
-  const oversized=('P1: critical item\\n').repeat(1001);
+  const oversized=('P1: critical item\n').repeat(1001);
   expect(criticalMidReviewItems(oversized)).toBeNull();
   const reviewBody=review('COMMENTED','PRR_largecritical','cubic-dev-ai','2026-11-11T15:00:00Z',oversized);
   expect(check(input({data:{meta,threads:[],reviews:[reviewBody],truncated:false}})))
