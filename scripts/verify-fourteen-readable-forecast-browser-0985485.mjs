@@ -231,6 +231,7 @@ async function oneIntegrated(width,height,theme){
      inlineFontSize:label.style.getPropertyValue('font-size')||null,
      computedFontSize:style.fontSize}};
   });
+  console.log('MID design14 integrated 200%-text geometry '+width+' '+theme+': '+JSON.stringify({normalHeight:original.height,normalFragments:original.fragments,zoomHeight:enlarged.card.height,zoomFragments:enlarged.fragments.length,fontPx:enlarged.fontPx,scroll:enlarged.rootScrollWidth,viewport:enlarged.viewWidth}));
   assert.equal(enlarged.label.text,longText,'200% text stress must retain entire weather description');
   assert.ok(enlarged.fontPx>=2*base-.5,`Text-only 200% stress not applied: base ${base}px; computed ${enlarged.fontPx}px; diagnostics=${JSON.stringify(enlarged.stressDiagnostic)}`);
   assert.ok(enlarged.label.scroll<=enlarged.label.client+2,'200% text-only long label is vertically clipped');
@@ -243,7 +244,11 @@ async function oneIntegrated(width,height,theme){
    assert.ok(enlarged.fragments.length<=12,'390px 200% label still stacked into overly narrow column');
    assert.ok(enlarged.card.height<=450,'390px 200% forecast card still exceeds 450px');
   }
-  if(width===320||width===390){
+  if(width>=393&&width<=430){
+   assert.ok(enlarged.fragments.length<=12,'Medium-phone 200% weather text fragmented into an excessively narrow column');
+   assert.ok(enlarged.card.height<=450,'Medium-phone 200% forecast card exceeds 450px density budget');
+  }
+  if([320,390,393,402,414,430].includes(width)){
    const screenshot=join(out,'cockpit-integrated-zoom200-'+width+'-'+theme+'.png');
    await card.screenshot({path:screenshot,animations:'disabled'});
    report.results.push({mode:'full-forecast-cockpit',width,height,theme,status:'PASS',original,enlarged,
@@ -257,8 +262,8 @@ async function oneIntegrated(width,height,theme){
 try{
  for(const [width,height] of [[320,740],[360,780],[375,812],[390,844],[430,932],[834,1112],[1024,768],[1440,900]])
   for(const theme of ['light','dark'])await one(width,height,theme);
- for(const [width,height] of [[320,740],[390,844],[834,1112],[1440,900]])
+ for(const [width,height] of [[320,740],[390,844],[393,852],[402,874],[414,896],[430,932],[834,1112],[1440,900]]
   for(const theme of ['light','dark'])await oneIntegrated(width,height,theme);
  writeFileSync(join(out,'report.json'),JSON.stringify(report,null,2)+'\n');
- console.log('MID DESIGN14 BROWSER QA SUCCESS: '+report.results.length+' real React/CSS viewport/theme contexts (16 isolated + 8 full ForecastCockpit); screenshots + evidence in coverage/mid-design14-browser-qa. NO iOS/VoiceOver/full-App.tsx parity claim.');
+ console.log('MID DESIGN14 BROWSER QA SUCCESS: '+report.results.length+' real React/CSS viewport/theme contexts (16 isolated + 16 full ForecastCockpit); screenshots + evidence in coverage/mid-design14-browser-qa. NO iOS/VoiceOver/full-App.tsx parity claim.');
 }finally{await browser.close();await server.close();}
