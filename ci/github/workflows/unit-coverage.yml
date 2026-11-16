@@ -388,7 +388,7 @@ jobs:
 
   # #740: restricted PR-only upload/download smoke; never runs on default branch.
   mid740-shadow-source-producer:
-    name: MID #740 · PR-Shadow ZIP original hochladen (NO RELEASE)
+    name: 'MID #740 · PR-Shadow ZIP original hochladen (NO RELEASE)'
     if: >-
       github.event_name == 'pull_request' &&
       github.repository == 'MeteoMartini/MID' &&
@@ -434,7 +434,7 @@ jobs:
           compression-level: 0
 
   mid740-shadow-readonly-consumer:
-    name: MID #740 · PR-Shadow-Originalbytes unabhängig prüfen (NO RELEASE)
+    name: 'MID #740 · PR-Shadow-Originalbytes unabhängig prüfen (NO RELEASE)'
     needs: mid740-shadow-source-producer
     if: >-
       needs.mid740-shadow-source-producer.result == 'success' &&
@@ -498,4 +498,3 @@ jobs:
           jq -e '.envelopeBytesVerified == true and .sourceGitTreeVerified == true and .authenticatedGitHubProducer == false and .installerAuthorized == false and .releaseAuthorized == false' "$RUNNER_TEMP/mid740-shadow-verified.json"
           echo "### MID #740 · PR-only Artifact-Transport" >> "$GITHUB_STEP_SUMMARY"
           echo "SHA-genaue Git-Tree-Parität + Run/Attempt/Artifact-Digest; keine Produktion." >> "$GITHUB_STEP_SUMMARY"
-
