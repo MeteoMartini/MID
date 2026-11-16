@@ -67,7 +67,7 @@ describe('MID #853: full-viewport Rad/Sat integration without source or time fab
   expect(ui).toContain('const east=west+2.8,north=south+1.3;');
   expect(ui).toContain("onOpen(mode==='cloud'?cloudTarget:mode==='radar'?displayTime:undefined,{west,south,east,north})");
   expect(ui).toContain('radarOriginalForStep(catalog,now,radarStep,dwdArea)');
-  expect(ui).toContain('nearestVerifiedOriginal(satellite?.times,radarTarget,now)');
+  expect(ui).toContain('selectSurroundingsSatelliteOriginal(catalog,radarTarget,now,radarStep)');
   expect(ui).toContain('selectVerifiedSurroundingsRadarFrame(loaded,radar,radarOriginal)');
   expect(ui).toContain('selectVerifiedSurroundingsOperaFrame(opera,operaRequestKey,now)');
   expect(ui).toContain('phaseImage?.requestKey===operaRequestKey');
@@ -81,6 +81,27 @@ describe('MID #853: full-viewport Rad/Sat integration without source or time fab
   expect(ui).toContain('if(controller.signal.aborted)return;');
   expect(ui).toContain('setOpera({url:canvas.toDataURL(),time,requestKey:operaRequestKey})');
   expect(ui).toContain('setPhaseImage({url:phase.colors.size?canvas.toDataURL():undefined,time,requestKey:operaRequestKey})');
+ });
+
+ it('selects an independently verified satellite original and identifies its actual spectrum',()=>{
+  expect(ui).toContain("import {selectSurroundingsSatelliteOriginal} from './surroundingsSatelliteOriginal';");
+  expect(ui).toContain("const satelliteOriginal=selectSurroundingsSatelliteOriginal(catalog,radarTarget,now,radarStep);");
+  expect(ui).toContain('const satellite=satelliteOriginal?.product;');
+  expect(ui).toContain('const satelliteTime=satelliteOriginal?.time;');
+  expect(ui).toContain("imageUrl(satellite.provider,satellite.layer,satelliteTime,rasterPlan)");
+  expect(ui).toContain("satelliteOriginal?.spectrum==='IR'?'Infrarot (IR)':'RGB'");
+  expect(ui).not.toContain('catalog?.satelliteRgbProduct??catalog?.satelliteIrProduct');
+ });
+
+ it('counts real OPERA valid cells and communicates partial coverage or source NoData',()=>{
+  expect(ui).toContain('const coverage=summarizeSurroundingsOperaCoverage(validPixels,canvas.width*canvas.height);');
+  expect(ui).toContain('if(point.covered)validPixels++;');
+  expect(ui).toContain("if(!coverage||coverage.kind==='none')return;");
+  expect(ui).toContain('setOpera({url:canvas.toDataURL(),time,requestKey:operaRequestKey,coverage});');
+  expect(ui).toContain('displayedOpera.coverage.kind===\'partial\'');
+  expect(ui).toContain('Teilabdeckung {displayedOpera.coverage.percentageLabel} gültige Rasterzellen');
+  expect(ui).toContain('OPERA-Radarbild fehlt oder hat keine belegte Rasterabdeckung; kein Trockenwetternachweis.');
+  expect(ui).not.toContain('covered ||= point.covered;');
  });
 
  it('distinguishes invalid or unsupported map geometry from a dry observation',()=>{
