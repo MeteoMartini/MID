@@ -6,18 +6,21 @@ const fixtures=()=>({
  sourceTwin:readFileSync('ci/github/workflows/agent-source-release.yml','utf8'),
  installer:readFileSync('.github/workflows/install-mid.yml','utf8'),
  installerTwin:readFileSync('ci/github/workflows/install-mid.yml','utf8'),
- installerPatch:readFileSync('workflow-patches/install-mid.yml','utf8')
+ installerPatch:readFileSync('workflow-patches/install-mid.yml','utf8'),
+ manualDeploy:readFileSync('.github/workflows/deploy.yml','utf8'),
+ manualDeployTwin:readFileSync('ci/github/workflows/deploy.yml','utf8')
 });
 describe('MID #740: all known direct-main writes before native review policy',()=>{
  it('source and installer are two distinct live direct-main blockers',()=>{
   const result=check(fixtures());
   expect(result).toMatchObject({sourceMirrored:true,installerMirrored:true,
-   sourcePushes:1,installerPushes:1,
+   sourcePushes:1,installerPushes:1,manualMirrored:true,stableRedeployNeedsDist:true,
    nativePolicyActivationAuthorized:false,releaseAuthorized:false});
   expect(result.detectedDirectMainWrites).toEqual([
    'agent-source-release.yml:ZIP_COMMIT_DIRECT_MAIN_PUSH',
    'install-mid.yml:POST_BUILD_DIRECT_MAIN_PUSH']);
   expect(result.reasons).toContain('UNMIGRATED_DIRECT_MAIN_WRITES');
+  expect(result.reasons).toContain('STABLE_REDEPLOY_REQUIRES_PERSISTENT_DIST');
  });
  it('migrating only the ZIP transport never clears the installer write blocker',()=>{
   const x=fixtures();
@@ -44,6 +47,8 @@ describe('MID #740: all known direct-main writes before native review policy',()
   expect(check({...x,installerPatch:''}).reasons).toContain('WORKFLOW_MIRROR_DRIFT');
   expect(check({...x,installerTwin:x.installerTwin+'# unexpected'}).reasons)
    .toContain('WORKFLOW_MIRROR_DRIFT');
+  expect(check({...x,manualDeployTwin:x.manualDeployTwin+'# unexpected'}).reasons)
+   .toContain('MANUAL_DEPLOY_MIRROR_DRIFT');
  });
  it('even a simulated double migration cannot authorize native policy or release',()=>{
   const x=fixtures();
@@ -53,6 +58,8 @@ describe('MID #740: all known direct-main writes before native review policy',()
   x.installerTwin=x.installer;x.installerPatch=x.installer;
   const result=check(x);
   expect(result.detectedDirectMainWrites).toHaveLength(0);
+  expect(result.stableRedeployNeedsDist).toBe(true);
+  expect(result.reasons).toContain('STABLE_REDEPLOY_REQUIRES_PERSISTENT_DIST');
   expect(result.reasons).toContain('NEEDS_INDEPENDENT_FULL_WRITE_PATH_AUDIT');
   expect(result.nativePolicyActivationAuthorized).toBe(false);
   expect(result.releaseAuthorized).toBe(false);
