@@ -13,6 +13,8 @@ on:
       - 'ci/github/workflows/mid-740-pr-artifact-shadow-qa.yml'
       - 'tools/ci/mid-740-pr-artifact-shadow.mjs'
       - 'tools/ci/mid-740-historical-chain-readback.mjs'
+      - 'tools/ci/mid-740-native-review-cutover-readback.mjs'
+      - 'tests/unit/mid-740-native-review-cutover-readback.test.ts'
       - 'tools/ci/mid-740-live-cubic-review-readback.mjs'
       - 'tests/unit/mid-740-live-cubic-review-readback.test.ts'
       - 'tools/ci/mid-review-premerge-guard.mjs'
@@ -197,5 +199,14 @@ jobs:
             .inlineComments == 21 and .realEvidenceRead == true and
             .nativeReviewEnforced == false and
             .mergeAuthorized == false and .releaseAuthorized == false' "$RUNNER_TEMP/mid740-live-cubic.json"
+          node tools/ci/mid-740-native-review-cutover-readback.mjs > "$RUNNER_TEMP/mid740-native-review-readback.json"
+          jq -e '.status == "LEGACY_MAIN_WRITES_BLOCK_NO_BYPASS_CUTOVER_QA_ONLY" and
+            .registryAndRuleDetailsVerified == true and
+            .twoLegacyMainWritePathsSHAAndBlobVerified == true and
+            .productionRulesetHasRequiredPR == false and
+            .productionReleaseIntegrationAlwaysBypasses == true and
+            .nativeReviewEnforcementVerified == false and
+            .noBypassCutoverCompatible == false and
+            .cutoverAuthorized == false and .releaseAuthorized == false' "$RUNNER_TEMP/mid740-native-review-readback.json"
           echo "### MID #740 · echter historischer Release-Chain-Readback" >> "$GITHUB_STEP_SUMMARY"
           echo "Gate/Bot/Installer/Git-Parents geprüft. Upstream-Causality, Bot-Artefakt und Cutover sind NICHT belegt." >> "$GITHUB_STEP_SUMMARY"
