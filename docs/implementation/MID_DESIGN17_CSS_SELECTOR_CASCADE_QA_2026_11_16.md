@@ -22,6 +22,15 @@ Die zusätzliche read-only Auswertung trennt alle bisher unverändert als `poten
 
 Offizielle fachliche Referenz: https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Cascade/Specificity und https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Cascade/Introduction. Keine Änderung des globalen CSS, keine selbstständige Freigabe einer Lazy-Auslagerung, keine Änderung von Buildbudgets oder Release-Gates.
 
+
+## MID Design 1.7 – Shorthand-/Longhand-Abhängigkeiten (additiver QA-Nachweis)
+
+Der reine Quell-Audit berücksichtigt zusätzlich, dass ein Shorthand mehrere Longhand-Properties beeinflusst: etwa \`padding\` vs. \`padding-left\`, \`margin\` vs. \`margin-top\`, \`border\` vs. Seiten-Border-Properties, \`background\` vs. \`background-color\`, außerdem eine explizite Teilmenge \`inset\`, \`font\` und \`flex\`. Dies erfolgt über ein bewusst begrenztes, deterministisches Mapping. Mehrfachbetroffene Longhands und doppelte Klassen werden pro Paar dedupliziert; Treffer mit identischen CSS-Eigenschaftsnamen bleiben ausschließlich im bisherigen \`potentialPairs\`-Inventar. Neue unabhängige Felder: \`shorthandLonghandPairs\`, \`shorthandMatchingImportancePairs\`, \`shorthandDifferentImportancePairs\`, \`shorthandAffectedFiles\`, \`shorthandExamples\`.
+
+Diese Paare sind **ausschließlich konservative statische Hinweise**, keine bewiesenen Kaskadenkonflikte, bereinigte CSS-Bytes, Netzwerkeinsparungen oder RAM-Werte. Das Mapping ist nicht vollständig: \`all\`, \`border-image\`, logische Shorthands, Custom Properties/\`var()\`, Cascade-Layers, Scoped Styles und komplexe DOM-Zielknoten sind weiterhin nicht abgeschlossen. Deshalb bleiben \`safeToDefer:false\` und echte computed-style-/CSSOM-/Viewport-/Light-Dark-/Offline-/WebKit-Parität vor jeder Verschiebung zwingend. Die Quelldaten und alle CSS-/Version-/Release-Gates sind unverändert.
+
+**Externe technische Referenz:** [MDN CSS Shorthand-Eigenschaften](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Cascade/Shorthand_properties) und [CSS-Kaskade](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Cascade/Introduction). Der bestehende PostCSS-AST-Pfad bleibt der einzige Parser; keine neuen npm-Abhängigkeiten.
+
 ## Wissenschaftlich-technische Aussagegrenzen
 
 Gleiche CSS-Klasse und Eigenschaft beweisen nicht identische DOM-Zielknoten, weshalb Fehlalarme möglich sind. Umgekehrt deckt der Heuristikindex weder klassenlose/komplexe bzw. escaped Selektoren noch shorthand-/Custom-Property-Abhängigkeiten, @layer-Reihenfolgen und den realen DOM-/CSSOM-/Browserzustand vollständig ab. Er ist eine untere Schranke der statisch gefundenen Risikomuster, KEIN vollständiger Konformitätsbeweis. Deshalb liefert die API safeToDefer=false auch bei null Treffern. Keine produktive CSS-Verschiebung oder behauptete Netzwerk-/RAM-/Startzeitverbesserung.

@@ -7,6 +7,34 @@
  */
 const MAX_EXAMPLES=16;
 
+/** Explicit, intentionally incomplete shorthand expansion for diagnostic risk.
+ * Expand only well-known longhand families; unrecognised shorthands are
+ * unverified, not evidence of safe relocation.
+ */
+const SHORT_TO_LONG=Object.freeze({
+  margin:['margin-top','margin-right','margin-bottom','margin-left'],
+  padding:['padding-top','padding-right','padding-bottom','padding-left'],
+  inset:['top','right','bottom','left'],
+  'border-width':['border-top-width','border-right-width','border-bottom-width','border-left-width'],
+  'border-style':['border-top-style','border-right-style','border-bottom-style','border-left-style'],
+  'border-color':['border-top-color','border-right-color','border-bottom-color','border-left-color'],
+  border:['border-width','border-style','border-color'],
+  'border-top':['border-top-width','border-top-style','border-top-color'],
+  'border-right':['border-right-width','border-right-style','border-right-color'],
+  'border-bottom':['border-bottom-width','border-bottom-style','border-bottom-color'],
+  'border-left':['border-left-width','border-left-style','border-left-color'],
+  'background':['background-color','background-image','background-position','background-size','background-repeat','background-attachment','background-origin','background-clip'],
+  'font':['font-style','font-variant','font-weight','font-stretch','font-size','line-height','font-family'],
+  flex:['flex-grow','flex-shrink','flex-basis'],
+});
+function affectedLonghands(property,seen=new Set()){
+  if(seen.has(property))throw Error('Cyclic CSS shorthand mapping: '+property);
+  const expanded=SHORT_TO_LONG[property];
+  if(!expanded)return [property];
+  const next=new Set([...seen,property]);
+  return [...new Set(expanded.flatMap(part=>affectedLonghands(part,next)))];
+}
+
 /** Conservative ASCII CSS-class scanner, not a full selector parser.
  * Never mistake a dotted attribute value or quoted pseudo argument for a
  * class. Escaped/non-ASCII class names stay explicitly uncertain instead
@@ -139,15 +167,56 @@ export function cssSelectorRiskEvidence(entries,candidateFile){
       }
     }
   }
+
+  // A different property name can still compete when one declaration is a
+  // shorthand. Build a separate longhand index and preserve the old exact-
+  // property counts. Declaration identity de-duplicates multi-longhand and
+  // multi-class overlaps (e.g. border vs border-width).
+  const byClassAffectedLonghand=new Map();
+  for(const row of later)for(const className of row.classes)for(const decl of row.declarations){
+    for(const longhand of affectedLonghands(decl.property)){
+      const key=JSON.stringify([className,longhand]);
+      if(!byClassAffectedLonghand.has(key))byClassAffectedLonghand.set(key,[]);
+      byClassAffectedLonghand.get(key).push({row,decl});
+    }
+  }
+  let shorthandLonghandPairs=0,shorthandMatchingImportancePairs=0,shorthandDifferentImportancePairs=0;
+  const shorthandExamples=[],shorthandAffectedFiles=new Set();
+  for(const left of candidate){
+    if(!left.classes.length)continue;
+    for(const declaration of left.declarations){
+      const counted=new Set();
+      for(const className of left.classes)for(const longhand of affectedLonghands(declaration.property)){
+        for(const {row:right,decl:laterDecl} of byClassAffectedLonghand.get(JSON.stringify([className,longhand]))??[]){
+          if(declaration.property===laterDecl.property||counted.has(laterDecl))continue;
+          // An overlap of different names requires at least one known shorthand.
+          if(!SHORT_TO_LONG[declaration.property]&&!SHORT_TO_LONG[laterDecl.property])continue;
+          counted.add(laterDecl);
+          shorthandLonghandPairs++;
+          const importanceMatch=declaration.important===laterDecl.important;
+          if(importanceMatch)shorthandMatchingImportancePairs++;
+          else shorthandDifferentImportancePairs++;
+          shorthandAffectedFiles.add(right.file);
+          if(shorthandExamples.length<MAX_EXAMPLES)shorthandExamples.push({
+            className,affectedLonghand:longhand,importanceRelation:importanceMatch?'MATCH':'DIFFERENT',
+            candidate:{file:left.file,line:left.line,selector:left.selector.slice(0,220),property:declaration.property,important:declaration.important,conditions:left.conditions},
+            later:{file:right.file,line:right.line,selector:right.selector.slice(0,220),property:laterDecl.property,important:laterDecl.important,conditions:right.conditions},
+          });
+        }
+      }
+    }
+  }
   return {
     schema:'mid.css-selector-risk-evidence.v1',
     candidateFile,candidateRuleCount:candidate.length,laterEagerFiles:entries.length-index-1,
     laterRuleCount:later.length,potentialPairs,matchingImportancePairs,differentImportancePairs,
+    shorthandLonghandPairs,shorthandMatchingImportancePairs,shorthandDifferentImportancePairs,
+    shorthandAffectedFiles:[...shorthandAffectedFiles].sort(),shorthandExamples,
     affectedClasses:[...affectedClasses].sort(),affectedFiles:[...affectedFiles].sort(),
     unclassifiedRules,ambiguousCandidateSelectors,ambiguousLaterSelectors,examples,
-    method:'Shared CSS class AND identical property in different selectors; potential change in order after asynchronous import',
-    caveat:'Conservative static heuristic: only matchingImportancePairs can be affected by source order under the same author origin; equal importance does not prove equal specificity, layer, scope or DOM targeting. Different-importance matches remain informational. Incomplete for shorthands, custom properties, @layer, @scope, classless or escaped/non-ASCII selectors. Never proof of safe CSS relocation.',
-    status:potentialPairs?'POTENTIAL_CROSS_SELECTOR_CASCADE_RISK':'UNVERIFIED_NO_STATIC_MATCH',
+    method:'Shared CSS class/property across different selectors plus separately deduplicated curated shorthand/longhand overlaps; descriptive only',
+    caveat:'Static heuristic: equal importance does not prove equal specificity, layer, scope or DOM targeting; unlike exact property matches, shorthandLonghandPairs include same-selector collisions. Curated shorthand coverage is deliberately partial (e.g. border-image, all, custom properties and logical shorthands remain unverified). Unknown or missing overlap never means CSS safe to defer.',
+    status:potentialPairs||shorthandLonghandPairs?'POTENTIAL_CROSS_SELECTOR_CASCADE_RISK':'UNVERIFIED_NO_STATIC_MATCH',
     safeToDefer:false,
   };
 }

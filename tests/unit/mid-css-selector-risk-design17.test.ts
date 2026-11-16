@@ -128,6 +128,49 @@ describe('Design 1.7 – fail-closed CSS cross-selector cascade evidence',()=>{
   expect(report.safeToDefer).toBe(false);
  });
 
+
+ it('finds margin/padding shorthand-longhand overlaps that exact property matching misses',()=>{
+  const result=cssSelectorRiskEvidence([
+   css('candidate.css','.card{padding:4px;margin-left:6px}'),
+   css('later.css','.shell .card{padding-left:8px;margin:3px}')
+  ],'candidate.css');
+  expect(result.potentialPairs).toBe(0);
+  expect(result.shorthandLonghandPairs).toBe(2);
+  expect(result.shorthandMatchingImportancePairs).toBe(2);
+  expect(result.shorthandDifferentImportancePairs).toBe(0);
+  expect(result.shorthandExamples.map((x:{affectedLonghand:string})=>x.affectedLonghand)).toEqual(['padding-left','margin-left']);
+  expect(result.safeToDefer).toBe(false);
+ });
+ it('deduplicates border shorthand overlaps with multi-longhand and multi-class selectors',()=>{
+  const result=cssSelectorRiskEvidence([
+   css('candidate.css','.card.tile{border:1px solid red}'),
+   css('later.css','.tile.card{border-width:2px}')
+  ],'candidate.css');
+  expect(result.potentialPairs).toBe(0);
+  expect(result.shorthandLonghandPairs).toBe(1);
+  expect(result.shorthandExamples).toHaveLength(1);
+  expect(result.shorthandExamples[0].affectedLonghand).toBe('border-top-width');
+ });
+ it('separates important shorthand conflicts and does not claim visual safety',()=>{
+  const result=cssSelectorRiskEvidence([
+   css('candidate.css','.card{background:green!important}'),
+   css('later.css','.parent .card{background-color:blue}')
+  ],'candidate.css');
+  expect(result.shorthandLonghandPairs).toBe(1);
+  expect(result.shorthandMatchingImportancePairs).toBe(0);
+  expect(result.shorthandDifferentImportancePairs).toBe(1);
+  expect(result.shorthandExamples[0].importanceRelation).toBe('DIFFERENT');
+  expect(result.safeToDefer).toBe(false);
+ });
+ it('does not double-count exact-property pairs as shorthand overlaps',()=>{
+  const result=cssSelectorRiskEvidence([
+   css('candidate.css','.card{padding:4px}'),
+   css('later.css','.parent .card{padding:5px}')
+  ],'candidate.css');
+  expect(result.potentialPairs).toBe(1);
+  expect(result.shorthandLonghandPairs).toBe(0);
+ });
+
  it('runs the real diagnostic CLI for all canonical CSS candidates without granting a move',async()=>{
   const repoRoot=fileURLToPath(new URL('../../',import.meta.url));
   const cwd=await mkdtemp(join(tmpdir(),'mid-design17-selector-risk-'));
@@ -148,6 +191,8 @@ describe('Design 1.7 – fail-closed CSS cross-selector cascade evidence',()=>{
     expect(row.safeToDefer).toBe(false);
     expect(Number.isInteger(row.potentialPairs)).toBe(true);
     expect(row.matchingImportancePairs+row.differentImportancePairs).toBe(row.potentialPairs);
+    expect(row.shorthandMatchingImportancePairs+row.shorthandDifferentImportancePairs).toBe(row.shorthandLonghandPairs);
+    expect(Number.isInteger(row.shorthandLonghandPairs)).toBe(true);
     expect(Number.isInteger(row.matchingImportancePairs)).toBe(true);
     expect(Number.isInteger(row.differentImportancePairs)).toBe(true);
     expect(Number.isInteger(row.ambiguousCandidateSelectors)).toBe(true);
