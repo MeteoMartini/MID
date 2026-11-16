@@ -372,13 +372,15 @@ assert.equal(reviewedSettingsMobile,1,'Exactly one reviewed DA19-15 mobile setti
 const cssGitBlobSha=source=>createHash('sha1').update('blob '+Buffer.byteLength(source)+String.fromCharCode(0)).update(source).digest('hex');
 const historicalFourteenOldLabel="html[data-mid-design='next'] .cockpit-fourteen-weather-label{\n min-width:0!important;\n color:var(--muted)!important;\n font-size:11px!important;\n line-height:1.2!important;\n white-space:nowrap!important;\n overflow:hidden!important;\n text-overflow:ellipsis!important;\n}";
 const historicalFourteenCurrentLabel="html[data-mid-design='next'] .cockpit-fourteen-weather-label{\n min-width:0!important;\n color:var(--muted)!important;\n font-size:11px!important;\n line-height:1.25!important;\n white-space:normal!important;\n overflow:visible!important;\n overflow-wrap:anywhere!important;\n text-overflow:clip!important;\n}";
+const historicalFourteenMobileHeader="/* MID Design 1.4: narrow phones give the complete weather description a full row. */\n@media(max-width:430px){\n html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row>header{\n  grid-template-columns:minmax(0,1fr) auto!important;\n  grid-template-areas:\n   \"heading heading\"\n   \"temps confidence\"!important;\n  align-items:start!important;\n }\n html[data-mid-design='next'] .cockpit-fourteen-heading{\n  min-width:0!important;\n  align-items:start!important;\n }\n html[data-mid-design='next'] .cockpit-fourteen-temps{\n  justify-self:start!important;\n  align-self:center!important;\n }\n html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-consistency-pill,\n html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-ensemble-badge{\n  justify-self:end!important;\n  align-self:center!important;\n }\n}\n\n";
 const historicalFourteenFonts=[12.5,11,15,11,8.5,7.5,10,9.5,11.5,10.5,8.5,9.5,11.5,9.5,11.5,10.5,14,10.5,9.5,10,9.5,9];
 let historicalFourteenRestored=0;
 for(const entry of originalEntries){
  if(entry.file!=='src/midC18FourteenReplitFluidGrid.css')continue;
- assert.equal(cssGitBlobSha(entry.original),'d9197fc365a03ffff2c8e03b337e76907a7006b9','14d current CSS drifted from reviewed Design 1.4 source');
+ assert.equal(cssGitBlobSha(entry.original),'6e6d969faf24af9da5104fe85eaa38707eeb250f','14d current CSS drifted from reviewed Design 1.4 source');
  assert.equal(entry.original.split(historicalFourteenCurrentLabel).length,2,'14d reviewed full-text weather label must occur exactly once');
- let historicalCss=entry.original.replace(historicalFourteenCurrentLabel,historicalFourteenOldLabel);
+ assert.equal(entry.original.split(historicalFourteenMobileHeader).length,2,'14d narrow-viewport header block must occur exactly once');
+ let historicalCss=entry.original.replace(historicalFourteenMobileHeader,'').replace(historicalFourteenCurrentLabel,historicalFourteenOldLabel);
  let fontIndex=0;
  historicalCss=historicalCss.replace(/font-size:([0-9.]+)px!important/g,()=>{
   assert.ok(fontIndex<historicalFourteenFonts.length,'14d unexpected font-size declaration');
