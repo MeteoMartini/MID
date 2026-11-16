@@ -5,7 +5,12 @@ const sha='a'.repeat(40),stable='b'.repeat(40),branch='chatgpt/v0.9.85.455-revie
 const pr={number:777,state:'open',draft:false,base:{ref:'main',sha:stable},head:{ref:branch,sha,repo:{full_name:'MeteoMartini/MID'}},user:{login:'coder'}};
 const meta={number:777,headRefOid:sha,headRefName:branch,baseRefName:'main',state:'OPEN',isDraft:false};
 const input=(x:any={})=>({number:777,sha,branch,sourceBaseSha:stable,before:pr,after:pr,main:{commit:{sha:stable}},stable:{commit:{sha:stable}},data:{meta,threads:[],reviews:[],truncated:false},...x});
-const thread=(isResolved:boolean,isOutdated=false,id='t1')=>({isResolved,isOutdated,id});
+const thread=(isResolved:boolean,isOutdated=false,id='t1')=>({
+ isResolved,isOutdated,id,comments:{nodes:[{
+  id:'PRRC_'+id.padEnd(8,'x'),body:'Routine note',createdAt:'2026-11-11T14:00:00Z',
+  updatedAt:'2026-11-11T14:00:00Z',author:{login:'reviewer',__typename:'User'}
+ }],pageInfo:{hasNextPage:false}}
+});
 const review=(state:string,id='r1',author='auditor',submittedAt='2026-11-11T15:00:00Z',body='')=>
  ({state,id,body,author:{login:author,__typename:author==='cubic-dev-ai'?'Bot':'User'},submittedAt});
 const page=(t:any[]=[],r:any[]=[],tNext=false,rNext=false)=>({data:{repository:{pullRequest:{...meta,
@@ -46,6 +51,51 @@ describe('SHA-bound MID merge-time review guard',()=>{
   expect(check(input({data:{meta,threads:[],reviews:[review('COMMENTED')],truncated:false}})))
    .toMatchObject({ok:true,independentlyReviewed:false,reviewDispositionAttested:false,
     mergeAuthorized:false,releaseAuthorized:false});
+ });
+ it('blocks resolved inline Cubic P1 until an independent SHA-bound disposition exists',()=>{
+  const resolved=thread(true,false,'PRRT_inline001');
+  const c=resolved.comments.nodes[0];
+  c.id='PRRC_kwDOTcppC88AAAABDYUk5A';
+  c.body='P1: valid zero-hour companion field rejected';
+  c.author={login:'cubic-dev-ai',__typename:'Bot'};
+  c.createdAt='2026-11-11T15:00:00Z';
+  c.updatedAt='2026-11-11T15:01:00Z';
+  const classify=(reviews:any[])=>check(input({
+   data:{meta,threads:[resolved],reviews,truncated:false}
+  }));
+  expect(classify([])).toMatchObject({
+   ok:false,reason:'MID_REVIEW_CRITICAL_REVIEW_UNATTESTED'
+  });
+  const evidence='https://github.com/MeteoMartini/MID/blob/'+sha+'/src/nativeSeasonalComposite.ts';
+  const line='MID-740-DISPOSITION v1 sha='+sha+' review='+c.id+
+    ' item=1 result=fixed evidence='+evidence;
+  const approval=review('APPROVED','r-inline-approved','independent',
+   '2026-11-11T15:02:00Z',line);
+  expect(classify([approval])).toMatchObject({
+   ok:true,criticalReviewCount:0,criticalInlineCommentCount:1,
+   criticalItemCount:1,mergeAuthorized:false,releaseAuthorized:false,
+   nativeEnforcementRequired:true
+  });
+  c.updatedAt='2026-11-11T15:04:00Z';
+  expect(classify([approval])).toMatchObject({
+   ok:false,reason:'MID_REVIEW_CRITICAL_REVIEW_UNATTESTED'
+  });
+  c.updatedAt='2026-11-11T15:01:00Z';
+  expect(classify([review('APPROVED','r-self-inline','coder',
+   '2026-11-11T15:03:00Z',line)]).ok).toBe(false);
+ });
+ it('rejects incomplete inline comment pagination and metadata',async()=>{
+  const partial=thread(true);
+  partial.comments.pageInfo.hasNextPage=true;
+  expect(check(input({data:{meta,threads:[partial],reviews:[],truncated:false}})))
+   .toMatchObject({ok:false,reason:'MID_REVIEW_INCOMPLETE_THREAD_COMMENTS'});
+  await expect(collectMidReviews(async()=>page([partial]),777,sha)).rejects.toThrow();
+  const noAuthor=thread(true);noAuthor.comments.nodes[0].author=null as any;
+  expect(check(input({data:{meta,threads:[noAuthor],reviews:[],truncated:false}})))
+   .toMatchObject({ok:false,reason:'MID_REVIEW_BAD_INLINE_COMMENT'});
+  const missing=thread(true);delete (missing.comments.nodes[0] as any).body;
+  expect(check(input({data:{meta,threads:[missing],reviews:[],truncated:false}})).ok)
+   .toBe(false);
  });
  it('blocks P1/P0 Cubic body-only findings even with no unresolved inline threads',()=>{
   const body='<violation number="1">\nP1: native season interval=0 is rejected</violation>\n'+

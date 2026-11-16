@@ -5,7 +5,7 @@ import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 const REPO='MeteoMartini/MID',SHA=/^[a-f0-9]{40}$/;
 const BRANCH=/^(chatgpt|codex)\/[^/]+(?:\/[^/]+)*$/;
-const QUERY='query($owner:String!,$name:String!,$number:Int!,$threadAfter:String,$reviewAfter:String){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid headRefName baseRefName isDraft state reviewThreads(first:100,after:$threadAfter){nodes{id isResolved isOutdated}pageInfo{hasNextPage endCursor}} reviews(first:100,after:$reviewAfter){nodes{id state body author{login __typename} submittedAt}pageInfo{hasNextPage endCursor}}}}}';
+const QUERY='query($owner:String!,$name:String!,$number:Int!,$threadAfter:String,$reviewAfter:String){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid headRefName baseRefName isDraft state reviewThreads(first:100,after:$threadAfter){nodes{id isResolved isOutdated comments(first:100){nodes{id body createdAt updatedAt author{login __typename}}pageInfo{hasNextPage}}}pageInfo{hasNextPage endCursor}} reviews(first:100,after:$reviewAfter){nodes{id state body author{login __typename} submittedAt}pageInfo{hasNextPage endCursor}}}}}';
 const block=reason=>({ok:false,reason:'MID_REVIEW_'+reason,mergeAuthorized:false,releaseAuthorized:false});
 
 // Body-only severity findings are review evidence, even when there are no
@@ -50,11 +50,32 @@ export function assessMidPremerge({before,after,main,stable,data,number,sha,bran
  const p=data.meta;
  if(p?.number!==number||p.headRefOid!==sha||p.headRefName!==branch||
     p.baseRefName!=='main'||p.state!=='OPEN'||p.isDraft!==false)return block('GRAPHQL_PR_DRIFT');
- const threadIds=new Set();
+ const threadIds=new Set(),inlineCommentIds=new Set(),inlineCritical=[];
  for(const t of data.threads){
   if(typeof t?.id!=='string'||!t.id||threadIds.has(t.id)||
     typeof t.isResolved!=='boolean'||typeof t.isOutdated!=='boolean')return block('BAD_THREAD');
   threadIds.add(t.id);
+  if(t.comments?.pageInfo?.hasNextPage!==false||
+     !Array.isArray(t.comments?.nodes)||t.comments.nodes.length===0||
+     t.comments.nodes.length>100)return block('INCOMPLETE_THREAD_COMMENTS');
+  for(const c of t.comments.nodes){
+   if(typeof c?.id!=='string'||!/^[A-Za-z0-9_-]{8,128}$/.test(c.id)||
+      inlineCommentIds.has(c.id)||typeof c.body!=='string'||
+      typeof c.author?.login!=='string'||!c.author.login||
+      typeof c.author.__typename!=='string'||
+      !Number.isFinite(Date.parse(c.createdAt??''))||
+      !Number.isFinite(Date.parse(c.updatedAt??''))||
+      Date.parse(c.updatedAt)<Date.parse(c.createdAt))
+    return block('BAD_INLINE_COMMENT');
+   inlineCommentIds.add(c.id);
+   const items=criticalMidReviewItems(c.body);
+   if(items===null)return block('CRITICAL_INLINE_EVIDENCE_INVALID');
+   if(items.length)inlineCritical.push({review:{
+    id:c.id,body:c.body,author:c.author,
+    // A critical edit after review approval invalidates the older disposition.
+    submittedAt:new Date(Math.max(Date.parse(c.createdAt),Date.parse(c.updatedAt))).toISOString()
+   },items});
+  }
   if(!t.isResolved)return block('OPEN_THREAD');
  }
  const reviewIds=new Set(),requests=new Set();
@@ -99,7 +120,8 @@ export function assessMidPremerge({before,after,main,stable,data,number,sha,bran
   ['COMMENTED','APPROVED'].includes(r.state)?criticalMidReviewItems(r.body):[]}));
  // Never silently drop invalid/oversized review evidence during filtering.
  if(classified.some(x=>x.items===null))return block('CRITICAL_REVIEW_EVIDENCE_INVALID');
- const critical=classified.filter(x=>x.items.length);
+ const criticalReviews=classified.filter(x=>x.items.length);
+ const critical=[...criticalReviews,...inlineCritical];
  if(critical.length){
   const author=before?.user?.login?.toLowerCase();
   if(!author||after?.user?.login?.toLowerCase()!==author)return block('AUTHOR_UNVERIFIED');
@@ -126,7 +148,8 @@ export function assessMidPremerge({before,after,main,stable,data,number,sha,bran
  }
  return {ok:true,reason:'READBACK_CLEAN',threadCount:data.threads.length,reviewCount:data.reviews.length,
   independentlyReviewed:false,reviewDispositionAttested:critical.length>0,
-  criticalReviewCount:critical.length,criticalItemCount:critical.reduce((n,x)=>n+x.items.length,0),
+  criticalReviewCount:criticalReviews.length,criticalInlineCommentCount:inlineCritical.length,
+  criticalItemCount:critical.reduce((n,x)=>n+x.items.length,0),
   mergeAuthorized:false,releaseAuthorized:false,nativeEnforcementRequired:true};
 }
 
@@ -146,7 +169,11 @@ export async function collectMidReviews(query,number,sha){
    if(!Array.isArray(connection?.nodes)||typeof connection.pageInfo?.hasNextPage!=='boolean')throw Error('INCOMPLETE_REVIEW_PAGE');
    if(!done)for(const node of connection.nodes){
     if(typeof node?.id!=='string'||!node.id||seen.has(node.id)||
-       (target===reviews&&typeof node.body!=='string'))throw Error('DUPLICATE_REVIEW_ITEM');
+       (target===reviews&&typeof node.body!=='string')||
+       (target===threads&&(
+        node.comments?.pageInfo?.hasNextPage!==false||
+        !Array.isArray(node.comments?.nodes)||node.comments.nodes.length===0)))
+     throw Error('DUPLICATE_OR_INCOMPLETE_REVIEW_ITEM');
     seen.add(node.id);target.push(node);
    }
   }
