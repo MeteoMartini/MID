@@ -26,7 +26,13 @@ export function offlineShellAssetEvidence(html,assets,startup){
   for(const match of tag.matchAll(/([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g)){
    attrs.set(match[1].toLowerCase(),match[2]??match[3]);
   }
-  if(!(attrs.get('rel')??'').toLowerCase().split(/\s+/).includes('mid-offline'))continue;
+  const relations=(attrs.get('rel')??'').toLowerCase().split(/\s+/);
+  if(!relations.includes('mid-offline'))continue;
+  // A recognized browser preload/prefetch/style token can start network work.
+  // Such a mixed link must not be reported as an offline-only declaration.
+  if(relations.some(rel=>['preload','modulepreload','prefetch','stylesheet'].includes(rel))){
+   throw Error('Ambiguous offline-shell link with browser resource hint');
+  }
   declarations++;
   const href=attrs.get('href');
   if(!href||/^(?:[a-z][a-z\d+.-]*:|\/\/|\/)/i.test(href)||href.includes('\\')||/%(?:2f|5c)/i.test(href)){
