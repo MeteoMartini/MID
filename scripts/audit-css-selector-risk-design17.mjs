@@ -19,5 +19,5 @@ const report={
 await mkdir('artifacts',{recursive:true});
 await writeFile('artifacts/css-selector-risk-design17.json',JSON.stringify(report,null,2)+'\n');
 console.log('MID_DESIGN17_CSS_SELECTOR_RISK '+JSON.stringify({sources:report.eagerSources,
- candidates:report.candidates.map(({candidateFile,status,potentialPairs,affectedFiles,safeToDefer})=>
-  ({candidateFile,status,potentialPairs,affectedFileCount:affectedFiles.length,safeToDefer}))}));
+ candidates:report.candidates.map(({candidateFile,status,potentialPairs,affectedFiles,ambiguousCandidateSelectors,ambiguousLaterSelectors,safeToDefer})=>
+  ({candidateFile,status,potentialPairs,affectedFileCount:affectedFiles.length,ambiguousCandidateSelectors,ambiguousLaterSelectors,safeToDefer}))}));
