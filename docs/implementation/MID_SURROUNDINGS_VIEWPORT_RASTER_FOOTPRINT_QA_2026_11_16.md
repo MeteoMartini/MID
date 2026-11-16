@@ -10,7 +10,7 @@ Start: `main=mid-stable=a78465b655d25cafc9ecc0390080694cb7aca957` · v0.9.85.486
 
 Stable `src/CurrentSurroundings.tsx` nutzt als festen Darstellungs- und WMS-Footprint `lon±1.4°`, `lat±.65°`, unabhängig von Containerbreite und gerenderter MapLibre-Kamera. Gleichzeitig erzeugt `MapFitBounds` an breiten Viewports bzw. bei Zoomobergrenzen sichtbare Kartenbereiche **außerhalb** des über `ImageQuadLayer` gerenderten Quellrechtecks. Das ist unabhängig davon, ob der Wetteranbieter außerhalb seines eigenen Datengebiets NoData liefert. `CurrentSurroundings.css` gibt der Karte eine responsive Breite und 220–285 px Höhe. Die bisherige ResizeObserver-Messung wird ausschließlich für Temperaturlabels genutzt.
 
-Zusätzlich verursacht die feste WMS-Pixelgröße `512×256` bei BBOX mit abweichendem EPSG:4326-Degreeseitenverhältnis potenzielle Rasterverzerrung (OGC WMS 1.1.1 § 7.2.3.8). 
+Zusätzlich verursacht die feste WMS-Pixelgröße `512×256` bei BBOX mit abweichendem EPSG:4326-Degreeseitenverhältnis potenzielle Rasterverzerrung (OGC WMS 1.1.1 § 7.2.3.8).
 
 ## Enger neuer Code
 
