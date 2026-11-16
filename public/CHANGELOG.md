@@ -1,3 +1,8 @@
+# MID v0.9.85.485
+
+- Die 14-Tage-Prognose zeigt Wetterbeschreibungen vollständig statt abgeschnitten; kompakte Beschriftungen sind lesbarer.
+- Auf kleinen Smartphones erhält die Wetterbeschreibung mehr Platz, während Navigation und andere Wetterfunktionen erhalten bleiben.
+
 # MID v0.9.85.484
 
 - **Schonendere Kartenbedienung:** Gleichzeitige Kartenlayer werden in einem Sortierdurchlauf geordnet, statt wiederholt neu angeordnet. Optionale Kartensprünge respektieren die Einstellung für reduzierte Bewegung.

@@ -1,3 +1,10 @@
+## MID v0.9.85.485 · 2026-11-16 · 14-Tage-Lesbarkeit und sichere CSS-Eigentümerschaft
+
+- Ausgangsbasis mid-stable/main 8f4c950c3d0311f33ed3f9b89d0101d6cd556113 (v0.9.85.484). Nur 12 SHA-identische Dateiblobs aus #841 HEAD d327e6154dc26d696c74379f6dec994ccf57631b und #840 HEAD dd90d5b64f6aeb4ac0f517bc0aa64329e26ee722 übernommen; die beiden Diff-Pfadgruppen sind disjunkt und überschneiden #833 nicht.
+- CSS-Owner-QA markiert geteilte 14-Tage-Styles als BLOCKED_CROSS_MODULE_OWNERSHIP; kein CSS-Lazy-Split, keine Wetter-/Warnungs-/Worker-Änderung.
+- Ursprungs-Drafts haben gezielte Vitest-Ergebnisse und #841 24 Chromium-Fälle; die vereinigte .485-Quelle ist vor einem eigenständigen Source-/Core-/Heavy-/Browser-/Review-/Security-/Installer-/Pages-/Stable-Gate NICHT freigegeben.
+- MID Release Konzept 1.4 / Issue #740 und Karten-/RUC-Draft #832 bleiben getrennte Arbeitsstränge; keine native iOS- oder VoiceOver-Abnahme behauptet.
+
 ## MID v0.9.85.484 · 2026-11-15 · Karten-Zeitqualität, Umfeldwetter und sichere Codeprüfung
 
 - Quell-SHAs PR #825 11a2c028c5a966094b7d15711b7c65bca4ffe58a; #824 f82c01b0a4fb7a23a1ea9c681ebfcf0b62381c3a; #826 b741bf461c0e439611f3254b3544d43fb3ea5e57; #827 92fefc860d0caf64fc23fbe377dbc9a6bc334a0d; Main/Stable c9fadfcd0969e949a92f414b321627dd3d4fb0cc.
