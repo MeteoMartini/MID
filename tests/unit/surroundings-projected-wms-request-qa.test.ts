@@ -83,7 +83,7 @@ describe('MID #853: EPSG:3857 original WMS routing contract (inactive QA)',()=>{
 
   it('rejects matching-looking but geographically inconsistent projected source footprints',()=>{
     const slightlyShifted={...plan,imageBounds:{...plan.imageBounds,north:plan.imageBounds.north+0.1}};
-    const shiftedBBox={...plan,bbox:plan.bbox.replace(/^[-\\d.]+/, '123000.000')};
+    const shiftedBBox={...plan,bbox:['123000.000',...plan.bbox.split(',').slice(1)].join(',')};
     const onePixelShift={...plan,width:plan.width-1};
     for(const wrong of [slightlyShifted,shiftedBBox,onePixelShift]){
       expect(buildSurroundingsProjectedWmsRequest(dwd,'dwd','dwd:Radar_rv_product_1x1km_ger',date,wrong)).toBeUndefined();
