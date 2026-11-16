@@ -24,6 +24,25 @@ const floorOut=(value:number)=>Math.floor(value*EPS)/EPS;
 const ceilOut=(value:number)=>Math.ceil(value*EPS)/EPS;
 const finite=(values:number[])=>values.every(Number.isFinite);
 
+/** Source image rows in an ImageQuadLayer follow the map's Mercator Y
+ * coordinate, not equal latitude-degree increments. Use this ONLY for native
+ * OPERA/phase raster sampling onto a north-up MapLibre image rectangle.
+ * An EPSG:4326 external WMS is a separate source-projection contract.
+ */
+export function mercatorLatitudeAtImageFraction(north:number,south:number,fractionFromNorth:number):number {
+ if(!finite([north,south,fractionFromNorth])||south>=north||
+    north>=MAX_MERCATOR_LAT||south<=-MAX_MERCATOR_LAT||
+    fractionFromNorth<0||fractionFromNorth>1)
+  throw new RangeError('Invalid Mercator raster latitude sampling');
+ if(fractionFromNorth===0)return north;
+ if(fractionFromNorth===1)return south;
+ const top=projectLat(north),bottom=projectLat(south);
+ const latitude=unprojectLat(top+(bottom-top)*fractionFromNorth);
+ if(!Number.isFinite(latitude))throw new RangeError('Non-finite Mercator raster latitude');
+ return latitude;
+}
+
+
 /** Returns undefined rather than inventing cross-dateline/polar raster coverage.
  * Includes modest pixel overscan so MapLibre image edges never expose a strip
  * of only the basemap. The fixed pixel budget matches the existing 512×256 WMS.
