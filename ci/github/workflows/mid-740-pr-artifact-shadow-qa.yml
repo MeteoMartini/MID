@@ -13,6 +13,9 @@ on:
       - 'ci/github/workflows/mid-740-pr-artifact-shadow-qa.yml'
       - 'tools/ci/mid-740-pr-artifact-shadow.mjs'
       - 'tools/ci/mid-740-historical-chain-readback.mjs'
+      - 'tools/ci/mid-740-live-cubic-review-readback.mjs'
+      - 'tests/unit/mid-740-live-cubic-review-readback.test.ts'
+      - 'tools/ci/mid-review-premerge-guard.mjs'
       - 'tools/ci/mid-740-upstream-trigger-readback.mjs'
       - 'tests/unit/mid-740-upstream-trigger-readback.test.ts'
       - 'tests/unit/mid-740-historical-chain-readback.test.ts'
@@ -187,5 +190,12 @@ jobs:
             .upstreamEventLinkVerified == false and .producerArtifactVerified == false and
             .installerAuthorized == false and .recoveryAuthorized == false and
             .releaseAuthorized == false' "$RUNNER_TEMP/mid740-real-history.json"
+          # Exact original GitHub PR #729 GraphQL comments + REST SHA: read only.
+          node tools/ci/mid-740-live-cubic-review-readback.mjs > "$RUNNER_TEMP/mid740-live-cubic.json"
+          jq -e '.status == "HISTORICAL_CUBIC_GRAPHQL_QA_ONLY" and
+            .threads == 21 and .unresolvedThreads == 21 and
+            .inlineComments == 21 and .realEvidenceRead == true and
+            .nativeReviewEnforced == false and
+            .mergeAuthorized == false and .releaseAuthorized == false' "$RUNNER_TEMP/mid740-live-cubic.json"
           echo "### MID #740 · echter historischer Release-Chain-Readback" >> "$GITHUB_STEP_SUMMARY"
           echo "Gate/Bot/Installer/Git-Parents geprüft. Upstream-Causality, Bot-Artefakt und Cutover sind NICHT belegt." >> "$GITHUB_STEP_SUMMARY"

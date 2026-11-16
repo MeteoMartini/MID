@@ -5,7 +5,7 @@ import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 const REPO='MeteoMartini/MID',SHA=/^[a-f0-9]{40}$/;
 const BRANCH=/^(chatgpt|codex)\/[^/]+(?:\/[^/]+)*$/;
-const QUERY='query($owner:String!,$name:String!,$number:Int!,$threadAfter:String,$reviewAfter:String){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid headRefName baseRefName isDraft state reviewThreads(first:100,after:$threadAfter){nodes{id isResolved isOutdated comments(first:100){nodes{id body createdAt updatedAt author{login __typename}}pageInfo{hasNextPage}}}pageInfo{hasNextPage endCursor}} reviews(first:100,after:$reviewAfter){nodes{id state body author{login __typename} submittedAt}pageInfo{hasNextPage endCursor}}}}}';
+export const MID_REVIEW_QUERY='query($owner:String!,$name:String!,$number:Int!,$threadAfter:String,$reviewAfter:String){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid headRefName baseRefName isDraft state reviewThreads(first:100,after:$threadAfter){nodes{id isResolved isOutdated comments(first:100){nodes{id body createdAt updatedAt author{login __typename}}pageInfo{hasNextPage}}}pageInfo{hasNextPage endCursor}} reviews(first:100,after:$reviewAfter){nodes{id state body author{login __typename} submittedAt}pageInfo{hasNextPage endCursor}}}}}';
 const block=reason=>({ok:false,reason:'MID_REVIEW_'+reason,mergeAuthorized:false,releaseAuthorized:false});
 
 // Body-only severity findings are review evidence, even when there are no
@@ -210,7 +210,7 @@ export async function runMidReviewGuard(env=process.env){
  const before=get('repos/'+REPO+'/pulls/'+number);
  const main=get('repos/'+REPO+'/branches/main'),stable=get('repos/'+REPO+'/branches/mid-stable');
  const data=await collectMidReviews(async({threadAfter,reviewAfter})=>{
-  const args=['graphql','-f','query='+QUERY,'-f','owner=MeteoMartini','-f','name=MID','-F','number='+number];
+  const args=['graphql','-f','query='+MID_REVIEW_QUERY,'-f','owner=MeteoMartini','-f','name=MID','-F','number='+number];
   if(threadAfter!==null)args.push('-f','threadAfter='+threadAfter);
   if(reviewAfter!==null)args.push('-f','reviewAfter='+reviewAfter);
   return gh(args);
