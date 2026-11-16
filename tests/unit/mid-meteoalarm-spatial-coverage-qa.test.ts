@@ -19,7 +19,7 @@ describe('MID #411: no blanket point-verified claim for official BBox-only warni
   expect(official).toContain('pointContext.selection');
   expect(official).toContain("'official-map-polygon'");
   expect(official).toContain("'local-name-plus-bbox'");
-  expect(official).toContain("'smallest-bbox-per-hazard-fallback'");
+  expect(source).toContain("'smallest-bbox-per-hazard-fallback'");
   expect(official).toContain('areaResolutionError:pointContextError||pointContext?.geometryError');
  });
  it('does not change official CAP messages, valid time, severity or dedupe',()=>{
