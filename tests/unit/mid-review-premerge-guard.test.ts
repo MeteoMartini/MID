@@ -12,7 +12,9 @@ const thread=(isResolved:boolean,isOutdated=false,id='t1')=>({
  }],pageInfo:{hasNextPage:false}}
 });
 const review=(state:string,id='r1',author='auditor',submittedAt='2026-11-11T15:00:00Z',body='')=>
- ({state,id,body,author:{login:author,__typename:author==='cubic-dev-ai'?'Bot':'User'},submittedAt});
+ ({state,id,body,author:{login:author,__typename:author==='cubic-dev-ai'?'Bot':'User'},
+  submittedAt,updatedAt:submittedAt??'2026-11-11T15:00:00Z',
+  authorCanPushToRepository:author!=='cubic-dev-ai',commit:{oid:sha}});
 const page=(t:any[]=[],r:any[]=[],tNext=false,rNext=false)=>({data:{repository:{pullRequest:{...meta,
  reviewThreads:{nodes:t,pageInfo:{hasNextPage:tNext,endCursor:tNext?'nextT':null as string|null}},
  reviews:{nodes:r,pageInfo:{hasNextPage:rNext,endCursor:rNext?'nextR':null as string|null}}
@@ -148,6 +150,74 @@ describe('SHA-bound MID merge-time review guard',()=>{
   const reviewBody=review('APPROVED','r-approvalwarning','independent','2026-11-11T15:01:00Z','P1: issue remains open');
   expect(check(input({data:{meta,threads:[],reviews:[reviewBody],truncated:false}})))
    .toMatchObject({ok:false,reason:'MID_REVIEW_CRITICAL_REVIEW_UNATTESTED'});
+ });
+ it('rejects old-commit or unprivileged approval even with a current-SHA disposition line',()=>{
+  const cubic=review('COMMENTED','PRR_staleP1','cubic-dev-ai',
+   '2026-11-11T15:00:00Z','P1: severe source policy bypass');
+  const evidence='https://github.com/MeteoMartini/MID/blob/'+sha+'/src/nativeSeasonalComposite.ts';
+  const line='MID-740-DISPOSITION v1 sha='+sha+' review=PRR_staleP1 item=1 result=fixed evidence='+evidence;
+  const verdict=(approval:any)=>check(input({data:{
+   meta,threads:[],reviews:[cubic,approval],truncated:false
+  }}));
+  const approval=review('APPROVED','PRR_approved','reviewer',
+   '2026-11-11T15:03:00Z',line);
+  expect(verdict(approval)).toMatchObject({
+   ok:true,reviewDispositionAttested:true,mergeAuthorized:false});
+  const prior=structuredClone(approval);prior.commit.oid='c'.repeat(40);
+  expect(verdict(prior)).toMatchObject({ok:false,
+   reason:'MID_REVIEW_CRITICAL_REVIEW_UNATTESTED'});
+  const unauthorized=structuredClone(approval);
+  unauthorized.authorCanPushToRepository=false;
+  expect(verdict(unauthorized)).toMatchObject({ok:false,
+   reason:'MID_REVIEW_CRITICAL_REVIEW_UNATTESTED'});
+  const missing=structuredClone(approval);missing.commit=null;
+  expect(verdict(missing).ok).toBe(false);
+  const bot=structuredClone(approval);bot.author.__typename='Bot';
+  expect(verdict(bot).ok).toBe(false);
+ });
+ it('rejects critical review edits later than the independent approval',()=>{
+  const original=review('COMMENTED','PRR_editedP1','cubic-dev-ai',
+   '2026-11-11T15:00:00Z','P1: new build error');
+  const evidence='https://github.com/MeteoMartini/MID/blob/'+sha+'/src/nativeSeasonalComposite.ts';
+  const approval=review('APPROVED','PRR_independent','reviewer',
+   '2026-11-11T15:02:00Z',
+   'MID-740-DISPOSITION v1 sha='+sha+
+   ' review=PRR_editedP1 item=1 result=fixed evidence='+evidence);
+  const evalSet=(finding:any,attestation:any)=>check(input({data:{
+   meta,threads:[],reviews:[finding,attestation],truncated:false
+  }}));
+  expect(evalSet(original,approval).ok).toBe(true);
+  const edited=structuredClone(original);
+  edited.updatedAt='2026-11-11T15:04:00Z';
+  expect(evalSet(edited,approval)).toMatchObject({ok:false,
+   reason:'MID_REVIEW_CRITICAL_REVIEW_UNATTESTED'});
+  const amended=structuredClone(approval);
+  amended.updatedAt='2026-11-11T15:05:00Z';
+  expect(evalSet(original,amended)).toMatchObject({ok:false,
+   reason:'MID_REVIEW_CRITICAL_REVIEW_UNATTESTED'});
+  const noUpdated=structuredClone(original);
+  delete noUpdated.updatedAt;
+  expect(evalSet(noUpdated,approval)).toMatchObject({ok:false,
+   reason:'MID_REVIEW_BAD_REVIEW'});
+ });
+ it('old-HEAD or non-writing APPROVED reviews cannot clear a CHANGES_REQUESTED',()=>{
+  const changes=review('CHANGES_REQUESTED','req1','auditor',
+   '2026-11-11T15:00:00Z','P2: needs resolution');
+  const approval=review('APPROVED','req2','auditor',
+   '2026-11-11T15:02:00Z');
+  const verdict=(x:any)=>check(input({data:{
+   meta,threads:[],reviews:[changes,x],truncated:false
+  }}));
+  expect(verdict(approval).ok).toBe(true);
+  const stale=structuredClone(approval);stale.commit.oid='f'.repeat(40);
+  expect(verdict(stale)).toMatchObject({ok:false,
+   reason:'MID_REVIEW_CHANGES_REQUESTED'});
+  const notWriter=structuredClone(approval);notWriter.authorCanPushToRepository=false;
+  expect(verdict(notWriter)).toMatchObject({ok:false,
+   reason:'MID_REVIEW_CHANGES_REQUESTED'});
+  const edited=structuredClone(approval);
+  edited.updatedAt='2026-11-11T15:03:00Z';
+  expect(verdict(edited).ok).toBe(false);
  });
  it('requires GraphQL review bodies for complete critical evidence',async()=>{
   const missing=page([], [{id:'no-body',state:'COMMENTED',author:{login:'cubic-dev-ai'},

@@ -5,7 +5,7 @@ import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 const REPO='MeteoMartini/MID',SHA=/^[a-f0-9]{40}$/;
 const BRANCH=/^(chatgpt|codex)\/[^/]+(?:\/[^/]+)*$/;
-export const MID_REVIEW_QUERY='query($owner:String!,$name:String!,$number:Int!,$threadAfter:String,$reviewAfter:String){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid headRefName baseRefName isDraft state reviewThreads(first:100,after:$threadAfter){nodes{id isResolved isOutdated comments(first:100){nodes{id body createdAt updatedAt author{login __typename}}pageInfo{hasNextPage}}}pageInfo{hasNextPage endCursor}} reviews(first:100,after:$reviewAfter){nodes{id state body author{login __typename} submittedAt}pageInfo{hasNextPage endCursor}}}}}';
+export const MID_REVIEW_QUERY='query($owner:String!,$name:String!,$number:Int!,$threadAfter:String,$reviewAfter:String){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid headRefName baseRefName isDraft state reviewThreads(first:100,after:$threadAfter){nodes{id isResolved isOutdated comments(first:100){nodes{id body createdAt updatedAt author{login __typename}}pageInfo{hasNextPage}}}pageInfo{hasNextPage endCursor}} reviews(first:100,after:$reviewAfter){nodes{id state body author{login __typename} submittedAt updatedAt authorCanPushToRepository commit{oid}}pageInfo{hasNextPage endCursor}}}}}';
 const block=reason=>({ok:false,reason:'MID_REVIEW_'+reason,mergeAuthorized:false,releaseAuthorized:false});
 
 // Body-only severity findings are review evidence, even when there are no
@@ -83,6 +83,7 @@ export function assessMidPremerge({before,after,main,stable,data,number,sha,bran
   if(typeof r?.id!=='string'||!r.id||reviewIds.has(r.id)||
      typeof r.author?.login!=='string'||!r.author.login||typeof r.body!=='string'||
      !['APPROVED','CHANGES_REQUESTED','COMMENTED','DISMISSED','PENDING'].includes(r.state)||
+     !Number.isFinite(Date.parse(r.updatedAt??''))||
      (r.state!=='PENDING'&&!Number.isFinite(Date.parse(r.submittedAt??''))))return block('BAD_REVIEW');
   reviewIds.add(r.id);
  }
@@ -103,10 +104,19 @@ export function assessMidPremerge({before,after,main,stable,data,number,sha,bran
   if(states.has('CHANGES_REQUESTED')&&
     (states.has('APPROVED')||states.has('DISMISSED')))
    return block('AMBIGUOUS_REVIEW_ORDER');
+ // An independent approval can only clear review findings on the exact
+ // current PR commit, by a human with GitHub write access. An old approval
+ // must not silently clear CHANGES_REQUESTED after a later source push.
+ // A review body edited after submission is not the originally approved text.
+ const qualifiedApproval=r=>r?.state==='APPROVED'&&
+  r.author?.__typename==='User'&&r.authorCanPushToRepository===true&&
+  r.commit?.oid===sha&&Number.isFinite(Date.parse(r.submittedAt??''))&&
+  Number.isFinite(Date.parse(r.updatedAt??''))&&
+  Date.parse(r.updatedAt)<=Date.parse(r.submittedAt);
  for(const r of submitted){
   const author=r.author.login.toLowerCase();
   if(r.state==='CHANGES_REQUESTED')requests.add(author);
-  else if(r.state==='APPROVED')requests.delete(author);
+  else if(qualifiedApproval(r))requests.delete(author);
   // A separate DISMISSED approval is not evidence that this author's
   // outstanding CHANGES_REQUESTED was dismissed. Fail closed without identity.
  }
@@ -120,14 +130,21 @@ export function assessMidPremerge({before,after,main,stable,data,number,sha,bran
   ['COMMENTED','APPROVED'].includes(r.state)?criticalMidReviewItems(r.body):[]}));
  // Never silently drop invalid/oversized review evidence during filtering.
  if(classified.some(x=>x.items===null))return block('CRITICAL_REVIEW_EVIDENCE_INVALID');
- const criticalReviews=classified.filter(x=>x.items.length);
+ // A COMMENTED/APPROVED critical review may itself be edited after its
+ // original submission. Use the last edit as the finding's effective time,
+ // so an older disposition cannot erase a newly added critical finding.
+ const criticalReviews=classified.filter(x=>x.items.length).map(x=>({
+  ...x,review:{...x.review,
+   submittedAt:new Date(Math.max(Date.parse(x.review.submittedAt),
+    Date.parse(x.review.updatedAt))).toISOString()}
+ }));
  const critical=[...criticalReviews,...inlineCritical];
  if(critical.length){
   const author=before?.user?.login?.toLowerCase();
   if(!author||after?.user?.login?.toLowerCase()!==author)return block('AUTHOR_UNVERIFIED');
   const attestations=new Map();
-  for(const approved of submitted.filter(r=>r.state==='APPROVED')){
-   if(approved.author?.__typename!=='User'||approved.author.login.toLowerCase()===author)continue;
+  for(const approved of submitted.filter(qualifiedApproval)){
+   if(approved.author.login.toLowerCase()===author)continue;
    for(const line of approved.body.split(/\r?\n/)){
     const entry=DISPOSITION.exec(line.trim());
     if(!entry||entry[1]!==sha||!validMidEvidence(entry[5],sha,number))continue;
