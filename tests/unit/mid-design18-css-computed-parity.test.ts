@@ -11,7 +11,8 @@ const entry=(id,sha=shaA,hash=digestA)=>({
  releaseAuthorized:false,wholeAppParityProven:false,
  identity:{sourceGitSha:sha,version:'0.9.85.487',assetsSha256:hash},
  environment:{caseId:id,browser:'chromium',browserVersion:'144.0.0',fixtureSha256:'f'.repeat(64),
-  theme:id.endsWith('dark')?'dark':'light',width:390,height:844,devicePixelRatio:1},
+  theme:id.endsWith('dark')?'dark':'light',actualTheme:id.endsWith('dark')?'dark':'light',
+  width:390,height:844,devicePixelRatio:1},
  readiness:{readySelectorMatched:1,fontsStatus:'loaded',styleSheetCount:3},
  rootTokens:tokens(),elements:[{id:'navigation',rect:{x:0,y:790,width:390,height:54},computed:baseStyles()}],
 });
@@ -67,6 +68,14 @@ describe('MID Design18 CSSOM parity QA is evidence-only and fail closed',()=>{
   expect(()=>validateCssomCase(b)).toThrow(/hidden target/);
   const c=entry(ids[0]);c.readiness.readySelectorMatched=0;
   expect(()=>validateCssomCase(c)).toThrow(/not proven ready/);
+ });
+ it('refuses mislabeled actual DOM theme and offscreen invisible geometry',()=>{
+  const x=entry(ids[0]);x.environment.actualTheme='dark';
+  expect(()=>validateCssomCase(x)).toThrow(/actual DOM theme/);
+  const y=entry(ids[0]);y.elements[0].rect.y=900;
+  expect(()=>validateCssomCase(y)).toThrow(/outside visible viewport/);
+  const z=entry(ids[0]);z.elements[0].rect.x=-401;
+  expect(()=>validateCssomCase(z)).toThrow(/outside visible viewport/);
  });
  it('requires a real view-ready Page and bounded selector contracts before capture',async()=>{
   await expect(captureCssomCase(null,{
