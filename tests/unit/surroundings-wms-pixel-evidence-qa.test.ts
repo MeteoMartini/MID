@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {inspectSurroundingsWmsAlpha} from '../../src/surroundingsWmsPixelEvidence';
+import {inspectSurroundingsWmsAlpha} from '../helpers/surroundingsWmsPixelEvidence';
 
 const px=(r:number,g:number,b:number,a:number)=>[r,g,b,a];
 
