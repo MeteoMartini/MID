@@ -37,6 +37,11 @@ export async function verifyCssManifestAgainstDist(root,identity,assets){
  await verifyStartupBuildIdentity(resolve(root),id);
  const version=JSON.parse(await readFile(join(resolve(root),'version.json'),'utf8'));
  if(version.version!==id.version)fail('version.json identity drift');
+ const html=await readFile(join(resolve(root),'index.html'),'utf8');
+ const inlineStyleSha256=[...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style\s*>/gi)]
+  .map(match=>digest(Buffer.from(match[1],'utf8')));
+ if(inlineStyleSha256.length>32||new Set(inlineStyleSha256).size!==inlineStyleSha256.length)
+  fail('unbounded or ambiguous inline HTML CSS inventory');
  for(const asset of expected){
   let data;
   try{data=await readFile(join(resolve(root),asset.path))}catch{fail('missing declared dist CSS: '+asset.role)}
@@ -44,7 +49,7 @@ export async function verifyCssManifestAgainstDist(root,identity,assets){
  }
  return {schema:'mid.design18.css-dist-manifest.v1',identity:{
   sourceGitSha:id.sourceGitSha,version:id.version,assetsSha256:id.assetsSha256,
- },assets:expected,verified:true};
+ },assets:expected,inlineStyleSha256,verified:true};
 }
 function normalizedBrowserPath(url,origin){
  try{
@@ -61,6 +66,10 @@ export function verifyCssLoadReadiness({manifest,responses,frames,origin}){
     !/^\d+\.\d+\.\d+\.\d+$/.test(id.version??''))
   fail('unverified production CSS manifest');
  const assets=validateExpectedCssAssets(m.assets);
+ if(!Array.isArray(m.inlineStyleSha256)||m.inlineStyleSha256.length>32||
+    m.inlineStyleSha256.some(hash=>!sha64.test(hash))||
+    new Set(m.inlineStyleSha256).size!==m.inlineStyleSha256.length)
+  fail('incomplete or duplicate fingerprinted HTML inline CSS inventory');
  const u=new URL(origin);
  if(!['http:','https:'].includes(u.protocol)||u.username||u.password||u.search||u.hash||
     u.pathname!=='/'||u.origin!==origin)fail('exact local test origin required');
@@ -79,19 +88,27 @@ export function verifyCssLoadReadiness({manifest,responses,frames,origin}){
  const comparable=[];
  for(const [i,frame] of frames.entries()){
   const v=obj(frame,'DOM snapshot');
-  if(v.fontsStatus!=='loaded'||!Array.isArray(v.stylesheets)||v.stylesheets.length<assets.length)
+  if(v.fontsStatus!=='loaded'||!Array.isArray(v.stylesheets)||v.stylesheets.length!==assets.length+m.inlineStyleSha256.length)
    fail('fonts not loaded or incomplete CSSOM inventory');
   if(v.adoptedStyleSheetCount!==0)fail('constructed CSS sheets not covered');
-  const matches=new Map(),rows=[];
+  const matches=new Map(),inlines=new Set(),rows=[];
   for(const sheet of v.stylesheets){
-   const s=obj(sheet,'DOM stylesheet');
-   if(!validPath(s.path)||!expected.has(s.path))fail('undeclared, missing-origin or inline CSS sheet');
-   if(matches.has(s.path)||!Number.isSafeInteger(s.ruleCount)||s.ruleCount<1||
-      s.disabled!==false||s.readable!==true)
-    fail('duplicate, unreadable, disabled or empty CSSOM sheet');
-   matches.set(s.path,s);rows.push({path:s.path,ruleCount:s.ruleCount});
+   const x=obj(sheet,'DOM stylesheet');
+   if(!Number.isSafeInteger(x.ruleCount)||x.ruleCount<1||
+      x.disabled!==false||x.readable!==true)
+    fail('unreadable, disabled or empty CSSOM sheet');
+   if(x.kind==='inline'){
+    if(!sha64.test(x.sha256??'')||!m.inlineStyleSha256.includes(x.sha256)||
+       inlines.has(x.sha256))fail('unverified or duplicate inline stylesheet');
+    inlines.add(x.sha256);rows.push({inlineSha256:x.sha256,ruleCount:x.ruleCount});
+   }else if(x.kind==='external'){
+    if(!validPath(x.path)||!expected.has(x.path)||matches.has(x.path))
+     fail('undeclared or duplicate external CSSOM sheet');
+    matches.set(x.path,x);rows.push({path:x.path,ruleCount:x.ruleCount});
+   }else fail('unrecognized CSS stylesheet origin');
   }
-  if(matches.size!==expected.size)fail('missing expected CSSOM sheet');
+  if(matches.size!==expected.size||inlines.size!==m.inlineStyleSha256.length)
+   fail('missing expected external or inline CSSOM sheet');
   comparable.push(rows);
  }
  if(JSON.stringify(comparable[0])!==JSON.stringify(comparable[1]))
@@ -144,14 +161,23 @@ export function observeCssResponses(page,{manifest,origin}){
      await new Promise(ok=>requestAnimationFrame(()=>requestAnimationFrame(ok)));
      const stylesheets=[];
      for(const sheet of document.styleSheets){
-      let path=null,readable=false,ruleCount=null;
+      let path=null,inlineHash=null,kind=null,readable=false,ruleCount=null;
       try{
-       const u=new URL(sheet.href||'',location.href);
-       if(u.origin===origin&&!u.search&&!u.hash)
-        path=decodeURIComponent(u.pathname).replace(/^\/+/,'');
+       if(sheet.href){
+        const u=new URL(sheet.href,location.href);
+        if(u.origin===origin&&!u.search&&!u.hash){
+         path=decodeURIComponent(u.pathname).replace(/^\/+/, '');
+         kind='external';
+        }
+       }else if(sheet.ownerNode?.tagName==='STYLE'){
+        const data=new TextEncoder().encode(sheet.ownerNode.textContent??'');
+        const bytes=new Uint8Array(await crypto.subtle.digest('SHA-256',data));
+        inlineHash=[...bytes].map(b=>b.toString(16).padStart(2,'0')).join('');
+        kind='inline';
+       }
        ruleCount=sheet.cssRules.length;readable=true;
       }catch{}
-      stylesheets.push({path,readable,ruleCount,disabled:sheet.disabled===true});
+      stylesheets.push({kind,path,sha256:inlineHash,readable,ruleCount,disabled:sheet.disabled===true});
      }
      return {fontsStatus:document.fonts.status,adoptedStyleSheetCount:document.adoptedStyleSheets.length,stylesheets};
     },{origin});
