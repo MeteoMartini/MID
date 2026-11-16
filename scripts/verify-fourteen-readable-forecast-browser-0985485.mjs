@@ -109,12 +109,13 @@ async function one(width,height,theme){
    'Rendered long weather text extends outside its forecast card');
   assert.ok(measure.card.right<=width+2&&measure.card.left>=-2,'14-day card horizontally outside viewport');
   assert.ok(measure.grid.scroll<=measure.grid.client+2,'14-day grid horizontally overflows');
-  if(width<=430){
+  if(width<=375){
    assert.ok(measure.lineRects.length>=2,'Long weather label must wrap on narrow screens');
    assert.ok(measure.lineRects.length<=8,'Mobile weather label still stacked into an excessively narrow text column');
    assert.ok(measure.card.bottom-measure.card.top<=235,'14-day forecast card exceeds the compact mobile height budget');
   }
-  if([320,390,834,1440].includes(width)){
+  if(width>375&&width<=430)assert.ok(measure.card.bottom-measure.card.top<=200,'Medium-phone layout regressed into an excessively tall card');
+  if([320,375,390,834,1440].includes(width)){
    const shot=join(out,'fourteen-'+width+'-'+theme+'.png');
    await page.locator('.cockpit-fourteen-card').first().screenshot({path:shot,animations:'disabled'});
    report.results.push({width,height,theme,status:'PASS',measure,screenshot:shot.split('/').pop()});
@@ -123,7 +124,7 @@ async function one(width,height,theme){
  }finally{await context.close();}
 }
 try{
- for(const [width,height] of [[320,740],[390,844],[430,932],[834,1112],[1024,768],[1440,900]])
+ for(const [width,height] of [[320,740],[360,780],[375,812],[390,844],[430,932],[834,1112],[1024,768],[1440,900]])
   for(const theme of ['light','dark'])await one(width,height,theme);
  writeFileSync(join(out,'report.json'),JSON.stringify(report,null,2)+'\n');
  console.log('MID DESIGN14 BROWSER QA SUCCESS: '+report.results.length+' real React/CSS viewport/theme contexts; screenshots + evidence in coverage/mid-design14-browser-qa. NO iOS/VoiceOver/full-app parity claim.');
