@@ -109,12 +109,12 @@ async function one(width,height,theme){
    'Rendered long weather text extends outside its forecast card');
   assert.ok(measure.card.right<=width+2&&measure.card.left>=-2,'14-day card horizontally outside viewport');
   assert.ok(measure.grid.scroll<=measure.grid.client+2,'14-day grid horizontally overflows');
-  if(width<=375){
+  if(width<=390){
    assert.ok(measure.lineRects.length>=2,'Long weather label must wrap on narrow screens');
    assert.ok(measure.lineRects.length<=8,'Mobile weather label still stacked into an excessively narrow text column');
    assert.ok(measure.card.bottom-measure.card.top<=235,'14-day forecast card exceeds the compact mobile height budget');
   }
-  if(width>375&&width<=430)assert.ok(measure.card.bottom-measure.card.top<=200,'Medium-phone layout regressed into an excessively tall card');
+  if(width>390&&width<=430)assert.ok(measure.card.bottom-measure.card.top<=200,'Medium-phone layout regressed into an excessively tall card');
   if([320,375,390,834,1440].includes(width)){
    const shot=join(out,'fourteen-'+width+'-'+theme+'.png');
    await page.locator('.cockpit-fourteen-card').first().screenshot({path:shot,animations:'disabled'});
@@ -237,6 +237,12 @@ async function oneIntegrated(width,height,theme){
   assert.ok(enlarged.fragments.length>0,'200% text-only long label must render visible text');
   assert.ok(enlarged.fragments.every(q=>q.x>=enlarged.card.x-2&&q.right<=enlarged.card.right+2&&q.y>=enlarged.card.y-2&&q.bottom<=enlarged.card.bottom+2),'200% text-only long label extends outside its forecast card');
   assert.ok(enlarged.rootScrollWidth<=enlarged.viewWidth+2,'200% text-only stress creates horizontal page scrolling');
+  // At 390px, the previous split heading yielded 15 text fragments and a
+  // 511px card. Require meaningful density improvement with full text intact.
+  if(width===390){
+   assert.ok(enlarged.fragments.length<=12,'390px 200% label still stacked into overly narrow column');
+   assert.ok(enlarged.card.height<=450,'390px 200% forecast card still exceeds 450px');
+  }
   if(width===320||width===390){
    const screenshot=join(out,'cockpit-integrated-zoom200-'+width+'-'+theme+'.png');
    await card.screenshot({path:screenshot,animations:'disabled'});
