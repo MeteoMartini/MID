@@ -591,6 +591,22 @@ async function verifySurroundings(width,theme){
    if(mode==='composite-wms')return route.fulfill({body:png,contentType:'image/png'});
    return route.fulfill({json:{error:'Unavailable in surroundings fixture'}});
   });
+  // A real published-looking, SHA-checked model catalogue is served only
+  // inside this browser fixture. The selected 15-minute slot deliberately
+  // lacks an original; the preceding H0 hourly field is a distinct reference.
+  await page.route('**/ruc/**',async route=>{
+   const path=new URL(route.request().url()).pathname;
+   if(path==='/ruc/latest.json')return route.fulfill({json:{
+    schema:'mid.dwd.ruc.grid.v2',run:run.slice(0,16),
+    synopticFields:{key:synopticKey}
+   }});
+   if(path===`/ruc/${synopticKey}`)
+    return route.fulfill({body:synopticIndex,contentType:'application/json'});
+   const filename=path.split('/').at(-1);
+   if(synopticObjects.has(filename))
+    return route.fulfill({body:synopticObjects.get(filename),contentType:'application/octet-stream'});
+   return route.abort();
+  });
   await page.goto(base+'/__map-qa?surroundings');
   // v.480: the SHA-validated clouds/SigWx view starts without expensive radar.
   // This fixture intentionally lacks a real cloud original: NoData is correct.
@@ -637,6 +653,29 @@ async function verifySurroundings(width,theme){
   assert.equal(await quarter.inputValue(),'8','Backwards is exactly one 15-min validity step');
   await quarter.fill('0');
   assert.equal(await quarter.inputValue(),'0','Slider returns to live');
+
+  // Reproduce the real P1: only source-verified hourly cloud+WW data exist,
+  // while the visible target is a native 15-minute position. The UI must
+  // show the older original as a clearly labelled REFERENCE, not a value at
+  // the selected time. No interpolation and no alleged satellite observation.
+  const initialTimeText=await cloudTimeline.locator('output').innerText();
+  const quarterMinuteMatch=initialTimeText.match(/(\d{2}):(\d{2}) Uhr/);
+  assert.ok(quarterMinuteMatch,'The cloud target has a visible absolute clock');
+  const minute=Number(quarterMinuteMatch[2]);
+  assert.ok([0,15,30,45].includes(minute),'The selected target is a UTC quarter-hour');
+  const referenceStep=minute===45?2:1;
+  await quarter.fill(String(referenceStep));
+  const cloudStatus=page.locator('.current-surroundings-data-status');
+  await page.waitForFunction(()=>document.querySelector('.current-surroundings-data-status')?.textContent?.includes('Referenzbild'),null,{timeout:25000}).catch(async error=>{
+   console.error('Original cloud reference diagnostics',{status:await cloudStatus.innerText(),requests:requests.slice(-15),map:await page.evaluate(()=>window.__qaMap?.getStyle()?.layers?.map(x=>x.id))});
+   throw error;
+  });
+  assert.match(await cloudStatus.innerText(),/Referenzbild.*Original gültig.*Gewählt:/s,'Original source and unserved target are separately stated');
+  assert.match(await cloudStatus.innerText(),/NICHT für den gewählten 15-Minuten-Termin/,'A reference must not claim a native 15min SigWx forecast');
+  await page.waitForFunction(()=>window.__qaMap?.getStyle()?.layers?.some(layer=>layer.id.includes('surroundings-original-reference-cloud-weather')),
+   null,{timeout:10000});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Cloud source diagnostics do not cause mobile overflow');
+  await quarter.fill('0');
   assert.equal(requests.some(v=>new URL(v).searchParams.get('mode')==='composite-times'),false,'No eager radar network even while browsing future cloud frames');
   await page.getByRole('button',{name:'Radar / Satellit',exact:true}).click();
   assert.equal(await page.getByRole('button',{name:'Radar / Satellit',exact:true}).getAttribute('aria-pressed'),'true','Explicit radar selection activated');
