@@ -1,20 +1,28 @@
 import { describe, expect, it } from 'vitest';
 import { planSurroundingsMercatorWms } from '../../src/surroundingsMercatorWmsPlan';
-import { planSurroundingsViewportRaster } from '../../src/surroundingsViewportRaster';
+import type { SurroundingsGeoExtent } from '../../src/surroundingsMercatorWmsPlan';
 
 const fixture = { west: 5.7, south: 50.17, east: 8.5, north: 51.47 };
 const R = 6378137;
 const toY = (lat: number) => R * Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360));
 
 describe('MID #853: provider-independent EPSG:3857 WMS geometry (QA only)', () => {
-  it.each([[320, 220], [390, 220], [430, 220], [768, 276], [1024, 285], [1440, 285]])(
-    'covers the entire overscanned camera at %ipx × %ipx within the raster budget',
-    (width, height) => {
-      const camera = planSurroundingsViewportRaster(fixture, { width, height });
-      expect(camera).toBeDefined();
-      const plan = planSurroundingsMercatorWms(camera!.bounds);
+  // These are independent, synthetic camera rectangles with progressively wider
+  // visible horizons. The actual MapLibre viewport observer lives only in LC #858;
+  // its integration MUST be tested there, not silently imported from an unmerged PR.
+  it.each([
+    ['320×220', { west: 5.7, south: 50.17, east: 8.5, north: 51.47 }],
+    ['390×220', { west: 5.2, south: 50.17, east: 9, north: 51.47 }],
+    ['430×220', { west: 4.8, south: 50.17, east: 9.4, north: 51.47 }],
+    ['768×276', { west: 3.2, south: 50.17, east: 11, north: 51.47 }],
+    ['1024×285', { west: 1.5, south: 50.17, east: 13.5, north: 51.47 }],
+    ['1440×285', { west: -2, south: 50.17, east: 15.4, north: 51.47 }],
+  ] as Array<[string, SurroundingsGeoExtent]>) (
+    'projects representative %s camera bounds without losing the raster budget',
+    (_label, visible) => {
+      const plan = planSurroundingsMercatorWms(visible);
       expect(plan).toBeDefined();
-      expect(plan!.imageBounds).toEqual(camera!.bounds);
+      expect(plan!.imageBounds).toEqual(visible);
       expect(plan!.crs).toBe('EPSG:3857');
       expect(plan!.width).toBeGreaterThanOrEqual(16);
       expect(plan!.height).toBeGreaterThanOrEqual(16);
