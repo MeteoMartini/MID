@@ -4,7 +4,8 @@ import {formatWeatherValue} from "./weatherValueFormat";
 import {ecmwfTemperatureColor} from "./temperatureTone";
 import {useSurroundingsCloudImage} from "./currentSurroundingsCloudImage";
 import {surroundingsQuarterHourTarget} from "./surroundingsQuarterHour";
-import {radarOriginalForStep,nearestVerifiedOriginal,surroundingsRadarTarget,selectVerifiedSurroundingsRadarFrame,selectVerifiedSurroundingsOperaFrame,SURROUNDINGS_RADAR_MIN_STEP,SURROUNDINGS_RADAR_MAX_STEP} from './surroundingsRadarTimeline';
+import {radarOriginalForStep,surroundingsRadarTarget,selectVerifiedSurroundingsRadarFrame,selectVerifiedSurroundingsOperaFrame,SURROUNDINGS_RADAR_MIN_STEP,SURROUNDINGS_RADAR_MAX_STEP} from './surroundingsRadarTimeline';
+import {selectSurroundingsSatelliteOriginal} from './surroundingsSatelliteOriginal';
 import {useDisplayPreference,displayChoice} from './useDisplayPreference';
 import {PRECIPITATION_TYPE_COLORS,radarDbzColor} from './radarColorTables';
 import {loadModelMapGeography,type ModelMapGeography} from './modelMapGeography';
@@ -166,8 +167,11 @@ export default function CurrentSurroundings(props:Props){
   return signature(previous)===signature(next)?previous:next;
  }),[]);
  const radar=mode!=='radar'||target===undefined?'':imageUrl('dwd',rvLayer,target,rasterPlan);
- const satellite=catalog?.satelliteRgbProduct??catalog?.satelliteIrProduct;
- const satelliteTime=radarStep>0?undefined:nearestVerifiedOriginal(satellite?.times,radarTarget,now);
+ // A listed RGB catalog entry is not itself proof of a matching RGB original.
+ // Prefer IR when RGB has no verified source time; never invent a future sat frame.
+ const satelliteOriginal=selectSurroundingsSatelliteOriginal(catalog,radarTarget,now,radarStep);
+ const satellite=satelliteOriginal?.product;
+ const satelliteTime=satelliteOriginal?.time;
  const clouds=mode==='radar'&&satellite&&satelliteTime!==undefined?imageUrl(satellite.provider,satellite.layer,satelliteTime,rasterPlan):'';
  const clock=(time:number)=>new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:timezone}).format(time);
  const datedClock=(time:number)=>new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:timezone}).format(time);
@@ -354,7 +358,7 @@ export default function CurrentSurroundings(props:Props){
     Original-Modelltermin ohne zeitliche Interpolation; fehlt der 15-Minuten-Originaltermin, bleibt der Zieltermin NoData.
     {Math.abs(Date.parse(cloudForecast.image.validTime)-cloudTarget)>90*1000&&<> Gewählter Zieltermin {datedClock(cloudTarget)} Uhr wird von diesem Bild nicht exakt repräsentiert.</>}
     {' '}Kein Satellitenbild und keine amtliche Warnung; Datenlücken bleiben NoData.</p>}
-  {mode==='radar'&&visibleClouds&&satelliteTime!==undefined&&<p>Bewölkung · {satellite?.provider==='dwd'?'DWD':'EUMETSAT'} · Originalbeobachtung {datedClock(satelliteTime)} Uhr · Radar-/Satellitentermine getrennt</p>}
+  {mode==='radar'&&visibleClouds&&satelliteTime!==undefined&&<p>Satellitenbild · {satellite?.provider==='dwd'?'DWD':'EUMETSAT'} · {satelliteOriginal?.spectrum==='IR'?'Infrarot (IR)':'RGB'} · Originalbeobachtung {datedClock(satelliteTime)} Uhr · Radar-/Satellitentermine getrennt</p>}
   {Number.isFinite(temperature)&&temperatureTime&&<p>Temperatur am gewählten Ort · {temperatureTime.slice(11,16)} Uhr</p>}
   {(mode==='cloud'||radarAtNow)&&(temperatureGrid&&temperatures&&Object.keys(temperatures).length
    ?<p>Umfeldtemperaturen · {temperatureGrid.source} {temperatureGrid.modelLabel} · {temperatureGrid.temporalMethod==='linear'&&temperatureGrid.sourceTimes
