@@ -39,7 +39,7 @@ export function validateFullAppSample(value){
 }
 export function assembleFullAppEvidence({identity,browserVersion,fixtureSha256,samples}){
  const id=obj(identity,'build identity');
- if(!sha40.test(id.sourceGitSha??'')||!sha64.test(id.assetsSha256??'')||!/^\\d+\\.\\d+\\.\\d+\\.\\d+$/.test(id.version??''))
+ if(!sha40.test(id.sourceGitSha??'')||!sha64.test(id.assetsSha256??'')||!/^\d+\.\d+\.\d+\.\d+$/.test(id.version??''))
   fail('missing exact source/build identity');
  if(!sha64.test(fixtureSha256??''))fail('fixture hash must be exact SHA256');
  if(typeof browserVersion!=='string'||!browserVersion.includes('Chrome/'))fail('browser version unverified');
