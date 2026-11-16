@@ -327,6 +327,12 @@ const phaseOriginalFixtureResult=execFileSync('python3',[
 ],{cwd:fileURLToPath(new URL('../',import.meta.url)),encoding:'utf8',timeout:15000});
 assert.equal(typeof phaseOriginalFixtureResult,'string');
 console.log('MID: original 15-min IR/GSP phase-rate SHA, grid, valid-time and NoData SHADOW QA passed.');
+const gspStagingFixtures=execFileSync('python3',[
+ '-m','unittest','discover','-s','tools/ruc','-p','test_stage_original_15min_gsp.py'
+],{cwd:fileURLToPath(new URL('../',import.meta.url)),encoding:'utf8',timeout:15000});
+assert.equal(typeof gspStagingFixtures,'string');
+console.log('MID: 3x10 original DWD GSP bounded staging, manifest SHA256 and atomic failure offline QA passed.');
+
 
 
 console.log('MID: georeferenced city temperatures, shared basemap and NoData/pixel-collision contracts passed.');

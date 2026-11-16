@@ -69,3 +69,24 @@ Das separate Raten-Manifest hat `schema=mid.dwd.icon-d2-ruc.gsp-phase-15min.shad
 **Harte Restgates:** (1) tatsächlicher aktueller 10+30 Original-GRIB-Datensatz, Spektral-, SHA-, eCCodes-, 542040-Zell- und Bitmap-Nachweis am identischen Run; (2) CLAT/CLON-georeferenzierte Darstellung des IR10.8-Brightness-Temperaturbildes mit getrenntem MID-GSP-Momentanphasen-Overlay und korrekter Legende/Quellen- und NoData-Beschriftung, kein WMO-Wettercode; (3) Limit für +0..+120min, Cache-/Browser-Netz-/RAM-Budgets, 320px bis Tablet/Light-Dark und reale iOS-Abnahme; (4) vollständiger Source-/PR-/Review-/Installer-/Worker-/Pages-/Stable-Pfad nach autorisierter Produktentscheidung. **`activationAuthorized=false` bleibt unbedingte Regel.**
 
 Quellen: https://www.dwd.de/SharedDocs/downloads/DE/modelldokumentationen/nwv/icon_d2/icon_d2_dbbeschr_aktuell.pdf?nn=344870&view=nasPublication und https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/ .
+
+
+## MID-Karten 1.8 · vollständiger GSP-Quellstager (16.11.2026, QA only)
+
+Die geprüfte `original_15min_phase_gate.py` konnte bisher bereits **30 reale** GSP-Raten-Rohdateien gegen die **10 reale** IR10.8-Bilder desselben Laufs vergleichen, aber noch nicht selbständig alle 30 amtlichen GSP-Originale in ein passendes SHA256-Manifest staged bereitstellen.
+
+Neu: `tools/ruc/stage_original_15min_gsp.py` ist ein **nur manuell aufzurufender, privater Kandidaten-Stager**, kein Worker und kein automatischer RUC-Job. Er liest ausschließlich die drei *amtlichen* DWD-Verzeichnisse `PRR_GSP/PRS_GSP/PRG_GSP` mit derselben angegebenen Modellinitialisierung und prüft **vor dem ersten Binär-Download** die Vollständigkeit aller drei 10-Frame-15-Minuten-Kataloge. Die URL-/Lauf-/Gültigkeits-/Lead-Prüfung verwendet den vorhandenen `original_15min_phase_gate.source_lead`-Schutz. Sämtliche Anfragen gehen an `https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/`; kein Redirect, Auth, Fremdhost oder Querystring ist zulässig. Maximal drei Kataloge à 1 MiB, 30 Originaldateien à 8 MiB, insgesamt 180 MiB, jeweils Timeouts, GRIB-Hüllensignatur, SHA256 sowie fail-closed unvollständige Antworten. Ein misslungener Gesamttransfer wird **atomar verworfen**; ein vorhandener Ausgabeordner wird nie überschrieben. Keine Nutzung in `src/`, Pages, Workern oder bei normalen Nutzern.
+
+**Reproduzierbarer, opt-in Staging-Befehl** nach Wahl eines in den offiziellen Quellkatalogen nachweislich vollständigen DWD-Laufs und eines Viertelstunden-Starttermins (Beispieldaten nur Platzhalter; keine Behauptung eines aktuellen Datenlaufs):
+
+```bash
+python3 tools/ruc/ir108_stage_originals.py --run RUN_UTC --first-valid FIRST_UTC --output /privat/ir108
+python3 tools/ruc/stage_original_15min_gsp.py --run RUN_UTC --first-valid FIRST_UTC --output /privat/gsp
+python3 tools/ruc/original_15min_phase_gate.py --ir-manifest /privat/ir108/manifest.json --rates-manifest /privat/gsp/manifest.json
+```
+
+Der dritte Befehl ist der separate **reale** ecCodes-/Bitmap-/Spektral-/40-Originale-Gate. Die beiden Stage-Befehle liefern ausschließlich private Kandidaten, ausdrücklich keine geprüfte Wetterkarte. 30 SHA-geprüfte GSP-Dateien ≠ echte GSP-Datenvalidierung; die Stage-Antwort lautet `originalEcCodesAudited=false`, `matchedIRManifest=false`, `activationAuthorized=false`.
+
+Zusätzliche `tools/ruc/test_stage_original_15min_gsp.py`-Offline-Regressionsfälle decken drei echte Katalogidentitäten, 30-Originale-Budget/Manifest, vollständige Zeiten, fehlende Originale **ohne anschließende Downloads**, falsche Zeiten, Korruption, Redirect, Längenfehler und Symlink/atomare Rücknahme ab. Diese Fixtures sind keine echten heruntergeladenen DWD-GRIBs. Der bestehende gezielte Kartenregressionseinstieg führt sie gemeinsam mit IR10.8- und GSP-Raten-Originaldaten-Gates aus. Keine grüne Produktionsbehauptung ohne echte qualifizierte Ausgangsbytes und vollständige Geräte-/Review-/Release-Prüfungen.
+
+Amtlicher Quellenkatalog: https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/ ; WMO/ECMWF-GRIB-Bitmap-Auswertung: https://confluence.ecmwf.int/spaces/UDOC/pages/169541899/What+is+the+GRIB+bitmap+-+ecCodes+GRIB+FAQ .
