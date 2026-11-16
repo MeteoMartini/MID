@@ -12,6 +12,8 @@ on:
       - '.github/workflows/mid-740-pr-artifact-shadow-qa.yml'
       - 'ci/github/workflows/mid-740-pr-artifact-shadow-qa.yml'
       - 'tools/ci/mid-740-pr-artifact-shadow.mjs'
+      - 'tools/ci/mid-740-historical-chain-readback.mjs'
+      - 'tests/unit/mid-740-historical-chain-readback.test.ts'
       - 'tests/unit/mid-740-pr-artifact-shadow.test.ts'
       - 'docs/implementation/MID_740_PR_ARTIFACT_HANDOFF_SHADOW_2026_11_16.md'
 
@@ -135,3 +137,46 @@ jobs:
           jq -e '.envelopeBytesVerified == true and .sourceGitTreeVerified == true and .authenticatedGitHubProducer == false and .installerAuthorized == false and .releaseAuthorized == false' "$RUNNER_TEMP/mid740-shadow-verified.json"
           echo "### MID #740 · PR-only Artifact-Transport" >> "$GITHUB_STEP_SUMMARY"
           echo "SHA-genaue Git-Tree-Parität + Run/Attempt/Artifact-Digest; keine Produktion." >> "$GITHUB_STEP_SUMMARY"
+
+  mid740-historical-source-chain-readonly:
+    name: 'MID #740 · echter .486 Gate/Bot/Installer-Readback (NO RELEASE)'
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.repository == 'MeteoMartini/MID' &&
+      github.event.pull_request.draft == true &&
+      github.event.pull_request.number == 839 &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'chatgpt/v0.9.85.484-issue740-merge-review-artifact-qa'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Nur exakten PR-HEAD für historischen Verifier lesen
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Node.js 22 einrichten
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+      - name: Echte GitHub Source-Gate/Bot/Installer-Identität (read-only)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_PR_HEAD"
+          node tools/ci/mid-740-historical-chain-readback.mjs > "$RUNNER_TEMP/mid740-real-history.json"
+          jq -e '.status == "HISTORIC_LEGACY_LINEAGE_QA_ONLY" and
+            .sourceGateVerified == true and .gitParentChainVerified == true and
+            .originalGatePrCount == 0 and .originalBotPrCount == 0 and
+            .producerArtifactCount == 0 and .installerStartedBeforeBotFinished == true and
+            .upstreamEventLinkVerified == false and .producerArtifactVerified == false and
+            .installerAuthorized == false and .recoveryAuthorized == false and
+            .releaseAuthorized == false' "$RUNNER_TEMP/mid740-real-history.json"
+          echo "### MID #740 · echter historischer Release-Chain-Readback" >> "$GITHUB_STEP_SUMMARY"
+          echo "Gate/Bot/Installer/Git-Parents geprüft. Upstream-Causality, Bot-Artefakt und Cutover sind NICHT belegt." >> "$GITHUB_STEP_SUMMARY"
