@@ -2,12 +2,11 @@ import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {assessMidPremerge as check,collectMidReviews} from '../../tools/ci/mid-review-premerge-guard.mjs';
 const sha='a'.repeat(40),stable='b'.repeat(40),branch='chatgpt/v0.9.85.455-review-native-guard';
-const pr={number:777,state:'open',draft:false,base:{ref:'main',sha:stable},head:{ref:branch,sha,repo:{full_name:'MeteoMartini/MID'}},user:{login:'coder'}};
+const pr={number:777,state:'open',draft:false,base:{ref:'main',sha:stable},head:{ref:branch,sha,repo:{full_name:'MeteoMartini/MID'}}};
 const meta={number:777,headRefOid:sha,headRefName:branch,baseRefName:'main',state:'OPEN',isDraft:false};
 const input=(x:any={})=>({number:777,sha,branch,sourceBaseSha:stable,before:pr,after:pr,main:{commit:{sha:stable}},stable:{commit:{sha:stable}},data:{meta,threads:[],reviews:[],truncated:false},...x});
 const thread=(isResolved:boolean,isOutdated=false,id='t1')=>({isResolved,isOutdated,id});
-const review=(state:string,id='r1',author='auditor',submittedAt='2026-11-11T15:00:00Z',body='')=>
- ({state,id,body,author:{login:author,__typename:author==='cubic-dev-ai'?'Bot':'User'},submittedAt});
+const review=(state:string,id='r1',author='auditor',submittedAt='2026-11-11T15:00:00Z')=>({state,id,author:{login:author},submittedAt});
 const page=(t:any[]=[],r:any[]=[],tNext=false,rNext=false)=>({data:{repository:{pullRequest:{...meta,
  reviewThreads:{nodes:t,pageInfo:{hasNextPage:tNext,endCursor:tNext?'nextT':null as string|null}},
  reviews:{nodes:r,pageInfo:{hasNextPage:rNext,endCursor:rNext?'nextR':null as string|null}}
@@ -46,36 +45,6 @@ describe('SHA-bound MID merge-time review guard',()=>{
   expect(check(input({data:{meta,threads:[],reviews:[review('COMMENTED')],truncated:false}})))
    .toMatchObject({ok:true,independentlyReviewed:false,reviewDispositionAttested:false,
     mergeAuthorized:false,releaseAuthorized:false});
- });
- it('blocks P1/P0 Cubic body-only findings even with no unresolved inline threads',()=>{
-  const body='<violation number="1">\nP1: native season interval=0 is rejected</violation>\n'+
-   '<violation number="2">\nP2: noncritical display spacing</violation>\n'+
-   '<violation number="3">\nP0: unsafe native publishing</violation>';
-  const cubic=review('COMMENTED','PRR_critical001','cubic-dev-ai','2026-11-11T15:00:00Z',body);
-  const checkReviews=(items:any[])=>check(input({data:{meta,threads:[],reviews:items,truncated:false}}));
-  expect(checkReviews([cubic])).toMatchObject({ok:false,reason:'MID_REVIEW_CRITICAL_REVIEW_UNATTESTED'});
-  const evidence='https://github.com/MeteoMartini/MID/blob/'+sha+'/src/nativeSeasonalComposite.ts';
-  const line=(item:number,head=sha)=>'MID-740-DISPOSITION v1 sha='+head+
-   ' review=PRR_critical001 item='+item+' result=fixed evidence='+evidence;
-  const partial=review('APPROVED','r-approved','reviewer','2026-11-11T15:02:00Z',line(1));
-  expect(checkReviews([cubic,partial]).ok).toBe(false);
-  const complete=review('APPROVED','r-complete','reviewer','2026-11-11T15:02:00Z',line(1)+'\n'+line(2));
-  expect(checkReviews([cubic,complete])).toMatchObject({ok:true,reviewDispositionAttested:true,
-   criticalReviewCount:1,criticalItemCount:2,mergeAuthorized:false,releaseAuthorized:false});
-  const duplicate=review('APPROVED','r-duplicate','reviewer','2026-11-11T15:03:00Z',line(1));
-  expect(checkReviews([cubic,complete,duplicate]).ok).toBe(false);
-  expect(checkReviews([cubic,review('APPROVED','r-own','coder','2026-11-11T15:03:00Z',line(1)+'\n'+line(2))]).ok).toBe(false);
-  expect(checkReviews([cubic,review('APPROVED','r-early','reviewer','2026-11-11T14:00:00Z',line(1)+'\n'+line(2))]).ok).toBe(false);
-  expect(checkReviews([cubic,review('APPROVED','r-stale','reviewer','2026-11-11T15:03:00Z',line(1,'c'.repeat(40))+'\n'+line(2))]).ok).toBe(false);
-  const unsafe=line(1).replace('github.com/MeteoMartini/MID','evil.example/MeteoMartini/MID');
-  expect(checkReviews([cubic,review('APPROVED','r-unsafe','reviewer','2026-11-11T15:03:00Z',unsafe+'\n'+line(2))]).ok).toBe(false);
-  const late=review('COMMENTED','PRR_lateP1x','cubic-dev-ai','2026-11-11T15:04:00Z','P1: later untriaged review');
-  expect(checkReviews([cubic,complete,late]).ok).toBe(false);
- });
- it('requires GraphQL review bodies for complete critical evidence',async()=>{
-  const missing=page([], [{id:'no-body',state:'COMMENTED',author:{login:'cubic-dev-ai'},
-   submittedAt:'2026-11-11T15:00:00Z'}]);
-  await expect(collectMidReviews(async()=>missing,777,sha)).rejects.toThrow();
  });
  it('requires real disposition of CHANGES_REQUESTED, not a later comment',()=>{
   const decide=(reviews:any[])=>check(input({data:{meta,threads:[],reviews,truncated:false}})).ok;

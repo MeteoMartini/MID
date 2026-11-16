@@ -5,33 +5,8 @@ import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 const REPO='MeteoMartini/MID',SHA=/^[a-f0-9]{40}$/;
 const BRANCH=/^(chatgpt|codex)\/[^/]+(?:\/[^/]+)*$/;
-const QUERY='query($owner:String!,$name:String!,$number:Int!,$threadAfter:String,$reviewAfter:String){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid headRefName baseRefName isDraft state reviewThreads(first:100,after:$threadAfter){nodes{id isResolved isOutdated}pageInfo{hasNextPage endCursor}} reviews(first:100,after:$reviewAfter){nodes{id state body author{login __typename} submittedAt}pageInfo{hasNextPage endCursor}}}}}';
+const QUERY='query($owner:String!,$name:String!,$number:Int!,$threadAfter:String,$reviewAfter:String){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid headRefName baseRefName isDraft state reviewThreads(first:100,after:$threadAfter){nodes{id isResolved isOutdated}pageInfo{hasNextPage endCursor}} reviews(first:100,after:$reviewAfter){nodes{id state author{login} submittedAt}pageInfo{hasNextPage endCursor}}}}}';
 const block=reason=>({ok:false,reason:'MID_REVIEW_'+reason,mergeAuthorized:false,releaseAuthorized:false});
-
-// Body-only severity findings are review evidence, even when there are no
-// GitHub inline threads.  Number critical items by their order in the review
-// so a later independent GitHub approval must address *each* one.
-export function criticalMidReviewItems(body){
- if(typeof body!=='string')return null;
- const tagged=[...body.matchAll(/<violation\b[^>]*>\s*(P[01])\s*:/gi)];
- if(tagged.length)return tagged.map(match=>match[1].toUpperCase());
- return [...body.matchAll(/(?:^|\n)\s*(?:[-*]\s*)?(P[01])\s*:/gi)]
-  .map(match=>match[1].toUpperCase());
-}
-function validMidEvidence(uri,headSha,number){
- try{
-  const url=new URL(uri);
-  if(url.origin!=='https://github.com'||url.username||url.password||
-     url.search||!url.pathname.startsWith('/MeteoMartini/MID/'))return false;
-  const path=url.pathname.slice('/MeteoMartini/MID/'.length);
-  if(path.startsWith('blob/'+headSha+'/')&&path.length>46&&!url.hash)return true;
-  if(/^actions\/runs\/[1-9][0-9]*(?:\/job\/[1-9][0-9]*)?$/.test(path)&&!url.hash)return true;
-  if(path==='pull/'+number&&/^#(?:discussion_r[0-9]+|issuecomment-[0-9]+)$/.test(url.hash))return true;
-  return false;
- }catch{return false}
-}
-const DISPOSITION=/^MID-740-DISPOSITION v1 sha=([a-f0-9]{40}) review=([a-zA-Z0-9_-]{8,128}) item=([1-9][0-9]{0,3}) result=(fixed|false-positive) evidence=(https:\/\/\S+)$/;
-
 
 export function assessMidPremerge({before,after,main,stable,data,number,sha,branch,sourceBaseSha,recovery}={}){
  if(!Number.isSafeInteger(number)||number<1||!SHA.test(sha??'')||!BRANCH.test(branch??''))return block('BAD_INPUT');
@@ -57,7 +32,7 @@ export function assessMidPremerge({before,after,main,stable,data,number,sha,bran
  const reviewIds=new Set(),requests=new Set();
  for(const r of data.reviews){
   if(typeof r?.id!=='string'||!r.id||reviewIds.has(r.id)||
-     typeof r.author?.login!=='string'||!r.author.login||typeof r.body!=='string'||
+     typeof r.author?.login!=='string'||!r.author.login||
      !['APPROVED','CHANGES_REQUESTED','COMMENTED','DISMISSED','PENDING'].includes(r.state)||
      (r.state!=='PENDING'&&!Number.isFinite(Date.parse(r.submittedAt??''))))return block('BAD_REVIEW');
   reviewIds.add(r.id);
@@ -87,41 +62,9 @@ export function assessMidPremerge({before,after,main,stable,data,number,sha,bran
   // outstanding CHANGES_REQUESTED was dismissed. Fail closed without identity.
  }
  if(requests.size)return block('CHANGES_REQUESTED');
- // Original #740 failure: Cubic COMMENTED review bodies can contain P0/P1
- // without CHANGES_REQUESTED; thread resolution by itself is not disposition.
- // An attesting review MUST come from a different authenticated human, be
- // later than the finding, bind the exact source SHA, and enumerate every
- // critical item with a GitHub evidence reference. No self-approval.
- const critical=submitted.map(r=>({review:r,items:r.state==='COMMENTED'?
-  criticalMidReviewItems(r.body):[]})).filter(x=>x.items?.length);
- if(critical.some(x=>!x.items))return block('CRITICAL_REVIEW_EVIDENCE_INVALID');
- if(critical.length){
-  const author=before?.user?.login?.toLowerCase();
-  if(!author||after?.user?.login?.toLowerCase()!==author)return block('AUTHOR_UNVERIFIED');
-  const attestations=new Map();
-  for(const approved of submitted.filter(r=>r.state==='APPROVED')){
-   if(approved.author?.__typename!=='User'||approved.author.login.toLowerCase()===author)continue;
-   for(const line of approved.body.split(/\r?\n/)){
-    const entry=DISPOSITION.exec(line.trim());
-    if(!entry||entry[1]!==sha||!validMidEvidence(entry[5],sha,number))continue;
-    const key=entry[2]+'|'+entry[3];
-    if(!attestations.has(key))attestations.set(key,[]);
-    attestations.get(key).push({date:Date.parse(approved.submittedAt),
-     author:approved.author.login.toLowerCase(),result:entry[4]});
-   }
-  }
-  for(const {review,items} of critical){
-   for(let index=1;index<=items.length;index++){
-    const matching=(attestations.get(review.id+'|'+index)||[]).filter(item=>
-      item.author!==review.author.login.toLowerCase()&&
-      item.date>Date.parse(review.submittedAt));
-    if(matching.length!==1)return block('CRITICAL_REVIEW_UNATTESTED');
-   }
-  }
- }
  return {ok:true,reason:'READBACK_CLEAN',threadCount:data.threads.length,reviewCount:data.reviews.length,
-  independentlyReviewed:false,reviewDispositionAttested:critical.length>0,
-  criticalReviewCount:critical.length,criticalItemCount:critical.reduce((n,x)=>n+x.items.length,0),
+  // GitHub conversation state is not independent reviewer attestation.
+  independentlyReviewed:false,reviewDispositionAttested:false,
   mergeAuthorized:false,releaseAuthorized:false,nativeEnforcementRequired:true};
 }
 
@@ -140,8 +83,7 @@ export async function collectMidReviews(query,number,sha){
   for(const [connection,target,seen,done] of [[p.reviewThreads,threads,threadIds,threadsDone],[p.reviews,reviews,reviewIds,reviewsDone]]){
    if(!Array.isArray(connection?.nodes)||typeof connection.pageInfo?.hasNextPage!=='boolean')throw Error('INCOMPLETE_REVIEW_PAGE');
    if(!done)for(const node of connection.nodes){
-    if(typeof node?.id!=='string'||!node.id||seen.has(node.id)||
-       (target===reviews&&typeof node.body!=='string'))throw Error('DUPLICATE_REVIEW_ITEM');
+    if(typeof node?.id!=='string'||!node.id||seen.has(node.id))throw Error('DUPLICATE_REVIEW_ITEM');
     seen.add(node.id);target.push(node);
    }
   }

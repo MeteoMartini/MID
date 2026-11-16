@@ -1,3 +1,7 @@
+## MID LC 1.8 · v0.9.85.484 fachlicher Sammelkandidat ohne #740-Cutover-QA (16.11.2026, NO RELEASE)
+
+Ausgangs-Stable `c9fadfcd0969e949a92f414b321627dd3d4fb0cc` / v0.9.85.483. Auf ausdrücklichen Nutzerauftrag werden die noch nicht produktionsreifen #740-P0/P1-/Native-Review-/Actions-ZIP-Cutover-Testmodule NICHT im regulären .484-Produktfokus mitgemergt. Der Fach-/UX-/Karten-/Qualitäts-/Workflow-Trust-Intake aus #833 bleibt unter vollem Source-/Review-/Installer-/Worker-/Pages-/Stable-Gate. **#740 bleibt OPEN beim Spezialchat MID Release Konzept 1.3, Sicherheits-QA #839 getrennt; kein Bypass, keine Security-PASS-Behauptung.** Die ursprünglichen historischen QA-Notizen darunter sind Herkunftsdokumente, keine Behauptung unveränderter Inklusiv-Dateilisten oder bereits installierter Features. Vor Ready: neuer Diff-/Vertragsabgleich, Browser-/Fachnachweise, vollständige Source- und echte Mergezeit-Reviewprüfungen.
+
 # MID v0.9.85.484 · MID LC 1.6 – konsolidierter Integrationskandidat (DRAFT, KEIN RELEASE)
 
 Zusätzlicher Sicherheits-Intake in den v0.9.85.484-Source-Draft: Privilegierte Release- und Self-Heal-workflow_run-Jobs filtern interne Quell- und Installer-Events vor Token-/Retry-Verwendung; frischer Retry-Readback per Run-ID/Workflowpfad/Event/Repository/main-SHA/Attempt; Logs nur in privatem mktemp-Verzeichnis. Kanonische CI-Spiegel und ausführende jq-Testfälle bleiben gebunden. #740 TOCTOU und vollständige Merge-/Installer-/Stable-Abnahme weiterhin offen; keine automatische Freigabe.
