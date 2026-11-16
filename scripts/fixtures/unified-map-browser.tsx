@@ -21,12 +21,34 @@ function TimelineSeekHarness(){
  </section>;
 }
 
+/** QA-only reproducer of the public CurrentSurroundings -> App -> MapWorkspace
+ * handoff. The first WebGL map unmounts and the full map mounts with the same
+ * original UTC request and geographic bounds, just as with a real tab change.
+ */
+function SurroundingsOpenMapHarness(){
+ const [request,setRequest]=React.useState<{lat:number;lon:number;time?:number;bounds:{west:number;south:number;east:number;north:number};id:number}|null>(null);
+ return request
+  ?<MapWorkspacePanel lat={50.82} lon={7.14} timezone="Europe/Berlin"
+   locationName="Niederkassel" analysis={null} thunder={null} isDay
+   actualLocation={false} focusMode unit="kmh" favorites={[]}
+   observationRequest={request}/>
+  :<CurrentSurroundings lat={50.82} lon={7.14} timezone="Europe/Berlin"
+   name="Niederkassel-Rheidt am Rhein" temperature={8}
+   temperatureTime={now}
+   onOpen={(time,bounds)=>{const req={lat:50.82,lon:7.14,time,id:Date.now(),bounds};
+    document.body.dataset.surroundingsHandoff=JSON.stringify(req);
+    setRequest(req);
+   }}/>;
+}
+
 import '../../src/styles.css';
 import '../../src/midPresentation.css';
 document.documentElement.dataset.midDesign=new URLSearchParams(location.search).get('design')||'next';
 document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
 const now=new Date(Math.floor(Date.now()/3600000)*3600000).toISOString();
-createRoot(document.getElementById('root')!).render(new URLSearchParams(location.search).has('timeline-probe')
+createRoot(document.getElementById('root')!).render(new URLSearchParams(location.search).has('surroundings-handoff')
+ ? <SurroundingsOpenMapHarness/>
+ : new URLSearchParams(location.search).has('timeline-probe')
  ? <TimelineSeekHarness/>
  : new URLSearchParams(location.search).has('surroundings')
  ? <CurrentSurroundings lat={50.82} lon={7.14} timezone="Europe/Berlin" name="Niederkassel-Rheidt am Rhein" temperature={8} temperatureTime={now} onOpen={(time,bounds)=>{document.body.dataset.surroundingsHandoff=JSON.stringify({time,bounds})}}/>
