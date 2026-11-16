@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "version": "0.9.85.487",
+  "date": "2026-11-16",
+  "title": "Umfeld-Kartenöffnung, Cloud-/SigWx-Referenz und native Modellflaggen",
+  "external": [
+    "Die große Wetterkarte behandelt den Übergang aus dem Umfeldwetter robuster; Karten- und Zeitinformationen bleiben unverändert.",
+    "Bei fehlendem Viertelstunden-Wolken-/SigWx-Original wird gegebenenfalls ein geprüfter früherer Termin sichtbar als Referenz gekennzeichnet. Der gewählte Termin bleibt NoData.",
+    "Modellflaggen werden auf Desktop als Vektorsymbole angezeigt, ohne die meteorologische Modellpriorität zu ändern.",
+    "Die zusätzlichen QA-Werkzeuge prüfen Originalbild-Integrität und statische Start-JavaScript-Abhängigkeiten, ohne ungemessene Performance oder neue Wetterdaten zu versprechen."
+  ],
+  "internal": [
+    "Basis Stable a78465b655d25cafc9ecc0390080694cb7aca957 v0.9.85.486, QA-Integrationshead 18a587ad482a82d6d20e394580955c2559077e9c.",
+    "Quelle #848 @ bbb3bbdfd46ab75de44d5e691c6c699bdc7cee7f (4 Dateien), #850 @ a372df5f442797c9ad3432ae6dd7416202a40d9e (7), #851 @ 0f18921c99c492f061b95e411b72de6bae411d3b (5), #852 @ da9175f8abe7393f0851e7da1fd9733d21d418a1 (13).",
+    "27 disjunkte Original-Git-Blobs + ein paarweise/kommutativ SHA-verifizierter Browser-QA-Merge, Blob dd99696c345c2efaf35eb12767a0884b72f6fbc0.",
+    "NoData/Run/UTC/Bildprovenienz und Source-Warnung nicht umklassifiziert. #853 breites BBox offen; Design-Prefetch #855 separat; #740 Release-Sicherheit vollständig ausgenommen.",
+    "Keine Freigabe vor finalem Source-/Core-/Heavy-/Review-/ZIP-/Installer-/Worker-/Pages-/Stable-Gate. Echte native iOS/Windows/VoiceOver-Abnahme nicht behauptet."
+  ]
+}

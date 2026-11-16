@@ -1,3 +1,12 @@
+## MID v0.9.85.487 · 2026-11-16 · LC 1.10: Umfeld-Kartenöffnung, Originalreferenz, Modellflaggen und JS-/IR-QA (SOURCE-KANDIDAT, NO RELEASE)
+
+- Geprüfter vorheriger Stable: main=mid-stable=a78465b655d25cafc9ecc0390080694cb7aca957 / v0.9.85.486; fünf aktive GitHub-Rulesets.
+- Herkunft: #848 bbb3bbdfd46ab75de44d5e691c6c699bdc7cee7f (4 QA-Blobs); #850 a372df5f442797c9ad3432ae6dd7416202a40d9e (6 Original-Blobs); #851 0f18921c99c492f061b95e411b72de6bae411d3b (5 Original-Blobs); #852 da9175f8abe7393f0851e7da1fd9733d21d418a1 (12 Original-Blobs).
+- 28 eindeutige QA-Dateipfade, 27 ursprüngliche Git-Blobs unverändert; genau ein gemeinsames scripts/verify-unified-map-browser-0985167.mjs vorwärts/rückwärts aus Originalpatches bytegleich gemergt, resultierender Blob dd99696c345c2efaf35eb12767a0884b72f6fbc0. QA-Parent/HEAD 18a587ad482a82d6d20e394580955c2559077e9c direkt auf Stable.
+- Fachlich: Cloud/SigWx-15-Minuten-Ziel bleibt bei fehlendem Original NoData; nur ältere bis 45 min SHA-verifizierte Originale werden als Referenz beschriftet. MapLibre-Kamera erlaubt keine undefinierte maxZoom-Option; geografische Bounds validiert. Desktop-Modellflaggen als SVG statt unzuverlässige native Emoji-Optionen. IR10.8/GSP-Paar- und JS-Startup-Graph-Ergebnisse sind ausschließlich Diagnose/Regression, keine Daten-/Performance-Freigabe.
+- Kein WMO/DWD-Warnungsumbau, keine RUC-/Worker-Produktivdatenänderung und keine #740-Sicherheits-Arbeit. #853 Rad/Sat-Crop noch offen; keine Behauptung physischer Windows-/iOS-/VoiceOver-Abnahme.
+- Vor jedem tatsächlichen Release vollständige Source-/Core-/Heavy-/Browser-/Review-/Budget-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates auf neuem versioniertem SHA. Kein Draft-/Cubic-PASS als Freigabe.
+
 ## MID v0.9.85.486 · 2026-11-16 · Karten-Home-End und 14-Tage-Responsive-QA
 
 - Additional QA source: #846 HEAD e70b5aa36a1832aba6a1c081add4f839c629dc5a, exactly two original Git blobs; MapTimelineControls + associated unit file already identical with #842 and therefore not imported again. Deferred-ACK Home/End is tested in real React/Chromium by mandatory map heavy regression; no skip or timeout dilution.
