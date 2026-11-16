@@ -93,6 +93,21 @@ class NativeSourceStageTests(unittest.TestCase):
             with self.assertRaises(IR108QualificationError):
                 stage(RUN, FIRST, dest, opener)  # no overwrite of existing candidate
 
+    def test_ir108_staging_requires_all_ten_originals_within_14h(self):
+        from datetime import datetime, timedelta, timezone
+        from ir108_stage_originals import make_plan
+        source=datetime(2026,11,15,15,0,tzinfo=timezone.utc)
+        def iso(hours,minutes):
+            return (source+timedelta(hours=hours,minutes=minutes)).isoformat(
+                timespec="seconds").replace("+00:00","Z")
+        # 11:45+2:15 = 14:00, the last available 15-minute lead.
+        allowed={f"PT{i//4:03d}H{(i%4)*15:02d}M.grib2" for i in range(47,57)}
+        self.assertEqual(len(make_plan(RUN,iso(11,45),allowed)),10)
+        # 12:00+2:15 = 14:15, even if a foreign directory advertises it.
+        extra=allowed|{f"PT{i//4:03d}H{(i%4)*15:02d}M.grib2" for i in range(48,58)}
+        with self.assertRaisesRegex(IR108QualificationError,"horizon"):
+            make_plan(RUN,iso(12,0),extra)
+
     def test_missing_native_original_is_no_data_not_interpolation(self):
         with tempfile.TemporaryDirectory() as tmp:
             dest = Path(tmp) / "candidate"

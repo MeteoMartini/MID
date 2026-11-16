@@ -175,6 +175,23 @@ class IR108Tests(unittest.TestCase):
         with self.assertRaises(IR108QualificationError):
             validate_frame_sequence(v, RUN, "2026-11-15T00:04:00Z")
 
+    def test_official_ruc_ir108_lead_horizon_is_14h_in_every_admission_path(self):
+        # The last actual quarter hour may be +14:00, never +14:15 or +27:00.
+        source_14h=URL_BASE+"PT014H00M.grib2"
+        self.assertEqual(source_lead_seconds(source_14h),14*3600)
+        frame_14h=fixture(56)
+        self.assertEqual(validate_header(frame_14h,RUN)["leadSeconds"],14*3600)
+        for lead in (57,108):
+            with self.subTest(lead=lead):
+                with self.assertRaisesRegex(IR108QualificationError,"horizon"):
+                    source_lead_seconds(URL_BASE+grib_filename(lead))
+                self.expect_fail(fixture(lead),"quarter-hour")
+        # A full ten-frame set must fit inside the boundary; no future-only
+        # partial inventories or time interpolation may repair a truncated run.
+        included=[validate_header(fixture(i),RUN) for i in range(47,57)]
+        accepted=validate_frame_sequence(included,RUN,included[0]["valid"])
+        self.assertEqual(accepted[-1]["leadSeconds"],14*3600)
+
     def test_source_directory_is_channel_claim_not_header_proof(self):
         check_source_url(URL)
         self.assertEqual(source_lead_seconds(URL), 900)

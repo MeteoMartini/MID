@@ -29,7 +29,10 @@ NATIVE_GRID = ("c6b12daa91ad64045b26c1b6452a2a20", 47, 1, 542040)
 MAX_COMPRESSED_BYTES = 8 * 1024 * 1024
 MAX_DECODED_BYTES = 64 * 1024 * 1024
 QUARTER_SECONDS = 900
-MAX_LEAD_SECONDS = 27 * 3600
+# Official ICON-D2-RUC quarter-hour catalogue (DWD database reference, ch. 11):
+# SYNMSG_BT_CL_IR10.8 and GSP phase rates have 0..14 h lead at 15 min.
+# Keep independent IR-only source admission consistent with phase-rate gate.
+MAX_LEAD_SECONDS = 14 * 3600
 NAME_RE = re.compile(r"[A-Za-z0-9_.-]{1,180}\Z")
 UTC_RE = re.compile(r"20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}:00Z\Z")
 STEP_RE = re.compile(r"(\d+(?:\.\d+)?)([smh]?)\Z")
@@ -167,7 +170,7 @@ def source_lead_seconds(url: str) -> int:
         raise IR108QualificationError("DWD IR10.8 file must use native PTxxxHyyM.grib2 naming")
     lead = (int(match[1]) * 60 + int(match[2])) * 60
     if lead > MAX_LEAD_SECONDS:
-        raise IR108QualificationError("DWD IR10.8 lead exceeds current verified bound")
+        raise IR108QualificationError("DWD IR10.8 lead exceeds official 0..14h quarter-hour horizon")
     return lead
 
 

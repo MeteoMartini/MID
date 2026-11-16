@@ -120,3 +120,10 @@ python3 tools/ruc/ir108_gsp_native_preview.py \
 ### GSP-Original-UTC-Sortiervertrag 1.8 (16.11.2026)
 
 Eine zulässige 10×IR- und 30×GSP-Originaldateienmenge kann in JSON in beliebiger Reihenfolge stehen; die eCCodes-Originaladmission prüft vollständige UTC-Inventare, verlangt aber keine sortierte Listenposition. Der private Renderer **sortiert jede Parameterliste ausdrücklich nach dem bereits durch Original-GRIB/Gültigkeit belegten DWD-Source-Vorlauf** und vergleicht dann alle Produkte mit derselben 10×15-Minuten-UTC-Achse. Unterschiedliche, doppelte, fremde oder fehlende Leads werden vor dem ersten Pixel NoData/Fail-Closed statt einer zeitlich falschen Regen-/Schnee-Overlay-Zuordnung. Die zusätzliche Offline-Regression mischt gezielt IR- und Schnee-Ratenlisten und verweigert Dublikate und WV-Fremdkanäle. Das hält WMO-/Warnungslogik unberührt und ersetzt ausdrücklich keinen realen 40-GRIB-ecCodes-/QA-Lauf.
+
+
+## MID-Karten 1.8 – IR10.8 14h-Quellenhorizont (16.11.2026)
+
+Amtlicher, aktueller DWD ICON-D2-RUC-Ausgabevertrag (Chapter 11, SynMSG, PRR_GSP/PRS_GSP/PRG_GSP) weist **0–14h bei 15-Minuten-Auflösung** aus. Der bisherige IR10.8-Shadow-Auditor `MAX_LEAD_SECONDS=27h` war gegenüber der bereits korrigierten GSP-Phase-Prüfung zu großzügig. `ir108_original_probe.validate_header`, `source_lead_seconds` und der bestehende `ir108_stage_originals.make_plan` verweigern nun mittels einer einzigen zentralen Konstante **alle IR10.8-Leads >14h**, einschließlich korrekt formaler Dateinamen und vollständiger aber unamtlicher Manifestinventare. Der Grenzfall 11:45→14:00 (zehn unveränderte Originale) ist zugelassen; 12:00→14:15 ist abgewiesen. Keine Interpolation, keine Future-Wettercode-Substitution und keine Aufweitung der Phase- oder RUC-Pipeline. Regressionen prüfen Metadaten-, URL- und Katalog-Plan-Ebene separat; tatsächliche DWD-/ecCodes-Vollqualifikation bleibt ausstehend.
+
+Primärquelle: https://www.dwd.de/SharedDocs/downloads/DE/modelldokumentationen/nwv/icon_d2/icon_d2_dbbeschr_aktuell.pdf?nn=344870&view=nasPublication (Kapitel 11, Tabellen 11.4/11.5).
