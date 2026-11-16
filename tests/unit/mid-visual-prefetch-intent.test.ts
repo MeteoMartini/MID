@@ -26,12 +26,15 @@ describe('MID Design 1.5: heavy visual modules must respect user intent',()=>{
  });
  it('keeps meteorological ensemble requests and user-intent loading independent',()=>{
   const src=readFileSync(new URL('../../src/startupPreload.ts',import.meta.url),'utf8');
+  expect(src).toContain('const STARTUP_PRELOAD_REUSE_MS=45_000');
+  expect(src).toContain('if(active===record){active=null;activeExpiryTimer=null}');
+  expect(src).toContain('abort=()=>{invalidated=true;');
   expect(src).toContain('const ensemble=wantsStartupEnsemble()');
   expect(src).toContain('const ensembleRequest=ensemble?startupRequest(');
   expect(src).toContain("if(ensemble&&wantsStartupEnsembleInterface())jobs.push(import('./EnsemblePanel'))");
   expect(src).toContain("if(last==='composite')jobs.push(import('./RadarPanel'))");
   expect(src).toContain('function preloadInterfaceChunks(ensemble:boolean,constrained:boolean){if(constrained)return Promise.resolve();');
-  expect(src).toContain('Promise.race([forecastRequest.promise,stationRequest.promise,radarRequest.promise,delay(700)]).then(()=>preloadInterfaceChunks(ensemble,constrained))');
+  expect(src).toContain('Promise.race([forecastRequest.promise,stationRequest.promise,radarRequest.promise,delay(700)]).then(()=>invalidated?undefined:preloadInterfaceChunks(ensemble,constrained))');
  });
  it('preserves map navigation/viewport/keyboard/touch warmup independent of idle choice',()=>{
   const src=readFileSync(new URL('../../src/App.tsx',import.meta.url),'utf8');
