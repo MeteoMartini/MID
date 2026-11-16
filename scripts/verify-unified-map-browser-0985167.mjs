@@ -729,9 +729,45 @@ async function verifyHomeEndControlledSeek(){
  }finally{await probe.close()}
 }
 
+
+/** Actual CurrentSurroundings -> full MapWorkspacePanel -> RadarPanel handoff.
+ * Exercises both MapLibre lifecycles and forwards the original geographic
+ * bounds/time. This was previously completely untested by the map pilot.
+ */
+async function verifySurroundingsOpenMap(){
+ const page=await browser.newPage({viewport:{width:390,height:844}});
+ const pageErrors=[],consoleErrors=[];
+ page.on('pageerror',error=>pageErrors.push(error.message));
+ page.on('console',message=>{if(message.type()==='error'&&!/favicon|ERR_CONNECTION_REFUSED/.test(message.text()))consoleErrors.push(message.text())});
+ try{
+  await page.route('**/__qa-worker?**',route=>route.fulfill({json:{error:'unavailable in deterministic QA'}}));
+  await page.goto(base+'/__map-qa?surroundings-handoff');
+  const open=page.getByRole('button',{name:'Karte öffnen'});
+  await open.waitFor({timeout:30000});
+  await page.locator('.current-surroundings-maplibre canvas').first().waitFor({timeout:30000});
+  await open.click();
+  await page.locator('.unified-weather-map').waitFor({timeout:30000});
+  await page.locator('.composite-maplibre canvas').first().waitFor({timeout:30000});
+  await page.waitForFunction(()=>{
+   const map=window.__qaMap;
+   if(!map||!map.getStyle())return false;
+   const center=map.getCenter(),zoom=map.getZoom();
+   return Number.isFinite(center.lat)&&Number.isFinite(center.lng)&&
+    Number.isFinite(zoom)&&zoom>=0&&zoom<=14;
+  },null,{timeout:20000});
+  const request=await page.evaluate(()=>JSON.parse(document.body.dataset.surroundingsHandoff||'null'));
+  assert.ok(request&&Number.isFinite(request.time)&&
+   request.bounds.west<request.bounds.east&&request.bounds.south<request.bounds.north,
+   'Open map handoff preserves finite original target and bounding rectangle');
+  assert.deepEqual(pageErrors,[],'Current → Karten navigation must never throw in React/MapLibre');
+  assert.equal(await page.locator('body').count(),1,'Navigation did not hard-reload or crash the app shell');
+  console.log('QA real surroundings → unified map navigation passed (two independent MapLibre mounts)');
+ }finally{await page.close()}
+}
+
 const focusedCases=process.env.GITHUB_ACTIONS!=='true'&&process.env.MID_MAP_QA_FOCUSED==='1'?[320,390,430,1024,1440].flatMap(width=>['light','dark'].map(theme=>({width,theme,design:'next'}))):null;
 const assignedCases=seasonalDraftPilot?seasonalDraftKeys.map(key=>seasonalDraftAllowed.get(key)):focusedCases??mapBrowserCases(process.env.MID_MAP_QA_SHARD);
-try{await verifyHomeEndControlledSeek();for(const {width,theme,design} of assignedCases)if(design==='next'&&[320,390,430,834].includes(width))await verifySurroundings(width,theme);for(const width of [...new Set(assignedCases.map(row=>row.width))]){const variants=assignedCases.filter(row=>row.width===width),concurrency=mapBrowserCaseConcurrency(width);/* Bound synthetic MapLibre software-GPU contention; all cases and all assertions remain mandatory. */for(let offset=0;offset<variants.length;offset+=concurrency){const results=await Promise.allSettled(variants.slice(offset,offset+concurrency).map(({theme,design})=>verifyCase(width,theme,design)));for(const result of results)if(result.status==='rejected')throw result.reason;}}assert.equal(cases,assignedCases.length,'Complete assigned viewport/theme/design coverage');if(perfEnabled&&mapBrowserMemoryProbe(process.env.MID_MAP_QA_SHARD))await verifyCase(390,'light','next',true);if(perfRows.length){
+try{await verifySurroundingsOpenMap();await verifyHomeEndControlledSeek();for(const {width,theme,design} of assignedCases)if(design==='next'&&[320,390,430,834].includes(width))await verifySurroundings(width,theme);for(const width of [...new Set(assignedCases.map(row=>row.width))]){const variants=assignedCases.filter(row=>row.width===width),concurrency=mapBrowserCaseConcurrency(width);/* Bound synthetic MapLibre software-GPU contention; all cases and all assertions remain mandatory. */for(let offset=0;offset<variants.length;offset+=concurrency){const results=await Promise.allSettled(variants.slice(offset,offset+concurrency).map(({theme,design})=>verifyCase(width,theme,design)));for(const result of results)if(result.status==='rejected')throw result.reason;}}assert.equal(cases,assignedCases.length,'Complete assigned viewport/theme/design coverage');if(perfEnabled&&mapBrowserMemoryProbe(process.env.MID_MAP_QA_SHARD))await verifyCase(390,'light','next',true);if(perfRows.length){
  const rows=perfRows.sort((a,b)=>a.width-b.width||a.theme.localeCompare(b.theme)||a.design.localeCompare(b.design));
  const report={schema:'mid.map.runtime.fixture.v2',version:JSON.parse(readFileSync(new URL('../package.json',import.meta.url))).version,commit:process.env.GITHUB_SHA||null,shard:process.env.MID_MAP_QA_SHARD||'all',kind:'synthetic-Vite-MapLibre-fixture-not-user-CWV',cases:rows};
  const serialized=JSON.stringify(report),safeShard=String(report.shard).replace(/[^A-Za-z0-9_-]/g,'_');
