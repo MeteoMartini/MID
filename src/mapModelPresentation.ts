@@ -65,6 +65,16 @@ export function mapModelDisplayLabel(choice:MapModelChoice):string{
     undefined:known.displayResolution;
  return known.flag+' '+choice.label+(res?' · '+res:'');
 }
+/** Browser-independent pictogram identity; the native option's Unicode emoji
+ * is NOT a reliable graphical flag on Windows and OS-styled pickers.
+ * No flag inferred for unknown model IDs.
+ */
+export type MapModelFlagCode='DE'|'EU'|'US'|'CA';
+export function mapModelFlagCode(id:string):MapModelFlagCode|null{
+ const flag=identityFor(id)?.flag;
+ return flag==='🇩🇪'?'DE':flag==='🇪🇺'?'EU':flag==='🇺🇸'?'US':flag==='🇨🇦'?'CA':null;
+}
+
 /** First: model family; inside family: finest verified/published map grid first. */
 export function groupedMapModelOptions<T extends MapModelChoice>(choices:readonly T[]):MapModelGroup<T>[]{
  const sorted=[...choices].sort((a,b)=>{
