@@ -79,7 +79,8 @@ describe('MID #853: full-viewport Rad/Sat integration without source or time fab
   expect(ui).toContain('if(!needsOpera||!rasterPlan)return;');
   expect(ui).toContain('const controller=new AbortController();');
   expect(ui).toContain('if(controller.signal.aborted)return;');
-  expect(ui).toContain('setOpera({url:canvas.toDataURL(),time,requestKey:operaRequestKey})');
+  expect(ui).toContain('setOpera({url:canvas.toDataURL(),time,requestKey:operaRequestKey,coverage});');
+  expect(ui).toContain("if(!coverage||coverage.kind==='none')return;");
   expect(ui).toContain('setPhaseImage({url:phase.colors.size?canvas.toDataURL():undefined,time,requestKey:operaRequestKey})');
  });
 
