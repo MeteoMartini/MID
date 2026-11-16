@@ -5,6 +5,8 @@ const originalAddSource=MapLibreMap.prototype.addSource;MapLibreMap.prototype.ad
 import {createRoot} from 'react-dom/client';
 import MapWorkspacePanel from '../../src/MapWorkspacePanel';
 import {MapTimelineRange} from '../../src/MapTimelineControls';
+import {MapModelPicker} from '../../src/MapModelPicker';
+import {groupedMapModelOptions} from '../../src/mapModelPresentation';
 /** QA-only: simulate a model term request whose first acknowledgement is delayed. */
 function TimelineSeekHarness(){
  const [index,setIndex]=React.useState(3);
@@ -18,6 +20,21 @@ function TimelineSeekHarness(){
   <output data-testid="qa-timeline-index">{index}</output>
   <output data-testid="qa-timeline-requests">{requests.join(',')}</output>
   <button type="button" onClick={()=>{setIndex(2);setAcknowledge(true)}}>Modelllauf wechseln</button>
+ </section>;
+}
+
+/** Pure browser fixture, no network or WebGL: actual graphical model selector at desktop width. */
+function FlagPickerHarness(){
+ const [model,setModel]=React.useState('icon-d2');
+ const groups=groupedMapModelOptions([
+  {id:'icon-d2',label:'DWD ICON-D2'},
+  {id:'ifs',label:'ECMWF IFS'},
+  {id:'gfs',label:'NOAA GFS'},
+  {id:'gdps',label:'ECCC GDPS'}
+ ]);
+ return <section className="qa-map-flag-probe" style={{maxWidth:560,padding:16}}>
+  <MapModelPicker label="Modell für Parameter" value={model} groups={groups} onChange={setModel}/>
+  <output data-testid="qa-model-choice">{model}</output>
  </section>;
 }
 
@@ -46,7 +63,9 @@ import '../../src/midPresentation.css';
 document.documentElement.dataset.midDesign=new URLSearchParams(location.search).get('design')||'next';
 document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
 const now=new Date(Math.floor(Date.now()/3600000)*3600000).toISOString();
-createRoot(document.getElementById('root')!).render(new URLSearchParams(location.search).has('surroundings-handoff')
+createRoot(document.getElementById('root')!).render(new URLSearchParams(location.search).has('flag-probe')
+ ? <FlagPickerHarness/>
+ : new URLSearchParams(location.search).has('surroundings-handoff')
  ? <SurroundingsOpenMapHarness/>
  : new URLSearchParams(location.search).has('timeline-probe')
  ? <TimelineSeekHarness/>
