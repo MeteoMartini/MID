@@ -42,16 +42,11 @@ describe('MID Umfeld Wolken/SigWx: honest earlier original reference only',()=>{
   const stale={...model([4]),run:'2026-11-15T08:00:00Z'};
   expect(chooseSurroundingsCloudReferences({'icon-d2':stale},t)).toHaveLength(0);
  });
- it('prefers a newer source-time over an older high-resolution model',()=>{
-  const t=Date.parse('2026-11-16T12:30:00Z');
-  const earlier={...model([3]),run:'2026-11-16T09:00:00Z',
-   cloudWeatherFrames:[{...frame(3),time:'2026-11-16T12:00:00Z'}]};
-  const later={...model([4]),run:'2026-11-16T08:00:00Z',
-   cloudWeatherFrames:[{...frame(4),time:'2026-11-16T12:15:00Z'}]};
-  const models={'icon-d2':earlier,'icon-eu':later};
-  const entries=chooseSurroundingsCloudReferences(models,t);
-  expect(entries[0].modelId).toBe('icon-eu');
-  expect(entries[0].ref.time).toBe('2026-11-16T12:15:00Z');
+ it('preserves documented model priority for truly same-time originals',()=>{
+  const models={'icon-d2':model([4]),'icon-eu':model([4],'DWD ICON-EU')};
+  const entries=chooseSurroundingsCloudReferences(models,target);
+  expect(entries.map(entry=>entry.modelId)).toEqual(['icon-d2','icon-eu']);
+  expect(entries.every(entry=>entry.ref.time===time(4))).toBe(true);
  });
  it('never confuses an exact model target with an earlier-reference frame',()=>{
   expect(chooseSurroundingsCloudReferences({'icon-d2':model([4])},Date.parse(time(4)))).toHaveLength(0);
@@ -81,7 +76,7 @@ describe('MID Umfeld Wolken/SigWx: honest earlier original reference only',()=>{
   expect(ui).toContain('id="surroundings-original-reference-cloud-weather"');
   expect(ui).toContain("mode==='cloud'&&!cloudForecast.image&&cloudForecast.reference");
   expect(ui).toContain('Das Referenzbild gilt ausdrücklich NICHT für den gewählten 15-Minuten-Termin.');
-  expect(ui).toContain('keine zeitliche Interpolation');
+  expect(ui).toContain('Keine zeitliche Interpolation');
   expect(ui).toContain('kein bestätigtes Original');
   expect(ui).toContain("mode==='cloud'?cloudTarget:mode==='radar'?displayTime:undefined");
  });
