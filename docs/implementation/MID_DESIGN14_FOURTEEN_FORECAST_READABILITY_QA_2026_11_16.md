@@ -1,3 +1,14 @@
+# MID Design 1.4 — Stable-.484-Fortführung (aktuelle Vorqualifikation)
+
+**Source of Truth (16.11.2026):** main=mid-stable=8f4c950c3d0311f33ed3f9b89d0101d6cd556113; veröffentlichte Version v0.9.85.484. Der neue autorisierte chatgpt/v0.9.85.485-design14-stable484-Branch wurde genau von diesem Commit erstellt; acht Git-Blobs aus dem gesicherten Design-PR #841 HEAD d327e6154dc26d696c74379f6dec994ccf57631b wurden SHA-identisch als ein Fast-Forward-Commit übernommen. Zwischen .483 und .484 wurden keine dieser acht Dateien geändert. Frühere Abschnitte beschreiben den historischen .483-Entwicklungsstand, nicht den nun publizierten Stable.
+
+**Gesicherter Vorbefund (älterer Kandidat):** 390 CSS px mit künstlich nur für das Wetterlabel verdoppelter Schrift (11 auf 22 CSS px): 346,34 statt 510,84 px Kartenhöhe und 8 statt 15 Textfragmente, gesamter Langtext sichtbar, kein Horizontaloverflow. 24 Chromium-Kontexte und 258 Vitest-Einzeltests wurden am ALTEN QA-HEAD bestanden; sie gelten nicht automatisch für die neue .484-Basis.
+
+**Neue QA-Matrix (noch nicht erfolgreich belegt):** 16 bisherige FourteenDayHorizon-Kontexte plus 16 ForecastCockpit-Kontexte bei 320/390/393/402/414/430/834/1440 px jeweils Light/Dark. Neu bei 393/402/414/430 px: voller Wettertext, berechneter 22-px-Textstress, kein horizontales Overflow, maximal 12 Textfragmente und 450 px Kartenhöhe. Keine Testlockerung bei rotem Befund. Der Textstress ist kein nativer Browserzoom, iOS-WebKit- oder VoiceOver-Nachweis.
+
+**Releasegrenzen:** DRAFT ONLY, NO READY / NO MERGE / NO DEPLOY / NO RELEASE; unabhängige Source-/Core-/Heavy-/Security-/Review-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates bleiben notwendig. Issue #740 bleibt offen; Cross-Owner-Guard PR #840 beibehalten; kein gefährlicher CSS-Lazy-Move.
+
+---
 # MID Design 1.4 · 14-Tage-Prognose: vollständiger Wettertext und kompakte Lesbarkeit
 
 **Datum:** 16.11.2026 · **Status:** Design-QA-Draft, KEIN RELEASE, keine Änderungen an meteorologischen Daten/Warnings/Modellen/Worker/PWA/Release-Workflows.
