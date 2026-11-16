@@ -199,6 +199,8 @@ export default function CurrentSurroundings(props:Props){
  // biome-ignore lint/correctness/useExhaustiveDependencies: A refreshed composite catalog intentionally revalidates OPERA availability even when location/radar mode remain unchanged.
  useEffect(()=>{
   if(!needsOpera||!rasterPlan)return;
+  // Stable capture: TypeScript and async workers must use the same admitted footprint.
+  const admittedRasterPlan=rasterPlan;
   const controller=new AbortController();
   setOperaFinished(false);
   setPhaseImage(undefined);
@@ -216,11 +218,11 @@ export default function CurrentSurroundings(props:Props){
    if(controller.signal.aborted)return;
    const canvas=document.createElement('canvas');
    // Keep the previous OPERA 256×128 maximum while matching the requested WMS geometry.
-   canvas.width=Math.max(16,Math.ceil(rasterPlan.width/2));
-   canvas.height=Math.max(16,Math.ceil(rasterPlan.height/2));
+   canvas.width=Math.max(16,Math.ceil(admittedRasterPlan.width/2));
+   canvas.height=Math.max(16,Math.ceil(admittedRasterPlan.height/2));
    const context=canvas.getContext('2d');
    if(!context)return;
-   const {west,south,east,north}=rasterPlan.bounds;
+   const {west,south,east,north}=admittedRasterPlan.bounds;
    const image=context.createImageData(canvas.width,canvas.height);
    let covered=false;
    for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){
