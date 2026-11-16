@@ -172,7 +172,7 @@ async function oneIntegrated(width,height,theme){
   // A diagnostic 200% *text-only* stress test; distinct from native browser zoom/VoiceOver.
   // Keep the text-only stress stylesheet active across asynchronous React re-renders.
   // This is NOT native user-agent zoom: it exercises the existing responsive CSS layout.
-  await page.addStyleTag({content:`html[data-mid-design='next'] .cockpit-fourteen-day .cockpit-fourteen-weather-label{font-size:${base*2}px!important;}`});
+  await page.addStyleTag({content:`.cockpit-fourteen-day .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-heading-copy > .cockpit-fourteen-weather-label{font-size:${base*2}px!important;}`});
   const enlarged=await page.evaluate(()=>{
    const card=document.querySelector('.cockpit-fourteen-card'),label=card.querySelector('.cockpit-fourteen-weather-label');
    const box=card.getBoundingClientRect(),text=label.getBoundingClientRect(),range=document.createRange();range.selectNodeContents(label);
