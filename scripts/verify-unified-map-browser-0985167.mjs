@@ -703,13 +703,18 @@ async function verifySurroundings(width,theme){
  try{
   const page=await context.newPage();
   const now=Date.now(),observed=new Date(now-5*60000).toISOString(),future=new Date(now+15*60000).toISOString();
+  // Visually unambiguous full-opacity data sentinel, not a weather observation.
+  const magentaWms=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFUlEQVR42mP8z/D/PwMDAwMTAxQAAC4IAwEDGOY5AAAAAElFTkSuQmCC','base64');
   const errors=[],requests=[];
   page.on('pageerror',error=>errors.push(error.message));
   page.on('request',request=>{if(request.url().includes('__qa-worker'))requests.push(request.url().slice(0,450))});
   await page.route('**/__qa-worker?**',async route=>{
    const url=new URL(route.request().url()),mode=url.searchParams.get('mode');
-   if(mode==='composite-times')return route.fulfill({json:{dwdRadar:[observed],dwdRadarNowcast:[future]}});
-   if(mode==='composite-wms')return route.fulfill({body:png,contentType:'image/png'});
+   if(mode==='composite-times')return route.fulfill({json:{dwdRadar:[observed],dwdRadarNowcast:[future],
+    satelliteRgbProduct:{provider:'eumetsat',layer:'mtg_fd:rgb_geocolour',label:'MTG GeoColour',times:[new Date(now-30*60000).toISOString()],timeVerified:true,fresh:true},
+    satelliteIrProduct:{provider:'eumetsat',layer:'mtg_fd:ir105_hrfi',label:'MTG IR 10,5',times:[observed],timeVerified:true,fresh:true}
+   }});
+   if(mode==='composite-wms')return route.fulfill({body:magentaWms,contentType:'image/png'});
    return route.fulfill({json:{error:'Unavailable in surroundings fixture'}});
   });
   // A real published-looking, SHA-checked model catalogue is served only

@@ -382,7 +382,7 @@ export default function CurrentSurroundings(props:Props){
     als Satellitenbeobachtung noch als WMO-Warnung ausgegeben. Keine zeitliche Interpolation,
     kein Wettercode-Blending, kein Missing→0. Klare Wolken- oder Wetterfelder können
     transparente Bildbereiche ergeben. Karte öffnen verwendet weiterhin die gewählte Zielzeit.</p>}
-  {mode==='radar'&&visibleClouds&&satelliteTime!==undefined&&<p>Bewölkung · {satellite?.provider==='dwd'?'DWD':'EUMETSAT'} · Originalbeobachtung {datedClock(satelliteTime)} Uhr · Radar-/Satellitentermine getrennt</p>}
+  {mode==='radar'&&visibleClouds&&satelliteTime!==undefined&&<p>Satellitenbild · {satellite?.provider==='dwd'?'DWD':'EUMETSAT'} · {satelliteOriginal?.spectrum==='IR'?'Infrarot (IR)':'RGB'} · Originalbeobachtung {datedClock(satelliteTime)} Uhr · Radar-/Satellitentermine getrennt</p>}
   {Number.isFinite(temperature)&&temperatureTime&&<p>Temperatur am gewählten Ort · {temperatureTime.slice(11,16)} Uhr</p>}
   {(mode==='cloud'||radarAtNow)&&(temperatureGrid&&temperatures&&Object.keys(temperatures).length
    ?<p>Umfeldtemperaturen · {temperatureGrid.source} {temperatureGrid.modelLabel} · {temperatureGrid.temporalMethod==='linear'&&temperatureGrid.sourceTimes
