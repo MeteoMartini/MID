@@ -25196,10 +25196,11 @@ html[data-mid-design='next'] .cockpit-fourteen-weather-label{
  min-width:0!important;
  color:var(--muted)!important;
  font-size:11px!important;
- line-height:1.2!important;
- white-space:nowrap!important;
- overflow:hidden!important;
- text-overflow:ellipsis!important;
+ line-height:1.25!important;
+ white-space:normal!important;
+ overflow:visible!important;
+ overflow-wrap:anywhere!important;
+ text-overflow:clip!important;
 }
 html[data-mid-design='next'] .cockpit-fourteen-temps{
  grid-area:temps!important;
@@ -25272,14 +25273,14 @@ html[data-mid-design='next'] .cockpit-fourteen-compact-meta{
 }
 .cockpit-fourteen-precip-values>b{
  overflow:visible!important;
- font-size:8.5px!important;
+ font-size:10.5px!important;
  white-space:nowrap!important;
 }
 .cockpit-fourteen-compact-meta>.wind{
  white-space:nowrap!important;
 }
 html[data-mid-design='next'] .cockpit-fourteen-precip-values>small{
- font-size:7.5px!important;
+ font-size:10.5px!important;
 }
 html[data-mid-design='next'] .cockpit-fourteen-sun-uvi{
  display:inline-flex!important;
@@ -25289,12 +25290,12 @@ html[data-mid-design='next'] .cockpit-fourteen-sun-uvi{
  white-space:nowrap!important;
 }
 html[data-mid-design='next'] .cockpit-fourteen-sun-uvi>b{
- font-size:10px!important;
+ font-size:10.5px!important;
  line-height:1.1!important;
  font-variant-numeric:tabular-nums!important;
 }
 html[data-mid-design='next'] .cockpit-fourteen-sun-uvi>small{
- font-size:9.5px!important;
+ font-size:10.5px!important;
  line-height:1.1!important;
  color:var(--muted)!important;
 }
@@ -25318,7 +25319,7 @@ html[data-mid-design='next'] .cockpit-fourteen-inline-cue{
  gap:4px!important;
  min-width:0!important;
  color:var(--muted)!important;
- font-size:8.5px!important;
+ font-size:10.5px!important;
  font-weight:750!important;
  white-space:nowrap!important;
 }
@@ -25353,7 +25354,7 @@ html[data-mid-design='next'] .cockpit-focus-card.fourteen.mid-forecast-row-detai
 }
 html[data-mid-design='next'] .cockpit-focus-card.fourteen.mid-forecast-row-detail.compact small{
  color:var(--muted)!important;
- font-size:9.5px!important;
+ font-size:10.5px!important;
  font-weight:750!important;
  letter-spacing:.03em!important;
 }
@@ -25367,7 +25368,7 @@ html[data-mid-design='next'] .cockpit-focus-card.fourteen.mid-forecast-row-detai
 }
 html[data-mid-design='next'] .cockpit-focus-card.fourteen.mid-forecast-row-detail.compact em{
  color:var(--muted)!important;
- font-size:9.5px!important;
+ font-size:10.5px!important;
  line-height:1.25!important;
  font-style:normal!important;
 }
@@ -25394,7 +25395,7 @@ html[data-mid-design='next'] .cockpit-focus-card.fourteen.mid-forecast-row-detai
  }
  html[data-mid-design='next'] .cockpit-fourteen-heading-copy>b{font-size:11.5px!important}
  html[data-mid-design='next'] .cockpit-fourteen-weather-label{
-  font-size:10.5px!important;
+  font-size:11px!important;
   max-width:28ch!important;
  }
  html[data-mid-design='next'] .cockpit-fourteen-temps>b,
@@ -25406,10 +25407,10 @@ html[data-mid-design='next'] .cockpit-focus-card.fourteen.mid-forecast-row-detai
   gap:4px 7px!important;
  }
  html[data-mid-design='next'] .cockpit-fourteen-compact-meta b{font-size:10.5px!important}
- html[data-mid-design='next'] .cockpit-fourteen-compact-meta small{font-size:9.5px!important}
- html[data-mid-design='next'] .cockpit-fourteen-sun-uvi>b{font-size:10px!important}
- html[data-mid-design='next'] .cockpit-fourteen-sun-uvi>small{font-size:9.5px!important}
- html[data-mid-design='next'] .cockpit-fourteen-inline-cue{font-size:9px!important}
+ html[data-mid-design='next'] .cockpit-fourteen-compact-meta small{font-size:10.5px!important}
+ html[data-mid-design='next'] .cockpit-fourteen-sun-uvi>b{font-size:10.5px!important}
+ html[data-mid-design='next'] .cockpit-fourteen-sun-uvi>small{font-size:10.5px!important}
+ html[data-mid-design='next'] .cockpit-fourteen-inline-cue{font-size:10.5px!important}
  html[data-mid-design='next'] .cockpit-focus-card.fourteen.mid-forecast-row-detail.compact{
   grid-template-columns:minmax(0,1fr)!important;
  }
