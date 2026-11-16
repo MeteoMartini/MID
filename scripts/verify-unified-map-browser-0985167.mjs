@@ -757,6 +757,52 @@ async function verifyHomeEndControlledSeek(){
 }
 
 
+
+/** Real Chromium at desktop width: SVG flags must be visible both in the
+ * selected model and in ALL choices, with keyboard and mobile containment.
+ */
+async function verifyDesktopModelFlags(){
+ const page=await browser.newPage({viewport:{width:1440,height:900},colorScheme:'light'});
+ try{
+  await page.goto(base+'/__map-qa?flag-probe');
+  const trigger=page.getByRole('button',{name:'Modell für Parameter',exact:true});
+  await trigger.waitFor({timeout:15000});
+  assert.equal(await trigger.getAttribute('data-model-id'),'icon-d2');
+  assert.equal(await trigger.locator('svg.mid-map-model-flag').count(),1,
+   'Desktop selected model shows a real SVG German flag, no Windows emoji dependency');
+  await trigger.click();
+  const options=page.locator('.mid-map-model-picker-option');
+  assert.equal(await options.count(),4,'All four known flag identities available in the desktop model popup');
+  assert.equal(await options.locator('svg.mid-map-model-flag').count(),4,
+   'German, EU, US, Canadian flags render as SVG in the actual open dropdown');
+  assert.ok(await options.evaluateAll(nodes=>nodes.every(node=>node.getBoundingClientRect().height>=44)),
+   'All graphical model options satisfy 44px touch/keyboard targets');
+  await page.locator('.mid-map-model-picker-option[data-model-id="ifs"]').click();
+  assert.equal(await trigger.getAttribute('data-model-id'),'ifs',
+   'Clicking the EU-flag option retains original model ID');
+  assert.equal(await page.getByTestId('qa-model-choice').textContent(),'ifs');
+  await trigger.press('ArrowDown');
+  await page.locator('.mid-map-model-picker-option').first().waitFor();
+  await page.keyboard.press('End');
+  assert.equal(await options.last().evaluate(node=>document.activeElement===node),true,
+   'Keyboard End focuses last listed source without changing selected model');
+  await page.keyboard.press('Escape');
+  assert.equal(await trigger.getAttribute('aria-expanded'),'false',
+   'Escape closes menu; selected value stays unchanged');
+  assert.equal(await trigger.evaluate(node=>document.activeElement===node),true,
+   'Escape restores keyboard focus to model trigger');
+  await page.setViewportSize({width:320,height:640});
+  await trigger.click();
+  const geometry=await page.locator('.mid-map-model-picker-menu').evaluate(node=>({
+   box:node.getBoundingClientRect().toJSON(),
+   pageOverflow:document.documentElement.scrollWidth>window.innerWidth+1
+  }));
+  assert.equal(geometry.pageOverflow,false,'Small mobile screens never overflow because of graphical popup');
+  assert.ok(geometry.box.width>200&&geometry.box.right<=321,'Popup stays within 320px viewport');
+  console.log('QA desktop 1440px SVG model flags and keyboard/mobile picker passed');
+ }finally{await page.close()}
+}
+
 /** Actual CurrentSurroundings -> full MapWorkspacePanel -> RadarPanel handoff.
  * Exercises both MapLibre lifecycles and forwards the original geographic
  * bounds/time. This was previously completely untested by the map pilot.
@@ -794,7 +840,7 @@ async function verifySurroundingsOpenMap(){
 
 const focusedCases=process.env.GITHUB_ACTIONS!=='true'&&process.env.MID_MAP_QA_FOCUSED==='1'?[320,390,430,1024,1440].flatMap(width=>['light','dark'].map(theme=>({width,theme,design:'next'}))):null;
 const assignedCases=seasonalDraftPilot?seasonalDraftKeys.map(key=>seasonalDraftAllowed.get(key)):focusedCases??mapBrowserCases(process.env.MID_MAP_QA_SHARD);
-try{await verifySurroundingsOpenMap();await verifyHomeEndControlledSeek();for(const {width,theme,design} of assignedCases)if(design==='next'&&[320,390,430,834].includes(width))await verifySurroundings(width,theme);for(const width of [...new Set(assignedCases.map(row=>row.width))]){const variants=assignedCases.filter(row=>row.width===width),concurrency=mapBrowserCaseConcurrency(width);/* Bound synthetic MapLibre software-GPU contention; all cases and all assertions remain mandatory. */for(let offset=0;offset<variants.length;offset+=concurrency){const results=await Promise.allSettled(variants.slice(offset,offset+concurrency).map(({theme,design})=>verifyCase(width,theme,design)));for(const result of results)if(result.status==='rejected')throw result.reason;}}assert.equal(cases,assignedCases.length,'Complete assigned viewport/theme/design coverage');if(perfEnabled&&mapBrowserMemoryProbe(process.env.MID_MAP_QA_SHARD))await verifyCase(390,'light','next',true);if(perfRows.length){
+try{await verifyDesktopModelFlags();await verifySurroundingsOpenMap();await verifyHomeEndControlledSeek();for(const {width,theme,design} of assignedCases)if(design==='next'&&[320,390,430,834].includes(width))await verifySurroundings(width,theme);for(const width of [...new Set(assignedCases.map(row=>row.width))]){const variants=assignedCases.filter(row=>row.width===width),concurrency=mapBrowserCaseConcurrency(width);/* Bound synthetic MapLibre software-GPU contention; all cases and all assertions remain mandatory. */for(let offset=0;offset<variants.length;offset+=concurrency){const results=await Promise.allSettled(variants.slice(offset,offset+concurrency).map(({theme,design})=>verifyCase(width,theme,design)));for(const result of results)if(result.status==='rejected')throw result.reason;}}assert.equal(cases,assignedCases.length,'Complete assigned viewport/theme/design coverage');if(perfEnabled&&mapBrowserMemoryProbe(process.env.MID_MAP_QA_SHARD))await verifyCase(390,'light','next',true);if(perfRows.length){
  const rows=perfRows.sort((a,b)=>a.width-b.width||a.theme.localeCompare(b.theme)||a.design.localeCompare(b.design));
  const report={schema:'mid.map.runtime.fixture.v2',version:JSON.parse(readFileSync(new URL('../package.json',import.meta.url))).version,commit:process.env.GITHUB_SHA||null,shard:process.env.MID_MAP_QA_SHARD||'all',kind:'synthetic-Vite-MapLibre-fixture-not-user-CWV',cases:rows};
  const serialized=JSON.stringify(report),safeShard=String(report.shard).replace(/[^A-Za-z0-9_-]/g,'_');
