@@ -22,7 +22,10 @@ jobs:
     name: PR mergen, Release-ZIP erzeugen und Installer starten
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'pull_request'
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      (startsWith(github.event.workflow_run.head_branch, 'chatgpt/') ||
+       startsWith(github.event.workflow_run.head_branch, 'codex/'))
     runs-on: ubuntu-latest
     timeout-minutes: 15
 

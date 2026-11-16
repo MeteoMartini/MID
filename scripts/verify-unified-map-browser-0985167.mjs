@@ -657,22 +657,39 @@ async function verifySurroundings(width,theme){
   await page.locator('.current-surroundings-center-dot').waitFor({timeout:30000});
   assert.equal(await page.locator('.current-surroundings-orientation').count(),0,'Obsolete hand-drawn borders must not return');
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
-  const select=page.getByLabel('Radar-Nowcast-Termin');
-  for(const control of [select,page.getByRole('button',{name:'Jetzt',exact:true}),page.getByRole('button',{name:'Karte öffnen',exact:true})]){
-   assert.ok((await control.boundingBox())?.height>=44,'Umfeld controls require a 44px hit area');
+
+  const radarTimeline=page.locator('.current-surroundings-cloud-timeline');
+  const radarRange=radarTimeline.locator('input[type="range"]');
+  const radarPrev=page.getByRole('button',{name:'Radar und Satellit 15 Minuten zurück',exact:true});
+  const radarNext=page.getByRole('button',{name:'Radar und Satellit 15 Minuten vor',exact:true});
+  await radarRange.waitFor();
+  assert.equal(await radarRange.inputValue(),'0','Radar/Sat starts at current observed target');
+  for(const control of [radarRange,radarPrev,radarNext,page.getByRole('button',{name:'Jetzt',exact:true}),page.getByRole('button',{name:'Karte öffnen',exact:true})]){
+   assert.ok((await control.boundingBox())?.height>=44,'Radar 15-minute controls require 44px touch targets');
   }
+  const radarBounds=await radarTimeline.evaluate(el=>({overflow:el.scrollWidth>el.clientWidth+1}));
+  assert.equal(radarBounds.overflow,false,'Radar timeline must not overflow small screens');
   const map=page.locator('.current-surroundings-map');
   const before=await map.boundingBox();
-  await select.selectOption(String(Date.parse(future)));
+  await radarNext.click();
+  assert.equal(await radarRange.inputValue(),'1','Exactly +15 min radar step');
+  assert.match(await radarTimeline.locator('output').innerText(),/in 15 min/);
   await page.getByRole('status').filter({hasText:'DWD-Radar · Nowcast'}).waitFor();
-  assert.deepEqual(await map.boundingBox(),before,'Nowcast preserves the preview extent');
+  assert.deepEqual(await map.boundingBox(),before,'Nowcast preserves surroundings map extent');
   await page.getByRole('button',{name:'Karte öffnen',exact:true}).click();
   const handoff=await page.evaluate(()=>JSON.parse(document.body.dataset.surroundingsHandoff));
-  assert.equal(handoff.time,Date.parse(future));
+  assert.equal(handoff.time,Date.parse(future),'Main map receives true NOWCAST source timestamp');
   assert.equal(handoff.bounds.west,7.14-1.4);
   assert.equal(handoff.bounds.south,50.82-.65);
-  await page.getByRole('button',{name:'Jetzt',exact:true}).click();
+  await radarPrev.click();
+  assert.equal(await radarRange.inputValue(),'0','Back to the current observed source');
   await page.getByRole('status').filter({hasText:'DWD-Radar · Beobachtung'}).waitFor();
+  await radarPrev.click();
+  assert.equal(await radarRange.inputValue(),'-1','Historical radar target exactly −15 min');
+  assert.match(await radarTimeline.locator('output').innerText(),/vor 15 min/);
+  await radarNext.click();
+  assert.equal(await radarRange.inputValue(),'0');
+  await page.getByRole('button',{name:'Jetzt',exact:true}).click();
   assert.deepEqual(errors,[]);
   console.log(`Surroundings: ${width}px ${theme} passed`);
  }finally{await context.close()}

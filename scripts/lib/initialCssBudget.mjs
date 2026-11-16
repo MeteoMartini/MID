@@ -8,6 +8,16 @@ export function initialCssAssetStats(html,assets){
   const href=tag.match(/\bhref\s*=\s*(?:"([^"]*)"|'([^']*)')/i),url=href?.[1]??href?.[2];
   if(!url)throw new Error('Initiales Stylesheet ohne href im Produktions-HTML.');
   if(/^(?:https?:)?\/\//i.test(url)||url.startsWith('data:'))throw new Error('Externes oder eingebettetes Start-CSS liegt außerhalb des MID-Assetbudgets: '+url);
+  // WHATWG URL parsing normalizes literal AND encoded dot segments first.
+  // Validate the decoded input path before normalization to avoid accepting
+  // disguised ../ traversals as legitimate startup CSS budget entries.
+  let decodedInputPath;
+  try{decodedInputPath=decodeURIComponent(url.split(/[?#]/,1)[0]);}
+  catch{throw new Error('Ungültige Kodierung im initialen CSS-Pfad: '+url);}
+  if(/%(?:2f|5c)/i.test(url)||decodedInputPath.includes('\\')||
+    decodedInputPath.split('/').some((segment,index)=>segment==='..'||(segment==='.'&&index>0))){
+   throw new Error('Unsicherer initialer CSS-Pfad: '+url);
+  }
   const parsed=new URL(url,'https://mid-local.invalid/'),name=decodeURIComponent(parsed.pathname).replace(/^\/+/,''),entry=byName.get(name);
   if(!entry)throw new Error('Initiales CSS-Asset fehlt im Produktionsbuild: '+name);
   if(seen.has(name))continue;
