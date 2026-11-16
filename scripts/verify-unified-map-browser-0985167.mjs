@@ -676,7 +676,10 @@ async function verifySurroundings(width,theme){
   page.on('request',request=>{if(request.url().includes('__qa-worker'))requests.push(request.url().slice(0,450))});
   await page.route('**/__qa-worker?**',async route=>{
    const url=new URL(route.request().url()),mode=url.searchParams.get('mode');
-   if(mode==='composite-times')return route.fulfill({json:{dwdRadar:[observed],dwdRadarNowcast:[future]}});
+   if(mode==='composite-times')return route.fulfill({json:{dwdRadar:[observed],dwdRadarNowcast:[future],
+    satelliteRgbProduct:{provider:'eumetsat',layer:'mtg_fd:rgb_geocolour',label:'MTG GeoColour',times:[new Date(now-30*60000).toISOString()],timeVerified:true,fresh:true},
+    satelliteIrProduct:{provider:'eumetsat',layer:'mtg_fd:ir105_hrfi',label:'MTG IR 10,5',times:[observed],timeVerified:true,fresh:true}
+   }});
    if(mode==='composite-wms')return route.fulfill({body:magentaWms,contentType:'image/png'});
    return route.fulfill({json:{error:'Unavailable in surroundings fixture'}});
   });
@@ -740,6 +743,11 @@ async function verifySurroundings(width,theme){
    })).catch(e=>({inspectionError:String(e)}));
    throw new Error('Umfeld-Radar-Fixturnier (echte Bilddaten erforderlich): '+JSON.stringify({state,requests:requests.slice(-16),pageErrors:errors})+'; Ursache: '+String(error));
   }
+  // #853: catalog RGB is stale, so the genuine time-matching IR original must be used.
+  await page.waitForFunction(()=>document.querySelector('.current-surroundings-sources')?.textContent?.includes('Infrarot (IR)'),null,{timeout:30000});
+  const originalSatelliteRequests=requests.map(value=>new URL(value)).filter(url=>url.searchParams.get('mode')==='composite-wms'&&url.searchParams.get('layers')?.startsWith('mtg_fd:'));
+  assert.ok(originalSatelliteRequests.some(url=>url.searchParams.get('layers')==='mtg_fd:ir105_hrfi'),'Real Chromium requests the time-matching IR source');
+  assert.equal(originalSatelliteRequests.some(url=>url.searchParams.get('layers')==='mtg_fd:rgb_geocolour'),false,'A stale RGB catalog entry cannot suppress the valid IR original');
   // #853: actual Chrome GPU readback and real WMS source/quad geometry, not a CSS-only assertion.
   await assertSurroundingsViewportPixels(page,requests,width,theme);
   // #795/.478 replaces the old approximate SVG borders with the real MapLibre vector basemap.
