@@ -173,6 +173,34 @@ async function oneIntegrated(width,height,theme){
   // Keep the text-only stress stylesheet active across asynchronous React re-renders.
   // This is NOT native user-agent zoom: it exercises the existing responsive CSS layout.
   await page.addStyleTag({content:`.cockpit-fourteen-day .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-heading-copy > .cockpit-fourteen-weather-label{font-size:${base*2}px!important;}`});
+  // CSSOM cascade timing diagnosis: a running CSS transition outranks even
+  // author !important declarations (MDN CSS Cascade). A 0-ms getComputedStyle
+  // readback is NOT proof that a settled 200% text rule was ignored.
+  const cssArrival=await page.evaluate(()=>{
+   const label=document.querySelector('.cockpit-fourteen-card .cockpit-fourteen-weather-label');
+   const cs=getComputedStyle(label);
+   return {immediateFont:cs.fontSize,transitionProperty:cs.transitionProperty,
+    transitionDuration:cs.transitionDuration,transitionDelay:cs.transitionDelay,
+    animationName:cs.animationName,animationDuration:cs.animationDuration,
+    runningAnimations:label.getAnimations().map(a=>({kind:a.constructor.name,playState:a.playState,transitionProperty:a.transitionProperty||null}))};
+  });
+  // Wait for the actual CSS computed result (no fixed animation delay, no mock).
+  // This is a strictly stronger condition than merely locating the injected rule.
+  try{
+   await page.waitForFunction(target=>{
+    const label=document.querySelector('.cockpit-fourteen-card .cockpit-fourteen-weather-label');
+    return label&&Number.parseFloat(getComputedStyle(label).fontSize)>=target;
+   },base*2-.5,{timeout:3500,polling:40});
+  }catch(error){
+   throw new Error('Real Chromium 200% CSS font never settled: '+JSON.stringify({
+    width,theme,base,arrival:cssArrival,current:await page.locator('.cockpit-fourteen-card .cockpit-fourteen-weather-label').evaluate(n=>({
+     font:getComputedStyle(n).fontSize,transition:getComputedStyle(n).transition,animations:n.getAnimations().map(a=>({kind:a.constructor.name,state:a.playState}))}))
+   })}),{cause:error});
+  }
+  const cssSettled=await page.locator('.cockpit-fourteen-card .cockpit-fourteen-weather-label').evaluate(n=>({
+   font:getComputedStyle(n).fontSize,transitions:n.getAnimations().map(a=>({kind:a.constructor.name,state:a.playState}))
+  }));
+  console.log('MID design14 CSSOM font transition '+width+' '+theme+': '+JSON.stringify({arrival:cssArrival,settled:cssSettled}));
   const enlarged=await page.evaluate(()=>{
    const card=document.querySelector('.cockpit-fourteen-card'),label=card.querySelector('.cockpit-fourteen-weather-label');
    const box=card.getBoundingClientRect(),text=label.getBoundingClientRect(),range=document.createRange();range.selectNodeContents(label);
