@@ -1,3 +1,10 @@
+## MID v0.9.85.487 · LC 1.11 / #855 – disjunkter Performance-Intake in gemeinsamen QA-Train (SOURCE-DRAFT, KEIN RELEASE)
+
+- Quellbasis `main=mid-stable=a78465b655d25cafc9ecc0390080694cb7aca957`, veröffentlichte .486; LC-Intake [#858](https://github.com/MeteoMartini/MID/pull/858) ursprünglich `d28d8f66f4911851162d04636ac5bb10eafa6803`, Spezial-Draft [#855](https://github.com/MeteoMartini/MID/pull/855) exakt `0b0b30f5b4e4179206fd5f227cfee3ad2297fdba`. 13 geänderte disjunkte Pfade; Original-Git-Blobs ohne Reformat/Reimplementierung eingebracht. Weitere #854/#857-Quellen unangetastet. Fünf Branch-Rulesets aktiv.
+- Produktcode: visuelles Ensemble-Preloading von meteorologischen Ensemble-Datenrequests getrennt; spekulative Karten-Idle-Imports nur mit bestehender gespeicherter Kartenansicht; Data-Saver/2G unterbindet optionale Splash-UI-Imports; 45-s-Startup-Preload-Referenzen werden nach Ablauf oder Abort identitätssicher freigegeben. React.lazy-/Touch-/Fokus-/aktive Kartenpfade sowie Wetterquellen, NoData, RUC, DWD-Warnungen, PWA/Worker und Limits unverändert.
+- Original-QA: neues Unitpaket für Intent, Ablauf, Abort/Restart, Browser-Moduleimport-Probe und vorhandene harte Startup-/Location-/Map-Regressionen. Spezial-Draft-HEAD hatte alle 3 ausgeführten QA-Jobs SUCCESS, einschließlich SHA-gebundenem Diagnosebuild; eigenständige vollständige App-A/B-, RAM-/GPU-/Offline-/iOS-/VoiceOver-Messungen und Full-Source-/Heavy-/Installer-Gates weiterhin offen. Einzelerfolge gelten **nicht** für diesen kombinierten Head, dessen CI frisch erforderlich ist.
+- Zur Abgrenzung: #856 (#853 Radar/Sat-Viewport) überschneidet sich mit #854 in CurrentSurroundings und Browser-QA, bleibt separat; #740/#839 Release-Sicherheit wird vom Spezial-Chat bearbeitet und nicht integriert. Kein Release, kein ZIP und keine Stable-Promotion.
+
 ## MID v0.9.85.487 · LC 1.11: SHA-gebündelter #854/#857-Integrationsstand (QA-DRAFT, NO RELEASE)
 
 - Verifizierte Basis `main=mid-stable=a78465b655d25cafc9ecc0390080694cb7aca957`; fünf aktive Rulesets; Spezial- und Security-Aufgaben separat.

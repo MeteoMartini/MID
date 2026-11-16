@@ -1,0 +1,46 @@
+# MID Design 1.5 – nutzerintentionsgebundene Vorladung großer UI-Module (QA-Draft)
+
+## Ausgangsbasis und Rollen
+16.11.2026, main=mid-stable `a78465b655d25cafc9ecc0390080694cb7aca957`, veröffentlichte Version `0.9.85.486`, fünf aktive Schutz-Rulesets. Die Karten-Spezialarbeiten #850/#852 überschneiden sich nicht mit diesen App-/Startup-Pfaden. Performance-Diagnose #851 bleibt separat. **Keine Versionserhöhung oder Release in diesem Draft.**
+
+## Identifizierter unnötiger Vorladepfad
+`src/startupPreload.ts` nutzt `wantsStartupEnsemble()` für fachliche Ensemble-Datenanforderungen und bisher für den EnsemblePanel-Import. Der standardmäßig aktivierte Wetterzwilling kann dadurch den über 100 KB großen, deferred EnsemblePanel-Chunk ohne explizite Ansicht vorladen. `src/App.tsx` kann nach 2,5 Sekunden im Leerlauf `MapWorkspacePanel`, `RadarPanel` und `UnifiedWeatherMap` auch ohne früheren Kartenbesuch importieren. Die Vorladung bei Pointer/Focus/Down und einem tatsächlich sichtbaren Karten-Viewport bleibt bestehen.
+
+## Begrenzte Codekorrektur
+- Ensemble-Datenregel `wantsStartupEnsemble()`, sämtliche `forecast`/`station`/`radar`/`ensembles`-Requests und Abbruch-/Timeoutsemantik bleiben byte-identisch. Der schwere visuelle Chunk-Import wird durch `shouldPreloadEnsembleVisual` für dokumentierte Cockpit-, 14-Tage- und aktivierte Ensemble-Ansichten gesteuert. Beim tatsächlichen Öffnen lädt React.lazy den Renderer unverändert.
+- Der Map-Idle-Timer, seine Netzwerk-/Daten-/Visibility-Gates und sämtliche Intent-Handler bleiben unverändert. Nur bei nachgewiesenem früheren Kartenbereich im bestehenden lokalen `mid:last-dashboard-section:v1` (composite/weather-maps) darf Leerlaufvorladung stattfinden. Kein neuer Storage-Key, kein Schreiben, kein Tracking.
+- Keine CSS-Regel, Cascade-Quelle, PWA-Precache-Definition, Offlinefunktion, Worker, Wetterquelle, amtliche Warnung oder Buildbudget geändert.
+
+## Ergänzung: spekulative Splash-Visuals auf Data-Saver/2G unterbinden
+Die frühere Karte-Idle-Policy war bereits netzwerkbewusst; `preloadInterfaceChunks` im Splash umging dieses Gate jedoch für gespeichertes `composite` und explizite Ensemble-Visualpräferenzen. Der vorhandene boolesche `constrained`-Wert wird nun an die reine UI-Vorladung übergeben und blockiert **beide** optionalen UI-Imports auf Data-Saver/2G. Diese Bedingung greift vor Lesen der UI-Vorladungspräferenzen. Die separaten fachlichen Forecast-/Stations-/Radar-/Ensemble-Datenrequests inklusive Source, Priority, Abort und Timer bleiben unverändert, ebenso die React.lazy-/Fokus-/Touch-/Viewport-Bedarfspfade. Zwei originale Tests prüfen die Policy und dass der boolesche Wert wirklich an den UI-Pfad weitergereicht wird. Eine echte RAM-/Transferreduktion und Ersttipperparität auf langsamer Verbindung bleibt ein eigener A/B-Beleg.
+
+## Qualität / Grenzen
+`tests/unit/mid-visual-prefetch-intent.test.ts` und `scripts/test-c14-map-workspace-098534.mjs` prüfen erlaubte und fehlende Präferenzen, Kartenintent, negative Kontexte und Erhalt vorhandener UI-Intentpfade. Echter Vite-Produktionsbuild, Budgetvergleich, vollständige Regression, Netzwerk-/Heap-Kalt-/Warmcache-A/B und Desktop/iOS-Sichtparität sind eigene Freigabekriterien. Nur tatsächlich ausgeführte Gates gelten als grün. Statische Chunkgrenzen sind kein RAM-Nachweis.
+
+## Abnahmefolge
+Draft-CI einschließlich echtem Diagnosebuild → Vergleich exakt gegen .486-Stable unter gleicher NODE_ENV/VITE-Konfiguration → 390/430/834/1440 CSS-Pixel, Light/Dark, gespeicherte Karten-/Ensemble-Präferenzen, Ersttipper/Focus, Offline-Reopen, 20x Navigationswechsel/Post-GC → Leitchat-Source-PR-Gate, SHA-Merge, ZIP, Installer, Worker/Pages, Stable. Kein Ready/Merge/Release ohne diese Prüfungen.
+
+## Neuer reproduzierbarer, isolierter Original-Vite-JS-/CSS-Importversuch
+Der vorhandene `MID Draft · unabhängiger CSS/JS-Diagnosebuild` ruft über seinen bereits aktiven Budget-Test **nur bei SHA-gebundenen `chatgpt/*-performance-*`-Drafts** zusätzlich `scripts/measure-map-prefetch-browser-0985489.mjs` auf. Weder Workflow noch Budgetgrenze wurden geändert. Der Test bestätigt zuerst den gesamten originalen `dist`-Fingerprint samt Commit-SHA, startet einen lokalen HTTP-Server ohne Service Worker, lädt eine minimale Chromium-Seite und überwacht CDP-Network-Events sowie HeapProfiler/Runtime. Nach 2,8 s ohne Aufruf dürfen keine originalen Karten-JS-/CSS-Dateien geladen sein; danach werden **die drei echten gebauten Vite-Module** MapWorkspacePanel/RadarPanel/UnifiedWeatherMap dynamisch importiert und die tatsächlichen durch ihren statischen Importgraph angeforderten JS-Dateien einschließlich MapLibreCore auf HTTP 200/Cache-/Fehlerstatus, gzip-Body-Summe, CDP-kodierte Transfergröße, Importdauer und vor/nach erzwungener GC gemessenen JS-Heap geprüft. Ergebnis: `artifacts/map-prefetch-import-evidence-0985489.json` und der GitHub-Actions-Logmarker `MID_MAP_MODULE_IMPORT_EVIDENCE`.
+
+**Geltungsgrenzen:** Das Ergebnis misst den *Kostenblock eines isolierten echten Produktionsmodulimports*, nicht den RAM-Verbrauch der vollständigen MID-App, die Einsparung im Feld, einen Stable-vs-PR-A/B-Netztransfer, Service-Worker-Effekte, das Verhalten des ersten tatsächlichen Kartentipps oder die native iOS/GPU-Leistung. Keine willkürliche Null-/Leak-/Verbesserungsbehauptung; Browser-/Build-/SHA-Fehler brechen fail-closed ab. Ein A/B-Vergleich zweier unterschiedlicher SHAs erfordert zwei eigenständige Fingerprint-geprüfte Builds unter identischen VITE_-/Browser-/Netzbedingungen und reale App-Interaktionsfälle. Bis dahin verbleibt der PR Draft.
+
+
+## MID Design 1.6 · Lebenszyklus-Härtung des Splash-Preloads (QA-Nachtrag)
+
+**Vorgehensweise:** Ergänzung auf demselben `chatgpt/v0.9.85.487-performance-intent-prefetch-qa`-Draft; der veröffentlichte v0.9.85.486-Stable bleibt unangetastet. Der Datenpfad `wantsStartupEnsemble()`, alle Wetter-Requests, AbortController, Timeouts, Standortschlüssel und Forecast-/Radar-/Stations-/Ensemble-Werte bleiben unverändert.
+
+**Identifizierte Referenzhaltung:** `src/startupPreload.ts` behielt die ganze `active`-Struktur mit großen, bereits erfüllten Promise-Ergebnissen bisher bis zum nächsten Startaufruf im Modul-Singleton. Alle Verbrauchsfunktionen verweigern die Wiederverwendung nach 45 Sekunden bereits seit Langem. Neu wird der Singletons-Verweis nach derselben Lebensdauer freigegeben, sofern er weiterhin genau auf den betroffenen Datensatz zeigt. Beim Ortswechsel wird der vorherige Ablaufzeitgeber storniert. Das ist eine Referenz-Lebenszykluskorrektur, kein gemessener RAM-/Leak-Nachweis: Weitere Cache-/React-Referenzen können dieselben Objekte weiterhin halten. Keine neue Datenberechnung.
+
+**Veralteter UI-Import:** Beim Standortwechsel/`abort()` könnte eine ausstehende `Promise.race` noch nachträglich `preloadInterfaceChunks` aufrufen, weil ein dynamischer Import ohne Nutzeransicht nicht an den Standort-Controller gekoppelt war. Ein lokales Abbruch-Flag verhindert nur diesen *noch nicht begonnenen optionalen* Import; laufende `import()`-Aufrufe lassen sich dadurch nicht abbrechen. Expliziter Touch-, Fokus-, Viewport- und React.lazy-Ansichtsbedarf bleibt unabhängig und unverändert.
+
+**Testumfang:** Bestehende harte Splash- und Intent-Regressionen mit zusätzlicher Retention-/Abort-Prüfung; neuer Vitest-Test `tests/unit/mid-startup-preload-lifecycle-qa.test.ts` mit Fake-Timern und gemockter fachlicher Daten-I/O für 44.999/45.000 ms, Ortswechsel und abgebrochene Karten-UI-Vorladung. Dies ist keine reale WebKit-/Netzwerk-/GPU-/Heap-A/B-Qualifizierung.
+
+**Freigabegates:** Exakte aktuelle Branch-HEAD-Vitest/Target-Regressions/TypeScript/Produktions-Diagnosebuild ablesen; dann echte Stable-vs-Draft-App-A/B-Messung und 20-Zyklen-Post-GC mit aufgezeichnetem identischem Wetterfixture, CSS-Parität, Offline/Reopen, Touch/Fokus/Light/Dark/320–1440px und native iOS-/VoiceOver-Abnahme. Solange das fehlt: QA-DRAFT, **kein READY, kein MERGE/RELEASE**.
+
+
+## MID Design 1.6 · zusätzlicher Abbruch-/Neustartfall
+
+Die Lifecycle-Qualifizierung deckte einen zweiten, zuvor ungeschützten Pfad auf: Ein expliziter `active.abort()` stoppte Datencontroller und verzögerten UI-Warmup, beließ aber seinen Promise-Datensatz bis zum Ablauf der regulären 45-Sekunden-Frist im `active`-Singleton. Ein direkt folgender Start mit **demselben** gespeicherten Ort konnte deshalb die bereits abgebrochene Vorladung statt eines frischen Requests wiederverwenden. Der Abbruch löscht nun den zugehörigen `active`-Zeiger und dessen Ablaufzeitgeber **nur bei identischer Datensatzidentität**; ein inzwischen neuer Datensatz wird nicht verworfen. Bestehende Forecast-/Stations-/Radar-/Ensemble-Requestpfade bleiben unverändert.
+
+Ein zusätzlicher echter Vitest-Modultest mit gemockter meteorologischer Außen-I/O und Fake-Timern prüft genau diesen `abort → same-location restart`-Fall, ob die neue Anfrage ausgelöst wird und ihr eigener 45-Sekunden-Ablauf greift. Das ist eine funktionale Zuverlässigkeitsprüfung und **keine Messung von Heap-Reduktion, CSS-Code-Splitting oder WebKit-/iOS-Performance**. Der PR bleibt unabhängig vom Draft-CI-Ausgang **NO READY / NO RELEASE** bis zu finalen Source-, Heavy-, Browser-, Installer-, Worker-/Pages- und Stable-Gates.

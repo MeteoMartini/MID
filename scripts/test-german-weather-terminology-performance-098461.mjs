@@ -37,7 +37,8 @@ assert.ok(!app.includes('label(currentObservedWeatherCode)'),'Numerisches DWD-SY
 
 assert.ok(preload.includes('await delay(35)'),'Fast-Observation muss beim Start priorisiert werden.');
 assert.ok(preload.includes('await delay(constrained?650:440)'),'Ensemble-Start muss hinter den kritischen Istwetter-/Radar-Pfad rücken und Data-Saver respektieren.');
-assert.ok(preload.includes('radarRequest.promise,delay(700)]).then(()=>preloadInterfaceChunks(ensemble))'),'Nichtkritische Chunks müssen nach Forecast/Station oder spätestem Soft-Delay vorladen.');
+assert.ok(preload.includes('radarRequest.promise,delay(700)]).then(()=>invalidated?undefined:preloadInterfaceChunks(ensemble,constrained))'),'Nichtkritische Visual-Chunks bleiben nach Forecast/Station/Soft-Delay gestaffelt, nutzen jedoch zusätzlich das bestehende Data-Saver-/2G-Gate.');
+assert.ok(preload.includes('function preloadInterfaceChunks(ensemble:boolean,constrained:boolean){if(constrained)return Promise.resolve();'),'Auf eingeschränkten Verbindungen darf kein schwerer visueller Map-/Ensemble-Splash-Preload stattfinden; die meteorologischen Datenpfade bleiben davon getrennt.');
 assert.ok(app.includes('runFullStationAnalysis()},80)'),'Volle Hyperlokalanalyse muss nach dem Provisional-Pass zügig nachziehen.');
 
 console.log('German weather terminology + quality-neutral startup performance contract: OK');

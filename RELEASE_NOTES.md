@@ -1,5 +1,6 @@
 # MID v0.9.85.487
 
+- **Weniger unnötige Vorladungen großer Wettergrafiken.** Karten- und Ensemble-Module werden bei der Startvorladung nur dann spekulativ geladen, wenn dafür bereits eine passende Nutzeransicht gespeichert ist. Auf Daten-Sparverbindungen werden diese optionalen Vorladungen unterdrückt; echte Wetterdatenabrufe und das Öffnen der Ansichten bleiben unverändert.
 - **Korrekte Anbieterzeiten auch bei fehlenden Zeitmetadaten.** Viertelstunden-Sonnenscheinwerte werden nur mit bestätigtem UTC-Offset der richtigen Stunde zugeordnet; echte UTC-Null bleibt gültig, fehlende Daten werden nicht als null Sekunden ausgegeben.
 - **Umfeldwetter: Wolken und signifikantes Wetter besser nachvollziehbar.** Fehlt für die gewählte Viertelstunde ein bestätigtes Original, kann ein nachweislich früheres Bild ausdrücklich als Referenz angezeigt werden. Die gewählte Zielzeit bleibt als Datenlücke gekennzeichnet; es werden keine Wettercodes dazwischen erfunden.
 - **Kartenöffnung robuster.** Die große Karte begrenzt den Kamera-Zoom beim Übergang aus dem Umfeldwetter auf gültige Werte und behandelt die betreffenden Kartenbounds explizit.

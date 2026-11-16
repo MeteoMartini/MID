@@ -8,7 +8,8 @@
     "Bei fehlendem Viertelstunden-Wolken-/SigWx-Original wird gegebenenfalls ein geprüfter früherer Termin sichtbar als Referenz gekennzeichnet. Der gewählte Termin bleibt NoData.",
     "Modellflaggen werden auf Desktop als Vektorsymbole angezeigt, ohne die meteorologische Modellpriorität zu ändern.",
     "Die zusätzlichen QA-Werkzeuge prüfen Originalbild-Integrität und statische Start-JavaScript-Abhängigkeiten, ohne ungemessene Performance oder neue Wetterdaten zu versprechen.",
-    "Zeitangaben in der Prognose werden bei unvollständigen Anbieter-UTC-Metadaten konservativer behandelt: Sonnenschein-Viertelstunden bleiben ohne verifizierte Zeitzuordnung unverfügbar statt auf vermeintliches UTC zu fallen."
+    "Zeitangaben in der Prognose werden bei unvollständigen Anbieter-UTC-Metadaten konservativer behandelt: Sonnenschein-Viertelstunden bleiben ohne verifizierte Zeitzuordnung unverfügbar statt auf vermeintliches UTC zu fallen.",
+    "Weniger spekulatives Laden auf der Startseite: Große Karten- und Ensemble-Darstellungen werden nur passend zu bereits bekannten Nutzungsabsichten vorgeladen; die eigentlichen Wetterdaten bleiben unabhängig."
   ],
   "internal": [
     "Basis Stable a78465b655d25cafc9ecc0390080694cb7aca957 v0.9.85.486, QA-Integrationshead 18a587ad482a82d6d20e394580955c2559077e9c.",
@@ -16,6 +17,7 @@
     "27 disjunkte Original-Git-Blobs + ein paarweise/kommutativ SHA-verifizierter Browser-QA-Merge, Blob dd99696c345c2efaf35eb12767a0884b72f6fbc0.",
     "NoData/Run/UTC/Bildprovenienz und Source-Warnung nicht umklassifiziert. #853 breites BBox offen; Design-Prefetch #855 separat; #740 Release-Sicherheit vollständig ausgenommen.",
     "Keine Freigabe vor finalem Source-/Core-/Heavy-/Review-/ZIP-/Installer-/Worker-/Pages-/Stable-Gate. Echte native iOS/Windows/VoiceOver-Abnahme nicht behauptet.",
-    "#857 SHA 204aad6bb1c0745a388d751814cccc2cb40d38a0: originale Wetter-Zeitfragmente, generierter Weather-Blob und vorhandene Provider-DST-Pflichtregression selektiv zum versionierten #854-Stand SHA 897ccbb90aa06926ab7b7245f2d370dd19e74c9c übernommen, ohne Dateikonflikte. Kombinierte CI/Release-Gates weiterhin erforderlich."
+    "#857 SHA 204aad6bb1c0745a388d751814cccc2cb40d38a0: originale Wetter-Zeitfragmente, generierter Weather-Blob und vorhandene Provider-DST-Pflichtregression selektiv zum versionierten #854-Stand SHA 897ccbb90aa06926ab7b7245f2d370dd19e74c9c übernommen, ohne Dateikonflikte. Kombinierte CI/Release-Gates weiterhin erforderlich.",
+    "MID Design 1.6 #855 HEAD 0b0b30f5b4e4179206fd5f227cfee3ad2297fdba: 13 Original-Git-Blobs (keine Überschneidung mit #858 d28d8f66f4911851162d04636ac5bb10eafa6803), Intent-/Splash-Preload-/Startup-Lease-45s-/Abort-Härtung und SHA-gebundener isolierter Browser-Modulimport-QA. Draft-Sondertests separat erfolgreich; kombiniert vollständig erneut prüfen, keine Full-App-RAM-A/B-Behauptung."
   ]
 }

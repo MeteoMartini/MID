@@ -23,8 +23,9 @@ const header=app.slice(app.indexOf('function Header('),app.indexOf('function car
 assert.doesNotMatch(header.slice(header.indexOf('useEffect(()=>{const requestId='),header.indexOf('useEffect(()=>{if(!open)')),/setOpen\(true\)/,'Async query lifecycle must never open picker');
 assert.doesNotMatch(header,/setTimeout\(\(\)=>inputRef\.current\?\.blur/,'Closing must finish blur before the next focus');
 const navigation=app.slice(app.indexOf('function DashboardSectionNavigation('),app.indexOf('function eventCenterDateLabel('));
-const entry=`import React,{useState,useEffect,useRef,useMemo}from'react';import{createRoot}from'react-dom/client';import{createPortal}from'react-dom';import{Search,X,LocateFixed,Star,Settings2,RefreshCw,Menu,Sun,Clock3,CalendarDays,Monitor,CalendarRange}from'lucide-react';import{SelectedPlaceBar}from'./src/SelectedPlaceBar';import{useBottomNavigationAnchor}from'./src/useBottomNavigationAnchor';import{mayWarmMapDuringIdle}from'./src/mapIdlePreload';
-const noop=()=>{},VERSION='fixture',useAppLayerFocus=noop,useActiveItemReveal=noop,warmCompositePanel=noop,persistLastPrimaryNavigationArea=noop,primaryNavigationAreaForSection=x=>x,dashboardNavIcon=()=>null,FavoriteQuickStrip=()=>null,PwaInstallButton=()=>null,EventCenterHeaderButton=()=>null,favoriteLocation=x=>x,matchingStoredFavorite=(f,c)=>f.find(x=>x.location.name===c?.name),favoriteLabel=f=>f.alias||f.location.name;
+const entry=`import React,{useState,useEffect,useRef,useMemo}from'react';import{createRoot}from'react-dom/client';import{createPortal}from'react-dom';import{Search,X,LocateFixed,Star,Settings2,RefreshCw,Menu,Sun,Clock3,CalendarDays,Monitor,CalendarRange}from'lucide-react';import{SelectedPlaceBar}from'./src/SelectedPlaceBar';import{useBottomNavigationAnchor}from'./src/useBottomNavigationAnchor';import{mayWarmMapDuringIdle}from'./src/mapIdlePreload';import{isMapRevisitIntent}from'./src/visualPreloadIntent';
+const noop=()=>{},VERSION='fixture',useAppLayerFocus=noop,useActiveItemReveal=noop,warmCompositePanel=()=>{window.__warmCount=(window.__warmCount||0)+1},persistLastPrimaryNavigationArea=noop,primaryNavigationAreaForSection=x=>x,dashboardNavIcon=()=>null,FavoriteQuickStrip=()=>null,PwaInstallButton=()=>null,EventCenterHeaderButton=()=>null,favoriteLocation=x=>x,matchingStoredFavorite=(f,c)=>f.find(x=>x.location.name===c?.name),favoriteLabel=f=>f.alias||f.location.name;
+const LAST_DASHBOARD_SECTION_KEY='mid:last-dashboard-section:v1';
 const ids=['current','short-term','forecast','ensemble','long-range','composite'],DASHBOARD_MODULE_DEFINITIONS=ids.map(id=>({id,label:id})),DASHBOARD_NAV_GROUPS=[],MODERN_MAP_MODULES=['composite'];
 window.__pending=[];window.__reject=[];const searchLocations=()=>new Promise((resolve,reject)=>{window.__pending.push(resolve);window.__reject.push(reject)});
 ${header}\n${navigation}
@@ -66,6 +67,18 @@ try{
   }
  };
  const tapSearch=async()=>{const point=await evaluate("(()=>{const r=document.querySelector('.search input').getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}})()");await cdp('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[point]});await cdp('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]})};
+ // Real React hook + browser-idle contract: a fresh dashboard must not eagerly warm map chunks.
+ await cdp('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+ await cdp('Page.navigate',{url});await waitInitialBars();
+ await evaluate("localStorage.removeItem('mid:last-dashboard-section:v1');window.__warmCount=0;true");
+ await new Promise(r=>setTimeout(r,3100));
+ assert.equal(await evaluate('window.__warmCount||0'),0,'Fresh dashboard must not warm map modules after idle without map-view intent');
+ // Saved map visit restores speculative warmup; first user gesture can still bypass the timer.
+ await evaluate("localStorage.setItem('mid:last-dashboard-section:v1','composite');true");
+ await cdp('Page.navigate',{url});await waitInitialBars();
+ await wait(async()=>Number(await evaluate('window.__warmCount||0'))>0,'saved map view triggers idle warmup',8000);
+ assert.deepEqual(errors,[],'Intent-gated browser navigation must not throw React runtime exceptions');
+ await evaluate("localStorage.removeItem('mid:last-dashboard-section:v1');true");
  for(const[width,height]of[[320,740],[390,844],[844,390],[768,1024],[1024,768],[1440,1000]])for(const theme of ['light','dark']){
  await cdp('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<1025});await cdp('Page.navigate',{url});await waitInitialBars();await evaluate(`document.documentElement.dataset.theme=${JSON.stringify(theme)};true`);await tapSearch();await wait(opened,'first tap opens picker');
  assert.equal(await evaluate("document.querySelector('.selected-place-bar')||document.querySelector('.mid-bottom-nav-fixed')?true:false"),false,'Both bars removed, including body portal');
