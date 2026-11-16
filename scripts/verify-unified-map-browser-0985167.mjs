@@ -654,7 +654,10 @@ async function assertSurroundingsViewportPixels(page,requests,width,theme){
   });
  });
  assert.equal(edgeColors?.error,undefined,JSON.stringify(edgeColors));
- const opaqueMagenta=p=>p[0]>=180&&p[1]<=90&&p[2]>=180&&p[3]>=200;
+ // Reference roads/labels can tint the sentinel, so check its distinctive
+ // magenta dominance rather than demanding exact RGB from a composited GPU pixel.
+ // Pale basemap pixels have no red/blue dominance over green and remain rejected.
+ const opaqueMagenta=p=>p[3]>=200&&p[0]>=170&&p[2]>=170&&p[0]-p[1]>=110&&p[2]-p[1]>=110;
  for(const edge of ['left','right','top','bottom','center'])
   assert.ok(edgeColors[edge].some(opaqueMagenta),
    `Real WebGL readPixels: opaque synthetic WMS image must reach ${edge} canvas zone at ${width}px/${theme}; ${JSON.stringify(edgeColors[edge])}`);
