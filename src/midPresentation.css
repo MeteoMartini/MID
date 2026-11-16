@@ -25437,6 +25437,30 @@ html[data-mid-design='next'] .cockpit-focus-card.fourteen.mid-forecast-row-detai
  }
 }
 
+/* MID Design 1.4: narrow phones give the complete weather description a full row. */
+@media(max-width:430px){
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row>header{
+  grid-template-columns:minmax(0,1fr) auto!important;
+  grid-template-areas:
+   "heading heading"
+   "temps confidence"!important;
+  align-items:start!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-heading{
+  min-width:0!important;
+  align-items:start!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-temps{
+  justify-self:start!important;
+  align-self:center!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-consistency-pill,
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-ensemble-badge{
+  justify-self:end!important;
+  align-self:center!important;
+ }
+}
+
 /* Keep forecast navigation inside the safe viewport and separate from its first heading. */
 @media(max-width:850px){
  html[data-mid-design='next'] .navigation-bottom-tabs .modern-forecast-horizons{
