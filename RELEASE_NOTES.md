@@ -1,5 +1,6 @@
 # MID v0.9.85.484
 
+- **Offline-Assets transparent geprüft:** Die technische Qualitätsprüfung trennt tatsächlich deklarierte Offline-Shell-Dateigrößen von Start-JavaScript und Start-CSS und erkennt außerdem unzulässige Preload-Mischdeklarationen. Es wird keine ungemessene Beschleunigung behauptet.
 - **Verlässlichere Startasset-Prüfung:** Die technischen Startbudgetkontrollen weisen auch kodierte unzulässige Dateipfade zurück und verwechseln sie nicht mit tatsächlich ausgelieferten JavaScript- oder CSS-Dateien.
 - **Umfeldkarte auch bei Radar-Ersatzdaten korrekt:** Die unabhängige europäische OPERA-Radarquelle sowie ihre Niederschlagsart verwenden jetzt eine an Ort, Kartenausschnitt und tatsächlichen Beobachtungstermin gebundene Bildidentität. Beim Wechsel wird kein altes Bild als neues ausgegeben.
 - **Lüftungsassistent startet gezielter:** Seine Bedienoberfläche wird erst beim Öffnen der bestehenden Sektion geladen. Nach vollständiger Offline-Installation bleibt der benötigte Code über den vorhandenen Offline-Mechanismus verfügbar; Wetter-/Sensorlogik und gespeicherte Einstellungen bleiben erhalten.
