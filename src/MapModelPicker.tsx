@@ -1,5 +1,6 @@
 import {useEffect,useId,useRef,useState,type KeyboardEvent} from 'react';
 import {ChevronDown,Check} from 'lucide-react';
+import {AppPortalPopover} from './AppPortalPopover';
 import {mapModelFlagCode,type MapModelChoice,type MapModelGroup,type MapModelFlagCode} from './mapModelPresentation';
 import './MapModelPicker.css';
 
@@ -62,27 +63,21 @@ type PickerProps<T extends MapModelChoice>={
 
 export function MapModelPicker<T extends MapModelChoice>({label,value,groups,fallbackLabel,onChange}:PickerProps<T>){
  const [open,setOpen]=useState(false);
- const root=useRef<HTMLDivElement>(null),trigger=useRef<HTMLButtonElement>(null);
+ const trigger=useRef<HTMLButtonElement>(null);
  const buttons=useRef<Array<HTMLButtonElement|null>>([]);
  const listId=useId(),selectedNameId=useId();
  const models=groups.flatMap(group=>group.models);
  const current=models.find(item=>item.id===value);
  const currentName=withoutEmoji(current?.displayLabel??fallbackLabel??value);
  const currentIndex=Math.max(0,models.findIndex(item=>item.id===value));
- useEffect(()=>{
-  if(!open)return;
-  const closeOutside=(event:PointerEvent)=>{
-   if(event.target instanceof Node&&!root.current?.contains(event.target))setOpen(false);
-  };
-  document.addEventListener('pointerdown',closeOutside);
-  return()=>document.removeEventListener('pointerdown',closeOutside);
- },[open]);
+
  useEffect(()=>{
   if(open)buttons.current[currentIndex]?.focus();
  },[open,value]);
- const choose=(id:string)=>{setOpen(false);onChange(id);trigger.current?.focus()};
+ const close=()=>{setOpen(false);trigger.current?.focus({preventScroll:true})};
+ const choose=(id:string)=>{onChange(id);close()};
  const onKeyDown=(event:KeyboardEvent<HTMLDivElement>)=>{
-  if(event.key==='Escape'&&open){event.preventDefault();setOpen(false);trigger.current?.focus();return}
+  if(event.key==='Escape'&&open){event.preventDefault();close();return}
   if(!['ArrowDown','ArrowUp','Home','End'].includes(event.key)||!models.length)return;
   event.preventDefault();
   if(!open){setOpen(true);return}
@@ -93,15 +88,16 @@ export function MapModelPicker<T extends MapModelChoice>({label,value,groups,fal
   buttons.current[next]?.focus();
  };
  let index=-1;
- return <div className="mid-map-model-picker" ref={root} onKeyDown={onKeyDown}>
+ return <div className="mid-map-model-picker" onKeyDown={onKeyDown}>
   <button ref={trigger} type="button" className="mid-map-model-picker-trigger"
-   aria-label={label} aria-describedby={selectedNameId} aria-expanded={open} aria-controls={listId} data-model-id={value}
+   aria-label={label} aria-describedby={selectedNameId} aria-haspopup="dialog" aria-expanded={open} aria-controls={listId} data-model-id={value}
    onClick={()=>setOpen(value=>!value)}>
    <MapModelFlag modelId={value}/>
    <span id={selectedNameId} className="mid-map-model-picker-value">{currentName}</span>
    <ChevronDown aria-hidden="true" size={17}/>
   </button>
-  {open&&<div id={listId} className="mid-map-model-picker-menu" role="group" aria-label={label+' auswählen'}>
+  <AppPortalPopover anchorRef={trigger} open={open} onClose={close} className="mid-map-model-picker-menu"
+   role="dialog" ariaLabel={label+' auswählen'} id={listId} width={360} align="start" gap={4} swipeToDismiss={false}>
    {groups.map(group=><section key={group.id} className="mid-map-model-picker-group" aria-label={group.label}>
     <div className="mid-map-model-picker-heading">{group.label}</div>
     {group.models.map(item=>{
@@ -110,6 +106,7 @@ export function MapModelPicker<T extends MapModelChoice>({label,value,groups,fal
      return <button type="button" key={item.id} data-model-id={item.id}
       ref={node=>{buttons.current[pos]=node}}
       className="mid-map-model-picker-option"
+      data-mid-autofocus={item.id===value?'true':undefined}
       aria-pressed={item.id===value} onClick={()=>choose(item.id)}>
       <MapModelFlag modelId={item.id}/>
       <span>{withoutEmoji(item.displayLabel)}</span>
@@ -117,6 +114,6 @@ export function MapModelPicker<T extends MapModelChoice>({label,value,groups,fal
      </button>;
     })}
    </section>)}
-  </div>}
+  </AppPortalPopover>
  </div>;
 }

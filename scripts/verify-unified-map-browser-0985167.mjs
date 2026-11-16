@@ -59,7 +59,14 @@ const perfEnabled=process.env.GITHUB_ACTIONS==='true'||process.env.MID_MAP_PROFI
 async function chooseMapModel(page,id){
  const button=page.getByRole('button',{name:'Modell für Parameter',exact:true});
  await button.click();
- await page.locator('.mid-map-model-picker-option[data-model-id="'+id+'"]').click();
+ // MID UI contract: dropdown must be a body portal, never clipped by a MapLibre container.
+ const portal=page.locator('body > .mid-map-model-picker-menu.app-portal-popover[role="dialog"]');
+ await portal.waitFor({state:'visible'});
+ assert.equal(await button.getAttribute('aria-haspopup'),'dialog','model picker declares its portal as a dialog');
+ const rect=await portal.boundingBox(),view=page.viewportSize();
+ assert.ok(rect&&view&&rect.x>=-1&&rect.y>=-1&&rect.x+rect.width<=view.width+1,
+  'portal menu remains inside the horizontal viewport');
+ await portal.locator('.mid-map-model-picker-option[data-model-id="'+id+'"]').click();
  await page.waitForFunction(expected=>document.querySelector('.mid-map-model-picker-trigger')?.getAttribute('data-model-id')===expected,id);
 }
 async function mapModelOptions(page){
