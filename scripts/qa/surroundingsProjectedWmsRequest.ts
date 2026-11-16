@@ -1,4 +1,4 @@
-import type {WmsProvider} from './CompositeData';
+import type {WmsProvider} from '../../src/CompositeData';
 import {planSurroundingsMercatorWms,type SurroundingsMercatorWmsPlan} from './surroundingsMercatorWmsPlan';
 
 /** Unactivated request adapter for MID's allowlisted composite-wms Worker route.

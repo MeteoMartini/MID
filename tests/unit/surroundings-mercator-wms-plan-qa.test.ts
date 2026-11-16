@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { planSurroundingsMercatorWms } from '../../src/surroundingsMercatorWmsPlan';
-import type { SurroundingsGeoExtent } from '../../src/surroundingsMercatorWmsPlan';
+import { planSurroundingsMercatorWms } from '../../scripts/qa/surroundingsMercatorWmsPlan';
+import type { SurroundingsGeoExtent } from '../../scripts/qa/surroundingsMercatorWmsPlan';
 
 const fixture = { west: 5.7, south: 50.17, east: 8.5, north: 51.47 };
 const R = 6378137;

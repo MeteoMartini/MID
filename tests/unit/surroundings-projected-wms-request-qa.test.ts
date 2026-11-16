@@ -1,6 +1,6 @@
 import {describe,expect,it} from 'vitest';
-import {planSurroundingsMercatorWms} from '../../src/surroundingsMercatorWmsPlan';
-import {buildSurroundingsProjectedWmsRequest} from '../../src/surroundingsProjectedWmsRequest';
+import {planSurroundingsMercatorWms} from '../../scripts/qa/surroundingsMercatorWmsPlan';
+import {buildSurroundingsProjectedWmsRequest} from '../../scripts/qa/surroundingsProjectedWmsRequest';
 
 const plan=planSurroundingsMercatorWms({west:5.7,south:50.17,east:8.5,north:51.47})!;
 const date=Date.parse('2026-11-16T19:00:00.000Z');
