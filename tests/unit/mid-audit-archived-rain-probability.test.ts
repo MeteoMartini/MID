@@ -33,7 +33,9 @@ describe('MID Audit 1.0 · archived probability remains NoData unless proven val
   });
   const captures=cases.map(([probability],index)=>{
    const date=references[index].date;
-   return {id:'qa-'+date,targetDate:date,issuedAt:'2023-12-31T12:00:00Z',leadHours:24,timezone:'Europe/Berlin',predictedRegime:'wechselhaft',
+   // A genuine 48-hour issue-to-target-noon archive, not arbitrary metadata.
+   const issuedAt=new Date(Date.parse(date+'T11:00:00Z')-48*3600000).toISOString();
+   return {id:'qa-'+date,targetDate:date,issuedAt,leadHours:48,timezone:'Europe/Berlin',predictedRegime:'wechselhaft',
     predictions:[{id:'best_match',label:'Best Match',max:10,min:2,precipitation:0,probability,probabilityKind:'daily-wet-native'}]};
   });
   store.set('mid:forecast-verification:v3:'+key,JSON.stringify({version:3,updatedAt:'2024-01-15T00:00:00Z',captures,references,observations:[]}));
