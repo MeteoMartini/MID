@@ -68,7 +68,7 @@ describe('MID changelog: bounded latest-release prepend (no GitHub release autho
  });
  it('fails closed when current release is the first heading but duplicated deeper in history',()=>{
   for(const duplicate of ['# MID v0.9.85.487','## MID v0.9.85.487 — extra','#### v0.9.85.487: repeated']){
-   const current='# MID v0.9.85.487\\n\\n- original current\\n\\n'+history+'\\n\\n'+duplicate+'\\n\\n- another copy';
+   const current='# MID v0.9.85.487\n\n- original current\n\n'+history+'\n\n'+duplicate+'\n\n- another copy';
    expect(()=>prependMidCurrentRelease(current,notes,'0.9.85.487')).toThrow(/already exists/);
   }
  });
