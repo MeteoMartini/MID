@@ -74,3 +74,50 @@ describe('MID 740 authenticated REST readback transport logic (mocked source)',(
   await expect(read({...x.args,trustedWorkflowSha:'main'},x.get)).rejects.toThrow('MID_740_BAD_INPUT');
  });
 });
+describe('MID #740 legacy source shadow readback',()=>{
+ const packageCommitSha='f'.repeat(40);
+ const legacy={packageCommitSha,producerRunAttempt:2,installerRunId:321};
+ const jobPath=prefix+'/actions/runs/123/attempts/2/jobs?per_page=100';
+ const installerPath=prefix+'/actions/runs/321';
+ const packagePath=prefix+'/git/commits/'+packageCommitSha;
+ const legacyFixture=()=>{
+  const x=fixture();
+  x.run.run_attempt=2;
+  x.artifact.name='mid-740-legacy-shadow-123-2-'+packageCommitSha;
+  x.page.artifacts[0].name=x.artifact.name;
+  delete x.replies[prefix+'/git/ref/heads/main'];
+  x.replies[packagePath]={sha:packageCommitSha,parents:[{sha}]};
+  x.replies[installerPath]={...x.run,id:321,path:'.github/workflows/install-mid.yml',
+   event:'workflow_dispatch',head_sha:packageCommitSha};
+  x.replies[jobPath]={total_count:1,jobs:[{run_id:123,run_attempt:2,head_sha:wf,
+   status:'completed',conclusion:'success',steps:[
+    'Bewährten MID-Installer explizit starten',
+    'SHA-gebundenes Original-ZIP für #740 bereitstellen',
+    'Original-ZIP und Zuordnung kurzlebig als Nachweis hochladen'
+   ].map((name,i)=>({name,number:i+1,status:'completed',conclusion:'success',
+    started_at:'2026-11-16T10:01:00Z',completed_at:'2026-11-16T10:02:00Z'}))}]};
+  return x;
+ };
+ it('joins the exact legacy attempt, upload step, Git package and installer run',async()=>{
+  const x=legacyFixture();
+  expect(await read({...x.args,legacy},x.get)).toMatchObject({
+   legacyPackageCommitSha:packageCommitSha,legacyInstallerRunId:321,mainSha:null,
+   metadataReadbackConsistent:true,releaseAuthorized:false});
+ });
+ it.each(['old artifact','wrong installer source','failed installer','wrong parent','wrong attempt',
+  'failed upload','duplicate upload','wrong upload time'] as const)('rejects %s',async kind=>{
+  const x=legacyFixture();
+  const job=x.replies[jobPath].jobs[0],installer=x.replies[installerPath];
+  switch(kind){
+   case 'old artifact': x.artifact.name=x.page.artifacts[0].name=x.artifact.name.replace('-2-','-1-'); break;
+   case 'wrong installer source': installer.head_sha=sha; break;
+   case 'failed installer': installer.conclusion='failure'; break;
+   case 'wrong parent': x.replies[packagePath].parents[0].sha=wf; break;
+   case 'wrong attempt': job.run_attempt=1; break;
+   case 'failed upload': job.steps[2].conclusion='failure'; break;
+   case 'duplicate upload': job.steps.push({...job.steps[2]}); break;
+   case 'wrong upload time': job.steps[2].started_at='2026-11-16T10:01:01Z'; break;
+  }
+  await expect(read({...x.args,legacy},x.get)).rejects.toThrow(/MID_740_/);
+ });
+});

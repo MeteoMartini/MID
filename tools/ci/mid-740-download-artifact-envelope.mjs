@@ -113,8 +113,12 @@ export async function downloadMid740Envelope({artifact,output,token}={},
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  try{
   const [r,a,source,workflow,output,...extra]=process.argv.slice(2);
-  if(extra.length||!/^[1-9][0-9]*$/.test(r??'')||!/^[1-9][0-9]*$/.test(a??''))
+  const [mode,packageCommitSha,attempt,installer]=extra;
+  if(!output||!/^[1-9][0-9]*$/.test(r??'')||!/^[1-9][0-9]*$/.test(a??'')||
+     (extra.length!==0&&(extra.length!==4||mode!=='--legacy-shadow'||
+      !/^[1-9][0-9]*$/.test(attempt)||!/^[1-9][0-9]*$/.test(installer))))
    reject('BAD_CLI_ARGS');
+  const legacy=mode?{packageCommitSha,producerRunAttempt:Number(attempt),installerRunId:Number(installer)}:undefined;
   const get=path=>{
    try{return JSON.parse(execFileSync('gh',['api','--method','GET',path],{
     encoding:'utf8',timeout:25000,maxBuffer:3*1024*1024,
@@ -123,7 +127,7 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
   };
   const result=await collectMid740GitHubReadback({
    runId:Number(r),artifactId:Number(a),
-   sourceMergeSha:source,trustedWorkflowSha:workflow
+   sourceMergeSha:source,trustedWorkflowSha:workflow,legacy
   },get);
   const downloaded=await downloadMid740Envelope({
    artifact:result.artifact,output,
@@ -133,6 +137,7 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
   // and Git-tree byte/mode identity before any installer may use these bytes.
   process.stdout.write(JSON.stringify({
    artifactId:downloaded.artifactId,sha256:downloaded.envelopeSha256,
+   ...(legacy&&{producerRunId:Number(r),...legacy}),
    bytes:downloaded.bytes,installerAuthorized:false,releaseAuthorized:false
   })+'\n');
  }catch(e){
