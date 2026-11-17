@@ -47,6 +47,25 @@ assert.ok(Number.isNaN(gustGroup(detailRows.slice(0,2).map(row=>({...row,gust:14
 // A missing gust series must never become a surrogate wind value, even when mean wind is valid.
 assert.ok(Number.isNaN(gustGroup(detailRows.map(row=>({...row,gust:null,wind:9}))).gust),'known mean wind does not prove missing gust observations');
 assert.equal(m.shortTermCloudLabel(0),'0 %');assert.equal(meanCloudLayer([{cloud:0},{cloud:null}],'cloud'),0);
+// C42 / ShortTerm: the profile-hour must not convert missing 15-minute gusts to calm.
+const gustHourStart=Date.UTC(2026,9,8,16,0);
+const gustQuarters=values=>values.map((gust,i)=>({...base,id:`gust-15m-${i}`,source:'15-min',
+ epoch:gustHourStart+(i+1)*900000,precipitationIntervalStartEpoch:gustHourStart+i*900000,
+ precipitationIntervalEndEpoch:gustHourStart+(i+1)*900000,
+ offsetMinutes:(i+1)*15,offsetLabel:'',timeLabel:'',intervalLabel:'15 min',
+ weatherLabel:'Wolkig',localAdjustment:0,gust}));
+const profileGust=points=>m.shortTermProfileHourlyPoints([],points,'Europe/Berlin',now)
+ .find(point=>point.precipitationIntervalStartEpoch===gustHourStart);
+assert.equal(profileGust(gustQuarters([11,15,23,19])).gust,23,'all original 15-min gust peaks preserve maximum');
+assert.equal(profileGust(gustQuarters([0,0,0,0]).map(p=>({...p,wind:0}))).gust,0,'genuine calm means wind and gust are both zero');
+for(const missing of [null,undefined,'',NaN,Infinity,-1]){
+ const row=profileGust(gustQuarters([11,missing,23,19]));
+ assert.ok(Number.isNaN(row.gust),'invalid 15-minute gust must not create false complete hourly peak: '+String(missing));
+}
+assert.ok(Number.isNaN(profileGust(gustQuarters([null,null,null,null])).gust),'missing gust series cannot become calm');
+const brokenGustIntervals=gustQuarters([11,15,23,19]).filter((_,i)=>i!==2);
+assert.ok(Number.isNaN(profileGust(brokenGustIntervals).gust),'a missing original interval blocks a synthetic hourly maximum');
+assert.equal(profileGust(gustQuarters([11,15,23,19])).precipitationIntervalEndEpoch-gustHourStart,3600000);
 const quarters=Array.from({length:8},(_,i)=>({...base,epoch:Date.UTC(2026,9,8,15,30)+i*900000,time:new Date(Date.UTC(2026,9,8,15,30)+i*900000).toISOString(),cloud:[60,60,55,40,35,30,30,30][i],sunshineDuration:[900,900,900,300,600,600,0,0][i]}));
 const points=m.shortTermNinetyMinutePoints(m.buildShortTermForecast(quarters,hours,'Europe/Berlin',now,{active:false}),now);assert.equal(points.length,6);assert.deepEqual(points.map(p=>p.timeLabel),['17:30','17:45','18:00','18:15','18:30','18:45']);
 const cells=m.detailSkyBarHourCells(points),segments=m.detailSkyBarSegments(points,0,0,600,8);

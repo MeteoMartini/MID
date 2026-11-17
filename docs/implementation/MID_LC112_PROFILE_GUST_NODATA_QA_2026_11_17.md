@@ -1,0 +1,16 @@
+# MID LC 1.12 – #422: NoData-verlässliche Böenspitzen im 24-h-Kurzfristprofil
+
+**QA-Draft, kein Merge/Release.** Autoritativer Source-Stand beim Handoff: `main=mid-stable=a78465b655d25cafc9ecc0390080694cb7aca957` / v0.9.85.486 (fünf aktive Rulesets), gemeinsamer Integrations-HEAD vor Änderung `4905c3ba9226cb7c7dc05a497f6ad2906638d314`, dort Vitest, gezielte Regressionen und RUC-Evidenzprüfung alle SUCCESS.
+
+## Nachgewiesener Fehler
+`src/ForecastCockpit.tsx` → `aggregateProfileHour(group, timezone, now)` verwendet für `gust:maximum('gust')` den Zweig `Math.max(...sorted.map(point=>Number(point.gust)||0))`. Ein unbekannter Wert (`null`, `undefined`, `NaN`, Leerstring) wird intern zu 0; ein vollständig fehlender Satz wird als scheinbar echte Windstille 0 ausgegeben. Ein Intervallloch wird nicht für Böen überprüft, auch wenn die vorhandene Niederschlags-Vollständigkeitsprüfung den Datenfehler bereits erkennt. Wetterdaten fehlen ≠ 0.
+
+## Fachlich enger Patch
+Unveränderte Struktur `maximum('probability')` und `gust:maximum('gust')` bleibt einschließlich des bisherigen Testvertrags erhalten. Nur der `gust`-Zweig prüft, dass alle in der aggregierten Kurzfrist-Reihe tatsächlich vorliegenden Originalwerte primitive, finite, nichtnegative Zahlen sind **und** die bestehenden Start-/Endzeitintervalle gemäß `completePrecipitationIntervalCoverage` lückenlos anschließen. Gültige `0` und der echte Maximalwert bleiben exakt erhalten; ungültige/missing Werte oder fehlende Zwischenintervalle ergeben `Number.NaN`, **nicht** 0. Kein anderer Wetterwert, ursprüngliches Vorhersagemodell, Original-Ereignis, DWD-/WMO-Warnstatus, Worker, CSS oder Releasevertrag verändert.
+
+Additive ausführbare Assertions im bereits verpflichtenden `scripts/test-c23-cloud-missing-0985206.mjs` prüfen das **tatsächliche Produkt-`shortTermProfileHourlyPoints`**, vier explizite UTC-Viertelstunden mit gleichen Modell-/Quellbedingungen, gültigen Peak und 0, `null`/`undefined`/Leerstring/NaN/`Infinity`/negativen Wert, die vollständig fehlende Böenserie und eine ausgelassene 15-Minuten-Stunde. Bestehende PoP-/Niederschlags-/Skybar-/DST-/Cloud-Tests bleiben ungeschwächt. Der vorherige unabhängige 3h-Detaildiagramm-Fix ist nicht erneut implementiert.
+
+## Wichtige meteorologische Provenienzgrenze
+Ein Provider kann bereits per Modellzeitstempel ein Maximum über **die vorangehenden 3 Stunden** liefern. ECMWF Open Data unterscheidet ausdrücklich `10fg` (seit letzter Postprozessierung) und `10fg3` (3-h-Maximum); Open-Meteo ECMWF dokumentiert `wind_gusts_10m` als vorheriges 3-h-Maximum (Einheit je API-Auswahl). Quellen: https://github.com/ecmwf/ecmwf-opendata#readme und https://open-meteo.com/en/docs/ecmwf-api. Die MID-Viertelstunden-Zusammenfassung setzt **keine** neuen gemessenen 15-min-Böen voraus und ändert nicht die Roh-Akkumulationsbedeutung. Gegenüber reiner Anzeigegültigkeit bleibt die echte originäre Böen-Gültigkeits-/Akkumulationszeit in einem separaten Source-/Widget-/Browseraudit zu prüfen; diese Sicherung ist **keine** native 1-h-WMO-Extremwert-Rekonstruktion.
+
+Nach dem Commit neue SHA-gebundene targeted Regression, Vitest und RUC-Evidenz prüfen; vollständige Source-/Core-/Heavy-/Review-/Browser-/WebKit-/iOS-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates weiterhin offen. Release-Sicherheitsarbeit #740/#839 ist ausdrücklich ausgeklammert.
