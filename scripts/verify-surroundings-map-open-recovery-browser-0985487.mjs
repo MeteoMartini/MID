@@ -53,7 +53,17 @@ async function verify(width,theme){
   await page.waitForFunction(()=>{
    const el=document.querySelector('.composite-maplibre canvas');
    return Boolean(el&&el.width>0&&el.height>0);
-  },null,{timeout:20000});
+  },null,{timeout:11000}).catch(async(error)=>{
+   const info=await page.evaluate(()=>({
+    localReactError:sessionStorage.getItem('mid:map:last-render-error'),
+    lastOpenIntent:sessionStorage.getItem('mid:map:last-open-intent'),
+    state:document.querySelector('.mid-map-workspace-error')?.textContent,
+    mapCount:document.querySelectorAll('.maplibregl-map').length,
+    canvasCount:document.querySelectorAll('.composite-maplibre canvas').length,
+    allText:document.body?.innerText.slice(0,1000)
+   }));
+   throw new Error('Map ready-before-GPU diagnostic '+JSON.stringify(info)+' | '+String(error));
+  });
   const request=await page.evaluate(()=>window.__midMapOpenRequest);
   assert.ok(request&&Number.isFinite(request.lat)&&Number.isFinite(request.lon));
   assert.ok([request.bounds.west,request.bounds.south,request.bounds.east,request.bounds.north].every(Number.isFinite));
