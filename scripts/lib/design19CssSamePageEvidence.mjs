@@ -100,8 +100,19 @@ export async function runDesign19CssSamePage({
   if(typeof observer?.finish!=='function'||typeof observer?.cancel!=='function')
    fail('CSS response observer does not expose finish/cancel');
   await page.addInitScript(({theme})=>localStorage.setItem('theme',theme),{theme:s.theme});
-  await page.goto(origin+'/index.html',{waitUntil:'domcontentloaded',timeout:30000});
-  onlySameOrigin(page,origin,'app navigation');
+  const entryUrl=origin+'/index.html';
+  const navigation=await page.goto(entryUrl,{waitUntil:'domcontentloaded',timeout:30000});
+  // Playwright does NOT throw on HTTP 404/500. The expected immutable
+  // production index must be an ordinary HTTP 200, never an error document,
+  // same-origin redirect, missing response or a Service Worker substitution.
+  if(!navigation||typeof navigation.status!=='function'||
+     typeof navigation.url!=='function'||navigation.status()!==200||
+     navigation.url()!==entryUrl||
+     typeof navigation.fromServiceWorker!=='function'||
+     navigation.fromServiceWorker()!==false)
+   fail('verified production index.html navigation requires original HTTP 200 and exact URL');
+  const loaded=onlySameOrigin(page,origin,'app navigation');
+  if(loaded.href!==entryUrl)fail('app navigation redirected or rewrote original index.html');
   await openView(page,Object.freeze({caseId:s.caseId,theme:s.theme,fixtureSha256:s.fixtureSha256}));
   onlySameOrigin(page,origin,'view fixture');
   const captureOptions={
