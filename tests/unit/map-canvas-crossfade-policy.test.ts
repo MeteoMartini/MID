@@ -1,6 +1,6 @@
 import {describe,expect,it} from 'vitest';
 import {readFileSync} from 'node:fs';
-import {MAP_CANVAS_CROSSFADE_MAX_PIXELS,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas} from '../../src/mapCanvasCrossfadePolicy';
+import {MAP_CANVAS_CROSSFADE_MAX_PIXELS,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from '../../src/mapCanvasCrossfadePolicy';
 
 const defaults={width:390,height:844,visible:true,reducedMotion:false,saveData:false};
 describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
@@ -47,7 +47,7 @@ describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
   expect(from).toBeGreaterThan(-1);
   expect(end).toBeGreaterThan(from);
   const overlay=source.slice(from,end);
-  expect(source).toContain("import {mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas} from './mapCanvasCrossfadePolicy'");
+  expect(source).toContain("import {mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from './mapCanvasCrossfadePolicy'");
   const checked=overlay.indexOf('shouldCrossfadeMapCanvas({');
   const skipped=overlay.indexOf('if(!animate){');
   const duplicate=overlay.indexOf("const old=document.createElement('canvas')");
@@ -103,6 +103,65 @@ describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
   expect(admission).toBeGreaterThan(read);
   expect(copied).toBeGreaterThan(admission);
   expect(overlay).toContain('width:backing?.width??0,height:backing?.height??0');
-  expect(source).toContain("import {mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas} from './mapCanvasCrossfadePolicy'");
+  expect(source).toContain("import {mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from './mapCanvasCrossfadePolicy'");
+ });
+
+ it('returns successful canvas draw values without unnecessary rollback',()=>{
+  let draws=0,rollbacks=0;
+  const result=withCanvasFadeRollback(()=>{
+   draws++;
+   return {painted:true,frameKey:'source-validity-unchanged'};
+  },()=>{rollbacks++});
+  expect(result).toEqual({painted:true,frameKey:'source-validity-unchanged'});
+  expect(draws).toBe(1);
+  expect(rollbacks).toBe(0);
+ });
+ it('removes a staged old-weather canvas when the next draw fails, then rethrows',()=>{
+  const failure=new Error('canvas render interrupted');
+  const staged={attached:true,opacity:'0'},calls:string[]=[];
+  let caught:unknown;
+  try{
+   withCanvasFadeRollback(()=>{
+    calls.push('paint');
+    throw failure;
+   },()=>{
+    staged.attached=false;
+    staged.opacity='1';
+    calls.push('dispose-old');
+   });
+  }catch(error){caught=error}
+  expect(caught).toBe(failure);
+  expect(staged).toEqual({attached:false,opacity:'1'});
+  expect(calls).toEqual(['paint','dispose-old']);
+ });
+ it('preserves the source failure even if renderer teardown also throws',()=>{
+  const failure=new Error('primary paint failure');
+  let called=0,caught:unknown;
+  try{withCanvasFadeRollback(()=>{throw failure},()=>{called++;throw Error('cleanup failure')})}
+  catch(error){caught=error}
+  expect(called).toBe(1);
+  expect(caught).toBe(failure);
+ });
+ it('schedules a canvas fade only after the rollback-safe drawing transaction',()=>{
+  const source=readFileSync(new URL('../../src/MapLibreCore.tsx',import.meta.url),'utf8');
+  const start=source.indexOf('export function CanvasOverlay');
+  const end=source.indexOf('export function ImageQuadLayer',start);
+  const overlay=source.slice(start,end);
+  const staged=overlay.indexOf('canvas.before(old);');
+  const protectedPaint=overlay.indexOf('withCanvasFadeRollback(()=>{');
+  const insideDraw=overlay.indexOf("render(map,canvas);canvas.style.transition='none';canvas.style.opacity='0';",protectedPaint);
+  const insideSchedule=overlay.indexOf("raf=requestAnimationFrame(",protectedPaint);
+  const rollback=overlay.indexOf("},()=>{",protectedPaint);
+  const restore=overlay.indexOf("old.remove();",rollback);
+  expect(staged).toBeGreaterThan(-1);
+  expect(protectedPaint).toBeGreaterThan(staged);
+  expect(insideDraw).toBeGreaterThan(protectedPaint);
+  expect(insideSchedule).toBeGreaterThan(insideDraw);
+  expect(rollback).toBeGreaterThan(insideSchedule);
+  expect(restore).toBeGreaterThan(rollback);
+  expect(overlay.slice(rollback)).toContain('cancelAnimationFrame(raf);window.clearTimeout(timer);old.remove()');
+  expect(overlay.slice(rollback)).toContain("canvas.style.transition='none'");
+  expect(overlay.slice(rollback)).toContain('canvas.style.opacity=String(Math.max(0,Math.min(1,opacityRef.current)))');
+  expect(source).toContain("import {mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from './mapCanvasCrossfadePolicy'");
  });
 });
