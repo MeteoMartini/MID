@@ -8,7 +8,7 @@ const helperSource=readFileSync(new URL('../src/twinProbabilityValidity.ts',impo
 const ast=ts.createSourceFile('forecastVerification.ts',source,ts.ScriptTarget.Latest,true);
 const helperAst=ts.createSourceFile('twinProbabilityValidity.ts',helperSource,ts.ScriptTarget.Latest,true);
 const names=['clamp','modelParameterErrors','parameterScore','priorityWeightedErrorScore','compositePredictionScore','pairedPredictionScores','localValidationEvidence'];
-const helperFunctions=helperAst.statements.filter(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='isVerifiableTwinRainProbability').map(node=>node.getText(helperAst).replace(/^export\\s+/,''));
+const helperFunctions=helperAst.statements.filter(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='isVerifiableTwinRainProbability').map(node=>node.getText(helperAst).replace('export ',''));
 assert.equal(helperFunctions.length,1,'The original probability validity function must be included in isolated paired verification');
 const functions=[...helperFunctions,...ast.statements.filter(node=>ts.isFunctionDeclaration(node)&&names.includes(node.name?.text)).map(node=>node.getText(ast))].join('\n');
 const js=ts.transpileModule(functions,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
