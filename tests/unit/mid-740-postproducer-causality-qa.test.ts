@@ -54,7 +54,7 @@ function fixture(){
   'actions/runs/111':gate,
   'actions/runs/111/attempts/1/jobs?per_page=100&page=1':{total_count:jobs.length,jobs},
   'actions/workflows/358449552':{id:358449552,path:GATEPATH,
-   name:gate.name,state:'active'},
+   name:'MID ChatGPT/Codex Source-PR Gate',state:'active'},
   'actions/runs/222':producer,
   'actions/workflows/358777143':{id:358777143,path:PATH,
    name:producer.name,state:'active'},
@@ -108,6 +108,8 @@ describe('#740 producer completion -> source PR squash -> actual source artifact
  });
  it.each([
   ['unverified receipt',x=>{x.receipt.status='TRUSTED'}],
+  ['registry name must not equal source run display',x=>{x.data['actions/workflows/358449552'].name='MID-Agent-Quellstand prüfen'}],
+  ['original source run name must not equal workflow registry',x=>{x.data['actions/runs/111'].name='MID ChatGPT/Codex Source-PR Gate'}],
   ['self-authorized receipt',x=>{x.receipt.releaseAuthorized=true}],
   ['producer workflow SHA not source base',x=>{x.receipt.producerWorkflowSha=HEAD}],
   ['unverified original byte/tree intake',x=>{x.intake.downloadAndGitTreeVerified=false}],

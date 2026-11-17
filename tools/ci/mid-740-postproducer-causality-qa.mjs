@@ -13,6 +13,8 @@ const SOURCE_WORKFLOW_ID=358449552,PRODUCER_WORKFLOW_ID=358777143;
 const SOURCE_PATH='.github/workflows/chatgpt-pr-gate.yml';
 const PRODUCER_PATH='.github/workflows/agent-source-release.yml';
 const SOURCE_NAME='MID-Agent-Quellstand prüfen';
+// Actual GitHub Workflow registry .name differs from original Run .name.
+const SOURCE_REGISTRY_NAME='MID ChatGPT/Codex Source-PR Gate';
 const PRODUCER_NAME='Geprüften Agent-PR automatisch veröffentlichen';
 const BOT_ID=333327823;
 const SHA=/^[a-f0-9]{40}$/,DIGEST=/^[a-f0-9]{64}$/;
@@ -105,7 +107,7 @@ export async function assessMid740PostProducerCausality({
     gate.repository?.id!==REPO_ID||gate.head_repository?.id!==REPO_ID||
     gate.status!=='completed'||gate.conclusion!=='success'||
     gateRegistry?.id!==SOURCE_WORKFLOW_ID||
-    gateRegistry.path!==SOURCE_PATH||gateRegistry.name!==SOURCE_NAME||
+    gateRegistry.path!==SOURCE_PATH||gateRegistry.name!==SOURCE_REGISTRY_NAME||
     gateRegistry.state!=='active')
   return blocked('ORIGINAL_SOURCE_GATE_IDENTITY_DRIFT');
  const originalGateRoster=fingerprintMid740OriginalGateJobs(gate,gateJobs);
