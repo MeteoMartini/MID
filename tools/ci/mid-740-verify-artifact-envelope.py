@@ -22,6 +22,7 @@ SHA256 = re.compile(r"^[a-f0-9]{64}$")
 FILES = {"MID-professional-replacement.zip", "MID-source-zip-evidence.json"}
 LEGACY_ZIP = "MID-professional-replacement.zip"
 LEGACY_RECEIPT = "provenance.json"
+PREMERGE_RECEIPT = "premerge-gate-receipt.json"
 MAX_BYTES = 900 * 1024 * 1024
 MAX_MANIFEST_BYTES = 65536
 
@@ -39,7 +40,7 @@ def _trusted_file(path: Path) -> Path:
 def _extract_verified_members(envelope: Path, staging: Path, filenames: set[str]) -> None:
     with ZipFile(envelope, "r") as archive:
         entries = archive.infolist()
-        if len(entries) != 2 or {e.filename for e in entries} != filenames:
+        if len(entries) != len(filenames) or {e.filename for e in entries} != filenames:
             raise ValueError("Missing, extra, duplicate or unsafe envelope entries")
         for entry in entries:
             mode = entry.external_attr >> 16
@@ -53,7 +54,7 @@ def _extract_verified_members(envelope: Path, staging: Path, filenames: set[str]
                 raise ValueError("Invalid artifact member type, size or encoding")
             count = 0
             # ZipInfo.open verifies CRC. Never use extractall() or trust
-            # filenames beyond the exact two-item allowlist.
+            # filenames beyond the caller-selected exact member allowlist.
             with archive.open(entry, "r") as inp, (staging / entry.filename).open("xb") as out:
                 while block := inp.read(1024 * 1024):
                     count += len(block)
@@ -74,13 +75,68 @@ def _unique_object(pairs: list[tuple]) -> dict:
     return result
 
 
+def _check_original_premerge_receipt(raw: bytes, expected: dict) -> dict:
+    """Fail closed on arbitrary source/producer identity, not merely SHA parity.
+
+    The expected bytes are obtained by an INDEPENDENT reader; this offline
+    verifier does not authenticate who downloaded or produced them.
+    """
+    if not isinstance(raw, bytes) or not 0 < len(raw) <= MAX_MANIFEST_BYTES:
+        raise ValueError("PREMERGE_RECEIPT_SIZE_INVALID")
+    try:
+        value = json.loads(raw.decode("utf-8"), object_pairs_hook=_unique_object)
+    except (UnicodeDecodeError, ValueError) as exc:
+        raise ValueError("PREMERGE_RECEIPT_JSON_INVALID") from exc
+    required = {
+        "schema", "status", "sourceGateRunId", "sourceGateAttempt",
+        "sourceHeadSha", "sourceBaseSha", "prNumber",
+        "producerRunId", "producerAttempt", "producerWorkflowSha",
+        "upstreamGateMetadataCoherent", "producerRunMetadataCoherent",
+        "originalArtifactVerified", "trustedProductionReceiptAttested",
+        "installerAuthorized", "releaseAuthorized",
+    }
+    if not isinstance(value, dict) or set(value) != required:
+        raise ValueError("PREMERGE_RECEIPT_FIELDS_INVALID")
+    # The original Node producer emits JSON.stringify(record) + a newline.
+    # Preserve byte identity, including key order; reject rewritten JSON.
+    canonical = (json.dumps(value, separators=(",", ":"), ensure_ascii=False)
+                 .encode("utf-8") + b"\n")
+    if canonical != raw:
+        raise ValueError("PREMERGE_RECEIPT_NOT_CANONICAL")
+    ids = ("sourceGateRunId", "sourceGateAttempt", "prNumber",
+           "producerRunId", "producerAttempt")
+    if any(type(value[k]) is not int or value[k] < 1 for k in ids):
+        raise ValueError("PREMERGE_RECEIPT_BAD_ID")
+    if any(not isinstance(value[k], str) or not SHA.fullmatch(value[k])
+           for k in ("sourceHeadSha", "sourceBaseSha", "producerWorkflowSha")):
+        raise ValueError("PREMERGE_RECEIPT_BAD_SHA")
+    if (value["schema"] != "mid.740.premerge-producer-receipt.v1"
+            or value["status"] != "PREMERGE_PRODUCER_EVENT_METADATA_COHERENT_QA_ONLY"
+            or value["sourceGateRunId"] != expected["sourceGateRunId"]
+            or value["sourceGateAttempt"] != expected["sourceGateRunAttempt"]
+            or value["producerRunId"] != expected["producerRunId"]
+            or value["producerAttempt"] != expected["producerRunAttempt"]
+            or value["producerWorkflowSha"] != expected["workflowSha"]
+            or value["sourceBaseSha"] != expected["workflowSha"]
+            or value["sourceHeadSha"] == value["sourceBaseSha"]
+            or value["upstreamGateMetadataCoherent"] is not True
+            or value["producerRunMetadataCoherent"] is not True
+            or any(value[k] is not False for k in (
+                "originalArtifactVerified", "trustedProductionReceiptAttested",
+                "installerAuthorized", "releaseAuthorized"))):
+        raise ValueError("PREMERGE_RECEIPT_IDENTITY_UNVERIFIED")
+    return value
+
+
 def verify_legacy_shadow(envelope: Path, expected_sha256: str,
                          repository: Path, receipt: dict,
-                         installer_zip_sha256: str) -> dict:
-    """Compare captured ZIP bytes against the Git package and installer report.
+                         installer_zip_sha256: str,
+                         expected_premerge_bytes: bytes | None = None) -> dict:
+    """Validate historical 2-member and newer 2-/3-member producer shadows.
 
-    Expected values must be supplied from independent readbacks. This offline
-    check does not authenticate the producer, installer or release decision.
+    A three-member artifact must match an independently obtained exact
+    premerge receipt; allowing the third member silently would launder
+    unverifiable Source-Gate provenance into an installer input.
     """
     if not expected_sha256 or not SHA256.fullmatch(expected_sha256):
         raise ValueError("Invalid envelope digest")
@@ -92,9 +148,9 @@ def verify_legacy_shadow(envelope: Path, expected_sha256: str,
         any(type(receipt[name]) is not int or receipt[name] < 1 for name in ids) or
         any(not isinstance(receipt[name], str) or not SHA.fullmatch(receipt[name]) for name in shas)):
         raise ValueError("Invalid expected producer identity")
-    expected_receipt = {**receipt, "schema": "mid.740.legacy-producer-shadow.v1",
-                        "zipSha256": installer_zip_sha256, "installerAuthorized": False,
-                        "releaseAuthorized": False}
+    expected_manifest = {**receipt, "schema": "mid.740.legacy-producer-shadow.v1",
+                         "zipSha256": installer_zip_sha256, "installerAuthorized": False,
+                         "releaseAuthorized": False}
     repository = Path(repository).resolve(strict=True)
     package, source = (receipt[name] for name in ("packageCommitSha", "sourceMergeSha"))
 
@@ -112,12 +168,44 @@ def verify_legacy_shadow(envelope: Path, expected_sha256: str,
     with envelope.open("rb") as stream:
         if hashlib.file_digest(stream, "sha256").hexdigest() != expected_sha256:
             raise ValueError("Downloaded shadow envelope SHA256 mismatch")
+    original_verified = False
+    premerge_digest = None
     with tempfile.TemporaryDirectory(prefix="mid-740-legacy-proof-") as directory:
         staging = Path(directory)
-        _extract_verified_members(envelope, staging, {LEGACY_ZIP, LEGACY_RECEIPT})
-        actual_receipt = json.loads((staging / LEGACY_RECEIPT).read_text(), object_pairs_hook=_unique_object)
-        if json.dumps(actual_receipt, sort_keys=True) != json.dumps(expected_receipt, sort_keys=True):
-            raise ValueError("Shadow receipt differs from independent evidence")
+        with ZipFile(envelope, "r") as outer:
+            names = {x.filename for x in outer.infolist()}
+            count = len(outer.infolist())
+        legacy_names = {LEGACY_ZIP, LEGACY_RECEIPT}
+        with_premerge = names == legacy_names | {PREMERGE_RECEIPT} and count == 3
+        without_premerge = names == legacy_names and count == 2
+        if not (with_premerge or without_premerge):
+            raise ValueError("UNEXPECTED_LEGACY_ENVELOPE_MEMBERS")
+        if with_premerge != (expected_premerge_bytes is not None):
+            raise ValueError("PREMERGE_RECEIPT_REQUIRED_OR_UNEXPECTED")
+        _extract_verified_members(envelope, staging, names)
+        actual = json.loads((staging / LEGACY_RECEIPT).read_text(),
+                            object_pairs_hook=_unique_object)
+        if with_premerge:
+            raw = (staging / PREMERGE_RECEIPT).read_bytes()
+            if raw != expected_premerge_bytes:
+                raise ValueError("PREMERGE_RECEIPT_ORIGINAL_BYTES_MISMATCH")
+            premerge = _check_original_premerge_receipt(raw, receipt)
+            premerge_digest = hashlib.sha256(raw).hexdigest()
+            expected_manifest.update({
+                "originalPremergeReceiptIncluded": True,
+                "originalPremergeReceiptSha256": premerge_digest,
+            })
+            original_verified = True
+        else:
+            # Old producer used no new fields. New producer may report an
+            # explicitly absent optional original receipt as false/null.
+            newer_absent = {**expected_manifest,
+                            "originalPremergeReceiptIncluded": False,
+                            "originalPremergeReceiptSha256": None}
+            if actual != expected_manifest and actual != newer_absent:
+                raise ValueError("Shadow manifest differs from independent evidence")
+        if with_premerge and actual != expected_manifest:
+            raise ValueError("PREMERGE_RECEIPT_DIGEST_OR_MANIFEST_DRIFT")
         zip_path = staging / LEGACY_ZIP
         with zip_path.open("rb") as stream:
             actual_sha = hashlib.file_digest(stream, "sha256").hexdigest()
@@ -128,7 +216,10 @@ def verify_legacy_shadow(envelope: Path, expected_sha256: str,
         "packageCommitSha": package, "sourceMergeSha": source,
         "envelopeSha256": expected_sha256, "innerZipSha256": actual_sha,
         "packageAndInstallerDigestMatch": True,
-        "authenticatedGitHubProducer": False, "installerAuthorized": False,
+        "originalPremergeReceiptBytesVerified": original_verified,
+        "originalPremergeReceiptSha256": premerge_digest,
+        "authenticatedGitHubProducer": False,
+        "nativeReviewVerified": False, "installerAuthorized": False,
         "releaseAuthorized": False,
     }
 
@@ -212,6 +303,7 @@ if __name__ == "__main__":
     ap.add_argument("--source-verifier")
     ap.add_argument("--expected-legacy-receipt", type=Path)
     ap.add_argument("--installer-zip-sha256")
+    ap.add_argument("--expected-premerge-receipt", type=Path)
     cfg = ap.parse_args()
     try:
         source_options = (cfg.destination, cfg.source_sha, cfg.local_verifier, cfg.source_verifier)
@@ -219,10 +311,17 @@ if __name__ == "__main__":
             if any(source_options) or cfg.expected_legacy_receipt.stat().st_size > MAX_MANIFEST_BYTES:
                 raise ValueError("Unexpected legacy verifier options or evidence size")
             receipt = json.loads(cfg.expected_legacy_receipt.read_text(), object_pairs_hook=_unique_object)
+            premerge_bytes = None
+            if cfg.expected_premerge_receipt is not None:
+                trusted = _trusted_file(cfg.expected_premerge_receipt)
+                if trusted.stat().st_size > MAX_MANIFEST_BYTES:
+                    raise ValueError("PREMERGE_RECEIPT_SIZE_INVALID")
+                premerge_bytes = trusted.read_bytes()
             report = verify_legacy_shadow(Path(cfg.envelope), cfg.expected_envelope_sha256,
-                                          Path(cfg.repository), receipt, cfg.installer_zip_sha256)
+                                          Path(cfg.repository), receipt,
+                                          cfg.installer_zip_sha256, premerge_bytes)
         else:
-            if not all(source_options) or cfg.installer_zip_sha256:
+            if not all(source_options) or cfg.installer_zip_sha256 or cfg.expected_premerge_receipt:
                 raise ValueError("Incomplete source verifier options")
             report = verify_downloaded_envelope(
                 Path(cfg.envelope), cfg.expected_envelope_sha256,

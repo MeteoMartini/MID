@@ -124,3 +124,134 @@ with ZipFile(sys.argv[1], "w") as archive:
   }
  }finally{rmSync(root,{recursive:true,force:true})}
 });
+
+
+it('keeps old producer envelopes compatible but fail-closes new original premerge 3-member envelopes',()=>{
+ const root=mkdtempSync(join(tmpdir(),'mid740-premerge-envelope-'));
+ try{
+  const git=(...args:string[])=>{
+   const result=run(root,'git',args);
+   expect(result.status,result.stderr).toBe(0);
+   return result.stdout.trim();
+  };
+  git('init','--object-format=sha1','-q');
+  git('config','user.name','MID QA');
+  git('config','user.email','qa@example.invalid');
+  git('commit','--allow-empty','-qm','source');
+  const source=git('rev-parse','HEAD');
+  const zip=Buffer.from('original producer ZIP git blob bytes');
+  writeFileSync(join(root,'MID-professional-replacement.zip'),zip);
+  git('add','MID-professional-replacement.zip');
+  git('commit','-qm','package');
+  const pkg=git('rev-parse','HEAD');
+  const digest=(v:Buffer|string)=>createHash('sha256').update(v).digest('hex');
+  const expected={packageCommitSha:pkg,sourceMergeSha:source,workflowSha:source,
+   producerRunId:202,producerRunAttempt:1,sourceGateRunId:101,sourceGateRunAttempt:1};
+  const expectedFile=join(root,'expected-producer.json');
+  writeFileSync(expectedFile,JSON.stringify(expected));
+  const original={
+   schema:'mid.740.premerge-producer-receipt.v1',
+   status:'PREMERGE_PRODUCER_EVENT_METADATA_COHERENT_QA_ONLY',
+   sourceGateRunId:101,sourceGateAttempt:1,sourceHeadSha:'a'.repeat(40),
+   sourceBaseSha:source,prNumber:303,
+   producerRunId:202,producerAttempt:1,producerWorkflowSha:source,
+   upstreamGateMetadataCoherent:true,producerRunMetadataCoherent:true,
+   originalArtifactVerified:false,trustedProductionReceiptAttested:false,
+   installerAuthorized:false,releaseAuthorized:false
+  };
+  const variants=[
+   'new-two-member-absent','premerge-good','premerge-required',
+   'premerge-foreign-run','premerge-wrong-gate','premerge-wrong-base',
+   'premerge-self-authorized','premerge-no-core',
+   'premerge-forged-status','premerge-noncanonical','premerge-duplicate-key',
+   'premerge-byte-tamper','premerge-wrong-manifest-digest',
+   'premerge-no-manifest-flag','premerge-claim-absent',
+   'premerge-extra','premerge-two-member-falsely-claims-present',
+   'premerge-expect-three-but-two'
+  ];
+  const writer=String.raw`import sys
+from zipfile import ZipFile
+with ZipFile(sys.argv[1], "w") as z:
+ z.writestr("MID-professional-replacement.zip",sys.argv[2].encode())
+ z.writestr("provenance.json",sys.argv[3])
+ if sys.argv[4] != "NO":z.writestr("premerge-gate-receipt.json",sys.argv[4])
+ if sys.argv[5] == "extra":z.writestr("unexpected.bin",b"X")
+`;
+  for(const variant of variants){
+   const hasOriginal=!variant.startsWith('new-two-member')&&
+    variant!=='premerge-two-member-falsely-claims-present'&&
+    variant!=='premerge-expect-three-but-two';
+   let body={...original};
+   if(variant==='premerge-foreign-run')body.producerRunId=203;
+   if(variant==='premerge-wrong-gate')body.sourceGateRunId=102;
+   if(variant==='premerge-wrong-base')body.sourceBaseSha='b'.repeat(40);
+   if(variant==='premerge-self-authorized')body.installerAuthorized=true;
+   if(variant==='premerge-no-core')body.upstreamGateMetadataCoherent=false;
+   if(variant==='premerge-forged-status')body.status='APPROVED';
+   let raw=JSON.stringify(body)+'\n';
+   if(variant==='premerge-noncanonical')raw=JSON.stringify(body,null,2)+'\n';
+   if(variant==='premerge-duplicate-key')
+    raw=raw.replace(/^\{/,'{"producerRunId":202,');
+   const trustedOriginal=join(root,'trusted-'+variant+'.json');
+   // For identity mutation cases the caller's independent file agrees
+   // with the mutated bytes: only internal provenance checks can reject.
+   writeFileSync(trustedOriginal,
+    variant==='premerge-byte-tamper'?JSON.stringify(original)+'\n':raw);
+   if(variant==='premerge-byte-tamper')raw=raw.replace('premerge-producer','tampered-producer');
+   const legacy={...expected,schema:'mid.740.legacy-producer-shadow.v1',
+    zipSha256:digest(zip),installerAuthorized:false,releaseAuthorized:false};
+   const manifest:Record<string,any>={...legacy};
+   if(variant==='new-two-member-absent'||
+      variant==='premerge-expect-three-but-two'){
+    manifest.originalPremergeReceiptIncluded=false;
+    manifest.originalPremergeReceiptSha256=null;
+   }else if(variant==='premerge-two-member-falsely-claims-present'){
+    manifest.originalPremergeReceiptIncluded=true;
+    manifest.originalPremergeReceiptSha256=digest(raw);
+   }else{
+    manifest.originalPremergeReceiptIncluded=true;
+    manifest.originalPremergeReceiptSha256=digest(raw);
+   }
+   if(variant==='premerge-wrong-manifest-digest')
+    manifest.originalPremergeReceiptSha256='0'.repeat(64);
+   if(variant==='premerge-no-manifest-flag')
+    manifest.originalPremergeReceiptIncluded=false;
+   if(variant==='premerge-claim-absent'){
+    manifest.originalPremergeReceiptIncluded=false;
+    manifest.originalPremergeReceiptSha256=null;
+   }
+   const path=join(root,variant+'.zip');
+   const result=run(root,'python3',['-c',writer,path,zip.toString(),
+    JSON.stringify(manifest),hasOriginal?raw:'NO',
+    variant==='premerge-extra'?'extra':'none']);
+   expect(result.status,variant+' '+result.stderr).toBe(0);
+   const needsExpected=hasOriginal&&variant!=='premerge-required';
+   const opts=['--envelope',path,
+    '--expected-envelope-sha256',digest(readFileSync(path)),
+    '--expected-legacy-receipt',expectedFile,
+    '--installer-zip-sha256',digest(zip),'--repository',root,
+    ...(needsExpected||variant==='premerge-expect-three-but-two'?
+     ['--expected-premerge-receipt',trustedOriginal]:[])
+   ];
+   const checked=run(root,'python3',[envelope,...opts]);
+   if(variant==='new-two-member-absent'){
+    expect(checked.status,checked.stderr).toBe(0);
+    expect(JSON.parse(checked.stdout)).toMatchObject({
+     originalPremergeReceiptBytesVerified:false,
+     originalPremergeReceiptSha256:null,
+     authenticatedGitHubProducer:false,
+     installerAuthorized:false,releaseAuthorized:false});
+   }else if(variant==='premerge-good'){
+    expect(checked.status,checked.stderr).toBe(0);
+    expect(JSON.parse(checked.stdout)).toMatchObject({
+     originalPremergeReceiptBytesVerified:true,
+     originalPremergeReceiptSha256:digest(raw),
+     authenticatedGitHubProducer:false,
+     nativeReviewVerified:false,
+     installerAuthorized:false,releaseAuthorized:false});
+   }else{
+    expect(checked.status,variant+' unexpectedly accepted').not.toBe(0);
+   }
+  }
+ }finally{rmSync(root,{recursive:true,force:true})}
+},65000);
