@@ -24,22 +24,37 @@ export function modelRunFreshness(row:ModelRunMeta,now:number):Exclude<ModelFres
  const limit=mosmix&&cadence<=1?2.5:mosmix?Math.max(8.5,cadence*1.45):Math.max(3,cadence*1.6);
  return age>limit?'stale':age>limit*.7?'delayed':'current';
 }
+/** Maximum source names in the compact pill; all original rows remain in the details panel. */
+const MAX_UNVERIFIED_NAMES=4;
 export function assessModelFreshness(rows:readonly ModelRunMeta[],now:number=Date.now()):ModelFreshnessAssessment {
- const used=rows.filter(r=>r.usedInCanonical===true);
- // Only contributing or credibly active models can decide the shared pill.
- // Explicitly unused fusion candidates must not turn it red after prefetch.
- const eligible=used.length?used:rows.filter(r=>r.usedInCanonical!==false&&(r.fusionLoaded===true||r.usageStatus==='active'||r.usageStatus==='fallback'));
- const aggregated=eligible.filter(row=>row.id==='best_match').length;
- const individual=eligible.filter(row=>row.id!=='best_match');
+ // Selecting actual contributors must precede any candidate/fallback inventory.
+ const hasCanonical=rows.some(row=>row.usedInCanonical===true);
  const count={current:0,delayed:0,stale:0,unknown:0};
- individual.forEach(r=>{count[modelRunFreshness(r,now)]++});
- // One overdue run remains visible in yellow; red means at least 2/3
- // of individually verifiable model runs overdue, including the one-run case.
- const substantiallyStale=count.stale>0&&count.stale*3>=individual.length*2;
- const band:ModelFreshnessBand=!individual.length?'unknown':substantiallyStale?'stale':count.stale||count.delayed?'delayed':count.unknown?(count.current?'partial':'unknown'):'current';
- const label=band==='stale'?(individual.length===1?'Verwendeter Modelllauf überfällig':'Überwiegender Teil der Modellläufe überfällig'):band==='delayed'?(count.stale?'Einzelne Modellläufe überfällig':'Mindestens ein Modelllauf zeitlich verzögert'):band==='partial'?'Modellstand teilweise zeitlich verifiziert':band==='current'?'Modellläufe zeitlich aktuell':'Modellstand zeitlich nicht vollständig verifizierbar';
- const details=individual.length?`${count.current} aktuell · ${count.delayed} verzögert · ${count.stale} überfällig · ${count.unknown} ohne verifizierbares Laufalter`:'Keine einzeln zeitlich verifizierbaren Modellläufe';
- const missing=individual.filter(row=>modelRunFreshness(row,now)==='unknown').map(row=>row.label||row.id);
- const coverage=(aggregated?' · Best Match ist eine Sammelquelle ohne einzelne Initialisierung und wird separat geführt.':'')+(missing.length?' · Ohne vollständigen Zeitnachweis: '+missing.join(', ')+'.':'');
- return {band,label,details:details+coverage+' · Verifizierte Bereitstellungszeit + Quellrhythmus; ohne Bereitstellung konservatives Laufalter. Keine Aussage zur Prognosegüte',checked:individual.length,aggregated,unknown:count.unknown,stale:count.stale,delayed:count.delayed};
+ let checked=0,aggregated=0;
+ const missing:string[]=[];
+ for(const row of rows){
+  const eligible=hasCanonical?row.usedInCanonical===true:
+   row.usedInCanonical!==false&&(row.fusionLoaded===true||row.usageStatus==='active'||row.usageStatus==='fallback');
+  if(!eligible)continue;
+  if(row.id==='best_match'){aggregated++;continue}
+  checked++;
+  // Parse each source time exactly once; repeated parsing adds work in live 60s refreshes.
+  const state=modelRunFreshness(row,now);
+  count[state]++;
+  if(state==='unknown'&&missing.length<MAX_UNVERIFIED_NAMES){
+   const label=String(row.label||row.id||'Unbekanntes Modell').replace(/\s+/g,' ').trim();
+   missing.push(label.length>88?label.slice(0,87)+'…':label);
+  }
+ }
+ // Preserve established urgency thresholds: any overdue model remains explicit;
+ // red denotes >=2/3 of eligible individual runs overdue (including one-run case).
+ const substantiallyStale=count.stale>0&&count.stale*3>=checked*2;
+ const band:ModelFreshnessBand=!checked?'unknown':substantiallyStale?'stale':count.stale||count.delayed?'delayed':count.unknown?(count.current?'partial':'unknown'):'current';
+ const label=band==='stale'?(checked===1?'Verwendeter Modelllauf überfällig':'Überwiegender Teil der Modellläufe überfällig'):band==='delayed'?(count.stale?'Einzelne Modellläufe überfällig':'Mindestens ein Modelllauf zeitlich verzögert'):band==='partial'?'Modellstand teilweise zeitlich verifiziert':band==='current'?'Modellläufe zeitlich aktuell':'Modellstand zeitlich nicht vollständig verifizierbar';
+ const details=checked?`${count.current} aktuell · ${count.delayed} verzögert · ${count.stale} überfällig · ${count.unknown} ohne verifizierbares Laufalter`:'Keine einzeln zeitlich verifizierbaren Modellläufe';
+ const remaining=count.unknown-missing.length;
+ const additional=remaining>0?` und ${remaining} ${remaining===1?'weiterer Lauf':'weitere Läufe'}`:'';
+ const coverage=(aggregated?' · Best Match ist eine Sammelquelle ohne einzelne Initialisierung und wird separat geführt.':'')+
+  (count.unknown?' · Ohne vollständigen Zeitnachweis: '+missing.join(', ')+additional+'.':'');
+ return {band,label,details:details+coverage+' · Verifizierte Bereitstellungszeit + Quellrhythmus; ohne Bereitstellung konservatives Laufalter. Keine Aussage zur Prognosegüte',checked,aggregated,unknown:count.unknown,stale:count.stale,delayed:count.delayed};
 }
