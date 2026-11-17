@@ -23,13 +23,31 @@ export function adaptiveForecastRanges(day:EnsembleDay|undefined):ParameterRange
  return entries.filter(r=>[r.low,r.high,r.q25,r.q75].every(Number.isFinite)&&r.low<=r.q25&&r.q25<=r.q75&&r.q75<=r.high&&(r.unit==='°C'||r.low>=0));
 }
 
+/**
+ * A shared range domain is calculated once per render from complete native
+ * quantile bands, never from missing members, NaN, or synthetic zeros.
+ * Tmin and Tmax intentionally share a scale. Recalculate on every render
+ * rather than caching by array identity: upstream forecast arrays may be reused.
+ */
+export function forecastRangeScaleDomains(days:readonly EnsembleDay[]){
+ const domains=new Map<string,{low:number;high:number}>();
+ for(const entry of days)for(const range of adaptiveForecastRanges(entry)){
+  const key=range.unit==='°C'?'temperature-pair':range.key;
+  const current=domains.get(key);
+  if(!current){domains.set(key,{low:range.low,high:range.high});continue}
+  if(range.low<current.low)current.low=range.low;
+  if(range.high>current.high)current.high=range.high;
+ }
+ return domains;
+}
+
 export function ForecastRangeGuide({day,days,compact=false,unit='kn'}:{day?:EnsembleDay;days:EnsembleDay[];temperature:number;temperatures?:number[];compact?:boolean;unit?:WindUnit}){
  const ranges=adaptiveForecastRanges(day).filter(r=>r.key!=='wind');
  if(!ranges.length)return null;
- const reference=days.flatMap(adaptiveForecastRanges);
- const referenceTemperatures=reference.filter(r=>r.unit==='°C'),temperatureRanges=['minimum','temperature'].map(key=>ranges.find(r=>r.key===key)).filter((r):r is ParameterRange=>Boolean(r)),otherRanges=ranges.filter(r=>r.unit!=='°C');
+ const scales=forecastRangeScaleDomains(days);
+ const temperatureRanges=['minimum','temperature'].map(key=>ranges.find(r=>r.key===key)).filter((r):r is ParameterRange=>Boolean(r)),otherRanges=ranges.filter(r=>r.unit!=='°C');
  const renderRange=(r:ParameterRange)=>{
-  const peers=r.unit==='°C'?referenceTemperatures:reference.filter(p=>p.key===r.key),low=Math.min(r.low,...peers.map(p=>p.low)),high=Math.max(r.high,...peers.map(p=>p.high)),span=Math.max(r.unit==='°C'?1:.1,high-low),percent=(v:number)=>Math.max(0,Math.min(100,(v-low)/span*100)),point=typeof r.point==='number'&&Number.isFinite(r.point)&&r.point>=r.low&&r.point<=r.high?r.point:null,style={'--range-start':`${percent(r.low)}%`,'--range-width':`${percent(r.high)-percent(r.low)}%`,'--range-core-start':`${percent(r.q25)}%`,'--range-core-width':`${percent(r.q75)-percent(r.q25)}%`,'--range-point':`${percent(point??r.q25)}%`} as CSSProperties,format=(v:number)=>r.key==='rain'?compactPrecipitationAmount(v):String(Math.round(v));
+  const domain=scales.get(r.unit==='°C'?'temperature-pair':r.key),low=Math.min(r.low,domain?.low??r.low),high=Math.max(r.high,domain?.high??r.high),span=Math.max(r.unit==='°C'?1:.1,high-low),percent=(v:number)=>Math.max(0,Math.min(100,(v-low)/span*100)),point=typeof r.point==='number'&&Number.isFinite(r.point)&&r.point>=r.low&&r.point<=r.high?r.point:null,style={'--range-start':`${percent(r.low)}%`,'--range-width':`${percent(r.high)-percent(r.low)}%`,'--range-core-start':`${percent(r.q25)}%`,'--range-core-width':`${percent(r.q75)-percent(r.q25)}%`,'--range-point':`${percent(point??r.q25)}%`} as CSSProperties,format=(v:number)=>r.key==='rain'?compactPrecipitationAmount(v):String(Math.round(v));
   const isWind=r.unit==='kt',factor=!isWind?1:unit==='kmh'?1.852:unit==='ms'?.514444:unit==='mph'?1.15078:1,unitLabel=!isWind?r.unit:unit==='kmh'?'km/h':unit==='ms'?'m/s':unit==='mph'?'mph':'kt',formatBound=(v:number)=>`${format(v*factor)}${r.unit==='°C'?'':' '}${unitLabel}`,q25=format(r.q25*factor),q75=format(r.q75*factor),boundsTitle=`P25 ${formatBound(r.q25)} · P75 ${formatBound(r.q75)}`,boundsText=`${q25===q75?q25:`${q25}–${q75}`} ${unitLabel}`;
   return <span key={r.key} className={`forecast-parameter-range parameter-${r.key}`} role="img" aria-label={`${r.label}: P10–P90 ${format(r.low*factor)}–${format(r.high*factor)} ${unitLabel}; P25–P75 ${q25}–${q75} ${unitLabel}${point===null?'':`; Median ${format(point*factor)} ${unitLabel}`}`}>
    <span className="forecast-range-label" title={`P10–P90: ${format(r.low*factor)}–${format(r.high*factor)} ${unitLabel}`}>{r.label}</span>
