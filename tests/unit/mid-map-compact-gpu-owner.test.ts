@@ -8,6 +8,8 @@ const workspace=readFileSync('src/MapWorkspacePanel.tsx','utf8');
 const workspaceCss=readFileSync('src/MapWorkspace.css','utf8');
 const css=readFileSync('src/CurrentSurroundings.css','utf8');
 const mapLibre=readFileSync('src/MapLibreCore.tsx','utf8');
+const fixture=readFileSync('scripts/fixtures/map-gpu-owner-bidirectional-browser.tsx','utf8');
+const runner=readFileSync('scripts/verify-map-gpu-owner-bidirectional-browser-0985487.mjs','utf8');
 
 describe('MID Karten 1.14 · bidirektionaler GPU-Eigentümer für Umfeld-/Großkarte (Quellvertrag, KEINE Browser-QA)',()=>{
  it('compiles both production React TSX sources',()=>{
@@ -35,6 +37,17 @@ describe('MID Karten 1.14 · bidirektionaler GPU-Eigentümer für Umfeld-/Großk
   expect(workspace).toContain('<MemoLazyUnifiedWeatherMap {...props} requestedProductId={requestedProductId}/>');
   expect(workspace).toContain('<GeoSphereIncaNowcast lat={props.lat} lon={props.lon} timezone={props.timezone}/>');
   expect(workspaceCss).toContain('.map-workspace-paused{');
+ });
+ it('admits real Chromium fixture with simultaneously mounted compact/full components',()=>{
+  for(const [source,loader] of [[fixture,'tsx'],[runner,'js']] as const)
+   expect(()=>transformSync(source,{loader,target:'es2022',jsx:'automatic'})).not.toThrow();
+  expect(fixture).toContain('<CurrentSurroundings lat={50.82} lon={7.14}');
+  expect(fixture).toContain('<MapWorkspacePanel lat={50.82} lon={7.14}');
+  expect(fixture).toContain("mapPaused={owner!=='compact'}");
+  expect(fixture).toContain("gpuPaused={owner!=='workspace'}");
+  expect(runner).toContain("document.querySelectorAll('.maplibregl-map')");
+  expect(runner).toContain('for(const width of [320,390,430,834,1024,1440])');
+  expect(runner).toContain('nativeIos:false');
  });
  it('retains the current-place display mode, time readout and weather provenance outside the GPU subtree',()=>{
   expect(surroundings).toContain("useDisplayPreference('CurrentSurroundings.mode'");
