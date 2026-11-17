@@ -7,6 +7,9 @@
  * The three helpers are dependencies to avoid duplicating their logic.
  */
 import {isDeepStrictEqual} from 'node:util';
+import {readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import {join,resolve} from 'node:path';
 
 const fail=reason=>{throw Error('MID Design19 CSS same-page: '+reason)};
 const object=(value,name)=>{
@@ -92,6 +95,11 @@ export async function runDesign19CssSamePage({
  if(manifest?.schema!=='mid.design18.css-dist-manifest.v1'||manifest.verified!==true)
   fail('whole dist and CSS manifest not verified');
  assertExactIdentity(manifest.identity,id,'dist.manifest.identity');
+ // Verify actual browser-served HTML bytes, not just the URL/HTTP code.
+ // The production index on disk is under the previously verified whole-dist
+ // fingerprint. Never accept local test-server substitution as the app.
+ const indexBytes=await readFile(join(resolve(distRoot),'index.html'));
+ const indexSha256=createHash('sha256').update(indexBytes).digest('hex');
  let observer;
  try{
   // Do not navigate until the CSS listener exists. The same Page is passed to
@@ -113,6 +121,13 @@ export async function runDesign19CssSamePage({
    fail('verified production index.html navigation requires original HTTP 200 and exact URL');
   const loaded=onlySameOrigin(page,origin,'app navigation');
   if(loaded.href!==entryUrl)fail('app navigation redirected or rewrote original index.html');
+  if(typeof navigation.finished!=='function'||typeof navigation.body!=='function')
+   fail('verified index.html requires original completed HTTP response bytes');
+  if(await navigation.finished()!==null)
+   fail('production index.html download did not finish successfully');
+  const servedIndex=await navigation.body();
+  if(!Buffer.isBuffer(servedIndex)||!servedIndex.equals(indexBytes))
+   fail('browser-served index.html bytes differ from verified production dist');
   await openView(page,Object.freeze({caseId:s.caseId,theme:s.theme,fixtureSha256:s.fixtureSha256}));
   onlySameOrigin(page,origin,'view fixture');
   const captureOptions={
@@ -145,7 +160,7 @@ export async function runDesign19CssSamePage({
    releaseAuthorized:false,cssSplitSafeProven:false,performanceGainProven:false,
    browserAcceptanceProven:false, // Real runner still must externally attest browser and frozen provider fixtures.
    caseId:s.caseId,identity:{sourceGitSha:id.sourceGitSha,version:id.version,assetsSha256:id.assetsSha256},
-   environment:after.environment,cssLoad:css,cssom:after,
+   environment:after.environment,entryHtmlSha256:indexSha256,cssLoad:css,cssom:after,
    caveat:'Same Page and bounded CSS time window only. No provider-frozen, cross-browser, GPU, memory, release or future-style proof.',
   };
  }finally{
