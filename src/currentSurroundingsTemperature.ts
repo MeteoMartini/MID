@@ -18,7 +18,7 @@ let shortLivedForecast:{key:string;raw:unknown;checkedAt:number}|null=null;
 const finite=(value:unknown):value is number=>typeof value==='number'&&Number.isFinite(value);
 
 export function surroundingsTemperatureUrl(places:readonly SurroundingsTemperaturePlace[]):string|undefined{
- if(places.length<1||places.length>5||places.some(p=>!p.id||!finite(p.lat)||Math.abs(p.lat)>90||!finite(p.lon)||Math.abs(p.lon)>180))return;
+ if(places.length<1||places.length>7||places.some(p=>!p.id||!finite(p.lat)||Math.abs(p.lat)>90||!finite(p.lon)||Math.abs(p.lon)>180))return;
  const url=new URL('https://api.open-meteo.com/v1/forecast');
  url.searchParams.set('latitude',places.map(p=>p.lat.toFixed(5)).join(','));
  url.searchParams.set('longitude',places.map(p=>p.lon.toFixed(5)).join(','));
@@ -35,7 +35,7 @@ export function surroundingsTemperatureUrl(places:readonly SurroundingsTemperatu
 export function extractSurroundingsTemperatures(
  raw:unknown,places:readonly SurroundingsTemperaturePlace[],targetTime:number,checkedAt=Date.now(),interpolate=false
 ):SurroundingsTemperatureSnapshot|undefined{
- if(!Number.isFinite(targetTime)||!Number.isFinite(checkedAt)||places.length<1||places.length>5)return;
+ if(!Number.isFinite(targetTime)||!Number.isFinite(checkedAt)||places.length<1||places.length>7)return;
  const rows=Array.isArray(raw)?raw:[raw];
  if(rows.length!==places.length)return;
  const values:Record<string,number>=Object.create(null);

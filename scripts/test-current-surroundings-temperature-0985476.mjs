@@ -47,7 +47,23 @@ assert.equal(extract(rows.map(r=>({...r,hourly:{time:[valid],temperature_2m:[nul
 assert.equal(extract(rows.map(r=>({...r,hourly:{time:[valid],temperature_2m:[NaN]}})),places,at),undefined,'NaN is missing');
 assert.equal(extract(rows.map(r=>({...r,hourly:{time:[valid],temperature_2m:[300]}})),places,at),undefined,'Physically impossible Celsius value rejected');
 assert.equal(makeUrl([]),undefined,'No zero-coordinate request');
-assert.equal(makeUrl([...places,...places]),undefined,'Max five request coordinates');
+assert.equal(makeUrl([...places,...places]),undefined,'Max seven request coordinates');
+
+// Wider MID map: up to six actual named settlements plus the selected site,
+// all from one bounded multipoint response with independent source validity.
+const places7=[...places,...[4,5,6].map(i=>({id:'Extra:'+i,lat:50+i*.12,lon:7+i*.11}))];
+const rows7=places7.map((place,i)=>({latitude:place.lat,longitude:place.lon,utc_offset_seconds:0,
+ hourly_units:{temperature_2m:'°C'},hourly:{time:[valid,valid+3600],temperature_2m:[i-3.5,i-3]}}));
+assert.equal(new URL(makeUrl(places7)).searchParams.get('latitude').split(',').length,7,
+ 'Six real surrounding places and the selected place require one bounded multi-location call');
+const more=extract(rows7,places7,at,at);
+assert.equal(more?.requested,7);assert.equal(more?.available,7);
+assert.equal(more?.values['Extra:6'],2.5,'All extra values use the real indexed coordinate row');
+const sparse=rows7.map((row,i)=>i===5?{...row,hourly:{...row.hourly,temperature_2m:[null,null]}}:row);
+assert.equal(extract(sparse,places7,at)?.available,6,'Missing extra place must stay NoData, not zero');
+assert.equal(makeUrl([...places7,places[0]]),undefined,'More than seven places must be rejected');
+assert.ok(component.includes('mapViewport.width>=660&&mapViewport.height>=220?6:4'),
+ 'Two extra settlements appear only when actual available viewport has room');
 assert.ok(!component.includes('grid.phaseSourceByCell')&&!component.includes('grid.phaseValidTimeByCell'),'Temperature must never rely on precipitation-phase provenance');
 assert.ok(component.includes('loadSurroundingsTemperatures(temperaturePlaces')&&component.includes('...nearbyCities,{id:siteId,lat,lon}'),'Only real neighboring cities and the actual selected place receive independent temperature requests');
 assert.ok(component.includes('chooseSurroundingsCities'),'Named cities are chosen by geographic priority');
@@ -69,7 +85,7 @@ assert.ok(component.includes("useSurroundingsCloudImage(mode==='cloud'"),'Verifi
 assert.ok(component.includes("if(mode!=='radar')return")&&component.includes("mode==='radar'&&radarAtNow"),'DWD-/Satelliten-/OPERA-Beobachtungen nur nach Nutzerwahl laden.');
 assert.ok(component.includes('id="surroundings-model-cloud-weather"')&&component.includes('cloudForecast.image.bounds'),'Wolken/SigWx müssen das geprüfte Modellraster georeferenziert nutzen.');
 assert.ok(component.includes("ecmwfTemperatureColor(value)")&&component.includes("ecmwfTemperatureColor(displaySiteTemperature!)"),'Temperaturzahlen und Standort verwenden dieselbe ECMWF-MID-Skala.');
-assert.ok(css.includes('background:transparent!important;box-shadow:none!important')&&css.includes('.current-surroundings-center-dot>strong')&&css.includes('-webkit-text-stroke:1.15px'),'High-contrast ECMWF-colored temperature numerals require no opaque background plates.');
+assert.ok(css.includes('background:transparent!important;box-shadow:none!important')&&css.includes('.current-surroundings-center-dot>strong')&&css.includes('-webkit-text-stroke:1.45px'),'High-contrast ECMWF-colored temperature numerals require no opaque background plates.');
 const cloudSource=await read('src/currentSurroundingsCloudImage.ts');
 assert.ok(cloudSource.includes('loadEstablishedSynopticIndex(signal)')&&cloudSource.includes('loadNativeIndex(signal)')&&cloudSource.includes('nativeCloudWeatherPair('),'Nur die originalen, SHA-validierten MID-Wolken-/SigWx-Daten verwenden.');
 assert.ok(cloudSource.includes("cloudWeatherRaster(data,'pseudo')")&&cloudSource.includes('admissibleSurroundingsCloudTime'),'Kein Fake-Satellitenbild und keine ungebundene Modellzeit.');
