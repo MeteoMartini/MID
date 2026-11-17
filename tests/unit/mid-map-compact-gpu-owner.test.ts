@@ -59,6 +59,14 @@ describe('MID Karten 1.14 · bidirektionaler GPU-Eigentümer für Umfeld-/Großk
  it('retains the current-place display mode, time readout and weather provenance outside the GPU subtree',()=>{
   expect(surroundings).toContain("useDisplayPreference('CurrentSurroundings.mode'");
   expect(surroundings).toContain('current-surroundings-data-status');
+  expect(surroundings).toContain("useSurroundingsCloudImage(mode==='cloud'&&!mapPaused");
+  expect(surroundings).toContain("if(mode!=='radar'||mapPaused)return;");
+  expect(surroundings).toContain("if(mapPaused||mode!=='radar'||!radar||target===undefined)return;");
+  expect(surroundings).toContain("const needsOpera=!mapPaused&&mode==='radar'");
+  expect(surroundings).toContain("if(mapPaused||(mode==='radar'&&!radarAtNow)");
+  expect(surroundings).toContain("const temperatureGrid=mapPaused||mode==='radar'");
+  expect(surroundings).toContain("},[lat,lon,mode,mapPaused])");
+  expect(surroundings).toContain("},[mapPaused])");
   expect(surroundings).toContain('Quellen und Datenstand');
   expect(surroundings).toContain('MID-Kartenbasis und Temperaturen');
  });
