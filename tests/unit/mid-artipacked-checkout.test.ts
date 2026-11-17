@@ -1,7 +1,6 @@
 import {readFileSync} from 'node:fs';
 import {describe,it,expect} from 'vitest';
-// The separate installer recovery shadow adds one equally fenced checkout.
-const targets=[['chatgpt-pr-gate.yml',7],['install-mid.yml',8],['mid-code-revision.yml',6],['mid-ruc-preprocess.yml',4]] as const;
+const targets=[['chatgpt-pr-gate.yml',7],['install-mid.yml',7],['mid-code-revision.yml',6],['mid-ruc-preprocess.yml',4]] as const;
 function checkoutConfigs(yaml:string){
  const lines=yaml.split('\n'),out:{sha:string,with:boolean,credentials:string[]}[]=[];
  for(let i=0;i<lines.length;i++){
