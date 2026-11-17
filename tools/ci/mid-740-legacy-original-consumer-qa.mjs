@@ -9,7 +9,7 @@
  * read back after cryptographic ZIP and Git-blob checks.
  */
 import {execFileSync} from 'node:child_process';
-import {existsSync,lstatSync,mkdtempSync,readFileSync,realpathSync,rmSync,writeFileSync} from 'node:fs';
+import {existsSync,linkSync,lstatSync,mkdtempSync,readFileSync,realpathSync,rmSync,writeFileSync} from 'node:fs';
 import {dirname,join,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {collectMid740GitHubReadback} from './mid-740-github-artifact-readback.mjs';
@@ -118,18 +118,21 @@ export async function verifyMid740OriginalLegacyPostinstaller({
   fail('ORIGINAL_LEGACY_GITHUB_READBACK_UNVERIFIED');
  const initialFingerprint=reportIdentity(before);
  const beforeJob=await originalSteps(get,runId,trustedWorkflowSha);
- let staging,downloaded=false,success=false;
+ let staging;
  try{
+  // A failed or still unverified download must never appear at the caller's
+  // final output path. Its lifetime is confined to this private staging dir.
+  staging=mkdtempSync(join(parent,'.mid740-original-only-'));
+  const candidate=join(staging,'original-actions-envelope.zip');
   const artifact=before.artifact;
-  const transfer=await downloader({artifact,output:envelope,token},fetcher);
-  downloaded=true;
+  const transfer=await downloader({artifact,output:candidate,token},fetcher);
   if(transfer?.artifactId!==artifactId||
      transfer.envelopeSha256!==artifact.digest?.slice(7)||
      transfer.downloadedEnvelopeBytesVerified!==true||
      transfer.installerAuthorized!==false||transfer.releaseAuthorized!==false)
    fail('ORIGINAL_DOWNLOAD_DIGEST_UNVERIFIED');
   const verifier=join(repo,'tools/ci/mid-740-verify-artifact-envelope.py');
-  const args=['--envelope',envelope,
+  const args=['--envelope',candidate,
    '--expected-envelope-sha256',transfer.envelopeSha256];
   const call=(more)=> {
    try{return JSON.parse(python('python3',[verifier,...args,...more],
@@ -162,7 +165,6 @@ export async function verifyMid740OriginalLegacyPostinstaller({
      original.producerWorkflowSha!==trustedWorkflowSha||
      original.sourceBaseSha!==trustedWorkflowSha)
    fail('ORIGINAL_PREMERGE_CONTENT_OR_RUN_DRIFT');
-  staging=mkdtempSync(join(parent,'.mid740-original-only-'));
   const expected=join(staging,'expected-producer.json');
   const receipt=join(staging,'original-premerge.json');
   const fields=['packageCommitSha','sourceMergeSha','workflowSha',
@@ -220,7 +222,12 @@ export async function verifyMid740OriginalLegacyPostinstaller({
   const finalStable=await get(ROOT+'git/ref/heads/mid-stable');
   if(finalStable?.object?.sha!==original.sourceBaseSha)
    fail('FINAL_STABLE_RACE');
-  success=true;
+  // Publish the caller-visible file only after the final trusted GitHub
+  // readbacks. Hard-linking within the same parent filesystem is atomic and
+  // fails closed on EEXIST instead of overwriting a path created during QA.
+  if(existsSync(envelope))fail('OUTPUT_PATH_RACE');
+  try{linkSync(candidate,envelope)}
+  catch{fail('OUTPUT_PATH_RACE_OR_LINK_FAILED')}
   return Object.freeze({
    schema:'mid.740.original-legacy-postinstaller-consumer-qa.v1',
    status:'ORIGINAL_GITHUB_ZIP_PREMERGE_SOURCE_AND_INSTALLER_QA_ONLY',
@@ -238,7 +245,8 @@ export async function verifyMid740OriginalLegacyPostinstaller({
   });
  }finally{
   if(staging&&existsSync(staging))rmSync(staging,{recursive:true,force:true});
-  if(!success&&downloaded&&existsSync(envelope))rmSync(envelope,{force:true});
+  // All partial and rejected bytes stay inside staging; never remove an
+  // unrelated file which appeared at the caller path during verification.
  }
 }
 

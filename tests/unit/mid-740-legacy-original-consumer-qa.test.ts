@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {mkdtempSync,readFileSync,existsSync,rmSync,writeFileSync} from 'node:fs';
+import {mkdtempSync,readFileSync,existsSync,readdirSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
@@ -207,6 +207,52 @@ describe('#740 original GitHub ZIP + premerge receipt + source gate + completed 
    await expect(verify(f.args,deps(f))).rejects.toThrow(
     'MID_740_ORIGINAL_CONSUMER_FINAL_ORIGINAL_PRODUCER_OR_UPLOAD_RACE');
    expect(existsSync(f.args.envelopeOutput)).toBe(false);
+  }finally{rmSync(f.root,{recursive:true,force:true})}
+ });
+ it('keeps rejected partial download bytes entirely private',async()=>{
+  const f=setup();
+  try{
+   f.downloader=async({output}:any)=>{
+    writeFileSync(output,Buffer.from('PARTIAL UNTRUSTED BYTES'));
+    throw Error('SIMULATED_INTERRUPTED_DOWNLOAD');
+   };
+   await expect(verify(f.args,deps(f))).rejects.toThrow(
+    'SIMULATED_INTERRUPTED_DOWNLOAD');
+   expect(existsSync(f.args.envelopeOutput)).toBe(false);
+   expect(readdirSync(f.root).filter(n=>n.startsWith('.mid740-original-only-')))
+    .toEqual([]);
+   expect(f.flags.causalityCount).toBe(0);
+  }finally{rmSync(f.root,{recursive:true,force:true})}
+ });
+ it('never publishes downloaded bytes before final source and Stable readback',async()=>{
+  const f=setup();
+  try{
+   const original=f.causality;
+   f.causality=async()=>{
+    expect(existsSync(f.args.envelopeOutput)).toBe(false);
+    return original();
+   };
+   await verify(f.args,deps(f));
+   expect(existsSync(f.args.envelopeOutput)).toBe(true);
+   expect(readFileSync(f.args.envelopeOutput,'utf8'))
+    .toBe('original bytes fixture');
+  }finally{rmSync(f.root,{recursive:true,force:true})}
+ });
+ it('rejects an output-path race without overwriting an unrelated file',async()=>{
+  const f=setup();
+  try{
+   const original=f.causality;
+   f.causality=async()=>{
+    const result=await original();
+    writeFileSync(f.args.envelopeOutput,'UNRELATED FILE', {flag:'wx'});
+    return result;
+   };
+   await expect(verify(f.args,deps(f))).rejects.toThrow(
+    'MID_740_ORIGINAL_CONSUMER_OUTPUT_PATH_RACE');
+   expect(readFileSync(f.args.envelopeOutput,'utf8'))
+    .toBe('UNRELATED FILE');
+   expect(readdirSync(f.root).filter(n=>n.startsWith('.mid740-original-only-')))
+    .toEqual([]);
   }finally{rmSync(f.root,{recursive:true,force:true})}
  });
  it('rejects late source-base drift after all original ZIP and Source checks',async()=>{
