@@ -28,3 +28,17 @@ die vollständigen bestehenden Source-/Installer-/Worker-/Pages-/Stable-Gates
 bleiben für diesen Integrationsstand erforderlich. Erst ein tatsächlicher
 Installer-Lauf kann den neuen Shadow positiv oder negativ belegen. Er
 erzeugt keine Attestierung und kein dauerhaftes Recovery-Release.
+
+## Review-Triage der fünf Cubic-P2-Fundstellen
+
+Auf dem kombinierten Stand waren alle fünf ursprünglichen Threads ungelöst.
+Vier Gegenbeispiele bestätigten vermischte Überschriften-Grenzen, ignorierte
+Doppelüberschriften, veraltete aktuelle Abschnittstexte und die abweichende
+Suffix-Unterstützung. Die Schreibschleife bestätigte den fünften Befund.
+Der Helper verwendet jetzt historische Überschriften als Abschnittsgrenzen,
+verlangt eine eindeutige aktuelle Version, vergleicht aktuelle Abschnittskörper
+und unterstützt dieselben Paketsuffixe wie sync-version. Beide Changelog-
+Ergebnisse werden vor dem ersten Spiegel-Schreibvorgang vollständig validiert.
+Zusätzliche Tests reproduzieren die Fälle einschließlich Ausführung des
+Originalsyncers in einer Fixture mit ungültigem zweitem Spiegel.
+Vorhandene .489-Abschnittskörper stimmen mit RELEASE_NOTES überein.

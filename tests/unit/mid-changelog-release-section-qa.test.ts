@@ -63,7 +63,7 @@ describe('MID changelog: bounded latest-release prepend (no GitHub release autho
   }
  });
  it('preserves an existing current-release H2 heading and all adjacent historical bytes',()=>{
-  const existing='  \n## MID v0.9.85.487 — approved wording\n\n- Historical text\n\n'+history;
+  const existing='  \n## MID v0.9.85.487 — approved wording\n\n- A new, verified maintenance change.\n\n'+history;
   expect(prependMidCurrentRelease(existing,notes,'0.9.85.487')).toBe(existing);
  });
  it('fails closed when current release is the first heading but duplicated deeper in history',()=>{
@@ -77,4 +77,37 @@ describe('MID changelog: bounded latest-release prepend (no GitHub release autho
   expect(prependMidCurrentRelease(original,notes,'0.9.85.487')).toBe('# MID v0.9.85.487\n\n- A new, verified maintenance change.\n\n'+original);
  });
 
+});
+
+it('bounds rolling mixed headings, rejects duplicate/stale bodies, and supports package suffixes',()=>{
+ const current='# MID v0.9.85.487\n\n- Current.';
+ for(const heading of ['## MID v0.9.85.486 — old','#### v0.9.85.486: old'])
+  expect(currentMidReleaseSection(current+'\n\n'+heading+'\n- Old.', '0.9.85.487')).toBe(current);
+ expect(()=>currentMidReleaseSection(current+'\n\n'+current,'0.9.85.487')).toThrow(/duplicate/);
+ expect(()=>prependMidCurrentRelease(current.replace('Current.','Stale.')+'\n\n'+history,current,'0.9.85.487')).toThrow(/body differs/);
+ for(const suffix of ['-rc.1','+build.2']){
+  const version='0.9.85.487'+suffix;
+  expect(currentMidReleaseSection('# MID v'+version+'\n- Current.',version)).toContain(version);
+ }
+});
+
+it('validates both changelog mirrors before writing the first',async()=>{
+ const {mkdtempSync,mkdirSync,readFileSync,writeFileSync,rmSync}=await import('node:fs');
+ const {tmpdir}=await import('node:os');
+ const {join}=await import('node:path');
+ const {spawnSync}=await import('node:child_process');
+ const root=mkdtempSync(join(tmpdir(),'MID-changelog-pair-'));
+ try{
+  mkdirSync(join(root,'scripts/lib'),{recursive:true});mkdirSync(join(root,'public'));
+  for(const file of ['scripts/sync-version.mjs','scripts/lib/changelogCurrentRelease.mjs'])
+   writeFileSync(join(root,file),readFileSync(new URL('../../'+file,import.meta.url)));
+  writeFileSync(join(root,'package.json'),JSON.stringify({version:'0.9.85.487',scripts:{'test:regressions':'node scripts/run-regressions.mjs'}}));
+  writeFileSync(join(root,'RELEASE_NOTES.md'),notes);
+  writeFileSync(join(root,'CHANGELOG.md'),history);
+  writeFileSync(join(root,'public/CHANGELOG.md'),history+'\n\n# MID v0.9.85.487\n- Duplicate');
+  const run=spawnSync(process.execPath,['scripts/sync-version.mjs'],{cwd:root,encoding:'utf8'});
+  expect(run.status).not.toBe(0);
+  expect(run.stderr).toContain('already exists');
+  expect(readFileSync(join(root,'CHANGELOG.md'),'utf8')).toBe(history);
+ }finally{rmSync(root,{recursive:true,force:true})}
 });

@@ -14,6 +14,7 @@
     "Leitwork-Karten-Quell-Draft #868 original HEAD dd9a9cc6eaca641785b095bf79862a4b1ba051cd: nur drei SHA-identische, disjunkte Changelog-Korrekturblobs, nicht die 213 unfreigegebenen Karten-/CSS-/GPU-Pfade.",
     "Historische CHANGELOG.md und public/CHANGELOG.md Git-Originalbytes 1:1 erhalten, ausschließlich .489-Abschnitt vorangestellt; idempotentes sync-version geschützt durch neuen Test.",
     "GitHub Releases/Tags weiterhin extern separater Issue #901; keine neuen Rechte, Worker-Pipelines, ZIP-Transport- oder Review-Policy-Umstellung; #839/#740 in Security-Spezialarbeit. Vollständige Source-/Review-/Core-/Heavy-/Installer-/Pages-/Worker-/Stable-Gates auf finalem SHA erforderlich.",
-    "Isolierter optionaler Installer-Recovery-Shadow aus #839 be4e8eb: fester Build-Snapshot, SHA-256-/Event-/dist-Tree-Bindung, contents:read, keine App-Tokens. Verpflichtender Sammeljob bytegleich. Erster produktiver Nachweis und Gesamt-Cutover #740 bleiben offen."
+    "Isolierter optionaler Installer-Recovery-Shadow aus #839 be4e8eb: fester Build-Snapshot, SHA-256-/Event-/dist-Tree-Bindung, contents:read, keine App-Tokens. Verpflichtender Sammeljob bytegleich. Erster produktiver Nachweis und Gesamt-Cutover #740 bleiben offen.",
+    "Cubic-P2-Triage: gemischte Abschnittsgrenzen, doppelte aktuelle Notizen, veraltete aktuelle Texte, Paketsuffixe und Validierung beider Changelog-Spiegel vor Schreiben korrigiert; zusätzliche Originalsyncer-Fixture."
   ]
 }

@@ -4,19 +4,20 @@
  * replaced or prefixed with earlier rolling release headings.
  * This helper does NOT create GitHub releases, tags, builds or approvals.
  */
-const heading=/^# MID v(\d+\.\d+\.\d+(?:\.\d+)?)[ \t]*$/gm;
 // Historical headings use Markdown levels 1–4 (sometimes with titles); guard
 // against a duplicate version at *any* level before modifying history.
-const historicHeading=/^#{1,6}[ \t]+(?:MID[ \t]+)?v(\d+\.\d+\.\d+(?:\.\d+)?)(?=$|[ \t:—–·-])[^\r\n]*$/gm;
-const validVersion=/^\d+\.\d+\.\d+(?:\.\d+)?$/;
+const historicHeading=/^#{1,6}[ \t]+(?:MID[ \t]+)?v(\d+\.\d+\.\d+(?:\.\d+)?(?:[-+][0-9A-Za-z.-]+)?)(?=$|[ \t:—–·-])[^\r\n]*$/gm;
+const validVersion=/^\d+\.\d+\.\d+(?:\.\d+)?(?:[-+][0-9A-Za-z.-]+)?$/;
 
 export function currentMidReleaseSection(releaseNotes,version){
  if(!validVersion.test(version)||typeof releaseNotes!=='string')
   throw Error('MID changelog: version/notes invalid');
  const source=releaseNotes.trimStart();
- const matches=[...source.matchAll(heading)];
- if(!matches.length||matches[0].index!==0||matches[0][1]!==version)
+ const matches=[...source.matchAll(historicHeading)];
+ if(!matches.length||matches[0].index!==0||matches[0][1]!==version||matches[0][0].trim()!=='# MID v'+version)
   throw Error('MID changelog: first release heading must match exact package version');
+ if(matches.filter(match=>match[1]===version).length!==1)
+  throw Error('MID changelog: duplicate current release in rolling notes');
  const section=source.slice(0,matches[1]?.index??source.length).trimEnd();
  if(!/^[-*][ \t]+\S/m.test(section))
   throw Error('MID changelog: current release notes are empty');
@@ -31,7 +32,12 @@ export function prependMidCurrentRelease(changelog,releaseNotes,version){
  if(matching.length){
   // Existing current heading can have a different level/title. Never rewrite
   // any of its existing bytes during a repeat version synchronization.
-  if(matching.length===1&&headings[0]===matching[0]&&!changelog.slice(0,matching[0].index).trim())return changelog;
+  if(matching.length===1&&headings[0]===matching[0]&&!changelog.slice(0,matching[0].index).trim()){
+   const existing=changelog.slice(matching[0].index,headings[1]?.index??changelog.length);
+   if(existing.slice(existing.indexOf('\n')+1).trim()!==current.slice(current.indexOf('\n')+1).trim())
+    throw Error('MID changelog: current release body differs; reconcile without rewriting history');
+   return changelog;
+  }
   throw Error('MID changelog: current version already exists away from first position; reconcile without duplication');
  }
  if(!changelog.trim())
