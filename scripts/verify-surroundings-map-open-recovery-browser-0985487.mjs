@@ -59,7 +59,21 @@ async function verify(width,theme){
   assert.ok([request.bounds.west,request.bounds.south,request.bounds.east,request.bounds.north].every(Number.isFinite));
   assert.ok(request.bounds.west<request.bounds.east&&request.bounds.south<request.bounds.north);
   // A user opening the larger map must not leave two live WebGL maps mounted.
-  await page.waitForFunction(()=>document.querySelectorAll('.maplibregl-map').length===1,null,{timeout:15000});
+  await page.waitForFunction(()=>document.querySelectorAll('.maplibregl-map').length===1,null,{timeout:8000})
+   .catch(async(error)=>{
+    const detail=await page.evaluate(()=>({
+     count:document.querySelectorAll('.maplibregl-map').length,
+     items:[...document.querySelectorAll('.maplibregl-map')].map(el=>({
+      classes:el.className,parent:el.parentElement?.className,
+      parent2:el.parentElement?.parentElement?.className,
+      rect:el.getBoundingClientRect().toJSON()
+     })),
+     fullCount:document.querySelectorAll('.composite-maplibre').length,
+     compactCount:document.querySelectorAll('.current-surroundings-maplibre').length,
+     pageText:document.body?.innerText.slice(0,2500)
+    }));
+    throw new Error('Real MapLibre handoff map count diagnostics '+JSON.stringify(detail)+' | '+String(error));
+   });
   assert.equal(await page.locator('.current-surroundings-maplibre').count(),0);
   assert.equal(await page.locator('.composite-maplibre').count(),1);
   assert.equal(await page.getByTestId('qa-app-alive').count(),1);
