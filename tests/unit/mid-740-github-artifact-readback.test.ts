@@ -95,14 +95,53 @@ describe('MID #740 legacy source shadow readback',()=>{
     'SHA-gebundenes Original-ZIP für #740 bereitstellen',
     'Original-ZIP und Zuordnung kurzlebig als Nachweis hochladen'
    ].map((name,i)=>({name,number:i+1,status:'completed',conclusion:'success',
-    started_at:'2026-11-16T10:01:00Z',completed_at:'2026-11-16T10:02:00Z'}))}]};
+    started_at:['2026-11-16T10:00:15Z','2026-11-16T10:00:42Z',
+      '2026-11-16T10:01:00Z'][i],
+    completed_at:['2026-11-16T10:00:40Z','2026-11-16T10:00:58Z',
+      '2026-11-16T10:02:00Z'][i]}))}]};
   return x;
  };
- it('joins the exact legacy attempt, upload step, Git package and installer run',async()=>{
+ it('joins the historical post-dispatch ZIP shadow and authenticated Installer result',async()=>{
   const x=legacyFixture();
   expect(await read({...x.args,legacy},x.get)).toMatchObject({
    legacyPackageCommitSha:packageCommitSha,legacyInstallerRunId:321,mainSha:null,
    metadataReadbackConsistent:true,releaseAuthorized:false});
+ });
+ it('also accepts the new pre-dispatch ORIGINAL upload only with strict causal chronology',async()=>{
+  const x=legacyFixture(),steps=x.replies[jobPath].jobs[0].steps;
+  // Original SHA/run/artifact/Installer identities remain byte-for-byte.
+  [steps[0],steps[1],steps[2]]=[steps[1],steps[2],steps[0]];
+  steps.forEach((step:any,i:number)=>{step.number=i+1});
+  // Array is now stage→upload→dispatch. Both artifact timestamps are
+  // before Installer dispatch but within the exact upload step.
+  steps[0].started_at='2026-11-16T10:00:15Z';
+  steps[0].completed_at='2026-11-16T10:00:40Z';
+  steps[1].started_at='2026-11-16T10:01:00Z';
+  steps[1].completed_at='2026-11-16T10:02:00Z';
+  steps[2].started_at='2026-11-16T10:02:10Z';
+  steps[2].completed_at='2026-11-16T10:02:40Z';
+  expect(await read({...x.args,legacy},x.get)).toMatchObject({
+   metadataReadbackConsistent:true,legacyInstallerRunId:321,
+   releaseAuthorized:false
+  });
+  const mutate=async (fn:(bad:ReturnType<typeof legacyFixture>,steps:any[])=>void)=>{
+   const bad=legacyFixture(),j=bad.replies[jobPath].jobs[0].steps;
+   [j[0],j[1],j[2]]=[j[1],j[2],j[0]];
+   j.forEach((step:any,i:number)=>{step.number=i+1});
+   j[0].started_at='2026-11-16T10:00:15Z';
+   j[0].completed_at='2026-11-16T10:00:40Z';
+   j[1].started_at='2026-11-16T10:01:00Z';
+   j[1].completed_at='2026-11-16T10:02:00Z';
+   j[2].started_at='2026-11-16T10:02:10Z';
+   j[2].completed_at='2026-11-16T10:02:40Z';
+   fn(bad,j);
+   await expect(read({...bad.args,legacy},bad.get)).rejects.toThrow(/MID_740_/);
+  };
+  await mutate((x,j)=>{j[2].started_at='2026-11-16T10:01:30Z'});
+  await mutate((x,j)=>{j[1].completed_at='2026-11-16T10:03:00Z'});
+  await mutate((x,j)=>{x.artifact.updated_at='2026-11-16T10:02:30Z'});
+  await mutate((x,j)=>{j[1].number=j[0].number});
+  await mutate((x,j)=>{j[2].number=1});
  });
  it.each(['old artifact','wrong installer source','failed installer','wrong parent','wrong attempt',
   'failed upload','duplicate upload','wrong upload time'] as const)('rejects %s',async kind=>{

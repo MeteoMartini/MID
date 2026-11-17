@@ -102,13 +102,31 @@ export async function collectMid740GitHubReadback({
    'Original-ZIP und Zuordnung kurzlebig als Nachweis hochladen'];
   const steps=names.map(name=>job.steps.filter(step=>step?.name===name));
   if(steps.some(group=>group.length!==1||group[0].status!=='completed'||
-    group[0].conclusion!=='success'||!validId(group[0].number))||
-    steps[0][0].number>=steps[1][0].number||steps[1][0].number>=steps[2][0].number)
+    group[0].conclusion!=='success'||!validId(group[0].number)))
    fail('LEGACY_PRODUCER_STEPS_UNVERIFIED');
-  const uploadStart=Date.parse(steps[2][0].started_at??'');
-  const uploadEnd=Date.parse(steps[2][0].completed_at??'');
-  if(!Number.isFinite(uploadStart)||!Number.isFinite(uploadEnd)||
-     uploadStart<started||uploadEnd>completed||created<uploadStart||artifactUpdated>uploadEnd)
+  const [dispatch,stage,upload]=steps.map(group=>group[0]);
+  // Historical .486: Installer dispatched, then optional QA shadow uploaded.
+  // Pre-dispatch QA: same original Git blob uploaded BEFORE legacy dispatch.
+  // Neither mode authorizes production artifact consumption. Only these
+  // two exact complete step sequences are accepted.
+  const afterDispatch=dispatch.number<stage.number&&stage.number<upload.number;
+  const beforeDispatch=stage.number<upload.number&&upload.number<dispatch.number;
+  if(!afterDispatch&&!beforeDispatch)fail('LEGACY_PRODUCER_STEPS_UNVERIFIED');
+  const stageStart=Date.parse(stage.started_at??'');
+  const stageEnd=Date.parse(stage.completed_at??'');
+  const uploadStart=Date.parse(upload.started_at??'');
+  const uploadEnd=Date.parse(upload.completed_at??'');
+  const dispatchStart=Date.parse(dispatch.started_at??'');
+  const dispatchEnd=Date.parse(dispatch.completed_at??'');
+  if(![stageStart,stageEnd,uploadStart,uploadEnd,dispatchStart,dispatchEnd]
+    .every(Number.isFinite)||uploadStart<started||uploadEnd>completed||
+    created<uploadStart||artifactUpdated>uploadEnd||
+    stageEnd<stageStart||uploadEnd<uploadStart||dispatchEnd<dispatchStart||
+    // A possible timestamp tie does not relax the strict job step-number
+    // ordering; no artifact may arrive after its verified upload step.
+    (afterDispatch&&!(dispatchEnd<=stageStart&&stageEnd<=uploadStart))||
+    (beforeDispatch&&!(stageEnd<=uploadStart&&uploadEnd<=dispatchStart&&
+      artifactUpdated<=dispatchStart)))
    fail('LEGACY_UPLOAD_CHRONOLOGY_DRIFT');
  }
  return Object.freeze({
