@@ -48,6 +48,17 @@ Kombination ohne echte Laufzeitkoppelung wäre kein stichhaltiger Nachweis.
   Anschließend wird `localStorage.theme` über `addInitScript` gesetzt,
   die verifizierte `index.html` geöffnet und **nur eine ausdrücklich
   bereitgestellte Trusted-View-Aktion** ausgeführt.
+- **Playwright-Navigationshärtung (17.11.2026):** Laut offizieller
+  `page.goto()`-Dokumentation lösen HTTP 404 und 500 ohne Netzwerkfehler
+  **keine Exception** aus. Die Brücke verlangt nun die echte
+  Main-Resource-`Response` mit **HTTP 200**, genau der
+  verifizierten `/index.html`-URL, `fromServiceWorker()===false`
+  sowie unverändertem tatsächlichem Browser-`page.url()`. Redirects
+  (auch innerhalb derselben Origin), fehlende Response, Serverfehler
+  und ein aus Service Worker bereitgestelltes Startdokument werden
+  verweigert. Negativtests prüfen jeden dieser Fälle. Damit kann
+  eine 404-/500-Fehlerseite oder ein SW-Ersatz **keinen CSS-Browser-PASS**
+  nach dem Einstieg vortäuschen.
 - Erfasst eine echte CSSOM-Beobachtung **vor** dem Abschluss des
   Netzwerk-/CSSOM-Beobachters und eine zweite **danach**; beide laufen auf
   exakt derselben `Page` und denselben View-/Theme-/Fixture-Vorgaben.
