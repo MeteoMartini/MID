@@ -276,6 +276,12 @@ export default function CurrentSurroundings(props:Props){
   <header><h2 id={heading}>Wetter im Umfeld</h2><button type="button" disabled={openingMap} aria-busy={openingMap} onClick={()=>{
    if(openingMap)return;
    setMapOpenError('');setOpeningMap(true);
+   // Ephemeral on-device diagnostic, without coordinates or request URLs.
+   // Allows the root StartupGuard's recorded error to be correlated with a
+   // user-initiated map-open attempt if an actual device crashes again.
+   try{sessionStorage.setItem('mid:map:last-open-intent',JSON.stringify({
+    at:new Date().toISOString(),mode,hasOriginalTime:Number.isFinite(mode==='cloud'?cloudTarget:displayTime)
+   }))}catch{}
    try{onOpen(mode==='cloud'?cloudTarget:mode==='radar'?displayTime:undefined,{west,south,east,north})}
    catch{setOpeningMap(false);setMapOpenError('Der Kartenbereich konnte nicht geöffnet werden. Bitte erneut versuchen.')}
   }}>{openingMap?'Karte wird geöffnet …':'Karte öffnen'}</button></header>
