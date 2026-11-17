@@ -70,3 +70,5 @@
  .current-surroundings-cloud-timeline{column-gap:5px}
  .current-surroundings-cloud-timeline>button{padding-inline:5px;font-size:.75rem}
 }
+/* Release the compact WebGL renderer while the full map owns the map workspace. */
+.current-surroundings-map-paused{position:absolute;inset:0;display:grid;place-items:center;margin:0;padding:1.25rem;max-width:100%;text-align:center;font-size:clamp(.8rem,2.4vw,.95rem);line-height:1.5;color:var(--muted,#65778b);background:var(--panel,Canvas);overflow-wrap:anywhere}
