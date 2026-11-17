@@ -702,7 +702,11 @@ async function verifySurroundings(width,theme){
  const context=await browser.newContext({viewport:{width,height:780},colorScheme:theme});
  try{
   const page=await context.newPage();
-  const now=Date.now(),observed=new Date(now-5*60000).toISOString(),future=new Date(now+15*60000).toISOString();
+  const now=Date.now(),observed=new Date(now-5*60000).toISOString();
+  // A genuine +10-minute nowcast is available at radar selector step 2;
+  // step 1 deliberately has no original. This is independent of when in
+  // the current UTC five-minute slot the browser fixture begins.
+  const future=new Date(Math.floor(now/(5*60_000))*5*60_000+10*60_000).toISOString();
   // Visually unambiguous full-opacity data sentinel, not a weather observation.
   const magentaWms=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFUlEQVR42mP8z/D/PwMDAwMTAxQAAC4IAwEDGOY5AAAAAElFTkSuQmCC','base64');
   const errors=[],requests=[];
@@ -832,20 +836,25 @@ async function verifySurroundings(width,theme){
 
   const radarTimeline=page.locator('.current-surroundings-cloud-timeline');
   const radarRange=radarTimeline.locator('input[type="range"]');
-  const radarPrev=page.getByRole('button',{name:'Radar und Satellit 15 Minuten zurück',exact:true});
-  const radarNext=page.getByRole('button',{name:'Radar und Satellit 15 Minuten vor',exact:true});
+  const radarPrev=page.getByRole('button',{name:'Radar und Satellit 5 Minuten zurück',exact:true});
+  const radarNext=page.getByRole('button',{name:'Radar und Satellit 5 Minuten vor',exact:true});
   await radarRange.waitFor();
   assert.equal(await radarRange.inputValue(),'0','Radar/Sat starts at current observed target');
   for(const control of [radarRange,radarPrev,radarNext,page.getByRole('button',{name:'Jetzt',exact:true}),page.getByRole('button',{name:'Karte öffnen',exact:true})]){
-   assert.ok((await control.boundingBox())?.height>=44,'Radar 15-minute controls require 44px touch targets');
+   assert.ok((await control.boundingBox())?.height>=44,'Radar 5-minute controls require 44px touch targets');
   }
   const radarBounds=await radarTimeline.evaluate(el=>({overflow:el.scrollWidth>el.clientWidth+1}));
   assert.equal(radarBounds.overflow,false,'Radar timeline must not overflow small screens');
   const map=page.locator('.current-surroundings-map');
   const before=await map.boundingBox();
   await radarNext.click();
-  assert.equal(await radarRange.inputValue(),'1','Exactly +15 min radar step');
-  assert.match(await radarTimeline.locator('output').innerText(),/in 15 min/);
+  assert.equal(await radarRange.inputValue(),'1','First UTC five-minute radar selection');
+  await page.getByRole('status').filter({hasText:'Kein originales Radar-/Nowcast-Bild für diesen 5-Minuten-Auswahltermin'}).waitFor();
+  assert.equal(await page.getByRole('status').filter({hasText:'DWD-Radar · Nowcast'}).count(),0,
+   'No invented nowcast in source gap between genuine five-minute originals');
+  await radarNext.click();
+  assert.equal(await radarRange.inputValue(),'2','Second UTC five-minute step targets the real source-confirmed nowcast');
+  assert.match(await radarTimeline.locator('output').innerText(),/in \d+ Minuten/);
   await page.getByRole('status').filter({hasText:'DWD-Radar · Nowcast'}).waitFor();
   assert.deepEqual(await map.boundingBox(),before,'Nowcast preserves surroundings map extent');
   await page.getByRole('button',{name:'Karte öffnen',exact:true}).click();
@@ -854,11 +863,13 @@ async function verifySurroundings(width,theme){
   assert.equal(handoff.bounds.west,7.14-1.4);
   assert.equal(handoff.bounds.south,50.82-.65);
   await radarPrev.click();
-  assert.equal(await radarRange.inputValue(),'0','Back to the current observed source');
+  assert.equal(await radarRange.inputValue(),'1','Back to unserved intermediate five-minute target');
+  await radarPrev.click();
+  assert.equal(await radarRange.inputValue(),'0','Back to current observed DWD source');
   await page.getByRole('status').filter({hasText:'DWD-Radar · Beobachtung'}).waitFor();
   await radarPrev.click();
-  assert.equal(await radarRange.inputValue(),'-1','Historical radar target exactly −15 min');
-  assert.match(await radarTimeline.locator('output').innerText(),/vor 15 min/);
+  assert.equal(await radarRange.inputValue(),'-1','Historical radar target one UTC five-minute step');
+  assert.match(await radarTimeline.locator('output').innerText(),/vor \d+ Minuten/);
   await radarNext.click();
   assert.equal(await radarRange.inputValue(),'0');
   await page.getByRole('button',{name:'Jetzt',exact:true}).click();

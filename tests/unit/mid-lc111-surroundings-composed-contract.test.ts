@@ -17,7 +17,9 @@ describe('MID LC 1.11 – cloud-original and Rad/Sat viewport coexistence',()=>{
  });
  it('does not erase satellite spectrum provenance or OPERA partial coverage',()=>{
   expect(component).toContain('selectSurroundingsSatelliteOriginal(catalog,radarTarget,now,radarStep)');
-  expect(component).toContain("satelliteOriginal?.spectrum==='IR'?'Infrarot (IR)':'RGB'");
+  expect(component).toContain('Originalbeobachtung {datedClock(retainedSatellite.time)} Uhr');
+  expect(component).toContain('setPresentedSatellite({url:clouds,time:satelliteTime,scope:operaRequestKey,provider:satellite.provider,spectrum:satelliteOriginal!.spectrum})');
+  expect(component).toContain("retainedSatellite.spectrum==='IR'?'Infrarot (IR)':'RGB'");
   expect(component).toContain('summarizeSurroundingsOperaCoverage(validPixels,canvas.width*canvas.height)');
   expect(component).toContain("if(!coverage||coverage.kind==='none')return;");
   expect(component).toContain("displayedOpera.coverage.kind==='partial'");

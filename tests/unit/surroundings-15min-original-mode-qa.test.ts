@@ -23,7 +23,7 @@ describe('Umfeld Rad/Sat: 5-min cursor, verified source time and GPU-ready reten
  });
  it('selects true recent radar observations and independent nowcast, never invents frames',()=>{
   expect(radarOriginalForStep(catalog,now,0)).toEqual({time:now-5*60000,kind:'Beobachtung'});
-  expect(radarOriginalForStep(catalog,now,1)).toEqual({time:now+15*60000,kind:'Nowcast'});
+  expect(radarOriginalForStep(catalog,now,1)).toEqual({time:Date.parse(future),kind:'Nowcast'});
   expect(radarOriginalForStep(catalog,now,2)).toBeUndefined();
   expect(radarOriginalForStep(catalog,now,-1)?.time).toBe(now-5*60000);
   expect(radarOriginalForStep(catalog,now,-2)).toBeUndefined();
@@ -57,10 +57,12 @@ describe('Umfeld Rad/Sat: 5-min cursor, verified source time and GPU-ready reten
   const previous={url:old,time:observed,kind:'Beobachtung' as const};
   const requested={time:Date.parse('2026-11-17T07:05:00Z'),kind:'Beobachtung' as const};
   expect(selectRetainedSurroundingsRadarFrame(previous,next,requested,now,requested.time)).toBe(previous);
+  expect(selectRetainedSurroundingsRadarFrame({...previous,time:observed+5*60_000},next,requested,now,requested.time)).toBeUndefined();
+  expect(selectRetainedSurroundingsRadarFrame(previous,next.replace('05%3A00Z','15%3A00Z'),requested,now,requested.time)).toBeUndefined();
   expect(selectRetainedSurroundingsRadarFrame(previous,next.replace('bbox=7,50,8,51','bbox=8,50,9,51'),requested,now,requested.time)).toBeUndefined();
   expect(selectRetainedSurroundingsRadarFrame(previous,next.replace('layers=Radar_rv','layers=Other'),requested,now,requested.time)).toBeUndefined();
   expect(selectRetainedSurroundingsRadarFrame(previous,next,{...requested,kind:'Nowcast'},now,now+5*60000)).toBeUndefined();
-  expect(selectRetainedSurroundingsRadarFrame(previous,next,requested,now,now-20*60000)).toBeUndefined();
+  expect(selectRetainedSurroundingsRadarFrame(previous,next,requested,now,now-25*60000)).toBeUndefined();
   expect(selectRetainedSurroundingsRadarFrame(previous,'',requested,now,requested.time)).toBeUndefined();
   expect(selectRetainedSurroundingsRadarFrame({...previous,time:NaN},next,requested,now,requested.time)).toBeUndefined();
  });
@@ -105,6 +107,8 @@ describe('Umfeld Rad/Sat: 5-min cursor, verified source time and GPU-ready reten
   expect(ui).toContain('selectVerifiedSurroundingsRadarFrame(loaded,radar,radarOriginal)');
   expect(ui).toContain('selectRetainedSurroundingsRadarFrame(presentedRadar,radar,radarOriginal,now,radarTarget)');
   expect(ui).toContain('onReady={()=>{if(displayedRadar&&!displayedOpera)setPresentedRadar(displayedRadar)}}');
+  expect(ui).toContain('onError={()=>{if(displayedRadar?.url===radar)setImageError(radar)}}');
+  expect(ui).toContain('radarOffsetLabel');
   expect(ui).toContain('displayedOpera=needsOpera');
   expect(ui).not.toContain('Radar-Nowcast-Termin');
  });

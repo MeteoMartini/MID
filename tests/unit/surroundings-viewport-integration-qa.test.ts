@@ -89,8 +89,9 @@ describe('MID #853: full-viewport Rad/Sat integration without source or time fab
   expect(ui).toContain("const satelliteOriginal=selectSurroundingsSatelliteOriginal(catalog,radarTarget,now,radarStep);");
   expect(ui).toContain('const satellite=satelliteOriginal?.product;');
   expect(ui).toContain('const satelliteTime=satelliteOriginal?.time;');
+  expect(ui).toContain('Originalbeobachtung {datedClock(retainedSatellite.time)} Uhr');
   expect(ui).toContain("imageUrl(satellite.provider,satellite.layer,satelliteTime,rasterPlan)");
-  expect(ui).toContain("satelliteOriginal?.spectrum==='IR'?'Infrarot (IR)':'RGB'");
+  expect(ui).toContain("retainedSatellite.spectrum==='IR'?'Infrarot (IR)':'RGB'");
   expect(ui).not.toContain('catalog?.satelliteRgbProduct??catalog?.satelliteIrProduct');
  });
 

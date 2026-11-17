@@ -80,6 +80,8 @@ export function selectRetainedSurroundingsRadarFrame(
  try{
   const previous=new URL(loaded.url),next=new URL(requestedUrl);
   if(previous.origin!==next.origin||previous.pathname!==next.pathname)return undefined;
+  const pTimes=previous.searchParams.getAll('time'),nTimes=next.searchParams.getAll('time');
+  if(pTimes.length!==1||nTimes.length!==1||Date.parse(pTimes[0])!==loaded.time||Date.parse(nTimes[0])!==requested.time)return undefined;
   previous.searchParams.delete('time');next.searchParams.delete('time');
   previous.searchParams.sort();next.searchParams.sort();
   if(previous.search!==next.search)return undefined;

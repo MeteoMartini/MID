@@ -143,6 +143,8 @@ export default function CurrentSurroundings(props:Props){
  // inside these bounds still needs the independent OPERA check.
  const dwdArea=lat>=47&&lat<=55.3&&lon>=5.4&&lon<=15.7;
  const radarTarget=surroundingsRadarTarget(now,radarStep);
+ const radarOffsetMinutes=Math.round((radarTarget-now)/60_000);
+ const radarOffsetLabel=radarStep===0?'Jetzt':radarOffsetMinutes>0?`in ${radarOffsetMinutes} Minuten`:radarOffsetMinutes<0?`vor ${-radarOffsetMinutes} Minuten`:'am gewählten Termin';
  const radarOriginal=radarOriginalForStep(catalog,now,radarStep,dwdArea);
  const target=radarOriginal?.time;
  const radarAtNow=radarStep===0;
@@ -268,7 +270,7 @@ export default function CurrentSurroundings(props:Props){
  },[needsOpera,showPhase,lat,lon,bounds,rasterPlan,operaRequestKey,catalog?.checkedAt]);
  const displayedOpera=needsOpera?selectVerifiedSurroundingsOperaFrame(opera,operaRequestKey,now):undefined;
  const displayedRadar=mode==='radar'?
-  selectVerifiedSurroundingsRadarFrame(loaded,radar,radarOriginal)??
+  (imageError===radar?undefined:selectVerifiedSurroundingsRadarFrame(loaded,radar,radarOriginal))??
   selectRetainedSurroundingsRadarFrame(presentedRadar,radar,radarOriginal,now,radarTarget):undefined;
  const paintedRadar=mode==='radar'?
   selectVerifiedSurroundingsRadarFrame(presentedRadar,radar,radarOriginal)??
@@ -325,11 +327,11 @@ export default function CurrentSurroundings(props:Props){
    <div className="current-surroundings-cloud-timeline" role="group" aria-label="Radar und Satellit: 5-Minuten-Auswahl; nur tatsächlich belegte Originaltermine">
     <button type="button" aria-label="Radar und Satellit 5 Minuten zurück" disabled={radarStep===SURROUNDINGS_RADAR_MIN_STEP} onClick={()=>setRadarStep(v=>Math.max(SURROUNDINGS_RADAR_MIN_STEP,v-1))}>−5 min</button>
     <input type="range" min={SURROUNDINGS_RADAR_MIN_STEP} max={SURROUNDINGS_RADAR_MAX_STEP} step={1} value={radarStep}
-     aria-label={`Radar/Satellit: ${radarStep===0?'Jetzt':radarStep>0?`in ${radarStep*5} Minuten`:`vor ${-radarStep*5} Minuten`} · Ziel ${datedClock(radarTarget)} Uhr`}
+     aria-label={`Radar/Satellit: ${radarOffsetLabel} · Ziel ${datedClock(radarTarget)} Uhr`}
      aria-valuetext={`${datedClock(radarTarget)} Uhr · ${radarOriginal?`${radarOriginal.kind} ${datedClock(radarOriginal.time)} Uhr`:'kein belegtes Radaroriginal'}`}
      onChange={event=>setRadarStep(Math.max(SURROUNDINGS_RADAR_MIN_STEP,Math.min(SURROUNDINGS_RADAR_MAX_STEP,Number(event.target.value))))}/>
     <button type="button" aria-label="Radar und Satellit 5 Minuten vor" disabled={radarStep===SURROUNDINGS_RADAR_MAX_STEP} onClick={()=>setRadarStep(v=>Math.min(SURROUNDINGS_RADAR_MAX_STEP,v+1))}>+5 min</button>
-    <output aria-live="polite" className="current-surroundings-time-readout">{radarStep===0?'Jetzt':radarStep>0?`in ${radarStep*5} min`:`vor ${-radarStep*5} min`} · {datedClock(radarTarget)} Uhr</output>
+    <output aria-live="polite" className="current-surroundings-time-readout">{radarOffsetLabel} · {datedClock(radarTarget)} Uhr</output>
    </div>
    <div className="current-surroundings-controls">
     <button type="button" aria-pressed={radarAtNow} onClick={()=>setRadarStep(0)}>Jetzt</button>
@@ -350,7 +352,7 @@ export default function CurrentSurroundings(props:Props){
     {mode==='radar'&&visibleClouds&&mapBounds&&<ImageQuadLayer id="surroundings-clouds" key={`surroundings-clouds:${operaRequestKey}`} url={satelliteFrameUrl} bounds={mapBounds} zIndex={220}
      onError={()=>setCloudError(satelliteFrameUrl)} onReady={()=>{if(satelliteFrameUrl===clouds&&satelliteTime!==undefined&&satellite)
       setPresentedSatellite({url:clouds,time:satelliteTime,scope:operaRequestKey,provider:satellite.provider,spectrum:satelliteOriginal!.spectrum})}}/>}
-    {mode==='radar'&&mapBounds&&(displayedOpera??displayedRadar)&&<ImageQuadLayer id="surroundings-radar" key={`surroundings-radar:${operaRequestKey}`} url={displayedPhase?.url??(displayedOpera??displayedRadar)!.url} bounds={mapBounds} zIndex={360} onReady={()=>{if(displayedRadar&&!displayedOpera)setPresentedRadar(displayedRadar)}}/>}
+    {mode==='radar'&&mapBounds&&(displayedOpera??displayedRadar)&&<ImageQuadLayer id="surroundings-radar" key={`surroundings-radar:${operaRequestKey}`} url={displayedPhase?.url??(displayedOpera??displayedRadar)!.url} bounds={mapBounds} zIndex={360} onReady={()=>{if(displayedRadar&&!displayedOpera)setPresentedRadar(displayedRadar)}} onError={()=>{if(displayedRadar?.url===radar)setImageError(radar)}}/>}
     <VectorReferenceLayer url={referenceTileUrl} glyphsUrl={referenceGlyphsUrl} layers={mapReferences} zIndex={790}/>
     <MapCityInventory onChange={updateMapCities}/>
     {nearbyCities.map((place,index)=>{

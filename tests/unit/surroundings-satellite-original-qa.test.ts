@@ -39,7 +39,8 @@ describe('MID Karten #853: original satellite source time and RGB/IR fallback',(
   const valid=now-5*60_000;
   const ir=product('mtg_fd:ir_105',[valid/1000]);
   expect(selectSurroundingsSatelliteOriginal(catalog(undefined,ir),now,now,0)?.time).toBe(valid);
-  expect(selectSurroundingsSatelliteOriginal(catalog(undefined,ir),now+4*60_000,now,0)).toBeUndefined();
+  expect(selectSurroundingsSatelliteOriginal(catalog(undefined,ir),now+4*60_000,now,0)?.time).toBe(valid);
+  expect(selectSurroundingsSatelliteOriginal(catalog(undefined,ir),now+16*60_000,now,0)).toBeUndefined();
  });
  it('does not invent images or use unknown layers or unverified temporal values',()=>{
   const invalid=product('  ',['2026-11-16T15:25:00Z']);
