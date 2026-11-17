@@ -4,7 +4,9 @@ MID ist eine wissenschaftlich fundierte, hyperlokale Wetter-App, die professione
 
 **Live-Version:** [Aktueller MID-Versionsstand](https://www.midwx.app/version.json) – wird bei jeder Veröffentlichung aktualisiert.  
 **App:** [https://www.midwx.app](https://www.midwx.app)  
-**Changelog:** [CHANGELOG.md](CHANGELOG.md)
+**Changelog:** [CHANGELOG.md](CHANGELOG.md) · [Aktuelle Release-Notizen](RELEASE_NOTES.md)
+
+**Hinweis zur GitHub-Releases-Übersicht:** Separate versionierte Tags und Releases sind seit v0.9.85.119 nicht vollständig nachgetragen. Maßgeblich ist der nach erfolgreicher Promotion verifizierte Stand auf `mid-stable`; siehe [Issue #901](https://github.com/MeteoMartini/MID/issues/901). Fehlende GitHub-Release-Metadaten sind kein automatischer Hinweis auf ein fehlgeschlagenes App-Deployment.
 
 ## Funktionen
 

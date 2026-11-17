@@ -1,3 +1,9 @@
+# MID v0.9.85.489
+
+- Der Wetterzwilling wertet archivierte Modellvorläufe nur aus, wenn Ausgabezeit, örtlicher Zielmittag und tatsächliche Zeitdifferenz zusammenpassen. Unplausible Horizonte beeinflussen die Prognosegüte nicht.
+- Der Changelog übernimmt pro Veröffentlichung nur die aktuellen Release-Notizen. Die vollständige ältere Versionshistorie bleibt erhalten und wird nicht erneut dupliziert.
+- Im Repository ist die aktuelle Änderungsübersicht weiterhin direkt erreichbar. Noch fehlende separate GitHub-Release- und Tag-Einträge werden unter Issue #901 nachgewiesen und behandelt.
+
 # MID v0.9.85.488
 
 - Fehlende, fehlerhafte oder negative beobachtete Niederschlagsmengen zählen bei der Verifikation weder als trockene Tage noch als gültige Brier- oder Kalibrationsbelege.

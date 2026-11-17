@@ -1,3 +1,11 @@
+## MID v0.9.85.489 · 2026-11-17 · Archiv-Vorlauf und Changelog-Integrität
+
+- Ausgangs-Stable main=mid-stable=9fe4dfbcdfd5a1f8fec55efa868e22110a612953 / v0.9.85.488, fünf unveränderte aktive Rulesets.
+- Audit #899 original HEAD 115012fce035b4d7dfc6eb937654bcda93ce8fb5: sechs SHA-identische Dateien, Einzel-CI 44135776780 completed/success; Validierung ISO-Zeit/Offset, Zielmittag und DST-23-/25h-Tage ohne Kalender-Normalisierung.
+- Leitwork-Karten-Quell-Draft #868 original HEAD dd9a9cc6eaca641785b095bf79862a4b1ba051cd: nur drei SHA-identische, disjunkte Changelog-Korrekturblobs, nicht die 213 unfreigegebenen Karten-/CSS-/GPU-Pfade.
+- Historische CHANGELOG.md und public/CHANGELOG.md Git-Originalbytes 1:1 erhalten, ausschließlich .489-Abschnitt vorangestellt; idempotentes sync-version geschützt durch neuen Test.
+- GitHub Releases/Tags weiterhin extern separater Issue #901; keine neuen Rechte, Worker-Pipelines, ZIP- oder Release-Workflowänderungen; #839/#740 in Security-Spezialarbeit. Vollständige Source-/Review-/Core-/Heavy-/Installer-/Pages-/Worker-/Stable-Gates auf finalem SHA erforderlich.
+
 ## MID v0.9.85.488 · 2026-11-17 · Wetterzwilling-Messwerte und mobile Navigation
 
 - Verifizierte Ausgangsbasis main=mid-stable=ee70a92ae6ed83d3fa46445f4941e3db8b8675d4 (v0.9.85.487), fünf aktive Rulesets.
