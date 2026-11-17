@@ -585,7 +585,7 @@ function modelBiases(evaluations:Evaluation[],regime:WeatherRegime,horizon:Forec
   const samples=row.dates.size,corrections:Partial<Record<ForecastParameter,number>>={};
   for(const parameter of ['temperature','precipitation','gust','sunshine'] as ForecastParameter[]){
    const n=row.count[parameter];
-   if(n)corrections[parameter]=-(row.sum[parameter]/n)*(n/(n+5));
+   if(n){const correction=-(row.sum[parameter]/n)*(n/(n+5));corrections[parameter]=correction===0?0:correction;}
   }
   return{id,label:row.label,regime,horizon,samples,confidence:confidenceFromSamples(samples),corrections} satisfies BiasCorrection;
  });
