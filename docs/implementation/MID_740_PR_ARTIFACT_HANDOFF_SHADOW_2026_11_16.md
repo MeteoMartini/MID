@@ -259,3 +259,18 @@ Ausstellung der bereits im Recovery-Reader verlangten Installer-Attestierung.
 
 Offizielle Herkunfts- und Signaturvorgaben
 https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations
+
+## MID SW · Snapshot-Prüfsummen im Recovery-Consumer (17.11.2026)
+
+Der Installer-Attestierungsmodus prüft jetzt die vom Snapshot-Producer
+hinzugefügten Felder `snapshotManifestSha256` und `snapshotArchiveSha256`.
+Sobald eines vorkommt, müssen beide als kleingeschriebene SHA-256-Hexstrings
+mit exakt 64 Zeichen vorliegen. Fehlende Gegenstücke, null, Zahlen oder
+versehentlich als `sha256:...` übergebene Werte blockieren vor dem Restore mit
+`INSTALLER_SNAPSHOT_DIGESTS_INVALID`. Die Prüfung erfolgt auf den bereits
+byte- und attestierungsgeprüften Manifestdaten. Alte QA-Manifeste ohne beide
+Zusatzfelder behalten ihre bisherige Semantik. Diese Formatprüfung belegt
+keinen unabhängigen Original-Snapshot-Download. Die zusätzlichen fünf
+Consumerfälle prüfen gültiges Paar und vier fehlerhafte Varianten sowie
+fehlende Restore-Aufrufe bei Fehlern. Produktive Attestierung, Original-
+Installer-Shadow und Gesamt-Cutover bleiben separat nachzuweisen.

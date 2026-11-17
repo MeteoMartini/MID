@@ -101,7 +101,9 @@ describe('MID 740 live immutable release readback: adversarial QA only',()=>{
  });
 });
 it.each(['clean','clean-restore','digest','symlink','missing','attestation','metadata-race',
- 'tree-mismatch','restore-failure','installer-signed','installer-unsigned','installer-wrong-digest'] as const)(
+ 'tree-mismatch','restore-failure','installer-signed','installer-unsigned','installer-wrong-digest',
+ 'installer-snapshot-valid','installer-snapshot-partial','installer-snapshot-malformed',
+ 'installer-snapshot-null','installer-snapshot-number'] as const)(
  'verifies recovery asset bytes and attestation, or blocks %s',async kind=>{
   const x=fixture(),directory=mkdtempSync(join(tmpdir(),'mid740-recovery-'));
   try{
@@ -119,7 +121,16 @@ it.each(['clean','clean-restore','digest','symlink','missing','attestation','met
    if(installerEvidence){
     const manifest=assets.find(a=>a.name==='MID-release-manifest.json');
     const dist=assets.find(a=>a.name==='MID-dist-release.zip');
-    const bytes=Buffer.from(JSON.stringify({schema:'mid.740.installer-dist.v1',version:VER,
+    const snapshotFields:Record<string,unknown>={};
+    if(kind.startsWith('installer-snapshot-')){
+     snapshotFields.snapshotManifestSha256='d'.repeat(64);
+     snapshotFields.snapshotArchiveSha256='e'.repeat(64);
+     if(kind==='installer-snapshot-partial')delete snapshotFields.snapshotArchiveSha256;
+     if(kind==='installer-snapshot-malformed')snapshotFields.snapshotArchiveSha256='sha256:'+'e'.repeat(64);
+     if(kind==='installer-snapshot-null')snapshotFields.snapshotManifestSha256=null;
+     if(kind==='installer-snapshot-number')snapshotFields.snapshotManifestSha256=123;
+    }
+    const bytes=Buffer.from(JSON.stringify({...snapshotFields,schema:'mid.740.installer-dist.v1',version:VER,
      sourceSha:SHA,distTreeSha:'c'.repeat(40),
      distDigest:kind==='installer-wrong-digest'?'sha256:'+'f'.repeat(64):dist.digest}));
     manifest.size=bytes.length;
@@ -163,18 +174,19 @@ it.each(['clean','clean-restore','digest','symlink','missing','attestation','met
     expect(JSON.parse(bytes.toString('utf8')).schema).toBe('mid.740.installer-dist.v1');
     return kind!=='installer-unsigned';
    });
-   expect(restoreCalls).toBe(['clean-restore','restore-failure','installer-signed'].includes(kind)?1:0);
+   expect(restoreCalls).toBe(['clean-restore','restore-failure','installer-signed','installer-snapshot-valid'].includes(kind)?1:0);
    if(kind==='clean'){
     expect(verified).toEqual(REQUIRED_ASSETS.map(name=>join(directory,name)));
     expect(proof).toMatchObject({status:'ATTESTED_ASSETS_VERIFIED_QA_ONLY',
      bytesVerified:true,attestationVerified:true,recoveryAuthorized:false,releaseAuthorized:false});
-   }else if(kind==='clean-restore'||kind==='installer-signed'){
+   }else if(kind==='clean-restore'||kind==='installer-signed'||kind==='installer-snapshot-valid'){
     expect(proof).toMatchObject({status:'ATTESTED_DIST_RESTORED_QA_ONLY',distTreeSha:distTree,
      restoredFiles:151,bytesVerified:true,attestationVerified:true,
      distTreeEvidence:installerEvidence?'installer-attestation':'stable-git-tree',
      recoveryAuthorized:false,releaseAuthorized:false});
    }else{
     expect(proof).toMatchObject({status:'BLOCKED',recoveryAuthorized:false,releaseAuthorized:false});
+    if(kind.startsWith('installer-snapshot-'))expect(proof.reason).toBe('INSTALLER_SNAPSHOT_DIGESTS_INVALID');
     if(['digest','symlink','missing'].includes(kind))expect(verified).toEqual([]);
    }
   }finally{rmSync(directory,{recursive:true,force:true})}

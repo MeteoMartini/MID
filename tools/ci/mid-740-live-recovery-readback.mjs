@@ -142,6 +142,11 @@ export async function inspectMid740LiveRecovery({
      if(manifest?.schema!=='mid.740.installer-dist.v1'||manifest.version!==version||
         manifest.sourceSha!==expectedSourceSha||manifest.distDigest!==dist.digest||
         !SHA.test(manifest.distTreeSha??''))return block('INSTALLER_MANIFEST_IDENTITY_DRIFT');
+     const snapshotFields=['snapshotManifestSha256','snapshotArchiveSha256'];
+     if(snapshotFields.some(key=>Object.hasOwn(manifest,key))&&
+        !snapshotFields.every(key=>typeof manifest[key]==='string'&&
+          /^[0-9a-f]{64}$/.test(manifest[key])))
+      return block('INSTALLER_SNAPSHOT_DIGESTS_INVALID');
      distTreeSha=manifest.distTreeSha;
     }
    }
