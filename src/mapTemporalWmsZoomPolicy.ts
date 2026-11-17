@@ -22,8 +22,12 @@ export function mapTemporalWmsZoomPolicy(
  zoomRevision:number,
 ):TemporalWmsZoomPolicy{
  const safeRevision=Number.isSafeInteger(zoomRevision)&&zoomRevision>=0?zoomRevision:0;
- if(latestOnly||!originalTimeIso||!ORIGINAL_UTC.test(originalTimeIso)||
-    !Number.isFinite(Date.parse(originalTimeIso))){
+ const parsed=originalTimeIso&&ORIGINAL_UTC.test(originalTimeIso)?Date.parse(originalTimeIso):NaN;
+ // Date.parse can normalize impossible calendar dates. A retained raster must
+ // carry an exact published UTC time, never a silently normalized date.
+ const canonical=Number.isFinite(parsed)?new Date(parsed).toISOString():'';
+ if(latestOnly||!originalTimeIso||!Number.isFinite(parsed)||
+    (canonical!==originalTimeIso&&canonical.replace('.000Z','Z')!==originalTimeIso)){
   return{retainDuringZoom:false,revision:safeRevision};
  }
  return{retainDuringZoom:true,revision:0};
