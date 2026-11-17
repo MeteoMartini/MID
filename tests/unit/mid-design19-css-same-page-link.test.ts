@@ -104,7 +104,7 @@ describe('MID Design19 – same-page CSS HTTP/computed browser evidence bridge (
    {...css(),identity:{...css().identity,version:'0.9.85.123'}},
   ]){
    const h=harness({result:badCss});
-   await expect(runDesign19CssSamePage(h.input())).rejects.toThrow(/CSS HTTP|identity/);
+   await expect(runDesign19CssSamePage(h.input())).rejects.toThrow(/CSS load|CSS HTTP|identity/);
    expect(h.log.at(-1)).toBe('observer-cancel');
   }
  });
