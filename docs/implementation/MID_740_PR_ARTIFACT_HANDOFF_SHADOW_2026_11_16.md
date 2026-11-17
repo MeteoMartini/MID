@@ -193,3 +193,69 @@ Produktive Installer-Attestierung, permanentes immutable Release und
 Restore/Pages/RUC/Widget-Rollback sowie der gemeinsame Ersatz beider
 main-Schreibpfade und die native automatisierte Review-Policy bleiben offen.
 Der disjunkte LC-Train #902 wird durch dieses QA-Paket nicht berührt.
+
+## MID SW · Installer-Snapshot an das Recovery-Bundle binden (17.11.2026)
+
+Der neue optionale Producer-Modus verlangt gemeinsam
+`--snapshot-directory` und `--snapshot-sha`. Die Manifest-SHA stammt im
+Installer direkt aus `needs.verify_core.outputs.snapshot_sha`, die Event-SHA
+aus `GITHUB_SHA`. Einmal erfasste Manifestbytes müssen exakt zu dieser SHA-256
+passen. Die unveränderten originalen Manifest-/TAR-Bytes werden in einem
+privaten temporären ZIP über den bestehenden vollständigen
+`mid_740_installer_archive_shadow.verify_file` geprüft. Dieser prüft sämtliche
+Dateihashes und TAR-Typen, den vollständigen Archivhash, die Event-SHA und die
+exakte dist-Git-Tree-Identität einschließlich ausführbarer Dateimodi. Auch
+Manipulationen außerhalb dist blockieren. Das ausgegebene Recovery-Manifest
+bindet zusätzlich `snapshotManifestSha256` und `snapshotArchiveSha256`.
+
+Der eigenständige lesende Job `dist_recovery_shadow` implementiert die
+Erzeugung nach eigenem verifiziertem Snapshot-Restore und Versionsbestimmung.
+Der bestehende `install_build`-Sammeljob bleibt bytegleich. Alle vorhandenen Core-/Heavy-Abhängigkeiten
+bleiben Voraussetzung. Ein ausschließlich temporärer Git-Index erstellt den
+dist-Tree aus dem restaurierten Arbeitsbaum. Der reguläre Git-Index bleibt
+unberührt. Die beiden Recovery-Dateien werden ausschließlich nach erfolgreicher
+Snapshot-Bindung als separates, sieben Tage aufbewahrtes Actions-Artefakt
+hochgeladen. Sein Name lautet
+`mid740-dist-recovery-shadow-${github.run_id}-${github.run_attempt}`.
+Der neue Job enthält keine App-Token- oder Secret-Schritte und benötigt nur
+`contents: read`. Er ist als optionaler Übergangsjob mit
+`continue-on-error: true` markiert. Innerhalb des Jobs sind sämtliche Schritte
+fehlschließend. Deployment und Promotion hängen weiter ausschließlich von den
+bestehenden verpflichtenden Gates ab. Ein Shadow-Fehlschlag liefert keinen
+qualifizierten Recovery-Beleg. Die bestehenden vier Pflichtdownloads und ihre
+strikten Digest-/ID-Prüfungen bleiben erhalten. Die Sharding-Regression prüft
+diese vier unverändert und den neuen fünften Verbraucher separat. Der
+Checkout-Schutz prüft jetzt alle acht Installer-Checkouts einschließlich des
+neuen isolierten Jobs auf vollständigen Action-SHA und
+`persist-credentials: false`; seine Negativprüfungen bleiben erhalten.
+
+Die kanonische Installer-Datei wurde mit `npm run sync:github-workflows` in
+`.github/workflows/install-mid.yml` und `workflow-patches/install-mid.yml`
+gespiegelt. Die Tests führen das originale Shellstück mit einer lokalen
+Git-/Build-Snapshot-Fixture aus und prüfen neben dem positiven Bundle den
+unveränderten regulären Index, die aufgeräumten temporären Indexdateien und
+fehlende Outputs bei falscher Snapshot-SHA. Weitere Negativfälle prüfen
+Manifest-/TAR-Tamper, Event-Drift, falsche ausführbare Dateimodi, geänderte
+Dateien innerhalb und außerhalb dist sowie fehlende Digest-Argumente und
+Symlink-Verzeichnisse.
+
+Dies implementiert die Installer-Anbindung im Sicherheits-Draft. Ein echter
+produktiv ausgeführter Installer-Lauf mit diesem neuen Shadow, die zusätzliche
+Installer-Attestierung und permanente immutable Release-Assets sind weiterhin
+separat nachzuweisen. Der optionale historische Aufruf ohne Snapshot-Argumente
+bleibt für die .486-Git-Tree-QA verfügbar. Er meldet nun ausdrücklich
+`snapshotManifestVerified: false`. Ein positiver Snapshot-Abgleich meldet
+`snapshotManifestVerified: true`, weiterhin aber
+`installerAttestationVerified: false`, `recoveryAuthorized: false` und
+`releaseAuthorized: false`. Das erwartete Snapshot-Digest braucht seine
+vertrauenswürdige GitHub-Run-/Job-Provenienz. Ein frei vom Aufrufer mitgelieferter
+Hash ist keine authentifizierte Producer-Attestierung.
+
+Die beiden Legacy-main-Schreibpfade, bestehende produktive Gate-Anforderungen
+und die unabhängigen LC-Produkt-PRs werden durch diesen Draft-Schritt nicht
+umgestellt. Der nächste Nachweis ist der echte Installer-Shadow mit
+unabhängigem Run-/Job-/Artifact-Readback und anschließender vertrauenswürdiger
+Ausstellung der bereits im Recovery-Reader verlangten Installer-Attestierung.
+
+Offizielle Herkunfts- und Signaturvorgaben
+https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations
