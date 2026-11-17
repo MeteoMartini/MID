@@ -1,7 +1,7 @@
 import {describe,it,expect} from 'vitest';
 import {createHash} from 'node:crypto';
 import {inspectMid740NativeReviewCutover as check} from '../../tools/ci/mid-740-native-review-cutover-readback.mjs';
-const R='repos/MeteoMartini/MID',SHA='a78465b655d25cafc9ecc0390080694cb7aca957';
+const R='repos/MeteoMartini/MID',SHA='ee70a92ae6ed83d3fa46445f4941e3db8b8675d4';
 const IDs=[20109260,21919727,23917545,23917807,23963851];
 function file(path:string,source:string){
  const buf=Buffer.from(source,'utf8');
@@ -48,7 +48,7 @@ function fixture(){
 }
 describe('#740 native review cutover: real GitHub rulesets and legacy main write paths',()=>{
  it('readable legacy evidence always BLOCKS no-bypass cutover; classic protection UNKNOWN',async()=>{
-  const x=await check(fixture().get);
+  const x=await check(fixture().get,{expectedStableSha:SHA});
   expect(x).toMatchObject({
    status:'LEGACY_MAIN_WRITES_BLOCK_NO_BYPASS_CUTOVER_QA_ONLY',
    registryAndRuleDetailsVerified:true,
@@ -66,7 +66,7 @@ describe('#740 native review cutover: real GitHub rulesets and legacy main write
  it('redacted GitHub Actions bypass actor fields remain explicitly UNVERIFIED and blocked',async()=>{
   const x=fixture();
   for(const id of IDs)delete x.d[R+'/rulesets/'+id].bypass_actors;
-  const result=await check(x.get);
+  const result=await check(x.get,{expectedStableSha:SHA});
   expect(result).toMatchObject({
    status:'BYPASS_ACTORS_UNVERIFIED_CUTOVER_BLOCKED_QA_ONLY',
    registryAndRuleDetailsVerified:true,
@@ -78,10 +78,40 @@ describe('#740 native review cutover: real GitHub rulesets and legacy main write
    cutoverAuthorized:false,releaseAuthorized:false
   });
  });
+ it('missing or invalid authenticated PR base SHA blocks before any REST calls',async()=>{
+  let calls=0;
+  const get=async()=>{calls++;throw Error('REST_MUST_NOT_BE_CALLED')};
+  expect(await check(get)).toMatchObject({status:'BLOCKED',
+   reason:'UNTRUSTED_EXPECTED_STABLE_SHA',releaseAuthorized:false});
+  expect(await check(get,{expectedStableSha:'a'.repeat(39)}))
+   .toMatchObject({status:'BLOCKED',reason:'UNTRUSTED_EXPECTED_STABLE_SHA'});
+  expect(calls).toBe(0);
+ });
+ it('the authenticated PR base must match both live main and Stable',async()=>{
+  const x=fixture();
+  const result=await check(x.get,{expectedStableSha:'a'.repeat(40)});
+  expect(result.status).toBe('BLOCKED');
+  expect(result.cutoverAuthorized).toBe(false);
+ });
+ it('future Stable SHAs require exactly SHA-matched workflow blob readbacks',async()=>{
+  const x=fixture(),future='f'.repeat(40);
+  x.d[R+'/branches/main'].commit.sha=future;
+  x.d[R+'/branches/mid-stable'].commit.sha=future;
+  for(const path of ['.github/workflows/agent-source-release.yml',
+   '.github/workflows/install-mid.yml']){
+   x.d[R+'/contents/'+path+'?ref='+future]=
+    x.d[R+'/contents/'+path+'?ref='+SHA];
+   delete x.d[R+'/contents/'+path+'?ref='+SHA];
+  }
+  const result=await check(x.get,{expectedStableSha:future});
+  expect(result).toMatchObject({stableSha:future,
+   twoLegacyMainWritePathsSHAAndBlobVerified:true,
+   cutoverAuthorized:false,releaseAuthorized:false});
+ });
  it('partial actor field redaction never silently qualifies the full policy',async()=>{
   const x=fixture();
   delete x.d[R+'/rulesets/23963851'].bypass_actors;
-  const result=await check(x.get);
+  const result=await check(x.get,{expectedStableSha:SHA});
   expect(result).toMatchObject({status:'BLOCKED',
     reason:'PARTIAL_BYPASS_VISIBILITY_INCONSISTENT'});
  });
@@ -89,7 +119,7 @@ describe('#740 native review cutover: real GitHub rulesets and legacy main write
   const x=fixture();
   for(const branch of ['main','mid-stable'])
    x.d[R+'/branches/'+branch+'/protection']={required_pull_request_reviews:{required_approving_review_count:1}};
-  const out=await check(x.get);
+  const out=await check(x.get,{expectedStableSha:SHA});
   expect(out.classicProtection).toEqual({main:'READABLE','mid-stable':'READABLE'});
   expect(out.nativeReviewEnforcementVerified).toBe(false);
   expect(out.cutoverAuthorized).toBe(false);
@@ -111,7 +141,7 @@ describe('#740 native review cutover: real GitHub rulesets and legacy main write
   ['repo name swapped',x=>{x.d[R].full_name='other/repo'}]
  ] as [string,(x:ReturnType<typeof fixture>)=>void][])('%s must block evidence',async(_,mutate)=>{
   const x=fixture();mutate(x);
-  expect((await check(x.get)).status).toBe('BLOCKED');
+  expect((await check(x.get,{expectedStableSha:SHA})).status).toBe('BLOCKED');
  });
  it('blocks a race in main SHA after the initial metadata snapshot',async()=>{
   const x=fixture();let n=0;
@@ -119,7 +149,7 @@ describe('#740 native review cutover: real GitHub rulesets and legacy main write
    const value=await x.get(path);
    if(path===R+'/branches/main'&&++n===2)value.commit.sha='c'.repeat(40);
    return value;
-  });
+  },{expectedStableSha:SHA});
   expect(out.reason).toBe('FINAL_POLICY_OR_STABLE_RACE');
  });
  it('blocks a ruleset mutation after a first successful read',async()=>{
@@ -129,7 +159,7 @@ describe('#740 native review cutover: real GitHub rulesets and legacy main write
    if(path===R+'/rulesets/23963851'&&++n===2)
     v.bypass_actors[0].actor_id=4;
    return v;
-  });
+  },{expectedStableSha:SHA});
   expect(out.reason).toBe('FINAL_POLICY_OR_STABLE_RACE');
  });
 });

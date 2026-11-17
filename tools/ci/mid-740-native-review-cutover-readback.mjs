@@ -6,7 +6,8 @@ import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 const ROOT='repos/MeteoMartini/MID';
-const EXPECTED_STABLE='a78465b655d25cafc9ecc0390080694cb7aca957';
+// The authenticated pull_request base SHA is the immutable snapshot fence.
+// It must never be inferred from untrusted PR files or from a floating ref.
 const RULE_IDS=[20109260,21919727,23917545,23917807,23963851];
 const WORKFLOWS=[
  '.github/workflows/agent-source-release.yml',
@@ -68,8 +69,9 @@ function detailsOK(all){
  return !!checked?.parameters?.required_status_checks?.some(c=>
     c.context==='MID / release-candidate-quality'&&c.integration_id===5059236);
 }
-export async function inspectMid740NativeReviewCutover(get){
+export async function inspectMid740NativeReviewCutover(get,{expectedStableSha}={}){
  if(typeof get!=='function')return deny('NO_AUTHENTICATED_READER');
+ if(!sha(expectedStableSha))return deny('UNTRUSTED_EXPECTED_STABLE_SHA');
  const read=x=>get(ROOT+'/'+x);
  let repository,main,stable,list,details,files;
  let readPhase='REPOSITORY_BRANCH_AND_RULESET_LIST';
@@ -86,13 +88,13 @@ export async function inspectMid740NativeReviewCutover(get){
   [details,files]=await Promise.all([
    Promise.all(RULE_IDS.map(id=>read('rulesets/'+id))),
    Promise.all(WORKFLOWS.map(path=>read(
-    'contents/'+path+'?ref='+EXPECTED_STABLE)))
+    'contents/'+path+'?ref='+expectedStableSha)))
   ]);
  }catch{return deny('GITHUB_METADATA_UNAVAILABLE_'+readPhase)}
  if(repository?.id!==1305110795||repository.full_name!=='MeteoMartini/MID'||
     repository.owner?.type!=='User'||
     !validRef(main,'main')||!validRef(stable,'mid-stable')||
-    main.commit.sha!==EXPECTED_STABLE||stable.commit.sha!==EXPECTED_STABLE)
+    main.commit.sha!==expectedStableSha||stable.commit.sha!==expectedStableSha)
   return deny('STABLE_OR_REPOSITORY_DRIFT');
  if(!detailsOK(details)||details.some(d=>
      list.find(r=>r.id===d.id)?.name!==d.name)){
@@ -152,8 +154,8 @@ export async function inspectMid740NativeReviewCutover(get){
   ]);
  }catch{return deny('FINAL_POLICY_READBACK_UNAVAILABLE')}
  if(!validRef(latestMain,'main')||!validRef(latestStable,'mid-stable')||
-    latestMain.commit.sha!==EXPECTED_STABLE||
-    latestStable.commit.sha!==EXPECTED_STABLE||
+    latestMain.commit.sha!==expectedStableSha||
+    latestStable.commit.sha!==expectedStableSha||
     JSON.stringify(againList)!==JSON.stringify(list)||
     JSON.stringify(againDetails)!==JSON.stringify(details))
   return deny('FINAL_POLICY_OR_STABLE_RACE');
@@ -162,7 +164,7 @@ export async function inspectMid740NativeReviewCutover(get){
   status:allBypassActorsVisible?
    'LEGACY_MAIN_WRITES_BLOCK_NO_BYPASS_CUTOVER_QA_ONLY':
    'BYPASS_ACTORS_UNVERIFIED_CUTOVER_BLOCKED_QA_ONLY',
-  stableSha:EXPECTED_STABLE,
+  stableSha:expectedStableSha,
   registryAndRuleDetailsVerified:true,
   twoLegacyMainWritePathsSHAAndBlobVerified:true,
   productionRulesetHasRequiredPR:false,
@@ -184,13 +186,16 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  try{
   if(process.env.GITHUB_EVENT_NAME!=='pull_request'||
      process.env.GITHUB_REPOSITORY!=='MeteoMartini/MID'||
-     !sha(process.env.EXPECTED_PR_HEAD))
+     !sha(process.env.EXPECTED_PR_HEAD)||
+     !sha(process.env.MID_EXPECTED_STABLE_SHA))
    throw Error('UNTRUSTED_CLI_CONTEXT');
   const get=path=>JSON.parse(execFileSync('gh',['api','--method','GET',path],{
    encoding:'utf8',timeout:20000,maxBuffer:5*1024*1024,
    stdio:['ignore','pipe','ignore']
   }));
-  const result=await inspectMid740NativeReviewCutover(get);
+  const result=await inspectMid740NativeReviewCutover(get,{
+   expectedStableSha:process.env.MID_EXPECTED_STABLE_SHA
+  });
   process.stdout.write(JSON.stringify(result)+'\n');
   if(!['LEGACY_MAIN_WRITES_BLOCK_NO_BYPASS_CUTOVER_QA_ONLY',
    'BYPASS_ACTORS_UNVERIFIED_CUTOVER_BLOCKED_QA_ONLY'].includes(result.status))

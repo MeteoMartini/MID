@@ -195,6 +195,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           EXPECTED_PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          # Immutable GitHub-webhook base SHA, not arbitrary PR-file content.
+          MID_EXPECTED_STABLE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXPECTED_PR_HEAD"
@@ -237,7 +239,7 @@ jobs:
             jq -r '(.status // "BLOCKED") + ": " + (.reason // "UNKNOWN")' "$RUNNER_TEMP/mid740-native-review-readback.json" >&2
             exit 1
           fi
-          jq -e '(
+          jq -e --arg expected "$MID_EXPECTED_STABLE_SHA" '(
               (.status == "LEGACY_MAIN_WRITES_BLOCK_NO_BYPASS_CUTOVER_QA_ONLY" and
                 .rulesetBypassActorsVerified == true and
                 .productionReleaseIntegrationAlwaysBypasses == true)
@@ -246,6 +248,7 @@ jobs:
                 .rulesetBypassActorsVerified == false and
                 .productionReleaseIntegrationAlwaysBypasses == null)
             ) and
+            .stableSha == $expected and
             .registryAndRuleDetailsVerified == true and
             .twoLegacyMainWritePathsSHAAndBlobVerified == true and
             .productionRulesetHasRequiredPR == false and
