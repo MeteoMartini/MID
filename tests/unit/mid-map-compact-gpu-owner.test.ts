@@ -30,6 +30,10 @@ describe('MID Karten 1.14 · bidirektionaler GPU-Eigentümer für Umfeld-/Großk
   expect(css).toContain('.current-surroundings-map-paused{');
   expect(css).not.toMatch(/\.current-surroundings-maplibre\s*\{[^}]*display\s*:\s*none/);
   expect(mapLibre).toContain('map.remove()');
+  expect(mapLibre).toContain("map.on('style.load',handleRestoredStyle)");
+  expect(mapLibre).toContain("map.off('style.load',handleRestoredStyle)");
+  expect(mapLibre).toContain("addEventListener('webglcontextrestored',handleContextRestored)");
+  expect(mapLibre).toContain("removeEventListener('webglcontextrestored',handleContextRestored)");
  });
  it('unmounts the expensive FULL map subtree when the compact preview or another section is active',()=>{
   expect(workspace).toContain('gpuPaused?:boolean');
@@ -48,6 +52,9 @@ describe('MID Karten 1.14 · bidirektionaler GPU-Eigentümer für Umfeld-/Großk
   expect(runner).toContain("document.querySelectorAll('.maplibregl-map')");
   expect(runner).toContain('for(const width of [320,390,430,834,1024,1440])');
   expect(runner).toContain('nativeIos:false');
+  expect(runner).toContain('extension.loseContext()');
+  expect(runner).toContain('window.__midQaContextExtension.restoreContext()');
+  expect(runner).toContain('midLayersRemountedAfterStyleLoad:true');
  });
  it('retains the current-place display mode, time readout and weather provenance outside the GPU subtree',()=>{
   expect(surroundings).toContain("useDisplayPreference('CurrentSurroundings.mode'");

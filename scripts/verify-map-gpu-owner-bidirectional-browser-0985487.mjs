@@ -84,10 +84,45 @@ async function verify(width,theme,iterations){
    bothPanelsMounted:true,atMostOneWebglMap:true});
  }finally{await page.close()}
 }
+async function verifyWebglContextRecovery(){
+ const page=await browser.newPage({viewport:{width:390,height:850},colorScheme:'dark'});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ try{
+  await page.route('**/*',route=>new URL(route.request().url()).host===new URL(base).host?
+   route.continue():route.abort('blockedbyclient'));
+  await page.goto(base+'/__mid_bidirectional_map_qa',{waitUntil:'domcontentloaded',timeout:45000});
+  await check(page,'compact',390,'dark');
+  const hasExtension=await page.evaluate(()=>{
+   const canvas=document.querySelector('.current-surroundings-maplibre canvas.maplibregl-canvas');
+   if(!(canvas instanceof HTMLCanvasElement))return false;
+   const extension=canvas.getContext('webgl2')?.getExtension('WEBGL_lose_context');
+   if(!extension)return false;
+   window.__midQaContextExtension=extension;extension.loseContext();return true;
+  });
+  assert.ok(hasExtension,'Real WEBGL_lose_context is required; no skipped GPU recovery proof');
+  await page.waitForFunction(()=>{
+   const el=document.querySelector('.current-surroundings-maplibre .map-availability-error');
+   return Boolean(el?.textContent?.includes('Grafiksitzung'));
+  },null,{timeout:15000});
+  assert.equal(await page.locator('.current-surroundings-center-marker').count(),0);
+  await page.evaluate(()=>window.__midQaContextExtension.restoreContext());
+  await page.waitForFunction(()=>Boolean(
+   document.querySelector('.current-surroundings-center-marker') &&
+   !document.querySelector('.current-surroundings-maplibre .map-availability-error') &&
+   document.querySelectorAll('.maplibregl-map').length===1
+  ),null,{timeout:20000});
+  await page.getByTestId('qa-composite').click();await check(page,'workspace',390,'dark');
+  await page.getByTestId('qa-current').click();await check(page,'compact',390,'dark');
+  assert.deepEqual(errors,[],'GPU recovery must not raise uncaught JS errors');
+  return {realWebgl2Loss:true,realWebgl2Restore:true,midLayersRemountedAfterStyleLoad:true,
+   nativeIos:false,deviceMemory:false};
+ }finally{await page.close()}
+}
 try{
  for(const width of [320,390,430,834,1024,1440])
   for(const theme of ['light','dark'])await verify(width,theme,width===390&&theme==='dark'?16:2);
+ const recovery=await verifyWebglContextRecovery();
  console.log('MID_MAP_GPU_OWNER_BIDIRECTIONAL_CHROMIUM '+JSON.stringify({
-  chromium:true,cases:contexts,nativeIos:false,weatherNetwork:false,fullAppNavigation:false,gpuMemory:false
+  chromium:true,cases:contexts,recovery,nativeIos:false,weatherNetwork:false,fullAppNavigation:false,gpuMemory:false
  }));
 }finally{await browser.close();await server.close()}
