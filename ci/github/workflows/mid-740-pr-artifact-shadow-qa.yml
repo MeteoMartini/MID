@@ -15,6 +15,8 @@ on:
       - 'ci/github/workflows/mid-740-pr-artifact-shadow-qa.yml'
       - 'tools/ci/mid-740-pr-artifact-shadow.mjs'
       - 'tools/ci/mid-740-historical-chain-readback.mjs'
+      - 'tools/ci/mid-740-legacy-producer-gap-qa.mjs'
+      - 'tests/unit/mid-740-legacy-producer-gap-qa.test.ts'
       - 'tools/ci/mid-740-native-review-cutover-readback.mjs'
       - 'tests/unit/mid-740-native-review-cutover-readback.test.ts'
       - 'tools/ci/mid-740-live-cubic-review-readback.mjs'
@@ -255,5 +257,21 @@ jobs:
             .nativeReviewEnforcementVerified == false and
             .noBypassCutoverCompatible == false and
             .cutoverAuthorized == false and .releaseAuthorized == false' "$RUNNER_TEMP/mid740-native-review-readback.json"
+          # Independent original .488 negative readback. SUCCESS means the
+          # release's missing Producer Artifact is PROVEN, not authorized.
+          if ! node tools/ci/mid-740-legacy-producer-gap-qa.mjs > "$RUNNER_TEMP/mid740-488-gap.json"; then
+            jq -r '(.status // "BLOCKED") + ": " + (.reason // "UNKNOWN")' "$RUNNER_TEMP/mid740-488-gap.json" >&2
+            exit 1
+          fi
+          jq -e '.status == "ORIGINAL_488_PRODUCER_ARTIFACT_GAP_QA_ONLY" and
+            .producerRunId == 44121439604 and
+            .installerRunId == 44121560818 and
+            .originalProducerArtifactCount == 0 and
+            .originalProducerJobAndGitLineageVerified == true and
+            .installerStartedBeforeProducerCompleted == true and
+            .originalProducerArtifactAttested == false and
+            .independentPreInstallerVerified == false and
+            .nativeReviewEnforced == false and
+            .installerAuthorized == false and .releaseAuthorized == false' "$RUNNER_TEMP/mid740-488-gap.json"
           echo "### MID #740 · echter historischer Release-Chain-Readback" >> "$GITHUB_STEP_SUMMARY"
-          echo "Getestete .486-Source-Basis, Checkout-Git-Tree und historischer Installer geprüft." >> "$GITHUB_STEP_SUMMARY"
+          echo "Historische .486-Forensik und originale .488-ZERO-Artifact/Installer-Timing-Negativprobe (beide QA-only)." >> "$GITHUB_STEP_SUMMARY"
