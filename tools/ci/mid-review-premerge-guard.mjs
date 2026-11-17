@@ -32,7 +32,11 @@ function validMidEvidence(uri,headSha,number){
      url.search||!url.pathname.startsWith('/MeteoMartini/MID/'))return false;
   const path=url.pathname.slice('/MeteoMartini/MID/'.length);
   if(path.startsWith('blob/'+headSha+'/')&&path.length>46&&!url.hash)return true;
-  if(/^actions\/runs\/[1-9][0-9]*(?:\/job\/[1-9][0-9]*)?$/.test(path)&&!url.hash)return true;
+  // Run/Job URLs carry no source SHA and have not been authenticated here.
+  // A plausible link to an unrelated run must not waive a P0/P1/P2 item.
+  // Accept such evidence only after a separate original-REST Run/Job readback
+  // is implemented and SHA-/attempt-bound; until then reject it.
+  if(path.startsWith('actions/runs/'))return false;
   if(path==='pull/'+number&&/^#(?:discussion_r[0-9]+|issuecomment-[0-9]+)$/.test(url.hash))return true;
   return false;
  }catch{return false}

@@ -242,6 +242,32 @@ describe('SHA-bound MID merge-time review guard',()=>{
   const bot=structuredClone(approval);bot.author.__typename='Bot';
   expect(verdict(bot).ok).toBe(false);
  });
+ it('rejects unverified arbitrary Actions URLs as original P0/P1/P2 evidence',()=>{
+  const finding=review('COMMENTED','PRR_unverifiedRun','cubic-dev-ai',
+   '2026-11-11T15:00:00Z','P1: original producer cannot authenticate ZIP source');
+  const prefix='MID-740-DISPOSITION v1 sha='+sha+
+   ' review=PRR_unverifiedRun item=1 result=fixed evidence=';
+  const verdict=(url:string)=>check(input({data:{meta,threads:[],
+   reviews:[finding,review('APPROVED','PRR_otherHuman','independent',
+    '2026-11-11T15:01:00Z',prefix+url)],truncated:false}}));
+  // Domain/URL shape cannot prove the GitHub Actions run, source SHA or job.
+  for(const url of [
+   'https://github.com/MeteoMartini/MID/actions/runs/44121560818',
+   'https://github.com/MeteoMartini/MID/actions/runs/44121560818/job/134173572538',
+   'https://github.com/MeteoMartini/MID/actions/runs/999999999',
+   'https://github.com/MeteoMartini/MID/actions/runs/999999999/job/888888888'
+  ])expect(verdict(url)).toMatchObject({
+   ok:false,reason:'MID_REVIEW_CRITICAL_REVIEW_UNATTESTED',
+   mergeAuthorized:false,releaseAuthorized:false
+  });
+  // A HEAD-scoped source reference retains existing non-authorizing behavior.
+  const scoped='https://github.com/MeteoMartini/MID/blob/'+sha+
+   '/tools/ci/mid-review-premerge-guard.mjs';
+  expect(verdict(scoped)).toMatchObject({
+   ok:true,reviewDispositionAttested:true,
+   independentlyReviewed:false,mergeAuthorized:false,releaseAuthorized:false
+  });
+ });
  it('rejects critical review edits later than the independent approval',()=>{
   const original=review('COMMENTED','PRR_editedP1','cubic-dev-ai',
    '2026-11-11T15:00:00Z','P1: new build error');
