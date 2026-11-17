@@ -47,7 +47,7 @@ describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
   expect(from).toBeGreaterThan(-1);
   expect(end).toBeGreaterThan(from);
   const overlay=source.slice(from,end);
-  expect(source).toContain("import {shouldCrossfadeMapCanvas} from './mapCanvasCrossfadePolicy'");
+  expect(source).toContain("import {mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas} from './mapCanvasCrossfadePolicy'");
   const checked=overlay.indexOf('shouldCrossfadeMapCanvas({');
   const skipped=overlay.indexOf('if(!animate){');
   const duplicate=overlay.indexOf("const old=document.createElement('canvas')");
