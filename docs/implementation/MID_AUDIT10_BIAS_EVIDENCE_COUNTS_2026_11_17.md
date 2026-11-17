@@ -1,0 +1,21 @@
+# MID Audit 1.0 · Ehrliche Vergleichstage für lokale Bias-Erklärungen
+
+**17.11.2026 · QA-DRAFT, NO READY / NO MERGE / NO RELEASE.**
+
+## Quelle und präziser Befund
+Der vom Nutzer hochgeladene Original-Auditbericht `20261117_MID-Audit(1).pdf` fordert auf S. 3 eine nach Variable und Prognosehorizont getrennte Kalibrierungsdarstellung und auf S. 4 eine unabhängige Modellgüte mit klaren Vergleichsfallzahlen und Unsicherheit. Aus `main=mid-stable=9fe4dfbcdfd5a1f8fec55efa868e22110a612953`, v0.9.85.488, wurde am 17.11.2026 der tatsächliche Code geprüft. `modelBiases()` zählt bereits gültige Temperatur-, Regen-, Böen- und Sonnenstundenfehler **separat** und schrumpft jede numerische Korrektur mit der eigenen Fallzahl. Die **Erklärung** für die lokale Prognose lautete jedoch `Lokaler Bias von ... wird mit ${appliedBias.samples} Vergleichsfällen korrigiert.`: dieses Feld enthielt alle Tage irgendeines Parameters. Sieben Böentage, aber nur zwei gültige Regen-Paare, konnten somit als sieben Regen-Vergleichsfälle erscheinen. Zudem wählte `currentWeightedForecasts` den ersten rechnerischen Bias unabhängig davon, ob sein Modell überhaupt einen positiven Gewichtungseintrag hatte; die UI konnte eine nicht genutzte Korrektur behaupten.
+
+## Lösung
+- `BiasCorrection.parameterSamples?:Partial<Record<ForecastParameter,number>>`: ausschließlich Metadaten aus **bereits validierten** Parameterpaaren; optional für bestehende Verbraucher/Archive. Keine Schema-/API-/Persistenzmigration.
+- `modelBiases()` schreibt die tatsächlichen Zahlen aus `row.count[parameter]` mit in die temporäre Bias-Korrektur. Der numerische Bias und seine bereits parameter-spezifische Schrumpfung **bleiben identisch**.
+- Reiner O(1)-Feldformatter `twinBiasEvidenceText()`: nennt nur einen tatsächlich korrigierten Temperatur- oder Niederschlagsparameter, wenn er ausreichend numerisch und mit endlichen, positiven, unabhängigen gültigen Stichproben hinterlegt ist. Ohne Count kein generischer Ersatz durch `samples`. Singular/Plural und deutsche kurze Feldbezeichnungen.
+- `currentWeightedForecasts()` erklärt nur den Bias eines Modells, dessen unveränderte ID zu den tatsächlich genutzten Gewichten gehört; ohne berechnete gewichtete Prognose keinerlei Bias-Erklärung. Das Ergebnis bleibt ein kurzer Text in der bisherigen responsiven UI-Struktur.
+- `tests/unit/mid-audit-observed-nodata-qa.test.ts`: bereits vorhandenes synthetisches unverändertes v3-Archiv mit 7 Böen-, 3 Temperatur- und 2 Regenpaaren; explizite `parameterSamples`, kein überzogener Regenvergleich, kein Text für unbeteiligtes Modell oder fehlende Nachweise, + reiner Test eines 18-Tage-Modells mit nur 1 Temperatur-/2 Regenpaaren.
+- Keine zusätzlichen Netzabfragen, Schedules, Styles, Renderzyklen, neuen Abhängigkeiten oder kostenpflichtige Dienste.
+
+## Grenzen/Integrationsvertrag
+`BiasCorrection.samples` / `confidence` bleiben **modell-/segmentbezogene Tage**, nicht per-Parameter-Vertrauensintervalle. Diese neue Beschriftung ist **kein Brier-Skill** oder empirischer Fähigkeitsgewinn. Ein echtes 30-/90-Tage-Fenster, out-of-sample Baseline, CI und regionale Fehlerstratifizierung (PDF S. 4/7) bleiben separate Forschungs-/Produktaufgaben.
+
+**Parallel:** Der LC Release-PR [#902](https://github.com/MeteoMartini/MID/pull/902) ist bereits DRAFT für .489 und umfasst die Zeitintegritäts-Prüfung aus #899. Dieser neue Fach-QA-Fix richtet sich an den **nachfolgenden** Release-Train; #902 keinesfalls wegen dieser Ergänzung verändern oder blockieren. Vor späterem Intake `main`, `mid-stable`, `AGENTS.md`, Rulesets und alle PR-/Datei-SHAs erneut verifizieren, nur autorisierter Integrationsbranch mit Basis dann aktueller Stable. Niemals diesen alten .488-Blob über die zwischenzeitlich integrierte #899-Laufzeitprüfung kopieren. Quellen: [ECMWF Beobachtungsqualität](https://www.ecmwf.int/en/about/media-centre/focus/2026/data-trust-ecmwf-quality-forecasts), [WMO WGNE Regenverifikation](https://wgne.net/publications/suggested-methods-for-precipitation-verification/).
+
+**Gates:** gezielte Unit-/Legacy-Tests, Vitest/V8 und vorhandene Wetterzwilling-/Paired-Regression; nach Intake source/core/heavy/review/release-ZIP/installer/worker/pages/stable auf finalem SHA sowie reale Browser-/iOS-/VoiceOver-/200%-Reflow-QA. Keine Erfolgsmeldung vor nachgewiesenem Lauf.

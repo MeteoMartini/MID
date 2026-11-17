@@ -1,6 +1,6 @@
 import {afterEach,describe,expect,it,vi} from 'vitest';
 import {isTwinVerifiedNonnegative,isTwinVerifiedTemperaturePair} from '../../src/twinObservationEvidence';
-import {buildForecastVerificationReport} from '../../src/forecastVerification';
+import {buildForecastVerificationReport,twinBiasEvidenceText,type BiasCorrection} from '../../src/forecastVerification';
 
 afterEach(()=>vi.unstubAllGlobals());
 
@@ -60,7 +60,24 @@ describe('MID Audit 1.0 · unabhängige Messwerte bleiben NoData statt falscher 
   expect(Object.values(bias?.corrections??{}).every(value=>Number.isFinite(value))).toBe(true);
   expect(bias?.corrections.precipitation).toBeGreaterThan(0);
   expect(bias?.corrections.temperature).toBe(0);
+  expect(bias?.parameterSamples).toEqual({temperature:3,precipitation:2,gust:7});
+  expect(twinBiasEvidenceText(bias!,new Set([bias!.id]))).toContain('Niederschlag: 2 Vergleichstage');
+  expect(twinBiasEvidenceText(bias!,new Set([bias!.id]))).not.toContain('7 Vergleichstage');
+  expect(twinBiasEvidenceText(bias!,new Set(['other-model']))).toBeUndefined();
   expect(store.get('mid:forecast-verification:v3:'+key)).toBe(archived);
+ });
+ it('describes only active, independently supported temperature/rain bias with per-field counts',()=>{
+  const bias:BiasCorrection={
+   id:'ecmwf::ecmwf-ifs',label:'ECMWF IFS',regime:'wechselhaft',horizon:48,
+   samples:18,confidence:'high',corrections:{temperature:.4,precipitation:-.8,gust:4},
+   parameterSamples:{temperature:1,precipitation:2,gust:18},
+  };
+  expect(twinBiasEvidenceText(bias,new Set([bias.id]))).toBe(
+   'Lokaler Bias von ECMWF IFS: Temperatur: 1 Vergleichstag · Niederschlag: 2 Vergleichstage.'
+  );
+  expect(twinBiasEvidenceText(bias,new Set(['other-model']))).toBeUndefined();
+  expect(twinBiasEvidenceText({...bias,parameterSamples:undefined},new Set([bias.id]))).toBeUndefined();
+  expect(twinBiasEvidenceText({...bias,corrections:{temperature:0,precipitation:0}},new Set([bias.id]))).toBeUndefined();
  });
  it('never erases actual 0mm or caps extreme rain observations',()=>{
   expect(isTwinVerifiedNonnegative(0)).toBe(true);
