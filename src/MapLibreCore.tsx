@@ -1,5 +1,6 @@
 import {createContext,useContext,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {rasterTileRetryDelayMs} from './mapLayerRecovery';
+import {loadMapImageForQuad} from './mapRasterImageCache';
 import {createMapLayerOrderScheduler} from './mapLayerOrderScheduler';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -221,7 +222,7 @@ export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='lin
   let active=true,timer=0,watchdog=0;
   let staged:{source:string;layer:string}|null=null;
   let readiness:(()=>void)|null=null,sourceError:((event:maplibregl.ErrorEvent)=>void)|null=null;
-  const generation=++sequence.current,image=new Image();
+  const generation=++sequence.current;
   // Capture this URL's ready callback; a newer selected term must not relabel an older fade.
   const onDisplayed=onReady;
   const releaseStaging=()=>{
@@ -251,11 +252,11 @@ export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='lin
    };
    animation.current=requestAnimationFrame(fade);
   };
-  const install=()=>{
+  const install=(image:HTMLImageElement)=>{
    if(!active)return;
    // Wall time can pass while RAF is throttled. Wait for the actual prior
    // fade completion so its callback cannot overwrite a newer frame list.
-   if(fading.current){timer=window.setTimeout(install,20);return;}
+   if(fading.current){timer=window.setTimeout(()=>install(image),20);return;}
    const source=`${safeId(id)}-source-${generation}`,layer=`${safeId(id)}-layer-${generation}`;
    try{
     // The previous raster stays fully opaque while the successor is decoded,
@@ -275,9 +276,11 @@ export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='lin
     map.triggerRepaint();
    }catch{releaseStaging();remove({source,layer});fail()}
   };
-  image.onload=()=>{if(active)install()};
-  image.onerror=fail;image.src=url;
-  return()=>{active=false;window.clearTimeout(timer);image.onload=null;image.onerror=null;releaseStaging();if(!frames.current.some(frame=>frame.source===`${safeId(id)}-source-${generation}`))image.removeAttribute('src')};
+  // WMS originals with exact TIME/BBOX reuse a small decoded browser image
+  // across fast scrubs. Non-timed snapshots still load afresh.
+  // The MapLibre render/source-loaded barrier above remains mandatory.
+  void loadMapImageForQuad(url).then(image=>{if(active)install(image)}).catch(()=>{if(active)fail()});
+  return()=>{active=false;window.clearTimeout(timer);releaseStaging()};
  },[map,id,url,frameKey,south,west,north,east,zIndex,resampling]);
  useEffect(()=>{for(const frame of frames.current)if(map?.getLayer(frame.layer))map.setPaintProperty(frame.layer,'raster-opacity',frame.weight*Math.max(0,Math.min(1,opacity)))},[map,opacity]);return null;
 }
