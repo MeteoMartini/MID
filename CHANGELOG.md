@@ -1,3 +1,9 @@
+# MID v0.9.85.488
+
+- Fehlende, fehlerhafte oder negative beobachtete Niederschlagsmengen zählen bei der Verifikation weder als trockene Tage noch als gültige Brier- oder Kalibrationsbelege.
+- Wetterzwilling-Vergleiche verwenden für Temperatur, Windböen und Sonnenschein nur tatsächlich gültige Messwerte; fehlende Beobachtungen bleiben fehlend.
+- Die mobile Bottom-Navigation vermeidet redundante Style-Änderungen bei unveränderter Bildschirmtastatur-Geometrie und bewahrt fremde Inline-Einstellungen.
+
 # MID v0.9.85.487
 
 - Die Wetterzwilling-Auswertung berücksichtigt für den Volltagesvergleich nur Prognosen, die spätestens zu Beginn des Zielorts-Tages vorlagen.
