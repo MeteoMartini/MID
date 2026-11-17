@@ -314,6 +314,53 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
+  # Strictly a read-only browser QA evidence job for this one Draft branch.
+  # Not a release, deployment, or general-purpose workflow bypass.
+  draft-dual-map-responsive-resize-chromium:
+    name: MID Draft · Zwei responsive MapLibre-Karten (echtes Chromium)
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.draft == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'chatgpt/v0.9.85.487-dual-map-responsive-resize-scheduler'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    permissions:
+      contents: read
+    steps:
+      - name: Prüfsummenfesten Draft ohne persistente Secrets laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Node.js 22.16 für unveränderten MID-MapLibre-Test
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Ausschließlich lockfilegebundene Test-Abhängigkeiten
+        shell: bash
+        timeout-minutes: 7
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: Bereits gepinntes echtes Chromium bereitstellen
+        shell: bash
+        timeout-minutes: 5
+        run: |
+          set -euo pipefail
+          npm exec --yes --package=playwright@1.56.1 -- playwright install chromium
+      - name: Exakten Source-SHA und beide echte MapLibre-Responsive-Layouts prüfen
+        shell: bash
+        timeout-minutes: 6
+        env:
+          MID_EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+          GH_TOKEN: ''
+          GITHUB_TOKEN: ''
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$MID_EXPECTED_SOURCE_SHA"
+          node scripts/verify-dual-map-responsive-resize-browser-0985487.mjs
+
   draft-regression-preflight:
     name: MID Draft · gezielte Regressionen
     if: >-
