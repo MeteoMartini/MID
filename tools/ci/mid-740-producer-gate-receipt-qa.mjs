@@ -101,7 +101,7 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
   if(e.GITHUB_EVENT_NAME!=='workflow_run'||e.GITHUB_REPOSITORY!==R||
      !e.GITHUB_EVENT_PATH||!/^[1-9][0-9]*$/.test(e.MID_EXPECTED_GATE_RUN_ID??'')||
      !/^[1-9][0-9]*$/.test(e.GITHUB_RUN_ID??'')||
-     e.GITHUB_RUN_ATTEMPT!=='1'||!SHA.test(e.GITHUB_SHA??''))
+     e.GITHUB_RUN_ATTEMPT!=='1'||!SHA.test(e.MID_TRUSTED_WORKFLOW_SHA??''))
    throw Error('TRUSTED_WORKFLOW_RUN_CONTEXT_REQUIRED');
   const event=JSON.parse(readFileSync(e.GITHUB_EVENT_PATH,'utf8'));
   const get=path=>JSON.parse(execFileSync('gh',['api','--method','GET',path],{
@@ -113,7 +113,7 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
    gateRunId:Number(e.MID_EXPECTED_GATE_RUN_ID),
    producerRunId:Number(e.GITHUB_RUN_ID),
    producerAttempt:Number(e.GITHUB_RUN_ATTEMPT),
-   producerWorkflowSha:e.GITHUB_SHA
+   producerWorkflowSha:e.MID_TRUSTED_WORKFLOW_SHA
   },get);
   process.stdout.write(JSON.stringify(out)+'\n');
   if(out.status!=='PREMERGE_PRODUCER_EVENT_METADATA_COHERENT_QA_ONLY')

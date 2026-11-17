@@ -157,6 +157,44 @@ jobs:
         with:
           node-version: 22.16.0
 
+      # Original workflow_run evidence is collected BEFORE the source merge.
+      # It is only a QA precursor, never a merge/installer authorization.
+      - name: Original-Source-Gate-Receipt für #740 vor Merge sichern (QA)
+        id: premerge_receipt
+        if: steps.pr.outputs.eligible == 'true' && steps.pr.outputs.already_merged != 'true'
+        continue-on-error: true
+        shell: bash
+        env:
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          MID_EXPECTED_GATE_RUN_ID: ${{ github.event.workflow_run.id }}
+          MID_TRUSTED_WORKFLOW_SHA: ${{ github.workflow_sha }}
+          EXPECTED_SOURCE_HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
+          EXPECTED_PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          set -euo pipefail
+          test -f tools/ci/mid-740-producer-gate-receipt-qa.mjs
+          test "$(git rev-parse HEAD)" = "$MID_TRUSTED_WORKFLOW_SHA"
+          umask 077
+          receipt="$RUNNER_TEMP/mid740-original-premerge-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.json"
+          test ! -e "$receipt"
+          node tools/ci/mid-740-producer-gate-receipt-qa.mjs > "$receipt"
+          jq -e --argjson producer "$GITHUB_RUN_ID" \
+            --argjson attempt "$GITHUB_RUN_ATTEMPT" \
+            --argjson gate "$MID_EXPECTED_GATE_RUN_ID" \
+            --argjson pr "$EXPECTED_PR_NUMBER" \
+            --arg head "$EXPECTED_SOURCE_HEAD_SHA" \
+            --arg workflow "$MID_TRUSTED_WORKFLOW_SHA"             '.schema == "mid.740.premerge-producer-receipt.v1"
+             and .status == "PREMERGE_PRODUCER_EVENT_METADATA_COHERENT_QA_ONLY"
+             and .producerRunId == $producer and .producerAttempt == $attempt
+             and .sourceGateRunId == $gate and .sourceGateAttempt == 1
+             and .prNumber == $pr and .sourceHeadSha == $head
+             and .producerWorkflowSha == $workflow and .sourceBaseSha == $workflow
+             and .originalArtifactVerified == false
+             and .trustedProductionReceiptAttested == false
+             and .installerAuthorized == false and .releaseAuthorized == false' "$receipt" >/dev/null
+          # Never print the complete receipt or any token to logs.
+          echo "receipt_path=$receipt" >> "$GITHUB_OUTPUT"
+
       - name: Geprüften Agent-PR automatisch zusammenführen
         if: steps.pr.outputs.eligible == 'true' && steps.pr.outputs.already_merged != 'true'
         id: merge
@@ -318,6 +356,8 @@ jobs:
           SOURCE_GATE_ID: ${{ github.event.workflow_run.id }}
           SOURCE_GATE_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
           WORKFLOW_SHA: ${{ github.workflow_sha }}
+          PREMERGE_RECEIPT_OUTCOME: ${{ steps.premerge_receipt.outcome }}
+          PREMERGE_RECEIPT_PATH: ${{ steps.premerge_receipt.outputs.receipt_path }}
         run: |
           set -euo pipefail
           [[ "$PACKAGE_SHA" =~ ^[0-9a-f]{40}$ && "$SOURCE_MERGE_SHA" =~ ^[0-9a-f]{40}$ && "$WORKFLOW_SHA" =~ ^[0-9a-f]{40}$ ]]
@@ -331,14 +371,39 @@ jobs:
           git cat-file blob "$PACKAGE_SHA:$archive" > "$shadow_dir/$archive"
           test -s "$shadow_dir/$archive"
           read -r zip_sha256 _ < <(sha256sum "$shadow_dir/$archive")
+          receipt_sha256=""
+          receipt_included=false
+          if [ "$PREMERGE_RECEIPT_OUTCOME" = "success" ]; then
+            test -n "$PREMERGE_RECEIPT_PATH"
+            test -f "$PREMERGE_RECEIPT_PATH"
+            test ! -L "$PREMERGE_RECEIPT_PATH"
+            jq -e --argjson producer "$GITHUB_RUN_ID" \
+              --argjson attempt "$GITHUB_RUN_ATTEMPT" \
+              --argjson gate "$SOURCE_GATE_ID" \
+              --arg workflow "$WORKFLOW_SHA"               '.schema == "mid.740.premerge-producer-receipt.v1"
+               and .status == "PREMERGE_PRODUCER_EVENT_METADATA_COHERENT_QA_ONLY"
+               and .producerRunId == $producer and .producerAttempt == $attempt
+               and .sourceGateRunId == $gate and .sourceGateAttempt == 1
+               and .sourceBaseSha == $workflow and .producerWorkflowSha == $workflow
+               and .originalArtifactVerified == false
+               and .trustedProductionReceiptAttested == false
+               and .installerAuthorized == false and .releaseAuthorized == false' \
+              "$PREMERGE_RECEIPT_PATH" >/dev/null
+            install -m 600 "$PREMERGE_RECEIPT_PATH" "$shadow_dir/premerge-gate-receipt.json"
+            read -r receipt_sha256 _ < <(sha256sum "$shadow_dir/premerge-gate-receipt.json")
+            receipt_included=true
+          fi
           jq -n --arg package "$PACKAGE_SHA" --arg source "$SOURCE_MERGE_SHA" \
             --arg workflow "$WORKFLOW_SHA" --arg sha256 "$zip_sha256" \
+            --arg receiptSha256 "$receipt_sha256" --argjson receiptIncluded "$receipt_included" \
             --argjson producerRun "$GITHUB_RUN_ID" --argjson producerAttempt "$GITHUB_RUN_ATTEMPT" \
             --argjson gateRun "$SOURCE_GATE_ID" --argjson gateAttempt "$SOURCE_GATE_ATTEMPT" \
             '{schema:"mid.740.legacy-producer-shadow.v1", packageCommitSha:$package,
               sourceMergeSha:$source, workflowSha:$workflow, zipSha256:$sha256,
               producerRunId:$producerRun, producerRunAttempt:$producerAttempt,
               sourceGateRunId:$gateRun, sourceGateRunAttempt:$gateAttempt,
+              originalPremergeReceiptIncluded:$receiptIncluded,
+              originalPremergeReceiptSha256:(if $receiptIncluded then $receiptSha256 else null end),
               installerAuthorized:false, releaseAuthorized:false}' > "$shadow_dir/provenance.json"
           echo "directory=$shadow_dir" >> "$GITHUB_OUTPUT"
 
