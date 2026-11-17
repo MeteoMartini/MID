@@ -4,6 +4,7 @@ import {formatDisplayDateTime} from './timeDisplay';
 import {guardedOpenMeteoFetch,isOpenMeteoRateLimitError} from './openMeteoGuard';
 import type {EnsembleConfidenceCalibration,EnsembleParameter,EnsembleSkillBucket,EnsembleSkillMetric} from './ensembleAssessment';
 import {fetchWithDeadline} from './fetchDeadline';
+import {isFullDayForecastEvidenceIssuedBeforeDay} from './forecastCaptureEvidence';
 
 const PREFIX='mid:forecast-verification:v3:';
 const LEGACY_PREFIXES=['mid:forecast-verification:v2:','mid:forecast-verification:v1:'];
@@ -470,8 +471,35 @@ function isIndependentTwinReference(row:ForecastReference):boolean{
  // Keine Zirkelschlüsse aus Reanalyse, Modellrückblick oder unvollständigen Tagesfragmenten.
  return (row.kind==='measured'||row.kind==='private-sensor')&&Number.isFinite(row.coverageHours)&&Number(row.coverageHours)>=18&&row.quality>=.55&&Array.isArray(row.sources)&&row.sources.length>0&&row.sources.every(source=>source.kind==='measured'||source.kind==='private-sensor');
 }
-function chosenEvaluations(store:Store,beforeDate?:string){const references=new Map(store.references.filter(row=>(!beforeDate||row.date<beforeDate)&&isIndependentTwinReference(row)).map(row=>[row.date,row])),byKey=new Map<string,ForecastCapture[]>(),now=Date.now();for(const capture of store.captures){const completeAt=localDateTimeEpoch(capture.targetDate,capture.timezone,23,59);if(Number.isFinite(completeAt)&&completeAt>=now||beforeDate&&capture.targetDate>=beforeDate||!references.has(capture.targetDate))continue;const horizon=horizonBucket(capture.leadHours),key=`${capture.targetDate}:${horizon}`,list=byKey.get(key)??[];list.push(capture);byKey.set(key,list)}const evaluations:Evaluation[]=[];for(const[key,list]of byKey){const[date,horizonText]=key.split(':'),horizon=Number(horizonText) as ForecastHorizon,capture=[...list].sort((a,b)=>Math.abs(a.leadHours-horizon)-Math.abs(b.leadHours-horizon))[0],reference=references.get(date);if(reference)evaluations.push({date,capture,reference,horizon,regime:capture.predictedRegime??'wechselhaft'})}return evaluations.sort((a,b)=>b.date.localeCompare(a.date)||a.horizon-b.horizon)}
-
+function chosenEvaluations(store:Store,beforeDate?:string){
+ const references=new Map(store.references.filter(row=>(!beforeDate||row.date<beforeDate)&&isIndependentTwinReference(row)).map(row=>[row.date,row]));
+ const byKey=new Map<string,ForecastCapture[]>(),dayBounds=new Map<string,{start:number;end:number;valid:boolean}>(),now=Date.now();
+ for(const capture of store.captures){
+  if(beforeDate&&capture.targetDate>=beforeDate||!references.has(capture.targetDate))continue;
+  const boundsKey=capture.targetDate+'|'+String(capture.timezone||''),cached=dayBounds.get(boundsKey);
+  let bounds=cached;
+  if(!bounds){
+   const start=localDateTimeEpoch(capture.targetDate,capture.timezone,0,0),end=localDateTimeEpoch(capture.targetDate,capture.timezone,23,59);
+   const valid=Number.isFinite(start)&&Number.isFinite(end)&&end>start&&
+    (capture.timezone?dateAtEpoch(start,capture.timezone):new Date(start).toISOString().slice(0,10))===capture.targetDate;
+   bounds={start,end,valid};
+   dayBounds.set(boundsKey,bounds);
+  }
+  // Daily observed maxima, minima and 00–24h precipitation can contain facts
+  // already known at issue time. Do not score same-day/hindsight snapshots.
+  if(!bounds.valid||bounds.end>=now||!isFullDayForecastEvidenceIssuedBeforeDay(capture.issuedAt,capture.leadHours,bounds.start))continue;
+  const horizon=horizonBucket(capture.leadHours),key=capture.targetDate+':'+horizon,list=byKey.get(key)??[];
+  list.push(capture);byKey.set(key,list);
+ }
+ const evaluations:Evaluation[]=[];
+ for(const[key,list]of byKey){
+  const [date,horizonText]=key.split(':'),horizon=Number(horizonText) as ForecastHorizon,
+   capture=[...list].sort((a,b)=>Math.abs(a.leadHours-horizon)-Math.abs(b.leadHours-horizon))[0],
+   reference=references.get(date);
+  if(reference)evaluations.push({date,capture,reference,horizon,regime:capture.predictedRegime??'wechselhaft'});
+ }
+ return evaluations.sort((a,b)=>b.date.localeCompare(a.date)||a.horizon-b.horizon);
+}
 function emptyParameters():Record<ForecastParameter,ParamAccumulator>{return{temperature:{sum:0,count:0},precipitation:{sum:0,count:0},probability:{sum:0,count:0},gust:{sum:0,count:0},sunshine:{sum:0,count:0}}}
 function addParameter(accumulator:ParamAccumulator,value:number){if(Number.isFinite(value)){accumulator.sum+=value;accumulator.count++}}
 function modelParameterErrors(prediction:ForecastPrediction,reference:ForecastReference){const observed=reference.precipitation>DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM?1:0,probability=clamp(prediction.probability/100,0,1),probabilityComparable=prediction.id==='best_match'&&!prediction.probabilityKind?false:!['spread-estimate','hourly-max'].includes(String(prediction.probabilityKind||''));return{temperature:(Math.abs(prediction.max-reference.max)+Math.abs(prediction.min-reference.min))/2,precipitation:Math.abs(prediction.precipitation-reference.precipitation),probability:probabilityComparable?(probability-observed)**2:NaN,gust:Number.isFinite(prediction.gust)&&Number.isFinite(reference.gust)?Math.abs(Number(prediction.gust)-Number(reference.gust)):NaN,sunshine:Number.isFinite(prediction.sunshineDuration)&&Number.isFinite(reference.sunshineDuration)?Math.abs(Number(prediction.sunshineDuration)-Number(reference.sunshineDuration))/3600:NaN}}
