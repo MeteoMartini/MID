@@ -14,7 +14,7 @@ declare global{
 }
 const originalResize=MapLibreMap.prototype.resize;
 MapLibreMap.prototype.resize=function(...args:Parameters<typeof originalResize>){
- const id=String(this.getContainer().closest('[data-mid-resize-map]')?.getAttribute('data-mid-resize-map')||'unknown');
+ let id='unknown';try{id=String(this.getContainer()?.closest('[data-mid-resize-map]')?.getAttribute('data-mid-resize-map')||'unknown')}catch{}
  const counts=window.__midResizeCalls??={};
  counts[id]=(counts[id]??0)+1;
  return originalResize.apply(this,args);
