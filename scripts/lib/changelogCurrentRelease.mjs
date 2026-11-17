@@ -31,7 +31,7 @@ export function prependMidCurrentRelease(changelog,releaseNotes,version){
  if(matching.length){
   // Existing current heading can have a different level/title. Never rewrite
   // any of its existing bytes during a repeat version synchronization.
-  if(headings[0]===matching[0]&&!changelog.slice(0,matching[0].index).trim())return changelog;
+  if(matching.length===1&&headings[0]===matching[0]&&!changelog.slice(0,matching[0].index).trim())return changelog;
   throw Error('MID changelog: current version already exists away from first position; reconcile without duplication');
  }
  if(!changelog.trim())

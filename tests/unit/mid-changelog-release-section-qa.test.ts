@@ -66,6 +66,12 @@ describe('MID changelog: bounded latest-release prepend (no GitHub release autho
   const existing='  \n## MID v0.9.85.487 — approved wording\n\n- Historical text\n\n'+history;
   expect(prependMidCurrentRelease(existing,notes,'0.9.85.487')).toBe(existing);
  });
+ it('fails closed when current release is the first heading but duplicated deeper in history',()=>{
+  for(const duplicate of ['# MID v0.9.85.487','## MID v0.9.85.487 — extra','#### v0.9.85.487: repeated']){
+   const current='# MID v0.9.85.487\\n\\n- original current\\n\\n'+history+'\\n\\n'+duplicate+'\\n\\n- another copy';
+   expect(()=>prependMidCurrentRelease(current,notes,'0.9.85.487')).toThrow(/already exists/);
+  }
+ });
  it('does not erase leading whitespace from a historical source or confuse 487 with 4870',()=>{
   const original='\n \n## MID v0.9.85.4870 — a different version\n\n'+history;
   expect(prependMidCurrentRelease(original,notes,'0.9.85.487')).toBe('# MID v0.9.85.487\n\n- A new, verified maintenance change.\n\n'+original);
