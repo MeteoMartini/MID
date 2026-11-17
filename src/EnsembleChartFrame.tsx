@@ -1,4 +1,5 @@
 import {cloneElement,useLayoutEffect,useRef,useState,type CSSProperties,type ReactElement} from 'react';
+import {createEnsembleChartWidthScheduler} from './ensembleChartWidthScheduler';
 
 type EnsembleChartFrameProps={
  exporting:boolean;
@@ -18,17 +19,15 @@ export function EnsembleChartFrame({exporting,height,exportWidth,children}:Ensem
   if(exporting)return;
   const host=hostRef.current;
   if(!host)return;
-  let frame=0;
-  const commit=(value:number)=>{
-   const next=Math.max(0,Math.floor(value));
-   if(!next)return;
-   cancelAnimationFrame(frame);
-   frame=requestAnimationFrame(()=>setWidth(current=>current===next?current:next));
-  };
-  commit(host.getBoundingClientRect().width);
-  const observer=typeof ResizeObserver==='function'?new ResizeObserver(entries=>{const entry=entries[0];if(entry)commit(entry.contentRect.width)}):null;
+  const scheduler=createEnsembleChartWidthScheduler(
+   callback=>requestAnimationFrame(callback),
+   frame=>cancelAnimationFrame(frame),
+   next=>setWidth(current=>current===next?current:next),
+  );
+  scheduler.push(host.getBoundingClientRect().width);
+  const observer=typeof ResizeObserver==='function'?new ResizeObserver(entries=>{const entry=entries[0];if(entry)scheduler.push(entry.contentRect.width)}):null;
   observer?.observe(host);
-  return()=>{cancelAnimationFrame(frame);observer?.disconnect()};
+  return()=>{scheduler.dispose();observer?.disconnect()};
  },[exporting]);
  if(exporting)return <div className="ensemble-fixed-chart" style={{width:exportWidth,height}}>{cloneElement(children,{width:exportWidth,height,responsive:false})}</div>;
  const chartStyle:CSSProperties={...(children.props.style??{}),width,height,minWidth:0};
