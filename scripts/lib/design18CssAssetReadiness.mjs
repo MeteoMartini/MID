@@ -34,14 +34,6 @@ export async function verifyCssManifestAgainstDist(root,identity,assets){
  const id=obj(identity,'identity'),expected=validateExpectedCssAssets(assets);
  if(id.schema!=='mid.web-build-identity.v1'||!sha40.test(id.sourceGitSha??'')||!sha64.test(id.assetsSha256??''))
   fail('exact production build identity required');
- // The fingerprint intentionally excludes this metadata file. A caller-provided
- // identity must still match the identity actually embedded in the dist.
- let embeddedIdentity;
- try{embeddedIdentity=JSON.parse(await readFile(join(resolve(root),'mid-build-identity.json'),'utf8'))}
- catch{fail('embedded dist build identity missing or invalid')}
- for(const key of ['schema','version','sourceGitSha','assetsSha256','assetCount']){
-  if(embeddedIdentity?.[key]!==id[key])fail('embedded dist build identity mismatch: '+key);
- }
  await verifyStartupBuildIdentity(resolve(root),id);
  const version=JSON.parse(await readFile(join(resolve(root),'version.json'),'utf8'));
  if(version.version!==id.version)fail('version.json identity drift');
@@ -103,16 +95,16 @@ export function verifyCssLoadReadiness({manifest,responses,frames,origin}){
   for(const sheet of v.stylesheets){
    const x=obj(sheet,'DOM stylesheet');
    if(!Number.isSafeInteger(x.ruleCount)||x.ruleCount<1||
-      x.disabled!==false||x.readable!==true)
-    fail('unreadable, disabled or empty CSSOM sheet');
+      x.disabled!==false||x.readable!==true||!sha64.test(x.cssomSha256??''))
+    fail('unreadable, disabled, empty or unfingerprinted CSSOM sheet');
    if(x.kind==='inline'){
     if(!sha64.test(x.sha256??'')||!m.inlineStyleSha256.includes(x.sha256)||
        inlines.has(x.sha256))fail('unverified or duplicate inline stylesheet');
-    inlines.add(x.sha256);rows.push({inlineSha256:x.sha256,ruleCount:x.ruleCount});
+    inlines.add(x.sha256);rows.push({inlineSha256:x.sha256,ruleCount:x.ruleCount,cssomSha256:x.cssomSha256});
    }else if(x.kind==='external'){
     if(!validPath(x.path)||!expected.has(x.path)||matches.has(x.path))
      fail('undeclared or duplicate external CSSOM sheet');
-    matches.set(x.path,x);rows.push({path:x.path,ruleCount:x.ruleCount});
+    matches.set(x.path,x);rows.push({path:x.path,ruleCount:x.ruleCount,cssomSha256:x.cssomSha256});
    }else fail('unrecognized CSS stylesheet origin');
   }
   if(matches.size!==expected.size||inlines.size!==m.inlineStyleSha256.length)
@@ -132,7 +124,7 @@ export function verifyCssLoadReadiness({manifest,responses,frames,origin}){
 }
 /**
  * Attach BEFORE the first app navigation; finish AFTER the target view is visible.
- * Missing body, cached response, cross-origin CSS or new late sheets aborts the proof.
+ * Missing/incomplete bodies, Service Worker CSS, cross-origin CSS and late observed requests fail closed.
  * Never call browser networkidle or bypass browser sandboxing.
  */
 export function observeCssResponses(page,{manifest,origin}){
@@ -140,59 +132,122 @@ export function observeCssResponses(page,{manifest,origin}){
     typeof page?.evaluate!=='function')fail('Playwright Page event/evaluate API required');
  const m=obj(manifest,'manifest');
  const expected=validateExpectedCssAssets(m.assets),tasks=[],responses=[],invalid=[];
- const allowed=new Set(expected.map(a=>a.path));
- let listening=true;
- const handler=response=>{
-  if(!listening)return;
-  const path=normalizedBrowserPath(response.url(),origin);
-  if(!path)return;
-  // All CSS assets in this scope must be declared, not just the passing subset.
-  tasks.push((async()=>{
-   if(!allowed.has(path)){invalid.push('undeclared CSS request');return}
-   const status=response.status();
-   let bytes;
-   try{bytes=await response.body()}catch{invalid.push('CSS response body inaccessible');return}
-   responses.push({path,status,bodySha256:digest(bytes)});
-  })().catch(()=>invalid.push('unreadable CSS HTTP response')));
+ const allowed=new Set(expected.map(a=>a.path)),requests=new Map();
+ let listening=true,finalizing=false;
+ const resourceIsCss=request=>{
+  if(!request)return false;
+  let type='',url='';
+  try{type=request.resourceType?.()??'';url=request.url()}catch{return false}
+  return type==='stylesheet'||/\.css(?:[?#]|$)/i.test(url);
  };
- page.on('response',handler);
+ const handleRequest=request=>{
+  if(!listening||!resourceIsCss(request))return;
+  if(requests.has(request)){invalid.push('duplicated stylesheet request event');return}
+  const path=normalizedBrowserPath(request.url(),origin);
+  if(!path||!allowed.has(path))invalid.push('CSS request outside declared original asset inventory');
+  requests.set(request,{path,responded:false,finished:false,failed:false});
+ };
+ const handleResponse=response=>{
+  if(!listening)return;
+  let request,header='';
+  try{
+   request=response.request();
+   header=response.headers?.()['content-type']??'';
+  }catch{invalid.push('CSS response has unreadable request identity');return}
+  if(!resourceIsCss(request)&&!/^text\/css(?:;|$)/i.test(header.trim()))return;
+  const state=requests.get(request);
+  if(!state||state.responded){invalid.push('untracked or duplicate CSS response');return}
+  state.responded=true;
+  tasks.push((async()=>{
+   if(!state.path||!allowed.has(state.path))return;
+   if(typeof response.finished!=='function'||typeof response.body!=='function')
+    {invalid.push('CSS response completion/body API unavailable');return}
+   if(response.fromServiceWorker?.()===true)
+    {invalid.push('Service Worker response is not proven original HTTP');return}
+   const completion=await response.finished();
+   if(completion){invalid.push('CSS response failed before download completion');return}
+   const body=await response.body();
+   if(!Buffer.isBuffer(body)){invalid.push('CSS response must supply original Buffer');return}
+   responses.push({path:state.path,status:response.status(),bodySha256:digest(body)});
+  })().catch(()=>invalid.push('CSS HTTP response body inaccessible')));
+ };
+ const handleFinished=request=>{
+  if(!listening||!resourceIsCss(request))return;
+  const state=requests.get(request);
+  if(!state||state.finished){invalid.push('untracked or duplicated CSS request completion');return}
+  state.finished=true;
+ };
+ const handleFailed=request=>{
+  if(!listening||!resourceIsCss(request))return;
+  const state=requests.get(request);
+  if(state)state.failed=true;
+  invalid.push('failed or unmatched original CSS request');
+ };
+ const handlers={
+  request:handleRequest,response:handleResponse,requestfinished:handleFinished,requestfailed:handleFailed,
+ };
+ for(const [name,fn] of Object.entries(handlers))page.on(name,fn);
+ const cleanup=()=>{
+  if(listening){listening=false;for(const [name,fn] of Object.entries(handlers))page.off(name,fn)}
+ };
  return {
   async finish(){
-   if(!listening)fail('CSS observer already finalized');
-   listening=false;page.off('response',handler);
-   await Promise.all(tasks);
-   if(invalid.length)fail(invalid.join('; '));
-   const frames=[];
-   for(let i=0;i<2;i++){
-    const state=await page.evaluate(async ({origin})=>{
-     await document.fonts.ready;
-     await new Promise(ok=>requestAnimationFrame(()=>requestAnimationFrame(ok)));
-     const stylesheets=[];
-     for(const sheet of document.styleSheets){
-      let path=null,inlineHash=null,kind=null,readable=false,ruleCount=null;
-      try{
-       if(sheet.href){
-        const u=new URL(sheet.href,location.href);
-        if(u.origin===origin&&!u.search&&!u.hash){
-         path=decodeURIComponent(u.pathname).replace(/^\/+/, '');
-         kind='external';
+   if(!listening||finalizing)fail('CSS observer already finalized');
+   finalizing=true;
+   try{
+    const frames=[];
+    for(let i=0;i<2;i++){
+     // Bounded settling interval, not networkidle and never evidence of future requests.
+     if(i===1)await new Promise(ok=>setTimeout(ok,200));
+     const state=await page.evaluate(async ({origin})=>{
+      await document.fonts.ready;
+      await new Promise(ok=>requestAnimationFrame(()=>requestAnimationFrame(ok)));
+      const stylesheets=[];
+      for(const sheet of document.styleSheets){
+       let path=null,inlineHash=null,kind=null,readable=false,ruleCount=null,cssomSha256=null;
+       try{
+        if(sheet.href){
+         const u=new URL(sheet.href,location.href);
+         if(u.origin===origin&&!u.search&&!u.hash){
+          path=decodeURIComponent(u.pathname).replace(/^\/+/, '');
+          kind='external';
+         }
+        }else if(sheet.ownerNode?.tagName==='STYLE'){
+         const data=new TextEncoder().encode(sheet.ownerNode.textContent??'');
+         const bytes=new Uint8Array(await crypto.subtle.digest('SHA-256',data));
+         inlineHash=[...bytes].map(b=>b.toString(16).padStart(2,'0')).join('');
+         kind='inline';
         }
-       }else if(sheet.ownerNode?.tagName==='STYLE'){
-        const data=new TextEncoder().encode(sheet.ownerNode.textContent??'');
+        const rules=[...sheet.cssRules];
+        ruleCount=rules.length;
+        const data=new TextEncoder().encode(rules.map(rule=>rule.cssText).join('\n'));
         const bytes=new Uint8Array(await crypto.subtle.digest('SHA-256',data));
-        inlineHash=[...bytes].map(b=>b.toString(16).padStart(2,'0')).join('');
-        kind='inline';
-       }
-       ruleCount=sheet.cssRules.length;readable=true;
-      }catch{}
-      stylesheets.push({kind,path,sha256:inlineHash,readable,ruleCount,disabled:sheet.disabled===true});
-     }
-     return {fontsStatus:document.fonts.status,adoptedStyleSheetCount:document.adoptedStyleSheets.length,stylesheets};
-    },{origin});
-    frames.push(state);
-   }
-   return verifyCssLoadReadiness({manifest:m,responses,frames,origin});
+        cssomSha256=[...bytes].map(b=>b.toString(16).padStart(2,'0')).join('');
+        readable=true;
+       }catch{}
+       stylesheets.push({kind,path,sha256:inlineHash,cssomSha256,readable,ruleCount,disabled:sheet.disabled===true});
+      }
+      return {fontsStatus:document.fonts.status,adoptedStyleSheetCount:document.adoptedStyleSheets.length,stylesheets};
+     },{origin});
+     frames.push(state);
+    }
+    let cursor=0;
+    while(cursor<tasks.length){
+     const next=tasks.slice(cursor);cursor=tasks.length;
+     await Promise.all(next);
+    }
+    if(invalid.length)fail(invalid.join('; '));
+    if(requests.size!==allowed.size)fail('CSS request inventory does not match declared assets');
+    const paths=new Set();
+    for(const state of requests.values()){
+     if(!state.path||!allowed.has(state.path)||paths.has(state.path)||
+       !state.responded||!state.finished||state.failed)
+      fail('incomplete, duplicated or failed CSS request lifecycle');
+     paths.add(state.path);
+    }
+    return verifyCssLoadReadiness({manifest:m,responses,frames,origin});
+   }finally{cleanup()}
   },
-  cancel(){if(listening){listening=false;page.off('response',handler)}},
+  cancel(){cleanup()},
  };
 }
