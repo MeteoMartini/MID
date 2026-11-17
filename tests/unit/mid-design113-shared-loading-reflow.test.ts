@@ -1,4 +1,7 @@
 /** MID Design113: actual shared loading state, including long localized place names. */
+import {execFileSync} from 'node:child_process';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {describe,expect,it} from 'vitest';
@@ -41,5 +44,18 @@ describe('MID Design113 shared loading-state reflow',()=>{
   expect(html).toContain('&lt;img');
   expect(html).not.toContain('<img');
   expect(html).not.toContain('onerror=alert(1)>');
+ });
+ it('validates the optional browser runner syntax and the real component fixture without pretending to execute Chromium',()=>{
+  const source=readFileSync(fileURLToPath(new URL('../../tests/visual/design113-loading-reflow-qa.tsx',import.meta.url)),'utf8');
+  const runnerPath=fileURLToPath(new URL('../../scripts/qa/verifyDesign113LoadingReflowBrowser.mjs',import.meta.url));
+  const runner=readFileSync(runnerPath,'utf8');
+  execFileSync(process.execPath,['--check',runnerPath],{timeout:10000,stdio:'pipe'});
+  expect(source).toContain("import {ModuleLoadingState} from '../../src/ModuleLoadingState'");
+  expect(source).toContain('data-kind="chart"');
+  expect(source).toContain('data-kind="map"');
+  expect(runner).toContain('evidence.cases.length,28');
+  expect(runner).toContain('report.ready=true'.replace('report','evidence'));
+  expect(runner).not.toContain('process.exit(0)');
+  expect(runner).not.toContain('test.skip');
  });
 });
