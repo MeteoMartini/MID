@@ -80,3 +80,8 @@ und der inerten Installer-Step-ID byteidentisch zum bisherigen Stable-Workflow
 verglichen. GitHub Node-22-/Governance-/Draft-QA und Code-Review sind separat
 am veröffentlichten HEAD nachzulesen. Kein neuer Source-Vollgate gestartet,
 solange der unveränderte Dependency-Audit-Blocker besteht.
+
+
+## MID #903 – Security-Fix auf dem v0.9.85.489 Release-Train (18.11.2026)
+
+Parent des ref-freien SHA-Fixes `34560bd791072e65672f3af69a2e2f3d77c772f2` ist der PR-HEAD `c094a97126ce755e4917a1051e462bbd5b6b8039`; das neue Regressionstests-Kind ist `771b6a5a772f63c6ef328e53d149de423d66a5a4`. Unveränderte Vite-8-Kette mit npm Overrides auf `@ryotsu/picomatch@4.0.7-a`, Registry SHA512 `sha512-JroBFEmaejC7szGSfqOhF1QZHLKvX2wTA1+fWyfkpy3BjzdQKNPLKa2FtgeKVUDy5/UPUNkXEeCHJ5ZRBMLTVA==`; 270 Paketeinträge, nur `node_modules/picomatch` verändert. Externe isolierte Original-NPM-10-QA: normales `npm ci`, `npm run audit:all`, `npm run audit:dependencies` (83 Produktionsversionen, npm Advisory erreichbar), `npm audit signatures`, 42 ReDoS-Proben und Vite-8/React-19-Smoke erfolgreich. Offener Community-Fork-/Supply-Chain-Restbefund; diese Tests ersetzen keinen einzigen Source-/Core-/Heavy-/Review-/Installer-/iOS-/Worker-/Pages-/Stable-Gate. Die Sicherheitswartung ist in aktuellen Version-Notizen und historischem Changelog mit identischem aktuellem Absatz dokumentiert, ältere Changelog-Bytes unverändert. #839/#740 sind keine pauschalen Blocker für den unabhängigen Produktrelease.
