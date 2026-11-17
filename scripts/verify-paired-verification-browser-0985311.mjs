@@ -50,6 +50,10 @@ try{
   const control=page.locator('.forecast-verification-kpis article').last();
   assert.ok((await control.innerText()).includes('6 Tage / 6 Fälle'));
   assert.ok((await control.getAttribute('title')).includes('gemeinsam verfügbare Parameter'));
+  const rainKpi=page.locator('.forecast-verification-kpis article').nth(1);
+  assert.equal((await rainKpi.locator('strong').innerText()).trim(),'Brier 0,00','A perfect archived Brier score is not a relative skill claim');
+  assert.ok((await rainKpi.innerText()).includes('7 unabhängige Vergleichstage'),'Independent sample count must stay visible');
+  assert.ok((await rainKpi.innerText()).includes('kein Referenz-Skill belegt'),'No unsupported reference skill claim');
   assert.equal(result.overflow,false,JSON.stringify({width,height,theme}));
   assert.deepEqual(errors,[]);if(screenshots&&(width===320||width===1440))await page.screenshot({path:join(screenshots,`${width}-${theme}.png`),fullPage:true});cases++;await page.close();
  }
