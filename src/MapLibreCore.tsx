@@ -1,7 +1,7 @@
 import {createContext,useContext,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {rasterTileRetryDelayMs} from './mapLayerRecovery';
 import {createMapLayerOrderScheduler} from './mapLayerOrderScheduler';
-import {shouldCrossfadeMapCanvas} from './mapCanvasCrossfadePolicy';
+import {mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas} from './mapCanvasCrossfadePolicy';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './mapPopupTheme.css';
@@ -206,8 +206,11 @@ export function CanvasOverlay({id,opacity=1,zIndex=5,render,events=['moveend','z
   // A cosmetic fade must not clone a multi-megapixel canvas on mobile,
   // during backgrounding or for users who request reduced motion.
   const saveData=(navigator as Navigator&{connection?:{saveData?:boolean}}).connection?.saveData===true;
+  // MapLibre has an actual device-pixel backing store. An untouched overlay
+  // starts at the HTML default 300x150 and would understate retina-map cost.
+  const backing=mapCanvasCrossfadeBackingSize(canvas,map.getCanvas());
   const animate=shouldCrossfadeMapCanvas({
-   width:canvas.width,height:canvas.height,
+   width:backing?.width??0,height:backing?.height??0,
    visible:document.visibilityState==='visible',
    reducedMotion:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches===true,
    saveData
