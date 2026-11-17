@@ -1,7 +1,7 @@
 import {createContext,useContext,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {rasterTileRetryDelayMs} from './mapLayerRecovery';
 import {createMapLayerOrderScheduler} from './mapLayerOrderScheduler';
-import {mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from './mapCanvasCrossfadePolicy';
+import {createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from './mapCanvasCrossfadePolicy';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './mapPopupTheme.css';
@@ -201,7 +201,30 @@ export function HtmlMarker({latitude,longitude,html,className='',anchor='bottom'
 
 export function CanvasOverlay({id,opacity=1,zIndex=5,render,events=['moveend','zoomend','resize'] as const}:{id:string;opacity?:number;zIndex?:number;render:(map:MidMap,canvas:HTMLCanvasElement)=>void;events?:readonly ('moveend'|'zoomend'|'resize'|'render')[]}){
  const map=useMidMap(),canvasRef=useRef<HTMLCanvasElement|null>(null),renderRef=useRef(render),opacityRef=useRef(opacity);renderRef.current=render;opacityRef.current=opacity;
- useEffect(()=>{if(!map)return;let raf=0;const canvas=document.createElement('canvas');canvasRef.current=canvas;canvas.className=`mid-maplibre-canvas ${safeId(id)}`;Object.assign(canvas.style,{position:'absolute',inset:'0',pointerEvents:'none',zIndex:String(zIndex),opacity:String(opacityRef.current)});map.getCanvasContainer().appendChild(canvas);const redraw=()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;renderRef.current(map,canvas)})};for(const event of events)map.on(event,redraw);return()=>{cancelAnimationFrame(raf);for(const event of events)map.off(event,redraw);canvas.remove();canvasRef.current=null}},[map,id,zIndex,events.join('|')]);
+ useEffect(()=>{if(!map)return;
+  const canvas=document.createElement('canvas');canvasRef.current=canvas;
+  canvas.className=`mid-maplibre-canvas ${safeId(id)}`;
+  Object.assign(canvas.style,{position:'absolute',inset:'0',pointerEvents:'none',zIndex:String(zIndex),opacity:String(opacityRef.current)});
+  map.getCanvasContainer().appendChild(canvas);
+  // Hidden-tab MapLibre events must not queue cosmetic redraw work.
+  // Upon return, redraw the latest in-memory overlay exactly once.
+  const scheduler=createMapCanvasRedrawScheduler(
+   ()=>renderRef.current(map,canvas),
+   callback=>requestAnimationFrame(callback),
+   handle=>cancelAnimationFrame(handle),
+   ()=>document.visibilityState==='visible'
+  );
+  const redraw=()=>scheduler.request();
+  const onVisibility=()=>scheduler.visibilityChange(document.visibilityState==='visible');
+  for(const event of events)map.on(event,redraw);
+  document.addEventListener('visibilitychange',onVisibility);
+  return()=>{
+   document.removeEventListener('visibilitychange',onVisibility);
+   scheduler.dispose();
+   for(const event of events)map.off(event,redraw);
+   canvas.remove();canvasRef.current=null
+  };
+ },[map,id,zIndex,events.join('|')]);
  useEffect(()=>{const canvas=canvasRef.current;if(!map||!canvas)return;
   // A cosmetic fade must not clone a multi-megapixel canvas on mobile,
   // during backgrounding or for users who request reduced motion.
