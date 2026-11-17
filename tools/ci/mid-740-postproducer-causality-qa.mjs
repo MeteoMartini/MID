@@ -49,10 +49,26 @@ const commitIdentity=c=>JSON.stringify([
 ]);
 
 export async function assessMid740PostProducerCausality({
- premergeReceipt,verifiedIntake,sourceMergeSha
+ premergeReceipt,verifiedIntake,sourceMergeSha,legacy
 }={},get){
  const r=premergeReceipt,i=verifiedIntake;
- if(typeof get!=='function'||!SHA.test(sourceMergeSha??'')||
+ // The existing future path proves an entire source Git tree. The
+ // historic post-installer shadow proves the exact package ZIP Git blob,
+ // while THIS verifier separately proves full source tree equivalence.
+ // Do not mislabel the historic path as already full-tree authenticated.
+ const intakeShapeVerified=legacy===undefined
+  ? i?.schema==='mid.740.end-to-end-intake-qa.v1'&&
+    i.mainSha===sourceMergeSha&&i.downloadAndGitTreeVerified===true
+  : i?.schema==='mid.740.legacy-original-postinstaller-intake-qa.v1'&&
+    i.sourceMergeSha===sourceMergeSha&&
+    i.packageCommitSha===legacy.packageCommitSha&&
+    i.packageGitBlobAndAncestryVerified===true&&
+    i.originalPremergeReceiptBytesVerified===true&&
+    DIGEST.test(i.originalPremergeReceiptSha256??'')&&
+    i.originalLegacyInstallerReadbackVerified===true;
+ if((legacy!==undefined&&(!SHA.test(legacy?.packageCommitSha??'')||
+      legacy.producerRunAttempt!==1||!positive(legacy.installerRunId)))||
+    typeof get!=='function'||!SHA.test(sourceMergeSha??'')||
     r?.schema!=='mid.740.premerge-producer-receipt.v1'||
     r.status!=='PREMERGE_PRODUCER_EVENT_METADATA_COHERENT_QA_ONLY'||
     !positive(r.sourceGateRunId)||r.sourceGateAttempt!==1||
@@ -65,10 +81,9 @@ export async function assessMid740PostProducerCausality({
     r.originalArtifactVerified!==false||
     r.trustedProductionReceiptAttested!==false||
     r.installerAuthorized!==false||r.releaseAuthorized!==false||
-    i?.schema!=='mid.740.end-to-end-intake-qa.v1'||
-    i.mainSha!==sourceMergeSha||i.producerRunId!==r.producerRunId||
+    !intakeShapeVerified||i.producerRunId!==r.producerRunId||
     !positive(i.artifactId)||!DIGEST.test(i.artifactSha256??'')||
-    i.downloadAndGitTreeVerified!==true||i.metadataVerified!==true||
+    i.metadataVerified!==true||
     i.producerJobVerified!==true||i.producerIdentityReread!==true||
     i.nativeGitHubReviewVerified!==false||i.installerAuthorized!==false||
     i.releaseAuthorized!==false)
@@ -78,7 +93,8 @@ export async function assessMid740PostProducerCausality({
  try{
   meta=await collectMid740GitHubReadback({
    runId:r.producerRunId,artifactId:i.artifactId,
-   sourceMergeSha,trustedWorkflowSha:r.producerWorkflowSha
+   sourceMergeSha,trustedWorkflowSha:r.producerWorkflowSha,
+   ...(legacy&&{legacy})
   },get);
  }catch{return blocked('PRODUCER_ARTIFACT_REST_READBACK_UNVERIFIED')}
  if(meta.artifact.digest!=='sha256:'+i.artifactSha256||
@@ -153,7 +169,8 @@ export async function assessMid740PostProducerCausality({
   [after,gate2,pr2,merge2,sourceHead2,stable2,gateJobs2]=await Promise.all([
    collectMid740GitHubReadback({runId:r.producerRunId,
     artifactId:i.artifactId,sourceMergeSha,
-    trustedWorkflowSha:r.producerWorkflowSha},get),
+    trustedWorkflowSha:r.producerWorkflowSha,
+    ...(legacy&&{legacy})},get),
    get(ROOT+'actions/runs/'+r.sourceGateRunId),
    get(ROOT+'pulls/'+r.prNumber),
    get(ROOT+'git/commits/'+sourceMergeSha),
@@ -185,6 +202,7 @@ export async function assessMid740PostProducerCausality({
   sourceGitTreeSha:sourceHead.tree.sha,
   sourceDiffEquivalenceVerified:true,
   producerArtifactInventoryAndCausalityReadbackVerified:true,
+  originalLegacyInstallerReadbackVerified:legacy!==undefined,
   postVerificationRaceReadbackVerified:true,
   // The premerge receipt and intake proof are supplied objects; this module
   // does not authenticate their production origin or re-verify ZIP bytes.

@@ -204,3 +204,86 @@ describe('#740 producer completion -> source PR squash -> actual source artifact
    .toBe('BLOCKED');
  });
 });
+
+
+describe('#740 actual legacy producer -> verified original ZIP shadow -> completed installer causality QA',()=>{
+ const pkg='f'.repeat(40),installId=444;
+ const legacy={packageCommitSha:pkg,producerRunAttempt:1,installerRunId:installId};
+ function oldFixture(){
+  const x=fixture();
+  const art=x.data['actions/artifacts/333'];
+  art.name='mid-740-legacy-shadow-222-1-'+pkg;
+  x.data['actions/runs/222/artifacts?per_page=100&page=1'].artifacts[0].name=art.name;
+  x.data['git/commits/'+pkg]={sha:pkg,parents:[{sha:MERGE}]};
+  x.intake={...x.intake,
+   schema:'mid.740.legacy-original-postinstaller-intake-qa.v1',
+   sourceMergeSha:MERGE,packageCommitSha:pkg,
+   packageGitBlobAndAncestryVerified:true,
+   originalPremergeReceiptBytesVerified:true,
+   originalPremergeReceiptSha256:'f'.repeat(64),
+   originalLegacyInstallerReadbackVerified:true,
+   downloadAndGitTreeVerified:false};
+  x.data['actions/runs/'+installId]={
+   id:installId,path:'.github/workflows/install-mid.yml',
+   event:'workflow_dispatch',head_branch:'main',head_sha:pkg,
+   status:'completed',conclusion:'success',
+   repository:{id:RID},head_repository:{id:RID}
+  };
+  x.data['actions/runs/222/attempts/1/jobs?per_page=100']={
+   total_count:1,
+   jobs:[{
+    id:555,run_id:222,run_attempt:1,head_sha:BASE,
+    status:'completed',conclusion:'success',
+    steps:[
+     {number:1,name:'SHA-gebundenes Original-ZIP für #740 bereitstellen',
+      status:'completed',conclusion:'success',
+      started_at:'2026-11-16T10:06:30Z',completed_at:'2026-11-16T10:06:55Z'},
+     {number:2,name:'Original-ZIP und Zuordnung kurzlebig als Nachweis hochladen',
+      status:'completed',conclusion:'success',
+      started_at:'2026-11-16T10:06:56Z',completed_at:'2026-11-16T10:08:00Z'},
+     {number:3,name:'Bewährten MID-Installer explizit starten',
+      status:'completed',conclusion:'success',
+      started_at:'2026-11-16T10:08:01Z',completed_at:'2026-11-16T10:08:35Z'}
+    ]
+   }]
+  };
+  return x;
+ }
+ it('admits a completed original legacy installer chain as QA metadata, never a release',async()=>{
+  const x=oldFixture();
+  const result=await assess({premergeReceipt:x.receipt,verifiedIntake:x.intake,
+   sourceMergeSha:MERGE,legacy},x.get);
+  expect(result).toMatchObject({
+   status:'POST_PRODUCER_CAUSALITY_METADATA_COHERENT_QA_ONLY',
+   originalLegacyInstallerReadbackVerified:true,
+   producerArtifactInventoryAndCausalityReadbackVerified:true,
+   originalProducerReceiptAttested:false,nativeGitHubReviewVerified:false,
+   installerAuthorized:false,recoveryAuthorized:false,releaseAuthorized:false
+  });
+ });
+ it.each([
+  ['missing installer',x=>{delete x.data['actions/runs/'+installId]}],
+  ['installer failure',x=>{x.data['actions/runs/'+installId].conclusion='failure'}],
+  ['installer points to untrusted package',x=>{x.data['actions/runs/'+installId].head_sha=BASE}],
+  ['ZIP commit wrong source parent',x=>{x.data['git/commits/'+pkg].parents=[{sha:BASE}]}],
+  ['legacy artifact wrong producer name',x=>{x.data['actions/artifacts/333'].name='mid-release-'+MERGE}],
+  ['original upload step failure',x=>{x.data['actions/runs/222/attempts/1/jobs?per_page=100'].jobs[0].steps[1].conclusion='failure'}],
+  ['invalid original producer attempt',x=>{x.data['actions/runs/222'].run_attempt=2}],
+ ] as [string,(x:ReturnType<typeof oldFixture>)=>void][])('%s is BLOCKED',async(_,mutate)=>{
+  const x=oldFixture();mutate(x);
+  const result=await assess({premergeReceipt:x.receipt,verifiedIntake:x.intake,
+   sourceMergeSha:MERGE,legacy},x.get);
+  expect(result.status).toBe('BLOCKED');
+  expect(result.installerAuthorized).toBe(false);
+  expect(result.releaseAuthorized).toBe(false);
+ });
+ it('rejects a caller that invents different installer identities',async()=>{
+  const x=oldFixture();
+  expect((await assess({premergeReceipt:x.receipt,verifiedIntake:x.intake,
+   sourceMergeSha:MERGE,legacy:{...legacy,installerRunId:0}},x.get)).status)
+   .toBe('BLOCKED');
+  expect((await assess({premergeReceipt:x.receipt,verifiedIntake:x.intake,
+   sourceMergeSha:MERGE,legacy:{...legacy,producerRunAttempt:2}},x.get)).status)
+   .toBe('BLOCKED');
+ });
+});

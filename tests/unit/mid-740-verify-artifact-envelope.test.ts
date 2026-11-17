@@ -233,6 +233,21 @@ with ZipFile(sys.argv[1], "w") as z:
     ...(needsExpected||variant==='premerge-expect-three-but-two'?
      ['--expected-premerge-receipt',trustedOriginal]:[])
    ];
+   const inspected=run(root,'python3',[envelope,'--inspect-original-premerge',
+    '--envelope',path,'--expected-envelope-sha256',digest(readFileSync(path))]);
+   if(variant==='premerge-good'||variant==='premerge-required'){
+    expect(inspected.status,variant+' '+inspected.stderr).toBe(0);
+    const info=JSON.parse(inspected.stdout);
+    expect(info).toMatchObject({
+     schema:'mid.740.original-legacy-shadow-inspection.v1',
+     status:'ORIGINAL_BYTES_READ_QA_ONLY',
+     originalPremergeReceiptSha256:digest(raw),
+     originalPremergeReceiptText:raw,
+     authenticatedGitHubProducer:false,
+     nativeReviewVerified:false,installerAuthorized:false,
+     releaseAuthorized:false});
+    expect(info.originalPremergeReceipt).toEqual(original);
+   }else expect(inspected.status,variant+' original inspection should block').not.toBe(0);
    const checked=run(root,'python3',[envelope,...opts]);
    if(variant==='new-two-member-absent'){
     expect(checked.status,checked.stderr).toBe(0);

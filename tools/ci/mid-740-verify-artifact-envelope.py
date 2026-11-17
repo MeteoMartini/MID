@@ -224,6 +224,78 @@ def verify_legacy_shadow(envelope: Path, expected_sha256: str,
     }
 
 
+def inspect_original_legacy_premerge(envelope: Path, expected_sha256: str) -> dict:
+    """Read-only inspection of ORIGINAL GitHub Actions envelope bytes.
+
+    The digest must come from independently verified GitHub REST metadata.
+    This inspection proves no GitHub run, reviewer, or installer authorization.
+    The caller MUST additionally verify original GitHub run/job/PR/commit
+    identities and re-read them after the byte/Git checks.
+    """
+    if not isinstance(expected_sha256, str) or not SHA256.fullmatch(expected_sha256):
+        raise ValueError("BAD_ORIGINAL_ENVELOPE_DIGEST")
+    envelope = _trusted_file(Path(envelope))
+    with envelope.open("rb") as stream:
+        if hashlib.file_digest(stream, "sha256").hexdigest() != expected_sha256:
+            raise ValueError("ORIGINAL_ENVELOPE_DIGEST_MISMATCH")
+    members = {LEGACY_ZIP, LEGACY_RECEIPT, PREMERGE_RECEIPT}
+    with ZipFile(envelope, "r") as archive:
+        entries = archive.infolist()
+        if len(entries) != 3 or {i.filename for i in entries} != members:
+            raise ValueError("UNVERIFIED_ORIGINAL_PREMERGE_MEMBERS")
+        for item in entries:
+            mode = item.external_attr >> 16
+            cap = (MAX_MANIFEST_BYTES if item.filename.endswith(".json") else MAX_BYTES)
+            if (item.is_dir() or stat.S_IFMT(mode) not in (0, stat.S_IFREG)
+                    or item.flag_bits & 0x1 or
+                    item.compress_type not in (ZIP_STORED, ZIP_DEFLATED)
+                    or not 0 < item.file_size <= cap or
+                    item.compress_size > MAX_BYTES):
+                raise ValueError("UNSAFE_ORIGINAL_PREMERGE_MEMBER")
+        with archive.open(PREMERGE_RECEIPT, "r") as stream:
+            original = stream.read(MAX_MANIFEST_BYTES + 1)
+        with archive.open(LEGACY_RECEIPT, "r") as stream:
+            manifest_bytes = stream.read(MAX_MANIFEST_BYTES + 1)
+    if not 0 < len(original) <= MAX_MANIFEST_BYTES or not 0 < len(manifest_bytes) <= MAX_MANIFEST_BYTES:
+        raise ValueError("ORIGINAL_JSON_OVERSIZE")
+    manifest = json.loads(manifest_bytes.decode("utf-8"),
+                          object_pairs_hook=_unique_object)
+    if (not isinstance(manifest, dict) or
+            manifest.get("schema") != "mid.740.legacy-producer-shadow.v1" or
+            manifest.get("originalPremergeReceiptIncluded") is not True or
+            manifest.get("originalPremergeReceiptSha256") != hashlib.sha256(original).hexdigest() or
+            manifest.get("installerAuthorized") is not False or
+            manifest.get("releaseAuthorized") is not False):
+        raise ValueError("ORIGINAL_RECEIPT_MANIFEST_UNVERIFIED")
+    expected = {key: manifest.get(key) for key in (
+        "packageCommitSha", "sourceMergeSha", "workflowSha",
+        "producerRunId", "producerRunAttempt", "sourceGateRunId",
+        "sourceGateRunAttempt")}
+    if (set(manifest) != {*expected, "schema", "zipSha256",
+                          "originalPremergeReceiptIncluded", "originalPremergeReceiptSha256",
+                          "installerAuthorized", "releaseAuthorized"}
+            or not SHA256.fullmatch(manifest.get("zipSha256", "")) or
+            any(type(expected[k]) is not int or expected[k] < 1
+                for k in ("producerRunId", "producerRunAttempt",
+                          "sourceGateRunId", "sourceGateRunAttempt")) or
+            any(not isinstance(expected[k], str) or not SHA.fullmatch(expected[k])
+                for k in ("packageCommitSha", "sourceMergeSha", "workflowSha"))):
+        raise ValueError("ORIGINAL_MANIFEST_FIELDS_UNVERIFIED")
+    receipt = _check_original_premerge_receipt(original, expected)
+    return {
+        "schema": "mid.740.original-legacy-shadow-inspection.v1",
+        "status": "ORIGINAL_BYTES_READ_QA_ONLY",
+        "originalEnvelopeSha256": expected_sha256,
+        "originalPremergeReceiptText": original.decode("utf-8"),
+        "originalPremergeReceiptSha256": hashlib.sha256(original).hexdigest(),
+        "originalManifest": manifest,
+        "originalPremergeReceipt": receipt,
+        "authenticatedGitHubProducer": False,
+        "nativeReviewVerified": False,
+        "installerAuthorized": False, "releaseAuthorized": False
+    }
+
+
 def verify_downloaded_envelope(envelope: Path, expected_sha256: str,
                                 destination: Path, source_sha: str,
                                 repository: Path, local_verifier: Path,
@@ -304,10 +376,17 @@ if __name__ == "__main__":
     ap.add_argument("--expected-legacy-receipt", type=Path)
     ap.add_argument("--installer-zip-sha256")
     ap.add_argument("--expected-premerge-receipt", type=Path)
+    ap.add_argument("--inspect-original-premerge", action="store_true")
     cfg = ap.parse_args()
     try:
         source_options = (cfg.destination, cfg.source_sha, cfg.local_verifier, cfg.source_verifier)
-        if cfg.expected_legacy_receipt:
+        if cfg.inspect_original_premerge:
+            if (any(source_options) or cfg.expected_legacy_receipt or
+                    cfg.installer_zip_sha256 or cfg.expected_premerge_receipt):
+                raise ValueError("Unexpected original-inspection options")
+            report = inspect_original_legacy_premerge(
+                Path(cfg.envelope), cfg.expected_envelope_sha256)
+        elif cfg.expected_legacy_receipt:
             if any(source_options) or cfg.expected_legacy_receipt.stat().st_size > MAX_MANIFEST_BYTES:
                 raise ValueError("Unexpected legacy verifier options or evidence size")
             receipt = json.loads(cfg.expected_legacy_receipt.read_text(), object_pairs_hook=_unique_object)
