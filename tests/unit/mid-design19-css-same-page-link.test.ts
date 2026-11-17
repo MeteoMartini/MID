@@ -28,7 +28,8 @@ function harness(config?:{
  manifest?:ReturnType<typeof manifest>,result?:ReturnType<typeof css>,
  first?:ReturnType<typeof capture>,second?:ReturnType<typeof capture>,
  origin?:string,viewport?:{width:number,height:number},
- viewUrl?:string, failAt?:string,
+ viewUrl?:string, failAt?:string, navigationStatus?:number,
+ redirectEntryTo?:string, serviceWorkerEntry?:boolean, missingNavigationResponse?:boolean,
 }){
  const log:string[]=[],ready={manifest:config?.manifest??manifest(),css:config?.result??css(),
  first:config?.first??capture(),second:config?.second??capture()};
@@ -37,7 +38,15 @@ function harness(config?:{
   url:()=>current,viewportSize:()=>config?.viewport??{width:390,height:844},
   context:()=>({}),
   addInitScript:async()=>{log.push('theme-init')},
-  goto:async(url:string)=>{log.push('navigate');if(config?.failAt==='goto')throw Error('admin browser navigation blocked');current=url},
+  goto:async(url:string)=>{
+   log.push('navigate');
+   if(config?.failAt==='goto')throw Error('admin browser navigation blocked');
+   current=config?.redirectEntryTo??url;
+   if(config?.missingNavigationResponse)return null;
+   return {status:()=>config?.navigationStatus??200,
+    url:()=>config?.redirectEntryTo??url,
+    fromServiceWorker:()=>config?.serviceWorkerEntry??false};
+  },
  };
  const helpers={
   verifyCssManifestAgainstDist:async()=>{log.push('verify-dist');if(config?.failAt==='dist')throw Error('bad dist');return ready.manifest},
@@ -96,6 +105,29 @@ describe('MID Design19 – same-page CSS HTTP/computed browser evidence bridge (
    .rejects.toThrow(/fingerprints/);
   const bad=harness({manifest:{...manifest(),identity:{...manifest().identity,assetsSha256:'f'.repeat(64)}}});
   await expect(runDesign19CssSamePage(bad.input())).rejects.toThrow(/dist.manifest.identity/);
+ });
+ it('rejects HTTP 404/500 even when Playwright goto resolves normally',async()=>{
+  for(const navigationStatus of [301,302,404,500]){
+   const h=harness({navigationStatus});
+   await expect(runDesign19CssSamePage(h.input()))
+    .rejects.toThrow(/index.html navigation requires original HTTP 200/);
+   expect(h.log).toContain('navigate');
+   expect(h.log).not.toContain('open-view');
+   expect(h.log.at(-1)).toBe('observer-cancel');
+  }
+ });
+ it('rejects same-origin redirects, absent index responses and Service Worker substitutions',async()=>{
+  for(const config of [
+   {redirectEntryTo:origin+'/other.html'},
+   {missingNavigationResponse:true},
+   {serviceWorkerEntry:true},
+  ]){
+   const h=harness(config);
+   await expect(runDesign19CssSamePage(h.input()))
+    .rejects.toThrow(/index.html navigation requires original HTTP 200/);
+   expect(h.log).not.toContain('open-view');
+   expect(h.log.at(-1)).toBe('observer-cancel');
+  }
  });
  it('refuses CSS HTTP observations with missing or permissive statuses',async()=>{
   for(const badCss of [
