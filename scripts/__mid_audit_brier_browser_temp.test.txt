@@ -1,0 +1,1 @@
+Do not use this scratch path; source assertion is applied next.
