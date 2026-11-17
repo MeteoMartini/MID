@@ -1,5 +1,5 @@
 import type {CompositeProduct,CompositeProductTimes} from './CompositeData';
-import {nearestVerifiedOriginal} from './surroundingsRadarTimeline';
+import {sourceOriginalTimes} from './surroundingsRadarTimeline';
 
 export type SurroundingsSatelliteOriginal={
  product:CompositeProduct;
@@ -29,7 +29,9 @@ export function selectSurroundingsSatelliteOriginal(
   if(!product||product.fresh===false||product.timeVerified===false||
     !['dwd','eumetsat'].includes(product.provider)||
     typeof product.layer!=='string'||!product.layer.trim())continue;
-  const time=nearestVerifiedOriginal(product.times,target,now);
+  // A 5/10/15-minute original may be older than the 5-minute cursor, never later.
+  const time=sourceOriginalTimes(product.times).filter(stamp=>stamp<=target+90_000&&
+   stamp<=now+90_000&&stamp>=target-15*60_000).at(-1);
   if(time===undefined)continue;
   return {product,time,spectrum};
  }
