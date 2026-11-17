@@ -304,6 +304,7 @@ jobs:
           fi
 
       - name: Bewährten MID-Installer explizit starten
+        id: installer_dispatch
         if: steps.pr.outputs.eligible == 'true'
         shell: bash
         env:
@@ -325,6 +326,55 @@ jobs:
             echo "- Release-Paket: ${{ steps.package.outputs.package_sha || steps.pr.outputs.package_sha }}"
             echo "- Installer: install-mid.yml via workflow_dispatch"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      # Record the exact existing installer input after dispatch. A shadow
+      # failure must not turn an already dispatched release into a retry.
+      - name: SHA-gebundenes Original-ZIP für #740 bereitstellen
+        id: release_shadow
+        if: steps.installer_dispatch.outcome == 'success' && steps.package.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        env:
+          PACKAGE_SHA: ${{ steps.package.outputs.package_sha }}
+          SOURCE_MERGE_SHA: ${{ steps.merge.outputs.merge_sha || steps.pr.outputs.merge_sha }}
+          SOURCE_GATE_ID: ${{ github.event.workflow_run.id }}
+          SOURCE_GATE_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$PACKAGE_SHA" =~ ^[0-9a-f]{40}$ && "$SOURCE_MERGE_SHA" =~ ^[0-9a-f]{40}$ && "$WORKFLOW_SHA" =~ ^[0-9a-f]{40}$ ]]
+          for number in "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$SOURCE_GATE_ID" "$SOURCE_GATE_ATTEMPT"; do
+            [[ "$number" =~ ^[1-9][0-9]*$ ]]
+          done
+          archive=MID-professional-replacement.zip
+          test "$(git rev-list --parents -n 1 "$PACKAGE_SHA")" = "$PACKAGE_SHA $SOURCE_MERGE_SHA"
+          test "$(git diff-tree --no-commit-id --name-only -r "$PACKAGE_SHA")" = "$archive"
+          shadow_dir="$(mktemp -d "$RUNNER_TEMP/mid740-legacy-shadow.XXXXXXXX")"
+          git cat-file blob "$PACKAGE_SHA:$archive" > "$shadow_dir/$archive"
+          test -s "$shadow_dir/$archive"
+          read -r zip_sha256 _ < <(sha256sum "$shadow_dir/$archive")
+          jq -n --arg package "$PACKAGE_SHA" --arg source "$SOURCE_MERGE_SHA" \
+            --arg workflow "$WORKFLOW_SHA" --arg sha256 "$zip_sha256" \
+            --argjson producerRun "$GITHUB_RUN_ID" --argjson producerAttempt "$GITHUB_RUN_ATTEMPT" \
+            --argjson gateRun "$SOURCE_GATE_ID" --argjson gateAttempt "$SOURCE_GATE_ATTEMPT" \
+            '{schema:"mid.740.legacy-producer-shadow.v1", packageCommitSha:$package,
+              sourceMergeSha:$source, workflowSha:$workflow, zipSha256:$sha256,
+              producerRunId:$producerRun, producerRunAttempt:$producerAttempt,
+              sourceGateRunId:$gateRun, sourceGateRunAttempt:$gateAttempt,
+              installerAuthorized:false, releaseAuthorized:false}' > "$shadow_dir/provenance.json"
+          echo "directory=$shadow_dir" >> "$GITHUB_OUTPUT"
+
+      - name: Original-ZIP und Zuordnung kurzlebig als Nachweis hochladen
+        if: steps.release_shadow.outcome == 'success'
+        continue-on-error: true
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-740-legacy-shadow-${{ github.run_id }}-${{ github.run_attempt }}-${{ steps.package.outputs.package_sha }}
+          path: ${{ steps.release_shadow.outputs.directory }}/
+          if-no-files-found: error
+          overwrite: false
+          retention-days: 1
+          compression-level: 0
 
       - name: Übersprungenen Run dokumentieren
         if: steps.pr.outputs.eligible != 'true'
