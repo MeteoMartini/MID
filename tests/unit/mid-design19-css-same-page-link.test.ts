@@ -44,10 +44,11 @@ function harness(config?:{
  redirectEntryTo?:string, serviceWorkerEntry?:boolean, missingNavigationResponse?:boolean,
  servedIndexBody?:Buffer|string, servedIndexUnavailable?:boolean,
  servedIndexNoBuffer?:boolean, servedIndexIncomplete?:boolean,
+ lateCssDuringSecondCapture?:boolean,
 }){
  const log:string[]=[],ready={manifest:config?.manifest??manifest(),css:config?.result??css(),
  first:config?.first??capture(),second:config?.second??capture()};
- let current='about:blank',n=0;
+ let current='about:blank',n=0,cssListening=false,lateCssObserved=false;
  const page={
   url:()=>current,viewportSize:()=>config?.viewport??{width:390,height:844},
   context:()=>({}),
@@ -72,13 +73,25 @@ function harness(config?:{
  const helpers={
   verifyCssManifestAgainstDist:async()=>{log.push('verify-dist');if(config?.failAt==='dist')throw Error('bad dist');return ready.manifest},
   observeCssResponses:()=>{
-   log.push('observer-start');
+   log.push('observer-start');cssListening=true;
    return {
-    finish:async()=>{log.push('observer-finish');if(config?.failAt==='css')throw Error('unreadable CSS');return ready.css},
-    cancel:()=>{log.push('observer-cancel')},
+    finish:async()=>{
+     log.push('observer-finish');cssListening=false;
+     if(config?.failAt==='css')throw Error('unreadable CSS');
+     if(lateCssObserved)throw Error('late undeclared stylesheet observed in final computed capture');
+     return ready.css;
+    },
+    cancel:()=>{cssListening=false;log.push('observer-cancel')},
    };
   },
-  captureCssomCase:async()=>{n++;log.push('cssom-'+n);return n===1?ready.first:ready.second},
+  captureCssomCase:async()=>{
+   n++;log.push('cssom-'+n);
+   if(n===2&&config?.lateCssDuringSecondCapture){
+    if(cssListening){lateCssObserved=true;log.push('late-css-observed')}
+    else log.push('late-css-escaped-after-listener-detach');
+   }
+   return n===1?ready.first:ready.second;
+  },
   validateCssomCase:(row:any)=>{log.push('validate-cssom');return row},
  };
  const openView=async()=>{log.push('open-view');if(config?.failAt==='view')throw Error('view not ready');
@@ -93,7 +106,7 @@ describe('MID Design19 – same-page CSS HTTP/computed browser evidence bridge (
  it('observes exact dist first, CSS listener before navigation, same Page before/after, never approves',async()=>{
   const h=harness(),result=await runDesign19CssSamePage(h.input());
   expect(h.log).toEqual(['verify-dist','observer-start','theme-init','navigate','index-finished','index-body','open-view',
-   'cssom-1','validate-cssom','observer-finish','cssom-2','validate-cssom','observer-cancel']);
+   'cssom-1','validate-cssom','cssom-2','validate-cssom','observer-finish','observer-cancel']);
   expect(result.status).toBe('ONE_PAGE_ONE_WINDOW_DESCRIPTIVE_ONLY');
   expect(result.releaseAuthorized).toBe(false);
   expect(result.cssSplitSafeProven).toBe(false);
@@ -101,6 +114,15 @@ describe('MID Design19 – same-page CSS HTTP/computed browser evidence bridge (
   expect(result.browserAcceptanceProven).toBe(false);
   expect(result.cssom.environment.browserVersion).toBe('143.0.0.0');
   expect(result.entryHtmlSha256).toBe(expectedIndexSha256);
+ });
+ it('rejects late CSS triggered by the second computed-style capture while listener is still active',async()=>{
+  const h=harness({lateCssDuringSecondCapture:true});
+  await expect(runDesign19CssSamePage(h.input()))
+   .rejects.toThrow(/late undeclared stylesheet observed/);
+  expect(h.log).toContain('late-css-observed');
+  expect(h.log).not.toContain('late-css-escaped-after-listener-detach');
+  expect(h.log.indexOf('cssom-2')).toBeLessThan(h.log.indexOf('observer-finish'));
+  expect(h.log.at(-1)).toBe('observer-cancel');
  });
  it('rejects invalid and over-specified scenarios, including no explicit fixture',()=>{
   expect(()=>validateDesign19Scenario({...scenario(),fixtureSha256:''})).toThrow(/fixture/);

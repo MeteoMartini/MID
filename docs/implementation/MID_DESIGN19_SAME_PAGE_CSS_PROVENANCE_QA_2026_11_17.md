@@ -76,9 +76,18 @@ Kombination ohne echte Laufzeitkoppelung wäre kein stichhaltiger Nachweis.
   nicht automatisch sämtliche JavaScript-/Wetterprovider-Bytes
   oder spätere Fetches. Sie gilt für das beobachtete Messfenster;
   vor Release sind weitere Browser- und Integritätsgates erforderlich.
-- Erfasst eine echte CSSOM-Beobachtung **vor** dem Abschluss des
-  Netzwerk-/CSSOM-Beobachters und eine zweite **danach**; beide laufen auf
-  exakt derselben `Page` und denselben View-/Theme-/Fixture-Vorgaben.
+- Erfasst **beide** vollständigen Computed-Style-/Geometrie-Aufnahmen
+  bei **noch aktiven CSS-Netzwerk-Listenern** und schließt den originalen
+  Netzwerk-/CSSOM-Beobachter **erst nach der zweiten** Aufnahme ab.
+  So kann eine zusätzliche, durch die zweite CSSOM-Aufnahme angestoßene
+  Stylesheet-Anfrage nicht unbemerkt nach einem vorzeitigen `off()`
+  eintreten. Der bestehende Design18-`finish()` prüft anschließend
+  weiter zwei Browser-CSSOM-Frames mit seinem begrenzten Beobachtungsabstand
+  und die vollständigen originalen CSS-Response-Bytes. Ein Negativtest
+  simuliert genau diesen späten CSS-Request und verlangt einen Abbruch.
+  Dies belegt **nicht**, dass beliebige zukünftige dynamische CSS-Imports
+  nach Ende des Testfensters ausgeschlossen wären. Beide Ansichten laufen
+  auf exakt derselben `Page` und denselben View-/Theme-/Fixture-Vorgaben.
 - Vergleicht zwei vollständige Styles-/Geometrie-/Root-Token-Aufnahmen,
   Browser- und View-Identität und den Umfang der tatsächlich verifizierten
   Stylesheets. Fehlende/abweichende Bytes, laufzeitveränderte CSSOM-/Layout-Werte,

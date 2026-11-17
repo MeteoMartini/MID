@@ -135,6 +135,11 @@ export async function runDesign19CssSamePage({
    readySelector:s.readySelector,targets:s.targets,
   };
   const before=requireObservedCssom(await h.captureCssomCase(page,captureOptions),id,s,'before',h.validateCssomCase);
+  // Keep original CSS request/response listeners active THROUGH the final
+  // computed-style sample. Otherwise CSS triggered by the second capture can
+  // escape the network proof after observer.finish() unsubscribes.
+  const after=requireObservedCssom(await h.captureCssomCase(page,captureOptions),id,s,'after',h.validateCssomCase);
+  onlySameOrigin(page,origin,'final CSSOM capture');
   const css=await observer.finish();
   if(css?.schema!=='mid.design18.css-load-readiness.v1'||
      css.status!=='DECLARED_CSS_HTTP_AND_CSSOM_OBSERVED_ONLY'||
@@ -145,8 +150,6 @@ export async function runDesign19CssSamePage({
   if(!Array.isArray(css.orderedStylesheets)||
      css.orderedStylesheets.length!==before.readiness.styleSheetCount)
    fail('captured stylesheet count differs from fully observed applied sheets');
-  const after=requireObservedCssom(await h.captureCssomCase(page,captureOptions),id,s,'after',h.validateCssomCase);
-  onlySameOrigin(page,origin,'final CSSOM capture');
   if(after.readiness.styleSheetCount!==css.orderedStylesheets.length)
    fail('stylesheet inventory drift after CSS loading evidence');
   if(!isDeepStrictEqual(before.environment,after.environment)||
