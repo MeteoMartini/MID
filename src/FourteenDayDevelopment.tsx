@@ -1,6 +1,6 @@
-import {useMemo} from 'react';
 import './midC28MapPhase.css';
 import './midDesignWeFourteen.css';
+import {useMemo} from 'react';
 import {useDisplayPreference,displayChoice} from './useDisplayPreference';
 import {wind,type WindUnit} from './weather';
 import {compactPrecipitationAmount} from './precipitation';
