@@ -88,5 +88,19 @@ describe('MID Design112 ensemble range scale and responsive model legend',()=>{
   expect(css).toContain('.forecast-range-legend{padding:10px 12px;margin:8px 0;border:1px solid var(--border);border-radius:10px;font-size:.75rem;');
   expect(css).toContain('.forecast-range-legend>summary{min-height:44px;padding-block:10px;');
   expect(css).not.toContain('.forecast-range-legend>summary{min-height:24px;');
+  expect(css).toContain('touch-action:manipulation');
+  expect(css).toContain('.forecast-range-legend>summary:focus-visible{outline:3px solid var(--primary);outline-offset:2px}');
+ });
+ it('is order-independent and never clips isolated extreme members during domain construction',()=>{
+  const extreme=day({maxLow:90,maxQ25:95,maxQ75:103,maxHigh:114,minLow:-95,minQ25:-92,minQ75:-90,minHigh:-87,
+   gustLow:200,gustQ25:215,gustQ75:260,gustHigh:310,precipitationLow:1,precipitationQ25:4,precipitationQ75:50,precipitationHigh:600});
+  const inputs=[day(),wet,extreme];
+  const original=forecastRangeScaleDomains(inputs);
+  const reordered=forecastRangeScaleDomains([extreme,day(),wet]);
+  expect([...reordered]).toEqual([...original]);
+  expect(original.get('temperature-pair')).toEqual({low:-95,high:114});
+  expect(original.get('rain')).toEqual({low:0,high:600});
+  expect(original.get('gust')).toEqual({low:1.2,high:310});
+  expect(forecastRangeScaleDomains(inputs.slice(0,2)).get('rain')?.high).toBe(130);
  });
 });
