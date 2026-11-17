@@ -4,7 +4,7 @@ import {createMapImageCache,isDatedMapWmsFrame,type MapImageLike} from '../../sr
 
 const time='2026-11-17T06:15:00.000Z';
 const dated=(stamp=time,bbox='5,47,16,56')=>
- \`https://example.test/ows?service=WMS&request=GetMap&layers=dwd%3ARadar&bbox=\${encodeURIComponent(bbox)}&width=512&height=256&time=\${encodeURIComponent(stamp)}\`;
+ `https://example.test/ows?service=WMS&request=GetMap&layers=dwd%3ARadar&bbox=${encodeURIComponent(bbox)}&width=512&height=256&time=${encodeURIComponent(stamp)}`;
 type FakeImage=MapImageLike&{id:number};
 const image=(id:number,width=128,height=64):FakeImage=>({id,naturalWidth:width,naturalHeight:height});
 
