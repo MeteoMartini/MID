@@ -1,7 +1,7 @@
 import {createContext,useContext,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {rasterTileRetryDelayMs} from './mapLayerRecovery';
 import {createMapLayerOrderScheduler} from './mapLayerOrderScheduler';
-import {mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas} from './mapCanvasCrossfadePolicy';
+import {mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from './mapCanvasCrossfadePolicy';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './mapPopupTheme.css';
@@ -223,9 +223,18 @@ export function CanvasOverlay({id,opacity=1,zIndex=5,render,events=['moveend','z
   }
   const old=document.createElement('canvas');old.width=canvas.width;old.height=canvas.height;
   old.style.cssText=canvas.style.cssText;old.getContext('2d')?.drawImage(canvas,0,0);
-  canvas.before(old);render(map,canvas);canvas.style.transition='none';canvas.style.opacity='0';
-  const raf=requestAnimationFrame(()=>{canvas.style.transition='opacity 350ms linear';old.style.transition='opacity 350ms linear';canvas.style.opacity=String(opacityRef.current);old.style.opacity='0'});
-  const timer=window.setTimeout(()=>old.remove(),380);
+  canvas.before(old);
+  let raf=0,timer=0;
+  // Rendering or scheduling can fail after the previous image is inserted.
+  // Always dispose that temporary image and restore the canvas before rethrow.
+  withCanvasFadeRollback(()=>{
+   render(map,canvas);canvas.style.transition='none';canvas.style.opacity='0';
+   raf=requestAnimationFrame(()=>{canvas.style.transition='opacity 350ms linear';old.style.transition='opacity 350ms linear';canvas.style.opacity=String(opacityRef.current);old.style.opacity='0'});
+   timer=window.setTimeout(()=>old.remove(),380);
+  },()=>{
+   cancelAnimationFrame(raf);window.clearTimeout(timer);old.remove();
+   canvas.style.transition='none';canvas.style.opacity=String(Math.max(0,Math.min(1,opacityRef.current)));
+  });
   return()=>{cancelAnimationFrame(raf);window.clearTimeout(timer);old.remove();canvas.style.transition='none';canvas.style.opacity=String(opacityRef.current)}
  },[map,render]);
  useEffect(()=>{if(canvasRef.current)canvasRef.current.style.opacity=String(Math.max(0,Math.min(1,opacity)))},[opacity]);return null;
