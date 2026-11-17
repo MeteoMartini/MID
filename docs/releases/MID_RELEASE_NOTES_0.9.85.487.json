@@ -1,9 +1,11 @@
 {
   "schema": 1,
   "version": "0.9.85.487",
-  "date": "2026-11-16",
-  "title": "Umfeld-Kartenöffnung, Cloud-/SigWx-Referenz und native Modellflaggen",
+  "date": "2026-11-17",
+  "title": "Radar/Sat-Originale in 5 Minuten, gemeinsame Kartenqualität, Cloud-/SigWx-Referenz und Responsive-Verbesserungen",
   "external": [
+    "Radar und Satellit im Umfeldwetter in 5-Minuten-Schritten: Der Zeitregler wählt echte Radar-Beobachtungs- und Nowcast-Originaltermine; nicht verfügbare Termine bleiben als Datenlücke erkennbar. Satellitenbilder behalten ihre tatsächlich gelieferten Zeitstempel (je nach Quelle 5, 10 oder 15 Minuten). Wolken + SigWx bleiben bei eigenen 15-Minuten-Zielzeiten.",
+    "Nachvollziehbare Bildwechsel zwischen Radar und Satellit: Ein zuvor vollständig gerendertes Bild darf nur für denselben Ort, Kartenausschnitt und dieselbe Quellen-/Beobachtungsphase begrenzt sichtbar bleiben, bis das geprüfte neue Bild fertig gerendert ist. Dabei wird die tatsächliche alte Bildzeit nicht als neue ausgegeben.",
     "Die große Wetterkarte behandelt den Übergang aus dem Umfeldwetter robuster; Karten- und Zeitinformationen bleiben unverändert.",
     "Bei fehlendem Viertelstunden-Wolken-/SigWx-Original wird gegebenenfalls ein geprüfter früherer Termin sichtbar als Referenz gekennzeichnet. Der gewählte Termin bleibt NoData.",
     "Modellflaggen werden auf Desktop als Vektorsymbole angezeigt, ohne die meteorologische Modellpriorität zu ändern.",
@@ -20,6 +22,10 @@
     "Keine Freigabe vor finalem Source-/Core-/Heavy-/Review-/ZIP-/Installer-/Worker-/Pages-/Stable-Gate. Echte native iOS/Windows/VoiceOver-Abnahme nicht behauptet.",
     "#857 SHA 204aad6bb1c0745a388d751814cccc2cb40d38a0: originale Wetter-Zeitfragmente, generierter Weather-Blob und vorhandene Provider-DST-Pflichtregression selektiv zum versionierten #854-Stand SHA 897ccbb90aa06926ab7b7245f2d370dd19e74c9c übernommen, ohne Dateikonflikte. Kombinierte CI/Release-Gates weiterhin erforderlich.",
     "MID Design 1.6 #855 HEAD 0b0b30f5b4e4179206fd5f227cfee3ad2297fdba: 13 Original-Git-Blobs (keine Überschneidung mit #858 d28d8f66f4911851162d04636ac5bb10eafa6803), Intent-/Splash-Preload-/Startup-Lease-45s-/Abort-Härtung und SHA-gebundener isolierter Browser-Modulimport-QA. Draft-Sondertests separat erfolgreich; kombiniert vollständig erneut prüfen, keine Full-App-RAM-A/B-Behauptung.",
-    "Karten-Spezial-Draft #856 @ db51e48f9baa30aa82c094ea923d6c11166236fb: 12 Original-Git-Blobs und selektive, verifizierte Hunk-Zusammenführung in den 2 gemeinsamen Dateien mit #858 @ a51c281aee8fabfce149790a1017ef3267804335; Open-Meteo-Zeit-/Cloud-Referenz/Modellflaggen und bisherige Browserabnahmen erhalten. WMS EPSG:4326->MapLibre-3857 Innenprojektion noch offen. Kombinierte CI/echte Provider-/WebKit-/iOS-/Release-Gates offen."
+    "Karten-Spezial-Draft #856 @ db51e48f9baa30aa82c094ea923d6c11166236fb: 12 Original-Git-Blobs und selektive, verifizierte Hunk-Zusammenführung in den 2 gemeinsamen Dateien mit #858 @ a51c281aee8fabfce149790a1017ef3267804335; Open-Meteo-Zeit-/Cloud-Referenz/Modellflaggen und bisherige Browserabnahmen erhalten. WMS EPSG:4326->MapLibre-3857 Innenprojektion noch offen. Kombinierte CI/echte Provider-/WebKit-/iOS-/Release-Gates offen.",
+    "LC 1.13 #868 SHA 64e901073c9a60236ab620a176c58192ef7ef428: produktionstauglich vorgesehene Rad/Sat-5min-Originalauswahl #795 und GPU-Readiness-Puffer mit neuem WMS-time-/BBOX-/Source-/Phase-Negativschutz; quellidentische Übernahme der Karten-Spezial-Drafts #869/#870 und CSS/15min-Spezial-Drafts #865/#866.",
+    "LC 1.13 #871 SHA 6467f415de11fdab6c2834a9c38434e5ea625962: AGENTS.md und bidirektionale Karten-Abnahmematrix Git-Blob-identisch übernommen; 5min-Gap-Test fachlich angepasst, sodass fehlender 06:20Z-Nowcast nicht als 06:30Z-Original angezeigt wird.",
+    "QA für den zuletzt geprüften Integrations-SHA 64e901073c9a60236ab620a176c58192ef7ef428: gezielte Chromium-Regressionen, Vitest/V8 und RUC-Evidenz-QA SUCCESS. Diese Draft-Checks sind nicht der vollständige Source/Core/Heavy/Realprovider/WebKit/iOS/ZIP/Installer/Worker/Pages/Stable-Release-Nachweis; #740/#839 wurde nicht bearbeitet und bleibt Freigabevoraussetzung.",
+    "Unverändert meteorologisch: DWD-/WMO-amtliche Warnungen und Missing-vs-Null; keine erfundenen DWD-5min-Radar-/EUMETSAT-Originale oder DWD-15min-SigWx-Originale. Exakte 5min-Radar-Sichtbarkeit, ImageQuad-Crossfade und tatsächliche native Satellitenauflösung benötigen reale Provider-/WebKit-/iOS-Abnahme. Ein separater Nutzen-/Performance-A/B-Nachweis für CSS-Lazy-Splits fehlt weiterhin."
   ]
 }

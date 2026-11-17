@@ -1,5 +1,8 @@
 # MID v0.9.85.487
 
+- **Radar und Satellit im Umfeldwetter in 5-Minuten-Schritten:** Der Zeitregler wählt echte Radar-Beobachtungs- und Nowcast-Originaltermine; nicht verfügbare Termine bleiben als Datenlücke erkennbar. Satellitenbilder behalten ihre tatsächlich gelieferten Zeitstempel (je nach Quelle 5, 10 oder 15 Minuten). Wolken + SigWx bleiben bei eigenen 15-Minuten-Zielzeiten.
+- **Nachvollziehbare Bildwechsel zwischen Radar und Satellit:** Ein zuvor vollständig gerendertes Bild darf nur für denselben Ort, Kartenausschnitt und dieselbe Quellen-/Beobachtungsphase begrenzt sichtbar bleiben, bis das geprüfte neue Bild fertig gerendert ist. Dabei wird die tatsächliche alte Bildzeit nicht als neue ausgegeben.
+
 - **Umfeldwetter: Radar und Satellit nutzen die sichtbare Kartenfläche.** Das Bild wird an den tatsächlichen Kartenviewport angepasst. Satelliten-RGB/IR zeigen nur bestätigte Originaltermine und ihre jeweilige Bildart; bei OPERA-Radar bleibt eine unvollständige Flächenabdeckung ausdrücklich gekennzeichnet. Keine Behauptung einer amtlich bestätigten, vollständigen Providerabdeckung.
 - **Weniger unnötige Vorladungen großer Wettergrafiken.** Karten- und Ensemble-Module werden bei der Startvorladung nur dann spekulativ geladen, wenn dafür bereits eine passende Nutzeransicht gespeichert ist. Auf Daten-Sparverbindungen werden diese optionalen Vorladungen unterdrückt; echte Wetterdatenabrufe und das Öffnen der Ansichten bleiben unverändert.
 - **Korrekte Anbieterzeiten auch bei fehlenden Zeitmetadaten.** Viertelstunden-Sonnenscheinwerte werden nur mit bestätigtem UTC-Offset der richtigen Stunde zugeordnet; echte UTC-Null bleibt gültig, fehlende Daten werden nicht als null Sekunden ausgegeben.

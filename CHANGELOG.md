@@ -1,5 +1,8 @@
 # MID v0.9.85.487
 
+- **Radar und Satellit im Umfeldwetter in 5-Minuten-Schritten:** Der Zeitregler wählt echte Radar-Beobachtungs- und Nowcast-Originaltermine; nicht verfügbare Termine bleiben als Datenlücke erkennbar. Satellitenbilder behalten ihre tatsächlich gelieferten Zeitstempel (je nach Quelle 5, 10 oder 15 Minuten). Wolken + SigWx bleiben bei eigenen 15-Minuten-Zielzeiten.
+- **Nachvollziehbare Bildwechsel zwischen Radar und Satellit:** Ein zuvor vollständig gerendertes Bild darf nur für denselben Ort, Kartenausschnitt und dieselbe Quellen-/Beobachtungsphase begrenzt sichtbar bleiben, bis das geprüfte neue Bild fertig gerendert ist. Dabei wird die tatsächliche alte Bildzeit nicht als neue ausgegeben.
+
 - **Umfeldwetter: Wolken und signifikantes Wetter besser nachvollziehbar.** Fehlt für die gewählte Viertelstunde ein bestätigtes Original, kann ein nachweislich früheres Bild ausdrücklich als Referenz angezeigt werden. Die gewählte Zielzeit bleibt als Datenlücke gekennzeichnet; es werden keine Wettercodes dazwischen erfunden.
 - **Kartenöffnung robuster.** Die große Karte begrenzt den Kamera-Zoom beim Übergang aus dem Umfeldwetter auf gültige Werte und behandelt die betreffenden Kartenbounds explizit.
 - **Modellauswahl auf Desktop besser erkennbar.** Landes- und EU-Kennzeichen erhalten grafische SVG-Symbole, statt allein auf systemabhängige Emoji-Flaggen in nativen Auswahlfeldern angewiesen zu sein.
