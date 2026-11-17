@@ -5,7 +5,6 @@ import hashlib
 import json
 from pathlib import Path
 import re
-import shutil
 import stat
 import tempfile
 import zipfile
@@ -43,6 +42,8 @@ def restore_dist(archive_path, destination, expected_digest, expected_tree, vers
                 if not 0 < len(entries) <= MAX_FILES:
                     raise Rejected('INVALID_DIST_INVENTORY')
                 for entry in entries:
+                    if entry.orig_filename != entry.filename:
+                        raise Rejected('UNSAFE_DIST_ENTRY')
                     name = check_path(entry.filename.removesuffix('/'))
                     mode = entry.external_attr >> 16
                     # git archive omits Unix metadata for plain files and directories.

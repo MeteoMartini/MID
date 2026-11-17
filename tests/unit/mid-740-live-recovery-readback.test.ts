@@ -100,7 +100,8 @@ describe('MID 740 live immutable release readback: adversarial QA only',()=>{
   expect((await inspect(x.args,get)).reason).toBe('FINAL_READBACK_RACE');
  });
 });
-it.each(['clean','digest','symlink','missing','attestation','metadata-race'] as const)(
+it.each(['clean','clean-restore','digest','symlink','missing','attestation','metadata-race',
+ 'tree-mismatch','restore-failure'] as const)(
  'verifies recovery asset bytes and attestation, or blocks %s',async kind=>{
   const x=fixture(),directory=mkdtempSync(join(tmpdir(),'mid740-recovery-'));
   try{
@@ -119,17 +120,40 @@ it.each(['clean','digest','symlink','missing','attestation','metadata-race'] as 
    if(kind==='missing'||kind==='symlink')rmSync(first);
    if(kind==='symlink')symlinkSync(join(directory,REQUIRED_ASSETS[1]),first);
    const verified:string[]=[];
-   const proof=await inspect({...x.args,assetDirectory:directory},x.get,async(tag,path)=>{
+   const restoreDestination=join(directory,'restored');
+   const tree='b'.repeat(40),distTree='c'.repeat(40);
+   x.responses['git/commits/'+SHA]={sha:SHA,tree:{sha:tree}};
+   x.responses['git/trees/'+tree]={sha:tree,truncated:false,tree:[
+    {path:'dist',mode:'040000',type:'tree',sha:kind==='tree-mismatch'?'invalid':distTree}
+   ]};
+   let restoreCalls=0;
+   const proof=await inspect({...x.args,assetDirectory:directory,
+    restoreDestination:kind==='clean'?undefined:restoreDestination},x.get,async(tag,path)=>{
     expect(tag).toBe(TAG);
     verified.push(path);
     if(kind==='metadata-race')
      x.responses['git/ref/heads/main'].object.sha='f'.repeat(40);
     return kind!=='attestation';
+   },async(archive,destination,digest,expectedTree,version)=>{
+    restoreCalls++;
+    expect(verified).toHaveLength(3);
+    expect([archive,destination,digest,expectedTree,version]).toEqual([
+     join(directory,'MID-dist-release.zip'),restoreDestination,
+     x.args.independentDigests['MID-dist-release.zip'].slice(7),distTree,VER
+    ]);
+    if(kind==='restore-failure')throw Error('zip changed after attestation');
+    return {status:'DIST_RESTORED_QA_ONLY',distTreeSha:distTree,
+     version:VER,files:151,recoveryAuthorized:false,releaseAuthorized:false};
    });
+   expect(restoreCalls).toBe(['clean-restore','restore-failure'].includes(kind)?1:0);
    if(kind==='clean'){
     expect(verified).toEqual(REQUIRED_ASSETS.map(name=>join(directory,name)));
     expect(proof).toMatchObject({status:'ATTESTED_ASSETS_VERIFIED_QA_ONLY',
      bytesVerified:true,attestationVerified:true,recoveryAuthorized:false,releaseAuthorized:false});
+   }else if(kind==='clean-restore'){
+    expect(proof).toMatchObject({status:'ATTESTED_DIST_RESTORED_QA_ONLY',distTreeSha:distTree,
+     restoredFiles:151,bytesVerified:true,attestationVerified:true,
+     recoveryAuthorized:false,releaseAuthorized:false});
    }else{
     expect(proof).toMatchObject({status:'BLOCKED',recoveryAuthorized:false,releaseAuthorized:false});
     if(['digest','symlink','missing'].includes(kind))expect(verified).toEqual([]);

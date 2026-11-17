@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-/** Issue #740: authenticated live GitHub metadata recovery QA; no writes or deploys. */
+/** Issue #740: authenticated release readback and isolated local restore QA. */
 import {execFileSync} from 'node:child_process';
 import {constants,readFileSync} from 'node:fs';
 import {open,realpath} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {join,resolve} from 'node:path';
-import {pathToFileURL} from 'node:url';
+import {fileURLToPath,pathToFileURL} from 'node:url';
 import {assessMid740ImmutableRecovery,REQUIRED_ASSETS} from './mid-740-immutable-recovery-qa.mjs';
 const REPO='MeteoMartini/MID',ID=1305110795;
 const PREFIX='repos/'+REPO,API='https://api.github.com/repos/'+REPO;
@@ -35,14 +35,17 @@ async function matchesLocalAsset(path,asset){
 }
 
 export async function inspectMid740LiveRecovery({
- version,expectedSourceSha,independentDigests,assetDirectory
-}={},get,verifyAsset){
+ version,expectedSourceSha,independentDigests,assetDirectory,restoreDestination
+}={},get,verifyAsset,restoreDist){
  if(!VERSION.test(version??'')||!SHA.test(expectedSourceSha??'')||typeof get!=='function')
   return block('BAD_INPUT');
  if(!independentDigests||typeof independentDigests!=='object'||
     Object.keys(independentDigests).length!==REQUIRED_ASSETS.length||
     !REQUIRED_ASSETS.every(n=>DIGEST.test(independentDigests[n]??'')))
   return block('INDEPENDENT_DIGEST_EVIDENCE_REQUIRED');
+ const restoreRequested=restoreDestination!==undefined;
+ if(restoreRequested&&(typeof restoreDestination!=='string'||!restoreDestination||
+    !assetDirectory||typeof restoreDist!=='function'))return block('ISOLATED_RESTORE_INPUT_REQUIRED');
  const tag='v'+version,read=path=>get(PREFIX+(path?'/'+path:''));
  let repo,main,stable;
  try{[repo,main,stable]=await Promise.all([
@@ -96,6 +99,21 @@ export async function inspectMid740LiveRecovery({
   mainSha:main.object.sha,stableSha:stable.object.sha,version,independentDigests
  });
  if(v.status!=='METADATA_COHERENT')return block(v.reason);
+ let distTreeSha;
+ if(restoreRequested){
+  try{
+   const commit=await read('git/commits/'+expectedSourceSha);
+   if(commit?.sha!==expectedSourceSha||!SHA.test(commit.tree?.sha??''))
+    return block('RECOVERY_COMMIT_TREE_DRIFT');
+   const root=await read('git/trees/'+commit.tree.sha);
+   if(root?.sha!==commit.tree.sha||root.truncated!==false||!Array.isArray(root.tree))
+    return block('RECOVERY_ROOT_TREE_UNVERIFIED');
+   const dist=root.tree.filter(entry=>entry?.path==='dist');
+   if(dist.length!==1||dist[0].type!=='tree'||dist[0].mode!=='040000'||!SHA.test(dist[0].sha??''))
+    return block('RECOVERY_DIST_TREE_UNVERIFIED');
+   distTreeSha=dist[0].sha;
+  }catch{return block('RECOVERY_TREE_READ_UNAVAILABLE')}
+ }
  const checkBytes=assetDirectory!==undefined;
  if(checkBytes){
   if(typeof assetDirectory!=='string'||!assetDirectory||typeof verifyAsset!=='function')
@@ -117,14 +135,27 @@ export async function inspectMid740LiveRecovery({
  ])}catch{return block('FINAL_GITHUB_READ_UNAVAILABLE')}
  const [m2,s2,r2,t2]=again;
  if(!match(m2,'main')||!match(s2,'mid-stable')||
-    r2?.id!==release.id||r2?.immutable!==true||
+    r2?.id!==release.id||r2?.immutable!==true||r2.draft!==false||r2.prerelease!==false||
     r2?.tag_name!==tag||r2?.published_at!==release.published_at||
     fingerprint(r2?.assets??[])!==fingerprint(details)||
     t2?.ref!==tagRef.ref||t2?.object?.type!==tagRef.object.type||
     t2?.object?.sha!==tagRef.object.sha)
   return block('FINAL_READBACK_RACE');
+ let restored;
+ if(restoreRequested){
+  const asset=v.assetMetadata.find(a=>a.name==='MID-dist-release.zip');
+  try{
+   restored=await restoreDist(join(resolve(assetDirectory),asset.name),resolve(restoreDestination),
+    asset.digest.slice('sha256:'.length),distTreeSha,version);
+  }catch{return block('DIST_RESTORE_REJECTED')}
+  if(restored?.status!=='DIST_RESTORED_QA_ONLY'||restored.distTreeSha!==distTreeSha||
+     restored.version!==version||!goodId(restored.files)||restored.recoveryAuthorized!==false||
+     restored.releaseAuthorized!==false)return block('DIST_RESTORE_PROOF_INVALID');
+ }
  return Object.freeze({schema:'mid.740.live-recovery.v1',
-  status:checkBytes?'ATTESTED_ASSETS_VERIFIED_QA_ONLY':'METADATA_COHERENT_QA_ONLY',
+  status:restored?'ATTESTED_DIST_RESTORED_QA_ONLY':
+   checkBytes?'ATTESTED_ASSETS_VERIFIED_QA_ONLY':'METADATA_COHERENT_QA_ONLY',
+  ...(restored&&{distTreeSha,restoredFiles:restored.files}),
   version,sourceSha:expectedSourceSha,releaseId:release.id,
   assets:Object.freeze(v.assetMetadata),metadataVerified:true,
   bytesVerified:checkBytes,attestationVerified:checkBytes,reviewEnforced:false,
@@ -132,7 +163,7 @@ export async function inspectMid740LiveRecovery({
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  try{
-  const [version,sha,digestPath,assetDirectory,...extra]=process.argv.slice(2);
+  const [version,sha,digestPath,assetDirectory,restoreDestination,...extra]=process.argv.slice(2);
   if(extra.length||!version||!sha||!digestPath)throw Error('BAD_CLI_INPUT');
   // Evidence JSON must be constructed from a separate verified binary-source path.
   const independentDigests=JSON.parse(readFileSync(digestPath,'utf8'));
@@ -146,8 +177,11 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
    });
    return true;
   };
+  const restoreDist=(...args)=>JSON.parse(execFileSync('python3',[
+   fileURLToPath(new URL('./mid_740_restore_dist.py',import.meta.url)),...args
+  ],{encoding:'utf8',timeout:180000,maxBuffer:1024*1024,stdio:['ignore','pipe','ignore']}));
   const result=await inspectMid740LiveRecovery({version,
-   expectedSourceSha:sha,independentDigests,assetDirectory},get,verifyAsset);
+   expectedSourceSha:sha,independentDigests,assetDirectory,restoreDestination},get,verifyAsset,restoreDist);
   process.stdout.write(JSON.stringify(result)+'\n');
   if(result.status==='BLOCKED')process.exitCode=1;
  }catch{
