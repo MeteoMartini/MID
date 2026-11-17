@@ -25,6 +25,7 @@ describe('MID native MapLibre WMS zoom retention: bidirectional weather maps',()
   expect(mapTemporalWmsZoomPolicy('latest',false,4)).toEqual({retainDuringZoom:false,revision:4});
   expect(mapTemporalWmsZoomPolicy('2026-11-17T06:15:00+01:00',false,4)).toEqual({retainDuringZoom:false,revision:4});
   expect(mapTemporalWmsZoomPolicy('2026-11-17T06:15:00',false,4)).toEqual({retainDuringZoom:false,revision:4});
+  expect(mapTemporalWmsZoomPolicy('2026-02-30T06:15:00Z',false,4)).toEqual({retainDuringZoom:false,revision:4});
   expect(mapTemporalWmsZoomPolicy('2026-11-17T06:15:00.000Z',false,4).retainDuringZoom).toBe(true);
  });
  it('fails safe for NaN, negative, fractional revision counters',()=>{
