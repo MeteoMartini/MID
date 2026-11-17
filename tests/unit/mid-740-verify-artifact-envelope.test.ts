@@ -72,3 +72,55 @@ describe('MID #740: verify envelope digest, safe unzip and Git tree',()=>{
   }finally{rmSync(root,{recursive:true,force:true});}
  },65000);
 });
+it('compares a legacy upload with independent Git and installer evidence',()=>{
+ const root=mkdtempSync(join(tmpdir(),'mid740-legacy-envelope-'));
+ try{
+  const git=(...args:string[])=>{
+   const result=run(root,'git',args);
+   expect(result.status,result.stderr).toBe(0);
+   return result.stdout.trim();
+  };
+  git('init','--object-format=sha1','-q');
+  git('config','user.name','MID QA');
+  git('config','user.email','qa@example.invalid');
+  git('commit','--allow-empty','-qm','source');
+  const source=git('rev-parse','HEAD');
+  const filename='MID-professional-replacement.zip';
+  const zip=Buffer.from('installer input fixture');
+  writeFileSync(join(root,filename),zip);
+  git('add',filename);
+  git('commit','-qm','exact package');
+  const pkg=git('rev-parse','HEAD');
+  const expected={packageCommitSha:pkg,sourceMergeSha:source,workflowSha:source,
+   producerRunId:12,producerRunAttempt:1,sourceGateRunId:11,sourceGateRunAttempt:1};
+  const expectedFile=join(root,'expected.json');
+  const digest=(bytes:Buffer)=>createHash('sha256').update(bytes).digest('hex');
+  const installerDigest=digest(zip);
+  const receipt={...expected,schema:'mid.740.legacy-producer-shadow.v1',
+   zipSha256:installerDigest,installerAuthorized:false,releaseAuthorized:false};
+  writeFileSync(expectedFile,JSON.stringify(expected));
+  for(const variant of ['clean','bytes','wrong-run','duplicate-key','wrong-installer','wrong-envelope','wrong-parent']){
+   const packed=join(root,variant+'.zip');
+   let body=JSON.stringify(variant==='wrong-run'?{...receipt,producerRunId:13}:receipt);
+   if(variant==='duplicate-key')body=body.replace('{','{"producerRunId":12,');
+   const bytes=variant==='bytes'?'tampered':zip.toString();
+   const archive=run(root,'python3',['-c',`from zipfile import ZipFile
+import sys
+with ZipFile(sys.argv[1], "w") as archive:
+ archive.writestr("provenance.json", sys.argv[2])
+ archive.writestr("MID-professional-replacement.zip", sys.argv[3])`,packed,body,bytes]);
+   expect(archive.status,archive.stderr).toBe(0);
+   if(variant==='wrong-parent')writeFileSync(expectedFile,JSON.stringify({...expected,sourceMergeSha:pkg}));
+   const checked=run(root,'python3',[envelope,'--envelope',packed,
+    '--expected-envelope-sha256',variant==='wrong-envelope'?'f'.repeat(64):digest(readFileSync(packed)),
+    '--expected-legacy-receipt',expectedFile,
+    '--installer-zip-sha256',variant==='wrong-installer'?'e'.repeat(64):installerDigest,'--repository',root]);
+   if(variant==='clean'){
+    expect(checked.status,checked.stderr).toBe(0);
+    expect(JSON.parse(checked.stdout)).toMatchObject({packageCommitSha:pkg,innerZipSha256:installerDigest,
+     packageAndInstallerDigestMatch:true,authenticatedGitHubProducer:false,
+     installerAuthorized:false,releaseAuthorized:false});
+   }else expect(checked.status,variant).not.toBe(0);
+  }
+ }finally{rmSync(root,{recursive:true,force:true})}
+});
