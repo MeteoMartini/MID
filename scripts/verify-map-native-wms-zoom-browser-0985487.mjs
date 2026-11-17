@@ -124,7 +124,7 @@ async function verify(width,theme){
    window.__midZoomOriginalQuad=map.getSource(ids.find(id=>/^qa-surroundings-original-source/.test(id)));
   });
   await page.getByRole('button',{name:'MapLibre zoom +1'}).click();
-  await page.waitForFunction(()=>document.querySelector('[data-testid="qa-zooming"]')?.textContent==='zooming',{timeout:10000});
+  await page.waitForFunction(()=>document.querySelector('[data-testid="qa-zooming"]')?.textContent==='zooming',null,{timeout:10000});
   const during=await page.evaluate(()=>{
    const map=window.__midWmsZoomMap,ids=Object.keys(map.getStyle().sources);
    return{sameWms:ids.some(id=>map.getSource(id)===window.__midZoomOriginalWms),
