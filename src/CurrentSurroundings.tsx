@@ -87,6 +87,7 @@ export default function CurrentSurroundings(props:Props){
  const [mapCities,setMapCities]=useState<SurroundingsCityCandidate[]>([]);
  const [mapViewport,setMapViewport]=useState<{width:number;height:number}|null>(null);
  const [openingMap,setOpeningMap]=useState(false);
+ const [mapOpenError,setMapOpenError]=useState('');
  const mapFigureRef=useRef<HTMLElement|null>(null);
  const darkMap=useDarkMapTheme();
  useEffect(()=>{
@@ -274,10 +275,11 @@ export default function CurrentSurroundings(props:Props){
  return <section className="card current-surroundings" aria-labelledby={heading}>
   <header><h2 id={heading}>Wetter im Umfeld</h2><button type="button" disabled={openingMap} aria-busy={openingMap} onClick={()=>{
    if(openingMap)return;
-   setOpeningMap(true);
+   setMapOpenError('');setOpeningMap(true);
    try{onOpen(mode==='cloud'?cloudTarget:mode==='radar'?displayTime:undefined,{west,south,east,north})}
-   catch{setOpeningMap(false)}
+   catch{setOpeningMap(false);setMapOpenError('Der Kartenbereich konnte nicht geöffnet werden. Bitte erneut versuchen.')}
   }}>{openingMap?'Karte wird geöffnet …':'Karte öffnen'}</button></header>
+  {mapOpenError&&<p role="alert" className="current-surroundings-map-open-error">{mapOpenError}</p>}
   <div className="current-surroundings-display-modes" role="group" aria-label="Kartendarstellung wählen">
    <button type="button" aria-pressed={mode==='cloud'} onClick={()=>setMode('cloud')}>Wolken + Wetter</button>
    <button type="button" aria-pressed={mode==='radar'} onClick={()=>setMode('radar')}>Radar / Satellit</button>
