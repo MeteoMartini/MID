@@ -96,7 +96,7 @@ describe('MID Design 1.8 – CSS real response/body and applied CSSOM evidence',
     .rejects.toThrow(/fingerprint/);
   }finally{await rm(root,{recursive:true,force:true})}
  });
- function browserHarness(onFrame?:({frame:number,emit:(name:string,data:any)=>void})=>void){
+ function browserHarness(onFrame?: (event:{frame:number,emit:(name:string,data:any)=>void})=>void){
   const handlers=new Map<string,Function>();let frame=0;
   const emit=(name:string,payload:any)=>handlers.get(name)?.(payload);
   const page={
