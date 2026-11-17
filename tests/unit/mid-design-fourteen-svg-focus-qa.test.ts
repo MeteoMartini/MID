@@ -57,8 +57,8 @@ describe('MID Design20 · fourteen-day keyboard focus without extra render work'
    ]}],
   }));
   expect(html).toContain('data-horizon-signal="period-intervals"');
-  expect((html.match(/role="button"/g)||[]).toHaveLength(2);
-  expect((html.match(/tabindex="0"/g)||[]).toHaveLength(2);
+  expect((html.match(/role="button"/g)||[])).toHaveLength(2);
+  expect((html.match(/tabindex="0"/g)||[])).toHaveLength(2);
   expect((html.match(/r="12" fill="transparent"/g)||[])).toHaveLength(2);
   expect(html).not.toContain('NaN');
  });
