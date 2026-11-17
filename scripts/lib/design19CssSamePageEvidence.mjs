@@ -6,7 +6,6 @@
  * manipulate app/product files, grant CSS-split safety or authorize release.
  * The three helpers are dependencies to avoid duplicating their logic.
  */
-import assert from 'node:assert/strict';
 import {isDeepStrictEqual} from 'node:util';
 
 const fail=reason=>{throw Error('MID Design19 CSS same-page: '+reason)};
@@ -110,7 +109,7 @@ export async function runDesign19CssSamePage({
    readySelector:s.readySelector,targets:s.targets,
   };
   const before=requireObservedCssom(await h.captureCssomCase(page,captureOptions),id,s,'before',h.validateCssomCase);
-  const css=h.observeCssResponses===undefined?null:await observer.finish();
+  const css=await observer.finish();
   if(css?.schema!=='mid.design18.css-load-readiness.v1'||
      css.status!=='DECLARED_CSS_HTTP_AND_CSSOM_OBSERVED_ONLY'||
      css.releaseAuthorized!==false||css.cssSplitSafeProven!==false||
