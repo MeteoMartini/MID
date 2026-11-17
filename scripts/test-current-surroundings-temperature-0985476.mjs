@@ -66,7 +66,9 @@ assert.ok(css.includes('.current-surroundings-city-value'),'Readable city labels
 assert.ok(!component.includes('<b>${mapSafe(place.name)}</b>')&&!css.includes('.current-surroundings-city-value b{'),'City names are rendered ONCE by the vector basemap, never duplicated by value markers');
 assert.ok(!css.includes('.current-surroundings-orientation'),'No parallel SVG border renderer');
 assert.ok(component.includes("useSurroundingsCloudImage(mode==='cloud'"),'Verifiziertes Modellbild ist Standard ohne teuren Radardaten-Kaltstart.');
-assert.ok(component.includes("if(mode!=='radar')return")&&component.includes("mode==='radar'&&radarAtNow"),'DWD-/Satelliten-/OPERA-Beobachtungen nur nach Nutzerwahl laden.');
+// When the renderer is suspended, mode selection alone is insufficient: the
+// radar catalog and OPERA fallback must ALSO stop. Preserve both admission gates.
+assert.ok(component.includes("if(mode!=='radar'||mapPaused)return")&&component.includes("const needsOpera=!mapPaused&&mode==='radar'&&radarAtNow"),'DWD-/Satelliten-/OPERA-Beobachtungen ausschließlich nach Radar-Nutzerwahl UND bei aktiver Umfeldkarte laden.');
 assert.ok(component.includes('id="surroundings-model-cloud-weather"')&&component.includes('cloudForecast.image.bounds'),'Wolken/SigWx müssen das geprüfte Modellraster georeferenziert nutzen.');
 assert.ok(component.includes("ecmwfTemperatureColor(value)")&&component.includes("ecmwfTemperatureColor(displaySiteTemperature!)"),'Temperaturzahlen und Standort verwenden dieselbe ECMWF-MID-Skala.');
 assert.ok(css.includes('background:transparent!important;box-shadow:none!important')&&css.includes('.current-surroundings-center-dot>strong')&&css.includes('-webkit-text-stroke:1.15px'),'High-contrast ECMWF-colored temperature numerals require no opaque background plates.');
