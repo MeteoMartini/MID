@@ -14,7 +14,8 @@ const sample=()=>({
   {id:'weather-description',kind:'text',found:1,rect:{x:12,y:100,width:296,height:74},
    scrollWidth:296,clientWidth:296,scrollHeight:74,clientHeight:74,
    display:'block',visibility:'visible',textOverflow:'clip',textSha256:textHash,textLength:120,
-   fragmentCount:4,clippedByAncestor:false,clippedFragments:false},
+   fragmentCount:4,clippedByAncestor:false,clippedFragments:false,
+   textNodeCount:2,hiddenTextNodeCount:0},
   {id:'mode-toggle',kind:'control',found:1,rect:{x:12,y:205,width:72,height:44},
    scrollWidth:72,clientWidth:72,scrollHeight:44,clientHeight:44,
    display:'flex',visibility:'visible',textOverflow:'clip',hitTestOk:true}
@@ -30,6 +31,33 @@ describe('MID Design19 – original visible reflow/text and critical-touch QA (s
   expect(observed.wcagCertified).toBe(false);
   expect(observed.browserAcceptanceProven).toBe(false);
   expect(observed.releaseAuthorized).toBe(false);
+ });
+ it('rejects invisible nested original weather text even when text digest and outer range are unchanged',()=>{
+  const value:any=copy();value.targets[0].hiddenTextNodeCount=1;
+  const result=inspectDesign19ReflowCase(value);
+  expect(result.status).toBe('SELECTED_REFLOW_DEFECTS_OBSERVED');
+  expect(result.issues).toContainEqual({target:'weather-description',reason:'hidden-original-text-nodes'});
+  expect(result.releaseAuthorized).toBe(false);
+ });
+ it('flags a candidate that hides a leaf without changing the original text digest',()=>{
+  const stable:any=copy(),candidate:any=copy();
+  candidate.identity.sourceGitSha=sha2;
+  candidate.targets[0].hiddenTextNodeCount=1;
+  const result=compareDesign19ReflowCases({stable,candidate});
+  expect(result.changes).toEqual([]);
+  expect(result.after).toContainEqual({target:'weather-description',reason:'hidden-original-text-nodes'});
+  expect(result.before).toEqual([]);
+  expect(result.cssSplitSafeProven).toBe(false);
+ });
+ it('fails closed when text-leaf census is missing, impossible or exceeds the bounded limit',()=>{
+  const absent:any=copy();delete absent.targets[0].textNodeCount;
+  expect(()=>validateDesign19ReflowCase(absent)).toThrow(/text\/fragments/);
+  const excessive:any=copy();excessive.targets[0].textNodeCount=257;
+  expect(()=>validateDesign19ReflowCase(excessive)).toThrow(/text\/fragments/);
+  const impossible:any=copy();impossible.targets[0].hiddenTextNodeCount=3;
+  expect(()=>validateDesign19ReflowCase(impossible)).toThrow(/text\/fragments/);
+  const none:any=copy();none.targets[0].textNodeCount=0;
+  expect(()=>validateDesign19ReflowCase(none)).toThrow(/text\/fragments/);
  });
  it('detects document overflow without mistaking it for an allowed nested scroll region',()=>{
   const value=copy();value.document.scrollWidth=342;
