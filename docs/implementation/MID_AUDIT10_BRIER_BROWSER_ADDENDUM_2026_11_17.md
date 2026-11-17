@@ -1,0 +1,5 @@
+# MID Audit 1.0 – ergänzter echter Browser-Smoketest der Brier-KPI
+
+Verifizierte Basis `a78465b655d25cafc9ecc0390080694cb7aca957` v0.9.85.486. Zusätzliche Assertionen im bestehenden realen React-/Chromium-Renderer `scripts/verify-paired-verification-browser-0985311.mjs` betreffen nur eine bereits vorhandene synthetische Wetterzwilling-Fixture: sieben unabhängige Tage mit korrekt archivierter, perfekter Regenwahrscheinlichkeit von 0 % und tatsächlich trockenem Tagesverlauf. Erwartet wird `Brier 0,00`, genau `7 unabhängige Vergleichstage` und der Hinweis `kein Referenz-Skill belegt`. Der bestehende Renderer prüft 14 Layoutfälle: 320/390/430/844/768/1024/1440 CSS-Pixel × Hell/Dunkel (davon ein Querformat). Unverändert: paired-Score-Fairness, Root-Horizontaloverflow, Browserfehler, keine Daten-/Warnsynthese.
+
+**Diese QA mit synthetischem Wetter ist KEIN Beleg für reale Vorhersagegüte, echte iOS-Geräte, Safari oder VoiceOver.** CI darf diese Gate-Stufe nur beim tatsächlichen Aufruf des Browser-Skripts als erfolgreich melden; ein Unit-Only-Draft-Run genügt nicht. Keine neue Dependency, keine Produktions-/Releaseänderung.
