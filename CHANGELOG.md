@@ -1,3 +1,9 @@
+# MID v0.9.85.487
+
+- Die Wetterzwilling-Auswertung berücksichtigt für den Volltagesvergleich nur Prognosen, die spätestens zu Beginn des Zielorts-Tages vorlagen.
+- Ungültige archivierte Regenwahrscheinlichkeiten zählen weder als 0 % noch für Brier-Score oder Kalibrierung. Die Anzeige nennt den Brier-Score und die Vergleichstage ohne unbelegte Güteklasse.
+- Die Anzeige der Modellfrische fasst fehlende Zeitnachweise kompakter zusammen. Die ausführliche Modellliste bleibt verfügbar.
+
 # MID v0.9.85.486
 
 - Die Kartenzeitachse verarbeitet Home/End auch nach neu eingetroffenen Modell- und Zeitdaten zuverlässiger.
