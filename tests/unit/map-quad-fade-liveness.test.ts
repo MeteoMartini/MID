@@ -51,10 +51,10 @@ describe('MID Karten 1.15 · lost image-layer fade liveness (QA only)',()=>{
   const source=readFileSync(new URL('../../src/MapLibreCore.tsx',import.meta.url),'utf8');
   expect(source).toContain("import {abandonMissingQuadFade} from './mapQuadFadeLiveness'");
   const start=source.indexOf('const fade=(now:number)=>{');
-  const end=source.indexOf('animation.current=requestAnimationFrame(fade);',start);
+  const end=source.indexOf('\n   animation.current=requestAnimationFrame(fade);',start);
   expect(start).toBeGreaterThan(0);
   expect(end).toBeGreaterThan(start);
-  const actualFade=source.slice(start,Math.min(source.length,end+100));
+  const actualFade=source.slice(start,end);
   expect(actualFade).toContain('if(!map.getLayer(layer)){abandonMissingQuadFade(fading,frames,remove);return}');
   expect(actualFade).toContain('}catch{');
   expect(actualFade).toContain('abandonMissingQuadFade(fading,frames,remove)');
