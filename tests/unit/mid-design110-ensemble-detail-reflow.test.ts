@@ -30,4 +30,14 @@ describe('MID Design 1.10 ensemble detail reflow',()=>{
   expect(row).not.toContain("whiteSpace:'nowrap'");
   expect(row).not.toContain('textOverflow');
  });
+ it('scales detail text with the root preference instead of fixing it to 12px',()=>{
+  expect(details).toContain("fontSize:'0.875rem'");
+  expect(details).not.toContain('fontSize:12');
+  expect(details).toContain("lineHeight:1.45");
+ });
+ it('exposes a 44px methodology disclosure target without changing its content',()=>{
+  expect(details).toContain("<details><summary style={{minHeight:44,display:'flex',alignItems:'center',cursor:'pointer'}}>");
+  expect(details).toContain('Methodik, Datenstand und Kalibrierung');
+  expect(details).toContain('Die Gesamtbewertung ist eine gewichtete robuste Aggregation');
+ });
 });
