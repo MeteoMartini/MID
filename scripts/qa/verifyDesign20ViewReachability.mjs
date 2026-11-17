@@ -30,4 +30,5 @@ const candidate=[
  {id:'fixed-bottom-bar-contract-drift',present:contract.includes('**Auto** oder **Fixiert**')&&app.includes("type BottomBarBehavior='fixed'"),action:'Resolve normative current/historical contract with product owner; no automatic behavior change.'},
  {id:'old-24h-navigation',present:app.includes("value==='24h'?'90m'"),action:'Retain migration and all original 24h weather data; no deletion of 24h forecast.'}
 ];
+for(const item of candidate)assert.ok(item.present,'LEGACY REMOVAL NOT APPROVED: '+item.id+' — '+item.action);
 console.log(JSON.stringify({result:'PASS',stableKept:kept.length,candidates:candidate,removals:0},null,2));
