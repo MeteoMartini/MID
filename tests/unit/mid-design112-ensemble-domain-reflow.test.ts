@@ -28,6 +28,21 @@ const wet=day({
 });
 const source=readFileSync(fileURLToPath(new URL('../../src/ForecastRangeGuide.tsx',import.meta.url)),'utf8');
 const css=readFileSync(fileURLToPath(new URL('../../src/radarForecastReadability.css',import.meta.url)),'utf8');
+const foundation=readFileSync(fileURLToPath(new URL('../../src/styles-src/00-foundation.css',import.meta.url)),'utf8');
+const luminance=(hex:string)=>{
+ const rgb=[1,3,5].map(offset=>parseInt(hex.slice(offset,offset+2),16)/255)
+  .map(value=>value<=.04045?value/12.92:((value+.055)/1.055)**2.4);
+ return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;
+};
+const contrast=(a:string,b:string)=>{
+ const values=[luminance(a),luminance(b)].sort((left,right)=>left-right);
+ return (values[1]+.05)/(values[0]+.05);
+};
+const cssToken=(block:string,name:string)=>{
+ const found=block.match(new RegExp('--'+name+':(#[0-9a-fA-F]{6})'));
+ if(!found)throw Error('Missing MID theme color '+name);
+ return found[1];
+};
 
 describe('MID Design112 ensemble range scale and responsive model legend',()=>{
  it('shares Tmin and Tmax full-data extrema without blending or artificial clipping',()=>{
@@ -102,5 +117,18 @@ describe('MID Design112 ensemble range scale and responsive model legend',()=>{
   expect(original.get('rain')).toEqual({low:0,high:600});
   expect(original.get('gust')).toEqual({low:1.2,high:310});
   expect(forecastRangeScaleDomains(inputs.slice(0,2)).get('rain')?.high).toBe(130);
+ });
+ it('retains at least 3:1 token contrast for the keyboard outline on both MID theme surfaces',()=>{
+  const themes=[foundation.match(/:root\{([^}]+)\}/)?.[1],foundation.match(/:root\[data-theme=light\]\{([^}]+)\}/)?.[1]];
+  expect(themes).toHaveLength(2);
+  for(const theme of themes){
+   expect(theme).toBeTruthy();
+   const block=theme!;
+   const primary=cssToken(block,'primary');
+   for(const surface of ['bg','surface','s2']){
+    const ratio=contrast(primary,cssToken(block,surface));
+    expect(ratio).toBeGreaterThanOrEqual(3);
+   }
+  }
  });
 });
