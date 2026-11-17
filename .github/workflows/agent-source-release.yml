@@ -303,35 +303,13 @@ jobs:
             exit 1
           fi
 
-      - name: Bewährten MID-Installer explizit starten
-        id: installer_dispatch
-        if: steps.pr.outputs.eligible == 'true'
-        shell: bash
-        env:
-          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
-          EXPECTED_PACKAGE_SHA: ${{ steps.package.outputs.package_sha || steps.pr.outputs.package_sha }}
-        run: |
-          set -euo pipefail
-          current_main="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
-          if [[ ! "$EXPECTED_PACKAGE_SHA" =~ ^[0-9a-f]{40}$ ]] || [ "$current_main" != "$EXPECTED_PACKAGE_SHA" ]; then
-            echo "::error::Installer dispatch refused because main no longer equals the approved ZIP SHA."
-            exit 1
-          fi
-          gh workflow run install-mid.yml --repo "$GITHUB_REPOSITORY" --ref main -f expected_package_sha="$EXPECTED_PACKAGE_SHA"
-          {
-            echo "### Automatischer MID-Release gestartet"
-            echo
-            echo "- PR: #${{ steps.pr.outputs.number }}"
-            echo "- Merge: ${{ steps.merge.outputs.merge_sha || steps.pr.outputs.merge_sha }}"
-            echo "- Release-Paket: ${{ steps.package.outputs.package_sha || steps.pr.outputs.package_sha }}"
-            echo "- Installer: install-mid.yml via workflow_dispatch"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      # Record the exact existing installer input after dispatch. A shadow
-      # failure must not turn an already dispatched release into a retry.
+      # Optional SOURCE→Artifact precursor, uploaded BEFORE legacy Installer
+      # dispatch. Its result never authorizes a deploy or replaces the two
+      # direct-main transport writes; future Installer consumers must verify
+      # run/attempt, manifest, envelope digest and full original Git tree.
       - name: SHA-gebundenes Original-ZIP für #740 bereitstellen
         id: release_shadow
-        if: steps.installer_dispatch.outcome == 'success' && steps.package.outcome == 'success'
+        if: steps.package.outcome == 'success'
         continue-on-error: true
         shell: bash
         env:
@@ -365,6 +343,7 @@ jobs:
           echo "directory=$shadow_dir" >> "$GITHUB_OUTPUT"
 
       - name: Original-ZIP und Zuordnung kurzlebig als Nachweis hochladen
+        id: source_shadow_upload
         if: steps.release_shadow.outcome == 'success'
         continue-on-error: true
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -375,6 +354,30 @@ jobs:
           overwrite: false
           retention-days: 1
           compression-level: 0
+
+      - name: Bewährten MID-Installer explizit starten
+        id: installer_dispatch
+        if: steps.pr.outputs.eligible == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          EXPECTED_PACKAGE_SHA: ${{ steps.package.outputs.package_sha || steps.pr.outputs.package_sha }}
+        run: |
+          set -euo pipefail
+          current_main="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
+          if [[ ! "$EXPECTED_PACKAGE_SHA" =~ ^[0-9a-f]{40}$ ]] || [ "$current_main" != "$EXPECTED_PACKAGE_SHA" ]; then
+            echo "::error::Installer dispatch refused because main no longer equals the approved ZIP SHA."
+            exit 1
+          fi
+          gh workflow run install-mid.yml --repo "$GITHUB_REPOSITORY" --ref main -f expected_package_sha="$EXPECTED_PACKAGE_SHA"
+          {
+            echo "### Automatischer MID-Release gestartet"
+            echo
+            echo "- PR: #${{ steps.pr.outputs.number }}"
+            echo "- Merge: ${{ steps.merge.outputs.merge_sha || steps.pr.outputs.merge_sha }}"
+            echo "- Release-Paket: ${{ steps.package.outputs.package_sha || steps.pr.outputs.package_sha }}"
+            echo "- Installer: install-mid.yml via workflow_dispatch"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Übersprungenen Run dokumentieren
         if: steps.pr.outputs.eligible != 'true'

@@ -16,15 +16,19 @@ const fixtures=()=>({
 });
 
 describe('MID #740 legacy producer shadow',()=>{
- it('records the dispatched package blob and rejects drift using the deployed staging step',()=>{
+ it('stages the exact committed ZIP before legacy Installer dispatch, preserving fail-closed provenance',()=>{
   const workflow=fixtures().source;
   const stage=workflow.split('id: release_shadow\n')[1]
    ?.split('      - name: Original-ZIP und Zuordnung')[0];
   const script=stage?.split('        run: |\n')[1]?.replace(/^ {10}/gm,'');
   expect(script).toBeTruthy();
-  expect(stage).toContain("steps.installer_dispatch.outcome == 'success' && steps.package.outcome == 'success'");
+  expect(stage).toContain("if: steps.package.outcome == 'success'");
+  expect(stage).not.toContain('steps.installer_dispatch.outcome');
   expect(stage).toContain('continue-on-error: true');
-  expect(workflow.indexOf('id: installer_dispatch')).toBeLessThan(workflow.indexOf('id: release_shadow'));
+  expect(workflow.indexOf('id: release_shadow')).toBeLessThan(workflow.indexOf('id: source_shadow_upload'));
+  expect(workflow.indexOf('id: source_shadow_upload')).toBeLessThan(workflow.indexOf('id: installer_dispatch'));
+  expect(workflow.indexOf('git push origin HEAD:main')).toBeLessThan(workflow.indexOf('id: release_shadow'));
+  expect(workflow).toContain('gh workflow run install-mid.yml --repo');
   expect(workflow).toContain("if: steps.release_shadow.outcome == 'success'\n        continue-on-error: true");
   const dir=mkdtempSync(join(tmpdir(),'mid740-producer-shadow-test-'));
   try{
