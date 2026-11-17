@@ -147,7 +147,7 @@ export default function CurrentSurroundings(props:Props){
  // Coordinates come from actual named settlements, not screen-grid reference points.
  const nearbyCities=useMemo(()=>mapViewport?chooseSurroundingsCities([
   ...mapCities,...(geography?.places??[]).map(place=>({name:place.name,lat:place.lat,lon:place.lon,population:place.population,rank:place.minZoom,origin:'natural-earth' as const}))
- ],{lat,lon},{west,south,east,north},4,mapViewport):[],[mapCities,geography,lat,lon,west,south,east,north,mapViewport]);
+ ],{lat,lon},{west,south,east,north},mapViewport.width>=660&&mapViewport.height>=220?6:4,mapViewport):[],[mapCities,geography,lat,lon,west,south,east,north,mapViewport]);
  const mapBounds=useMemo(()=>[[south,west],[north,east]] as [[number,number],[number,number]],[south,west,north,east]);
  const mapReferences=useMemo(()=>compositeReferenceLayers(.93,surroundingReference),[darkMap]);
  const directVectorAllowed=browserExternalWeatherFallbackAllowed();
