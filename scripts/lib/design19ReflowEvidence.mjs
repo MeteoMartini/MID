@@ -61,7 +61,10 @@ export function validateDesign19ReflowCase(value){
   if(t.kind==='text'){
    if(!SHA64.test(t.textSha256??'')||!Number.isSafeInteger(t.textLength)||t.textLength<=0||
       !Number.isSafeInteger(t.fragmentCount)||t.fragmentCount<1||t.fragmentCount>128||
-      typeof t.clippedByAncestor!=='boolean'||typeof t.clippedFragments!=='boolean')
+      typeof t.clippedByAncestor!=='boolean'||typeof t.clippedFragments!=='boolean'||
+      !Number.isSafeInteger(t.textNodeCount)||t.textNodeCount<1||t.textNodeCount>256||
+      !Number.isSafeInteger(t.hiddenTextNodeCount)||t.hiddenTextNodeCount<0||
+      t.hiddenTextNodeCount>t.textNodeCount)
     fail('text/fragments/ancestor evidence incomplete');
   }else if(typeof t.hitTestOk!=='boolean')fail('control hit-test evidence incomplete');
  }
@@ -73,6 +76,8 @@ export function inspectDesign19ReflowCase(value){
   issues.push({target:'document',reason:'horizontal-document-overflow'});
  for(const t of v.targets){
   if(t.kind==='text'){
+   if(t.hiddenTextNodeCount>0)
+    issues.push({target:t.id,reason:'hidden-original-text-nodes'});
    if(t.scrollWidth>t.clientWidth+2||t.scrollHeight>t.clientHeight+2||
       t.clippedByAncestor||t.clippedFragments||t.textOverflow==='ellipsis')
     issues.push({target:t.id,reason:'clipped-or-ellipsized-text'});
@@ -134,8 +139,28 @@ export async function captureDesign19ReflowCase(page,{identity,caseId,fixtureSha
     const b=p.getBoundingClientRect();
     if(rects.some(r=>r.left<b.left-2||r.right>b.right+2||r.top<b.top-2||r.bottom>b.bottom+2)){ancestorClip=true;break}
    }
+   // Range on the entire element can still produce rects while nested text
+   // is display:none/visibility:hidden/opacity:0. Count the real text leaves
+   // instead; ignore whitespace-only leaves and bound the audit to 256 nodes.
+   const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);
+   let node,textNodeCount=0,hiddenTextNodeCount=0;
+   while((node=walker.nextNode())){
+    if(!node.textContent?.trim())continue;
+    textNodeCount++;
+    if(textNodeCount>256)break; // validator fails closed, never scans unbounded DOM.
+    const leaf=document.createRange();leaf.selectNodeContents(node);
+    const hasRenderedRect=[...leaf.getClientRects()].some(r=>r.width>0&&r.height>0);
+    let visiblyStyled=true;
+    for(let p=node.parentElement;p;p=p.parentElement){
+     const css=getComputedStyle(p);
+     if(css.display==='none'||css.visibility==='hidden'||Number(css.opacity)===0){
+      visiblyStyled=false;break;
+     }
+    }
+    if(!hasRenderedRect||!visiblyStyled)hiddenTextNodeCount++;
+   }
    return {text:el.textContent?.trim()??'',fragmentCount:rects.length,
-    clippedFragments:clips,clippedByAncestor:ancestorClip};
+    clippedFragments:clips,clippedByAncestor:ancestorClip,textNodeCount,hiddenTextNodeCount};
   };
   return {environment:{width:innerWidth,height:innerHeight,actualTheme:document.documentElement.dataset.theme??null},
    document:{scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth},
