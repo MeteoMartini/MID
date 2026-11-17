@@ -101,7 +101,7 @@ describe('MID 740 live immutable release readback: adversarial QA only',()=>{
  });
 });
 it.each(['clean','clean-restore','digest','symlink','missing','attestation','metadata-race',
- 'tree-mismatch','restore-failure'] as const)(
+ 'tree-mismatch','restore-failure','installer-signed','installer-unsigned','installer-wrong-digest'] as const)(
  'verifies recovery asset bytes and attestation, or blocks %s',async kind=>{
   const x=fixture(),directory=mkdtempSync(join(tmpdir(),'mid740-recovery-'));
   try{
@@ -115,6 +115,20 @@ it.each(['clean','clean-restore','digest','symlink','missing','attestation','met
     writeFileSync(join(directory,a.name),bytes);
    }
    x.responses['releases/tags/'+TAG].assets=structuredClone(assets);
+   const installerEvidence=kind.startsWith('installer-');
+   if(installerEvidence){
+    const manifest=assets.find(a=>a.name==='MID-release-manifest.json');
+    const dist=assets.find(a=>a.name==='MID-dist-release.zip');
+    const bytes=Buffer.from(JSON.stringify({schema:'mid.740.installer-dist.v1',version:VER,
+     sourceSha:SHA,distTreeSha:'c'.repeat(40),
+     distDigest:kind==='installer-wrong-digest'?'sha256:'+'f'.repeat(64):dist.digest}));
+    manifest.size=bytes.length;
+    manifest.digest='sha256:'+createHash('sha256').update(bytes).digest('hex');
+    x.args.independentDigests[manifest.name]=manifest.digest;
+    x.responses['releases/assets/'+manifest.id]=structuredClone(manifest);
+    x.responses['releases/tags/'+TAG].assets=structuredClone(assets);
+    writeFileSync(join(directory,manifest.name),bytes);
+   }
    const first=join(directory,REQUIRED_ASSETS[0]);
    if(kind==='digest')writeFileSync(first,Buffer.alloc(assets[0].size));
    if(kind==='missing'||kind==='symlink')rmSync(first);
@@ -127,7 +141,7 @@ it.each(['clean','clean-restore','digest','symlink','missing','attestation','met
     {path:'dist',mode:'040000',type:'tree',sha:kind==='tree-mismatch'?'invalid':distTree}
    ]};
    let restoreCalls=0;
-   const proof=await inspect({...x.args,assetDirectory:directory,
+   const proof=await inspect({...x.args,assetDirectory:directory,installerEvidence,
     restoreDestination:kind==='clean'?undefined:restoreDestination},x.get,async(tag,path)=>{
     expect(tag).toBe(TAG);
     verified.push(path);
@@ -144,15 +158,20 @@ it.each(['clean','clean-restore','digest','symlink','missing','attestation','met
     if(kind==='restore-failure')throw Error('zip changed after attestation');
     return {status:'DIST_RESTORED_QA_ONLY',distTreeSha:distTree,
      version:VER,files:151,recoveryAuthorized:false,releaseAuthorized:false};
+   },async(bytes,sourceSha)=>{
+    expect(sourceSha).toBe(SHA);
+    expect(JSON.parse(bytes.toString('utf8')).schema).toBe('mid.740.installer-dist.v1');
+    return kind!=='installer-unsigned';
    });
-   expect(restoreCalls).toBe(['clean-restore','restore-failure'].includes(kind)?1:0);
+   expect(restoreCalls).toBe(['clean-restore','restore-failure','installer-signed'].includes(kind)?1:0);
    if(kind==='clean'){
     expect(verified).toEqual(REQUIRED_ASSETS.map(name=>join(directory,name)));
     expect(proof).toMatchObject({status:'ATTESTED_ASSETS_VERIFIED_QA_ONLY',
      bytesVerified:true,attestationVerified:true,recoveryAuthorized:false,releaseAuthorized:false});
-   }else if(kind==='clean-restore'){
+   }else if(kind==='clean-restore'||kind==='installer-signed'){
     expect(proof).toMatchObject({status:'ATTESTED_DIST_RESTORED_QA_ONLY',distTreeSha:distTree,
      restoredFiles:151,bytesVerified:true,attestationVerified:true,
+     distTreeEvidence:installerEvidence?'installer-attestation':'stable-git-tree',
      recoveryAuthorized:false,releaseAuthorized:false});
    }else{
     expect(proof).toMatchObject({status:'BLOCKED',recoveryAuthorized:false,releaseAuthorized:false});
