@@ -95,6 +95,16 @@ vollständige Antwort. Die Ergänzung prüft deshalb nun:
   verspätete Anfragen **während** des zweiten DOM-Samples, abgebrochene
   Downloads, unbekannte URLs, Service Worker und doppelte Events.
 
+Zusätzliche fachliche Korrektur: Eine reine `cssRules.length`-Prüfung kann
+eine zur Laufzeit veränderte CSSOM-Deklaration bei unveränderter Regelanzahl
+übersehen. Deshalb erfasst der Browser jetzt für **jedes angewendete
+Stylesheet** SHA256 über den serialisierten Text sämtlicher `cssRules[].cssText`.
+Der Verifikator verlangt einen gültigen Fingerprint und identische Regeltexte
+in beiden Stichproben. Eine Mutation mit gleicher Regelzahl führt zu einem
+Fehler. Dieser CSSOM-Fingerprint ist **nicht** mit dem Byte-Hash der
+Original-CSS-Datei gleichzusetzen: Der Browser serialisiert Regeln nach dem
+Parsen ggf. anders. Beide Nachweise bleiben getrennt erforderlich.
+
 **Wichtige Begrenzung:** Selbst zwei DOM-Stabilitätsproben und ein
 200-ms-Messfenster beweisen nicht, dass nie später ein Stylesheet oder
 ein Shadow-DOM-`adoptedStyleSheet` hinzugefügt wird. Entsprechend
