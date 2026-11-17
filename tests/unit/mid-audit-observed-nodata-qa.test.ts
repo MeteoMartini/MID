@@ -33,7 +33,7 @@ describe('MID Audit 1.0 · unabhängige Messwerte bleiben NoData statt falscher 
   const references=precipitation.map(([amount],i)=>{
    const source={id:'synthetic-measured',label:'Synthetische DWD-ähnliche Referenz',kind:'measured',quality:.95};
    return {date:'2024-01-'+String(i+1).padStart(2,'0'),
-    max:maxValues[i][0],min:maxValues[i][1],precipitation:amount,
+    max:maxValues[i][0],min:maxValues[i][1],precipitation:amount,gust:18,
     regime:'wechselhaft',source:source.label,quality:.95,confidence:'high',kind:'measured',sources:[source],coverageHours:24};
   });
   const captures=references.map((ref,i)=>{
@@ -41,7 +41,7 @@ describe('MID Audit 1.0 · unabhängige Messwerte bleiben NoData statt falscher 
    const issuedAt=new Date(Date.parse(ref.date+'T11:00:00Z')-48*3600000).toISOString();
    return {id:'qa-'+i,targetDate:ref.date,issuedAt,leadHours:48,timezone:'Europe/Berlin',
     predictedRegime:'wechselhaft',predictions:[{id:'best_match',label:'Best Match',max:10,min:2,
-     precipitation:0,probability:precipitation[i][1],probabilityKind:'daily-wet-native'}]};
+     precipitation:0,probability:precipitation[i][1],gust:18,probabilityKind:'daily-wet-native'}]};
   });
   const archived=JSON.stringify({version:3,updatedAt:'2024-01-12T00:00:00Z',captures,references,observations:[]});
   store.set('mid:forecast-verification:v3:'+key,archived);
@@ -51,6 +51,7 @@ describe('MID Audit 1.0 · unabhängige Messwerte bleiben NoData statt falscher 
   expect(best?.parameterMetrics.temperature?.samples).toBe(3);
   expect(best?.parameterMetrics.precipitation?.samples).toBe(2);
   expect(best?.parameterMetrics.probability?.samples).toBe(2);
+  expect(best?.parameterMetrics.gust?.samples).toBe(7);
   expect(best?.brier).toBe(0);
   expect(report.calibrations.reduce((sum,row)=>sum+row.samples,0)).toBe(2);
   expect(store.get('mid:forecast-verification:v3:'+key)).toBe(archived);
