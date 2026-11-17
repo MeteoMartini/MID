@@ -16,6 +16,7 @@ const SOURCE_JOB='Source-Kern vollständig prüfen';
 const CHECKOUT_STEP='PR-Mergezustand laden';
 const CHECK_SOURCE_STEP='MID-Quellstruktur und PR-ZIP-Provenienz prüfen';
 const SHA=/^[a-f0-9]{40}$/;
+const LOG_LIMIT=5*1024*1024;
 const required=[
  SOURCE_JOB,'Determine whether complete original RUC admission is required',
  'Agent-Quellstand vollständig prüfen',...[1,2,3,4].map(i=>'Core-Regression · core-'+i+'/4'),
@@ -46,7 +47,7 @@ const moment=s=>typeof s==='string'?Date.parse(s):NaN;
 // Read the exact checkout command, reported checkout SHA and the original
 // event environment from the successful initial steps, before PR code ran.
 function testedCheckout(log,spec,checkout,source){
- if(typeof log!=='string'||Buffer.byteLength(log)>5*1024*1024)return null;
+ if(typeof log!=='string'||Buffer.byteLength(log)>LOG_LIMIT)return null;
  const markers={fetch:[],commit:[],command:[],base:[],head:[]};
  const stamp=/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z) (.*)$/;
  const refspec=/^\[command\].*\/git .* fetch .* \+([a-f0-9]{40}):refs\/remotes\/pull\/([1-9][0-9]*)\/merge$/;
@@ -120,10 +121,13 @@ export async function inspectMid740HistoricChain(spec=SPEC,get,getLog){
  };
  const checkout=successfulStep(CHECKOUT_STEP,2),source=successfulStep(CHECK_SOURCE_STEP,3);
  if(!checkout||!source||moment(checkout.completed_at)>moment(source.started_at))return reject('SOURCE_CORE_STEP_DRIFT');
- let testedMerge,synthetic,testedWorkflow,baseWorkflow;
+ let log;
+ try{log=await getLog(ROOT+'actions/jobs/'+core.id+'/logs')}
+ catch{return reject('TESTED_CHECKOUT_LOG_UNAVAILABLE')}
+ const testedMerge=testedCheckout(log,spec,checkout,source);
+ if(!testedMerge)return reject('TESTED_CHECKOUT_LOG_DRIFT');
+ let synthetic,testedWorkflow,baseWorkflow;
  try{
-  testedMerge=testedCheckout(await getLog(ROOT+'actions/jobs/'+core.id+'/logs'),spec,checkout,source);
-  if(!testedMerge)return reject('TESTED_CHECKOUT_LOG_DRIFT');
   [synthetic,testedWorkflow,baseWorkflow]=await Promise.all([
    get(ROOT+'git/commits/'+testedMerge),
    get(ROOT+'contents/'+SOURCE_WORKFLOW+'?ref='+testedMerge),
@@ -147,11 +151,29 @@ export async function inspectMid740HistoricChain(spec=SPEC,get,getLog){
   nativeReviewVerified:false,installerAuthorized:false,
   recoveryAuthorized:false,releaseAuthorized:false});
 }
+
+async function readOriginalJobLog(endpoint){
+ // The REST endpoint redirects to a temporary Azure or GitHub log URL.
+ // Fetch removes Authorization on cross-origin redirects.
+ const url=new URL('https://api.github.com/'+endpoint);
+ const response=await fetch(url,{headers:{Authorization:'Bearer '+process.env.GH_TOKEN},
+  signal:AbortSignal.timeout(30000)});
+ if(!response.ok||!response.body)throw Error('JOB_LOG_HTTP');
+ const bytes=[];
+ let size=0;
+ for await(const chunk of response.body){
+  size+=chunk.byteLength;
+  if(size>LOG_LIMIT)throw Error('JOB_LOG_SIZE');
+  bytes.push(chunk);
+ }
+ return Buffer.concat(bytes).toString('utf8');
+}
+
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  try{
   const read=p=>execFileSync('gh',['api','--method','GET',p],{
    encoding:'utf8',timeout:20000,maxBuffer:5*1024*1024,stdio:['ignore','pipe','ignore']});
-  const v=await inspectMid740HistoricChain(SPEC,p=>JSON.parse(read(p)),read);
+  const v=await inspectMid740HistoricChain(SPEC,p=>JSON.parse(read(p)),readOriginalJobLog);
   process.stdout.write(JSON.stringify(v)+'\n');
   if(v.status!=='HISTORIC_LEGACY_LINEAGE_QA_ONLY')process.exitCode=1;
  }catch{process.stdout.write(JSON.stringify(reject('CLI_FAILED'))+'\n');process.exitCode=1;}

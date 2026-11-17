@@ -194,7 +194,10 @@ jobs:
           jq -e '.status == "BLOCKED" and .reason == "TRUSTED_WORKFLOW_RUN_CONTEXT_REQUIRED" and
             .trustedProductionReceiptAttested == false and
             .installerAuthorized == false and .releaseAuthorized == false' "$RUNNER_TEMP/mid740-receipt-untrusted.json"
-          node tools/ci/mid-740-historical-chain-readback.mjs > "$RUNNER_TEMP/mid740-real-history.json"
+          if ! node tools/ci/mid-740-historical-chain-readback.mjs > "$RUNNER_TEMP/mid740-real-history.json"; then
+            jq -r '(.status // "BLOCKED") + ": " + (.reason // "UNKNOWN")' "$RUNNER_TEMP/mid740-real-history.json" >&2
+            exit 1
+          fi
           jq -e '.status == "HISTORIC_LEGACY_LINEAGE_QA_ONLY" and
             .sourceGateVerified == true and .testedSourceBaseVerified == true and
             .gitParentChainVerified == true and
