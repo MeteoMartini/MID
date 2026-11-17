@@ -70,7 +70,10 @@ async function verify(width,theme){
      })),
      fullCount:document.querySelectorAll('.composite-maplibre').length,
      compactCount:document.querySelectorAll('.current-surroundings-maplibre').length,
-     pageText:document.body?.innerText.slice(0,2500)
+     pageText:document.body?.innerText.slice(0,2500),
+     localReactError:sessionStorage.getItem('mid:map:last-render-error'),
+     lastOpenIntent:sessionStorage.getItem('mid:map:last-open-intent'),
+     recentPageErrors:window.__qaPageErrors??null
     }));
     throw new Error('Real MapLibre handoff map count diagnostics '+JSON.stringify(detail)+' | '+String(error));
    });
