@@ -24,8 +24,20 @@ assert.ok(coreShards.includes('name: mid-timings-core-shard-${{ strategy.job-ind
 const heavy=source.split('  verify_heavy:')[1].split('  install_build:')[0];assert.ok(heavy.includes('name: mid-timings-${{ strategy.job-index }}-${{ github.run_id }}-${{ github.run_attempt }}'),'Heavy timing artifacts must retain their existing namespace.');assert.equal((heavy.match(/shard: heavy-unified-map/g)||[]).length,3);for(const key of ['heavy-browser-state','heavy-native-map','heavy-mountain-visual',"map_group: '1/3'","map_group: '2/3'","map_group: '3/3'"])assert.ok(heavy.includes(key));assert.ok(!heavy.includes('secrets.')&&!heavy.includes('permission-contents: write'));
 for(const key of ['prepare_release','verify_core','verify_core_shards','verify_heavy']){const block=source.split('  '+key+':')[1].split(/^  \w+:/m)[0];assert.ok(!block.includes('secrets.')&&!block.includes('permission-contents: write'),'No write credentials before aggregate gate');}
 const collector=source.split('  install_build:')[1].split('  deploy_worker:')[0];assert.ok(collector.includes('needs.verify_core.outputs.snapshot_sha'));assert.ok(!collector.includes('continue-on-error'));
-assert.equal((source.match(/artifact-ids: \$\{\{ needs\.(?:prepare_release|verify_core)\.outputs\.snapshot_id \}\}/g)||[]).length,4,'Retries must download the immutable producer artifact, not the new attempt name');
-assert.equal((source.match(/digest-mismatch: error/g)||[]).length,4);assert.equal((source.match(/Missing producer artifact ID/g)||[]).length,4);
+// The independent optional recovery consumer adds one download without changing
+// any of the four mandatory admission consumers or their fail-closed checks.
+assert.equal(source.split('  dist_recovery_shadow:').length,2);
+const recoveryShadow=source.split('  dist_recovery_shadow:')[1].split('  install_build:')[0];
+assert.ok(recoveryShadow.includes('needs: [verify_core, verify_core_shards, verify_heavy]'));
+assert.ok(recoveryShadow.includes('continue-on-error: true'));
+assert.ok(recoveryShadow.includes('contents: read'));
+assert.ok(!recoveryShadow.includes('secrets.')&&!recoveryShadow.includes('permission-contents: write'));
+assert.equal((recoveryShadow.match(/digest-mismatch: error/g)||[]).length,1);
+assert.equal((recoveryShadow.match(/Missing producer artifact ID/g)||[]).length,1);
+assert.equal((recoveryShadow.match(/artifact-ids: \$\{\{ needs\.verify_core\.outputs\.snapshot_id \}\}/g)||[]).length,1);
+const admissionSource=source.replace('  dist_recovery_shadow:'+recoveryShadow,'');
+assert.equal((admissionSource.match(/artifact-ids: \$\{\{ needs\.(?:prepare_release|verify_core)\.outputs\.snapshot_id \}\}/g)||[]).length,4,'Retries must download the immutable producer artifact, not the new attempt name');
+assert.equal((admissionSource.match(/digest-mismatch: error/g)||[]).length,4);assert.equal((admissionSource.match(/Missing producer artifact ID/g)||[]).length,4);
 const allCases=mapBrowserCases(),assigned=['1/3','2/3','3/3'].flatMap(mapBrowserCases),caseKey=row=>`${row.width}/${row.theme}/${row.design}`;assert.equal(assigned.length,24);assert.equal(new Set(assigned.map(caseKey)).size,24,'No duplicated or dropped cases');assert.deepEqual(assigned.map(caseKey).sort(),allCases.map(caseKey).sort());assert.deepEqual(['1/3','2/3','3/3'].map(shard=>mapBrowserCases(shard).length),[10,7,7],'SHA-measured 10/7/7 runtime sharding retains all 24 exact map cases and the 20-cycle probe');assert.deepEqual(mapBrowserWidths(),[...MAP_BROWSER_WIDTHS]);for(const bad of ['0/3','4/3','1/2','abc','1/3 ']){assert.throws(()=>mapBrowserWidths(bad));assert.throws(()=>mapBrowserCases(bad))}
 assert.equal(['1/3','2/3','3/3'].filter(shard=>mapBrowserMemoryProbe(shard)).length,1,'All 20 memory cycles run on exactly one required shard');
 assert.equal(mapBrowserMemoryProbe('1/3'),true,'The original 20 memory cycles are required in the measured faster shard');

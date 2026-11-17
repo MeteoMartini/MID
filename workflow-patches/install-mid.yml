@@ -682,6 +682,88 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
+  dist_recovery_shadow:
+    name: Geprüften Installer-Snapshot als Recovery-Shadow sichern
+    needs: [verify_core, verify_core_shards, verify_heavy]
+    if: needs.verify_core.result == 'success' && needs.verify_core_shards.result == 'success' && needs.verify_heavy.result == 'success'
+    continue-on-error: true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Eventgebundenen Quellstand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Unveränderliche Produzenten-Artefakt-ID prüfen
+        shell: bash
+        env:
+          MID_ARTIFACT_ID: ${{ needs.verify_core.outputs.snapshot_id }}
+        run: node -e "if(!/^[1-9][0-9]*$/.test(process.env.MID_ARTIFACT_ID||''))throw Error('Missing producer artifact ID')"
+      - name: Snapshot dieses Laufs laden
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          artifact-ids: ${{ needs.verify_core.outputs.snapshot_id }}
+          merge-multiple: true
+          digest-mismatch: error
+          path: /tmp/mid-snapshot
+      - name: Event, Manifest, Archiv und alle Dateien verifizieren
+        shell: bash
+        env:
+          MID_SNAPSHOT_SHA: ${{ needs.verify_core.outputs.snapshot_sha }}
+        run: node tools/ci/release-snapshot.mjs restore /tmp/mid-snapshot
+      - name: Node.js 22 einrichten
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+      - name: Release- und Worker-Änderungsmetadaten ermitteln
+        id: release_meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./package.json').version")"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Geprüften Build-Snapshot als dist-Recovery-Shadow binden
+        id: dist_recovery_shadow
+        shell: bash
+        env:
+          MID_BUILT_SNAPSHOT: /tmp/mid-snapshot
+          MID_SNAPSHOT_SHA: ${{ needs.verify_core.outputs.snapshot_sha }}
+          MID_RELEASE_VERSION: ${{ steps.release_meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          index="$(mktemp "$RUNNER_TEMP/mid740-dist-index.XXXXXXXX")"
+          rm "$index"
+          trap 'rm -f "$index" "$index.lock"' EXIT
+          GIT_INDEX_FILE="$index" git read-tree --empty
+          GIT_INDEX_FILE="$index" git add -f -- dist
+          tree="$(GIT_INDEX_FILE="$index" git write-tree --prefix=dist/)"
+          bundle="$RUNNER_TEMP/mid740-installer-recovery-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          python3 tools/ci/mid_740_stage_dist.py "$bundle" "$tree" "$GITHUB_SHA" "$MID_RELEASE_VERSION" \
+            --snapshot-directory "$MID_BUILT_SNAPSHOT" --snapshot-sha "$MID_SNAPSHOT_SHA" \
+            > "$RUNNER_TEMP/mid740-installer-recovery-readback.json"
+          jq -e '.status == "INSTALLER_DIST_BUNDLE_QA_ONLY" and
+            .snapshotManifestVerified == true and .installerAttestationVerified == false and
+            .recoveryAuthorized == false and .releaseAuthorized == false' \
+            "$RUNNER_TEMP/mid740-installer-recovery-readback.json"
+          echo "bundle_path=$bundle" >> "$GITHUB_OUTPUT"
+
+      - name: Snapshot-gebundenen dist-Recovery-Shadow kurzlebig sichern
+        if: steps.dist_recovery_shadow.outcome == 'success'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid740-dist-recovery-shadow-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ steps.dist_recovery_shadow.outputs.bundle_path }}/MID-dist-release.zip
+            ${{ steps.dist_recovery_shadow.outputs.bundle_path }}/MID-release-manifest.json
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
   install_build:
     name: Vollständig geprüften Release sammeln und committen
     needs: [prepare_release, verify_core, verify_core_shards, verify_heavy]
