@@ -22,3 +22,21 @@ export function shouldCrossfadeMapCanvas(context:MapCanvasCrossfadeContext):bool
   width>0&&height>0&&
   width<=MAP_CANVAS_CROSSFADE_MAX_PIXELS/height;
 }
+
+/** The cloned image may exceed the overlay's initial 300x150 bitmap.
+ * MapLibre's canvas has already been sized for the actual renderer pixel ratio.
+ * Use the larger dimensions in each axis to avoid under-budgeting copies.
+ * No guessing from CSS dimensions or a potentially different DPR override.
+ * Return undefined (not 300x150) if the renderer is not measured yet.
+ */
+export type MapCanvasBackingSize={width:number;height:number};
+export function mapCanvasCrossfadeBackingSize(
+ overlay:MapCanvasBackingSize|undefined,
+ renderer:MapCanvasBackingSize|undefined,
+):MapCanvasBackingSize|undefined{
+ if(!overlay||!renderer)return undefined;
+ const values=[overlay.width,overlay.height,renderer.width,renderer.height];
+ if(!values.every(v=>Number.isSafeInteger(v)&&v>0))return undefined;
+ return {width:Math.max(overlay.width,renderer.width),
+  height:Math.max(overlay.height,renderer.height)};
+}
