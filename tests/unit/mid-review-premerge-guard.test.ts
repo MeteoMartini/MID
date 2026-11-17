@@ -130,7 +130,7 @@ describe('SHA-bound MID merge-time review guard',()=>{
   expect(check(input({data:{meta,threads:[missing],reviews:[],truncated:false}})).ok)
    .toBe(false);
  });
- it('blocks P1/P0 Cubic body-only findings even with no unresolved inline threads',()=>{
+ it('blocks P0/P1/P2 Cubic body-only findings even with no unresolved inline threads',()=>{
   const body='<violation number="1">\nP1: native season interval=0 is rejected</violation>\n'+
    '<violation number="2">\nP2: noncritical display spacing</violation>\n'+
    '<violation number="3">\nP0: unsafe native publishing</violation>';
@@ -142,9 +142,9 @@ describe('SHA-bound MID merge-time review guard',()=>{
    ' review=PRR_critical001 item='+item+' result=fixed evidence='+evidence;
   const partial=review('APPROVED','r-approved','reviewer','2026-11-11T15:02:00Z',line(1));
   expect(checkReviews([cubic,partial]).ok).toBe(false);
-  const complete=review('APPROVED','r-complete','reviewer','2026-11-11T15:02:00Z',line(1)+'\n'+line(2));
+  const complete=review('APPROVED','r-complete','reviewer','2026-11-11T15:02:00Z',line(1)+'\n'+line(2)+'\n'+line(3));
   expect(checkReviews([cubic,complete])).toMatchObject({ok:true,reviewDispositionAttested:true,
-   criticalReviewCount:1,criticalItemCount:2,mergeAuthorized:false,releaseAuthorized:false});
+   criticalReviewCount:1,criticalItemCount:3,mergeAuthorized:false,releaseAuthorized:false});
   const duplicate=review('APPROVED','r-duplicate','reviewer','2026-11-11T15:03:00Z',line(1));
   expect(checkReviews([cubic,complete,duplicate]).ok).toBe(false);
   expect(checkReviews([cubic,review('APPROVED','r-own','coder','2026-11-11T15:03:00Z',line(1)+'\n'+line(2))]).ok).toBe(false);
@@ -154,6 +154,42 @@ describe('SHA-bound MID merge-time review guard',()=>{
   expect(checkReviews([cubic,review('APPROVED','r-unsafe','reviewer','2026-11-11T15:03:00Z',unsafe+'\n'+line(2))]).ok).toBe(false);
   const late=review('COMMENTED','PRR_lateP1x','cubic-dev-ai','2026-11-11T15:04:00Z','P1: later untriaged review');
   expect(checkReviews([cubic,complete,late]).ok).toBe(false);
+ });
+ it('does not drop confirmed P2 weather integrity or bracket-only P1 from COMMENTED review bodies',()=>{
+  const body='P2: confirmed NoData-to-zero for missing observed precipitation\n'+
+   '[P1] source validTime mismatch despite green model job';
+  expect(criticalMidReviewItems(body)).toEqual(['P2','P1']);
+  expect(criticalMidReviewItems('**P2** confirmed source provenance drift')).toEqual(['P2']);
+  expect(criticalMidReviewItems('P2 only')).toEqual([]);
+  const finding=review('COMMENTED','PRR_confirmedP2','cubic-dev-ai',
+   '2026-11-11T15:00:00Z',body);
+  const evidence='https://github.com/MeteoMartini/MID/blob/'+sha+'/tools/ci/release.mjs';
+  const line=(i:number)=>'MID-740-DISPOSITION v1 sha='+sha+
+    ' review=PRR_confirmedP2 item='+i+' result=fixed evidence='+evidence;
+  const verdict=(items:any[])=>check(input({data:{meta,threads:[],reviews:items,truncated:false}}));
+  expect(verdict([finding])).toMatchObject({ok:false,
+   reason:'MID_REVIEW_CRITICAL_REVIEW_UNATTESTED',mergeAuthorized:false});
+  const partial=review('APPROVED','PRR_partial','auditor',
+   '2026-11-11T15:03:00Z',line(1));
+  expect(verdict([finding,partial]).ok).toBe(false);
+  const complete=review('APPROVED','PRR_complete','auditor',
+   '2026-11-11T15:03:00Z',line(1)+'\n'+line(2));
+  expect(verdict([finding,complete])).toMatchObject({ok:true,
+   criticalReviewCount:1,criticalItemCount:2,reviewDispositionAttested:true,
+   independentlyReviewed:false,mergeAuthorized:false,releaseAuthorized:false});
+  const author=review('APPROVED','PRR_self','coder',
+   '2026-11-11T15:03:00Z',line(1)+'\n'+line(2));
+  expect(verdict([finding,author]).ok).toBe(false);
+  const stale=review('APPROVED','PRR_stale','auditor',
+   '2026-11-11T14:59:00Z',line(1)+'\n'+line(2));
+  expect(verdict([finding,stale]).ok).toBe(false);
+ });
+ it('does not let a bot declare a nominal P2 harmless to bypass human disposition',()=>{
+  const finding=review('COMMENTED','PRR_untrustedP2','cubic-dev-ai',
+   '2026-11-11T15:00:00Z','P2: noncritical display spacing; marked fixed by bot');
+  const result=check(input({data:{meta,threads:[],reviews:[finding],truncated:false}}));
+  expect(result).toMatchObject({ok:false,
+   reason:'MID_REVIEW_CRITICAL_REVIEW_UNATTESTED',mergeAuthorized:false});
  });
  it('counts mixed Cubic XML, plain and Markdown severity markers without losing critical items',()=>{
   const body='<violation number="1">\nP1: native seasonal interval bug</violation>\n'+
@@ -233,7 +269,7 @@ describe('SHA-bound MID merge-time review guard',()=>{
  });
  it('old-HEAD or non-writing APPROVED reviews cannot clear a CHANGES_REQUESTED',()=>{
   const changes=review('CHANGES_REQUESTED','req1','auditor',
-   '2026-11-11T15:00:00Z','P2: needs resolution');
+   '2026-11-11T15:00:00Z','Review needs resolution');
   const approval=review('APPROVED','req2','auditor',
    '2026-11-11T15:02:00Z');
   const verdict=(x:any)=>check(input({data:{

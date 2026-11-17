@@ -8,18 +8,22 @@ const BRANCH=/^(chatgpt|codex)\/[^/]+(?:\/[^/]+)*$/;
 export const MID_REVIEW_QUERY='query($owner:String!,$name:String!,$number:Int!,$threadAfter:String,$reviewAfter:String){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid headRefName baseRefName isDraft state reviewThreads(first:100,after:$threadAfter){nodes{id isResolved isOutdated comments(first:100){nodes{id body createdAt updatedAt author{login __typename}}pageInfo{hasNextPage}}}pageInfo{hasNextPage endCursor}} reviews(first:100,after:$reviewAfter){nodes{id state body author{login __typename} submittedAt updatedAt authorCanPushToRepository commit{oid}}pageInfo{hasNextPage endCursor}}}}}';
 const block=reason=>({ok:false,reason:'MID_REVIEW_'+reason,mergeAuthorized:false,releaseAuthorized:false});
 
-// Body-only severity findings are review evidence, even when there are no
-// GitHub inline threads.  Number critical items by their order in the review
-// so a later independent GitHub approval must address *each* one.
+// Body-only severity findings are review evidence, even without inline threads.
+// Every P0/P1 and conservatively EVERY P2 must be independently dispositioned.
+// In particular, no untrusted Bot "noncritical" / "fixed" label may itself
+// waive a weather/source/NoData/valid-time/security finding. Item order is
+// stable and independent GitHub approval must address each numbered finding.
 export function criticalMidReviewItems(body){
  if(typeof body!=='string')return null;
  // A Cubic XML violation and an independent plain/Markdown finding can
  // coexist in one body. Scan ALL severity markers in source order; taking
  // only the XML matches would silently discard later critical findings.
  // Conservative over-detection blocks a merge for independent disposition.
- const matches=[...body.matchAll(/\b(P[01])(?:\*\*|\])?\s*(?::|[—–-](?=\s))/gi)];
+ // Support plain "P1:", "[P1] Finding", "**P1** Finding" and dash
+ // variants. A bare free-text "P2 only" is not itself a finding.
+ const matches=[...body.matchAll(/\b(P[012])(?:\*\*|\])(?:\s*(?::|[—–-](?=\s))|\s+(?=\S))|\b(P[012])\s*(?::|[—–-](?=\s))/gi)];
  if(matches.length>1000)return null; // refuse unbounded/incomplete evidence
- return matches.map(match=>match[1].toUpperCase());
+ return matches.map(match=>(match[1]||match[2]).toUpperCase());
 }
 function validMidEvidence(uri,headSha,number){
  try{
@@ -124,7 +128,7 @@ export function assessMidPremerge({before,after,main,stable,data,finalData,numbe
   // outstanding CHANGES_REQUESTED was dismissed. Fail closed without identity.
  }
  if(requests.size)return block('CHANGES_REQUESTED');
- // Original #740 failure: Cubic COMMENTED review bodies can contain P0/P1
+ // Original #740 failure: Cubic COMMENTED review bodies can contain P0/P1/P2
  // without CHANGES_REQUESTED; thread resolution by itself is not disposition.
  // An attesting review MUST come from a different authenticated human, be
  // later than the finding, bind the exact source SHA, and enumerate every
