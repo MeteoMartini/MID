@@ -203,7 +203,7 @@ assert.ok(component.includes('Original-Modelltermin ohne zeitliche Interpolation
 assert.ok(component.includes("useDisplayPreference('CurrentSurroundings.mode','cloud',displayChoice('cloud','radar'))")&&
  component.includes("aria-pressed={mode==='cloud'}")&&component.includes("aria-pressed={mode==='radar'}")&&
  component.includes('radarOriginalForStep(catalog,now,radarStep,dwdArea)')&&
- component.includes('onChange={event=>setRadarStep(')&&component.includes("if(mode!=='radar')return"),
+ component.includes('onChange={event=>setRadarStep(')&&component.includes("if(mode!=='radar'||mapPaused)return"),
  'Persist cloud/radar mode; native radar 15-minute slider must not start observations while cloud mode is selected');
 assert.ok(css.includes('current-surroundings-cloud-timeline')&&css.includes('min-height:44px')&&css.includes('grid-column:1/-1'),'Mobile timeline keeps the clock readable and touch targets accessible');
 const quarter=valid*1000+15*60000;
