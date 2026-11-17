@@ -1,3 +1,7 @@
+# MID v0.9.85.488 · Wetterzwilling-Messwerte und mobile Navigation
+
+Ausgangsbasis `main=mid-stable=ee70a92ae6ed83d3fa46445f4941e3db8b8675d4` / v0.9.85.487. Fachlich selektierte, SHA-identische Quell-/QA-Blobs aus #897 (`e5830085739252d2bc7e4a40b88d2abe39e883df`) und #893 (`c25c205844c29d1fb1bb2074be660332de2db10a`), keine Änderungen an WMO/DWD-Warnungen oder RUC. Versionierte Release-Notiz `docs/releases/MID_RELEASE_NOTES_0.9.85.488.json`; isolierte Integrations- und Freigabenachweise in `docs/implementation/MID_LC116_RELEASE_TRAIN_488_2026_11_17.md`. Aufnahme in Stable nur nach allen Source-, Review-, Core-/Heavy-, ZIP-, Installer-, Worker/Pages- und Stable-Gates; Draft-/Einzel-Tests gelten nicht als Releasefreigabe.
+
 # MID v0.9.85.487 · Wetterzwilling und Modellfrische
 
 Basis: Stable `a78465b655d25cafc9ecc0390080694cb7aca957`. Auditkorrekturen aus #884, #885, #886 und #890, geprüft in #868 auf `dd9a9cc6eaca641785b095bf79862a4b1ba051cd`. Veröffentlichung über Source-PR-Gate, Release-Bot, Installer und Stable-Promotion.
