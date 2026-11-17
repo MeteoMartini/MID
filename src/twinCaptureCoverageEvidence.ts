@@ -20,10 +20,11 @@ export type TwinCaptureRecord = Readonly<{
  baselineSha256?:string;
  baselineIssuedAtMs?:number;
 }>;
-export type TwinCaptureBin = Readonly<{
+type MutableTwinCaptureBin = {
  label:'00-06 UTC'|'06-12 UTC'|'12-18 UTC'|'18-24 UTC';
  planned:number; original:number; paired:number;
-}>;
+};
+export type TwinCaptureBin = Readonly<MutableTwinCaptureBin>;
 export type TwinCaptureCoverageReport = Readonly<{
  validSchedule:boolean;
  expected:number;
@@ -47,7 +48,7 @@ const H=3600000;
 const SHA256=/^[0-9a-f]{64}$/;
 function absolute(value:number){return Number.isSafeInteger(value)}
 function digest(value:unknown):value is string{return typeof value==='string'&&SHA256.test(value)}
-function emptyBins():TwinCaptureBin[]{
+function emptyBins():MutableTwinCaptureBin[]{
  return [
   {label:'00-06 UTC',planned:0,original:0,paired:0},
   {label:'06-12 UTC',planned:0,original:0,paired:0},
