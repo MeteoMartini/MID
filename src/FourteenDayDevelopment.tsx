@@ -18,7 +18,7 @@ export function fourteenTemperatureSeries(series:Row[]){
  ];
 }
 // Stable UTC date-only rendering across day and year boundaries.
- // Intl.DateTimeFormat construction is comparatively costly; one lazily loaded
+// Intl.DateTimeFormat construction is comparatively costly; one lazily loaded
  // 14-day component should not create a formatter for every point and tile.
 const fourteenDateFormatter=new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',timeZone:'UTC'});
 export const fourteenDateLabel=(date:string)=>fourteenDateFormatter.format(new Date(`${date}T12:00:00Z`));
@@ -60,7 +60,8 @@ export function FourteenDayDevelopment({series,unit='kn',onOpenDay}:{series:Row[
  const phases=[{label:'Tag 1–4',rows:series.slice(0,4)},{label:'Tag 5–9',rows:series.slice(4,9)},{label:'Tag 10–14',rows:series.slice(9,14)}].filter(phase=>phase.rows.length);
  // Keep the data contract untouched; skip invisible chart derivation in table
  // mode and reuse the same series between compact/charts when input is stable.
- const chartTemperature=useMemo(()=>mode==='days'?[]:fourteenTemperatureSeries(series),[series,mode==='days']);
+ const isTableOnly=mode==='days';
+ const chartTemperature=useMemo(()=>isTableOnly?[]:fourteenTemperatureSeries(series),[series,isTableOnly]);
  const options:readonly {key:FourteenView;label:string;description:string}[]=[
   {key:'compact',label:'Übersicht',description:'Kompakte Standardansicht'},
   {key:'charts',label:'Diagramme',description:'Erweiterte Diagrammansicht'},
