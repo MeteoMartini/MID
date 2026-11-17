@@ -22,7 +22,7 @@ describe('MID: Wetter im Umfeld ↔ voller Kartenbereich (bidirektionale Fachpar
   const policy=read('docs/implementation/MID_MAP_SURFACE_BIDIRECTIONAL_PARITY_2026_11_17.md');
   expect(agents).toContain('## Bidirectional weather map parity');
   expect(agents).toContain('Every change to ');
-  expect(agents).toContain('both Wetter im Umfeld and the full Kartenbereich in **both directions**');
+  expect(agents).toContain('MUST assess **both** Wetter im Umfeld and the full Kartenbereich in **both directions**');
   expect(agents).toContain('cross-surface impact matrix');
   expect(agents).toContain('tests/unit/map-surface-bidirectional-parity.test.ts');
   expect(policy).toContain('## Abnahmematrix');
