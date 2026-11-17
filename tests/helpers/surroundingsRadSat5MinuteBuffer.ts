@@ -8,7 +8,7 @@ export const RADSAT_MAX_STEP=24; // 120 minutes ahead; positive steps are nowcas
 const HALF_STEP_MS=RADSAT_STEP_MS/2;
 const MAX_SAT_ORIGINAL_AGE_MS=15*60_000;
 const MAX_NOW_OBSERVATION_AGE_MS=10*60_000;
-const MAX_BUFFER_AGE_MS=45*60_000;
+const MAX_BUFFER_AGE_MS=70*60_000; // bounded history: -45m step + up to 15m satellite age
 const FUTURE_CLOCK_TOLERANCE_MS=90_000;
 export type OriginalTime=string|number;
 export type RadarCandidate={time:number;kind:'Beobachtung'|'Nowcast'};
@@ -50,7 +50,8 @@ export function selectSatellite5m(catalog:RadSatCatalog|undefined,now:number,ste
  if(!catalog||!Number.isFinite(target)||step>0)return undefined;
  const choices:[SatelliteCandidate['spectrum'],SatProduct|undefined][]=[['RGB',catalog.satelliteRgbProduct],['IR',catalog.satelliteIrProduct]];
  for(const [spectrum,source] of choices){
-  if(!source||source.fresh===false||source.timeVerified===false||!source.layer.trim())continue;
+  if(!source||source.fresh===false||source.timeVerified===false||
+     !['dwd','eumetsat'].includes(source.provider)||typeof source.layer!=='string'||!source.layer.trim())continue;
   const observed=originalSet(source.times).filter(time=>time<=now+FUTURE_CLOCK_TOLERANCE_MS&&
    time<=target+FUTURE_CLOCK_TOLERANCE_MS&&time>=target-MAX_SAT_ORIGINAL_AGE_MS).at(-1);
   if(observed!==undefined)return {time:observed,spectrum,provider:source.provider,layer:source.layer};
@@ -67,6 +68,7 @@ function phaseCompatible(f:BufferedFrame,kind:BufferedFrame['phase']):boolean{
 }
 function admitted(frame:BufferedFrame,scope:string,now:number):boolean{
  return frame.verifiedOriginal===true&&frame.scope===scope&&Boolean(frame.url)&&
+  (frame.family==='radar'?frame.phase==='Beobachtung'||frame.phase==='Nowcast':frame.phase==='RGB'||frame.phase==='IR')&&
   Number.isFinite(frame.originalTime)&&Number.isFinite(now)&&
   (frame.phase==='Nowcast'?frame.originalTime>now+FUTURE_CLOCK_TOLERANCE_MS&&frame.originalTime<=now+125*60_000:
    frame.originalTime<=now+FUTURE_CLOCK_TOLERANCE_MS&&frame.originalTime>=now-MAX_BUFFER_AGE_MS);
@@ -88,7 +90,7 @@ export function requestBufferedFrame(previous:BufferedState|undefined,scope:stri
  const mayKeep=previous?.scope===scope&&previous.family===family&&
   previous.visible&&phaseCompatible(previous.visible,kind)&&admitted(previous.visible,scope,now);
  const visible=mayKeep?previous?.visible:undefined;
- if(!candidate||!admitted(candidate,scope,now)||candidate.family!==family||!phaseCompatible(candidate,kind))
+ if(!candidate||!admitted(candidate,scope,now)||candidate.family!==family||candidate.phase!==kind)
   return {scope,family,requestedTime,visible,error:'no-original'};
  if(sameFrame(visible,candidate))return {scope,family,requestedTime,visible}; // no new HTTP/GPU load
  if(previous?.scope===scope&&sameFrame(previous.pending,candidate))
