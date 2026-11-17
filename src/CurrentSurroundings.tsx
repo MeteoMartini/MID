@@ -24,7 +24,7 @@ import './CurrentSurroundings.css';
 
 export type SurroundingsBounds={west:number;south:number;east:number;north:number};
 
-type Props={lat:number;lon:number;name:string;timezone:string;temperature:number;temperatureTime:string;onOpen:(time:number|undefined,bounds:SurroundingsBounds)=>void};
+type Props={lat:number;lon:number;name:string;timezone:string;temperature:number;temperatureTime:string;mapPaused?:boolean;onOpen:(time:number|undefined,bounds:SurroundingsBounds)=>void};
 const rvLayer='dwd:Radar_rv_product_1x1km_ger';
 // Mirror UnifiedVectorBasemap's proxied, consent-gated vector source policy.
 const DIRECT_VECTOR_TILES='https://tiles.openfreemap.org/planet/latest/{z}/{x}/{y}.pbf';
@@ -56,20 +56,21 @@ function imageUrl(provider:WmsProvider,layer:string,time:number,plan:Surrounding
  return url.href;
 }
 
-export function CurrentSurroundingsEntry({location,current,timezone,onOpen}:{
+export function CurrentSurroundingsEntry({location,current,timezone,onOpen,mapPaused=false}:{
  location:{latitude:number;longitude:number;name:string};
  current:{temperature_2m?:unknown;time?:unknown};
  timezone:string;
+ mapPaused?:boolean;
  onOpen:(request:{lat:number;lon:number;time?:number;bounds:SurroundingsBounds;id:number})=>void;
 }){
  const {latitude:lat,longitude:lon,name}=location;
- return <CurrentSurroundings key={`${lat}:${lon}`} lat={lat} lon={lon} name={name} timezone={timezone}
+ return <CurrentSurroundings key={`${lat}:${lon}`} lat={lat} lon={lon} name={name} timezone={timezone} mapPaused={mapPaused}
   temperature={typeof current.temperature_2m==='number'?current.temperature_2m:NaN}
   temperatureTime={String(current.time??'')} onOpen={(time,bounds)=>onOpen({lat,lon,time,bounds,id:Date.now()})}/>;
 }
 
 export default function CurrentSurroundings(props:Props){
- const {lat,lon,name,timezone,temperature,temperatureTime,onOpen}=props;
+ const {lat,lon,name,timezone,temperature,temperatureTime,onOpen,mapPaused=false}=props;
  const heading=useId();
  const [mode,setMode]=useDisplayPreference('CurrentSurroundings.mode','cloud',displayChoice('cloud','radar'));
  const [radarStep,setRadarStep]=useState(0);
@@ -96,6 +97,7 @@ export default function CurrentSurroundings(props:Props){
  const [mapCities,setMapCities]=useState<SurroundingsCityCandidate[]>([]);
  const [mapViewport,setMapViewport]=useState<{width:number;height:number}|null>(null);
  const [openingMap,setOpeningMap]=useState(false);
+ useEffect(()=>{if(mapPaused)setOpeningMap(false)},[mapPaused]);
  const [mapOpenError,setMapOpenError]=useState('');
  // Bind camera geometry to the requested location. Even if the parent changes
  // coordinates without remounting, an old image plan must not survive that switch.
@@ -311,8 +313,8 @@ export default function CurrentSurroundings(props:Props){
  const displaySiteTemperature=mode==='cloud'&&cloudStep>0?forecastSiteTemperature:(mode==='cloud'||radarAtNow)&&Number.isFinite(temperature)?temperature:undefined;
  const visibleClouds=Boolean(satelliteFrameUrl);
  return <section className="card current-surroundings" aria-labelledby={heading}>
-  <header><h2 id={heading}>Wetter im Umfeld</h2><button type="button" disabled={openingMap} aria-busy={openingMap} onClick={()=>{
-   if(openingMap)return;
+  <header><h2 id={heading}>Wetter im Umfeld</h2><button type="button" disabled={openingMap||mapPaused} aria-busy={openingMap} onClick={()=>{
+   if(openingMap||mapPaused)return;
    setMapOpenError('');setOpeningMap(true);
    // Ephemeral on-device diagnostic, without coordinates or request URLs.
    // Allows the root StartupGuard's recorded error to be correlated with a
@@ -352,8 +354,8 @@ export default function CurrentSurroundings(props:Props){
     <button type="button" aria-pressed={showPhase} disabled={!radarAtNow} onClick={()=>setShowPhase(value=>!value)}>Niederschlagsart</button>
    </div>
   </>}
-  <figure ref={mapFigureRef} className="current-surroundings-map" aria-label={`Wetterbild um ${name}: MID-Kartenbasis und Temperaturen an benannten Orten`}>
-   <MidMapLibre center={[lat,lon]} zoom={7} scrollZoom={false} interactive={false} navigationControl={false} className="current-surroundings-maplibre">
+  <figure ref={mapFigureRef} className="current-surroundings-map" aria-label={mapPaused?`Umfeldkarte um ${name} pausiert, während die große Karte geöffnet ist`:`Wetterbild um ${name}: MID-Kartenbasis und Temperaturen an benannten Orten`}>
+   {mapPaused?<p className="current-surroundings-map-paused" role="status">Umfeldkarte pausiert · große Karte geöffnet. Zur Ansicht „Aktuell“ wechseln, um die Vorschau wieder anzuzeigen.</p>:<MidMapLibre center={[lat,lon]} zoom={7} scrollZoom={false} interactive={false} navigationControl={false} className="current-surroundings-maplibre">
     <MapFitBounds south={south} west={west} north={north} east={east} padding={8} maxZoom={7}/>
     <SurroundingsViewportCapture onChange={plan=>setRasterState({lat,lon,plan})}/>
     <UnifiedVectorBasemap dark={darkMap}/>
@@ -378,7 +380,7 @@ export default function CurrentSurroundings(props:Props){
     })}
     <HtmlMarker latitude={lat} longitude={lon} anchor="center" className="current-surroundings-center-marker" zIndex={920}
      html={`<span class="current-surroundings-center-dot" role="img" aria-label="Gewählter Ort: ${mapSafe(name)}${displaySiteTemperature!==undefined?`, ${formatWeatherValue(displaySiteTemperature!,'temperature','overview')} Grad Celsius`:''}">${displaySiteTemperature!==undefined?`<strong style="color:${ecmwfTemperatureColor(displaySiteTemperature!)}">${formatWeatherValue(displaySiteTemperature!,'temperature','overview')}°</strong>`:''}</span>`}/>
-   </MidMapLibre>
+   </MidMapLibre>}
    <figcaption className="current-surroundings-map-caption">Standort: {name}</figcaption>
   </figure>
   <div role="status" aria-live="polite" className="current-surroundings-data-status">{mode==='cloud'

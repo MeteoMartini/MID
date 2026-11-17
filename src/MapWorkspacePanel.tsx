@@ -12,6 +12,7 @@ const LazyUnifiedWeatherMap=lazy(()=>import('./UnifiedWeatherMap'));
 const MemoLazyUnifiedWeatherMap=memo(LazyUnifiedWeatherMap);
 
 type MapWorkspacePanelProps={
+ gpuPaused?:boolean;
  lat:number;
  lon:number;
  timezone:string;
@@ -38,9 +39,11 @@ export default function MapWorkspacePanel(props:MapWorkspacePanelProps){
  },[]);
 
  return <section className={`map-workspace-shell${props.focusMode?' focus':''}`} aria-label="Kartenarbeitsbereich">
+  {props.gpuPaused?<p className="map-workspace-paused">Kartenrenderer pausiert · zur Ansicht „Karten“ wechseln, um die interaktive Karte wieder anzuzeigen.</p>:<>
   <MapWorkspaceErrorBoundary key={`${props.lat}:${props.lon}:${retryRevision}`} onRetry={()=>setRetryRevision(value=>value+1)}>
    <Suspense fallback={<LoadingMapPanel/>}><MemoLazyUnifiedWeatherMap {...props} requestedProductId={requestedProductId}/></Suspense>
    <GeoSphereIncaNowcast lat={props.lat} lon={props.lon} timezone={props.timezone}/>
   </MapWorkspaceErrorBoundary>
+  </>}
  </section>
 }
