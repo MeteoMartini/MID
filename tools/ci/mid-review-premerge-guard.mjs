@@ -36,7 +36,7 @@ function validMidEvidence(uri,headSha,number){
 const DISPOSITION=/^MID-740-DISPOSITION v1 sha=([a-f0-9]{40}) review=([a-zA-Z0-9_-]{8,128}) item=([1-9][0-9]{0,3}) result=(fixed|false-positive) evidence=(https:\/\/\S+)$/;
 
 
-export function assessMidPremerge({before,after,main,stable,data,number,sha,branch,sourceBaseSha,recovery}={}){
+export function assessMidPremerge({before,after,main,stable,data,finalData,number,sha,branch,sourceBaseSha,recovery}={}){
  if(!Number.isSafeInteger(number)||number<1||!SHA.test(sha??'')||!BRANCH.test(branch??''))return block('BAD_INPUT');
  if(!SHA.test(sourceBaseSha??''))return block('SOURCE_BASE_UNVERIFIED');
  if(!SHA.test(main?.commit?.sha??'')||!SHA.test(stable?.commit?.sha??'')||main.commit.sha!==sourceBaseSha)return block('SOURCE_DRIFT');
@@ -47,6 +47,9 @@ export function assessMidPremerge({before,after,main,stable,data,number,sha,bran
   p.head?.sha===sha&&p.head?.repo?.full_name===REPO;
  if(!match(before)||!match(after))return block('PR_DRIFT');
  if(data?.truncated!==false||!Array.isArray(data.threads)||!Array.isArray(data.reviews))return block('EVIDENCE_INCOMPLETE');
+ // The PR and its source SHA can stay unchanged while reviews arrive or
+ // threads are edited. Require two complete, identical GitHub snapshots.
+ if(JSON.stringify(data)!==JSON.stringify(finalData))return block('REVIEW_SNAPSHOT_DRIFT');
  const p=data.meta;
  if(p?.number!==number||p.headRefOid!==sha||p.headRefName!==branch||
     p.baseRefName!=='main'||p.state!=='OPEN'||p.isDraft!==false)return block('GRAPHQL_PR_DRIFT');
@@ -126,8 +129,9 @@ export function assessMidPremerge({before,after,main,stable,data,number,sha,bran
  // An attesting review MUST come from a different authenticated human, be
  // later than the finding, bind the exact source SHA, and enumerate every
  // critical item with a GitHub evidence reference. No self-approval.
- const classified=submitted.map(r=>({review:r,items:
-  ['COMMENTED','APPROVED'].includes(r.state)?criticalMidReviewItems(r.body):[]}));
+ // Dismissing a GitHub review or clearing its change-request state is not
+ // an assessment of the critical findings in its original text.
+ const classified=submitted.map(r=>({review:r,items:criticalMidReviewItems(r.body)}));
  // Never silently drop invalid/oversized review evidence during filtering.
  if(classified.some(x=>x.items===null))return block('CRITICAL_REVIEW_EVIDENCE_INVALID');
  // A COMMENTED/APPROVED critical review may itself be edited after its
@@ -226,12 +230,13 @@ export async function runMidReviewGuard(env=process.env){
  const get=path=>gh(['--method','GET',path]);
  const before=get('repos/'+REPO+'/pulls/'+number);
  const main=get('repos/'+REPO+'/branches/main'),stable=get('repos/'+REPO+'/branches/mid-stable');
- const data=await collectMidReviews(async({threadAfter,reviewAfter})=>{
+ const query=async({threadAfter,reviewAfter})=>{
   const args=['graphql','-f','query='+MID_REVIEW_QUERY,'-f','owner=MeteoMartini','-f','name=MID','-F','number='+number];
   if(threadAfter!==null)args.push('-f','threadAfter='+threadAfter);
   if(reviewAfter!==null)args.push('-f','reviewAfter='+reviewAfter);
   return gh(args);
- },number,sha);
+ };
+ const data=await collectMidReviews(query,number,sha);
  let recovery;
  if(main.commit.sha!==stable.commit.sha&&main.commit.sha===sourceBaseSha){
   const read=path=>get('repos/'+REPO+'/'+path);
@@ -243,10 +248,11 @@ export async function runMidReviewGuard(env=process.env){
    recovery={...evidence,main:sourceBaseSha,stable:stable.commit.sha};
   }
  }
+ const finalData=await collectMidReviews(query,number,sha);
  const after=get('repos/'+REPO+'/pulls/'+number);
  const finalMain=get('repos/'+REPO+'/branches/main'),finalStable=get('repos/'+REPO+'/branches/mid-stable');
  if(finalMain.commit.sha!==main.commit.sha||finalStable.commit.sha!==stable.commit.sha)return block('SOURCE_DRIFT');
- return assessMidPremerge({before,after,main,stable,data,number,sha,branch,sourceBaseSha,recovery});
+ return assessMidPremerge({before,after,main,stable,data,finalData,number,sha,branch,sourceBaseSha,recovery});
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  try{

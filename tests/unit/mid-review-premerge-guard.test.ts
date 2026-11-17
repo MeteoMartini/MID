@@ -4,7 +4,12 @@ import {assessMidPremerge as check,collectMidReviews,criticalMidReviewItems} fro
 const sha='a'.repeat(40),stable='b'.repeat(40),branch='chatgpt/v0.9.85.455-review-native-guard';
 const pr={number:777,state:'open',draft:false,base:{ref:'main',sha:stable},head:{ref:branch,sha,repo:{full_name:'MeteoMartini/MID'}},user:{login:'coder'}};
 const meta={number:777,headRefOid:sha,headRefName:branch,baseRefName:'main',state:'OPEN',isDraft:false};
-const input=(x:any={})=>({number:777,sha,branch,sourceBaseSha:stable,before:pr,after:pr,main:{commit:{sha:stable}},stable:{commit:{sha:stable}},data:{meta,threads:[],reviews:[],truncated:false},...x});
+const input=(x:any={})=>{
+ const data={meta,threads:[],reviews:[],truncated:false};
+ return {number:777,sha,branch,sourceBaseSha:stable,before:pr,after:pr,
+  main:{commit:{sha:stable}},stable:{commit:{sha:stable}},data,
+  finalData:Object.hasOwn(x,'data')?x.data:data,...x};
+};
 const thread=(isResolved:boolean,isOutdated=false,id='t1')=>({
  isResolved,isOutdated,id,comments:{nodes:[{
   id:'PRRC_'+id.padEnd(8,'x'),body:'Routine note',createdAt:'2026-11-11T14:00:00Z',
@@ -53,6 +58,32 @@ describe('SHA-bound MID merge-time review guard',()=>{
   expect(check(input({data:{meta,threads:[],reviews:[review('COMMENTED')],truncated:false}})))
    .toMatchObject({ok:true,independentlyReviewed:false,reviewDispositionAttested:false,
     mergeAuthorized:false,releaseAuthorized:false});
+ });
+ it('blocks review changes between readbacks even with an unchanged PR and HEAD',()=>{
+  const data={meta,threads:[thread(true)],reviews:[review('COMMENTED')],truncated:false};
+  const edited=structuredClone(data);
+  edited.threads[0].comments.nodes[0].body='P1: late inline finding';
+  const late={...data,reviews:[...data.reviews,review('COMMENTED','PRR_lateCritical',
+   'cubic-dev-ai','2026-11-11T15:04:00Z','P1: arrived during recovery readback')]};
+  for(const finalData of [undefined,edited,late,{...data,truncated:true}]){
+   expect(check(input({data,finalData}))).toMatchObject({
+    ok:false,reason:'MID_REVIEW_REVIEW_SNAPSHOT_DRIFT',mergeAuthorized:false
+   });
+  }
+  expect(check(input({data,finalData:structuredClone(data)})).ok).toBe(true);
+ });
+ it.each(['CHANGES_REQUESTED','DISMISSED'])('keeps P1 finding in a %s review until disposition',state=>{
+  const critical=review(state,'PRR_priorCritical','reviewer','2026-11-11T15:00:00Z',
+   'P1: unsafe release package');
+  const clear=review('APPROVED','PRR_sameReviewer','reviewer','2026-11-11T15:01:00Z');
+  const verify=(reviews:any[])=>check(input({data:{meta,threads:[],reviews,truncated:false}}));
+  expect(verify([critical,clear])).toMatchObject({
+   ok:false,reason:'MID_REVIEW_CRITICAL_REVIEW_UNATTESTED'
+  });
+  const evidence='https://github.com/MeteoMartini/MID/blob/'+sha+'/tools/ci/release.mjs';
+  const independent=review('APPROVED','PRR_otherReviewer','independent','2026-11-11T15:02:00Z',
+   'MID-740-DISPOSITION v1 sha='+sha+' review=PRR_priorCritical item=1 result=fixed evidence='+evidence);
+  expect(verify([critical,clear,independent])).toMatchObject({ok:true,reviewDispositionAttested:true});
  });
  it('blocks resolved inline Cubic P1 until an independent SHA-bound disposition exists',()=>{
   const resolved=thread(true,false,'PRRT_inline001');
