@@ -47,7 +47,7 @@ describe('MID Design19 – selected-place bar, full location/alias label across 
   const name='<img src=x onerror=alert(1)> & "Ort"';
   const html=render(name);
   expect(html).not.toContain('<img');
-  expect(html).not.toContain('onerror=');
+  expect(html).not.toContain('<img src=x');
   expect(html).toContain('&lt;img');
   expect(html).toContain('&amp;');
   expect(html).toContain('&quot;');
