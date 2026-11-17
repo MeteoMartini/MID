@@ -52,3 +52,48 @@ export function withCanvasFadeRollback<T>(attempt:()=>T,rollback:()=>void):T{
   throw error;
  }
 }
+
+/**
+ * MID-Karten: map event redraws are presentation work, not source refreshes.
+ * MapLibre can emit many 'render' events while the document is hidden.
+ * Coalesce them into a single fresh redraw on return instead of retaining a
+ * stale RAF that background throttling may postpone indefinitely.
+ * No weather value, observation TIME, model run or NoData is mutated here.
+ */
+export function createMapCanvasRedrawScheduler(
+ draw:()=>void,
+ requestFrame:(callback:()=>void)=>number,
+ cancelFrame:(handle:number)=>void,
+ isVisible:()=>boolean,
+){
+ let pending:number|null=null,dirty=false,disposed=false,generation=0;
+ const cancel=()=>{
+  ++generation;
+  if(pending!==null){cancelFrame(pending);pending=null}
+ };
+ const schedule=()=>{
+  if(disposed||!dirty||pending!==null||!isVisible())return;
+  const current=++generation;
+  pending=requestFrame(()=>{
+   if(disposed||generation!==current)return;
+   pending=null;
+   if(!isVisible())return; // Keep dirty; resume draws the CURRENT image.
+   if(!dirty)return;
+   dirty=false;
+   draw();
+  });
+ };
+ const request=()=>{
+  if(disposed)return;
+  dirty=true;
+  schedule();
+ };
+ const visibilityChange=(visible:boolean)=>{
+  if(disposed)return;
+  if(!visible){cancel();dirty=true;return}
+  // Redraw on return even if no map event fired while hidden.
+  request();
+ };
+ const dispose=()=>{disposed=true;cancel();dirty=false};
+ return {request,visibilityChange,dispose};
+}
