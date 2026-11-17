@@ -34,6 +34,14 @@ export async function verifyCssManifestAgainstDist(root,identity,assets){
  const id=obj(identity,'identity'),expected=validateExpectedCssAssets(assets);
  if(id.schema!=='mid.web-build-identity.v1'||!sha40.test(id.sourceGitSha??'')||!sha64.test(id.assetsSha256??''))
   fail('exact production build identity required');
+ // The fingerprint intentionally excludes this metadata file. A caller-provided
+ // identity must still match the identity actually embedded in the dist.
+ let embeddedIdentity;
+ try{embeddedIdentity=JSON.parse(await readFile(join(resolve(root),'mid-build-identity.json'),'utf8'))}
+ catch{fail('embedded dist build identity missing or invalid')}
+ for(const key of ['schema','version','sourceGitSha','assetsSha256','assetCount']){
+  if(embeddedIdentity?.[key]!==id[key])fail('embedded dist build identity mismatch: '+key);
+ }
  await verifyStartupBuildIdentity(resolve(root),id);
  const version=JSON.parse(await readFile(join(resolve(root),'version.json'),'utf8'));
  if(version.version!==id.version)fail('version.json identity drift');

@@ -82,6 +82,15 @@ describe('MID Design 1.8 – CSS real response/body and applied CSSOM evidence',
    const result=await verifyCssManifestAgainstDist(root,exact,[{role:'shell',path:'assets/index.css',sha256:cssHash}]);
    expect(result.verified).toBe(true);
    expect(result.inlineStyleSha256).toEqual([inlineHash]);
+   // An altered or removed identity.json is invisible to the asset fingerprint
+   // because that metadata file is deliberately excluded from its inventory.
+   await writeFile(join(root,'mid-build-identity.json'),JSON.stringify({...exact,sourceGitSha:'c'.repeat(40)}));
+   await expect(verifyCssManifestAgainstDist(root,exact,[{role:'shell',path:'assets/index.css',sha256:cssHash}]))
+    .rejects.toThrow(/embedded dist build identity mismatch: sourceGitSha/);
+   await rm(join(root,'mid-build-identity.json'));
+   await expect(verifyCssManifestAgainstDist(root,exact,[{role:'shell',path:'assets/index.css',sha256:cssHash}]))
+    .rejects.toThrow(/embedded dist build identity missing or invalid/);
+   await writeFile(join(root,'mid-build-identity.json'),JSON.stringify(exact));
    await writeFile(join(root,'assets/index.css'),css+' /* altered */');
    await expect(verifyCssManifestAgainstDist(root,exact,[{role:'shell',path:'assets/index.css',sha256:cssHash}]))
     .rejects.toThrow(/fingerprint/);
