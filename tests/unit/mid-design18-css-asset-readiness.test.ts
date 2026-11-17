@@ -10,6 +10,7 @@ import {
 
 const digest=(value:Buffer|string)=>createHash('sha256').update(value).digest('hex');
 const css='body{color:#112233}',inline='html{font-size:16px}',cssHash=digest(css),inlineHash=digest(inline);
+const cssomHash=digest('body { color: rgb(17, 34, 51); }');
 const origin='http://127.0.0.1:4100';
 const identity={schema:'mid.web-build-identity.v1',version:'0.9.85.486',
  sourceGitSha:'a'.repeat(40),assetsSha256:'b'.repeat(64),assetCount:3};
@@ -19,8 +20,8 @@ const manifest=()=>({schema:'mid.design18.css-dist-manifest.v1',
  inlineStyleSha256:[inlineHash],verified:true});
 const response=()=>({path:'assets/index.css',status:200,bodySha256:cssHash});
 const dom=()=>({fontsStatus:'loaded',adoptedStyleSheetCount:0,stylesheets:[
- {kind:'inline',sha256:inlineHash,path:null,ruleCount:1,readable:true,disabled:false},
- {kind:'external',sha256:null,path:'assets/index.css',ruleCount:1,readable:true,disabled:false},
+ {kind:'inline',sha256:inlineHash,path:null,ruleCount:1,cssomSha256:cssomHash,readable:true,disabled:false},
+ {kind:'external',sha256:null,path:'assets/index.css',ruleCount:1,cssomSha256:cssomHash,readable:true,disabled:false},
 ]});
 const valid=()=>({manifest:manifest(),responses:[response()],frames:[dom(),dom()],origin});
 describe('MID Design 1.8 – CSS real response/body and applied CSSOM evidence',()=>{
@@ -56,6 +57,14 @@ describe('MID Design 1.8 – CSS real response/body and applied CSSOM evidence',
   expect(()=>verifyCssLoadReadiness(y)).toThrow(/order/);
   const z=valid();z.frames[1].stylesheets[0].ruleCount=2;
   expect(()=>verifyCssLoadReadiness(z)).toThrow(/rule count/);
+ });
+ it('rejects CSSOM rule-content drift despite unchanged selector/rule counts',()=>{
+  const a=valid();a.frames[1].stylesheets[0].cssomSha256='f'.repeat(64);
+  expect(()=>verifyCssLoadReadiness(a)).toThrow(/stylesheet order\/rule count changed/);
+  const b=valid();b.frames[0].stylesheets[1].cssomSha256='';
+  expect(()=>verifyCssLoadReadiness(b)).toThrow(/unfingerprinted CSSOM/);
+  const c=valid();c.frames[0].stylesheets[0].cssomSha256=null;
+  expect(()=>verifyCssLoadReadiness(c)).toThrow(/unfingerprinted CSSOM/);
  });
  it('rejects path traversal, duplicates, remote origin or unverified manifests',()=>{
   for(const path of ['../index.css','assets/../secret.css','https://evil.example/a.css','assets/a.css?x=1'])
