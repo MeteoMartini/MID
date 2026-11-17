@@ -232,8 +232,12 @@ export function CanvasOverlay({id,opacity=1,zIndex=5,render,events=['moveend','z
    settled=true;
    document.removeEventListener('visibilitychange',onVisibility);
    cancelAnimationFrame(raf);window.clearTimeout(timer);old.remove();
-   canvas.style.transition='none';
-   canvas.style.opacity=String(Math.max(0,Math.min(1,opacityRef.current)));
+   // TypeScript must re-check this captured DOM ref inside the delayed
+   // callback; React's outer effect guard does not narrow future closures.
+   if(canvas){
+    canvas.style.transition='none';
+    canvas.style.opacity=String(Math.max(0,Math.min(1,opacityRef.current)));
+   }
   }
   function onVisibility(){if(document.visibilityState!=='visible')finishFade()}
   // Rendering or scheduling can fail after the previous image is inserted.
