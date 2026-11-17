@@ -69,9 +69,25 @@ export function preferLiveObservationIndex(frames:CompositeTimelineFrame[],obser
  return frames.findIndex(frame=>frame.time===latest);
 }
 
-/** A loaded radar stand can bridge a failed successor for a bounded period. */
+/** The large map and the surrounding map must never relabel a radar observation
+ * as a nowcast (or the reverse) just to keep a texture visible while loading.
+ * Times are source-original UTC seconds, not slider-step indices. The retained
+ * image keeps its OWN source time while a new candidate is checked.
+ *
+ * Within each phase a bounded previously loaded DWD frame may bridge a failed
+ * successor, including a genuine nowcast. No future satellite observations or
+ * weather-code extrapolation are implied by this raster-only retention policy.
+ */
 export function retainLoadedRadarStand(time:number|undefined,referenceSeconds:number,targetSeconds=referenceSeconds){
- return time!==undefined&&time>=referenceSeconds-45*60&&time<=referenceSeconds+90&&Math.abs(targetSeconds-time)<=30*60;
+ if(time===undefined||![time,referenceSeconds,targetSeconds].every(Number.isFinite))return false;
+ const boundary=referenceSeconds+90;
+ const originalIsNowcast=time>boundary,requestedIsNowcast=targetSeconds>boundary;
+ if(originalIsNowcast!==requestedIsNowcast)return false;
+ if(originalIsNowcast)
+  return time<=referenceSeconds+120*60&&targetSeconds<=referenceSeconds+120*60&&
+   Math.abs(targetSeconds-time)<=15*60;
+ return time>=referenceSeconds-45*60&&time<=boundary&&
+  Math.abs(targetSeconds-time)<=30*60;
 }
 
 export function uniqueTimedFrames<T extends TimedFrame>(frames:T[],minimum:number,maximum:number){
