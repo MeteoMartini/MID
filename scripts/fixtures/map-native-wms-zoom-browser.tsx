@@ -5,7 +5,7 @@
  */
 import React,{useCallback,useEffect,useState} from 'react';
 import {createRoot} from 'react-dom/client';
-import {MidMapLibre,useMidMap} from '../../src/MapLibreCore';
+import {MidMapLibre,ImageQuadLayer,useMidMap} from '../../src/MapLibreCore';
 import {WMSTileLayer,useMapEvents} from '../../src/MapLibreLegacyCompat';
 import {mapTemporalWmsZoomPolicy} from '../../src/mapTemporalWmsZoomPolicy';
 
@@ -43,6 +43,10 @@ function NativeRasterZoomProbe(){
   <button type="button" onClick={()=>setMode('observed')}>DWD observed original</button>
   <button type="button" onClick={()=>setMode('nowcast')}>DWD nowcast original</button>
   <button type="button" onClick={()=>setMode('latest')}>Untimed latest snapshot</button>
+  {!latestOnly&&<ImageQuadLayer id="qa-surroundings-original" key={original}
+   url={location.origin+'/__mid_qa_wms?service=WMS&request=GetMap&layers=qa-surroundings&bbox=4,48,11,53&width=256&height=256&time='+encodeURIComponent(original!)}
+   bounds={[[48,4],[53,11]]} zIndex={210} onReady={()=>setReadyCount(value=>value+1)}
+   onError={()=>setErrorCount(value=>value+1)}/>}
   {(!zooming||policy.retainDuringZoom)&&<WMSTileLayer
    key={`qa:${mode}:${original??'latest'}:${policy.revision}`}
    url={location.origin+'/__mid_qa_wms?revision='+policy.revision}
