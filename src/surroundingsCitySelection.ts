@@ -13,7 +13,7 @@ export function chooseSurroundingsCities(
  center:{lat:number;lon:number},bounds:SurroundingsCityBounds,maximum=4,viewport?:{width:number;height:number}
 ):SurroundingsCity[]{
  if(!finite(center.lat)||!finite(center.lon)||![bounds.west,bounds.east,bounds.south,bounds.north].every(finite)||
-  bounds.east<=bounds.west||bounds.north<=bounds.south||!Number.isInteger(maximum)||maximum<1||maximum>4)return[];
+  bounds.east<=bounds.west||bounds.north<=bounds.south||!Number.isInteger(maximum)||maximum<1||maximum>6)return[];
  // Match MapLibre's fitBounds/Web-Mercator viewport instead of assuming a fixed 512×256 raster.
  const width=viewport?.width??512,height=viewport?.height??256;
  if(!finite(width)||!finite(height)||width<180||height<155||width>4000||height>4000)return[];
