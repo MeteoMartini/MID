@@ -121,13 +121,13 @@ export async function runDesign19CssSamePage({
    fail('captured stylesheet count differs from fully observed applied sheets');
   const after=requireObservedCssom(await h.captureCssomCase(page,captureOptions),id,s,'after',h.validateCssomCase);
   onlySameOrigin(page,origin,'final CSSOM capture');
+  if(after.readiness.styleSheetCount!==css.orderedStylesheets.length)
+   fail('stylesheet inventory drift after CSS loading evidence');
   if(!isDeepStrictEqual(before.environment,after.environment)||
      !isDeepStrictEqual(before.readiness,after.readiness)||
      !isDeepStrictEqual(before.rootTokens,after.rootTokens)||
      !isDeepStrictEqual(before.elements,after.elements))
    fail('computed style or geometry drift between CSS load completion and final capture');
-  if(after.readiness.styleSheetCount!==css.orderedStylesheets.length)
-   fail('stylesheet inventory drift after CSS loading evidence');
   return {
    schema:'mid.design19.linked-css-page-observation.v1',
    status:'ONE_PAGE_ONE_WINDOW_DESCRIPTIVE_ONLY',
