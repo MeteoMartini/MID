@@ -55,12 +55,12 @@ React Rendering/Performance-Guidance: https://react.dev/reference/react/useMemo
 
 In der bereits geänderten `src/radarForecastReadability.css` hat die native `details > summary`-Schaltfläche nun explizit `touch-action:manipulation` und einen per Tastatur sichtbaren `:focus-visible`-Indikator: `3px solid var(--primary)` mit `outline-offset:2px`. Die vorhandene `summary`-Pfeilmarkierung, Klick-/Enter-/Leertasten-Nativfunktion und die 44-px-Touchhöhe bleiben unverändert; es entstehen weder zusätzliche Listener noch ein selbstgebauter Disclosure-Controller. Der bereits existierende App-Farbtoken `--primary` wird verwendet, keine lokale Palette eingeführt.
 
-Der Regressionstest wurde von sechs auf **sieben** Fälle erweitert. Neu wird zusätzlich sichergestellt, dass extreme einzelne gültige Ensemble-Mitglieder bei Änderung der Tagesreihenfolge nicht abgeschnitten oder geglättet werden (unter anderem -95 °C, +114 °C, 600 mm und 310 kt als ausdrücklich synthetische Testextreme). Das ist ein algorithmischer Robustheitsnachweis, **keine Behauptung realistischer Vorhersagewerte** und keine Freigabe dieser synthetischen Fälle für die UI.
+Der Regressionstest wurde auf **acht** Fälle erweitert. Neu wird zusätzlich sichergestellt, dass extreme einzelne gültige Ensemble-Mitglieder bei Änderung der Tagesreihenfolge nicht abgeschnitten oder geglättet werden (unter anderem -95 °C, +114 °C, 600 mm und 310 kt als ausdrücklich synthetische Testextreme). Das ist ein algorithmischer Robustheitsnachweis, **keine Behauptung realistischer Vorhersagewerte** und keine Freigabe dieser synthetischen Fälle für die UI.
 
 W3C Focus Visible: https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html
 W3C Fokus-Technik G195: https://www.w3.org/WAI/WCAG22/Techniques/general/G195
 web.dev INP / Layout-Thrashing: https://web.dev/articles/avoid-large-complex-layouts-and-layout-thrashing
 
-Die Fokusfarben-Kontrastmessung unter realen MID Light-/Dark-/High-Contrast-Tokens sowie Browser-/Screenreader-Nachweise sind **weiterhin offen**. Kein Source-/Release-Gate wird dadurch ersetzt.
+Zusätzliche **statische Kontrastregression**: Der Test liest direkt die kanonischen `--primary`-, `--bg`-, `--surface`- und `--s2`-Werte aus `src/styles-src/00-foundation.css` und berechnet den WCAG-Kontrast in beiden veröffentlichten Theme-Basissätzen. Die Outline muss gegenüber allen drei Standardflächen mindestens **3:1** erreichen; Fehler schlagen fehl. Rechnerische Tokenprüfung ersetzt weder den Browser-Computed-Style-Test noch die Bewertung weiterer Transparenz-/High-Contrast-Ebenen oder VoiceOver. Diese **realen Light-/Dark-/High-Contrast-/Browser-/Screenreader-Nachweise bleiben offen**. Kein Source-/Release-Gate wird dadurch ersetzt.
 
 **Ergebnis:** isolierte Produkt-/QA-Änderung mit vollständigem Besitzer-Handoff, keine neue Produktentscheidung und keine Stable-Veröffentlichung.
