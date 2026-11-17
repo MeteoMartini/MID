@@ -95,16 +95,16 @@ export function verifyCssLoadReadiness({manifest,responses,frames,origin}){
   for(const sheet of v.stylesheets){
    const x=obj(sheet,'DOM stylesheet');
    if(!Number.isSafeInteger(x.ruleCount)||x.ruleCount<1||
-      x.disabled!==false||x.readable!==true)
-    fail('unreadable, disabled or empty CSSOM sheet');
+      x.disabled!==false||x.readable!==true||!sha64.test(x.cssomSha256??''))
+    fail('unreadable, disabled, empty or unfingerprinted CSSOM sheet');
    if(x.kind==='inline'){
     if(!sha64.test(x.sha256??'')||!m.inlineStyleSha256.includes(x.sha256)||
        inlines.has(x.sha256))fail('unverified or duplicate inline stylesheet');
-    inlines.add(x.sha256);rows.push({inlineSha256:x.sha256,ruleCount:x.ruleCount});
+    inlines.add(x.sha256);rows.push({inlineSha256:x.sha256,ruleCount:x.ruleCount,cssomSha256:x.cssomSha256});
    }else if(x.kind==='external'){
     if(!validPath(x.path)||!expected.has(x.path)||matches.has(x.path))
      fail('undeclared or duplicate external CSSOM sheet');
-    matches.set(x.path,x);rows.push({path:x.path,ruleCount:x.ruleCount});
+    matches.set(x.path,x);rows.push({path:x.path,ruleCount:x.ruleCount,cssomSha256:x.cssomSha256});
    }else fail('unrecognized CSS stylesheet origin');
   }
   if(matches.size!==expected.size||inlines.size!==m.inlineStyleSha256.length)
@@ -204,7 +204,7 @@ export function observeCssResponses(page,{manifest,origin}){
       await new Promise(ok=>requestAnimationFrame(()=>requestAnimationFrame(ok)));
       const stylesheets=[];
       for(const sheet of document.styleSheets){
-       let path=null,inlineHash=null,kind=null,readable=false,ruleCount=null;
+       let path=null,inlineHash=null,kind=null,readable=false,ruleCount=null,cssomSha256=null;
        try{
         if(sheet.href){
          const u=new URL(sheet.href,location.href);
@@ -218,9 +218,14 @@ export function observeCssResponses(page,{manifest,origin}){
          inlineHash=[...bytes].map(b=>b.toString(16).padStart(2,'0')).join('');
          kind='inline';
         }
-        ruleCount=sheet.cssRules.length;readable=true;
+        const rules=[...sheet.cssRules];
+        ruleCount=rules.length;
+        const data=new TextEncoder().encode(rules.map(rule=>rule.cssText).join('\n'));
+        const bytes=new Uint8Array(await crypto.subtle.digest('SHA-256',data));
+        cssomSha256=[...bytes].map(b=>b.toString(16).padStart(2,'0')).join('');
+        readable=true;
        }catch{}
-       stylesheets.push({kind,path,sha256:inlineHash,readable,ruleCount,disabled:sheet.disabled===true});
+       stylesheets.push({kind,path,sha256:inlineHash,cssomSha256,readable,ruleCount,disabled:sheet.disabled===true});
       }
       return {fontsStatus:document.fonts.status,adoptedStyleSheetCount:document.adoptedStyleSheets.length,stylesheets};
      },{origin});
