@@ -10,6 +10,8 @@ on:
       - reopened
     paths:
       - 'tools/ci/mid_740_restore_dist.py'
+      - 'tools/ci/mid_740_stage_dist.py'
+      - 'tools/ci/test_mid_740_stage_dist.py'
       - 'tools/ci/test_mid_740_restore_dist.py'
       - '.github/workflows/mid-740-pr-artifact-shadow-qa.yml'
       - 'ci/github/workflows/mid-740-pr-artifact-shadow-qa.yml'
@@ -181,9 +183,16 @@ jobs:
           git fetch --no-tags --depth=1 origin "$stable"
           test "$(git rev-parse "$stable:dist")" = "$tree"
           recovery="$(mktemp -d "$RUNNER_TEMP/mid740-dist-restore.XXXXXXXX")"
-          git archive --format=zip "$stable" dist > "$recovery/MID-dist-release.zip"
-          read -r digest _ < <(sha256sum "$recovery/MID-dist-release.zip")
-          python3 tools/ci/mid_740_restore_dist.py "$recovery/MID-dist-release.zip" \
+          python3 tools/ci/mid_740_stage_dist.py "$recovery/bundle" "$tree" "$stable" 0.9.85.486 \
+            > "$recovery/staged.json"
+          jq -e --arg tree "$tree" --arg sha "$stable" '
+            .schema == "mid.740.installer-dist.v1" and .distTreeSha == $tree and
+            .sourceSha == $sha and .version == "0.9.85.486"' "$recovery/bundle/MID-release-manifest.json"
+          jq -e '.status == "INSTALLER_DIST_BUNDLE_QA_ONLY" and .files == 151 and
+            .installerAttestationVerified == false and .recoveryAuthorized == false and
+            .releaseAuthorized == false' "$recovery/staged.json"
+          digest="$(jq -r '.distDigest | sub("^sha256:"; "")' "$recovery/bundle/MID-release-manifest.json")"
+          python3 tools/ci/mid_740_restore_dist.py "$recovery/bundle/MID-dist-release.zip" \
             "$recovery/restored" "$digest" "$tree" 0.9.85.486
           git -C "$recovery/restored" init -q
           git -C "$recovery/restored" add -f dist

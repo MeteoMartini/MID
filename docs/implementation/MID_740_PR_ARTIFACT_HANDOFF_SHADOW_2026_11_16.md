@@ -142,3 +142,54 @@ Diese Probe setzt den veröffentlichten Installer-Commit mit `dist` im Git-Tree 
 Der optionale Schlussparameter `--installer-attestation` nach `RESTORE_DESTINATION` wählt den neuen QA-Modus. Eine Release-Attestierung für jedes der drei Assets bleibt erforderlich. Zusätzlich muss das höchstens 64 KiB große Release-Manifest selbst als Build-Artefakt attestiert sein. Der Prüfer übergibt exakt die zuvor gegen GitHubs Release-Digest geprüften Manifest-Bytes aus einem privaten temporären Verzeichnis an `gh attestation verify`. Signer-Workflow ist `MeteoMartini/MID/.github/workflows/install-mid.yml`; Signer- und Source-Digest entsprechen dem erwarteten Commit, Source-Ref ist `refs/heads/main`, Self-hosted Runner sind ausgeschlossen.
 
 Das Manifest enthält `schema: "mid.740.installer-dist.v1"`, `version`, `sourceSha`, `distTreeSha` (40-stellige Git-OID) und `distDigest` (`sha256:` plus Hexdigest des dist-ZIP). Der Restore vergleicht den Inhalt mit diesem Tree und das ZIP mit dem attestiert gebundenen Digest. Fehlende Installer-Attestierung und falsche ZIP-Bindung sperren ihn. Das Ergebnis bleibt QA-only. Der produktive Installer muss das Manifest für das tatsächliche Build-Ergebnis noch erzeugen und attestieren; die Live-Abnahme setzt anschließend das unveränderliche Release voraus. GitHub CLI: https://cli.github.com/manual/gh_attestation_verify .
+
+
+## MID SW · aus verifiziertem dist-Tree erzeugtes Recovery-Bundle (17.11.2026)
+
+Live-Basis bei der Umsetzung: main=mid-stable=
+`9fe4dfbcdfd5a1f8fec55efa868e22110a612953` / v0.9.85.488.
+Der bestehende Draft #839 enthält den Recovery-Reader für eine getrennte
+Installer-Attestierung. Der neue Producer
+`tools/ci/mid_740_stage_dist.py OUTPUT DIST_TREE SOURCE_COMMIT VERSION`
+erzeugt dessen erwartete Dateien MID-dist-release.zip und
+MID-release-manifest.json.
+
+Der Aufrufer muss Source-SHA und Build-Tree aus dem verifizierten
+Installer-Snapshot ableiten. Der Producer akzeptiert volle SHA-1-Objektnamen,
+prüft Commit-/Tree-Objekttypen ohne Git-Replacement und archiviert den exakten
+dist-Tree mit festem Zeitstempel. Er prüft Digest, Version, sämtliche Datei-
+inhalte und Modi vor der Ausgabe durch Wiederherstellung mit dem bestehenden
+Reader. Der neue Zielordner wird erst danach exklusiv mit Modus 0700 angelegt.
+Dateien werden mit exklusiven Hardlinks übergeben, das Manifest zuletzt.
+Vorhandene Ziele und Symlink-Eltern werden abgelehnt. Eine Unterbrechung beim
+Handoff kann ein unvollständiges Verzeichnis hinterlassen. Empfänger müssen
+beide fest benannten Dateien, Digest und spätere Attestierung prüfen und ein
+neues Ziel für einen erneuten Versuch verwenden.
+
+Der Manifest-Vertrag mid.740.installer-dist.v1 bindet Version, Source-SHA,
+dist-Tree-SHA und SHA-256 des ZIP. Der Producer liefert explizit
+installerAttestationVerified=false, recoveryAuthorized=false und
+releaseAuthorized=false. Er erzeugt selbst keine GitHub-Attestierung und
+beweist allein keine Beziehung zwischen dem angegebenen Source-Commit und
+dem angegebenen dist-Tree. Diese Zuordnung muss der tatsächliche Installer
+nach vertrauenswürdigem Snapshot-Readback ausstellen und attestieren.
+
+Die beiden gespiegelten PR-only-QA-Workflows erproben Erzeugung und getrennten
+Restore am historischen installierten .486-Commit
+a78465b655d25cafc9ecc0390080694cb7aca957 und dessen unverändertem dist-Tree
+b3df278b844130cc3634485b86f96ac0314bbce1 (151 Dateien). Der historische
+installierte Commit dient ausschließlich als QA-Eingabe. Fünf Python-
+Testmethoden prüfen reproduzierbare Bytes, Manifest-Digest, unabhängiges
+git write-tree nach Restore, ausführbare Dateimodi, fehlende/falsche
+Objekte, Versionsdrift, vorhandene Ziele, Symlink-Eltern und export-ignore.
+Git-Archivattribute können Dateien auslassen. Der erforderliche vollständige
+Tree-Vergleich lehnt diese Ausgabe ab.
+Primärquelle https://git-scm.com/docs/git-archive
+
+Die lokale Befehlsumgebung war beim Fortsetzen nicht verfügbar. Die neue
+Implementierung benötigt ihre eigene GitHub-CI auf dem aktuellen Draft-HEAD.
+Frühere Testerfolge gelten ausschließlich für ihre ursprünglichen SHAs.
+Produktive Installer-Attestierung, permanentes immutable Release und
+Restore/Pages/RUC/Widget-Rollback sowie der gemeinsame Ersatz beider
+main-Schreibpfade und die native automatisierte Review-Policy bleiben offen.
+Der disjunkte LC-Train #902 wird durch dieses QA-Paket nicht berührt.
