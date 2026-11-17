@@ -22,6 +22,12 @@ describe('MID Karten 1.14 · bidirektionaler GPU-Eigentümer für Umfeld-/Großk
   expect(surroundings).toContain('mapPaused?:boolean');
   expect(surroundings).toContain('timezone={timezone} mapPaused={mapPaused}');
   expect(surroundings).toContain('onOpen={(time,bounds)=>onOpen(');
+  expect(surroundings).toContain('disabled={openingMap||mapPaused} aria-busy={openingMap}');
+  expect(surroundings).toContain("if(mapPaused){setOpeningMap(false);return}");
+  expect(surroundings).toContain("return()=>window.clearTimeout(timeout)");
+  expect(surroundings).toContain("Der Kartenwechsel wurde nicht bestätigt");
+  expect(surroundings).toContain("catch{setOpeningMap(false);setMapOpenError");
+  expect(css).toContain('.current-surroundings-map-open-error{');
  });
  it('unmounts the complete compact MapLibre subtree, rather than hiding the GPU canvas with CSS',()=>{
   expect(surroundings).toContain('{mapPaused?<p className="current-surroundings-map-paused"');
@@ -55,6 +61,10 @@ describe('MID Karten 1.14 · bidirektionaler GPU-Eigentümer für Umfeld-/Großk
   expect(runner).toContain('extension.loseContext()');
   expect(runner).toContain('window.__midQaContextExtension.restoreContext()');
   expect(runner).toContain('midLayersRemountedAfterStyleLoad:true');
+  expect(runner).toContain('verifyUnacknowledgedNavigation');
+  expect(runner).toContain('unconfirmedActionUnlocked:true');
+  expect(runner).toContain("await page.getByRole('button',{name:'Karte öffnen',exact:true}).click()");
+  expect(fixture).toContain('onOpen={()=>{if(allowMapOpen)setSection(');
  });
  it('retains the current-place display mode, time readout and weather provenance outside the GPU subtree',()=>{
   expect(surroundings).toContain("useDisplayPreference('CurrentSurroundings.mode'");

@@ -66,8 +66,7 @@ async function verify(width,theme,iterations){
   await page.goto(base+'/__mid_bidirectional_map_qa',{waitUntil:'domcontentloaded',timeout:45000});
   await check(page,'compact',width,theme);
   for(let i=0;i<iterations;i++){
-   if(i===0)await page.getByRole('button',{name:'Karte öffnen',exact:true}).click();
-   else await page.getByTestId('qa-composite').click();
+   await page.getByRole('button',{name:'Karte öffnen',exact:true}).click();
    await check(page,'workspace',width,theme);
    await page.getByTestId('qa-current').click();
    await check(page,'compact',width,theme);
@@ -118,11 +117,41 @@ async function verifyWebglContextRecovery(){
    nativeIos:false,deviceMemory:false};
  }finally{await page.close()}
 }
+async function verifyUnacknowledgedNavigation(){
+ const page=await browser.newPage({viewport:{width:390,height:850},colorScheme:'dark'});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ try{
+  await page.route('**/*',route=>new URL(route.request().url()).host===new URL(base).host?
+   route.continue():route.abort('blockedbyclient'));
+  await page.goto(base+'/__mid_bidirectional_map_qa',{waitUntil:'domcontentloaded',timeout:45000});
+  await check(page,'compact',390,'dark');
+  await page.getByTestId('qa-stall-open').click();
+  await page.getByRole('button',{name:'Karte öffnen',exact:true}).click();
+  const busy=page.getByRole('button',{name:'Karte wird geöffnet …',exact:true});
+  await busy.waitFor({timeout:2500});
+  assert.equal(await busy.isDisabled(),true,'In-flight map button blocks duplicate taps');
+  // The React effect owns and clears its bounded 8s timer.
+  await page.locator('.current-surroundings-map-open-error[role="alert"]').waitFor({timeout:11500});
+  assert.equal(await page.getByRole('button',{name:'Karte öffnen',exact:true}).isEnabled(),true);
+  assert.ok((await page.locator('.current-surroundings-map-open-error').textContent()).includes('nicht bestätigt'));
+  await page.getByTestId('qa-restore-open').click();
+  await page.getByRole('button',{name:'Karte öffnen',exact:true}).click();
+  await check(page,'workspace',390,'dark');
+  await page.getByTestId('qa-current').click();
+  await check(page,'compact',390,'dark');
+  assert.equal(await page.getByRole('button',{name:'Karte öffnen',exact:true}).isEnabled(),true,
+   'Successful navigation and return must reset opening latch');
+  assert.deepEqual(errors,[],'No React errors in failed navigation and recovered click');
+  return {unconfirmedActionUnlocked:true,duplicateGuard:true,acknowledgedRetry:true,
+   returnReenablesButton:true,timeoutMs:8000,nativeIos:false};
+ }finally{await page.close()}
+}
 try{
  for(const width of [320,390,430,834,1024,1440])
   for(const theme of ['light','dark'])await verify(width,theme,width===390&&theme==='dark'?16:2);
  const recovery=await verifyWebglContextRecovery();
+ const navigation=await verifyUnacknowledgedNavigation();
  console.log('MID_MAP_GPU_OWNER_BIDIRECTIONAL_CHROMIUM '+JSON.stringify({
-  chromium:true,cases:contexts,recovery,nativeIos:false,weatherNetwork:false,fullAppNavigation:false,gpuMemory:false
+  chromium:true,cases:contexts,recovery,navigation,nativeIos:false,weatherNetwork:false,fullAppNavigation:false,gpuMemory:false
  }));
 }finally{await browser.close();await server.close()}

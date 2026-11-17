@@ -87,6 +87,19 @@ export default function CurrentSurroundings(props:Props){
  const [phaseLoading,setPhaseLoading]=useState(false);
  const [mapCities,setMapCities]=useState<SurroundingsCityCandidate[]>([]);
  const [mapViewport,setMapViewport]=useState<{width:number;height:number}|null>(null);
+ const [openingMap,setOpeningMap]=useState(false);
+ const [mapOpenError,setMapOpenError]=useState('');
+ // In section-rail the compact panel remains mounted. Never leave an
+ // unacknowledged "open map" attempt blocking this button indefinitely.
+ useEffect(()=>{
+  if(!openingMap)return;
+  if(mapPaused){setOpeningMap(false);return}
+  const timeout=window.setTimeout(()=>{
+   setOpeningMap(false);
+   setMapOpenError('Der Kartenwechsel wurde nicht bestätigt. Bitte erneut versuchen.');
+  },8000);
+  return()=>window.clearTimeout(timeout);
+ },[openingMap,mapPaused]);
  const mapFigureRef=useRef<HTMLElement|null>(null);
  const darkMap=useDarkMapTheme();
  useEffect(()=>{
@@ -274,7 +287,17 @@ export default function CurrentSurroundings(props:Props){
  const displaySiteTemperature=mode==='cloud'&&cloudStep>0?forecastSiteTemperature:(mode==='cloud'||radarAtNow)&&Number.isFinite(temperature)?temperature:undefined;
  const visibleClouds=Boolean(clouds&&cloudError!==clouds);
  return <section className="card current-surroundings" aria-labelledby={heading}>
-  <header><h2 id={heading}>Wetter im Umfeld</h2><button type="button" onClick={()=>onOpen(mode==='cloud'?cloudTarget:mode==='radar'?displayTime:undefined,{west,south,east,north})}>Karte öffnen</button></header>
+  <header><h2 id={heading}>Wetter im Umfeld</h2><button type="button" disabled={openingMap||mapPaused} aria-busy={openingMap} onClick={()=>{
+   if(openingMap||mapPaused)return;
+   setMapOpenError('');setOpeningMap(true);
+   // Bounded local-only diagnostic, without coordinates or request URLs.
+   try{sessionStorage.setItem('mid:map:last-open-intent',JSON.stringify({
+    at:new Date().toISOString(),mode,hasOriginalTime:Number.isFinite(mode==='cloud'?cloudTarget:displayTime)
+   }))}catch{}
+   try{onOpen(mode==='cloud'?cloudTarget:mode==='radar'?displayTime:undefined,{west,south,east,north})}
+   catch{setOpeningMap(false);setMapOpenError('Der Kartenbereich konnte nicht geöffnet werden. Bitte erneut versuchen.')}
+  }}>{openingMap?'Karte wird geöffnet …':'Karte öffnen'}</button></header>
+  {mapOpenError&&<p role="alert" className="current-surroundings-map-open-error">{mapOpenError}</p>}
   <div className="current-surroundings-display-modes" role="group" aria-label="Kartendarstellung wählen">
    <button type="button" aria-pressed={mode==='cloud'} onClick={()=>setMode('cloud')}>Wolken + Wetter</button>
    <button type="button" aria-pressed={mode==='radar'} onClick={()=>setMode('radar')}>Radar / Satellit</button>
