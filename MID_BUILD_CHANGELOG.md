@@ -1,3 +1,7 @@
+## MID v0.9.85.487 · 2026-11-17 · Wetterzwilling und Modellfrische
+
+- Basis: Stable `a78465b655d25cafc9ecc0390080694cb7aca957`. Auditkorrekturen aus #884, #885, #886 und #890, geprüft in #868 auf `dd9a9cc6eaca641785b095bf79862a4b1ba051cd`. Veröffentlichung über Source-PR-Gate, Release-Bot, Installer und Stable-Promotion.
+
 ## MID v0.9.85.487 · Audit-Teilrelease
 
 Basis: Stable `a78465b655d25cafc9ecc0390080694cb7aca957`. Auditkorrekturen aus #884, #885, #886 und #890, geprüft in #868 auf `dd9a9cc6eaca641785b095bf79862a4b1ba051cd`. Veröffentlichung über Source-PR-Gate, Release-Bot, Installer und Stable-Promotion.
