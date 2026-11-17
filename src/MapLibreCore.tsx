@@ -224,18 +224,32 @@ export function CanvasOverlay({id,opacity=1,zIndex=5,render,events=['moveend','z
   const old=document.createElement('canvas');old.width=canvas.width;old.height=canvas.height;
   old.style.cssText=canvas.style.cssText;old.getContext('2d')?.drawImage(canvas,0,0);
   canvas.before(old);
-  let raf=0,timer=0;
+  let raf=0,timer=0,settled=false;
+  // Hidden tabs may throttle RAF while allowing cleanup timers to advance.
+  // Complete an already painted frame atomically: no transparent flash on return.
+  function finishFade(){
+   if(settled)return;
+   settled=true;
+   document.removeEventListener('visibilitychange',onVisibility);
+   cancelAnimationFrame(raf);window.clearTimeout(timer);old.remove();
+   canvas.style.transition='none';
+   canvas.style.opacity=String(Math.max(0,Math.min(1,opacityRef.current)));
+  }
+  function onVisibility(){if(document.visibilityState!=='visible')finishFade()}
   // Rendering or scheduling can fail after the previous image is inserted.
   // Always dispose that temporary image and restore the canvas before rethrow.
   withCanvasFadeRollback(()=>{
    render(map,canvas);canvas.style.transition='none';canvas.style.opacity='0';
-   raf=requestAnimationFrame(()=>{canvas.style.transition='opacity 350ms linear';old.style.transition='opacity 350ms linear';canvas.style.opacity=String(opacityRef.current);old.style.opacity='0'});
-   timer=window.setTimeout(()=>old.remove(),380);
-  },()=>{
-   cancelAnimationFrame(raf);window.clearTimeout(timer);old.remove();
-   canvas.style.transition='none';canvas.style.opacity=String(Math.max(0,Math.min(1,opacityRef.current)));
-  });
-  return()=>{cancelAnimationFrame(raf);window.clearTimeout(timer);old.remove();canvas.style.transition='none';canvas.style.opacity=String(opacityRef.current)}
+   raf=requestAnimationFrame(()=>{
+    if(settled)return;
+    canvas.style.transition='opacity 350ms linear';old.style.transition='opacity 350ms linear';
+    canvas.style.opacity=String(opacityRef.current);old.style.opacity='0';
+   });
+   timer=window.setTimeout(finishFade,380);
+   document.addEventListener('visibilitychange',onVisibility);
+   if(document.visibilityState!=='visible')finishFade();
+  },finishFade);
+  return finishFade
  },[map,render]);
  useEffect(()=>{if(canvasRef.current)canvasRef.current.style.opacity=String(Math.max(0,Math.min(1,opacity)))},[opacity]);return null;
 }
