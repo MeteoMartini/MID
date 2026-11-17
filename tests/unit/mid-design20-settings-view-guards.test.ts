@@ -19,7 +19,7 @@ const inspect=(script:string,...args:string[])=>JSON.parse(run(script,...args));
 const ORIGINAL_APP_BLOB='d5fd0cee5c6cf8df187f3493c864d136ab11bcd9';
 
 describe('MID Design20 source-owner and protected-view guards',()=>{
- it('keeps eight productive view groups and inventories five candidates without deleting them',()=>{
+ it('keeps eight productive view groups and inventories six candidates without deleting them',()=>{
   const before=readFileSync(appPath,'utf8');
   const report=inspect('scripts/qa/verifyDesign20ViewReachability.mjs') as {
    result:string;stableKept:number;removals:number;
@@ -30,9 +30,10 @@ describe('MID Design20 source-owner and protected-view guards',()=>{
   expect(report.removals).toBe(0);
   expect(report.candidates.map(candidate=>candidate.id)).toEqual([
    'old-navigation-fallback','cockpit-ribbons','obsolete-preload-presentationMode',
-   'fixed-bottom-bar-contract-drift','old-24h-navigation'
+   'fixed-bottom-bar-contract-drift','old-24h-navigation','inactive-parameter-quality-indicator'
   ]);
   expect(report.candidates.every(candidate=>candidate.present&&candidate.action.length>15)).toBe(true);
+  expect(report.candidates.find(candidate=>candidate.id==='inactive-parameter-quality-indicator')?.action).toContain('not a user-visible quality UI');
   expect(readFileSync(appPath,'utf8')).toBe(before);
  });
  it('checks the exact source patch or the reviewed post-patch state twice without writes',()=>{
