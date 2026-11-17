@@ -39,9 +39,10 @@ const contrast=(a:string,b:string)=>{
  return (values[1]+.05)/(values[0]+.05);
 };
 const cssToken=(block:string,name:string)=>{
- const found=block.match(new RegExp('--'+name+':(#[0-9a-fA-F]{6})'));
+ const found=block.match(new RegExp('--'+name+':(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3})(?![0-9a-fA-F])'));
  if(!found)throw Error('Missing MID theme color '+name);
- return found[1];
+ const hex=found[1];
+ return hex.length===4?'#'+hex.slice(1).split('').map(char=>char+char).join(''):hex;
 };
 
 describe('MID Design112 ensemble range scale and responsive model legend',()=>{
@@ -121,6 +122,8 @@ describe('MID Design112 ensemble range scale and responsive model legend',()=>{
  it('retains at least 3:1 token contrast for the keyboard outline on both MID theme surfaces',()=>{
   const themes=[foundation.match(/:root\{([^}]+)\}/)?.[1],foundation.match(/:root\[data-theme=light\]\{([^}]+)\}/)?.[1]];
   expect(themes).toHaveLength(2);
+  expect(cssToken('--surface:#fff;','surface')).toBe('#ffffff');
+  expect(cssToken('--surface:#0b1727;','surface')).toBe('#0b1727');
   for(const theme of themes){
    expect(theme).toBeTruthy();
    const block=theme!;
