@@ -40,3 +40,15 @@ export function mapCanvasCrossfadeBackingSize(
  return {width:Math.max(overlay.width,renderer.width),
   height:Math.max(overlay.height,renderer.height)};
 }
+
+/** A staged crossfade is a transaction. If the draw or transition setup
+ * throws, the temporary copy must not remain in the DOM as stale weather.
+ * Preserve the original exception for the caller's map error boundary.
+ */
+export function withCanvasFadeRollback<T>(attempt:()=>T,rollback:()=>void):T{
+ try{return attempt()}
+ catch(error){
+  try{rollback()}catch{/* Preserve the primary rendering failure. */}
+  throw error;
+ }
+}
