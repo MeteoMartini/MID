@@ -87,36 +87,94 @@ describe('MID Design 1.8 – CSS real response/body and applied CSSOM evidence',
     .rejects.toThrow(/fingerprint/);
   }finally{await rm(root,{recursive:true,force:true})}
  });
- it('observes real-page response bodies and two CSSOM frames through the Playwright API',async()=>{
-  const handlers=new Map<string,Function>();
+ function browserHarness(onFrame?:({frame:number,emit:(name:string,data:any)=>void})=>void){
+  const handlers=new Map<string,Function>();let frame=0;
+  const emit=(name:string,payload:any)=>handlers.get(name)?.(payload);
   const page={
    on:(type:string,fn:Function)=>{handlers.set(type,fn)},
    off:(type:string,fn:Function)=>{if(handlers.get(type)===fn)handlers.delete(type)},
-   evaluate:async()=>dom(),
+   evaluate:async()=>{frame++;onFrame?.({frame,emit});return dom()},
   };
-  const probe=observeCssResponses(page,{manifest:manifest(),origin});
-  const callback=handlers.get('response');
-  expect(callback).toBeDefined();
-  callback!({
-   url:()=>origin+'/assets/index.css',status:()=>200,body:async()=>Buffer.from(css),
+  const request=(path='assets/index.css')=>({
+   url:()=>origin+'/'+path,resourceType:()=> 'stylesheet',
   });
+  const responseFor=(req:any,overrides:Record<string,any>={})=>({
+   request:()=>req,finished:async()=>null,body:async()=>Buffer.from(css),
+   status:()=>200,headers:()=>({'content-type':'text/css'}),
+   fromServiceWorker:()=>false,...overrides,
+  });
+  const complete=(req=request())=>{
+   emit('request',req);
+   emit('response',responseFor(req));
+   emit('requestfinished',req);
+   return req;
+  };
+  return {handlers,page,emit,request,responseFor,complete};
+ }
+ it('observes complete CSS request lifecycle through the second CSSOM frame',async()=>{
+  const h=browserHarness();
+  const probe=observeCssResponses(h.page,{manifest:manifest(),origin});
+  h.complete();
   const report=await probe.finish();
   expect(report.requiredAssetCount).toBe(1);
-  expect(handlers.has('response')).toBe(false);
+  for(const event of ['request','response','requestfinished','requestfailed'])
+   expect(h.handlers.has(event)).toBe(false);
   await expect(probe.finish()).rejects.toThrow(/already finalized/);
  });
- it('does not treat denied browser resource bytes as valid CSS',async()=>{
-  const handlers=new Map<string,Function>();
-  const page={
-   on:(type:string,fn:Function)=>handlers.set(type,fn),
-   off:(type:string)=>handlers.delete(type),
-   evaluate:async()=>dom(),
-  };
-  const probe=observeCssResponses(page,{manifest:manifest(),origin});
-  handlers.get('response')!({
-   url:()=>origin+'/assets/index.css',status:()=>200,
-   body:async()=>{throw Error('response body unavailable')},
+ it('fails closed if a CSS request has not finished downloading',async()=>{
+  const h=browserHarness(),probe=observeCssResponses(h.page,{manifest:manifest(),origin});
+  const req=h.request();h.emit('request',req);h.emit('response',h.responseFor(req));
+  await expect(probe.finish()).rejects.toThrow(/request lifecycle/);
+  expect(h.handlers.size).toBe(0);
+ });
+ it('detects a CSS request arriving during the final render measurement',async()=>{
+  let h:ReturnType<typeof browserHarness>;
+  h=browserHarness(({frame,emit})=>{
+   if(frame===2){emit('request',h.request('assets/late.css'))}
   });
-  await expect(probe.finish()).rejects.toThrow(/inaccessible/);
+  const probe=observeCssResponses(h.page,{manifest:manifest(),origin});
+  h.complete();
+  await expect(probe.finish()).rejects.toThrow(/outside declared original asset/);
+  expect(h.handlers.size).toBe(0);
+ });
+ it('rejects CSS requests with query strings, foreign origins or unexpected resource paths',async()=>{
+  for(const path of ['assets/index.css?v=1','assets/unknown.css']){
+   const h=browserHarness(),probe=observeCssResponses(h.page,{manifest:manifest(),origin});
+   h.complete();h.emit('request',h.request(path));
+   await expect(probe.finish()).rejects.toThrow(/outside declared original asset/);
+  }
+  const h=browserHarness(),probe=observeCssResponses(h.page,{manifest:manifest(),origin});
+  h.complete();
+  h.emit('request',{url:()=> 'https://example.org/style.css',resourceType:()=> 'stylesheet'});
+  await expect(probe.finish()).rejects.toThrow(/outside declared original asset/);
+ });
+ it('rejects CSS requests blocked before response and duplicate request events',async()=>{
+  const h=browserHarness(),probe=observeCssResponses(h.page,{manifest:manifest(),origin});
+  h.complete();const second=h.request('assets/extra.css');h.emit('request',second);h.emit('requestfailed',second);
+  await expect(probe.finish()).rejects.toThrow(/failed or unmatched/);
+  const h2=browserHarness(),probe2=observeCssResponses(h2.page,{manifest:manifest(),origin});
+  const req=h2.request();h2.emit('request',req);h2.emit('request',req);
+  await expect(probe2.finish()).rejects.toThrow(/duplicated stylesheet request/);
+ });
+ it('never accepts an untracked CSS response or an altered Service Worker response',async()=>{
+  const h=browserHarness(),probe=observeCssResponses(h.page,{manifest:manifest(),origin});
+  const req=h.request();h.emit('response',h.responseFor(req));
+  await expect(probe.finish()).rejects.toThrow(/untracked or duplicate/);
+  const h2=browserHarness(),probe2=observeCssResponses(h2.page,{manifest:manifest(),origin});
+  const req2=h2.request();h2.emit('request',req2);
+  h2.emit('response',h2.responseFor(req2,{fromServiceWorker:()=>true}));h2.emit('requestfinished',req2);
+  await expect(probe2.finish()).rejects.toThrow(/Service Worker response/);
+ });
+ it('does not treat denied or incomplete browser CSS response bytes as valid CSS',async()=>{
+  for(const overrides of [
+   {body:async()=>{throw Error('response body unavailable')}},
+   {finished:async()=>Error('download failed')},
+   {body:async()=> 'not a Buffer'},
+  ]){
+   const h=browserHarness(),probe=observeCssResponses(h.page,{manifest:manifest(),origin});
+   const req=h.request();h.emit('request',req);
+   h.emit('response',h.responseFor(req,overrides));h.emit('requestfinished',req);
+   await expect(probe.finish()).rejects.toThrow(/inaccessible|failed before|Buffer/);
+  }
  });
 });
