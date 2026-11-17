@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "version": "0.9.85.487",
+  "date": "2026-11-17",
+  "title": "Wetterzwilling und Modellfrische",
+  "external": [
+    "Die Wetterzwilling-Auswertung berücksichtigt für den Volltagesvergleich nur Prognosen, die spätestens zu Beginn des Zielorts-Tages vorlagen.",
+    "Ungültige archivierte Regenwahrscheinlichkeiten zählen weder als 0 % noch für Brier-Score oder Kalibrierung. Die Anzeige nennt den Brier-Score und die Vergleichstage ohne unbelegte Güteklasse.",
+    "Die Anzeige der Modellfrische fasst fehlende Zeitnachweise kompakter zusammen. Die ausführliche Modellliste bleibt verfügbar."
+  ],
+  "internal": [
+    "Basis: Stable `a78465b655d25cafc9ecc0390080694cb7aca957`. Auditkorrekturen aus #884, #885, #886 und #890, geprüft in #868 auf `dd9a9cc6eaca641785b095bf79862a4b1ba051cd`. Veröffentlichung über Source-PR-Gate, Release-Bot, Installer und Stable-Promotion."
+  ]
+}
