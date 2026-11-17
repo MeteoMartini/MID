@@ -57,4 +57,18 @@ describe('MID changelog: bounded latest-release prepend (no GitHub release autho
   expect(result.startsWith('# MID v0.9.86\n\n- New independently approved capability.')).toBe(true);
   expect(result).not.toContain('- Prior.');
  });
+ it('detects duplicate current versions in H2–H4 historical headings, including suffixed titles',()=>{
+  for(const entry of ['## MID v0.9.85.487 — earlier draft','### MID v0.9.85.487: earlier note','#### v0.9.85.487 · older report']){
+   expect(()=>prependMidCurrentRelease(history+'\n\n'+entry+'\n- existing',notes,'0.9.85.487')).toThrow(/already exists/);
+  }
+ });
+ it('preserves an existing current-release H2 heading and all adjacent historical bytes',()=>{
+  const existing='  \n## MID v0.9.85.487 — approved wording\n\n- Historical text\n\n'+history;
+  expect(prependMidCurrentRelease(existing,notes,'0.9.85.487')).toBe(existing);
+ });
+ it('does not erase leading whitespace from a historical source or confuse 487 with 4870',()=>{
+  const original='\n \n## MID v0.9.85.4870 — a different version\n\n'+history;
+  expect(prependMidCurrentRelease(original,notes,'0.9.85.487')).toBe('# MID v0.9.85.487\n\n- A new, verified maintenance change.\n\n'+original);
+ });
+
 });

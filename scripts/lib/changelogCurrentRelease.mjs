@@ -5,6 +5,9 @@
  * This helper does NOT create GitHub releases, tags, builds or approvals.
  */
 const heading=/^# MID v(\d+\.\d+\.\d+(?:\.\d+)?)[ \t]*$/gm;
+// Historical headings use Markdown levels 1–4 (sometimes with titles); guard
+// against a duplicate version at *any* level before modifying history.
+const historicHeading=/^#{1,6}[ \t]+(?:MID[ \t]+)?v(\d+\.\d+\.\d+(?:\.\d+)?)(?=$|[ \t:—–·-])[^\r\n]*$/gm;
 const validVersion=/^\d+\.\d+\.\d+(?:\.\d+)?$/;
 
 export function currentMidReleaseSection(releaseNotes,version){
@@ -23,13 +26,15 @@ export function currentMidReleaseSection(releaseNotes,version){
 export function prependMidCurrentRelease(changelog,releaseNotes,version){
  if(typeof changelog!=='string')throw Error('MID changelog: prior history missing');
  const current=currentMidReleaseSection(releaseNotes,version);
- const exact='# MID v'+version;
- const headings=[...changelog.matchAll(heading)];
- if(headings.length&&headings[0].index===0&&headings[0][0].trimEnd()===exact)
-  return changelog; // Idempotent; preserve all original bytes.
- if(headings.some(match=>match[0].trimEnd()===exact))
+ const headings=[...changelog.matchAll(historicHeading)];
+ const matching=headings.filter(match=>match[1]===version);
+ if(matching.length){
+  // Existing current heading can have a different level/title. Never rewrite
+  // any of its existing bytes during a repeat version synchronization.
+  if(headings[0]===matching[0]&&!changelog.slice(0,matching[0].index).trim())return changelog;
   throw Error('MID changelog: current version already exists away from first position; reconcile without duplication');
+ }
  if(!changelog.trim())
   throw Error('MID changelog: historic source is empty; do not overwrite it');
- return current+'\n\n'+changelog.replace(/^\s+/,'');
+ return current+'\n\n'+changelog; // Never trim or rewrite original historical bytes.
 }
