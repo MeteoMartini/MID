@@ -21,8 +21,8 @@ Build-Snapshot und speichert sie sieben Tage. Er enthält keine App-Token-/
 Secret-Schritte und hat nur contents: read. Alle vier Pflichtdownloads und
 alle acht Checkout-Sicherungen bleiben regressionsgeprüft.
 
-Die übrigen Guard-/Source-Bot-/Review-/Policy-/Cutover-Änderungen aus #839
-werden nicht übernommen. Der Gesamtabschluss #740 ist weiter offen. Ein
+Die Guard-/Review-/Policy-/Cutover-Änderungen aus #839 bleiben separat.
+Der optionale Source-Producer-Shadow wird im unten dokumentierten Folgeschritt übernommen. Der Gesamtabschluss #740 ist weiter offen. Ein
 erfolgreicher kombinierter Draft ist Voraussetzung der fachlichen Bewertung,
 die vollständigen bestehenden Source-/Installer-/Worker-/Pages-/Stable-Gates
 bleiben für diesen Integrationsstand erforderlich. Erst ein tatsächlicher
@@ -42,3 +42,41 @@ Ergebnisse werden vor dem ersten Spiegel-Schreibvorgang vollständig validiert.
 Zusätzliche Tests reproduzieren die Fälle einschließlich Ausführung des
 Originalsyncers in einer Fixture mit ungültigem zweitem Spiegel.
 Vorhandene .489-Abschnittskörper stimmen mit RELEASE_NOTES überein.
+
+
+## Originalen Source-Producer-Shadow in denselben Train übernehmen
+
+Elf weitere SHA-identische Pfade aus #839 HEAD
+`be4e8eb46f6f1cda6fec2591ee16190a7f182fef` ergänzen den bereits vorbereiteten
+Installer-Shadow: zwei Workflowspiegel, vier vorhandene read-only Helper, deren
+vier Regressionen und der ursprüngliche technische Bericht. Kein neuer
+Prototyp und keine neue Berechtigung. Der originale Premerge-Event-/Run-/PR-/
+SHA-Readback läuft optional vor dem unveränderten Merge. Nach dem bisherigen
+Paket-Commit werden dessen originale ZIP-Blob-Bytes samt Provenienz und ggf.
+Receipt vor dem unveränderten Installer-Dispatch als kurzlebiges Artefakt
+gesichert. Alle drei zusätzlichen Schritte haben continue-on-error; ihre
+internen Prüfungen bleiben fail-closed. Sie ersetzen keine Pflichtentscheidung.
+
+Der Workflow läuft aus dem vor Merge vertrauenswürdigen main-Commit. Deshalb
+kann der erste reguläre Release nach Aufnahme dieser Dateien nur die
+Bereitstellung qualifizieren; erst ein späterer regulärer Source-Producer
+kann die neue Ausführung belegen. Der Installer-Shadow kann dagegen bereits
+das neu installierte Skript verarbeiten. Keine Behauptung eines echten
+Producer-Originaluploads, einer Attestierung oder eines vollständigen Cutovers.
+
+Der abgeschlossene volle Source-Gate 44183104251 am Vorgänger-HEAD
+1db4b91bd4c950b6bddfda0725084c2be5011a1c hatte vier grüne Core-Shards und
+sechs grüne Heavy-Jobs, scheiterte aber in Source-Kern am vollständigen npm
+Audit. Die erneute Prüfung am 17.11.2026 bestätigt 11 Befunde, davon 5 high.
+GHSA-fc5q-39xc-vjpf betrifft picomatch <=4.0.7; der offizielle Advisory führt
+keine behobene Version. Kein Audit-Fix-Force, kein Gate-Bypass. #902 bleibt
+Draft, Stable bleibt .488. Für den neuen HEAD ist neue Draft-QA erforderlich.
+
+Lokale Vorprüfung dieses Folgeschritts: 493 Vitest-Tests PASS, 5 bestehende
+Tests SKIP (Node 24.22.1); TypeScript PASS; Workflow-Synchronisierung PASS;
+Installer-Sharding-/Snapshot-Negativtests PASS. Zusätzlich wurde der gesamte
+Source-Workflow nach Entfernung exakt der drei optionalen Shadow-Schritte
+und der inerten Installer-Step-ID byteidentisch zum bisherigen Stable-Workflow
+verglichen. GitHub Node-22-/Governance-/Draft-QA und Code-Review sind separat
+am veröffentlichten HEAD nachzulesen. Kein neuer Source-Vollgate gestartet,
+solange der unveränderte Dependency-Audit-Blocker besteht.
