@@ -49,7 +49,14 @@ async function verify(width,theme){
   assert.ok(target&&target.width>100&&target.height>100,'Compact map has a real canvas before navigation');
   await button.click();
   await page.getByTestId('qa-full-map').waitFor({timeout:15000});
-  await page.locator('.composite-maplibre canvas').first().waitFor({timeout:35000});
+  await page.waitForFunction(()=>Boolean(document.querySelector('.composite-maplibre canvas')||
+     document.querySelector('.mid-map-workspace-error')),null,{timeout:14000});
+  const caughtMapError=await page.evaluate(()=>({
+   message:document.querySelector('.mid-map-workspace-error')?.textContent,
+   stack:sessionStorage.getItem('mid:map:last-render-error'),
+   mapCount:document.querySelectorAll('.maplibregl-map').length
+  }));
+  if(caughtMapError.message)throw new Error('Real full map React error after user click '+JSON.stringify(caughtMapError));
   await page.waitForFunction(()=>{
    const el=document.querySelector('.composite-maplibre canvas');
    return Boolean(el&&el.width>0&&el.height>0);
