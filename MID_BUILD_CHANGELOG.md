@@ -1,3 +1,10 @@
+## MID v0.9.85.488 · 2026-11-17 · Wetterzwilling-Messwerte und mobile Navigation
+
+- Verifizierte Ausgangsbasis main=mid-stable=ee70a92ae6ed83d3fa46445f4941e3db8b8675d4 (v0.9.85.487), fünf aktive Rulesets.
+- Wetterzwilling-Originalquellen #897 HEAD e5830085739252d2bc7e4a40b88d2abe39e883df: fünf Git-Blobs unverändert übernommen; Einzel-Vitest und gezielte Regressionen #44114471352 completed/success.
+- Design-Originalquellen #893 HEAD c25c205844c29d1fb1bb2074be660332de2db10a: vier Git-Blobs unverändert übernommen; bestehende geänderte Quellpfade seit v0.9.85.486 identisch, Einzel-Vitest und gezielte Regressionen #44102613813 completed/success.
+- Source-Integration erst durch kombinierten SHA-/CI-Readback zu validieren; kein Produktiv-Release, bevor Source-Gate, kontrollierter Merge, ZIP, Installer, Worker/Pages und Stable-Promotion nachgewiesen sind. #839/#740 bleiben getrennt.
+
 ## MID v0.9.85.487 · 2026-11-17 · Wetterzwilling und Modellfrische
 
 - Basis: Stable `a78465b655d25cafc9ecc0390080694cb7aca957`. Auditkorrekturen aus #884, #885, #886 und #890, geprüft in #868 auf `dd9a9cc6eaca641785b095bf79862a4b1ba051cd`. Veröffentlichung über Source-PR-Gate, Release-Bot, Installer und Stable-Promotion.
