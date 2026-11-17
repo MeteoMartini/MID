@@ -59,6 +59,23 @@ Kombination ohne echte Laufzeitkoppelung wäre kein stichhaltiger Nachweis.
   verweigert. Negativtests prüfen jeden dieser Fälle. Damit kann
   eine 404-/500-Fehlerseite oder ein SW-Ersatz **keinen CSS-Browser-PASS**
   nach dem Einstieg vortäuschen.
+- **Original-HTML-Bytebindung (17.11.2026, nachträglicher QA-Fix):**
+  Ein HTTP-200-Status sowie identische URL und Origin reichen **nicht** aus,
+  um eine versehentlich ersetzte, umgeschriebene oder unvollständige
+  Startseite zu erkennen. Nach dem verifizierten gesamten Build-Fingerprint
+  liest die Brücke daher den tatsächlichen Originalinhalt von
+  `dist/index.html` und verlangt über die Playwright-Main-Resource-`Response`
+  das erfolgreiche `response.finished()===null`, einen lesbaren
+  `Buffer` aus `response.body()` und vollständige **Bytegleichheit**
+  zu diesem Original. Zusätzlich wird `entryHtmlSha256` im
+  nicht freigebenden QA-Report ausgewiesen. Ein 200er-Debug-HTML,
+  zusätzlicher injizierter Kommentar, abgeschnittener oder nicht
+  lesbarer Body und ein unvollständiger Download werden in
+  expliziten Negativtests verweigert.
+  **Grenze:** Diese Kontrolle authentifiziert die HTML-Antwort,
+  nicht automatisch sämtliche JavaScript-/Wetterprovider-Bytes
+  oder spätere Fetches. Sie gilt für das beobachtete Messfenster;
+  vor Release sind weitere Browser- und Integritätsgates erforderlich.
 - Erfasst eine echte CSSOM-Beobachtung **vor** dem Abschluss des
   Netzwerk-/CSSOM-Beobachters und eine zweite **danach**; beide laufen auf
   exakt derselben `Page` und denselben View-/Theme-/Fixture-Vorgaben.

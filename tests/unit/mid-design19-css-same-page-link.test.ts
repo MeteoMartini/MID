@@ -1,4 +1,8 @@
-import {describe,it,expect} from 'vitest';
+import {describe,it,expect,beforeAll,afterAll} from 'vitest';
+import {mkdtemp,rm,writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {createHash} from 'node:crypto';
 import {runDesign19CssSamePage,validateDesign19Scenario} from '../../scripts/lib/design19CssSamePageEvidence.mjs';
 
 // Synthetic policy tests only. These NEVER substitute for real Playwright,
@@ -24,12 +28,22 @@ const capture=()=>({schema:'mid.design18.cssom-case.v1',status:'READ_ONLY_BROWSE
  readiness:{readySelectorMatched:1,fontsStatus:'loaded',styleSheetCount:2},
  rootTokens:{'--param-temperature':'#00aaff'},elements:[{id:'map-shell',computed:{color:'rgb(1,2,3)'},rect:{x:1,y:1,width:50,height:80}}]});
 const origin='http://127.0.0.1:4100';
+const originalHtml='<!doctype html><html><head><title>MID</title></head><body><main class="map"></main></body></html>';
+const expectedIndexSha256=createHash('sha256').update(originalHtml).digest('hex');
+let fixtureRoot='';
+beforeAll(async()=>{
+ fixtureRoot=await mkdtemp(join(tmpdir(),'mid-design19-html-'));
+ await writeFile(join(fixtureRoot,'index.html'),originalHtml,'utf8');
+});
+afterAll(async()=>{if(fixtureRoot)await rm(fixtureRoot,{recursive:true,force:true})});
 function harness(config?:{
  manifest?:ReturnType<typeof manifest>,result?:ReturnType<typeof css>,
  first?:ReturnType<typeof capture>,second?:ReturnType<typeof capture>,
  origin?:string,viewport?:{width:number,height:number},
  viewUrl?:string, failAt?:string, navigationStatus?:number,
  redirectEntryTo?:string, serviceWorkerEntry?:boolean, missingNavigationResponse?:boolean,
+ servedIndexBody?:Buffer|string, servedIndexUnavailable?:boolean,
+ servedIndexNoBuffer?:boolean, servedIndexIncomplete?:boolean,
 }){
  const log:string[]=[],ready={manifest:config?.manifest??manifest(),css:config?.result??css(),
  first:config?.first??capture(),second:config?.second??capture()};
@@ -45,7 +59,14 @@ function harness(config?:{
    if(config?.missingNavigationResponse)return null;
    return {status:()=>config?.navigationStatus??200,
     url:()=>config?.redirectEntryTo??url,
-    fromServiceWorker:()=>config?.serviceWorkerEntry??false};
+    fromServiceWorker:()=>config?.serviceWorkerEntry??false,
+    finished:async()=>{log.push('index-finished');return config?.servedIndexIncomplete?Error('download interrupted'):null},
+    body:config?.servedIndexUnavailable?undefined:async()=>{
+     log.push('index-body');
+     if(config?.servedIndexNoBuffer)return originalHtml;
+     return Buffer.from(config?.servedIndexBody??originalHtml);
+    }};
+
   },
  };
  const helpers={
@@ -63,7 +84,7 @@ function harness(config?:{
  const openView=async()=>{log.push('open-view');if(config?.failAt==='view')throw Error('view not ready');
   if(config?.viewUrl)current=config.viewUrl;
  };
- const input=()=>({page,distRoot:'/verified-dist',buildIdentity:identity(),
+ const input=()=>({page,distRoot:fixtureRoot,buildIdentity:identity(),
   expectedCssAssets:manifest().assets,origin:config?.origin??origin,
   scenario:scenario(),openView,helpers});
  return {input,log,ready,page};
@@ -71,7 +92,7 @@ function harness(config?:{
 describe('MID Design19 – same-page CSS HTTP/computed browser evidence bridge (synthetic)',()=>{
  it('observes exact dist first, CSS listener before navigation, same Page before/after, never approves',async()=>{
   const h=harness(),result=await runDesign19CssSamePage(h.input());
-  expect(h.log).toEqual(['verify-dist','observer-start','theme-init','navigate','open-view',
+  expect(h.log).toEqual(['verify-dist','observer-start','theme-init','navigate','index-finished','index-body','open-view',
    'cssom-1','validate-cssom','observer-finish','cssom-2','validate-cssom','observer-cancel']);
   expect(result.status).toBe('ONE_PAGE_ONE_WINDOW_DESCRIPTIVE_ONLY');
   expect(result.releaseAuthorized).toBe(false);
@@ -79,6 +100,7 @@ describe('MID Design19 – same-page CSS HTTP/computed browser evidence bridge (
   expect(result.performanceGainProven).toBe(false);
   expect(result.browserAcceptanceProven).toBe(false);
   expect(result.cssom.environment.browserVersion).toBe('143.0.0.0');
+  expect(result.entryHtmlSha256).toBe(expectedIndexSha256);
  });
  it('rejects invalid and over-specified scenarios, including no explicit fixture',()=>{
   expect(()=>validateDesign19Scenario({...scenario(),fixtureSha256:''})).toThrow(/fixture/);
@@ -125,6 +147,32 @@ describe('MID Design19 – same-page CSS HTTP/computed browser evidence bridge (
    const h=harness(config);
    await expect(runDesign19CssSamePage(h.input()))
     .rejects.toThrow(/index.html navigation requires original HTTP 200/);
+   expect(h.log).not.toContain('open-view');
+   expect(h.log.at(-1)).toBe('observer-cancel');
+  }
+ });
+ it('refuses substituted or corrupted HTML despite successful HTTP 200 and matching origin',async()=>{
+  for(const servedIndexBody of [
+   '<!doctype html><title>MID debug wrapper</title>',
+   originalHtml+'<!-- injected -->',
+   originalHtml.slice(0,-8),
+  ]){
+   const h=harness({servedIndexBody});
+   await expect(runDesign19CssSamePage(h.input()))
+    .rejects.toThrow(/browser-served index.html bytes differ/);
+   expect(h.log).not.toContain('open-view');
+   expect(h.log.at(-1)).toBe('observer-cancel');
+  }
+ });
+ it('requires original completed browser response Buffer for index.html',async()=>{
+  for(const config of [
+   {servedIndexUnavailable:true},
+   {servedIndexNoBuffer:true},
+   {servedIndexIncomplete:true},
+  ]){
+   const h=harness(config);
+   await expect(runDesign19CssSamePage(h.input()))
+    .rejects.toThrow(/completed HTTP response bytes|download did not finish|browser-served index.html bytes differ/);
    expect(h.log).not.toContain('open-view');
    expect(h.log.at(-1)).toBe('observer-cancel');
   }
