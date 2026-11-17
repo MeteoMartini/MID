@@ -1,6 +1,6 @@
 import {describe,expect,it} from 'vitest';
 import {readFileSync} from 'node:fs';
-import {MAP_CANVAS_CROSSFADE_MAX_PIXELS,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from '../../src/mapCanvasCrossfadePolicy';
+import {MAP_CANVAS_CROSSFADE_MAX_PIXELS,createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from '../../src/mapCanvasCrossfadePolicy';
 
 const defaults={width:390,height:844,visible:true,reducedMotion:false,saveData:false};
 describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
@@ -47,7 +47,7 @@ describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
   expect(from).toBeGreaterThan(-1);
   expect(end).toBeGreaterThan(from);
   const overlay=source.slice(from,end);
-  expect(source).toContain("import {mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from './mapCanvasCrossfadePolicy'");
+  expect(source).toContain("import {createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from './mapCanvasCrossfadePolicy'");
   const checked=overlay.indexOf('shouldCrossfadeMapCanvas({');
   const skipped=overlay.indexOf('if(!animate){');
   const duplicate=overlay.indexOf("const old=document.createElement('canvas')");
@@ -103,7 +103,7 @@ describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
   expect(admission).toBeGreaterThan(read);
   expect(copied).toBeGreaterThan(admission);
   expect(overlay).toContain('width:backing?.width??0,height:backing?.height??0');
-  expect(source).toContain("import {mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from './mapCanvasCrossfadePolicy'");
+  expect(source).toContain("import {createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from './mapCanvasCrossfadePolicy'");
  });
 
  it('returns successful canvas draw values without unnecessary rollback',()=>{
@@ -163,7 +163,7 @@ describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
   expect(rollback).toBeGreaterThan(insideSchedule);
   expect(overlay.slice(finish,protectedPaint)).toContain("canvas.style.transition='none'");
   expect(overlay.slice(finish,protectedPaint)).toContain('canvas.style.opacity=String(Math.max(0,Math.min(1,opacityRef.current)))');
-  expect(source).toContain("import {mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from './mapCanvasCrossfadePolicy'");
+  expect(source).toContain("import {createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from './mapCanvasCrossfadePolicy'");
  });
 
  it('settles a canvas fade on backgrounding before a throttled RAF can leave blank pixels',()=>{
@@ -188,5 +188,127 @@ describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
   expect(overlay.slice(settle,visibility)).toContain('canvas.style.opacity=String(Math.max(0,Math.min(1,opacityRef.current)))');
   expect(overlay).toContain('timer=window.setTimeout(finishFade,380)');
   expect(overlay).toContain('if(settled)return;\n    canvas.style.transition');
+ });
+
+ it('coalesces 40 visible MapLibre render events into one canvas repaint',()=>{
+  const queue=new Map<number,()=>void>(),paint:number[]=[];
+  let next=0,visible=true;
+  const scheduler=createMapCanvasRedrawScheduler(
+   ()=>paint.push(paint.length+1),
+   callback=>{const id=next++;queue.set(id,callback);return id},
+   id=>{queue.delete(id)},
+   ()=>visible
+  );
+  for(let i=0;i<40;i++)scheduler.request();
+  expect(queue.size).toBe(1);
+  const task=queue.entries().next().value!;
+  queue.delete(task[0]);task[1]();
+  expect(paint).toEqual([1]);
+  expect(queue.size).toBe(0);
+  scheduler.dispose();
+ });
+ it('defers hidden map redraws and presents the latest in-memory content after return',()=>{
+  let visible=false,revision=1,nextId=1;
+  const callbacks=new Map<number,()=>void>(),drawn:number[]=[];
+  const scheduler=createMapCanvasRedrawScheduler(
+   ()=>drawn.push(revision),
+   cb=>{const id=nextId++;callbacks.set(id,cb);return id},
+   id=>{callbacks.delete(id)},
+   ()=>visible
+  );
+  for(let i=0;i<80;i++)scheduler.request();
+  expect(callbacks.size).toBe(0);
+  revision=2;visible=true;scheduler.visibilityChange(true);
+  expect(callbacks.size).toBe(1);
+  const [id,callback]=callbacks.entries().next().value!;
+  callbacks.delete(id);callback();
+  expect(drawn).toEqual([2]);
+  scheduler.dispose();
+ });
+ it('cancels an outstanding request when hidden and ignores a late cancelled callback',()=>{
+  let visible=true,nextId=4,oldCallback:(()=>void)|undefined;
+  const callbacks=new Map<number,()=>void>(),cancelled:number[]=[],painted:number[]=[];
+  const scheduler=createMapCanvasRedrawScheduler(
+   ()=>painted.push(1),
+   callback=>{const id=nextId++;callbacks.set(id,callback);oldCallback??=callback;return id},
+   id=>{cancelled.push(id);callbacks.delete(id)},
+   ()=>visible
+  );
+  scheduler.request();expect(callbacks.size).toBe(1);
+  visible=false;scheduler.visibilityChange(false);
+  expect(cancelled).toEqual([4]);
+  expect(callbacks.size).toBe(0);
+  oldCallback!();expect(painted).toEqual([]);
+  visible=true;scheduler.visibilityChange(true);
+  const [id,callback]=callbacks.entries().next().value!;
+  callbacks.delete(id);callback();
+  expect(painted).toEqual([1]);
+  scheduler.dispose();
+ });
+ it('forces one refresh after foregrounding even if no weather event arrived while hidden',()=>{
+  let visible=true,next=1,calls=0;const callbacks=new Map<number,()=>void>();
+  const scheduler=createMapCanvasRedrawScheduler(
+   ()=>{calls++},
+   callback=>{const id=next++;callbacks.set(id,callback);return id},
+   id=>{callbacks.delete(id)},
+   ()=>visible
+  );
+  visible=false;scheduler.visibilityChange(false);
+  visible=true;scheduler.visibilityChange(true);
+  scheduler.visibilityChange(true);scheduler.request();
+  expect(callbacks.size).toBe(1);
+  callbacks.values().next().value!();
+  expect(calls).toBe(1);
+  scheduler.dispose();
+ });
+ it('prevents redraws, pending callbacks, and resume work after unmount/disposal',()=>{
+  let visible=true,next=1,calls=0;const callbacks=new Map<number,()=>void>();
+  const scheduler=createMapCanvasRedrawScheduler(
+   ()=>{calls++},
+   cb=>{const id=next++;callbacks.set(id,cb);return id},
+   id=>{callbacks.delete(id)},
+   ()=>visible
+  );
+  scheduler.request();const late=callbacks.values().next().value!;
+  scheduler.dispose();scheduler.dispose();late();
+  visible=false;scheduler.request();scheduler.visibilityChange(false);
+  visible=true;scheduler.visibilityChange(true);
+  expect(calls).toBe(0);
+  expect(callbacks.size).toBe(0);
+ });
+ it('keeps a redraw possible after a drawing exception instead of locking the frame queue',()=>{
+  let calls=0,next=1;const callbacks=new Map<number,()=>void>();
+  const error=new Error('synthetic overlay paint failure');
+  const scheduler=createMapCanvasRedrawScheduler(
+   ()=>{calls++;if(calls===1)throw error},
+   callback=>{const id=next++;callbacks.set(id,callback);return id},
+   id=>{callbacks.delete(id)},
+   ()=>true
+  );
+  scheduler.request();const first=callbacks.values().next().value!;
+  callbacks.clear();expect(()=>first()).toThrow(error);
+  scheduler.request();expect(callbacks.size).toBe(1);
+  const second=callbacks.values().next().value!;
+  callbacks.clear();expect(()=>second()).not.toThrow();
+  expect(calls).toBe(2);
+  scheduler.dispose();
+ });
+ it('wires the redraw scheduler to genuine MapLibre events and document visibility',()=>{
+  const source=readFileSync(new URL('../../src/MapLibreCore.tsx',import.meta.url),'utf8');
+  const start=source.indexOf('export function CanvasOverlay');
+  const end=source.indexOf('export function ImageQuadLayer',start);
+  const overlay=source.slice(start,end);
+  expect(source).toContain("import {createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from './mapCanvasCrossfadePolicy'");
+  const admission=overlay.indexOf('createMapCanvasRedrawScheduler(');
+  const subscribe=overlay.indexOf("document.addEventListener('visibilitychange',onVisibility)");
+  const cleanup=overlay.indexOf('scheduler.dispose()',subscribe);
+  expect(admission).toBeGreaterThan(0);
+  expect(subscribe).toBeGreaterThan(admission);
+  expect(cleanup).toBeGreaterThan(subscribe);
+  expect(overlay).toContain('const redraw=()=>scheduler.request()');
+  expect(overlay).toContain("scheduler.visibilityChange(document.visibilityState==='visible')");
+  expect(overlay).toContain('for(const event of events)map.on(event,redraw)');
+  expect(overlay).toContain('for(const event of events)map.off(event,redraw)');
+  expect(overlay).toContain("document.removeEventListener('visibilitychange',onVisibility)");
  });
 });
