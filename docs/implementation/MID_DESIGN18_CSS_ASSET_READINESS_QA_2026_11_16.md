@@ -67,7 +67,7 @@ Browserlogs, Ortswerte oder Geheimnisse.
 
 ## Zusätzliche Absicherung der asynchronen CSS-Anfragen · 17.11.2026
 
-GitHub-Quellenprüfung am 17.11.: Stable und Main weiterhin 
+GitHub-Quellenprüfung am 17.11.: Stable und Main weiterhin
 `a78465b655d25cafc9ecc0390080694cb7aca957` / v0.9.85.486; alle fünf
 Branch-Rulesets aktiv. Spezial-#865 bleibt isolierter Draft, Leitchat-#858
 enthielt zum Prüfzeitpunkt noch keinen der drei hier angelegten Pfade.
