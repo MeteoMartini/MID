@@ -28,3 +28,15 @@ Für einen **echten** Nachweis ist später weiterhin ein originärer Producer-Ru
 Quellen: https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows · https://github.com/actions/upload-artifact/blob/main/README.md · https://docs.github.com/en/actions/how-tos/manage-workflow-runs/download-workflow-artifacts
 
 **Status:** Draft-only · NO READY · NO MERGE · NO INSTALLER · NO RELEASE.
+
+
+### Original-REST-Identitätskorrektur, vor Freigabe des Premerge-Receipt-Handoffs
+
+Der Original-Workflow `.github/workflows/agent-source-release.yml` deklariert `name: MID Agent Source Release` für die **Workflow-Registry**, aber `run-name: Geprüften Agent-PR automatisch veröffentlichen` für das **Run-Objekt**. Der ältere, bisher nur synthetisch getestete `prepareMid740ProducerGateReceipt` verglich fälschlich `registry.name` mit dem Run-Namen; damit wäre sein optionaler neuer Premerge-Schritt immer `BLOCKED` gewesen. Der Code prüft beide Felder jetzt getrennt auf ihre jeweils originale Identität; die Fixture bildet diese Differenz ab, und adversariale Vertauschungen sind explizit negativ getestet. Dies ist **keine** Aufweichung der Run-ID, Run-Attempt-, Workflow-Pfad-, Repository- oder Git-SHA-Prüfungen.
+
+
+### Reale GitHub-CI-Erkenntnis und dauerhafte Regressionserweiterung
+
+Der erste Workflow-/Receipt-Handoff-Commit `0c7b5b64ddd5a5a4cc950d2feaa3f2812b437fa5` wurde durch den bestehenden Shell-Integrationstest `mid-740-main-write-inventory.test.ts` **korrekt als FAIL** erkannt: der isoliert ausgeführte echte Bash-Shadow-Step erhielt die neu benötigten `PREMERGE_RECEIPT_OUTCOME`-/`PREMERGE_RECEIPT_PATH`-Environment-Werte nicht und scheiterte unter `set -u`. In der tatsächlichen GitHub-Actions-Stage werden diese Werte durch den Workflow-Env-Block bereitgestellt, aber das Unit-Fixture muss beide Zweige abbilden. Die ursprünglichen 28 Byte-/Manifest-Link-Tests und 25 Producer-Gate-Tests waren am ersten Commit erfolgreich; der **vollständige** Run blieb trotzdem rot und darf nicht als abgenommen bezeichnet werden.
+
+Die korrigierte Regression führt die ursprüngliche Bash-Stage jetzt zusätzlich real mit `PREMERGE_RECEIPT_OUTCOME=skipped` (Legacy-Transport unverändert, Manifestfelder `false/null`) und mit synthetisch gültigen originalen JSON-Receipt-Bytes (`success` mit Manifest-SHA256 und Originalbytegleichheit) aus. Sie prüft einen manipulierten Run-ID-Fall. Ein `ERR`-Trap räumt privat angelegte Runner-Shadow-Verzeichnisse bei der fehlschlagenden optionalen Stage weg, ohne zuvor gesicherte Artefakte anzutasten. Die Runtime bleibt weiterhin optional und der echte Installer-Dispatch unverändert.

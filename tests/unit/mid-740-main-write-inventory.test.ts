@@ -50,7 +50,8 @@ describe('MID #740 legacy producer shadow',()=>{
    const output=join(runnerTemp,'outputs');
    const env={...process.env,RUNNER_TEMP:runnerTemp,GITHUB_OUTPUT:output,PACKAGE_SHA:pkg,
     SOURCE_MERGE_SHA:source,WORKFLOW_SHA:source,SOURCE_GATE_ID:'123',SOURCE_GATE_ATTEMPT:'1',
-    GITHUB_RUN_ID:'456',GITHUB_RUN_ATTEMPT:'1'};
+    GITHUB_RUN_ID:'456',GITHUB_RUN_ATTEMPT:'1',
+    PREMERGE_RECEIPT_OUTCOME:'skipped',PREMERGE_RECEIPT_PATH:''};
    const run=(overrides:Record<string,string>={})=>spawnSync('bash',['-c',script!],
     {cwd:dir,env:{...env,...overrides},encoding:'utf8'});
    const first=run();
@@ -62,15 +63,40 @@ describe('MID #740 legacy producer shadow',()=>{
     packageCommitSha:pkg,sourceMergeSha:source,workflowSha:source,
     zipSha256:createHash('sha256').update(original).digest('hex'),
     producerRunId:456,producerRunAttempt:1,sourceGateRunId:123,sourceGateRunAttempt:1,
+    originalPremergeReceiptIncluded:false,originalPremergeReceiptSha256:null,
     installerAuthorized:false,releaseAuthorized:false
    });
+   // Exercise the actual workflow shell code with real premerge receipt bytes.
+   const receiptPath=join(runnerTemp,'original-receipt.json');
+   const receipt={schema:'mid.740.premerge-producer-receipt.v1',
+    status:'PREMERGE_PRODUCER_EVENT_METADATA_COHERENT_QA_ONLY',
+    sourceGateRunId:123,sourceGateAttempt:1,producerRunId:456,producerAttempt:1,
+    producerWorkflowSha:source,sourceBaseSha:source,
+    originalArtifactVerified:false,trustedProductionReceiptAttested:false,
+    installerAuthorized:false,releaseAuthorized:false};
+   const raw=JSON.stringify(receipt)+'\n';
+   writeFileSync(receiptPath,raw);
+   const withReceipt=run({PREMERGE_RECEIPT_OUTCOME:'success',PREMERGE_RECEIPT_PATH:receiptPath});
+   expect(withReceipt.status,withReceipt.stderr).toBe(0);
+   const receiptArtifact=readFileSync(output,'utf8').trim().split('\n').at(-1)!.slice('directory='.length);
+   expect(readdirSync(receiptArtifact).sort()).toEqual([filename,'premerge-gate-receipt.json','provenance.json']);
+   expect(readFileSync(join(receiptArtifact,'premerge-gate-receipt.json'),'utf8')).toBe(raw);
+   expect(JSON.parse(readFileSync(join(receiptArtifact,'provenance.json'),'utf8'))).toMatchObject({
+    originalPremergeReceiptIncluded:true,
+    originalPremergeReceiptSha256:createHash('sha256').update(raw).digest('hex')
+   });
+   receipt.producerRunId=999;
+   writeFileSync(receiptPath,JSON.stringify(receipt)+'\n');
+   expect(run({PREMERGE_RECEIPT_OUTCOME:'success',PREMERGE_RECEIPT_PATH:receiptPath}).status).not.toBe(0);
    expect(run({SOURCE_MERGE_SHA:pkg}).status).not.toBe(0);
    expect(run({SOURCE_GATE_ATTEMPT:'0'}).status).not.toBe(0);
    writeFileSync(join(dir,'unexpected'),'extra change');
    git('add','unexpected');
    git('commit','-qm','unrelated commit');
    expect(run({PACKAGE_SHA:git('rev-parse','HEAD'),SOURCE_MERGE_SHA:pkg}).status).not.toBe(0);
-   expect(readdirSync(runnerTemp).sort()).toEqual([artifact.split('/').pop(),'outputs'].sort());
+   expect(readdirSync(runnerTemp).sort()).toEqual([
+    artifact.split('/').pop(),receiptArtifact.split('/').pop(),'original-receipt.json','outputs'
+   ].sort());
   }finally{rmSync(dir,{recursive:true,force:true})}
  });
 });

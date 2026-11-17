@@ -37,7 +37,7 @@ function fixture(){
   'pulls?state=open&base=main&per_page=100&page=1':[pr],
   'pulls/999':pr,
   'actions/runs/222':producer,
-  'actions/workflows/358777143':{id:358777143,path:producer.path,name:producer.name,state:'active'}
+  'actions/workflows/358777143':{id:358777143,path:producer.path,name:'MID Agent Source Release',state:'active'}
  };
  const event={action:'completed',repository:{id:RID,full_name:R},
   workflow_run:structuredClone(gate)};
@@ -75,6 +75,8 @@ describe('#740 producer-side original workflow_run gate receipt (QA only)',()=>{
   ['duplicate source PR',x=>{x.d['pulls?state=open&base=main&per_page=100&page=1'].push({...x.d['pulls/999'],number:998})}],
   ['producer workflow swap',x=>{x.producer.workflow_id=12}],
   ['producer registry disabled',x=>{x.d['actions/workflows/358777143'].state='disabled_manually'}],
+  ['producer run-name mistakenly in registry',x=>{x.d['actions/workflows/358777143'].name='Geprüften Agent-PR automatisch veröffentlichen'}],
+  ['producer display name swapped',x=>{x.d['actions/runs/222'].name='MID Agent Source Release'}],
   ['producer run rerun',x=>{x.producer.run_attempt=2}],
   ['producer run already completed',x=>{x.producer.status='completed';x.producer.conclusion='success'}],
   ['producer wrong event',x=>{x.producer.event='pull_request'}],

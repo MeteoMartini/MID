@@ -368,6 +368,7 @@ jobs:
           test "$(git rev-list --parents -n 1 "$PACKAGE_SHA")" = "$PACKAGE_SHA $SOURCE_MERGE_SHA"
           test "$(git diff-tree --no-commit-id --name-only -r "$PACKAGE_SHA")" = "$archive"
           shadow_dir="$(mktemp -d "$RUNNER_TEMP/mid740-legacy-shadow.XXXXXXXX")"
+          trap 'rm -rf -- "$shadow_dir"' ERR
           git cat-file blob "$PACKAGE_SHA:$archive" > "$shadow_dir/$archive"
           test -s "$shadow_dir/$archive"
           read -r zip_sha256 _ < <(sha256sum "$shadow_dir/$archive")

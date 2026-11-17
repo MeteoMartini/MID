@@ -11,6 +11,8 @@ import {assessMid740UpstreamTrigger} from './mid-740-upstream-trigger-readback.m
 const R='MeteoMartini/MID',P='repos/'+R+'/',RID=1305110795;
 const PRODUCER_WID=358777143,PATH='.github/workflows/agent-source-release.yml';
 const NAME='Geprüften Agent-PR automatisch veröffentlichen';
+// GitHub REST: workflow registry .name and run display .name are distinct.
+const WORKFLOW_NAME='MID Agent Source Release';
 const SHA=/^[a-f0-9]{40}$/;
 const validId=n=>Number.isSafeInteger(n)&&n>0;
 const deny=reason=>Object.freeze({
@@ -53,7 +55,7 @@ export async function prepareMid740ProducerGateReceipt({
   ]);
  }catch{return deny('PRODUCER_REGISTRY_OR_GATE_READ_UNAVAILABLE')}
  if(registry?.id!==PRODUCER_WID||registry.path!==PATH||
-    registry.name!==NAME||registry.state!=='active'||
+    registry.name!==WORKFLOW_NAME||registry.state!=='active'||
     !sameProducer(producer,producer,producerWorkflowSha,producerRunId))
   return deny('PRODUCER_RUN_OR_REGISTRY_DRIFT');
  const gateFinished=Date.parse(gate?.updated_at??'');
