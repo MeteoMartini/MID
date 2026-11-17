@@ -132,59 +132,117 @@ export function observeCssResponses(page,{manifest,origin}){
     typeof page?.evaluate!=='function')fail('Playwright Page event/evaluate API required');
  const m=obj(manifest,'manifest');
  const expected=validateExpectedCssAssets(m.assets),tasks=[],responses=[],invalid=[];
- const allowed=new Set(expected.map(a=>a.path));
- let listening=true;
- const handler=response=>{
-  if(!listening)return;
-  const path=normalizedBrowserPath(response.url(),origin);
-  if(!path)return;
-  // All CSS assets in this scope must be declared, not just the passing subset.
-  tasks.push((async()=>{
-   if(!allowed.has(path)){invalid.push('undeclared CSS request');return}
-   const status=response.status();
-   let bytes;
-   try{bytes=await response.body()}catch{invalid.push('CSS response body inaccessible');return}
-   responses.push({path,status,bodySha256:digest(bytes)});
-  })().catch(()=>invalid.push('unreadable CSS HTTP response')));
+ const allowed=new Set(expected.map(a=>a.path)),requests=new Map();
+ let listening=true,finalizing=false;
+ const resourceIsCss=request=>{
+  if(!request)return false;
+  let type='',url='';
+  try{type=request.resourceType?.()??'';url=request.url()}catch{return false}
+  return type==='stylesheet'||/\.css(?:[?#]|$)/i.test(url);
  };
- page.on('response',handler);
+ const handleRequest=request=>{
+  if(!listening||!resourceIsCss(request))return;
+  if(requests.has(request)){invalid.push('duplicated stylesheet request event');return}
+  const path=normalizedBrowserPath(request.url(),origin);
+  if(!path||!allowed.has(path))invalid.push('CSS request outside declared original asset inventory');
+  requests.set(request,{path,responded:false,finished:false,failed:false});
+ };
+ const handleResponse=response=>{
+  if(!listening)return;
+  let request,header='';
+  try{
+   request=response.request();
+   header=response.headers?.()['content-type']??'';
+  }catch{invalid.push('CSS response has unreadable request identity');return}
+  if(!resourceIsCss(request)&&!/^text\/css(?:;|$)/i.test(header.trim()))return;
+  const state=requests.get(request);
+  if(!state||state.responded){invalid.push('untracked or duplicate CSS response');return}
+  state.responded=true;
+  tasks.push((async()=>{
+   if(!state.path||!allowed.has(state.path))return;
+   if(typeof response.finished!=='function'||typeof response.body!=='function')
+    {invalid.push('CSS response completion/body API unavailable');return}
+   if(response.fromServiceWorker?.()===true)
+    {invalid.push('Service Worker response is not proven original HTTP');return}
+   const completion=await response.finished();
+   if(completion){invalid.push('CSS response failed before download completion');return}
+   const body=await response.body();
+   if(!Buffer.isBuffer(body)){invalid.push('CSS response must supply original Buffer');return}
+   responses.push({path:state.path,status:response.status(),bodySha256:digest(body)});
+  })().catch(()=>invalid.push('CSS HTTP response body inaccessible')));
+ };
+ const handleFinished=request=>{
+  if(!listening||!resourceIsCss(request))return;
+  const state=requests.get(request);
+  if(!state||state.finished){invalid.push('untracked or duplicated CSS request completion');return}
+  state.finished=true;
+ };
+ const handleFailed=request=>{
+  if(!listening||!resourceIsCss(request))return;
+  const state=requests.get(request);
+  if(state)state.failed=true;
+  invalid.push('failed or unmatched original CSS request');
+ };
+ const handlers={
+  request:handleRequest,response:handleResponse,requestfinished:handleFinished,requestfailed:handleFailed,
+ };
+ for(const [name,fn] of Object.entries(handlers))page.on(name,fn);
+ const cleanup=()=>{
+  if(listening){listening=false;for(const [name,fn] of Object.entries(handlers))page.off(name,fn)}
+ };
  return {
   async finish(){
-   if(!listening)fail('CSS observer already finalized');
-   listening=false;page.off('response',handler);
-   await Promise.all(tasks);
-   if(invalid.length)fail(invalid.join('; '));
-   const frames=[];
-   for(let i=0;i<2;i++){
-    const state=await page.evaluate(async ({origin})=>{
-     await document.fonts.ready;
-     await new Promise(ok=>requestAnimationFrame(()=>requestAnimationFrame(ok)));
-     const stylesheets=[];
-     for(const sheet of document.styleSheets){
-      let path=null,inlineHash=null,kind=null,readable=false,ruleCount=null;
-      try{
-       if(sheet.href){
-        const u=new URL(sheet.href,location.href);
-        if(u.origin===origin&&!u.search&&!u.hash){
-         path=decodeURIComponent(u.pathname).replace(/^\/+/, '');
-         kind='external';
+   if(!listening||finalizing)fail('CSS observer already finalized');
+   finalizing=true;
+   try{
+    const frames=[];
+    for(let i=0;i<2;i++){
+     // Bounded settling interval, not networkidle and never evidence of future requests.
+     if(i===1)await new Promise(ok=>setTimeout(ok,200));
+     const state=await page.evaluate(async ({origin})=>{
+      await document.fonts.ready;
+      await new Promise(ok=>requestAnimationFrame(()=>requestAnimationFrame(ok)));
+      const stylesheets=[];
+      for(const sheet of document.styleSheets){
+       let path=null,inlineHash=null,kind=null,readable=false,ruleCount=null;
+       try{
+        if(sheet.href){
+         const u=new URL(sheet.href,location.href);
+         if(u.origin===origin&&!u.search&&!u.hash){
+          path=decodeURIComponent(u.pathname).replace(/^\/+/, '');
+          kind='external';
+         }
+        }else if(sheet.ownerNode?.tagName==='STYLE'){
+         const data=new TextEncoder().encode(sheet.ownerNode.textContent??'');
+         const bytes=new Uint8Array(await crypto.subtle.digest('SHA-256',data));
+         inlineHash=[...bytes].map(b=>b.toString(16).padStart(2,'0')).join('');
+         kind='inline';
         }
-       }else if(sheet.ownerNode?.tagName==='STYLE'){
-        const data=new TextEncoder().encode(sheet.ownerNode.textContent??'');
-        const bytes=new Uint8Array(await crypto.subtle.digest('SHA-256',data));
-        inlineHash=[...bytes].map(b=>b.toString(16).padStart(2,'0')).join('');
-        kind='inline';
-       }
-       ruleCount=sheet.cssRules.length;readable=true;
-      }catch{}
-      stylesheets.push({kind,path,sha256:inlineHash,readable,ruleCount,disabled:sheet.disabled===true});
-     }
-     return {fontsStatus:document.fonts.status,adoptedStyleSheetCount:document.adoptedStyleSheets.length,stylesheets};
-    },{origin});
-    frames.push(state);
-   }
-   return verifyCssLoadReadiness({manifest:m,responses,frames,origin});
+        ruleCount=sheet.cssRules.length;readable=true;
+       }catch{}
+       stylesheets.push({kind,path,sha256:inlineHash,readable,ruleCount,disabled:sheet.disabled===true});
+      }
+      return {fontsStatus:document.fonts.status,adoptedStyleSheetCount:document.adoptedStyleSheets.length,stylesheets};
+     },{origin});
+     frames.push(state);
+    }
+    let cursor=0;
+    while(cursor<tasks.length){
+     const next=tasks.slice(cursor);cursor=tasks.length;
+     await Promise.all(next);
+    }
+    if(invalid.length)fail(invalid.join('; '));
+    if(requests.size!==allowed.size)fail('CSS request inventory does not match declared assets');
+    const paths=new Set();
+    for(const state of requests.values()){
+     if(!state.path||!allowed.has(state.path)||paths.has(state.path)||
+       !state.responded||!state.finished||state.failed)
+      fail('incomplete, duplicated or failed CSS request lifecycle');
+     paths.add(state.path);
+    }
+    return verifyCssLoadReadiness({manifest:m,responses,frames,origin});
+   }finally{cleanup()}
   },
-  cancel(){if(listening){listening=false;page.off('response',handler)}},
+  cancel(){cleanup()},
  };
 }
