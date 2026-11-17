@@ -173,7 +173,7 @@ describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
   const overlay=source.slice(from,end);
   const settle=overlay.indexOf('function finishFade(){');
   const visibility=overlay.indexOf("function onVisibility(){if(document.visibilityState!=='visible')finishFade()}");
-  const register=overlay.indexOf("document.addEventListener('visibilitychange',onVisibility);");
+  const register=overlay.indexOf("document.addEventListener('visibilitychange',onVisibility);",visibility);
   const lateHidden=overlay.indexOf("if(document.visibilityState!=='visible')finishFade();");
   const cleanup=overlay.indexOf('return finishFade',register);
   expect(settle).toBeGreaterThan(0);
