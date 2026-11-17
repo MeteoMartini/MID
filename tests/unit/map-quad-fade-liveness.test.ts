@@ -1,4 +1,5 @@
 import {describe,expect,it} from 'vitest';
+import {readFileSync} from 'node:fs';
 import {abandonMissingQuadFade} from '../../scripts/qa/mapQuadFadeLiveness';
 
 describe('MID Karten 1.15 · lost image-layer fade liveness (QA only)',()=>{
@@ -44,5 +45,27 @@ describe('MID Karten 1.15 · lost image-layer fade liveness (QA only)',()=>{
    abandoned:true,disposedFrames:0,failedDisposals:0,
   });
   expect(fading.current).toBe(false);
+ });
+
+ it('is wired into the real ImageQuadLayer rather than remaining QA-only',()=>{
+  const source=readFileSync(new URL('../../src/MapLibreCore.tsx',import.meta.url),'utf8');
+  expect(source).toContain("import {abandonMissingQuadFade} from './mapQuadFadeLiveness'");
+  const start=source.indexOf('const fade=(now:number)=>{');
+  const end=source.indexOf('animation.current=requestAnimationFrame(fade);',start);
+  expect(start).toBeGreaterThan(0);
+  expect(end).toBeGreaterThan(start);
+  const actualFade=source.slice(start,Math.min(source.length,end+100));
+  expect(actualFade).toContain('if(!map.getLayer(layer)){abandonMissingQuadFade(fading,frames,remove);return}');
+  expect(actualFade).toContain('}catch{');
+  expect(actualFade).toContain('abandonMissingQuadFade(fading,frames,remove)');
+  expect(actualFade).not.toContain('if(!map.getLayer(layer))return;');
+ });
+ it('does not invent a rendered radar frame or change weather validity during renderer cleanup',()=>{
+  const fading={current:true},frames={current:[{source:'old',layer:'old'}]};
+  let delivered=false,weatherTime=1700000000000;
+  abandonMissingQuadFade(fading,frames,()=>{});
+  expect(delivered).toBe(false);
+  expect(weatherTime).toBe(1700000000000);
+  expect(frames.current).toEqual([]);
  });
 });
