@@ -4,8 +4,8 @@
  * may reach this entrypoint. This never merges, deploys or authorizes release.
  */
 import {execFileSync} from 'node:child_process';
-import {existsSync,readFileSync,realpathSync,rmSync} from 'node:fs';
-import {resolve,join} from 'node:path';
+import {existsSync,linkSync,lstatSync,mkdirSync,mkdtempSync,readFileSync,realpathSync,rmdirSync,rmSync,unlinkSync,writeFileSync} from 'node:fs';
+import {resolve,join,dirname,sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {collectMid740GitHubReadback} from './mid-740-github-artifact-readback.mjs';
 import {downloadMid740Envelope} from './mid-740-download-artifact-envelope.mjs';
@@ -89,26 +89,42 @@ export async function verifyMid740ArtifactIntake({
   x.artifact.created_at,x.artifact.updated_at
  ]);
  const beforeIdentity=identity(meta);
- const envelope=resolve(envelopeOutput??'');
- const outputDir=resolve(artifactDirectory??'');
- if(envelope===outputDir||existsSync(envelope)||existsSync(outputDir))
-  reject('OUTPUT_ALREADY_PRESENT');
- let downloaded=false;
+ const destination=value=>{
+  if(typeof value!=='string'||!value||value.includes('\\0'))reject('BAD_OUTPUT');
+  const path=resolve(value),parent=dirname(path);
+  let stat;
+  try{stat=lstatSync(parent)}catch{reject('OUTPUT_PARENT_UNAVAILABLE')}
+  if(!stat.isDirectory()||stat.isSymbolicLink()||realpathSync(parent)!==parent||
+     lstatSync(path,{throwIfNoEntry:false}))reject('OUTPUT_PATH_UNTRUSTED');
+  return {path,parent};
+ };
+ const {path:envelope}=destination(envelopeOutput);
+ const {path:outputDir,parent:outputParent}=destination(artifactDirectory);
+ if(envelope===outputDir||envelope.startsWith(outputDir+sep)||
+    outputDir.startsWith(envelope+sep))reject('OVERLAPPING_OUTPUT_PATHS');
+ const staging=mkdtempSync(join(outputParent,'.mid740-intake-private-'));
+ const candidateEnvelope=join(staging,'original-envelope.zip');
+ const candidateDirectory=join(staging,'verified');
+ let ownedDirectory=false,completed=false;
+ const published=[];
+ const sameFile=(path,stat)=>{
+  const now=lstatSync(path,{throwIfNoEntry:false});
+  return !!now&&now.dev===stat.dev&&now.ino===stat.ino;
+ };
  try{
   const transfer=await downloadMid740Envelope({
-   artifact:meta.artifact,output:envelope,token
+   artifact:meta.artifact,output:candidateEnvelope,token
   },fetcher);
-  downloaded=true;
   const exe=join(repo,'tools/ci/mid-740-verify-artifact-envelope.py');
   const local=join(repo,'tools/ci/mid-740-verify-local-artifact.py');
   const source=join(repo,'tools/ci/verify-source-release-zip.py');
   let verification;
   try{
    verification=JSON.parse(python('python3',[
-    exe,'--envelope',envelope,
+    exe,'--envelope',candidateEnvelope,
     '--expected-envelope-sha256',transfer.envelopeSha256,
     '--source-sha',sourceMergeSha,
-    '--destination',outputDir,
+    '--destination',candidateDirectory,
     '--repository',repo,
     '--local-verifier',local,
     '--source-verifier',source
@@ -124,8 +140,6 @@ export async function verifyMid740ArtifactIntake({
    reject('INCOMPLETE_FINAL_PROOF');
   const refreshed=await get('repos/MeteoMartini/MID/git/ref/heads/main');
   if(refreshed?.object?.sha!==sourceMergeSha)reject('MAIN_CHANGED_AFTER_DOWNLOAD');
-  // Re-read the complete producer run, workflow registry and artifact inventory
-  // after verifying original downloaded bytes and the complete source Git tree.
   const after=await collectMid740GitHubReadback({
    runId,artifactId,sourceMergeSha,trustedWorkflowSha
   },get);
@@ -134,6 +148,29 @@ export async function verifyMid740ArtifactIntake({
    reject('PRODUCER_CHANGED_AFTER_DOWNLOAD');
   const finalMain=await get('repos/MeteoMartini/MID/git/ref/heads/main');
   if(finalMain?.object?.sha!==sourceMergeSha)reject('FINAL_MAIN_RACE');
+  // The final outputs must not appear before the original GitHub race checks.
+  // Exclusively reserve the destination; never rename over a racing directory.
+  try{mkdirSync(outputDir,{mode:0o700})}catch{reject('OUTPUT_PATH_RACE')}
+  ownedDirectory=true;
+  const marker=join(outputDir,'.mid740-incomplete');
+  writeFileSync(marker,'QA ONLY - NOT PUBLISHED\\n',{flag:'wx',mode:0o600});
+  published.push({path:marker,stat:lstatSync(marker)});
+  for(const name of ['MID-professional-replacement.zip','MID-source-zip-evidence.json']){
+   const input=join(candidateDirectory,name),target=join(outputDir,name);
+   const stat=lstatSync(input);
+   if(!stat.isFile()||stat.isSymbolicLink()||stat.nlink!==1)
+    reject('VERIFIED_MEMBER_TYPE_CHANGED');
+   try{linkSync(input,target)}catch{reject('OUTPUT_MEMBER_RACE_OR_LINK_FAILED')}
+   published.push({path:target,stat});
+  }
+  const zipStat=lstatSync(candidateEnvelope);
+  if(!zipStat.isFile()||zipStat.nlink!==1)reject('VERIFIED_ENVELOPE_TYPE_CHANGED');
+  try{linkSync(candidateEnvelope,envelope)}
+  catch{reject('OUTPUT_ENVELOPE_RACE_OR_LINK_FAILED')}
+  published.push({path:envelope,stat:zipStat});
+  if(!sameFile(marker,published[0].stat))reject('OUTPUT_MARKER_RACE');
+  unlinkSync(marker);
+  completed=true;
   return Object.freeze({
    schema:'mid.740.end-to-end-intake-qa.v1',
    mainSha:sourceMergeSha,producerRunId:runId,artifactId,
@@ -143,15 +180,15 @@ export async function verifyMid740ArtifactIntake({
    nativeGitHubReviewVerified:false,installerAuthorized:false,
    releaseAuthorized:false
   });
- }catch(error){
-  if(downloaded){
-   // Only clean the exact new envelope produced in this invocation.
-   rmSync(envelope,{force:true});
-   // OutputDir is private to this invocation; refuse clobbering any
-   // preexisting path by the initial checks above.
-   if(existsSync(outputDir))rmSync(outputDir,{recursive:true,force:true});
+ }finally{
+  if(!completed){
+   // Only remove our own matching inodes, never a competing foreign file.
+   for(const file of published.reverse()){
+    try{if(sameFile(file.path,file.stat))unlinkSync(file.path)}catch{}
+   }
+   if(ownedDirectory){try{rmdirSync(outputDir)}catch{}}
   }
-  throw error;
+  rmSync(staging,{recursive:true,force:true});
  }
 }
 

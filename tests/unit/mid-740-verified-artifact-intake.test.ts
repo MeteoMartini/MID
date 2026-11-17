@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {createHash} from 'node:crypto';
-import {copyFileSync,existsSync,mkdirSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
+import {copyFileSync,existsSync,mkdirSync,mkdtempSync,readFileSync,readdirSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {spawnSync} from 'node:child_process';
@@ -103,6 +103,60 @@ describe('MID #740 complete artifact intake: mocked API + real binary ZIP and Gi
     producerJobVerified:true,producerIdentityReread:true,
     nativeGitHubReviewVerified:false,installerAuthorized:false,releaseAuthorized:false});
    expect(existsSync(x.inputs.artifactDirectory)).toBe(true);
+  }finally{rmSync(root,{recursive:true,force:true})}
+ },60000);
+ it('keeps both final output paths private until final main readback',async()=>{
+  const root=mkdtempSync(join(tmpdir(),'mid740-intake-private-'));
+  try{
+   const x=scenario(root);
+   const get=async(key:string)=>{
+    if(key===path+'/git/ref/heads/main'){
+     expect(existsSync(x.inputs.envelopeOutput)).toBe(false);
+     expect(existsSync(x.inputs.artifactDirectory)).toBe(false);
+    }
+    return x.get(key);
+   };
+   await intake(x.inputs,{get,fetcher:x.fetcher});
+   expect(existsSync(x.inputs.envelopeOutput)).toBe(true);
+   expect(readdirSync(x.inputs.artifactDirectory).sort()).toEqual([
+    'MID-professional-replacement.zip','MID-source-zip-evidence.json']);
+   expect(readdirSync(root).filter(x=>x.startsWith('.mid740-intake-private-'))).toEqual([]);
+  }finally{rmSync(root,{recursive:true,force:true})}
+ },60000);
+ it('cleans partial private bytes after an interrupted CDN body',async()=>{
+  const root=mkdtempSync(join(tmpdir(),'mid740-intake-interrupt-'));
+  try{
+   const x=scenario(root);
+   const fetcher=async(url:string)=>url===api+'456/zip'?
+    new Response(null,{status:302,headers:{location:cdn}}):
+    new Response(new ReadableStream<Uint8Array>({start(c){
+     c.enqueue(new Uint8Array([80,75,3,4]));c.error(Error('INTERRUPTED'));
+    }}),{status:200});
+   await expect(intake(x.inputs,{get:x.get,fetcher:fetcher as any})).rejects.toThrow();
+   expect(existsSync(x.inputs.envelopeOutput)).toBe(false);
+   expect(existsSync(x.inputs.artifactDirectory)).toBe(false);
+   expect(readdirSync(root).filter(x=>x.startsWith('.mid740-intake-private-'))).toEqual([]);
+  }finally{rmSync(root,{recursive:true,force:true})}
+ },60000);
+ it('does not delete a foreign directory on final output-path race',async()=>{
+  const root=mkdtempSync(join(tmpdir(),'mid740-intake-race-output-'));
+  try{
+   const x=scenario(root);
+   let count=0;
+   const get=async(key:string)=>{
+    const answer=await x.get(key);
+    if(key===path+'/git/ref/heads/main'&&++count===4){
+     mkdirSync(x.inputs.artifactDirectory);
+     writeFileSync(join(x.inputs.artifactDirectory,'foreign.txt'),'untouched');
+    }
+    return answer;
+   };
+   await expect(intake(x.inputs,{get,fetcher:x.fetcher}))
+    .rejects.toThrow('MID_740_INTAKE_OUTPUT_PATH_RACE');
+   expect(readFileSync(join(x.inputs.artifactDirectory,'foreign.txt'),'utf8'))
+    .toBe('untouched');
+   expect(existsSync(x.inputs.envelopeOutput)).toBe(false);
+   expect(readdirSync(root).filter(x=>x.startsWith('.mid740-intake-private-'))).toEqual([]);
   }finally{rmSync(root,{recursive:true,force:true})}
  },60000);
  it('rejects changed artifact identity after verifying real ZIP and Git bytes',async()=>{
