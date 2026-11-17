@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 /** Issue #740: authenticated live GitHub metadata recovery QA; no writes or deploys. */
 import {execFileSync} from 'node:child_process';
-import {readFileSync} from 'node:fs';
+import {constants,readFileSync} from 'node:fs';
+import {open,realpath} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import {join,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {assessMid740ImmutableRecovery,REQUIRED_ASSETS} from './mid-740-immutable-recovery-qa.mjs';
 const REPO='MeteoMartini/MID',ID=1305110795;
@@ -15,7 +18,25 @@ const block=reason=>Object.freeze({schema:'mid.740.live-recovery.v1',status:'BLO
  reviewEnforced:false,sourceBotVerified:false,recoveryAuthorized:false,releaseAuthorized:false});
 const fingerprint=xs=>JSON.stringify(xs.map(x=>[x?.name,x?.id,x?.digest,x?.size,x?.state])
  .sort((a,b)=>String(a[0]).localeCompare(String(b[0]))));
-export async function inspectMid740LiveRecovery({version,expectedSourceSha,independentDigests}={},get){
+async function matchesLocalAsset(path,asset){
+ const file=await open(path,constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);
+ try{
+  const stat=await file.stat();
+  if(!stat.isFile()||stat.size!==asset.size)return false;
+  const hash=createHash('sha256');
+  let bytes=0;
+  for await(const chunk of file.createReadStream({autoClose:false})){
+   bytes+=chunk.length;
+   if(bytes>asset.size)return false;
+   hash.update(chunk);
+  }
+  return bytes===asset.size&&'sha256:'+hash.digest('hex')===asset.digest;
+ }finally{await file.close()}
+}
+
+export async function inspectMid740LiveRecovery({
+ version,expectedSourceSha,independentDigests,assetDirectory
+}={},get,verifyAsset){
  if(!VERSION.test(version??'')||!SHA.test(expectedSourceSha??'')||typeof get!=='function')
   return block('BAD_INPUT');
  if(!independentDigests||typeof independentDigests!=='object'||
@@ -75,6 +96,20 @@ export async function inspectMid740LiveRecovery({version,expectedSourceSha,indep
   mainSha:main.object.sha,stableSha:stable.object.sha,version,independentDigests
  });
  if(v.status!=='METADATA_COHERENT')return block(v.reason);
+ const checkBytes=assetDirectory!==undefined;
+ if(checkBytes){
+  if(typeof assetDirectory!=='string'||!assetDirectory||typeof verifyAsset!=='function')
+   return block('LOCAL_ASSETS_AND_ATTESTATION_REQUIRED');
+  const directory=resolve(assetDirectory);
+  try{
+   if(await realpath(directory)!==directory)return block('LOCAL_ASSET_DIRECTORY_UNSAFE');
+   for(const asset of v.assetMetadata){
+    const path=join(directory,asset.name);
+    if(!await matchesLocalAsset(path,asset))return block('LOCAL_ASSET_DIGEST_OR_SIZE_MISMATCH');
+    if(await verifyAsset(tag,path)!==true)return block('RELEASE_ASSET_ATTESTATION_UNVERIFIED');
+   }
+  }catch{return block('LOCAL_ASSET_OR_ATTESTATION_UNAVAILABLE')}
+ }
  let again;
  try{again=await Promise.all([
   read('git/ref/heads/main'),read('git/ref/heads/mid-stable'),
@@ -88,15 +123,16 @@ export async function inspectMid740LiveRecovery({version,expectedSourceSha,indep
     t2?.ref!==tagRef.ref||t2?.object?.type!==tagRef.object.type||
     t2?.object?.sha!==tagRef.object.sha)
   return block('FINAL_READBACK_RACE');
- return Object.freeze({schema:'mid.740.live-recovery.v1',status:'METADATA_COHERENT_QA_ONLY',
+ return Object.freeze({schema:'mid.740.live-recovery.v1',
+  status:checkBytes?'ATTESTED_ASSETS_VERIFIED_QA_ONLY':'METADATA_COHERENT_QA_ONLY',
   version,sourceSha:expectedSourceSha,releaseId:release.id,
   assets:Object.freeze(v.assetMetadata),metadataVerified:true,
-  bytesVerified:false,attestationVerified:false,reviewEnforced:false,
+  bytesVerified:checkBytes,attestationVerified:checkBytes,reviewEnforced:false,
   sourceBotVerified:false,recoveryAuthorized:false,releaseAuthorized:false});
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  try{
-  const [version,sha,digestPath,...extra]=process.argv.slice(2);
+  const [version,sha,digestPath,assetDirectory,...extra]=process.argv.slice(2);
   if(extra.length||!version||!sha||!digestPath)throw Error('BAD_CLI_INPUT');
   // Evidence JSON must be constructed from a separate verified binary-source path.
   const independentDigests=JSON.parse(readFileSync(digestPath,'utf8'));
@@ -104,10 +140,16 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
    encoding:'utf8',timeout:20000,maxBuffer:4*1024*1024,
    stdio:['ignore','pipe','ignore']
   }));
+  const verifyAsset=(tag,path)=>{
+   execFileSync('gh',['release','verify-asset',tag,path,'--repo','github.com/'+REPO],{
+    timeout:60000,stdio:['ignore','ignore','ignore']
+   });
+   return true;
+  };
   const result=await inspectMid740LiveRecovery({version,
-   expectedSourceSha:sha,independentDigests},get);
+   expectedSourceSha:sha,independentDigests,assetDirectory},get,verifyAsset);
   process.stdout.write(JSON.stringify(result)+'\n');
-  if(result.status!=='METADATA_COHERENT_QA_ONLY')process.exitCode=1;
+  if(result.status==='BLOCKED')process.exitCode=1;
  }catch{
   process.stdout.write(JSON.stringify(block('CLI_OR_GITHUB_READ_UNAVAILABLE'))+'\n');
   process.exitCode=1;

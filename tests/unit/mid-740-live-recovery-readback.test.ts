@@ -1,4 +1,8 @@
 import {describe,it,expect} from 'vitest';
+import {createHash} from 'node:crypto';
+import {mkdtempSync,rmSync,symlinkSync,writeFileSync} from 'node:fs';
+import {join} from 'node:path';
+import {tmpdir} from 'node:os';
 import {inspectMid740LiveRecovery as inspect} from '../../tools/ci/mid-740-live-recovery-readback.mjs';
 import {REQUIRED_ASSETS} from '../../tools/ci/mid-740-immutable-recovery-qa.mjs';
 const SHA='a'.repeat(40),VER='0.9.85.487',TAG='v'+VER,ID=42;
@@ -96,3 +100,39 @@ describe('MID 740 live immutable release readback: adversarial QA only',()=>{
   expect((await inspect(x.args,get)).reason).toBe('FINAL_READBACK_RACE');
  });
 });
+it.each(['clean','digest','symlink','missing','attestation','metadata-race'] as const)(
+ 'verifies recovery asset bytes and attestation, or blocks %s',async kind=>{
+  const x=fixture(),directory=mkdtempSync(join(tmpdir(),'mid740-recovery-'));
+  try{
+   const assets=x.responses['releases/'+ID+'/assets?per_page=100&page=1'];
+   for(const a of assets){
+    const bytes=Buffer.from('original verified evidence '+a.name);
+    a.size=bytes.length;
+    a.digest='sha256:'+createHash('sha256').update(bytes).digest('hex');
+    x.args.independentDigests[a.name]=a.digest;
+    x.responses['releases/assets/'+a.id]=structuredClone(a);
+    writeFileSync(join(directory,a.name),bytes);
+   }
+   x.responses['releases/tags/'+TAG].assets=structuredClone(assets);
+   const first=join(directory,REQUIRED_ASSETS[0]);
+   if(kind==='digest')writeFileSync(first,Buffer.alloc(assets[0].size));
+   if(kind==='missing'||kind==='symlink')rmSync(first);
+   if(kind==='symlink')symlinkSync(join(directory,REQUIRED_ASSETS[1]),first);
+   const verified:string[]=[];
+   const proof=await inspect({...x.args,assetDirectory:directory},x.get,async(tag,path)=>{
+    expect(tag).toBe(TAG);
+    verified.push(path);
+    if(kind==='metadata-race')
+     x.responses['git/ref/heads/main'].object.sha='f'.repeat(40);
+    return kind!=='attestation';
+   });
+   if(kind==='clean'){
+    expect(verified).toEqual(REQUIRED_ASSETS.map(name=>join(directory,name)));
+    expect(proof).toMatchObject({status:'ATTESTED_ASSETS_VERIFIED_QA_ONLY',
+     bytesVerified:true,attestationVerified:true,recoveryAuthorized:false,releaseAuthorized:false});
+   }else{
+    expect(proof).toMatchObject({status:'BLOCKED',recoveryAuthorized:false,releaseAuthorized:false});
+    if(['digest','symlink','missing'].includes(kind))expect(verified).toEqual([]);
+   }
+  }finally{rmSync(directory,{recursive:true,force:true})}
+ });
