@@ -1,6 +1,6 @@
 import {describe,expect,it} from 'vitest';
 import {readFileSync} from 'node:fs';
-import {MAP_CANVAS_CROSSFADE_MAX_PIXELS,shouldCrossfadeMapCanvas} from '../../src/mapCanvasCrossfadePolicy';
+import {MAP_CANVAS_CROSSFADE_MAX_PIXELS,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas} from '../../src/mapCanvasCrossfadePolicy';
 
 const defaults={width:390,height:844,visible:true,reducedMotion:false,saveData:false};
 describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
@@ -59,5 +59,50 @@ describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
   expect(overlay.slice(skipped,duplicate)).toContain('return;');
   expect(overlay).toContain("document.visibilityState==='visible'");
   expect(overlay).toContain("prefers-reduced-motion: reduce");
+ });
+
+ it('uses renderer pixel backing, not the new overlay 300x150 HTML default',()=>{
+  const initialOverlay={width:300,height:150};
+  const retinaRenderer={width:1170,height:2532}; // 390x844 @ DPR 3
+  const size=mapCanvasCrossfadeBackingSize(initialOverlay,retinaRenderer);
+  expect(size).toEqual(retinaRenderer);
+  expect(shouldCrossfadeMapCanvas({...defaults,...size!})).toBe(false);
+  expect(shouldCrossfadeMapCanvas({...defaults,...initialOverlay})).toBe(true);
+ });
+ it('allows the same mobile viewport only if MapLibre actually uses a smaller backing',()=>{
+  const size=mapCanvasCrossfadeBackingSize({width:300,height:150},{width:390,height:844});
+  expect(size).toEqual({width:390,height:844});
+  expect(shouldCrossfadeMapCanvas({...defaults,...size!})).toBe(true);
+ });
+ it('uses the largest real dimension per axis and cannot underestimate overlays',()=>{
+  const size=mapCanvasCrossfadeBackingSize({width:1440,height:900},{width:320,height:220});
+  expect(size).toEqual({width:1440,height:900});
+  expect(shouldCrossfadeMapCanvas({...defaults,...size!})).toBe(false);
+ });
+ it.each([
+  [undefined,{width:390,height:844}],
+  [{width:300,height:150},undefined],
+  [{width:300,height:150},{width:0,height:844}],
+  [{width:300,height:150},{width:-390,height:844}],
+  [{width:300,height:150},{width:Infinity,height:844}],
+  [{width:300,height:150},{width:390.5,height:844}],
+  [{width:0,height:150},{width:390,height:844}],
+  [{width:300,height:NaN},{width:390,height:844}],
+ ] as const)('fails closed without valid overlay AND renderer sizes: %o / %o',(overlay,renderer)=>{
+  expect(mapCanvasCrossfadeBackingSize(overlay,renderer)).toBeUndefined();
+ });
+ it('reads the actual MapLibre backing BEFORE clone-admission and new canvas',()=>{
+  const source=readFileSync(new URL('../../src/MapLibreCore.tsx',import.meta.url),'utf8');
+  const start=source.indexOf('export function CanvasOverlay');
+  const end=source.indexOf('export function ImageQuadLayer',start);
+  const overlay=source.slice(start,end);
+  const read=overlay.indexOf('mapCanvasCrossfadeBackingSize(canvas,map.getCanvas())');
+  const admission=overlay.indexOf('shouldCrossfadeMapCanvas({');
+  const copied=overlay.indexOf("const old=document.createElement('canvas')");
+  expect(read).toBeGreaterThan(0);
+  expect(admission).toBeGreaterThan(read);
+  expect(copied).toBeGreaterThan(admission);
+  expect(overlay).toContain('width:backing?.width??0,height:backing?.height??0');
+  expect(source).toContain("import {mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas} from './mapCanvasCrossfadePolicy'");
  });
 });
