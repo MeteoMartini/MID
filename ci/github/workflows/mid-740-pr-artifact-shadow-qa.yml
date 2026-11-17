@@ -196,7 +196,8 @@ jobs:
             .installerAuthorized == false and .releaseAuthorized == false' "$RUNNER_TEMP/mid740-receipt-untrusted.json"
           node tools/ci/mid-740-historical-chain-readback.mjs > "$RUNNER_TEMP/mid740-real-history.json"
           jq -e '.status == "HISTORIC_LEGACY_LINEAGE_QA_ONLY" and
-            .sourceGateVerified == true and .gitParentChainVerified == true and
+            .sourceGateVerified == true and .testedSourceBaseVerified == true and
+            .gitParentChainVerified == true and
             .originalGatePrCount == 0 and .originalBotPrCount == 0 and
             .producerArtifactCount == 0 and .installerStartedBeforeBotFinished == true and
             .upstreamEventLinkVerified == false and .producerArtifactVerified == false and
@@ -230,4 +231,4 @@ jobs:
             .noBypassCutoverCompatible == false and
             .cutoverAuthorized == false and .releaseAuthorized == false' "$RUNNER_TEMP/mid740-native-review-readback.json"
           echo "### MID #740 · echter historischer Release-Chain-Readback" >> "$GITHUB_STEP_SUMMARY"
-          echo "Gate/Bot/Installer/Git-Parents geprüft. Upstream-Causality, Bot-Artefakt und Cutover sind NICHT belegt." >> "$GITHUB_STEP_SUMMARY"
+          echo "Getestete .486-Source-Basis, Checkout-Git-Tree und historischer Installer geprüft." >> "$GITHUB_STEP_SUMMARY"
