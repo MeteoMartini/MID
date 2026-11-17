@@ -37,14 +37,50 @@ export async function verifyMid740ArtifactIntake({
     job?.started_at,job?.completed_at].map(x=>Date.parse(x??''));
   if(list?.total_count!==1||list.jobs?.length!==1||
      !Number.isSafeInteger(job?.id)||job.id<1||job.run_id!==runId||
+     job.run_attempt!==meta.producerRun.run_attempt||
      job.head_sha!==trustedWorkflowSha||
      job.name!=='PR mergen, Release-ZIP erzeugen und Installer starten'||
      job.status!=='completed'||job.conclusion!=='success'||
      !time.every(Number.isFinite)||time[0]>time[2]||
-     time[2]>time[3]||time[3]>time[1])
+     time[2]>time[3]||time[3]>time[1]||
+     !Array.isArray(job.steps)||job.steps.length<2)
     reject('PRODUCER_JOB_NOT_VERIFIED');
-  return JSON.stringify([job.id,job.run_id,job.head_sha,job.name,
-    job.started_at,job.completed_at]);
+  // The source producer currently uploads the shadow artifact with
+  // continue-on-error. A SUCCESSFUL JOB does NOT prove upload success.
+  // Require the original staging and upload steps in the actual attempt-1
+  // job, their ordered execution, and the artifact's creation inside upload.
+  const unique=new Set();
+  for(const step of job.steps){
+   if(!Number.isSafeInteger(step?.number)||step.number<1||
+      typeof step.name!=='string'||!step.name||
+      unique.has(step.number))reject('PRODUCER_STEPS_UNVERIFIED');
+   unique.add(step.number);
+  }
+  const one=name=>{
+   const found=job.steps.filter(s=>s.name===name);
+   if(found.length!==1||found[0].status!=='completed'||
+      found[0].conclusion!=='success')
+    reject('PRODUCER_STEPS_UNVERIFIED');
+   return found[0];
+  };
+  const stage=one('SHA-gebundenes Original-ZIP für #740 bereitstellen');
+  const upload=one('Original-ZIP und Zuordnung kurzlebig als Nachweis hochladen');
+  const moments=[stage.started_at,stage.completed_at,upload.started_at,
+    upload.completed_at].map(s=>Date.parse(s??''));
+  const artifactCreated=Date.parse(meta.artifact.created_at??'');
+  const artifactUpdated=Date.parse(meta.artifact.updated_at??'');
+  if(moments.some(t=>!Number.isFinite(t))||
+     !Number.isFinite(artifactCreated)||!Number.isFinite(artifactUpdated)||
+     stage.number>=upload.number||moments.some((t,n)=>n>0&&t<moments[n-1])||
+     moments[0]<time[2]||moments[3]>time[3]||
+     artifactCreated<moments[2]||artifactUpdated>moments[3])
+   reject('PRODUCER_UPLOAD_CHRONOLOGY_UNVERIFIED');
+  // Fingerprint the entire original job and steps on both GitHub reads:
+  // a late upload failure, rerun or step replacement must invalidate intake.
+  return JSON.stringify([job.id,job.run_id,job.run_attempt,job.head_sha,
+    job.name,job.started_at,job.completed_at,
+    job.steps.map(s=>[s.number,s.name,s.status,s.conclusion,
+     s.started_at,s.completed_at])]);
  };
  const beforeJob=await checkedJob();
  const identity=x=>JSON.stringify([

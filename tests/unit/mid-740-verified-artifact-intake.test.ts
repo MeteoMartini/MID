@@ -53,7 +53,20 @@ function scenario(root:string){
  const replies:any={
   [path+'/actions/runs/123']:runMeta,
   [path+'/actions/workflows/567']:{id:567,path:'.github/workflows/agent-source-release.yml',state:'active'},
-  [path+'/actions/runs/123/attempts/1/jobs?per_page=100&page=1']:{total_count:1,jobs:[{id:789,run_id:123,head_sha:workflowSha,name:'PR mergen, Release-ZIP erzeugen und Installer starten',status:'completed',conclusion:'success',started_at:'2026-11-16T10:00:20Z',completed_at:'2026-11-16T10:04:50Z'}]},
+  [path+'/actions/runs/123/attempts/1/jobs?per_page=100&page=1']:{total_count:1,jobs:[{
+   id:789,run_id:123,run_attempt:1,head_sha:workflowSha,
+   name:'PR mergen, Release-ZIP erzeugen und Installer starten',
+   status:'completed',conclusion:'success',
+   started_at:'2026-11-16T10:00:20Z',completed_at:'2026-11-16T10:04:50Z',
+   steps:[
+    {number:7,name:'SHA-gebundenes Original-ZIP für #740 bereitstellen',
+     status:'completed',conclusion:'success',
+     started_at:'2026-11-16T10:00:30Z',completed_at:'2026-11-16T10:00:55Z'},
+    {number:8,name:'Original-ZIP und Zuordnung kurzlebig als Nachweis hochladen',
+     status:'completed',conclusion:'success',
+     started_at:'2026-11-16T10:00:58Z',completed_at:'2026-11-16T10:02:00Z'}
+   ]
+  }]},
   [path+'/actions/artifacts/456']:artifact,
   [path+'/actions/runs/123/artifacts?per_page=100&page=1']:
    {total_count:1,artifacts:[{...artifact,workflow_run:{...artifact.workflow_run}}]}
@@ -117,6 +130,49 @@ describe('MID #740 complete artifact intake: mocked API + real binary ZIP and Gi
    });
    await expect(intake(x.inputs,{get:x.get,fetcher:x.fetcher}))
     .rejects.toThrow('MID_740_INTAKE_PRODUCER_JOB_NOT_VERIFIED');
+   expect(existsSync(x.inputs.envelopeOutput)).toBe(false);
+   expect(existsSync(x.inputs.artifactDirectory)).toBe(false);
+  }finally{rmSync(root,{recursive:true,force:true})}
+ },60000);
+ it.each([
+  ['producer belongs to a different run attempt', (job:any)=>{job.run_attempt=2}],
+  ['job finishes successfully despite an optional failed artifact upload',
+   (job:any)=>{job.steps[1].conclusion='failure'}],
+  ['optional upload was skipped but the job succeeded',
+   (job:any)=>{job.steps[1].conclusion='skipped'}],
+  ['source staging step skipped after prior ZIP transport',
+   (job:any)=>{job.steps[0].conclusion='skipped'}],
+  ['original upload step missing', (job:any)=>{job.steps.pop()}],
+  ['duplicate original upload step name',
+   (job:any)=>{job.steps.push({...job.steps[1],number:9})}],
+  ['duplicate original step number',
+   (job:any)=>{job.steps[1].number=job.steps[0].number}],
+  ['upload chronologically before artifact creation',
+   (job:any)=>{job.steps[1].started_at='2026-11-16T10:01:30Z'}],
+  ['artifact upload step happened before staging',
+   (job:any)=>{job.steps[1].number=6}],
+ ] as [string,(job:any)=>void][])('rejects %s even with a valid binary ZIP',async(_,mutate)=>{
+  const root=mkdtempSync(join(tmpdir(),'mid740-intake-steps-'));
+  try{
+   const x=scenario(root);
+   const job=x.replies[path+'/actions/runs/123/attempts/1/jobs?per_page=100&page=1'].jobs[0];
+   mutate(job);
+   await expect(intake(x.inputs,{get:x.get,fetcher:x.fetcher}))
+    .rejects.toThrow(/MID_740_INTAKE_PRODUCER_(JOB_NOT_VERIFIED|STEPS_UNVERIFIED|UPLOAD_CHRONOLOGY_UNVERIFIED)/);
+   expect(existsSync(x.inputs.envelopeOutput)).toBe(false);
+   expect(existsSync(x.inputs.artifactDirectory)).toBe(false);
+  }finally{rmSync(root,{recursive:true,force:true})}
+ },60000);
+ it('rejects upload step changing after original envelope bytes and Git tree verified',async()=>{
+  const root=mkdtempSync(join(tmpdir(),'mid740-intake-upload-race-'));
+  try{
+   const x=scenario(root);
+   x.onSecondArtifactRead(()=>{
+    x.replies[path+'/actions/runs/123/attempts/1/jobs?per_page=100&page=1']
+     .jobs[0].steps[1].conclusion='failure';
+   });
+   await expect(intake(x.inputs,{get:x.get,fetcher:x.fetcher}))
+    .rejects.toThrow('MID_740_INTAKE_PRODUCER_STEPS_UNVERIFIED');
    expect(existsSync(x.inputs.envelopeOutput)).toBe(false);
    expect(existsSync(x.inputs.artifactDirectory)).toBe(false);
   }finally{rmSync(root,{recursive:true,force:true})}
