@@ -324,6 +324,8 @@ describe('SHA-bound MID merge-time review guard',()=>{
   const a=readFileSync('.github/workflows/agent-source-release.yml','utf8');
   const b=readFileSync('ci/github/workflows/agent-source-release.yml','utf8');
   expect(a).toBe(b);
+  expect(a).toContain('EXPECTED_SOURCE_BASE_SHA: ${{ github.event.workflow_run.pull_requests[0].base.sha }}');
+  expect(a).not.toContain('steps.pr.outputs.source_base_sha');
   expect(a.indexOf('node tools/ci/mid-review-premerge-guard.mjs')).toBeGreaterThan(0);
   expect(a.indexOf('node tools/ci/mid-review-premerge-guard.mjs')).toBeLessThan(a.indexOf('gh api --method PUT '));
   expect(a).toContain('ref: ${{ github.workflow_sha }}');

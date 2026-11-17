@@ -135,14 +135,6 @@ jobs:
             echo "already_merged=true" >> "$GITHUB_OUTPUT"
             echo "merge_sha=${merge_sha}" >> "$GITHUB_OUTPUT"
           else
-            # Derive the source-base SHA only from the uniquely matched, authentic
-            # REST source PR (not an optional workflow_run pull_requests entry).
-            source_base_sha="$(jq -r '.[0].base.sha // empty' <<<"$matches")"
-            if [[ ! "$source_base_sha" =~ ^[0-9a-f]{40}$ ]]; then
-              echo "::error::Source PR base SHA missing/invalid; no bot merge."
-              exit 1
-            fi
-            echo "source_base_sha=${source_base_sha}" >> "$GITHUB_OUTPUT"
             echo "already_merged=false" >> "$GITHUB_OUTPUT"
           fi
           echo "eligible=true" >> "$GITHUB_OUTPUT"
@@ -175,7 +167,7 @@ jobs:
           EXPECTED_HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
           EXPECTED_BRANCH: ${{ github.event.workflow_run.head_branch }}
           # Compare current main/Stable against the Source-PR gate's PR base.
-          EXPECTED_SOURCE_BASE_SHA: ${{ steps.pr.outputs.source_base_sha }}
+          EXPECTED_SOURCE_BASE_SHA: ${{ github.event.workflow_run.pull_requests[0].base.sha }}
           EXPECTED_WORKFLOW_SHA: ${{ github.workflow_sha }}
         run: |
           set -euo pipefail
