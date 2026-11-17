@@ -38,6 +38,6 @@ describe('MID Audit 1.0 · Brier Score ohne unbelegte Skill-Einstufung',()=>{
   expect(source).toContain('{rainVerification.value}');
   expect(source).toContain('{rainVerification.detail}');
   expect(source).not.toContain('rainReliability=');
-  expect(source).toContain('kein Vorhersage-Skill');
+  expect(source).toContain('keinen Vorhersage-Skill');
  });
 });
