@@ -227,3 +227,19 @@ html:root .app [data-fourteen-development] .mid-we-fourteen-charts>article{min-w
  html:root .app [data-fourteen-development] .mid-we-fourteen-days thead th:first-child{z-index:2;background:var(--mid-surface-raised,var(--s2))}
 }
 @media(prefers-reduced-motion:reduce){html:root .app [data-fourteen-development] .mid-we-fourteen-weekscroll{scroll-behavior:auto}}
+
+
+/* Design20 · keyboard-visible 14-day chart point focus.
+   Reuse the existing 24-unit SVG hit circle: no extra DOM, layout or React state.
+   The marker itself remains readable and the focus ring never clips weather data. */
+html:root .app [data-fourteen-development] .long-range-chart[data-horizon-signal="period-intervals"] svg g[role="button"]:focus-visible>circle:first-of-type{
+ stroke:var(--primary);
+ stroke-width:3px;
+ vector-effect:non-scaling-stroke;
+}
+@media(forced-colors:active){
+ html:root .app [data-fourteen-development] .long-range-chart[data-horizon-signal="period-intervals"] svg g[role="button"]:focus-visible>circle:first-of-type{
+  stroke:Highlight;
+  stroke-width:4px;
+ }
+}
