@@ -27,12 +27,13 @@ describe('MID 14-Tage-A/B/C Design-WE source and meteorology',()=>{
   expect(actual).toEqual(['29.03.','25.10.','31.12.','01.01.','29.02.']);
   expect(dates.map(fourteenDateLabel)).toEqual(actual);
   // No per-day Intl constructor inside repeatedly rendered chart and tile helpers.
-  expect((source.match(/new Intl\\.DateTimeFormat\\(/g)||[])).toHaveLength(1);
+  expect(source.split('new Intl.DateTimeFormat(')).toHaveLength(2);
   expect(source).toContain("const fourteenDateFormatter=new Intl.DateTimeFormat('de-DE'");
  });
  it('does not prepare hidden temperature charts in the table-only view',()=>{
-  expect(source).toContain("mode==='days'?[]:fourteenTemperatureSeries(series)");
-  expect(source).toContain("[series,mode==='days']");
+  expect(source).toContain("const isTableOnly=mode==='days'");
+  expect(source).toContain("isTableOnly?[]:fourteenTemperatureSeries(series)");
+  expect(source).toContain("[series,isTableOnly]");
   expect(source).toContain("mode==='compact'");
   expect(source).toContain("mode==='charts'");
   expect(source).toContain("mode==='days'");
