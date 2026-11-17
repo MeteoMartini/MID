@@ -23,14 +23,14 @@ Alle Original- JSX-Subtrees, Event-Handler, Warn-/Quellwerte, DOM-Rollen und Kla
 **Abfolge für den Leitchat (nie blind auf einem anderen Commit oder branch):**
 
 ```bash
-node scripts/test-design20-settings-route-owners.mjs
-node scripts/test-design20-view-reachability.mjs
+node scripts/qa/verifyDesign20SettingsRouteOwners.mjs
+node scripts/qa/verifyDesign20ViewReachability.mjs
 node scripts/qa/design20SettingsTabSplit.mjs --preview
 # Erst auf berechtigtem chatgpt/v0.9.85.489-... / codex/v0.9.85.489-...
 # mit identischem Original-Git-Blob und gesichertem sauberem App.tsx:
 node scripts/qa/design20SettingsTabSplit.mjs --apply
 node scripts/qa/design20SettingsTabSplit.mjs --check-after
-node scripts/test-design20-settings-route-owners.mjs
+node scripts/qa/verifyDesign20SettingsRouteOwners.mjs
 node scripts/test-settings-menu.mjs
 node scripts/test-lazy-optional-settings-0985483.mjs
 node scripts/test-forecast-design-visibility-0985415.mjs
@@ -40,7 +40,7 @@ Der Helper prüft den Git-Blob, die strukturellen JSX-Marker, alle neun Menüpun
 
 ## P2 · Nicht erreichbare Altansichten – geschützt, nicht blind gelöscht
 
-`scripts/test-design20-view-reachability.mjs` prüft die aktiven Renderpfade und inventarisiert fünf Kandidaten. Das ist bewusst ein **read-only** Source-Inventar. Vor jeder Löschung sind Importgraph, Design-CSS, gespeicherte Schlüssel und 320/390/430/834/1024/1440-Browserprofile mit Unterschieden im Bild und in Eingabeeigenschaften zu qualifizieren:
+`scripts/qa/verifyDesign20ViewReachability.mjs` prüft die aktiven Renderpfade und inventarisiert fünf Kandidaten. Das ist bewusst ein **read-only** Source-Inventar. Vor jeder Löschung sind Importgraph, Design-CSS, gespeicherte Schlüssel und 320/390/430/834/1024/1440-Browserprofile mit Unterschieden im Bild und in Eingabeeigenschaften zu qualifizieren:
 
 1. **Alte Navigation:** `NavigationMode='section-rail'|'bottom-tabs'`, aber Hauptwert ist fest `bottom-tabs`. Nur nicht erreichbare alternative JSX-Schnellnavigation qualifizieren; die Desktop-`.dashboard-section-rail` und ihre CSS/ARIA-Regeln bleiben produktiv.
 2. **Cockpit-Ribbons:** App ruft `ForecastCockpit mode='cockpit-tabs'` auf, während `mode==='cockpit-ribbons'` im Renderer weiter existiert. Nicht nur nach Textsuche löschen; vollständige Testfixtures, Styles und mögliche Export-/UI-Abhängigkeiten analysieren.
@@ -61,3 +61,7 @@ Nach LC-Integration echte App in Browsern auf 320/360/390/430/834/1024/1440 CSS 
 W3C normativ: [WCAG 2.2 Reflow](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html) und [Target Size (Minimum)](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html); für neue primäre MID-Touchbereiche gelten die strengeren MID-Design-Tokens. [React Conditional Rendering](https://react.dev/learn/conditional-rendering) erklärt das bedarfsgesteuerte Ein-/Aushängen und [Preserving and Resetting State](https://react.dev/learn/preserving-and-resetting-state) die nötigen Persistenzprüfungen. Browser Chromium ist keine native WKWebView-/VoiceOver-Abnahme.
 
 **Status:** QA-/Patch-Generator und Quellwachen erstellt; P1-Codeänderung auf dem fremdverwalteten Integrationsbranch, P2-Löschungen, P3-Produktentscheidung sowie P4-gerenderte Browsermessungen noch offen. Keine Änderung an Produkt-/Produktionscode, kein Build, kein Merge, keine Promotion. #740/#839 bleiben Spezialbereich, ohne ein Design-QA-Fachziel als Release-Bypass zu verwenden.
+
+## MID-Regressionsinventur (nach CI-Readback korrigiert)
+
+Die neu hinzugefügten Vorabprüfer sind **absichtlich** unter `scripts/qa/verifyDesign20*.mjs` abgelegt, nicht unter `scripts/test-*.mjs`. Der verbindliche `scripts/regression-suite.mjs`-Vertrag scannt sämtliche `scripts/test-*.mjs` im Wurzelordner und verlangt deren vollständige Eintragung in **beide** versionierten Listen `MID_BASELINE.json.requiredRegressionTests` und `.regressionTests`. In der Erstfassung blockierte dieser Gatecheck folgerichtig den Draft-CI-Job, obwohl alle 378 Vitest-Tests und 234 separaten Node-Tests erfolgreich waren. Das Testinventar, seine Vollständigkeit und der Releasepfad wurden **nicht** gelockert. Diese beiden manuellen Vorabprüfer sind noch kein verbindlich in Stable aufgenommenes Regression-Gate. Bei echter LC-P1-Integration die Prüfungen zuerst als echte `scripts/test-*.mjs` samt registrierter `MID_BASELINE.json`-Testinventur im regulären vierteiligen Release-Train ausdrücklich aufnehmen und Source/Core/Heavy neu durchlaufen. Kein Source-Gate wird umgangen.
