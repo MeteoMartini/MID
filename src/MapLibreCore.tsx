@@ -1,6 +1,7 @@
 import {createContext,useContext,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {rasterTileRetryDelayMs} from './mapLayerRecovery';
 import {createMapLayerOrderScheduler} from './mapLayerOrderScheduler';
+import {shouldCrossfadeMapCanvas} from './mapCanvasCrossfadePolicy';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './mapPopupTheme.css';
@@ -201,7 +202,29 @@ export function HtmlMarker({latitude,longitude,html,className='',anchor='bottom'
 export function CanvasOverlay({id,opacity=1,zIndex=5,render,events=['moveend','zoomend','resize'] as const}:{id:string;opacity?:number;zIndex?:number;render:(map:MidMap,canvas:HTMLCanvasElement)=>void;events?:readonly ('moveend'|'zoomend'|'resize'|'render')[]}){
  const map=useMidMap(),canvasRef=useRef<HTMLCanvasElement|null>(null),renderRef=useRef(render),opacityRef=useRef(opacity);renderRef.current=render;opacityRef.current=opacity;
  useEffect(()=>{if(!map)return;let raf=0;const canvas=document.createElement('canvas');canvasRef.current=canvas;canvas.className=`mid-maplibre-canvas ${safeId(id)}`;Object.assign(canvas.style,{position:'absolute',inset:'0',pointerEvents:'none',zIndex:String(zIndex),opacity:String(opacityRef.current)});map.getCanvasContainer().appendChild(canvas);const redraw=()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;renderRef.current(map,canvas)})};for(const event of events)map.on(event,redraw);return()=>{cancelAnimationFrame(raf);for(const event of events)map.off(event,redraw);canvas.remove();canvasRef.current=null}},[map,id,zIndex,events.join('|')]);
- useEffect(()=>{const canvas=canvasRef.current;if(!map||!canvas)return;const old=document.createElement('canvas');old.width=canvas.width;old.height=canvas.height;old.style.cssText=canvas.style.cssText;old.getContext('2d')?.drawImage(canvas,0,0);canvas.before(old);render(map,canvas);canvas.style.transition='none';canvas.style.opacity='0';let raf=requestAnimationFrame(()=>{canvas.style.transition='opacity 350ms linear';old.style.transition='opacity 350ms linear';canvas.style.opacity=String(opacityRef.current);old.style.opacity='0'});const timer=window.setTimeout(()=>old.remove(),380);return()=>{cancelAnimationFrame(raf);window.clearTimeout(timer);old.remove();canvas.style.transition='none';canvas.style.opacity=String(opacityRef.current)}},[map,render]);
+ useEffect(()=>{const canvas=canvasRef.current;if(!map||!canvas)return;
+  // A cosmetic fade must not clone a multi-megapixel canvas on mobile,
+  // during backgrounding or for users who request reduced motion.
+  const saveData=(navigator as Navigator&{connection?:{saveData?:boolean}}).connection?.saveData===true;
+  const animate=shouldCrossfadeMapCanvas({
+   width:canvas.width,height:canvas.height,
+   visible:document.visibilityState==='visible',
+   reducedMotion:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches===true,
+   saveData
+  });
+  if(!animate){
+   render(map,canvas);
+   canvas.style.transition='none';
+   canvas.style.opacity=String(Math.max(0,Math.min(1,opacityRef.current)));
+   return;
+  }
+  const old=document.createElement('canvas');old.width=canvas.width;old.height=canvas.height;
+  old.style.cssText=canvas.style.cssText;old.getContext('2d')?.drawImage(canvas,0,0);
+  canvas.before(old);render(map,canvas);canvas.style.transition='none';canvas.style.opacity='0';
+  const raf=requestAnimationFrame(()=>{canvas.style.transition='opacity 350ms linear';old.style.transition='opacity 350ms linear';canvas.style.opacity=String(opacityRef.current);old.style.opacity='0'});
+  const timer=window.setTimeout(()=>old.remove(),380);
+  return()=>{cancelAnimationFrame(raf);window.clearTimeout(timer);old.remove();canvas.style.transition='none';canvas.style.opacity=String(opacityRef.current)}
+ },[map,render]);
  useEffect(()=>{if(canvasRef.current)canvasRef.current.style.opacity=String(Math.max(0,Math.min(1,opacity)))},[opacity]);return null;
 }
 
