@@ -2,6 +2,7 @@ import {createContext,useContext,useEffect,useMemo,useRef,useState,type ReactNod
 import {rasterTileRetryDelayMs} from './mapLayerRecovery';
 import {loadMapImageForQuad} from './mapRasterImageCache';
 import {createMapLayerOrderScheduler} from './mapLayerOrderScheduler';
+import {createMapResizeCoalescer} from './mapResizeCoalescer';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './mapPopupTheme.css';
@@ -29,7 +30,7 @@ export function MidMapLibre({center,zoom,minZoom=2,maxZoom=14,className,scrollZo
   const container=containerRef.current;if(!container)return;
   statusRef.current?.('loading');
   try{
-  const map=new maplibregl.Map({container,style:EMPTY_STYLE,center:[center[1],center[0]],zoom,minZoom,maxZoom,attributionControl:false,interactive,scrollZoom,dragRotate:false,pitchWithRotate:false,fadeDuration:0,validateStyle:false,locale:{'NavigationControl.ZoomIn':'Vergrößern','NavigationControl.ZoomOut':'Verkleinern'}});
+  const map=new maplibregl.Map({container,style:EMPTY_STYLE,center:[center[1],center[0]],zoom,minZoom,maxZoom,attributionControl:false,interactive,scrollZoom,trackResize:false,dragRotate:false,pitchWithRotate:false,fadeDuration:0,validateStyle:false,locale:{'NavigationControl.ZoomIn':'Vergrößern','NavigationControl.ZoomOut':'Verkleinern'}});
   mapRef.current=map;map.touchZoomRotate.disableRotation();map.touchPitch.disable();
   if(attributionControl)map.addControl(new maplibregl.AttributionControl({compact:true}),'bottom-right');
   if(navigationControl)map.addControl(new maplibregl.NavigationControl({showCompass:false,visualizePitch:false}),'top-right');
@@ -37,8 +38,21 @@ export function MidMapLibre({center,zoom,minZoom=2,maxZoom=14,className,scrollZo
   const handleContextLost=(event:Event)=>{event.preventDefault();setLoaded(false);setMapError('WebGL-Kontext verloren');statusRef.current?.('error')};
   const handleGpuError=(event:maplibregl.ErrorEvent)=>{const failure=event.error;if(failure&&/GPUInitializationError|WebGL context lost|WebGL is not supported|Failed to create WebGL/i.test(String(failure)+': '+String(failure.message))){setLoaded(false);setMapError(failure.message);statusRef.current?.('error')}};
   map.on('load',handleLoad);map.on('error',handleGpuError);map.getCanvas().addEventListener('webglcontextlost',handleContextLost,{passive:false});if(onClick)map.on('click',handleClick);if(onZoomStart)map.on('zoomstart',onZoomStart);if(onZoomEnd)map.on('zoomend',onZoomEnd);if(onMoveEnd)map.on('moveend',onMoveEnd);
-  const resizeObserver=typeof ResizeObserver!=='undefined'?new ResizeObserver(()=>map.resize()):null;resizeObserver?.observe(container);
-  return()=>{resizeObserver?.disconnect();map.getCanvas().removeEventListener('webglcontextlost',handleContextLost);map.off('error',handleGpuError);setLoaded(false);mapRef.current=null;map.remove()};
+  // A single responsive size-owner for both maps: MapLibre's default
+  // trackResize would duplicate window resizes with this container observer.
+  const resizeCoalescer=createMapResizeCoalescer(
+   ()=>({width:container.clientWidth,height:container.clientHeight,pixelRatio:window.devicePixelRatio||1}),
+   ()=>map.resize(),
+   callback=>window.requestAnimationFrame(callback),
+   id=>window.cancelAnimationFrame(id)
+  );
+  const resizeObserver=typeof ResizeObserver!=='undefined'?new ResizeObserver(resizeCoalescer.schedule):null;
+  resizeObserver?.observe(container);
+  // Cover DPR-only changes and older browsers with no ResizeObserver.
+  window.addEventListener('resize',resizeCoalescer.schedule);
+  const onVisible=()=>{if(document.visibilityState==='visible')resizeCoalescer.schedule()};
+  document.addEventListener('visibilitychange',onVisible);
+  return()=>{resizeObserver?.disconnect();window.removeEventListener('resize',resizeCoalescer.schedule);document.removeEventListener('visibilitychange',onVisible);resizeCoalescer.dispose();map.getCanvas().removeEventListener('webglcontextlost',handleContextLost);map.off('error',handleGpuError);setLoaded(false);mapRef.current=null;map.remove()};
   }catch(error){try{mapRef.current?.remove()}catch{}container.replaceChildren();mapRef.current=null;setLoaded(false);setMapError(error instanceof Error?error.message:'Karte konnte nicht gestartet werden');statusRef.current?.('error')}
  },[attempt]);
  useEffect(()=>{const map=mapRef.current;if(!map)return;const current=map.getCenter();if(Math.abs(current.lat-center[0])>.00005||Math.abs(current.lng-center[1])>.00005)map.jumpTo({center:[center[1],center[0]]})},[center[0],center[1]]);
