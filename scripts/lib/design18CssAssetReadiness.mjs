@@ -124,7 +124,7 @@ export function verifyCssLoadReadiness({manifest,responses,frames,origin}){
 }
 /**
  * Attach BEFORE the first app navigation; finish AFTER the target view is visible.
- * Missing body, cached response, cross-origin CSS or new late sheets aborts the proof.
+ * Missing/incomplete bodies, Service Worker CSS, cross-origin CSS and late observed requests fail closed.
  * Never call browser networkidle or bypass browser sandboxing.
  */
 export function observeCssResponses(page,{manifest,origin}){
