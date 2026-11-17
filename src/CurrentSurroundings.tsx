@@ -303,7 +303,7 @@ export default function CurrentSurroundings(props:Props){
     <button type="button" aria-pressed={showPhase} disabled={!radarAtNow} onClick={()=>setShowPhase(value=>!value)}>Niederschlagsart</button>
    </div>
   </>}
-  <figure ref={mapFigureRef} className="current-surroundings-map" aria-label={mapPaused?`Umfeldkarte um ${name} pausiert, während die große Karte geöffnet ist`:`Wetterbild um ${name}: MID-Kartenbasis und Temperaturen an benannten Orten`}>
+  <figure ref={mapFigureRef} className="current-surroundings-map" aria-label={mapPaused?`Umfeldkarte um ${name} pausiert; Vorschau im Bereich Aktuell`:`Wetterbild um ${name}: MID-Kartenbasis und Temperaturen an benannten Orten`}>
    {mapPaused?<p className="current-surroundings-map-paused" role="status">Umfeldkarte pausiert · zur Ansicht „Aktuell“ wechseln, um die Vorschau wieder anzuzeigen.</p>:<MidMapLibre center={[lat,lon]} zoom={7} scrollZoom={false} interactive={false} navigationControl={false} className="current-surroundings-maplibre">
     <MapFitBounds south={south} west={west} north={north} east={east} padding={8} maxZoom={7}/>
     <UnifiedVectorBasemap dark={darkMap}/>
@@ -325,7 +325,9 @@ export default function CurrentSurroundings(props:Props){
    </MidMapLibre>}
    <figcaption className="current-surroundings-map-caption">Standort: {name}</figcaption>
   </figure>
-  <div role="status" aria-live="polite" className="current-surroundings-data-status">{mode==='cloud'
+  <div role="status" aria-live="polite" className="current-surroundings-data-status">{mapPaused
+   ?<span>Kartendaten im Hintergrund pausiert · keine Aussage zur Datenverfügbarkeit. Im Bereich „Aktuell“ werden neue Originaldaten geprüft.</span>
+   :mode==='cloud'
    ?cloudForecast.image?<><strong>Modellprognose · {cloudForecast.image.model} · PseudoSat + SigWx</strong>
      <span>Gültig {datedClock(Date.parse(cloudForecast.image.validTime))} Uhr · INIT {datedClock(Date.parse(cloudForecast.image.run))} Uhr · keine Beobachtung</span>
      {Math.abs(Date.parse(cloudForecast.image.validTime)-cloudTarget)>90*1000&&

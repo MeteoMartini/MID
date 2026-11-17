@@ -65,6 +65,7 @@ describe('MID Karten 1.14 · bidirektionaler GPU-Eigentümer für Umfeld-/Großk
   expect(surroundings).toContain("const needsOpera=!mapPaused&&mode==='radar'");
   expect(surroundings).toContain("if(mapPaused||(mode==='radar'&&!radarAtNow)");
   expect(surroundings).toContain("const temperatureGrid=mapPaused||mode==='radar'");
+  expect(surroundings).toContain('Kartendaten im Hintergrund pausiert · keine Aussage zur Datenverfügbarkeit');
   expect(surroundings).toContain("},[lat,lon,mode,mapPaused])");
   expect(surroundings).toContain("},[mapPaused])");
   expect(surroundings).toContain('Quellen und Datenstand');
