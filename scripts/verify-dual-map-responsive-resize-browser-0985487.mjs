@@ -41,7 +41,7 @@ function jsSnapshot(){
  return Object.fromEntries(names.map(name=>{
   const map=maps[name];if(!map)return [name,null];
   const container=map.getContainer(),canvas=map.getCanvas(),center=map.getCenter();
-  return[name,{map,zoom:map.getZoom(),center:[center.lat,center.lng],
+  return[name,{zoom:map.getZoom(),center:[center.lat,center.lng],
    width:container.clientWidth,height:container.clientHeight,
    canvasWidth:canvas.width,canvasHeight:canvas.height,
    dpr:devicePixelRatio,resizeCalls:window.__midResizeCalls?.[name]??0}];
@@ -79,6 +79,7 @@ async function verify(width,theme){
    route.continue():route.abort('blockedbyclient'));
   await page.goto(base+'/__mid_map_resize_qa',{waitUntil:'domcontentloaded',timeout:30000});
   await ready(page);await twoFrames(page);
+  await page.evaluate(()=>{window.__midResizeBaselineMaps={...window.__midResizeMaps}});
   const baseline=await page.evaluate(jsSnapshot);
   const initial=normalized(baseline);
   assert.equal(Object.keys(initial).length,2);
@@ -117,10 +118,10 @@ async function verify(width,theme){
    assert.ok(changed[id].resizeCalls-noChange[id].resizeCalls<=3,
     id+': two CSS changes in one style update must not cause a resize storm');
   }
-  const sameObjects=await page.evaluate(initialMaps=>{
-   const maps=window.__midResizeMaps;
-   return Object.keys(initialMaps).every(id=>maps[id]===initialMaps[id]);
-  },baseline);
+  const sameObjects=await page.evaluate(()=>{
+   const maps=window.__midResizeMaps,initial=window.__midResizeBaselineMaps;
+   return Object.keys(initial).every(id=>maps[id]===initial[id]);
+  });
   assert.equal(sameObjects,true,'Responsive size change must retain same MapLibre map objects');
   for(const id of ['surroundings','composite']){
    assert.equal(changed[id].zoom,initial[id].zoom,'Resize must not change original map zoom');
