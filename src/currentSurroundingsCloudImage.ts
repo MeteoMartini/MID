@@ -1,6 +1,6 @@
 import {useEffect,useState} from 'react';
 import {deferSurroundingsCloudRead} from './surroundingsCloudScheduler';
-import {matchesSurroundingsCloudRequest} from './surroundingsCloudOriginalGuard';
+import {matchesSurroundingsCloudRequest,matchesSurroundingsCloudReference,MAX_SURROUNDINGS_CLOUD_REFERENCE_LAG_MS} from './surroundingsCloudOriginalGuard';
 import {cloudWeatherRaster,nativeCloudWeatherPair,synopticCloudWeather,loadCloudWeatherField,type CloudWeatherData} from './cloudWeatherData';
 import {loadEstablishedSynopticIndex,loadSynopticField,type SynopticFrame,type SynopticModel} from './nativeSynopticFields';
 import {loadNativeIndex,loadNativeField} from './nativeModelFields';
@@ -14,10 +14,11 @@ export type SurroundingsCloudImage={
  temporalMethod:'original'|'cloud-linear';
  requestLatitude?:number;
  requestLongitude?:number;
+ requestTargetTime?:string; // Only for a clearly labelled, non-target reference image.
  originalTimes?:[string,string];
  sigwxTime?:string;
 };
-export type SurroundingsCloudResult={image:SurroundingsCloudImage|null;loading:boolean;unavailable:boolean};
+export type SurroundingsCloudResult={image:SurroundingsCloudImage|null;reference:SurroundingsCloudImage|null;loading:boolean;unavailable:boolean};
 const HOUR=3600000,MAX_OFFSET=3*HOUR,MAX_RUN_AGE=24*HOUR;
 const MODEL_PRIORITY=['icon-d2','icon-d2-ruc','icon-eu','icon'] as const;
 
@@ -51,6 +52,34 @@ export function chooseSurroundingsCloudFrames(
 export function chooseSurroundingsCloudFrame(models:Record<string,SynopticModel>,now:number){
  return chooseSurroundingsCloudFrames(models,now)[0]??null;
 }
+/** Choose a *different* source time solely for an explicitly labelled reference preview.
+ * Missing exact 15-minute forecast targets remain NoData. No interpolation, WMO
+ * category synthesis, nearest-future substitution, cross-run or stale reuse.
+ */
+export function chooseSurroundingsCloudReferences(
+ models:Record<string,SynopticModel>,target:number
+):Array<{modelId:string;model:SynopticModel;ref:SynopticFrame;independent:boolean}>{
+ const candidates:Array<{modelId:string;model:SynopticModel;ref:SynopticFrame;independent:boolean}>=[];
+ for(const modelId of MODEL_PRIORITY){
+  const model=models[modelId];
+  if(!model)continue;
+  const eligible=[
+   ...(model.cloudWeatherFrames??[]).map(ref=>({ref,independent:true})),
+   ...model.frames.filter(ref=>ref.cloudWeather===true).map(ref=>({ref,independent:false}))
+  ].filter(item=>{
+   const time=Date.parse(item.ref.time);
+   return Number.isFinite(time)&&time<target&&
+    target-time<=MAX_SURROUNDINGS_CLOUD_REFERENCE_LAG_MS&&
+    admissibleSurroundingsCloudTime(item.ref.time,model.run,target);
+  }).sort((a,b)=>Date.parse(b.ref.time)-Date.parse(a.ref.time));
+  if(eligible[0])candidates.push({modelId,model,...eligible[0]});
+ }
+ // Freshest confirmed *past* original first, then established model family.
+ return candidates.sort((a,b)=>Date.parse(b.ref.time)-Date.parse(a.ref.time)||
+  MODEL_PRIORITY.indexOf(a.modelId as typeof MODEL_PRIORITY[number])-
+  MODEL_PRIORITY.indexOf(b.modelId as typeof MODEL_PRIORITY[number]));
+}
+
 function usableAtSite(data:CloudWeatherData,lat:number,lon:number):boolean{
  if(!Number.isFinite(lat)||!Number.isFinite(lon)||data.lats.length<2||data.lons.length<2||
   lat<data.lats[0]||lat>data.lats.at(-1)!||lon<data.lons[0]||lon>data.lons.at(-1)!)return false;
@@ -120,16 +149,63 @@ export async function loadVerifiedSurroundingsCloud(lat:number,lon:number,now:nu
  ]);
  return displayCloudFrame(nativeCloudWeatherPair(cloudField,weatherField),'DWD ICON-D2',lat,lon,now);
 }
+/** Load a separate, bounded PREVIOUS original for contextual reference only.
+ * Never return this as a frame for the requested 15-minute target.
+ */
+export async function loadSurroundingsCloudReference(
+ lat:number,lon:number,target:number,signal:AbortSignal
+):Promise<SurroundingsCloudImage>{
+ try{
+  const {index,base}=await loadEstablishedSynopticIndex(signal);
+  for(const selected of chooseSurroundingsCloudReferences(index.models,target)){
+   const {modelId,model,ref,independent}=selected;
+   try{
+    const original=independent
+     ?await loadCloudWeatherField(base,modelId,model,ref,signal)
+     :synopticCloudWeather(await loadSynopticField(base,modelId,model,ref,signal));
+    if(Date.parse(original.time)!==Date.parse(ref.time))continue;
+    return displayCloudFrame(original,model.label,lat,lon,target);
+   }catch(error){if(signal.aborted)throw error}
+  }
+ }catch(error){if(signal.aborted)throw error}
+ // Same-run native cloud/WW pair at a confirmed earlier original time.
+ const {index,base}=await loadNativeIndex(signal);
+ const cloudRefs=index.products.cloud?.frames??[],weatherRefs=index.products.sigwx?.frames??[];
+ const earlier=cloudRefs.filter(ref=>{
+  const time=Date.parse(ref.time);
+  return Number.isFinite(time)&&time<target&&
+   target-time<=MAX_SURROUNDINGS_CLOUD_REFERENCE_LAG_MS&&
+   admissibleSurroundingsCloudTime(ref.time,index.run,target)&&
+   weatherRefs.some(other=>other.time===ref.time);
+ }).sort((a,b)=>Date.parse(b.time)-Date.parse(a.time));
+ for(const ref of earlier){
+  const weather=weatherRefs.find(other=>other.time===ref.time);
+  if(!weather)continue;
+  try{
+   const [cloudField,weatherField]=await Promise.all([
+    loadNativeField(index,base,ref,'cloud',signal),
+    loadNativeField(index,base,weather,'sigwx',signal)
+   ]);
+   return displayCloudFrame(nativeCloudWeatherPair(cloudField,weatherField),'DWD ICON-D2',lat,lon,target);
+  }catch(error){if(signal.aborted)throw error}
+ }
+ throw new Error('Kein bestätigtes früheres Wolken-/SigWx-Original innerhalb von 45 Minuten verfügbar.');
+}
+
 export function useSurroundingsCloudImage(enabled:boolean,lat:number,lon:number,target:number):SurroundingsCloudResult{
- const [result,setResult]=useState<SurroundingsCloudResult>({image:null,loading:enabled,unavailable:false});
+ const [result,setResult]=useState<SurroundingsCloudResult>({image:null,reference:null,loading:enabled,unavailable:false});
  // Do not refetch a full validated model raster on every 30-second UI clock update.
  const targetBucket=Math.floor(target/(15*60000));
  useEffect(()=>{
-  if(!enabled){setResult({image:null,loading:false,unavailable:false});return}
+  if(!enabled){setResult({image:null,reference:null,loading:false,unavailable:false});return}
   const controller=new AbortController();
-  setResult(previous=>previous.image&&Date.parse(previous.image.validTime)===target&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,target)
-   ?{...previous,loading:true,unavailable:false}
-   :{image:null,loading:true,unavailable:false});
+  setResult(previous=>{
+   const exact=previous.image&&Date.parse(previous.image.validTime)===target&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,target)
+    ?previous.image:null;
+   const reference=!exact&&previous.reference&&matchesSurroundingsCloudReference(previous.reference,lat,lon,target)
+    ?previous.reference:null;
+   return {image:exact,reference,loading:true,unavailable:false};
+  });
   // Bucket changes limit network reloads; raster time uses the precise selected instant.
   const now=target;
   let requestTimeout:number|undefined; // window.setTimeout is a DOM timer, even with Node ambient types
@@ -139,16 +215,31 @@ export function useSurroundingsCloudImage(enabled:boolean,lat:number,lon:number,
    if(controller.signal.aborted)return;
    requestTimeout=window.setTimeout(()=>{
     if(!controller.signal.aborted){
-     setResult(previous=>previous.image&&Date.parse(previous.image.validTime)===target&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,now)
-      ?{...previous,loading:false,unavailable:true}:{image:null,loading:false,unavailable:true});
+     setResult(previous=>({
+      image:previous.image&&Date.parse(previous.image.validTime)===target&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,now)?previous.image:null,
+      reference:previous.reference&&matchesSurroundingsCloudReference(previous.reference,lat,lon,target)?previous.reference:null,
+      loading:false,unavailable:true
+     }));
      controller.abort();
     }
    },18000);
    void loadVerifiedSurroundingsCloud(lat,lon,now,controller.signal).then(image=>{
-    if(!controller.signal.aborted)setResult({image:{...image,requestLatitude:lat,requestLongitude:lon},loading:false,unavailable:false});
-   }).catch(()=>{
-    if(!controller.signal.aborted)setResult(previous=>previous.image&&Date.parse(previous.image.validTime)===target&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,now)
-     ?{...previous,loading:false,unavailable:true}:{image:null,loading:false,unavailable:true});
+    if(!controller.signal.aborted)setResult({image:{...image,requestLatitude:lat,requestLongitude:lon},reference:null,loading:false,unavailable:false});
+   }).catch(async()=>{
+    if(controller.signal.aborted)return;
+    try{
+     const reference=await loadSurroundingsCloudReference(lat,lon,now,controller.signal);
+     if(!controller.signal.aborted)setResult({
+      image:null,reference:{...reference,requestTargetTime:new Date(now).toISOString(),requestLatitude:lat,requestLongitude:lon},
+      loading:false,unavailable:false
+     });
+    }catch{
+     if(!controller.signal.aborted)setResult(previous=>({
+      image:previous.image&&Date.parse(previous.image.validTime)===target&&admissibleSurroundingsCloudTime(previous.image.validTime,previous.image.run,now)?previous.image:null,
+      reference:previous.reference&&matchesSurroundingsCloudReference(previous.reference,lat,lon,target)?previous.reference:null,
+      loading:false,unavailable:true
+     }));
+    }
    }).finally(()=>{if(requestTimeout!==undefined)window.clearTimeout(requestTimeout)});
   });
   return()=>{
@@ -159,6 +250,8 @@ export function useSurroundingsCloudImage(enabled:boolean,lat:number,lon:number,
  },[enabled,lat,lon,targetBucket]);
  // Hide stale image synchronously before the next useEffect (time or location).
  // A real failed refresh keeps its NoData/error status rather than claiming loading.
- return result.image&&!matchesSurroundingsCloudRequest(result.image,lat,lon,target)
-  ?{image:null,loading:result.loading,unavailable:result.unavailable}:result;
+ const image=result.image&&matchesSurroundingsCloudRequest(result.image,lat,lon,target)?result.image:null;
+ const reference=!image&&result.reference&&matchesSurroundingsCloudReference(result.reference,lat,lon,target)
+  ?result.reference:null;
+ return image===result.image&&reference===result.reference?result:{...result,image,reference};
 }

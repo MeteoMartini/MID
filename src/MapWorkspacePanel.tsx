@@ -6,11 +6,13 @@ import {MAP_WORKSPACE_VIEW_KEY,readMapWorkspaceView,saveMapWorkspaceView} from '
 import type {RadarNowcast,ThunderstormNowcast,WindUnit} from './weather';
 import './MapWorkspace.css';
 import GeoSphereIncaNowcast from './GeoSphereIncaNowcast';
+import {MapWorkspaceErrorBoundary} from './MapWorkspaceErrorBoundary';
 
 const LazyUnifiedWeatherMap=lazy(()=>import('./UnifiedWeatherMap'));
 const MemoLazyUnifiedWeatherMap=memo(LazyUnifiedWeatherMap);
 
 type MapWorkspacePanelProps={
+ gpuPaused?:boolean;
  lat:number;
  lon:number;
  timezone:string;
@@ -28,6 +30,7 @@ type MapWorkspacePanelProps={
 function LoadingMapPanel(){return <ModuleLoadingState label="Kartenprodukt wird geladen …" kind="map" className="lazy-placeholder map-workspace-loading"/>}
 
 export default function MapWorkspacePanel(props:MapWorkspacePanelProps){
+ const[retryRevision,setRetryRevision]=useState(0);
  const[requestedProductId,setRequestedProductId]=useState<string|undefined>(()=>{try{if(localStorage.getItem('mid:unified-map:v1')||localStorage.getItem(MAP_WORKSPACE_VIEW_KEY)!=='totals')return undefined;readMapWorkspaceView();return'icon-d2-precipitation-totals'}catch{return undefined}});
  useEffect(()=>{
   const handleChange=(event:Event)=>{const next=(event as CustomEvent<{view?:string}>).detail?.view;if(next==='models'){saveMapWorkspaceView('models');return}if(next==='totals'){saveMapWorkspaceView('totals');setRequestedProductId(`icon-d2-precipitation-totals:${Date.now()}`)}};
@@ -36,7 +39,11 @@ export default function MapWorkspacePanel(props:MapWorkspacePanelProps){
  },[]);
 
  return <section className={`map-workspace-shell${props.focusMode?' focus':''}`} aria-label="Kartenarbeitsbereich">
-  <Suspense fallback={<LoadingMapPanel/>}><MemoLazyUnifiedWeatherMap {...props} requestedProductId={requestedProductId}/></Suspense>
-  <GeoSphereIncaNowcast lat={props.lat} lon={props.lon} timezone={props.timezone}/>
+  {props.gpuPaused?<p className="map-workspace-paused">Kartenrenderer pausiert · zur Ansicht „Karten“ wechseln, um die interaktive Karte wieder anzuzeigen.</p>:<>
+  <MapWorkspaceErrorBoundary key={`${props.lat}:${props.lon}:${retryRevision}`} onRetry={()=>setRetryRevision(value=>value+1)}>
+   <Suspense fallback={<LoadingMapPanel/>}><MemoLazyUnifiedWeatherMap {...props} requestedProductId={requestedProductId}/></Suspense>
+   <GeoSphereIncaNowcast lat={props.lat} lon={props.lon} timezone={props.timezone}/>
+  </MapWorkspaceErrorBoundary>
+  </>}
  </section>
 }

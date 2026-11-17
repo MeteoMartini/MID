@@ -1,0 +1,29 @@
+# MID LC 1.11 · .487 disjunkter Source-Intake (QA-DRAFT, 2026-11-16)
+
+## Live Source of Truth
+- `main=mid-stable=a78465b655d25cafc9ecc0390080694cb7aca957` / veröffentlichte `v0.9.85.486`; `AGENTS.md`, `MID_SOURCE_OF_TRUTH.md`, `MID_BASELINE.json`, `MID_CHATGPT_GITHUB_CONTRACT.md`, `contracts/index.json` und Forecast-Intervallvertrag erneut geprüft; fünf aktive GitHub-Rulesets. Keine Direktwrites an main/stable.
+- Koordinierte Ursprünge: [#854](https://github.com/MeteoMartini/MID/pull/854) @ `897ccbb90aa06926ab7b7245f2d370dd19e74c9c` mit 48 Pfaden, Tree `f24613764d31aed95ae6856fd0556b277421a5ce` und versionierten .487-Spiegeln; [#857](https://github.com/MeteoMartini/MID/pull/857) @ `204aad6bb1c0745a388d751814cccc2cb40d38a0` mit exakt vier Pfaden. Compare gegen dieselbe Stable-Basis: beide ahead, 0 behind; Intersection leer.
+
+## Ausgewählter Import / Abgrenzung
+- #854s vollständiger Git-Tree als Ausgangsbaum. Alle bisherigen Karten-/Umfeld-/Flaggen-/IR-/JS-Änderungen, Versionsspiegel und Verträge werden bewahrt.
+- Aus #857 exakt `docs/implementation/MID_LC111_PROVIDER_SUNSHINE_DST_OFFSET_QA_2026_11_16.md`, `scripts/test-provider-fixed-offset-0985318.mjs`, `src/weather-src/20-mapping-day-character.tsfrag`, `src/weather.ts` als unveränderte Git-Blobs importiert. Gegenprobe: Das normative Fragment kommt exakt in der generierten Produktionswetterquelle vor; kein individueller Bestand aus PR #854 wurde überschrieben.
+- Release Notes, User-Bullet, interne Changelog-Zeile und Source-of-Truth-Vorwort nehmen diesen zusätzlichen Kandidaten auf, ohne zusätzliche Versionsanhebung oder CI-/Worker-/Warnungs-/Governance-Änderung.
+- Fachvertrag: Open-Meteo ISO-Endstempel + einmalig aufgelöster Fixed-Offset; kein UTC+0 aus fehlenden Metadaten. Fehlende Sonnenscheinintervalle niemals als gemessene Null; 0s echter Offset bleibt gültig. Keine Änderung an PoP/Phase/Radar, WMO/DWD-Warnungen oder RUC-Originaldaten.
+- **Explizit nicht im Intake:** Spezial-#855 (zur Zeit aktiv veränderter HEAD), Spezial-#856 (gemeinsame `src/CurrentSurroundings.tsx`, nur nach selektivem Patch-Abgleich); Issue #740/PR #839 (Release-Sicherheit). Auch alte bereits in #854 enthaltene #848/#850/#851/#852 werden nicht doppelt integriert.
+
+## QA-/Freigabegrenzen
+- Einzel-Draft-CIs #854 und #857 erfolgreich, beweisen nicht die Kombination. Der neue kombinierte HEAD benötigt mindestens tatsächliche gezielte und Vitest-CI, danach unabhängige Browsermatrix 320/390/430/834/1440px Light/Dark, NoData/Run/UTC-Prüfungen, CPU/Memory und Versions-/Mirror-QA; echte iOS-/VoiceOver-Nachweise getrennt.
+- Kein Auto-Ready/Auto-Release. Nur regulärer Source-PR-Gate → kontrollierter SHA-Merge → serverseitiges Release-ZIP → `install-mid.yml` → Worker-/Pages-Gates → Stable-Promotion. Ohne vollständige echte Belege und unabhängige Reviewprüfung bleiben alle diese Schritte blockiert.
+
+## Follow-up / MID Design 1.6 · #855 zusätzliches disjunktes QA-Intake (2026-11-16)
+- Ausgangs-Leithead vor diesem Schritt: `d28d8f66f4911851162d04636ac5bb10eafa6803`; Spezial-Originalhead: `0b0b30f5b4e4179206fd5f227cfee3ad2297fdba`; veröffentlichte Basis: `a78465b655d25cafc9ecc0390080694cb7aca957`. Vor der Blobübernahme: 13 neue Pfade, **keiner** berührt die bereits 53 geänderten Diffpfade. Alle neuen Quelldateien sind direkte Git-Blobs aus dem fixierten Original-Commit, keine Rewrites oder Kopien von älteren Chats.
+- Produktfunktion: Optionaler EnsemblePanel-Import nicht länger an meteorologische Ensemble-Datennachfrage gekoppelt; 2,5-s-Kartenidle nur nach persisted View-Intent; Data Saver/2G blockiert optionales Visual-Preloading; 45-s-Grenze und abgebrochene Start-Leases geben identitätssicher Referenzen frei, statt alte Promises erneut zu verwenden.
+- Scientific integrity: keine Interpolation oder Nullfüllung, keine Änderung an Radar/PoP/Phase, Observations-/RUC-/Warnungs-/UTC-Daten und keinerlei Modell-/Provider-Repriorisierung; native Wetterdatenrequest- und Abbruchprioritäten bleiben Vertragsbestand.
+- Fachliche QA-Grenze: Einzeldraft #855 hatte Vitest, gezielte Regression und isolierten Vite-Browserimport-Test erfolgreich; dabei beobachtete 16 JS-Requests / 1 CSS-Datei und ca. 4 MB importbezogener Post-GC-Heap **sind Kosten eines isolierten Imports, keine reale Einsparungsprognose**. Ohne echte Full-App-Stable-vs-Candidate-A/B, dynamische Navigation, Offline/SW, 20-Cycle-Post-GC, Touch/Fokus und iOS/WebKit kein Release.
+- Auch der neue 66-Dateien-Leithead benötigt eine **frische eigene SHA-gebundene** Kombinations-CI, Source/Core/Heavy-/Browser-/Review-/Installer-/Worker-/Pages-/Stable-Gates. Die unabhängigen #856-Viewport-/Projektionsarbeiten und #740-/Release-Sicherheitsarbeiten wurden nicht importiert. Kein Ready/Release.
+
+## Fortsetzung: #856 Radar/Sat-Viewport (genaues 14-Datei-Integrationsinventar)
+
+Basis #858 `a51c281aee8fabfce149790a1017ef3267804335`, Spezial-#856 `db51e48f9baa30aa82c094ea923d6c11166236fb`, v0.9.85.487 Quelle, keine Überschneidung mit #855-Daten-/Visualintent. Zwölf der Spezialdateien werden als originale SHA-identische Blobs übernommen; beide gemeinsam geänderten Dateien werden konfliktig hunk- und quellenverifiziert statt überschrieben. Cloudreferenz/Browserflags/Map-Open bleiben wirksam. WMS-Projektionsfrage, reale Provider-Originale, komplette App-/iOS-Abnahme und Full-Gates offen; keine Release-Sicherheitsarbeit; QA-Draft.
+
+Detaillierter Reproduktionsnachweis: `docs/implementation/MID_LC111_MAPS856_SELECTIVE_MERGE_QA_2026_11_16.md`.

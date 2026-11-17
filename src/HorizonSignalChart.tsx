@@ -1,7 +1,29 @@
 import {niceChartScale,chartLabelVisible} from './chartScale';
 import {formatDecimalFixed} from './format';
 import {useId,useLayoutEffect,useRef,useState} from 'react';
-export function useSignalChartWidth(){const ref=useRef<HTMLDivElement>(null),[width,setWidth]=useState(760);useLayoutEffect(()=>{const node=ref.current;if(!node)return;const update=()=>setWidth(Math.max(120,node.clientWidth-parseFloat(getComputedStyle(node).paddingLeft)-parseFloat(getComputedStyle(node).paddingRight)));update();const observer=new ResizeObserver(update);observer.observe(node);return()=>observer.disconnect()});return[ref,width] as const}
+/** CSS pixel width of the drawable chart region; never expose NaN to SVG geometry. */
+export function signalChartInnerWidth(clientWidth:number,paddingLeft:string,paddingRight:string){
+ const available=clientWidth-Number.parseFloat(paddingLeft)-Number.parseFloat(paddingRight);
+ return Number.isFinite(available)?Math.max(120,available):120;
+}
+/** One observer per mounted chart, not one per React state/selection render. */
+export function useSignalChartWidth(){
+ const ref=useRef<HTMLDivElement>(null),[width,setWidth]=useState(760);
+ useLayoutEffect(()=>{
+  const node=ref.current;
+  if(!node)return;
+  const update=()=>{
+   const style=getComputedStyle(node);
+   const next=signalChartInnerWidth(node.clientWidth,style.paddingLeft,style.paddingRight);
+   setWidth(previous=>previous===next?previous:next);
+  };
+  update();
+  const observer=new ResizeObserver(update);
+  observer.observe(node);
+  return()=>observer.disconnect();
+ },[]);
+ return[ref,width] as const;
+}
 export type SignalPoint={id:string;label:string;labelEnd?:string;mean:number|null;low?:number|null;high?:number|null;q25?:number|null;q75?:number|null;detail?:string;color?:string};
 export type SignalSeries={id:string;label:string;color:string;points:SignalPoint[]};
 /** Connect only adjacent dated daily observations; missing values/dates break a path. */

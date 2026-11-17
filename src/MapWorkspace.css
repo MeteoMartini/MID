@@ -59,3 +59,14 @@ html .unified-weather-map.unified-weather-map .composite-layer-toolbar .composit
 /* Reserve map space while its async component and styles arrive. No containment
    on the live map: popovers and MapLibre controls must remain unclipped. */
 .map-workspace-shell .lazy-placeholder.map-workspace-loading{min-height:420px;min-height:min(420px,65svh);display:grid;place-items:center;padding:16px;overflow-wrap:anywhere;text-align:center;color:var(--text);background:var(--surface,var(--card));border-radius:var(--mid-ui-radius,12px)}
+
+
+/* Contained map-runtime error: never obscure the rest of the weather app. */
+.mid-map-workspace-error{display:grid;gap:10px;justify-items:start;min-height:220px;padding:clamp(14px,3vw,24px);border:1px solid var(--border,#cbd5df);border-radius:12px;background:var(--surface,var(--card,#fff));color:var(--text,#172536);overflow-wrap:anywhere}
+.mid-map-workspace-error strong{font-size:clamp(1rem,2.8vw,1.2rem)}
+.mid-map-workspace-error p{max-width:60ch;margin:0;line-height:1.5}
+.mid-map-workspace-error button{min-height:44px;max-width:100%;padding:10px 14px;border:1px solid var(--border,#cbd5df);border-radius:10px;color:var(--text,#172536);background:var(--surface,var(--card,#fff));font:inherit;font-weight:700}
+.mid-map-workspace-error button:focus-visible{outline:2px solid var(--primary,#1675d1);outline-offset:3px}
+
+/* Keep module geometry stable while the inactive workspace releases its WebGL tree. */
+.map-workspace-paused{display:grid;place-items:center;min-height:clamp(220px,45svh,420px);margin:0;padding:clamp(14px,4vw,26px);border:1px solid var(--border,#cbd5df);border-radius:var(--mid-ui-radius,12px);background:var(--surface,var(--card,Canvas));color:var(--muted,#53677a);text-align:center;font:inherit;font-size:clamp(.83rem,2.6vw,.98rem);line-height:1.5;overflow-wrap:anywhere}

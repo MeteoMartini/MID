@@ -4,12 +4,16 @@ import {formatWeatherValue} from "./weatherValueFormat";
 import {ecmwfTemperatureColor} from "./temperatureTone";
 import {useSurroundingsCloudImage} from "./currentSurroundingsCloudImage";
 import {surroundingsQuarterHourTarget} from "./surroundingsQuarterHour";
-import {radarOriginalForStep,nearestVerifiedOriginal,surroundingsRadarTarget,selectVerifiedSurroundingsRadarFrame,selectVerifiedSurroundingsOperaFrame,SURROUNDINGS_RADAR_MIN_STEP,SURROUNDINGS_RADAR_MAX_STEP} from './surroundingsRadarTimeline';
+import {radarOriginalForStep,surroundingsRadarTarget,selectVerifiedSurroundingsRadarFrame,selectRetainedSurroundingsRadarFrame,selectVerifiedSurroundingsOperaFrame,SURROUNDINGS_RADAR_MIN_STEP,SURROUNDINGS_RADAR_MAX_STEP} from './surroundingsRadarTimeline';
+import {selectSurroundingsSatelliteOriginal} from './surroundingsSatelliteOriginal';
+import {summarizeSurroundingsOperaCoverage,type SurroundingsOperaCoverage} from './surroundingsOperaCoverage';
 import {useDisplayPreference,displayChoice} from './useDisplayPreference';
 import {PRECIPITATION_TYPE_COLORS,radarDbzColor} from './radarColorTables';
 import {loadModelMapGeography,type ModelMapGeography} from './modelMapGeography';
 import {browserExternalWeatherFallbackAllowed} from './workerClient';
 import {MidMapLibre,ImageQuadLayer,HtmlMarker,MapFitBounds,useMidMap} from './MapLibreCore';
+import SurroundingsViewportCapture from './SurroundingsViewportCapture';
+import {mercatorLatitudeAtImageFraction,type SurroundingsRasterPlan} from './surroundingsViewportRaster';
 import {VectorReferenceLayer} from './MapLibreLegacyCompat';
 import UnifiedVectorBasemap from './UnifiedVectorBasemap';
 import {compositeReferenceLayers} from './mapReferenceLayers';
@@ -20,7 +24,7 @@ import './CurrentSurroundings.css';
 
 export type SurroundingsBounds={west:number;south:number;east:number;north:number};
 
-type Props={lat:number;lon:number;name:string;timezone:string;temperature:number;temperatureTime:string;onOpen:(time:number|undefined,bounds:SurroundingsBounds)=>void};
+type Props={lat:number;lon:number;name:string;timezone:string;temperature:number;temperatureTime:string;mapPaused?:boolean;onOpen:(time:number|undefined,bounds:SurroundingsBounds)=>void};
 const rvLayer='dwd:Radar_rv_product_1x1km_ger';
 // Mirror UnifiedVectorBasemap's proxied, consent-gated vector source policy.
 const DIRECT_VECTOR_TILES='https://tiles.openfreemap.org/planet/latest/{z}/{x}/{y}.pbf';
@@ -43,29 +47,30 @@ function MapCityInventory({onChange}:{onChange:(values:SurroundingsCityCandidate
  return null;
 }
 
-function imageUrl(provider:WmsProvider,layer:string,time:number,bounds:string){
+function imageUrl(provider:WmsProvider,layer:string,time:number,plan:SurroundingsRasterPlan|undefined){
  const proxy=compositeWmsProxy(provider);
- if(!proxy)return '';
+ if(!proxy||!plan)return '';
  const url=new URL(proxy,window.location.href);
- const parameters={service:'WMS',request:'GetMap',version:'1.1.1',srs:'EPSG:4326',layers:layer,format:'image/png',transparent:'true',bbox:bounds,width:'512',height:'256',time:new Date(time).toISOString()};
+ const parameters={service:'WMS',request:'GetMap',version:'1.1.1',srs:'EPSG:4326',layers:layer,format:'image/png',transparent:'true',bbox:plan.bbox,width:String(plan.width),height:String(plan.height),time:new Date(time).toISOString()};
  for(const [key,value] of Object.entries(parameters))url.searchParams.set(key,value);
  return url.href;
 }
 
-export function CurrentSurroundingsEntry({location,current,timezone,onOpen}:{
+export function CurrentSurroundingsEntry({location,current,timezone,onOpen,mapPaused=false}:{
  location:{latitude:number;longitude:number;name:string};
  current:{temperature_2m?:unknown;time?:unknown};
  timezone:string;
+ mapPaused?:boolean;
  onOpen:(request:{lat:number;lon:number;time?:number;bounds:SurroundingsBounds;id:number})=>void;
 }){
  const {latitude:lat,longitude:lon,name}=location;
- return <CurrentSurroundings key={`${lat}:${lon}`} lat={lat} lon={lon} name={name} timezone={timezone}
+ return <CurrentSurroundings key={`${lat}:${lon}`} lat={lat} lon={lon} name={name} timezone={timezone} mapPaused={mapPaused}
   temperature={typeof current.temperature_2m==='number'?current.temperature_2m:NaN}
   temperatureTime={String(current.time??'')} onOpen={(time,bounds)=>onOpen({lat,lon,time,bounds,id:Date.now()})}/>;
 }
 
 export default function CurrentSurroundings(props:Props){
- const {lat,lon,name,timezone,temperature,temperatureTime,onOpen}=props;
+ const {lat,lon,name,timezone,temperature,temperatureTime,onOpen,mapPaused=false}=props;
  const heading=useId();
  const [mode,setMode]=useDisplayPreference('CurrentSurroundings.mode','cloud',displayChoice('cloud','radar'));
  const [radarStep,setRadarStep]=useState(0);
@@ -73,19 +78,31 @@ export default function CurrentSurroundings(props:Props){
  const [catalog,setCatalog]=useState<CompositeProductTimes>();
  const [failed,setFailed]=useState(false);
  const [loaded,setLoaded]=useState<{url:string;time:number;kind:'Beobachtung'|'Nowcast'}>();
+ // A decoded WMS image is not yet GPU-visible. Publish its original time
+ // only after MapLibre's image-source render and complete crossfade.
+ const [presentedRadar,setPresentedRadar]=useState<{url:string;time:number;kind:'Beobachtung'|'Nowcast'}>();
+ const [presentedSatellite,setPresentedSatellite]=useState<{url:string;time:number;scope:string;provider:WmsProvider;spectrum:'RGB'|'IR'}>();
  const [now,setNow]=useState(Date.now);
  const cloudTarget=surroundingsQuarterHourTarget(now,cloudStep);
  const cloudRelativeMinutes=Math.max(0,Math.ceil((cloudTarget-now)/60000));
  const cloudForecast=useSurroundingsCloudImage(mode==='cloud',lat,lon,cloudTarget);
- const [opera,setOpera]=useState<{url:string;time:number;requestKey:string}>();
+ const [opera,setOpera]=useState<{url:string;time:number;requestKey:string;coverage:SurroundingsOperaCoverage}>();
  const [operaFinished,setOperaFinished]=useState(false);
  const [imageError,setImageError]=useState('');
  const [cloudError,setCloudError]=useState('');
+ useEffect(()=>{if(mode!=='radar'){setPresentedRadar(undefined);setPresentedSatellite(undefined)}},[mode]);
  const [showPhase,setShowPhase]=useState(false);
  const [phaseImage,setPhaseImage]=useState<{url?:string;time:number;requestKey:string}>();
  const [phaseLoading,setPhaseLoading]=useState(false);
  const [mapCities,setMapCities]=useState<SurroundingsCityCandidate[]>([]);
  const [mapViewport,setMapViewport]=useState<{width:number;height:number}|null>(null);
+ const [openingMap,setOpeningMap]=useState(false);
+ useEffect(()=>{if(mapPaused)setOpeningMap(false)},[mapPaused]);
+ const [mapOpenError,setMapOpenError]=useState('');
+ // Bind camera geometry to the requested location. Even if the parent changes
+ // coordinates without remounting, an old image plan must not survive that switch.
+ const [rasterState,setRasterState]=useState<{lat:number;lon:number;plan:SurroundingsRasterPlan|undefined}>();
+ const rasterPlan=rasterState?.lat===lat&&rasterState.lon===lon?rasterState.plan:undefined;
  const mapFigureRef=useRef<HTMLElement|null>(null);
  const darkMap=useDarkMapTheme();
  useEffect(()=>{
@@ -130,14 +147,18 @@ export default function CurrentSurroundings(props:Props){
  // inside these bounds still needs the independent OPERA check.
  const dwdArea=lat>=47&&lat<=55.3&&lon>=5.4&&lon<=15.7;
  const radarTarget=surroundingsRadarTarget(now,radarStep);
+ const radarOffsetMinutes=Math.round((radarTarget-now)/60_000);
+ const radarOffsetLabel=radarStep===0?'Jetzt':radarOffsetMinutes>0?`in ${radarOffsetMinutes} Minuten`:radarOffsetMinutes<0?`vor ${-radarOffsetMinutes} Minuten`:'am gewählten Termin';
  const radarOriginal=radarOriginalForStep(catalog,now,radarStep,dwdArea);
  const target=radarOriginal?.time;
  const radarAtNow=radarStep===0;
  const west=Math.max(-180,Math.min(177.2,lon-1.4)),south=Math.max(-85,Math.min(83.7,lat-.65));
  const east=west+2.8,north=south+1.3;
- const bounds=[west,south,east,north].join(',');
- // Request identity includes the exact selected location and the WMS bbox.
- const operaRequestKey=JSON.stringify([lat,lon,bounds]);
+ // Keep these static bounds solely for initial map focus and 'Karte öffnen'.
+ // Never use them as the dynamic WMS/OPERA image footprint.
+ const bounds=rasterPlan?.bbox??'';
+ // Request identity is tied to the exact location, camera bounds AND image dimensions.
+ const operaRequestKey=JSON.stringify([lat,lon,bounds,rasterPlan?.width,rasterPlan?.height]);
  const [geography,setGeography]=useState<ModelMapGeography>();
  useEffect(()=>{
   let active=true;
@@ -147,8 +168,8 @@ export default function CurrentSurroundings(props:Props){
  // Coordinates come from actual named settlements, not screen-grid reference points.
  const nearbyCities=useMemo(()=>mapViewport?chooseSurroundingsCities([
   ...mapCities,...(geography?.places??[]).map(place=>({name:place.name,lat:place.lat,lon:place.lon,population:place.population,rank:place.minZoom,origin:'natural-earth' as const}))
- ],{lat,lon},{west,south,east,north},4,mapViewport):[],[mapCities,geography,lat,lon,west,south,east,north,mapViewport]);
- const mapBounds=useMemo(()=>[[south,west],[north,east]] as [[number,number],[number,number]],[south,west,north,east]);
+ ],{lat,lon},{west,south,east,north},mapViewport.width>=660&&mapViewport.height>=220?6:4,mapViewport):[],[mapCities,geography,lat,lon,west,south,east,north,mapViewport]);
+ const mapBounds=useMemo(()=>rasterPlan?[[rasterPlan.bounds.south,rasterPlan.bounds.west],[rasterPlan.bounds.north,rasterPlan.bounds.east]] as [[number,number],[number,number]]:undefined,[rasterPlan]);
  const mapReferences=useMemo(()=>compositeReferenceLayers(.93,surroundingReference),[darkMap]);
  const directVectorAllowed=browserExternalWeatherFallbackAllowed();
  const referenceTileUrl=openFreeMapVectorTileProxy()||(directVectorAllowed?DIRECT_VECTOR_TILES:'');
@@ -157,10 +178,13 @@ export default function CurrentSurroundings(props:Props){
   const signature=(places:SurroundingsCityCandidate[])=>places.map(p=>`${p.name}:${p.lat.toFixed(3)}:${p.lon.toFixed(3)}`).sort().join('|');
   return signature(previous)===signature(next)?previous:next;
  }),[]);
- const radar=mode!=='radar'||target===undefined?'':imageUrl('dwd',rvLayer,target,bounds);
- const satellite=catalog?.satelliteRgbProduct??catalog?.satelliteIrProduct;
- const satelliteTime=radarStep>0?undefined:nearestVerifiedOriginal(satellite?.times,radarTarget,now);
- const clouds=mode==='radar'&&satellite&&satelliteTime!==undefined?imageUrl(satellite.provider,satellite.layer,satelliteTime,bounds):'';
+ const radar=mode!=='radar'||target===undefined?'':imageUrl('dwd',rvLayer,target,rasterPlan);
+ // A listed RGB catalog entry is not itself proof of a matching RGB original.
+ // Prefer IR when RGB has no verified source time; never invent a future sat frame.
+ const satelliteOriginal=selectSurroundingsSatelliteOriginal(catalog,radarTarget,now,radarStep);
+ const satellite=satelliteOriginal?.product;
+ const satelliteTime=satelliteOriginal?.time;
+ const clouds=mode==='radar'&&satellite&&satelliteTime!==undefined?imageUrl(satellite.provider,satellite.layer,satelliteTime,rasterPlan):'';
  const clock=(time:number)=>new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:timezone}).format(time);
  const datedClock=(time:number)=>new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:timezone}).format(time);
  useEffect(()=>{
@@ -187,10 +211,12 @@ export default function CurrentSurroundings(props:Props){
   img.src=radar;
   return ()=>{img.onload=null;img.onerror=null};
  },[radar,target,mode,radarOriginal?.kind]);
- const needsOpera=mode==='radar'&&radarAtNow&&Boolean(showPhase||(catalog&&!radar)||failed||(radar&&imageError===radar));
+ const needsOpera=mode==='radar'&&radarAtNow&&Boolean(rasterPlan)&&Boolean(showPhase||(catalog&&!radar)||failed||(radar&&imageError===radar));
  // biome-ignore lint/correctness/useExhaustiveDependencies: A refreshed composite catalog intentionally revalidates OPERA availability even when location/radar mode remain unchanged.
  useEffect(()=>{
-  if(!needsOpera)return;
+  if(!needsOpera||!rasterPlan)return;
+  // Stable capture: TypeScript and async workers must use the same admitted footprint.
+  const admittedRasterPlan=rasterPlan;
   const controller=new AbortController();
   setOperaFinished(false);
   setPhaseImage(undefined);
@@ -207,21 +233,28 @@ export default function CurrentSurroundings(props:Props){
    const raster=await loadOperaRasterData(frame.fileUrl,controller.signal);
    if(controller.signal.aborted)return;
    const canvas=document.createElement('canvas');
-   canvas.width=256;canvas.height=128;
+   // Keep the previous OPERA 256×128 maximum while matching the requested WMS geometry.
+   canvas.width=Math.max(16,Math.ceil(admittedRasterPlan.width/2));
+   canvas.height=Math.max(16,Math.ceil(admittedRasterPlan.height/2));
    const context=canvas.getContext('2d');
    if(!context)return;
-   const [west,south,east,north]=bounds.split(',').map(Number);
+   const {west,south,east,north}=admittedRasterPlan.bounds;
+   // Raster rows are evenly spaced in WebMercator Y on the map, not in latitude degrees.
+   const rowLatitudes=Array.from({length:canvas.height},(_,y)=>mercatorLatitudeAtImageFraction(north,south,(y+.5)/canvas.height));
    const image=context.createImageData(canvas.width,canvas.height);
-   let covered=false;
+   let validPixels=0;
    for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){
-    const point=operaRasterPoint(raster,north-(y+.5)*(north-south)/canvas.height,west+(x+.5)*(east-west)/canvas.width);
-    covered ||= point.covered;
+    const point=operaRasterPoint(raster,rowLatitudes[y],west+(x+.5)*(east-west)/canvas.width);
+    if(point.covered)validPixels++;
     if(point.dbz!==undefined)image.data.set(radarDbzColor(point.dbz),(y*canvas.width+x)*4);
    }
-   if(!covered)return;
+   const coverage=summarizeSurroundingsOperaCoverage(validPixels,canvas.width*canvas.height);
+   // One valid OPERA pixel must not be reported as full regional coverage.
+   // Empty coverage is NoData, not a valid dry radar image.
+   if(!coverage||coverage.kind==='none')return;
    context.putImageData(image,0,0);
    const time=Date.parse(frame.time);
-   setOpera({url:canvas.toDataURL(),time,requestKey:operaRequestKey});
+   setOpera({url:canvas.toDataURL(),time,requestKey:operaRequestKey,coverage});
    if(!showPhase)return;
    const [{loadWeatherPhaseGrid},{buildPhaseDisplay,paintPhaseRaster}]=await Promise.all([
     import('./WeatherMapsData'),import('./RadarModelPrecipTypeOverlay')
@@ -231,18 +264,27 @@ export default function CurrentSurroundings(props:Props){
    if(controller.signal.aborted||grid.error||grid.stale||!Number.isFinite(modelTime)||Math.abs(modelTime-time)>20*60000||(grid.modelAgeHours??0)>16)return;
    const phase=buildPhaseDisplay(grid,raster);
    if(phase.colors.size)paintPhaseRaster(context,raster,grid,phase,(x,y)=>({
-    lat:north-y*(north-south)/canvas.height,
+    lat:rowLatitudes[Math.floor(y)],
     lng:west+x*(east-west)/canvas.width
    }));
    setPhaseImage({url:phase.colors.size?canvas.toDataURL():undefined,time,requestKey:operaRequestKey});
   }
   void load().catch(()=>{}).finally(()=>{if(!controller.signal.aborted){setOperaFinished(true);setPhaseLoading(false)}});
   return ()=>controller.abort();
- },[needsOpera,showPhase,lat,lon,bounds,operaRequestKey,catalog?.checkedAt]);
+ },[needsOpera,showPhase,lat,lon,bounds,rasterPlan,operaRequestKey,catalog?.checkedAt]);
  const displayedOpera=needsOpera?selectVerifiedSurroundingsOperaFrame(opera,operaRequestKey,now):undefined;
- const displayedRadar=mode==='radar'?selectVerifiedSurroundingsRadarFrame(loaded,radar,radarOriginal):undefined;
+ const displayedRadar=mode==='radar'?
+  (imageError===radar?undefined:selectVerifiedSurroundingsRadarFrame(loaded,radar,radarOriginal))??
+  selectRetainedSurroundingsRadarFrame(presentedRadar,radar,radarOriginal,now,radarTarget):undefined;
+ const paintedRadar=mode==='radar'?
+  selectVerifiedSurroundingsRadarFrame(presentedRadar,radar,radarOriginal)??
+  selectRetainedSurroundingsRadarFrame(presentedRadar,radar,radarOriginal,now,radarTarget):undefined;
+ const retainedSatellite=mode==='radar'&&radarStep<=0&&presentedSatellite?.scope===operaRequestKey&&
+  presentedSatellite.time<=radarTarget+90_000&&presentedSatellite.time<=now+90_000&&
+  presentedSatellite.time>=radarTarget-15*60_000?presentedSatellite:undefined;
+ const satelliteFrameUrl=clouds&&cloudError!==clouds?clouds:retainedSatellite?.url??'';
  const displayedPhase=showPhase&&displayedOpera&&phaseImage?.requestKey===operaRequestKey&&phaseImage?.time===displayedOpera.time?phaseImage:undefined;
- const displayTime=displayedOpera?.time??displayedRadar?.time;
+ const displayTime=displayedOpera?.time??paintedRadar?.time;
  const temperatureTarget=mode==='cloud'?cloudTarget:radarTarget;
  const siteId=`site:${lat.toFixed(5)}:${lon.toFixed(5)}`;
  const temperaturePlaces=useMemo(()=>[...nearbyCities,{id:siteId,lat,lon}], [nearbyCities,siteId,lat,lon]);
@@ -269,9 +311,21 @@ export default function CurrentSurroundings(props:Props){
  const temperatures=temperatureGrid?.values;
  const forecastSiteTemperature=mode==='cloud'&&cloudStep>0?temperatures?.[siteId]:undefined;
  const displaySiteTemperature=mode==='cloud'&&cloudStep>0?forecastSiteTemperature:(mode==='cloud'||radarAtNow)&&Number.isFinite(temperature)?temperature:undefined;
- const visibleClouds=Boolean(clouds&&cloudError!==clouds);
+ const visibleClouds=Boolean(satelliteFrameUrl);
  return <section className="card current-surroundings" aria-labelledby={heading}>
-  <header><h2 id={heading}>Wetter im Umfeld</h2><button type="button" onClick={()=>onOpen(mode==='cloud'?cloudTarget:mode==='radar'?displayTime:undefined,{west,south,east,north})}>Karte öffnen</button></header>
+  <header><h2 id={heading}>Wetter im Umfeld</h2><button type="button" disabled={openingMap||mapPaused} aria-busy={openingMap} onClick={()=>{
+   if(openingMap||mapPaused)return;
+   setMapOpenError('');setOpeningMap(true);
+   // Ephemeral on-device diagnostic, without coordinates or request URLs.
+   // Allows the root StartupGuard's recorded error to be correlated with a
+   // user-initiated map-open attempt if an actual device crashes again.
+   try{sessionStorage.setItem('mid:map:last-open-intent',JSON.stringify({
+    at:new Date().toISOString(),mode,hasOriginalTime:Number.isFinite(mode==='cloud'?cloudTarget:displayTime)
+   }))}catch{}
+   try{onOpen(mode==='cloud'?cloudTarget:mode==='radar'?displayTime:undefined,{west,south,east,north})}
+   catch{setOpeningMap(false);setMapOpenError('Der Kartenbereich konnte nicht geöffnet werden. Bitte erneut versuchen.')}
+  }}>{openingMap?'Karte wird geöffnet …':'Karte öffnen'}</button></header>
+  {mapOpenError&&<p role="alert" className="current-surroundings-map-open-error">{mapOpenError}</p>}
   <div className="current-surroundings-display-modes" role="group" aria-label="Kartendarstellung wählen">
    <button type="button" aria-pressed={mode==='cloud'} onClick={()=>setMode('cloud')}>Wolken + Wetter</button>
    <button type="button" aria-pressed={mode==='radar'} onClick={()=>setMode('radar')}>Radar / Satellit</button>
@@ -286,28 +340,35 @@ export default function CurrentSurroundings(props:Props){
    <output aria-live="polite" className="current-surroundings-time-readout">{cloudStep===0?'Letzter 15-min-Termin':`in ${cloudRelativeMinutes} min`} · {datedClock(cloudTarget)} Uhr</output>
   </div>}
   {mode==='radar'&&<>
-   <div className="current-surroundings-cloud-timeline" role="group" aria-label="Radar und Satellit: Originaltermine in 15-Minuten-Schritten">
-    <button type="button" aria-label="Radar und Satellit 15 Minuten zurück" disabled={radarStep===SURROUNDINGS_RADAR_MIN_STEP} onClick={()=>setRadarStep(v=>Math.max(SURROUNDINGS_RADAR_MIN_STEP,v-1))}>−15 min</button>
+   <div className="current-surroundings-cloud-timeline" role="group" aria-label="Radar und Satellit: 5-Minuten-Auswahl; nur tatsächlich belegte Originaltermine">
+    <button type="button" aria-label="Radar und Satellit 5 Minuten zurück" disabled={radarStep===SURROUNDINGS_RADAR_MIN_STEP} onClick={()=>setRadarStep(v=>Math.max(SURROUNDINGS_RADAR_MIN_STEP,v-1))}>−5 min</button>
     <input type="range" min={SURROUNDINGS_RADAR_MIN_STEP} max={SURROUNDINGS_RADAR_MAX_STEP} step={1} value={radarStep}
-     aria-label={`Radar/Satellit: ${radarStep===0?'Jetzt':radarStep>0?`in ${radarStep*15} Minuten`:`vor ${-radarStep*15} Minuten`} · Ziel ${datedClock(radarTarget)} Uhr`}
+     aria-label={`Radar/Satellit: ${radarOffsetLabel} · Ziel ${datedClock(radarTarget)} Uhr`}
      aria-valuetext={`${datedClock(radarTarget)} Uhr · ${radarOriginal?`${radarOriginal.kind} ${datedClock(radarOriginal.time)} Uhr`:'kein belegtes Radaroriginal'}`}
      onChange={event=>setRadarStep(Math.max(SURROUNDINGS_RADAR_MIN_STEP,Math.min(SURROUNDINGS_RADAR_MAX_STEP,Number(event.target.value))))}/>
-    <button type="button" aria-label="Radar und Satellit 15 Minuten vor" disabled={radarStep===SURROUNDINGS_RADAR_MAX_STEP} onClick={()=>setRadarStep(v=>Math.min(SURROUNDINGS_RADAR_MAX_STEP,v+1))}>+15 min</button>
-    <output aria-live="polite" className="current-surroundings-time-readout">{radarStep===0?'Jetzt':radarStep>0?`in ${radarStep*15} min`:`vor ${-radarStep*15} min`} · {datedClock(radarTarget)} Uhr</output>
+    <button type="button" aria-label="Radar und Satellit 5 Minuten vor" disabled={radarStep===SURROUNDINGS_RADAR_MAX_STEP} onClick={()=>setRadarStep(v=>Math.min(SURROUNDINGS_RADAR_MAX_STEP,v+1))}>+5 min</button>
+    <output aria-live="polite" className="current-surroundings-time-readout">{radarOffsetLabel} · {datedClock(radarTarget)} Uhr</output>
    </div>
    <div className="current-surroundings-controls">
     <button type="button" aria-pressed={radarAtNow} onClick={()=>setRadarStep(0)}>Jetzt</button>
     <button type="button" aria-pressed={showPhase} disabled={!radarAtNow} onClick={()=>setShowPhase(value=>!value)}>Niederschlagsart</button>
    </div>
   </>}
-  <figure ref={mapFigureRef} className="current-surroundings-map" aria-label={`Wetterbild um ${name}: MID-Kartenbasis und Temperaturen an benannten Orten`}>
-   <MidMapLibre center={[lat,lon]} zoom={7} scrollZoom={false} interactive={false} navigationControl={false} className="current-surroundings-maplibre">
+  <figure ref={mapFigureRef} className="current-surroundings-map" aria-label={mapPaused?`Umfeldkarte um ${name} pausiert, während die große Karte geöffnet ist`:`Wetterbild um ${name}: MID-Kartenbasis und Temperaturen an benannten Orten`}>
+   {mapPaused?<p className="current-surroundings-map-paused" role="status">Umfeldkarte pausiert · große Karte geöffnet. Zur Ansicht „Aktuell“ wechseln, um die Vorschau wieder anzuzeigen.</p>:<MidMapLibre center={[lat,lon]} zoom={7} scrollZoom={false} interactive={false} navigationControl={false} className="current-surroundings-maplibre">
     <MapFitBounds south={south} west={west} north={north} east={east} padding={8} maxZoom={7}/>
+    <SurroundingsViewportCapture onChange={plan=>setRasterState({lat,lon,plan})}/>
     <UnifiedVectorBasemap dark={darkMap}/>
     {mode==='cloud'&&cloudForecast.image&&<ImageQuadLayer id="surroundings-model-cloud-weather" url={cloudForecast.image.url}
      bounds={cloudForecast.image.bounds} resampling="nearest" zIndex={270} frameKey={`${cloudForecast.image.run}:${cloudForecast.image.validTime}:pseudo`}/>}
-    {mode==='radar'&&visibleClouds&&<ImageQuadLayer id="surroundings-clouds" url={clouds} bounds={mapBounds} zIndex={220} onError={()=>setCloudError(clouds)}/>}
-    {mode==='radar'&&(displayedOpera??displayedRadar)&&<ImageQuadLayer id="surroundings-radar" url={displayedPhase?.url??(displayedOpera??displayedRadar)!.url} bounds={mapBounds} zIndex={360}/>}
+    {mode==='cloud'&&!cloudForecast.image&&cloudForecast.reference&&<ImageQuadLayer
+     id="surroundings-original-reference-cloud-weather" url={cloudForecast.reference.url}
+     bounds={cloudForecast.reference.bounds} resampling="nearest" zIndex={270}
+     frameKey={`${cloudForecast.reference.run}:${cloudForecast.reference.validTime}:reference:${cloudTarget}`}/>}
+    {mode==='radar'&&visibleClouds&&mapBounds&&<ImageQuadLayer id="surroundings-clouds" key={`surroundings-clouds:${operaRequestKey}`} url={satelliteFrameUrl} bounds={mapBounds} zIndex={220}
+     onError={()=>setCloudError(satelliteFrameUrl)} onReady={()=>{if(satelliteFrameUrl===clouds&&satelliteTime!==undefined&&satellite)
+      setPresentedSatellite({url:clouds,time:satelliteTime,scope:operaRequestKey,provider:satellite.provider,spectrum:satelliteOriginal!.spectrum})}}/>}
+    {mode==='radar'&&mapBounds&&(displayedOpera??displayedRadar)&&<ImageQuadLayer id="surroundings-radar" key={`surroundings-radar:${operaRequestKey}`} url={displayedPhase?.url??(displayedOpera??displayedRadar)!.url} bounds={mapBounds} zIndex={360} onReady={()=>{if(displayedRadar&&!displayedOpera)setPresentedRadar(displayedRadar)}} onError={()=>{if(displayedRadar?.url===radar)setImageError(radar)}}/>}
     <VectorReferenceLayer url={referenceTileUrl} glyphsUrl={referenceGlyphsUrl} layers={mapReferences} zIndex={790}/>
     <MapCityInventory onChange={updateMapCities}/>
     {nearbyCities.map((place,index)=>{
@@ -319,7 +380,7 @@ export default function CurrentSurroundings(props:Props){
     })}
     <HtmlMarker latitude={lat} longitude={lon} anchor="center" className="current-surroundings-center-marker" zIndex={920}
      html={`<span class="current-surroundings-center-dot" role="img" aria-label="Gewählter Ort: ${mapSafe(name)}${displaySiteTemperature!==undefined?`, ${formatWeatherValue(displaySiteTemperature!,'temperature','overview')} Grad Celsius`:''}">${displaySiteTemperature!==undefined?`<strong style="color:${ecmwfTemperatureColor(displaySiteTemperature!)}">${formatWeatherValue(displaySiteTemperature!,'temperature','overview')}°</strong>`:''}</span>`}/>
-   </MidMapLibre>
+   </MidMapLibre>}
    <figcaption className="current-surroundings-map-caption">Standort: {name}</figcaption>
   </figure>
   <div role="status" aria-live="polite" className="current-surroundings-data-status">{mode==='cloud'
@@ -330,8 +391,14 @@ export default function CurrentSurroundings(props:Props){
      {cloudForecast.loading&&<small>Neuer Modellstand wird geprüft.</small>}
      {cloudForecast.unavailable&&<small>Aktualisierung nicht erreichbar; letzter gültiger Bildstand.</small>}
     </>
+    :cloudForecast.reference?<><strong>Referenzbild · {cloudForecast.reference.model} · Wolken + SigWx</strong>
+     <span>Original gültig {datedClock(Date.parse(cloudForecast.reference.validTime))} Uhr · INIT {datedClock(Date.parse(cloudForecast.reference.run))} Uhr</span>
+     <small>Gewählt: {datedClock(cloudTarget)} Uhr · hierfür kein bestätigtes Original. Das Referenzbild gilt ausdrücklich NICHT für den gewählten 15-Minuten-Termin.</small>
+     {cloudForecast.loading&&<small>Originaldaten werden neu geprüft.</small>}
+     {cloudForecast.unavailable&&<small>Aktualisierung nicht erreichbar; vorhandenes Referenzbild ist keine aktuelle Prognose.</small>}
+    </>
     :<span>{cloudForecast.loading?'Verifiziertes PseudoSat-/SigWx-Modellbild wird geladen …':'Kein gültiges Wolken-/SigWx-Modellbild für Ort und Termin; keine Satellitenbeobachtung oder Entwarnung.'}</span>
-   :<span>{displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:radarStep!==0&&(!radar||target===undefined)?'Kein originales Radar-/Nowcast-Bild für diesen 15-Minuten-Termin':failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</span>}</div>
+   :<span>{!rasterPlan?'Radar-/Satelliten-Ausschnitt geometrisch nicht verfügbar; keine Wetterdaten als 0 interpretiert.':displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr{displayedOpera.coverage.kind==='partial'&&<> · Teilabdeckung {displayedOpera.coverage.percentageLabel} gültige Rasterzellen; übrige Fläche ohne Daten</>}</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':needsOpera&&operaFinished&&!displayedRadar?'OPERA-Radarbild fehlt oder hat keine belegte Rasterabdeckung; kein Trockenwetternachweis.':paintedRadar?<>DWD-Radar · {paintedRadar.kind} {clock(paintedRadar.time)} Uhr{paintedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:radarStep!==0&&(!radar||target===undefined)?'Kein originales Radar-/Nowcast-Bild für diesen 5-Minuten-Auswahltermin':failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</span>}</div>
   <details className="current-surroundings-sources">
    <summary>Quellen und Datenstand</summary>
    <p>Kartengrundlage · MID-Kartenbereich, OpenFreeMap / OpenStreetMap; Orte Natural Earth und Kartenkacheln</p>
@@ -339,7 +406,17 @@ export default function CurrentSurroundings(props:Props){
     Original-Modelltermin ohne zeitliche Interpolation; fehlt der 15-Minuten-Originaltermin, bleibt der Zieltermin NoData.
     {Math.abs(Date.parse(cloudForecast.image.validTime)-cloudTarget)>90*1000&&<> Gewählter Zieltermin {datedClock(cloudTarget)} Uhr wird von diesem Bild nicht exakt repräsentiert.</>}
     {' '}Kein Satellitenbild und keine amtliche Warnung; Datenlücken bleiben NoData.</p>}
-  {mode==='radar'&&visibleClouds&&satelliteTime!==undefined&&<p>Bewölkung · {satellite?.provider==='dwd'?'DWD':'EUMETSAT'} · Originalbeobachtung {datedClock(satelliteTime)} Uhr · Radar-/Satellitentermine getrennt</p>}
+   {mode==='cloud'&&!cloudForecast.image&&cloudForecast.reference&&<p>
+    Separates Wolken-/SigWx-Referenzbild aus SHA-geprüftem Modelloriginal,
+    gültig {datedClock(Date.parse(cloudForecast.reference.validTime))} Uhr,
+    Modell {cloudForecast.reference.model},
+    INIT {datedClock(Date.parse(cloudForecast.reference.run))} Uhr.
+    Der gewählte Zieltermin {datedClock(cloudTarget)} Uhr besitzt kein bestätigtes Original;
+    die Referenz ist höchstens 45 Minuten älter und wird weder als Viertelstundenprognose,
+    als Satellitenbeobachtung noch als WMO-Warnung ausgegeben. Keine zeitliche Interpolation,
+    kein Wettercode-Blending, kein Missing→0. Klare Wolken- oder Wetterfelder können
+    transparente Bildbereiche ergeben. Karte öffnen verwendet weiterhin die gewählte Zielzeit.</p>}
+  {mode==='radar'&&retainedSatellite&&<p>Satellitenbild · {retainedSatellite.provider==='dwd'?'DWD':'EUMETSAT'} · {retainedSatellite.spectrum==='IR'?'Infrarot (IR)':'RGB'} · Originalbeobachtung {datedClock(retainedSatellite.time)} Uhr · Radar-/Satellitentermine getrennt{retainedSatellite.url!==clouds?' · neuer Termin nicht verfügbar oder lädt':''}</p>}
   {Number.isFinite(temperature)&&temperatureTime&&<p>Temperatur am gewählten Ort · {temperatureTime.slice(11,16)} Uhr</p>}
   {(mode==='cloud'||radarAtNow)&&(temperatureGrid&&temperatures&&Object.keys(temperatures).length
    ?<p>Umfeldtemperaturen · {temperatureGrid.source} {temperatureGrid.modelLabel} · {temperatureGrid.temporalMethod==='linear'&&temperatureGrid.sourceTimes

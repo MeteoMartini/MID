@@ -2,7 +2,7 @@ import {readFileSync} from 'node:fs';
 import {describe,it,expect} from 'vitest';
 import * as ts from 'typescript-strada';
 import postcss from 'postcss';
-import {fourteenTemperatureSeries,fourteenPrecipitationSeries,fourteenProbabilitySeries,fourteenWindSeries} from '../../src/FourteenDayDevelopment';
+import {fourteenTemperatureSeries,fourteenPrecipitationSeries,fourteenProbabilitySeries,fourteenWindSeries,fourteenDateLabel} from '../../src/FourteenDayDevelopment';
 
 const source=readFileSync(new URL('../../src/FourteenDayDevelopment.tsx',import.meta.url),'utf8');
 const css=readFileSync(new URL('../../src/midDesignWeFourteen.css',import.meta.url),'utf8');
@@ -20,6 +20,23 @@ describe('MID 14-Tage-A/B/C Design-WE source and meteorology',()=>{
   const tree=ts.createSourceFile('FourteenDayDevelopment.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
   expect(tree.parseDiagnostics.map(issue=>ts.flattenDiagnosticMessageText(issue.messageText,' '))).toEqual([]);
   expect(()=>postcss.parse(css,{from:'midDesignWeFourteen.css'})).not.toThrow();
+ });
+ it('reuses exactly one UTC day/date formatter for all dates including DST and year transitions',()=>{
+  const dates=['2026-03-29','2026-10-25','2026-12-31','2027-01-01','2028-02-29'];
+  const actual=dates.map(fourteenDateLabel);
+  expect(actual).toEqual(['29.03.','25.10.','31.12.','01.01.','29.02.']);
+  expect(dates.map(fourteenDateLabel)).toEqual(actual);
+  // No per-day Intl constructor inside repeatedly rendered chart and tile helpers.
+  expect(source.split('new Intl.DateTimeFormat(')).toHaveLength(2);
+  expect(source).toContain("const fourteenDateFormatter=new Intl.DateTimeFormat('de-DE'");
+ });
+ it('does not prepare hidden temperature charts in the table-only view',()=>{
+  expect(source).toContain("const isTableOnly=mode==='days'");
+  expect(source).toContain("isTableOnly?[]:fourteenTemperatureSeries(series)");
+  expect(source).toContain("[series,isTableOnly]");
+  expect(source).toContain("mode==='compact'");
+  expect(source).toContain("mode==='charts'");
+  expect(source).toContain("mode==='days'");
  });
  it('exposes A default, B expanded synchronized charts, and C detailed day matrix',()=>{
   expect(source).toContain("useDisplayPreference<FourteenView>('ForecastCockpit.fourteenDevelopment.mode','compact'");

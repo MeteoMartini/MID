@@ -83,14 +83,16 @@ assert.equal(JSON.parse(first.data.get(settingsKey)).productId,'icon-d2-precipit
 const idleSource=await readFile(new URL('../src/mapIdlePreload.ts',import.meta.url),'utf8');
 const idleContext={};vm.createContext(idleContext);
 vm.runInContext(stripTypeScriptTypes(idleSource.replace(/\bexport\s+/g,'')),idleContext);
-const baseline={weatherReady:true,mapAvailable:true,mapActive:false,searchOpen:false,drawerOpen:false,documentVisible:true,online:true,saveData:false,effectiveType:'4g'};
-assert.equal(idleContext.mayWarmMapDuringIdle(baseline),true,'Idle, fast, weather-ready map chunk warmup should be eligible.');
+const baseline={weatherReady:true,mapAvailable:true,priorMapIntent:true,mapActive:false,searchOpen:false,drawerOpen:false,documentVisible:true,online:true,saveData:false,effectiveType:'4g'};
+assert.equal(idleContext.mayWarmMapDuringIdle(baseline),true,'Only a previously visited map area may warm at idle.');
+assert.equal(idleContext.mayWarmMapDuringIdle({...baseline,priorMapIntent:false}),false,'Fresh non-map startup must not warm heavy map chunks without intent.');
 for(const [field,value]of [['weatherReady',false],['mapAvailable',false],['mapActive',true],['searchOpen',true],['drawerOpen',true],['documentVisible',false],['online',false],['saveData',true],['effectiveType','2g'],['effectiveType','slow-2g']]){
  assert.equal(idleContext.mayWarmMapDuringIdle({...baseline,[field]:value}),false,'Preload must fail closed: '+field+'='+String(value));
 }
 assert.equal(idleContext.mayWarmMapDuringIdle({...baseline,effectiveType:'3g'}),true,'3g without Data Saver may warm modules after idle only.');
 assert.equal(idleContext.mayWarmMapDuringIdle({...baseline,effectiveType:' SLOW-2G '}),false,'Network classification is case/whitespace tolerant.');
 assert.ok(app.includes('weatherReady={Boolean(w)}'),'Idle preload must never run before core weather renders.');
+assert.ok(app.includes('priorMapIntent:priorMapIntent()')&&app.includes('isMapRevisitIntent(localStorage.getItem(LAST_DASHBOARD_SECTION_KEY))'),'Idle map warmup must be gated by explicit persisted map-visit intent.');
 assert.ok(app.includes('window.requestIdleCallback(warm)')&&app.includes('window.cancelIdleCallback(idleHandle)'),'Browser-idle warmup must be cancellable.');
 assert.ok(app.includes('if(cancelled||!allowed())return'),'Cancelled or reclassified navigation must never start a warmup.');
 assert.ok(app.includes('Promise.allSettled([importMapWorkspacePanel(),importRadarPanel(),import(\'./UnifiedWeatherMap\')])'),'Chunk warmup must never create an unhandled import rejection.');

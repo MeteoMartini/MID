@@ -1,3 +1,17 @@
+# MID v0.9.85.487
+
+- **Radar und Satellit im Umfeldwetter in 5-Minuten-Schritten:** Der Zeitregler wählt echte Radar-Beobachtungs- und Nowcast-Originaltermine; nicht verfügbare Termine bleiben als Datenlücke erkennbar. Satellitenbilder behalten ihre tatsächlich gelieferten Zeitstempel (je nach Quelle 5, 10 oder 15 Minuten). Wolken + SigWx bleiben bei eigenen 15-Minuten-Zielzeiten.
+- **Nachvollziehbare Bildwechsel zwischen Radar und Satellit:** Ein zuvor vollständig gerendertes Bild darf nur für denselben Ort, Kartenausschnitt und dieselbe Quellen-/Beobachtungsphase begrenzt sichtbar bleiben, bis das geprüfte neue Bild fertig gerendert ist. Dabei wird die tatsächliche alte Bildzeit nicht als neue ausgegeben.
+
+- **Umfeldwetter: Radar und Satellit nutzen die sichtbare Kartenfläche.** Das Bild wird an den tatsächlichen Kartenviewport angepasst. Satelliten-RGB/IR zeigen nur bestätigte Originaltermine und ihre jeweilige Bildart; bei OPERA-Radar bleibt eine unvollständige Flächenabdeckung ausdrücklich gekennzeichnet. Keine Behauptung einer amtlich bestätigten, vollständigen Providerabdeckung.
+- **Weniger unnötige Vorladungen großer Wettergrafiken.** Karten- und Ensemble-Module werden bei der Startvorladung nur dann spekulativ geladen, wenn dafür bereits eine passende Nutzeransicht gespeichert ist. Auf Daten-Sparverbindungen werden diese optionalen Vorladungen unterdrückt; echte Wetterdatenabrufe und das Öffnen der Ansichten bleiben unverändert.
+- **Korrekte Anbieterzeiten auch bei fehlenden Zeitmetadaten.** Viertelstunden-Sonnenscheinwerte werden nur mit bestätigtem UTC-Offset der richtigen Stunde zugeordnet; echte UTC-Null bleibt gültig, fehlende Daten werden nicht als null Sekunden ausgegeben.
+- **Umfeldwetter: Wolken und signifikantes Wetter besser nachvollziehbar.** Fehlt für die gewählte Viertelstunde ein bestätigtes Original, kann ein nachweislich früheres Bild ausdrücklich als Referenz angezeigt werden. Die gewählte Zielzeit bleibt als Datenlücke gekennzeichnet; es werden keine Wettercodes dazwischen erfunden.
+- **Kartenöffnung robuster.** Die große Karte begrenzt den Kamera-Zoom beim Übergang aus dem Umfeldwetter auf gültige Werte und behandelt die betreffenden Kartenbounds explizit.
+- **Modellauswahl auf Desktop besser erkennbar.** Landes- und EU-Kennzeichen erhalten grafische SVG-Symbole, statt allein auf systemabhängige Emoji-Flaggen in nativen Auswahlfeldern angewiesen zu sein.
+- **Erweiterte Qualitätskontrollen.** Originalbildpaare sowie der statische JavaScript-Importgraph werden zusätzlich überprüft. Die Importgraph-Messung beweist keine messbare Lade- oder Speicherersparnis.
+- **Meteorologische Transparenz bleibt erhalten.** Keine erfundenen 15-Minuten-Originale, keine Änderung amtlicher DWD-Warnungen, keine Freigabe zusätzlicher RUC-Originaldaten. Breites Umfeld-Radar/Sat-BBox und reale iOS-/VoiceOver-Tests bleiben gesonderte Abnahmen.
+
 # MID v0.9.85.486
 
 - **Karten-Zeitachse mit zuverlässigeren Home-/End-Tasten:** Nach asynchronen Terminwechseln wird eine neue Tastatureingabe nicht mehr durch einen veralteten internen Seek-Cache unterdrückt. Gültige Originalzeiten und Screenreader-Zeitangaben bleiben unverändert.

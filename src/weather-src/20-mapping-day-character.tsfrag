@@ -1,7 +1,9 @@
 function knownForecastPrecipitation(value:unknown){return typeof value==='number'&&Number.isFinite(value)&&value>=0?value:NaN}
 function knownForecastProbability(value:unknown){return typeof value==='number'&&Number.isFinite(value)&&value>=0&&value<=100?value:NaN}
 function minutelySunshineValuesForHour(w:Weather,time:string){
- const times=(w.minutely_15?.time??[]) as string[],values=(w.minutely_15?.sunshine_duration??[]) as (number|string|null)[],offset=Number(w.utc_offset_seconds)||0;
+ const times=(w.minutely_15?.time??[]) as string[],values=(w.minutely_15?.sunshine_duration??[]) as (number|string|null)[],offset=w.utc_offset_seconds;
+ // No UTC-zero fallback: only a known provider offset may align 15-min accumulations.
+ if(typeof offset!=='number'||!Number.isFinite(offset))return[];
  // These are raw Open-Meteo endpoints: their response offset is fixed. Real
  // user-local events continue to use the IANA-aware localIsoEpoch path.
  const endpoint=(stamp:string)=>localIsoEpoch(String(stamp),undefined,offset);
@@ -12,7 +14,7 @@ function weatherSunshineHourSeconds(w:Weather,time:string,index:number){
  const raw=canonicalSunshineHourSeconds(w.hourly.sunshine_duration?.[index],minutelySunshineValuesForHour(w,time)),epoch=providerIsoEpoch(time,w.timezone,w.utc_offset_seconds),providerIsDay=n(w.hourly.is_day?.[index],0)===1,isDay=astronomicalIsDayAt(epoch,{latitude:w.latitude,longitude:w.longitude,elevation:w.elevation,timezone:w.timezone},providerIsDay);
  return coherentSunshineDurationSeconds({valueSeconds:raw,intervalSeconds:3600,daylightSeconds:weatherDaylightOverlapSeconds(w,epoch,3600),isDay,weatherCode:w.hourly.weather_code?.[index],precipitation:w.hourly.precipitation?.[index],rain:w.hourly.rain?.[index],showers:w.hourly.showers?.[index],snowfall:w.hourly.snowfall?.[index],precipitationProbability:w.hourly.precipitation_probability?.[index],cloudCover:w.hourly.cloud_cover?.[index],lowCloudCover:w.hourly.cloud_cover_low?.[index]});
 }
-function weatherDaylightSeconds(w:Weather,date:string,sunrise?:string,sunset?:string){const noon=localIsoEpoch(`${date}T12:00`,w.timezone,Number(w.utc_offset_seconds)||0),window=solarDaylightWindowAt(noon,{latitude:w.latitude,longitude:w.longitude,elevation:w.elevation,timezone:w.timezone}),astronomical=window.sunrise&&window.sunset?Math.max(0,(window.sunset.getTime()-window.sunrise.getTime())/1000):12*3600;return daylightSecondsFromLocalTimes(sunrise,sunset,astronomical)}
+function weatherDaylightSeconds(w:Weather,date:string,sunrise?:string,sunset?:string){const noon=providerIsoEpoch(`${date}T12:00`,w.timezone,w.utc_offset_seconds),window=solarDaylightWindowAt(noon,{latitude:w.latitude,longitude:w.longitude,elevation:w.elevation,timezone:w.timezone}),astronomical=window.sunrise&&window.sunset?Math.max(0,(window.sunset.getTime()-window.sunrise.getTime())/1000):12*3600;return daylightSecondsFromLocalTimes(sunrise,sunset,astronomical)}
 
 // Provider-Intervallvertrag: precipitation/rain/showers/snowfall sowie precipitation_probability
 // tragen bei Open-Meteo das ENDE des vorangegangenen 1-h-Intervalls; instantane Felder
@@ -59,7 +61,7 @@ export function mapDays(w:Weather):Day[]{const days=(w.daily.time as string[]).m
  const targetWindow=daySkybarCalendarWindow(date,w.timezone),nextDate=new Date(Date.parse(`${date}T00:00Z`)+86400000).toISOString().slice(0,10),sourceStart=providerIsoEpoch(`${date}T00:00`,w.timezone,w.utc_offset_seconds),sourceEnd=providerIsoEpoch(`${nextDate}T00:00`,w.timezone,w.utc_offset_seconds),aligned=!Number.isFinite(w.utc_offset_seconds)||Boolean(targetWindow&&targetWindow.startEpoch===sourceStart&&targetWindow.endEpoch===sourceEnd),providerDayWindow={startEpoch:sourceStart,endEpoch:sourceEnd,aligned};
  const hourTimes=(w.hourly.time??[]) as string[],hourValues=hourTimes.map((time,index)=>String(time).slice(0,10)===date?weatherSunshineHourSeconds(w,String(time),index):undefined).filter((_,index)=>String(hourTimes[index]).slice(0,10)===date);
  const sunshineDurationMeta=canonicalSunshineDaySeconds({hourValues,dailyValue:w.daily.sunshine_duration?.[i],daylightSeconds:weatherDaylightSeconds(w,date,sunrise,sunset)}),windPair=validateWindPair(n(w.daily.wind_speed_10m_max[i],0),n(w.daily.wind_gusts_10m_max[i],0));
- const leadHours=(localIsoEpoch(`${date}T12:00`,w.timezone,Number(w.utc_offset_seconds)||0)-Date.now())/3600000,rawPrecipitation=knownForecastPrecipitation(w.daily.precipitation_sum?.[i]);
+ const leadHours=(providerIsoEpoch(`${date}T12:00`,w.timezone,w.utc_offset_seconds)-Date.now())/3600000,rawPrecipitation=knownForecastPrecipitation(w.daily.precipitation_sum?.[i]);
  const optionalAmount=(value:unknown)=>{const parsed=knownForecastPrecipitation(value);return Number.isFinite(parsed)?parsed:undefined};
  const rain=optionalAmount(w.daily.rain_sum?.[i]),showers=optionalAmount(w.daily.showers_sum?.[i]),snowfall=optionalAmount(w.daily.snowfall_sum?.[i]),precipitationHours=optionalAmount(w.daily.precipitation_hours?.[i]);
  const rawProbability=knownForecastProbability(w.daily.precipitation_probability_max?.[i]),derivedDailyProbability=dailyWetProbabilityFromWeather(w,date,NaN),dailyProbability=Number.isFinite(derivedDailyProbability)?derivedDailyProbability:rawProbability,rawCode=n(w.daily.weather_code[i],3),precipitationAvailable=Number.isFinite(rawPrecipitation),probabilityAvailable=Number.isFinite(dailyProbability);

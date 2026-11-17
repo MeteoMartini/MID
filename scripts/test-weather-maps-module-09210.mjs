@@ -66,7 +66,7 @@ need('Responsive CSS',files.styles,'.weather-maps-panel');
 for(const token of ['.weather-maps-panel.c14-map-workspace','.c14-map-workspace .weather-maps-controls','.weather-maps-meta-details','grid-template-columns:repeat(4,minmax(0,1fr))'])need('C14 Karten-CSS',files.c14styles,token);
 need('Modellkarten-Produktkopf',files.panel,'<small>{productFamily} · {model.label}</small><h2>{product.label}</h2><AppInfoHint touchTargetSize={44} label="Kartenprodukt und Modell erklären" showClose><p>{product.detail}</p><p>{model.detail}</p></AppInfoHint>');
 need('Modellkarten-Quellenstatus',files.panel,'<b>{phaseLabel}</b><small>{productSourceBadge}');
-const productControl=files.panel.indexOf('<label><span>Kartenprodukt</span>'),modelControl=files.panel.indexOf('<label><span>Modell</span>');
+const productControl=files.panel.indexOf('<label><span>Kartenprodukt</span>'),modelControl=files.panel.indexOf('<div className="mid-map-model-field"><span>Modell</span>');
 if(productControl<0||modelControl<0||productControl>modelControl)failures.push('Kartenprodukt muss vor der Modellauswahl stehen und damit die primäre Bedienentscheidung bilden.');
 for(const token of ['.weather-maps-head','.weather-maps-primary-controls'])need('Bestehende Karten-Hierarchie',files.mapFirstStyles,token);
 need('Modellkarten-Quellenbadge',files.styles,'.weather-maps-source>svg{grid-row:1/3;color:var(--primary)}');

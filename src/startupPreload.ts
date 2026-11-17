@@ -1,4 +1,5 @@
 import {ensembles,forecast,radarNowcast,station,type EnsembleForecastBundle,type Location,type RadarNowcast,type Station,type Weather} from './weather'
+import {shouldPreloadEnsembleVisual} from './visualPreloadIntent'
 
 const LOCATION_STORAGE_KEY='mid:lastLocation'
 const FORECAST_DISPLAY_SETTINGS_KEY='mid:forecastDisplaySettings'
@@ -22,13 +23,20 @@ type StartupPreload={
  interfacePromise:Promise<void>;
  abort:()=>void;
 }
+const STARTUP_PRELOAD_REUSE_MS=45_000
 let active:StartupPreload|null=null
+let activeExpiryTimer:number|null=null
 function locationKey(location:Location){return`${Number(location.latitude).toFixed(5)}:${Number(location.longitude).toFixed(5)}`}
 function readStartupLocation():Location|null{try{const raw=localStorage.getItem(LOCATION_STORAGE_KEY);if(!raw)return null;const location=JSON.parse(raw) as Location;return Number.isFinite(Number(location.latitude))&&Number.isFinite(Number(location.longitude))?location:null}catch{return null}}
 function wantsStartupEnsemble(){try{const settings=JSON.parse(localStorage.getItem(FORECAST_DISPLAY_SETTINGS_KEY)||'{}'),twin=JSON.parse(localStorage.getItem(WEATHER_TWIN_SETTINGS_KEY)||'{}'),cockpit=settings?.presentationMode==='cockpit-tabs'||settings?.presentationMode==='cockpit-ribbons';return twin?.enabled!==false||cockpit||localStorage.getItem(ACTIVE_HORIZON_KEY)==='fourteen-day'||localStorage.getItem(ENSEMBLE_MODULE_KEY)==='1'}catch{return true}}
 function delay(ms:number){return new Promise<void>(resolve=>window.setTimeout(resolve,ms))}
 function constrainedStartupNetwork(){try{const connection=(navigator as Navigator&{connection?:{saveData?:boolean;effectiveType?:string}}).connection;return connection?.saveData===true||connection?.effectiveType==='slow-2g'||connection?.effectiveType==='2g'}catch{return false}}
-function preloadInterfaceChunks(ensemble:boolean){const jobs:Promise<unknown>[]=[];if(ensemble)jobs.push(import('./EnsemblePanel'));try{const last=localStorage.getItem('mid:last-dashboard-section:v1');if(last==='composite')jobs.push(import('./RadarPanel'))}catch{}return Promise.allSettled(jobs).then(()=>undefined)}
+// Ensemble *data* preloading remains governed by wantsStartupEnsemble().
+// The heavy visual renderer is a separate, explicitly view-driven decision.
+function wantsStartupEnsembleInterface(){try{const settings=JSON.parse(localStorage.getItem(FORECAST_DISPLAY_SETTINGS_KEY)||'{}');return shouldPreloadEnsembleVisual({presentationMode:settings?.presentationMode,activeHorizon:localStorage.getItem(ACTIVE_HORIZON_KEY),ensembleModuleOpen:localStorage.getItem(ENSEMBLE_MODULE_KEY)})}catch{return false}}
+// Avoid allocating MapLibre/ensemble renderers on constrained links before any view mounts.
+// Weather-data bootstrap retains its original constrained-network policy.
+function preloadInterfaceChunks(ensemble:boolean,constrained:boolean){if(constrained)return Promise.resolve();const jobs:Promise<unknown>[]=[];if(ensemble&&wantsStartupEnsembleInterface())jobs.push(import('./EnsemblePanel'));try{const last=localStorage.getItem('mid:last-dashboard-section:v1');if(last==='composite')jobs.push(import('./RadarPanel'))}catch{}return Promise.allSettled(jobs).then(()=>undefined)}
 function startupRequest<T>(timeoutMs:number,run:(signal:AbortSignal)=>Promise<T>){
  const controller=new AbortController(),timer=window.setTimeout(()=>controller.abort(new DOMException('Startvorladung hat ihr Zeitlimit erreicht.','TimeoutError')),timeoutMs);
  const promise=run(controller.signal).then(value=>value).catch(()=>null).finally(()=>window.clearTimeout(timer));
@@ -36,7 +44,7 @@ function startupRequest<T>(timeoutMs:number,run:(signal:AbortSignal)=>Promise<T>
 }
 export function beginStartupDashboardPreload(){
  const location=readStartupLocation();if(!location||navigator.onLine===false)return null;
- const key=locationKey(location);if(active&&active.key===key&&Date.now()-active.startedAt<45_000)return active;
+ const key=locationKey(location);if(active&&active.key===key&&Date.now()-active.startedAt<STARTUP_PRELOAD_REUSE_MS)return active;
  active?.abort();
  const ensemble=wantsStartupEnsemble(),timeZone=location.timezone||(location.autolocated?Intl.DateTimeFormat().resolvedOptions().timeZone:undefined);
  const forecastRequest=startupRequest(STARTUP_PRELOAD_FORECAST_TIMEOUT_MS,signal=>forecast(location.latitude,location.longitude,signal,{priority:'foreground',forceFresh:false,timeZone,elevation:location.elevation}));
@@ -54,11 +62,19 @@ export function beginStartupDashboardPreload(){
  // parallel zur Prognose. Auf Data-Saver/2G bleibt der bisherige sparsame Pfad erhalten.
  const stationEnrichmentRequest=!constrained?startupRequest(STARTUP_PRELOAD_STATION_ENRICHMENT_TIMEOUT_MS,async signal=>{await stationRequest.promise;await delay(70);if(signal.aborted)throw signal.reason;return station(location.latitude,location.longitude,location.country_code||location.country,location.elevation,location,signal,false,false)}):null;
  const ensembleRequest=ensemble?startupRequest(STARTUP_PRELOAD_ENSEMBLE_TIMEOUT_MS,async signal=>{await delay(constrained?650:440);if(signal.aborted)throw signal.reason;return ensembles(location.latitude,location.longitude,signal,'foreground',location.timezone)}):null;
- const interfacePromise=Promise.race([forecastRequest.promise,stationRequest.promise,radarRequest.promise,delay(700)]).then(()=>preloadInterfaceChunks(ensemble)),abort=()=>{forecastRequest.controller.abort();stationRequest.controller.abort();stationEnrichmentRequest?.controller.abort();radarRequest.controller.abort();ensembleRequest?.controller.abort()};
- active={key,startedAt:Date.now(),promise:forecastRequest.promise,stationPromise:stationRequest.promise,stationEnrichmentPromise:stationEnrichmentRequest?.promise??null,radarPromise:radarRequest.promise,ensemblePromise:ensembleRequest?.promise??null,interfacePromise,abort};return active
+ let invalidated=false;
+ const interfacePromise=Promise.race([forecastRequest.promise,stationRequest.promise,radarRequest.promise,delay(700)]).then(()=>invalidated?undefined:preloadInterfaceChunks(ensemble,constrained)),abort=()=>{invalidated=true;if(active===record){active=null;if(activeExpiryTimer!==null){window.clearTimeout(activeExpiryTimer);activeExpiryTimer=null}}forecastRequest.controller.abort();stationRequest.controller.abort();stationEnrichmentRequest?.controller.abort();radarRequest.controller.abort();ensembleRequest?.controller.abort()};
+ const record:StartupPreload={key,startedAt:Date.now(),promise:forecastRequest.promise,stationPromise:stationRequest.promise,stationEnrichmentPromise:stationEnrichmentRequest?.promise??null,radarPromise:radarRequest.promise,ensemblePromise:ensembleRequest?.promise??null,interfacePromise,abort};
+ active=record;
+ if(activeExpiryTimer!==null)window.clearTimeout(activeExpiryTimer);
+ // All network requests time out much earlier. No consumer can reuse this lease after 45 s.
+ // Retire its promise references so large resolved forecast/ensemble responses are not
+ // kept alive indefinitely by this module's singleton; newer locations retain their lease.
+ activeExpiryTimer=window.setTimeout(()=>{if(active===record){active=null;activeExpiryTimer=null}},STARTUP_PRELOAD_REUSE_MS);
+ return record
 }
-export function startupForecastForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>45_000)return null;return active.promise}
-export function startupStationForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>45_000)return null;return active.stationPromise}
-export function startupStationEnrichmentForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>45_000)return null;return active.stationEnrichmentPromise}
-export function startupRadarForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>45_000)return null;return active.radarPromise}
-export function startupEnsembleForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>45_000)return null;return active.ensemblePromise}
+export function startupForecastForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>=STARTUP_PRELOAD_REUSE_MS)return null;return active.promise}
+export function startupStationForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>=STARTUP_PRELOAD_REUSE_MS)return null;return active.stationPromise}
+export function startupStationEnrichmentForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>=STARTUP_PRELOAD_REUSE_MS)return null;return active.stationEnrichmentPromise}
+export function startupRadarForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>=STARTUP_PRELOAD_REUSE_MS)return null;return active.radarPromise}
+export function startupEnsembleForLocation(location:Location){if(!active||active.key!==locationKey(location)||Date.now()-active.startedAt>=STARTUP_PRELOAD_REUSE_MS)return null;return active.ensemblePromise}

@@ -1,6 +1,8 @@
 import {createContext,useContext,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {rasterTileRetryDelayMs} from './mapLayerRecovery';
+import {loadMapImageForQuad} from './mapRasterImageCache';
 import {createMapLayerOrderScheduler} from './mapLayerOrderScheduler';
+import {createMapResizeCoalescer} from './mapResizeCoalescer';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './mapPopupTheme.css';
@@ -28,7 +30,7 @@ export function MidMapLibre({center,zoom,minZoom=2,maxZoom=14,className,scrollZo
   const container=containerRef.current;if(!container)return;
   statusRef.current?.('loading');
   try{
-  const map=new maplibregl.Map({container,style:EMPTY_STYLE,center:[center[1],center[0]],zoom,minZoom,maxZoom,attributionControl:false,interactive,scrollZoom,dragRotate:false,pitchWithRotate:false,fadeDuration:0,validateStyle:false,locale:{'NavigationControl.ZoomIn':'Vergrößern','NavigationControl.ZoomOut':'Verkleinern'}});
+  const map=new maplibregl.Map({container,style:EMPTY_STYLE,center:[center[1],center[0]],zoom,minZoom,maxZoom,attributionControl:false,interactive,scrollZoom,trackResize:false,dragRotate:false,pitchWithRotate:false,fadeDuration:0,validateStyle:false,locale:{'NavigationControl.ZoomIn':'Vergrößern','NavigationControl.ZoomOut':'Verkleinern'}});
   mapRef.current=map;map.touchZoomRotate.disableRotation();map.touchPitch.disable();
   if(attributionControl)map.addControl(new maplibregl.AttributionControl({compact:true}),'bottom-right');
   if(navigationControl)map.addControl(new maplibregl.NavigationControl({showCompass:false,visualizePitch:false}),'top-right');
@@ -36,8 +38,21 @@ export function MidMapLibre({center,zoom,minZoom=2,maxZoom=14,className,scrollZo
   const handleContextLost=(event:Event)=>{event.preventDefault();setLoaded(false);setMapError('WebGL-Kontext verloren');statusRef.current?.('error')};
   const handleGpuError=(event:maplibregl.ErrorEvent)=>{const failure=event.error;if(failure&&/GPUInitializationError|WebGL context lost|WebGL is not supported|Failed to create WebGL/i.test(String(failure)+': '+String(failure.message))){setLoaded(false);setMapError(failure.message);statusRef.current?.('error')}};
   map.on('load',handleLoad);map.on('error',handleGpuError);map.getCanvas().addEventListener('webglcontextlost',handleContextLost,{passive:false});if(onClick)map.on('click',handleClick);if(onZoomStart)map.on('zoomstart',onZoomStart);if(onZoomEnd)map.on('zoomend',onZoomEnd);if(onMoveEnd)map.on('moveend',onMoveEnd);
-  const resizeObserver=typeof ResizeObserver!=='undefined'?new ResizeObserver(()=>map.resize()):null;resizeObserver?.observe(container);
-  return()=>{resizeObserver?.disconnect();map.getCanvas().removeEventListener('webglcontextlost',handleContextLost);map.off('error',handleGpuError);setLoaded(false);mapRef.current=null;map.remove()};
+  // A single responsive size-owner for both maps: MapLibre's default
+  // trackResize would duplicate window resizes with this container observer.
+  const resizeCoalescer=createMapResizeCoalescer(
+   ()=>({width:container.clientWidth,height:container.clientHeight,pixelRatio:window.devicePixelRatio||1}),
+   ()=>map.resize(),
+   callback=>window.requestAnimationFrame(callback),
+   id=>window.cancelAnimationFrame(id)
+  );
+  const resizeObserver=typeof ResizeObserver!=='undefined'?new ResizeObserver(resizeCoalescer.schedule):null;
+  resizeObserver?.observe(container);
+  // Cover DPR-only changes and older browsers with no ResizeObserver.
+  window.addEventListener('resize',resizeCoalescer.schedule);
+  const onVisible=()=>{if(document.visibilityState==='visible')resizeCoalescer.schedule()};
+  document.addEventListener('visibilitychange',onVisible);
+  return()=>{resizeObserver?.disconnect();window.removeEventListener('resize',resizeCoalescer.schedule);document.removeEventListener('visibilitychange',onVisible);resizeCoalescer.dispose();map.getCanvas().removeEventListener('webglcontextlost',handleContextLost);map.off('error',handleGpuError);setLoaded(false);mapRef.current=null;map.remove()};
   }catch(error){try{mapRef.current?.remove()}catch{}container.replaceChildren();mapRef.current=null;setLoaded(false);setMapError(error instanceof Error?error.message:'Karte konnte nicht gestartet werden');statusRef.current?.('error')}
  },[attempt]);
  useEffect(()=>{const map=mapRef.current;if(!map)return;const current=map.getCenter();if(Math.abs(current.lat-center[0])>.00005||Math.abs(current.lng-center[1])>.00005)map.jumpTo({center:[center[1],center[0]]})},[center[0],center[1]]);
@@ -48,7 +63,14 @@ export function MidMapLibre({center,zoom,minZoom=2,maxZoom=14,className,scrollZo
 
 export function MapInteraction({enabled}:{enabled:boolean}){const map=useMidMap();useEffect(()=>{if(!map)return;const actions=[map.dragPan,map.touchZoomRotate,map.doubleClickZoom,map.boxZoom,map.keyboard];for(const action of actions)enabled?action.enable():action.disable();map.touchZoomRotate.disableRotation()},[map,enabled]);return null}
 export function MapCenter({latitude,longitude,zoom,fly=false,revision=0}:{latitude:number;longitude:number;zoom?:number;fly?:boolean;revision?:number}){const map=useMidMap();useEffect(()=>{if(!map)return;const options={center:[longitude,latitude] as [number,number],...(zoom!==undefined?{zoom}:{})};if(fly)map.flyTo({...options,duration:650});else map.jumpTo(options)},[map,latitude,longitude,zoom,fly,revision]);return null}
-export function MapFitBounds({south,west,north,east,maxZoom,padding=22}:{south:number;west:number;north:number;east:number;maxZoom?:number;padding?:number}){const map=useMidMap();useEffect(()=>{if(!map)return;map.fitBounds([[west,south],[east,north]],{padding,maxZoom,duration:0})},[map,south,west,north,east,maxZoom,padding]);return null}
+export function MapFitBounds({south,west,north,east,maxZoom,padding=22}:{south:number;west:number;north:number;east:number;maxZoom?:number;padding?:number}){const map=useMidMap();useEffect(()=>{
+ if(!map||![south,west,north,east,padding].every(Number.isFinite)||
+  south>=north||west>=east||south< -90||north>90||west< -180||east>180||padding<0)return;
+ // Explicit maxZoom:undefined overrides MapLibre's finite fallback and can
+ // corrupt the camera zoom. Omit that key unless a finite cap is provided.
+ const options={padding,duration:0,...(Number.isFinite(maxZoom)?{maxZoom}: {})};
+ map.fitBounds([[west,south],[east,north]],options);
+},[map,south,west,north,east,maxZoom,padding]);return null}
 
 function safeId(value:string){return value.replace(/[^a-zA-Z0-9_-]/g,'_')}
 const orderedLayers=new WeakMap<MidMap,Map<string,number>>();
@@ -214,7 +236,7 @@ export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='lin
   let active=true,timer=0,watchdog=0;
   let staged:{source:string;layer:string}|null=null;
   let readiness:(()=>void)|null=null,sourceError:((event:maplibregl.ErrorEvent)=>void)|null=null;
-  const generation=++sequence.current,image=new Image();
+  const generation=++sequence.current;
   // Capture this URL's ready callback; a newer selected term must not relabel an older fade.
   const onDisplayed=onReady;
   const releaseStaging=()=>{
@@ -244,11 +266,11 @@ export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='lin
    };
    animation.current=requestAnimationFrame(fade);
   };
-  const install=()=>{
+  const install=(image:HTMLImageElement)=>{
    if(!active)return;
    // Wall time can pass while RAF is throttled. Wait for the actual prior
    // fade completion so its callback cannot overwrite a newer frame list.
-   if(fading.current){timer=window.setTimeout(install,20);return;}
+   if(fading.current){timer=window.setTimeout(()=>install(image),20);return;}
    const source=`${safeId(id)}-source-${generation}`,layer=`${safeId(id)}-layer-${generation}`;
    try{
     // The previous raster stays fully opaque while the successor is decoded,
@@ -268,9 +290,11 @@ export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='lin
     map.triggerRepaint();
    }catch{releaseStaging();remove({source,layer});fail()}
   };
-  image.onload=()=>{if(active)install()};
-  image.onerror=fail;image.src=url;
-  return()=>{active=false;window.clearTimeout(timer);image.onload=null;image.onerror=null;releaseStaging();if(!frames.current.some(frame=>frame.source===`${safeId(id)}-source-${generation}`))image.removeAttribute('src')};
+  // WMS originals with exact TIME/BBOX reuse a small decoded browser image
+  // across fast scrubs. Non-timed snapshots still load afresh.
+  // The MapLibre render/source-loaded barrier above remains mandatory.
+  void loadMapImageForQuad(url).then(image=>{if(active)install(image)}).catch(()=>{if(active)fail()});
+  return()=>{active=false;window.clearTimeout(timer);releaseStaging()};
  },[map,id,url,frameKey,south,west,north,east,zIndex,resampling]);
  useEffect(()=>{for(const frame of frames.current)if(map?.getLayer(frame.layer))map.setPaintProperty(frame.layer,'raster-opacity',frame.weight*Math.max(0,Math.min(1,opacity)))},[map,opacity]);return null;
 }

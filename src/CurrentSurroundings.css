@@ -20,16 +20,16 @@
 .current-surroundings-city-value strong{
  font-size:clamp(1.46rem,4.7vw,1.93rem);font-weight:900;font-variant-numeric:tabular-nums;
  line-height:1.04;letter-spacing:-.045em;paint-order:stroke fill;
- -webkit-text-stroke:1.15px rgba(13,24,37,.92);
- text-shadow:0 0 2px rgba(255,255,255,.95),0 0 5px rgba(255,255,255,.86),0 1px 1px rgba(0,0,0,.85);
+ -webkit-text-stroke:1.45px rgba(6,13,22,.97);
+ text-shadow:0 0 2px rgba(255,255,255,.96),0 1px 2px rgba(0,0,0,.84);
 }
 .current-surroundings-center-marker{pointer-events:none!important}
 .current-surroundings-center-dot{display:flex;align-items:center;flex-direction:column;gap:1px;min-width:16px;border:0;background:transparent!important;box-shadow:none!important}
 .current-surroundings-center-dot:after{content:'';display:block;width:12px;height:12px;border:2px solid white;border-radius:50%;background:var(--accent,#007aa8);box-shadow:0 0 0 2px #24617a,0 1px 4px #0008}
 .current-surroundings-center-dot>strong{
  font-size:clamp(1.46rem,4.7vw,1.93rem);line-height:1.04;font-weight:900;letter-spacing:-.045em;
- -webkit-text-stroke:1.15px rgba(13,24,37,.92);paint-order:stroke fill;
- text-shadow:0 0 2px rgba(255,255,255,.95),0 0 5px rgba(255,255,255,.86),0 1px 1px rgba(0,0,0,.85);
+ -webkit-text-stroke:1.45px rgba(6,13,22,.97);paint-order:stroke fill;
+ text-shadow:0 0 2px rgba(255,255,255,.96),0 1px 2px rgba(0,0,0,.84);
  font-variant-numeric:tabular-nums
 }
 .current-surroundings-data-status{
@@ -70,3 +70,6 @@
  .current-surroundings-cloud-timeline{column-gap:5px}
  .current-surroundings-cloud-timeline>button{padding-inline:5px;font-size:.75rem}
 }
+
+/* Release the compact WebGL renderer while the full map owns the map workspace. */
+.current-surroundings-map-paused{position:absolute;inset:0;display:grid;place-items:center;margin:0;padding:1.25rem;max-width:100%;text-align:center;font-size:clamp(.8rem,2.4vw,.95rem);line-height:1.5;color:var(--muted,#65778b);background:var(--panel,Canvas);overflow-wrap:anywhere}

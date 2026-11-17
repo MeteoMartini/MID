@@ -6,8 +6,8 @@ import {join,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const dir=mkdtempSync(join(tmpdir(),'mid-provider-time-'));
 try{
- await build({stdin:{contents:readFileSync('src/weather.ts','utf8')+'\nexport {reconcileForecastDaysWithHours,parseModelMembers,pseudoModelFromMeanSpread,eventMemberPrecipitationTotals,parseForecastCoreCache,readEnsembleCache,readEventEnsembleCache,forecastQuery};',resolveDir:resolve('src'),loader:'ts'},outfile:join(dir,'weather.mjs'),bundle:true,platform:'node',format:'esm',logLevel:'silent'});
- const {mapHours,mapMinutely15,mapDays,providerIsoEpoch,localIsoEpoch,reconcileForecastDaysWithHours,parseModelMembers,pseudoModelFromMeanSpread,eventMemberPrecipitationTotals,parseForecastCoreCache,readEnsembleCache,readEventEnsembleCache,forecastQuery}=await import(pathToFileURL(join(dir,'weather.mjs')));
+ await build({stdin:{contents:readFileSync('src/weather.ts','utf8')+'\nexport {reconcileForecastDaysWithHours,parseModelMembers,pseudoModelFromMeanSpread,eventMemberPrecipitationTotals,parseForecastCoreCache,readEnsembleCache,readEventEnsembleCache,forecastQuery,minutelySunshineValuesForHour};',resolveDir:resolve('src'),loader:'ts'},outfile:join(dir,'weather.mjs'),bundle:true,platform:'node',format:'esm',logLevel:'silent'});
+ const {mapHours,mapMinutely15,mapDays,providerIsoEpoch,localIsoEpoch,reconcileForecastDaysWithHours,parseModelMembers,pseudoModelFromMeanSpread,eventMemberPrecipitationTotals,parseForecastCoreCache,readEnsembleCache,readEventEnsembleCache,forecastQuery,minutelySunshineValuesForHour}=await import(pathToFileURL(join(dir,'weather.mjs')));
  const fixture=(start,timezone,offset,count=97)=>{
   const stamps=(step,n)=>Array.from({length:n},(_,i)=>new Date(Date.parse(start+'Z')+i*step).toISOString().slice(0,16));
   const times=stamps(3600000,count),fields=['temperature_2m','relative_humidity_2m','dew_point_2m','apparent_temperature','precipitation_probability','precipitation','rain','showers','snowfall','weather_code','cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high','pressure_msl','wind_speed_10m','wind_direction_10m','wind_gusts_10m','uv_index','visibility','cape','sunshine_duration','is_day'];
@@ -80,5 +80,24 @@ try{
  assert.equal(providerIsoEpoch('2026-10-25T03:00','Europe/Berlin',7200),Date.parse('2026-10-25T01:00Z'));
  assert.equal(localIsoEpoch('2026-10-25T03:00','Europe/Berlin',7200),Date.parse('2026-10-25T02:00Z'),'User-local event remains IANA-aware');
  assert.equal(providerIsoEpoch('2026-10-25T02:00+01:00','Europe/Berlin',7200),Date.parse('2026-10-25T01:00Z'),'Explicit offsets take precedence');
+ // #428: absence of fixed-offset metadata is unknown, not UTC+00:00.
+ // A known offset of zero remains valid, including in the native quarter-hour selector.
+ const sunny=fixture('2026-06-20T00:00','Europe/Berlin',7200,25);
+ sunny.minutely_15.sunshine_duration=sunny.minutely_15.time.map(()=>900);
+ const targetSunHour=sunny.hourly.time[4];
+ assert.deepEqual(minutelySunshineValuesForHour(sunny,targetSunHour),[900,900,900,900],'Four valid end-stamped quarters retain priority');
+ for(const badOffset of [undefined,null,NaN,Infinity,'7200']){
+  assert.deepEqual(minutelySunshineValuesForHour({...sunny,utc_offset_seconds:badOffset},targetSunHour),[],'Untrusted offset must not make a fabricated UTC quarter-hour alignment');
+ }
+ const zeroOffset=fixture('2026-06-20T00:00','UTC',0,25);
+ zeroOffset.minutely_15.sunshine_duration=zeroOffset.minutely_15.time.map(()=>300);
+ assert.deepEqual(minutelySunshineValuesForHour(zeroOffset,zeroOffset.hourly.time[4]),[300,300,300,300],'Real offset zero is distinct from missing offset');
+ // Both the normative fragment and the assembled production module must stay identical.
+ const mappingFragment=readFileSync('src/weather-src/20-mapping-day-character.tsfrag','utf8');
+ const assembledWeather=readFileSync('src/weather.ts','utf8');
+ assert.ok(assembledWeather.includes(mappingFragment),'Source fragment must match generated production module exactly');
+ assert.ok(!mappingFragment.includes('Number(w.utc_offset_seconds)||0'),'Provider offset never silently becomes UTC');
+ assert.match(mappingFragment,/const noon=providerIsoEpoch/,'Daylight-noon fallback shares the canonical provider epoch parser');
+ assert.ok(mappingFragment.includes('const leadHours=(providerIsoEpoch'),'Daily lead uses the same provider epoch policy');
  console.log('PASS actual provider hourly/minutely/calendar/ensemble mappings: fixed UTC provenance, DST 23/25h, unique repeated-hour keys, half/quarter-hour offsets, missing coverage and immutable raw values');
 }finally{rmSync(dir,{recursive:true,force:true})}
