@@ -31,6 +31,7 @@ describe('MID-Karten P1 Rad/Sat: five-minute original timeline + pixel-ready fra
   expect(selectRadar5m({dwdRadarNowcast:[asIso(NOW-FIVE)]},NOW,1)).toBeUndefined();
   expect(selectRadar5m({dwdRadar:[asIso(NOW-20*60_000)]},NOW,0)).toBeUndefined();
   expect(selectRadar5m({},NOW,0)).toBeUndefined();
+  expect(selectRadar5m({dwdRadar:[asIso(Date.parse('2026-11-17T05:30:00Z'))]},NOW,-9)?.time).toBe(Date.parse('2026-11-17T05:30:00Z'));
  });
  it('retains native satellite 10/15-minute timestamps on a five-minute selector, never synthesizing images',()=>{
   const catalog={satelliteRgbProduct:{provider:'eumetsat' as const,layer:'true-rgb',times:[asIso(Date.parse('2026-11-17T06:00:00Z')),asIso(Date.parse('2026-11-17T06:10:00Z'))]},
@@ -82,6 +83,11 @@ describe('MID-Karten P1 Rad/Sat: five-minute original timeline + pixel-ready fra
   const wrong=frame('Nowcast',NOW+FIVE,'https://dwd.invalid/wrong','site-b');
   state=requestBufferedFrame(state,'site-a','radar','Nowcast',NOW+FIVE,wrong,NOW);
   expect(state.pending).toBeUndefined();expect(state.error).toBe('no-original');
+  const wrongPhase={...frame('RGB',Date.parse('2026-11-17T06:10:00Z'),'https://sat.invalid/observation'),family:'satellite' as const,phase:'Beobachtung' as const};
+  const sat=requestBufferedFrame(undefined,'site-a','satellite','IR',NOW,wrongPhase,NOW);
+  expect(sat.pending).toBeUndefined();
+  const sourceButWrongSelected=frame('RGB',Date.parse('2026-11-17T06:10:00Z'),'https://sat.invalid/rgb');
+  expect(requestBufferedFrame(undefined,'site-a','satellite','IR',NOW,sourceButWrongSelected,NOW).pending).toBeUndefined();
  });
  it('keeps same-scope RGB while verified IR is being prepared and never labels it the new target',()=>{
   const rgb=frame('RGB',Date.parse('2026-11-17T06:10:00Z'),'https://eumetsat.invalid/rgb');
