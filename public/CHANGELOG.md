@@ -1,3 +1,9 @@
+# MID v0.9.85.494
+
+- Lange Orts- und Favoritennamen brechen auf kleinen Bildschirmen um und bleiben vollständig lesbar.
+- Die Quellenangaben lassen sich leichter antippen. Die Bezeichnungen der Prognosereihen sind verständlicher.
+- Schaltflächen für Wetterinfos sind für assistive Technik eindeutig mit ihrem jeweiligen Dialog verbunden.
+
 # MID v0.9.85.492
 
 - Wenn der neueste gemeinsame DWD-RUC- und RUC-EPS-Lauf nachweislich zu alt ist, bricht MID die Aufbereitung frühzeitig ab. Der zuletzt veröffentlichte Datenstand bleibt erhalten.

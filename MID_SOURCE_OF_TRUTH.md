@@ -1,3 +1,7 @@
+# MID v0.9.85.494 · Lesbare Ortsnamen und zugängliche Wetterinfos (Source-Kandidat)
+
+Basis: veröffentlichter MID v0.9.85.492, `040402cf8ecd40c10a3fe3389d15a1c4f96c2826`. Nach SHA-verifiziertem Source-/Parallel-PR-Abgleich wurden drei ursprüngliche UI-Produktblobs aus #925/#927 und die zugehörigen Tests/Browser-Fixtures aus #933 HEAD `ad3c59dabb3c5aa001aaab3dc52810a944d7914d` auf den aktuellen Stable-Tree übertragen; dessen früherer HEAD bleibt als Eltern-Commit erhalten. Release-Notizen: [docs/releases/MID_RELEASE_NOTES_0.9.85.494.json](docs/releases/MID_RELEASE_NOTES_0.9.85.494.json). Die fachlich getrennten RUC-Originaldaten-/Frische- und Sicherheitsvorgaben aus .492 bleiben erhalten. Alle historischen Changelog-/Source-Abschnitte inkl. .492 bleiben bytegenau erhalten. Diese Umsetzung ist ausschließlich ein Source-Kandidat; neues vollständiges Source-, Core-/Heavy-, Review-, Installer-, Worker-/Pages- und Stable-Gate auf dem kombinierten HEAD erforderlich. Keine Produktivfreigabe allein durch diese Dokumentation.
+
 # MID v0.9.85.492 · Frischeprüfung für RUC-Niederschlagsdaten (Source-Kandidat)
 
 Basis: MID v0.9.85.491, `3f9c5e24dc55fa5154732a1ba73961ba76c29788`. Drei unveränderte Originalblobs aus #541, QA-HEAD `70cc07b881dd18e780e0c4e5d08c5759fbe60305`. Vorgesehen für das vollständige MID Source-Gate und den regulären Release-Train. Fast-Lane und RUC-Veröffentlichungsvorgaben bleiben unverändert.
