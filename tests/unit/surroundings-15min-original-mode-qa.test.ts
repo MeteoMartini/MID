@@ -61,7 +61,10 @@ describe('Umfeld Rad/Sat: 15-min selector uses only admitted ORIGINAL source tim
   const ui=readFileSync('src/CurrentSurroundings.tsx','utf8');
   expect(ui).toContain('selectVerifiedSurroundingsOperaFrame(opera,operaRequestKey,now)');
   expect(ui).toContain('phaseImage?.requestKey===operaRequestKey');
-  expect(ui).toContain('setOpera({url:canvas.toDataURL(),time,requestKey:operaRequestKey})');
+  // Original source identity is still required; the enriched payload also carries real coverage.
+  expect(ui).toContain('setOpera({url:canvas.toDataURL(),time,requestKey:operaRequestKey,coverage})');
+  expect(ui).toContain('const coverage=summarizeSurroundingsOperaCoverage(validPixels,canvas.width*canvas.height)');
+  expect(ui).toContain("if(!coverage||coverage.kind==='none')return;");
   expect(ui).toContain('setPhaseImage({url:phase.colors.size?canvas.toDataURL():undefined,time,requestKey:operaRequestKey})');
  });
  it('normalises original source times in seconds/milliseconds/ISO, without rounding validity',()=>{
