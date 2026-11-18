@@ -18,6 +18,13 @@ try{
  const model=m.validateRucSynopticIndex(d);assert.match(m.modelAvailableLabel(run,model.frames.map(f=>f.time)),/\+0 h bis \+27 h · 28 Termine · 1-h-Schritte/);
  assert.match(m.modelAvailableLabel(run,[time(0),time(3),time(12),time(48)]),/\+48 h.*unterschiedliche/);assert.equal(m.modelAvailableLabel(run,[]),'Keine bestätigten Vorhersageschritte');
  for(const mutate of [x=>x.model.frames.pop(),x=>x.model.frames[3].hour=2,x=>x.model.frames[3].time=time(4),x=>x.model.frames[3].cloudWeather=false,x=>x.model.frames[3].file='../evil',x=>x.modelId='icon-d2',x=>x.maxNearestKm=6,x=>x.run=time(-5)]){const bad=structuredClone(d);mutate(bad);assert.throws(()=>m.validateRucSynopticIndex(bad))}
+ const archived=structuredClone(d);
+ archived.run=archived.model.run=time(-5);
+ archived.model.frames.forEach((frame,hour)=>{frame.time=time(hour-5)});
+ assert.equal(m.validateRucSynopticIndexStructure(archived).run,time(-5));
+ assert.throws(()=>m.validateRucSynopticIndex(archived),/Live-Zeitfenster/);
+ archived.model.frames[1].sha256='invalid';
+ assert.throws(()=>m.validateRucSynopticIndexStructure(archived),/Prüfsummen/);
  const catalog={schema:'mid.synoptic.fields.v1',models:{'icon-d2-ruc':model}};
  assert(m.cloudWeatherSources(null,catalog).some(s=>s.id==='icon-d2-ruc'));assert(m.eligibleCloudIsobarModel('icon-d2-ruc'));
  const field={model:'icon-d2-ruc',run,time:time(3),resolutionKm:2.2,scale:.1,lats:[47,48],lons:[6,7],thetae:[0,100,null,300],cloudWeather:{cloudUnit:'%',weatherUnit:'WMO 4677',cloudScale:.1,cloud:[0,1000,null,500],weather:[0,95,null,75]}};
