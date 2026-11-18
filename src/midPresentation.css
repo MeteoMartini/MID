@@ -19643,7 +19643,7 @@ html[data-mid-design='next'] .forecast-source-diagnostics{
  box-shadow:none!important;
 }
 html[data-mid-design='next'] .forecast-source-diagnostics>summary{
- min-height:44px!important;
+ min-height:36px!important;
  padding:6px 9px!important;
  border-radius:0!important;
  background:color-mix(in srgb,var(--mid-surface-raised) 24%,transparent)!important;

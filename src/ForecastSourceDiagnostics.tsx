@@ -16,7 +16,7 @@ export function ForecastSourceDiagnostics({fusion,twinReport,date,canonicalNowca
  const serverRows=fusion?.diagnostics?.weightingByDate??[],server=serverRows.find(row=>row.date===date)??serverRows[0],local=twinReport?.currentForecasts.find(row=>row.date===(date??server?.date))??twinReport?.currentForecasts[0];
  if(!server&&!local)return null;
  return <details className="forecast-source-diagnostics">
-  <summary>Quellen &amp; Gewichtung</summary>
+  <summary><span style={{display:'inline-flex',alignItems:'center',minHeight:32}}>Quellen &amp; Gewichtung</span></summary>
   <div className="forecast-source-diagnostics-body">
    <p><b>Kanonischer Ablauf:</b> kohärentes Best-Match-Wetterbündel → unabhängiger Modellvergleich → optional MOSMIX → belegte lokale Güte-/Bias-Korrektur → Beobachtung, Radar und Nowcast → die finale Stundenprognose und die 15-Minuten-Wetter- und Niederschlagsreihe.</p>
    {server&&<section><header><strong>{server.date} · {regimeLabel(server.regime)} · +{server.horizonDays} Tag{server.horizonDays===1?'':'e'}</strong><small>{server.independentFamilies} unabhängige Familien · Varianten einer Familie teilen genau ein Budget</small></header><div className="forecast-source-weight-list">{server.contributors.slice(0,8).map(row=><article key={`${server.date}:${row.id}`}><span><b>{row.label}</b>{row.rapidUpdate&&<em>RUC</em>}</span><strong>{Math.round(row.normalizedWeight)} %</strong><small>{factorText(row)} · Gruppe {row.independenceGroup}</small></article>)}</div></section>}
