@@ -68,7 +68,7 @@ function admissible(row:NowcastCase,window:NowcastWindow):NowcastHorizon|null{
     row.validStartMs-row.baselineIssuedAtMs>24*60*MINUTE)return null;
  const horizon=(row.validEndMs-row.validStartMs)/MINUTE;
  if(horizon!==15&&horizon!==30&&horizon!==60)return null;
- if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(row.localTargetDate)||localDate(row)!==row.localTargetDate||
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(row.localTargetDate)||localDate(row)!==row.localTargetDate||
     !probability(row.forecastProbability)||!probability(row.baselineProbability)||
     !finite(row.rainThresholdMm)||row.rainThresholdMm<=0)return null;
  if(!Array.isArray(row.observations)||!row.observations.length||row.observations.length>MAX_FRAMES)return null;
