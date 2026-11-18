@@ -41,6 +41,12 @@ describe('MID Karten · RainViewer free API original observations and foreground
   expect(rainViewerPastObservations({radar:{past:[],nowcast:[frame(now+300)]}},now)).toEqual([]);
   expect(rainViewerPastObservations(null,now)).toEqual([]);
  });
+ it('uses strict UTC now as the last admissible observation and does not fill gaps',()=>{
+  const now=2_000_000;
+  expect(rainViewerPastObservations({radar:{past:[
+   frame(now+1),frame(now),frame(now-1200),frame(now-600),
+  ]}},now)).toEqual([frame(now-1200),frame(now-600),frame(now)]);
+ });
  it('preserves sparse original times and rejects malformed or stale frames',()=>{
   const now=2_000_000;
   expect(rainViewerPastObservations({radar:{past:[frame(now-1800),frame(now-600),frame(now-3*3600),frame(now-10,'//other')] }},now))
