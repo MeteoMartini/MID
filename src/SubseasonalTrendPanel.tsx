@@ -1,5 +1,6 @@
 import {useDisplayPreference,useRawDisplayPreference,displayBoolean} from './useDisplayPreference';
 import {formatWeatherValue} from './weatherValueFormat';
+import {nativeSubseasonalNumber,hasConsecutiveSubseasonalDates,hasCompleteSubseasonalWeek,aggregateCompleteSubseasonalWeek} from './subseasonalWeekIntegrity';
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {Cloud,CloudRain,Gauge,Info,RefreshCw,ThermometerSun,Wind as WindIcon} from 'lucide-react';
 import {guardedOpenMeteoFetch} from './openMeteoGuard';
@@ -201,37 +202,34 @@ function summarize(samples:number[],modelCount:number):TrendWeekValue|null{
 }
 
 
-function aggregateMember(values:number[],aggregate:MetricAggregate){
-  const valid=finite(values);
-  if(!valid.length)return NaN;
-  return aggregate==='sum'?valid.reduce((sum,value)=>sum+value,0):mean(valid);
-}
-
 function memberSeries(payload:ApiPayload,key:string){
   const members=new Map<number,number[]>();
   const rows=payload.daily??{};
   Object.entries(rows).forEach(([name,value])=>{
     const match=name.match(new RegExp(`^${key}_member(\\d+)$`));
-    if(match&&Array.isArray(value))members.set(Number(match[1]),value.map(entry=>entry===null?Number.NaN:Number(entry)));
+    if(match&&Array.isArray(value))members.set(Number(match[1]),value.map(nativeSubseasonalNumber));
   });
-  const base=Array.isArray(rows[key])?(rows[key] as unknown[]).map(entry=>entry===null?Number.NaN:Number(entry)):[];
+  const base=Array.isArray(rows[key])?(rows[key] as unknown[]).map(nativeSubseasonalNumber):[];
   return members.size?[...members.values()].sort((a,b)=>a.length-b.length):base.length?[base]:[];
 }
 
 function buildWeeks(payload:ApiPayload):TrendWeek[]{
   const time=Array.isArray(payload.daily?.time)?(payload.daily?.time as unknown[]).map(String):[];
   const weeks:TrendWeek[]=[];
-  for(let start=14;start<time.length;start+=7){
-    const end=Math.min(start+6,time.length-1);
-    const dayCount=end-start+1;
+  if(!hasConsecutiveSubseasonalDates(time))return weeks;
+  // Each native member series is parsed once, not repeatedly per week.
+  const seriesByMetric=Object.fromEntries(RAW_METRICS.map(metric=>[metric.id,memberSeries(payload,metric.api)])) as Record<RawMetricKey,number[][]>;
+  for(let start=14;start+7<=time.length;start+=7){
+    if(!hasCompleteSubseasonalWeek(time.slice(start,start+7)))continue;
+    const end=start+6;
     const values=Object.fromEntries(RAW_METRICS.map(metric=>{
-      const memberValues=memberSeries(payload,metric.api)
-        .map(series=>aggregateMember(series.slice(start,end+1),metric.aggregate))
-        .filter(Number.isFinite);
-      return [metric.id,summarize(memberValues,Math.max(1,memberValues.length))] as const;
+      const memberValues=seriesByMetric[metric.id]
+        .filter(series=>series.length===time.length)
+        .map(series=>aggregateCompleteSubseasonalWeek(series,start,metric.aggregate,metric.id))
+        .filter((value):value is number=>value!==null);
+      return [metric.id,summarize(memberValues,memberValues.length)] as const;
     })) as Record<RawMetricKey,TrendWeekValue|null>;
     weeks.push({id:`${time[start]}:${time[end]}`,label:`Tag ${start+1}–${end+1}`,startDate:time[start],endDate:time[end],values});
-    if(dayCount<7)break;
   }
   return weeks;
 }
@@ -307,7 +305,7 @@ async function loadClimateWeeks(location:Location,weeks:TrendWeek[],signal:Abort
   }
   const climateCache=cache;
   if(!climateCache)return [];
-  return weeks.map(week=>{const dates=datesInWeek(week.startDate,week.endDate),values:Partial<Record<RawMetricKey,number>>={};for(const metric of RAW_METRICS){const samples=dates.map(date=>climateCache.values[climateDateKey(date)]?.[metric.id]).filter(Number.isFinite) as number[];if(samples.length)values[metric.id]=metric.aggregate==='sum'?samples.reduce((sum,value)=>sum+value,0):mean(samples)}return{id:week.id,label:week.label,startDate:week.startDate,endDate:week.endDate,values}});
+  return weeks.map(week=>{const dates=datesInWeek(week.startDate,week.endDate),values:Partial<Record<RawMetricKey,number>>={};for(const metric of RAW_METRICS){const samples=dates.map(date=>climateCache.values[climateDateKey(date)]?.[metric.id]).filter(Number.isFinite) as number[];if(samples.length===7)values[metric.id]=metric.aggregate==='sum'?samples.reduce((sum,value)=>sum+value,0):mean(samples)}return{id:week.id,label:week.label,startDate:week.startDate,endDate:week.endDate,values}});
 }
 
 async function fetchEcmwf(latitude:number,longitude:number,signal:AbortSignal,refresh:boolean){
@@ -842,6 +840,7 @@ export default function SubseasonalTrendPanel({location,windUnit='kn'}:{location
         <p>Temperatur wird konsistent als kombinierte Tmax/Tmin-Grafik gezeigt; Mittelkurven und Unsicherheitsbereiche folgen demselben Farbkonzept wie im 14-Tage-Ensemble. Wind wird als Wochenmittel geführt; nicht belastbar gelieferte Zusatzgrößen werden nicht als eigener Parameter angezeigt.</p>
         <p>Das Klimamittel wird wie im 14-Tage-Ensemble aus der ERA5-Seamless-Reanalyse 1991–2020 am Ort abgeleitet: ERA5-Land für die Landtemperatur, ERA5 für Niederschlag, Luftdruck, Bewölkung und Wind. Alle Größen werden kalendergleich für jeden Wochenblock aggregiert.</p>
         <p>Ab Tag 36 steht derzeit nur EC46 zur Verfügung; der Multi-Modell-Pfad reduziert sich dort automatisch auf die verbleibende Modellfamilie.</p>
+        <p>Nur vollständige Sieben-Tage-Zeiträume fließen in Wochenwerte und Klimavergleich ein. Fehlende Tageswerte bleiben Lücken; die letzten vier EC46-Tage (43–46) werden hier nicht als scheinbar vollständige Woche oder mm/Woche dargestellt.</p>
         <div className="subseasonal-source-list">{models.map(model=><div key={model.id}><b>{model.family}</b><small>{model.members} Mitglieder{model.weeks.length?` · bis ${formatDate(model.weeks[model.weeks.length-1].endDate)}`:''} · {model.gridLabel}{formatModelRun(model.runInitialisationTime)?` · Lauf ${formatModelRun(model.runInitialisationTime)} UTC`:''}</small></div>)}</div>
       </div>:null}
 
