@@ -28,7 +28,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  stable_ready:
+    name: Cleaner bereits auf Stable veroeffentlicht? (nur Nachweis)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    outputs:
+      active: ${{ steps.check.outputs.active }}
+    steps:
+      - name: Ausschliesslich veroeffentlichten Stable-Code auf Vorhandensein pruefen
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: mid-stable
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Stable-Verfuegbarkeit ohne PR-Code-Ausfuehrung nachweisen
+        id: check
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -f tools/ci/mid-pr-intake.mjs && -f tools/ci/test-mid-pr-intake.mjs ]]; then
+            echo "active=true" >> "$GITHUB_OUTPUT"
+            echo "Stable-only Cleaner ist installiert; Intake wird auf vertrauenswuerdigem Stable-Code gestartet." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "active=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=MID Cleaner noch nicht in Stable::Automatischer Intake bis zur geschuetzten Stable-Promotion ausgesetzt, keine QA-/Release-Freigabe."
+            echo "**MID Cleaner ist noch nicht in Stable installiert.** Intake wird bewusst SKIPPED (nicht als geprueft oder releasefaehig werten)." >> "$GITHUB_STEP_SUMMARY"
+          fi
   intake:
+    needs: stable_ready
+    if: needs.stable_ready.outputs.active == 'true'
     name: Lesende SHA-, Blob-, Peer- und Stable-Eingangspruefung
     runs-on: ubuntu-24.04
     timeout-minutes: 8
@@ -45,7 +73,7 @@ jobs:
           node-version: 22.16.0
           package-manager-cache: false
       - name: Deterministische Negativtests (nur Stable-Dateien)
-        run: node --test scripts/test-mid-pr-intake.mjs
+        run: node --test tools/ci/test-mid-pr-intake.mjs
       - name: PR-Metadaten und Git-Blobs ausschliesslich lesen
         env:
           GITHUB_TOKEN: ${{ github.token }}
