@@ -226,6 +226,14 @@ export function CanvasOverlay({id,opacity=1,zIndex=5,render,events=['moveend','z
   };
  },[map,id,zIndex,events.join('|')]);
  useEffect(()=>{const canvas=canvasRef.current;if(!map||!canvas)return;
+  // Data/prop refreshes also reach this effect while the tab is hidden.
+  // The visibility scheduler above will paint renderRef.current on return;
+  // avoid a redundant background draw or a stale meteorological canvas.
+  if(document.visibilityState!=='visible'){
+   canvas.style.transition='none';
+   canvas.style.opacity=String(Math.max(0,Math.min(1,opacityRef.current)));
+   return;
+  }
   // A cosmetic fade must not clone a multi-megapixel canvas on mobile,
   // during backgrounding or for users who request reduced motion.
   const saveData=(navigator as Navigator&{connection?:{saveData?:boolean}}).connection?.saveData===true;
