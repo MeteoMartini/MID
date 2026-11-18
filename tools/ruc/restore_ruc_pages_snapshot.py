@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Preserve the currently deployed free RUC snapshot across normal MID Pages releases."""
 from __future__ import annotations
-import argparse,concurrent.futures,hashlib,http.client,json,shutil,time,urllib.error,urllib.parse,urllib.request
+import argparse,concurrent.futures,hashlib,http.client,json,shutil,time,unicodedata,urllib.error,urllib.parse,urllib.request
 from pathlib import Path
 
 TRANSIENT_HTTP_CODES={429,500,502,503,504,520}
@@ -69,14 +69,18 @@ def restore(base:str,target:Path,required=False,workers=16):
         return False
     # Validate the whole inventory before starting concurrent writes: two
     # individually valid entries must never race to the same on-disk path.
-    keys=set()
+    keys=set();ancestry=set()
     for row in objects:
         if not isinstance(row,dict): raise RuntimeError('invalid RUC object manifest entry')
         key=row.get('key')
         if not safe_object_key(key):
             raise RuntimeError(f'unsafe RUC object key: {key}')
-        if key in keys: raise RuntimeError(f'duplicate RUC object key: {key}')
-        keys.add(key)
+        canonical=unicodedata.normalize('NFC',key.casefold())
+        parts=canonical.split('/')
+        parents={'/'.join(parts[:i]) for i in range(1,len(parts))}
+        if canonical in keys or canonical in ancestry or parents.intersection(keys):
+            raise RuntimeError(f'duplicate RUC object key: {key}')
+        keys.add(canonical);ancestry.update(parents)
     tmp=target.with_name(target.name+'.tmp');shutil.rmtree(tmp,ignore_errors=True);tmp.mkdir(parents=True)
     def one(row):
         key=str(row.get('key') or '')

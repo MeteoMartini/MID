@@ -103,6 +103,14 @@ def run():
                          'runs/test%2Fescape.bin','runs/test/../escape.bin','runs/test/\x00x.bin']
             invalid_inventories=[[valid,dict(valid)],[valid,conflicting],[aliased]]
             invalid_inventories.extend([[{**valid,'key':key}] for key in unsafe_keys])
+            # Reject prefix, case-folded and Unicode NFC aliases on all host OSes.
+            invalid_inventories.extend([
+                [valid,{**valid,'key':'runs/test/X.BIN'}],
+                [valid,{**valid,'key':'runs/test/x.bin/nested.bin'}],
+                [{**valid,'key':'runs/test/x.bin/nested.bin'},valid],
+                [{**valid,'key':'runs/test/é.bin'},
+                 {**valid,'key':'runs/test/e\u0301.bin'}],
+            ])
             for rows in invalid_inventories:
                 bad_meta={'storageProfile':'pages-free-v1','run':'2026-10-09T17:00',
                           'pages':{'objects':rows}}
