@@ -30,7 +30,7 @@ if(needsApt){
  // Missing libraries are not suppressed. Keep signed Ubuntu packages and
  // strict bounded, root-owned apt process. A DNS failure still fails closed.
  await runBounded('sudo',['-n','sed','-i','s#http://azure.archive.ubuntu.com/ubuntu#https://archive.ubuntu.com/ubuntu#g','/etc/apt/apt-mirrors.txt'],{timeoutMs:15000});
- await runBounded('sudo',['-n','timeout','--signal=TERM','--kill-after=10s','300s',process.execPath,cli,'install-deps','chromium','webkit'],{timeoutMs:320000,graceMs:15000});
+ await runBounded('sudo',['-n','timeout','--signal=TERM','--kill-after=10s','600s',process.execPath,cli,'install-deps','chromium','webkit'],{timeoutMs:620000,graceMs:15000});
  await verifyMidBrowserEngines(playwright);
  console.log('[browser-setup] signed system dependencies installed; both engines launched');
 }
