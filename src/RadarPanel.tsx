@@ -46,6 +46,7 @@ import {COMPOSITE_BASEMAPS as BASEMAPS,MODEL_LINE_MODES,readCompositeSettings as
 import {frontLabel,loadSynopticAnalysisPoint,type SynopticFrontType,type SynopticWorkerResponse} from './synoptic';
 import {AppPortalPopover} from './AppPortalPopover';
 import {browserExternalWeatherFallbackAllowed} from './workerClient';
+import {createRainViewerFallbackLifecycle,rainViewerPastObservations} from './rainViewerFallbackLifecycle';
 
 const LazyPx250Overlay=lazy(()=>import('./Px250Overlay'));
 const LazyOperaRasterOverlay=lazy(()=>import('./OperaRasterOverlay'));
@@ -365,10 +366,35 @@ export default function RadarPanel({lat:placeLat,lon:placeLon,timezone,analysis:
  useEffect(()=>{flushCompositeSettings()},[flushCompositeSettings,observationsEnabled,selectedRadar,selectedPrecipitationType,selectedSatellite,selectedLightning,selectedNowcastObjects,selectedMotionOverlay,selectedWarnings,selectedHighResolution,basemap,viewMode,showRadar,highResolution,showPrecipitationType,showSatellite,showLightning,showNowcastObjects,showMotionOverlay,motionTimeMode,showWarnings,modelLines,modelLineTone,isobarLineColor,isoheightLineColor,radarOpacity,radarColorTableId,precipitationTypeOpacity,satelliteOpacity,lightningOpacity,warningOpacity,modelOpacity,mapOverlayOpacity,playbackSeconds]);
  useEffect(()=>{const flush=()=>flushCompositeSettings(),onVisibility=()=>{if(document.visibilityState==='hidden')flush()};window.addEventListener('pagehide',flush);document.addEventListener('visibilitychange',onVisibility);return()=>{flush();window.removeEventListener('pagehide',flush);document.removeEventListener('visibilitychange',onVisibility)}},[flushCompositeSettings]);
  useEffect(()=>{
-  if(!panelVisible)return;let alive=true;
+  if(!panelVisible)return;
   const fallbackNeeded=!dwdUsable&&!operaUsable&&(source==='rainviewer'||operaStatus==='ready'||operaStatus==='error'||source==='opera'||dwdProductChecked||dwdTemporarilyBlocked);
-  if(!fallbackNeeded||!showRadar||highResolution){setHost('');setRainViewerFrames([]);return()=>{alive=false}}
-  const controller=new AbortController(),load=()=>{if(document.visibilityState==='hidden')return Promise.resolve();return loadRainViewer(lat,lon,controller.signal).then(data=>{if(!alive)return;setHost(data.host);setRainViewerFrames([...(data.radar?.past??[]),...(data.radar?.nowcast??[]).map(item=>({...item,future:true}))])}).catch(()=>{if(alive){setRainViewerFrames([]);setHost('')}})};void load();const timer=window.setInterval(load,300000);return()=>{alive=false;controller.abort();window.clearInterval(timer)};
+  if(!fallbackNeeded||!showRadar||highResolution){setHost('');setRainViewerFrames([]);return}
+  // RainViewer's free API has supplied past observations only since 2026-01-01.
+  // Keep original frame times; DWD/OPERA forecast paths remain independent.
+  const lifecycle=createRainViewerFallbackLifecycle({
+   fetch:signal=>loadRainViewer(lat,lon,signal),
+   onData:data=>{
+    const frames=rainViewerPastObservations(data,Date.now()/1000);
+    setHost(frames.length?data.host:'');
+    setRainViewerFrames(frames);
+   },
+   // A failed refresh must not relabel a previously verified observation.
+   // Existing hasFreshRadarObservation rejects it automatically when too old.
+   visible:()=>document.visibilityState!=='hidden',
+   subscribe:visibilityChanged=>{
+    document.addEventListener('visibilitychange',visibilityChanged);
+    window.addEventListener('pageshow',visibilityChanged);
+    return()=>{
+     document.removeEventListener('visibilitychange',visibilityChanged);
+     window.removeEventListener('pageshow',visibilityChanged);
+    };
+   },
+   now:()=>Date.now(),
+   setTimer:(callback,delayMs)=>window.setTimeout(callback,delayMs),
+   clearTimer:timer=>window.clearTimeout(timer),
+  });
+  lifecycle.start();
+  return()=>lifecycle.dispose();
  },[lat,lon,source,showRadar,highResolution,operaStatus,dwdUsable,operaUsable,dwdProductChecked,dwdTemporarilyBlocked,panelVisible]);
  useEffect(()=>{
   if(!panelVisible)return;
