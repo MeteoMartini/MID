@@ -7,6 +7,7 @@ import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {describe,expect,it} from 'vitest';
+import {transformSync} from 'esbuild';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const path=(name:string)=>fileURLToPath(new URL('../../'+name,import.meta.url));
@@ -61,5 +62,16 @@ describe('MID Design20 source-owner and protected-view guards',()=>{
   const before=readFileSync(appPath,'utf8');
   expect(run('scripts/qa/verifyDesign20SettingsRouteOwners.mjs')).toContain('9 routes accepted');
   expect(readFileSync(appPath,'utf8')).toBe(before);
+ });
+ it('parses the entire productive App.tsx after the 13 JSX gates without a synthetic replacement tree',()=>{
+  const content=readFileSync(appPath,'utf8');
+  expect(gitBlob(content)).not.toBe(ORIGINAL_APP_BLOB);
+  const result=transformSync(content,{loader:'tsx',format:'esm',target:'es2022',sourcefile:'src/App.tsx',logLevel:'silent'});
+  expect(result.code.length).toBeGreaterThan(350000);
+  expect(content).toContain("{section==='navigation'&&<DashboardModuleSettingsPanel");
+  expect(content).toContain("{(section==='view'||section==='weather')&&<section className=\"settings-section settings-primary-options\">");
+  expect(content).toContain("{section==='units'&&<section className=\"settings-section settings-units-section\">");
+  expect(content).toContain("{section==='view'&&<section className=\"settings-section settings-theme-section\">");
+  expect(content).toContain("{section==='weather'&&layoutMode==='advanced'&&<div className=\"advanced-feature-settings\">");
  });
 });
