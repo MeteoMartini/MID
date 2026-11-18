@@ -1,1 +1,0 @@
-import{da as e}from"./index-CM_ZIMV0.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};
