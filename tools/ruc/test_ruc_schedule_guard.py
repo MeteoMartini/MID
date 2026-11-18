@@ -321,7 +321,18 @@ assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,False,n
 import inspect
 main_source=inspect.getsource(guard.main)
 assert 'listing=bounded_eps_listing_complete(dwd)' in main_source
-assert 'now=clock' in main_source
+# Verify the same injected instant reaches the real EPS deferral decision.
+with mock.patch.object(guard,'newest_common_run',return_value=NEW), \
+     mock.patch.object(guard,'published_meta',return_value=healthy), \
+     mock.patch.object(guard,'bounded_eps_listing_complete',return_value=False), \
+     mock.patch.object(guard,'may_defer_incomplete_eps',wraps=guard.may_defer_incomplete_eps) as defer, \
+     mock.patch.object(guard,'report_run'), \
+     mock.patch.object(sys,'argv',['guard.py']), \
+     mock.patch.dict(os.environ,{'GITHUB_OUTPUT':'','GITHUB_STEP_SUMMARY':''}):
+    with contextlib.redirect_stdout(io.StringIO()):
+        assert guard.main(now=clock)==0
+    defer.assert_called_once_with(NEW,'2026-08-30T02:00',healthy,False,
+                                  now=clock,max_age_minutes=guard.DEFAULT_MAX_AGE_MINUTES)
 
 print('RUC EPS advertised-incomplete 20x28 directory guard: fail-open negatives and healthy-only wait PASS')
 
