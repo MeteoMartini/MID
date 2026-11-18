@@ -10,7 +10,7 @@ export function rainViewerPastObservations(
  nowSeconds:number,
 ):RainViewerObservation[]{
  if(!Number.isFinite(nowSeconds))return [];
- const earliest=nowSeconds-140*60,latest=nowSeconds+90;
+ const earliest=nowSeconds-140*60,latest=nowSeconds;
  const frames=Array.isArray(payload?.radar?.past)?payload.radar.past:[];
  return [...new Map(frames.filter(frame=>
   Number.isSafeInteger(frame?.time)&&frame.time>=earliest&&frame.time<=latest&&
