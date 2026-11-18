@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "version": "0.9.85.495",
+  "date": "2026-11-18",
+  "title": "Ensemble- und Stations-Niederschlagsdaten ohne falsche Nullwerte",
+  "external": [
+    "Aufsummierte Ensemble-Niederschlagsmengen verwenden nur vollständig belegte aufeinanderfolgende Tageswerte. Fehlende Werte erscheinen nicht mehr als 0 mm oder vermeintliche Trockenheit.",
+    "Stationswerte ohne gültige Angaben zu Messalter, Entfernung oder Höhenunterschied werden nicht mehr als frische hyperlokale Messanker gewertet.",
+    "Negative Rohwerte einer Niederschlagsmessung gelten als nicht verfügbar; tatsächlich gemessene 0 mm bleiben erhalten."
+  ],
+  "internal": [
+    "Ausgangs-Stable v0.9.85.494 auf eee0bb0ac351115f5e85b7625825cc8d1376594f. Exakte ursprüngliche Git-Produkt- und Testblobs aus QA-Draft #919 (HEAD d3a0f9b6cb8f893d01dccf56bb30a0f0708493d6) sowie #936 (HEAD e802d2aae99c661d48d27a179d74446082a74439), auf aktuellem Stable konfliktfrei. Isolierte Vor-CI: #44272385899 (919) und #44386911744 (936), jeweils SUCCESS, nicht als kombiniertes Gate werten.",
+    "Native Ensemble-Tagesfolgen müssen eindeutig, endlich, nichtnegativ und tatsächlich vollständig akkumuliert sein. Echte extreme Niederschläge und valide Nullwerte bleiben erhalten; künstliche Best-Match-PoP oder amtliche Warnstatus werden nicht daraus abgeleitet. Die sourceQuality-Änderung betrifft Stationsrelevanz und negative Beobachtungsakkumulation, nicht RUC/EPS-GRIB.",
+    "Zusätzlicher Qualitätsguard aus dem historischen PR #925: kein neuer Timer, Netzwerkrequest, Listener, React-State-Owner oder localStorage in SelectedPlaceBar; bestehender gerenderter Status-Test bleibt zusätzlich erhalten.",
+    "Vollständiges Source-PR-Gate, unabhängige Core-/Heavy-Matrix, relevante Review-/Browser-/iOS- und Installer-/Pages-/Worker-/Stable-Gates sind auf dem finalen kombinierten HEAD gesondert zu qualifizieren. Diese Release-Notiz ist keine Freigabe."
+  ]
+}

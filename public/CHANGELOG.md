@@ -1,3 +1,9 @@
+# MID v0.9.85.495
+
+- Aufsummierte Ensemble-Niederschlagsmengen verwenden nur vollständig belegte aufeinanderfolgende Tageswerte. Fehlende Werte erscheinen nicht mehr als 0 mm oder vermeintliche Trockenheit.
+- Stationswerte ohne gültige Angaben zu Messalter, Entfernung oder Höhenunterschied werden nicht mehr als frische hyperlokale Messanker gewertet.
+- Negative Rohwerte einer Niederschlagsmessung gelten als nicht verfügbar; tatsächlich gemessene 0 mm bleiben erhalten.
+
 # MID v0.9.85.494
 
 - Lange Orts- und Favoritennamen brechen auf kleinen Bildschirmen um und bleiben vollständig lesbar.

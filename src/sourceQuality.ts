@@ -87,7 +87,9 @@ export function fieldWeightPolicy(provider:string|undefined,networkClass:SourceN
 export function fieldRelevanceLimits(field:StationAnalysisField):FieldRelevanceLimits{return FIELD_RELEVANCE[field]}
 
 export function fieldObservationRelevance(field:StationAnalysisField,ageMinutes:number,distanceKm:number,heightDifferenceM=0,temporalResolutionMinutes?:number){
- const limits=fieldRelevanceLimits(field),age=Math.max(0,Number(ageMinutes)||0),distance=Math.max(0,Number(distanceKm)||0),height=Math.max(0,Number(heightDifferenceM)||0);
+ // Invalid observation geometry/time is missing evidence, never a zero-distance or zero-age anchor.
+ if(!Number.isFinite(ageMinutes)||!Number.isFinite(distanceKm)||!Number.isFinite(heightDifferenceM))return 0;
+ const limits=fieldRelevanceLimits(field),age=Math.max(0,ageMinutes),distance=Math.max(0,distanceKm),height=Math.max(0,heightDifferenceM);
  if(age>=limits.hardAgeMinutes||distance>=limits.hardDistanceKm||height>=limits.hardHeightDifferenceM)return 0;
  const ageFactor=Math.exp(-Math.pow(age/Math.max(1,limits.preferredAgeMinutes),1.45)),distanceFactor=Math.exp(-Math.pow(distance/Math.max(1,limits.preferredDistanceKm),1.38)),heightFactor=Math.exp(-Math.pow(height/Math.max(100,limits.heightScaleM),1.18));
  const resolution=Number(temporalResolutionMinutes),dynamic=field!=='pressure'&&field!=='ceilingHft'&&field!=='cloudBaseHft',resolutionFactor=!Number.isFinite(resolution)||resolution<=0?1:resolution<=10?(dynamic?1.12:1.05):resolution<=20?(dynamic?1.06:1.03):resolution<=60?(dynamic ? .94 : 1):(dynamic ? .82 : .94);
@@ -118,7 +120,8 @@ export function precipitationIntervalMinutes(provider:string|undefined,networkCl
 }
 
 export function normalisePrecipitationAccumulation(value:number|undefined,intervalMinutes:number|undefined,targetMinutes=60){
- if(!Number.isFinite(value))return undefined;
+ // Negative measured precipitation is an invalid source value, not an observed dry interval.
+ if(!Number.isFinite(value)||Number(value)<0)return undefined;
  const interval=Number.isFinite(intervalMinutes)&&Number(intervalMinutes)>=5&&Number(intervalMinutes)<=180?Number(intervalMinutes):targetMinutes;
- return Math.max(0,Number(value))*targetMinutes/interval;
+ return Number(value)*targetMinutes/interval;
 }
