@@ -343,6 +343,28 @@ def decide(latest_dwd_run:str|None,meta:dict|None,*,now:dt.datetime|None=None,ma
     if age_minutes>max(1,max_age_minutes):return True,f'RUC-Lauf ist {age_minutes:.0f} min alt (> {max_age_minutes} min); Sicherheits-Rebuild',dwd_run,published_run
     return False,f'aktuell: DWD/Pages exakt {dwd_run}, Laufalter {age_minutes:.0f} min',dwd_run,published_run
 
+def joint_run_expired(run, *, now=None, max_age_minutes=DEFAULT_MAX_AGE_MINUTES):
+    """Strict negative-only preflight. Never an EPS/GRIB availability proof.
+
+    If the *newest common* discovered DWD run has exceeded the immutable
+    240-minute source admission window, all older discovered runs are also
+    unpublishable. Unknown/invalid source timestamps and clocks fail OPEN
+    to the existing decoder, never to a silently healthy no-op.
+    """
+    if type(max_age_minutes) is not int or max_age_minutes < 1:
+        return False
+    if not isinstance(run,str) or not RUN_RE.fullmatch(run+'/'):
+        return False
+    clock=dt.datetime.now(dt.timezone.utc) if now is None else now
+    if not isinstance(clock,dt.datetime) or clock.tzinfo is None:
+        return False
+    try:
+        age_seconds=(clock.astimezone(dt.timezone.utc)-run_time(run)).total_seconds()
+        return age_seconds>min(DEFAULT_MAX_AGE_MINUTES,max_age_minutes)*60
+    except (ValueError,TypeError,OverflowError):
+        return False
+
+
 def write_github_outputs(path:str|None,rows:Iterable[tuple[str,str]])->None:
     if not path:return
     with open(path,'a',encoding='utf-8') as handle:
@@ -385,35 +407,45 @@ def report_freshness(report:dict,summary_path:str|None=None)->None:
 
 from run_progress import report_run
 
-def main()->int:
+def main(*, now:dt.datetime|None=None)->int:
     parser=argparse.ArgumentParser()
     parser.add_argument('--pages-base',default=os.getenv('MID_RUC_PAGES_BASE_URL','https://midwx.app/ruc/'))
     parser.add_argument('--max-age-minutes',type=int,default=int(os.getenv('MID_RUC_MAX_AGE_MINUTES',str(DEFAULT_MAX_AGE_MINUTES))))
     parser.add_argument('--github-output',default=os.getenv('GITHUB_OUTPUT'))
     args=parser.parse_args()
-    dwd='';meta=None;error=''
+    dwd='';meta=None;error='';expired=False
     try:dwd=newest_common_run() or ''
     except Exception as exc:error=f'DWD discovery failed: {type(exc).__name__}: {exc}'
     if not error:
         try:meta=published_meta(args.pages_base)
         except Exception as exc:error=f'Pages latest failed: {type(exc).__name__}: {exc}'
+    clock=now if now is not None else dt.datetime.now(dt.timezone.utc)
     if error:
         should_run=True;reason=f'{error}; fail-open build';published=str((meta or {}).get('run') or '')
     else:
-        should_run,reason,dwd,published=decide(dwd,meta,max_age_minutes=args.max_age_minutes)
+        should_run,reason,dwd,published=decide(dwd,meta,now=clock,max_age_minutes=args.max_age_minutes)
+        # A demonstrably expired newest common DWD/EPS run cannot yield a
+        # fresh full product. Fail the job explicitly *before* pip/ecCodes and
+        # the 500+ GRIB download; never call it an up-to-date no-op. Manual
+        # --run qualification and authenticated snapshot reuse are separate.
+        expired=valid_pages_meta(meta) and joint_run_expired(dwd,now=clock,max_age_minutes=args.max_age_minutes)
+        if expired:
+            should_run=False
+            reason=('Kein frischer gemeinsamer DWD-RUC/RUC-EPS-Lauf: '
+                    f'{dwd} ist aelter als {min(DEFAULT_MAX_AGE_MINUTES,args.max_age_minutes)} min; '
+                    'kein Decode/Release, bisheriger Snapshot bleibt unveraendert')
         # Expensive duplicate 18Z production is not a repair for an advertised
         # but incomplete 19Z EPS index. Keep the authenticated healthy Pages
         # source only when the required filename layout is explicitly partial.
         # On index uncertainty, bad metadata or stale Pages, fail open.
         if should_run and dwd and meta and valid_pages_meta(meta) and meta.get('storageProfile')==FULL_STORAGE_PROFILE:
             try:
-                clock=dt.datetime.now(dt.timezone.utc)
                 age=(clock-run_time(published)).total_seconds()/60
                 if (0<=age<=min(DEFAULT_MAX_AGE_MINUTES,max(1,args.max_age_minutes))
                     and run_time(dwd)-run_time(published)==dt.timedelta(hours=1)):
                     listing=bounded_eps_listing_complete(dwd)
                     if may_defer_incomplete_eps(dwd,published,meta,listing,
-                                                 now=dt.datetime.now(dt.timezone.utc),
+                                                 now=clock,
                                                  max_age_minutes=args.max_age_minutes):
                         should_run=False
                         reason='Neuer DWD-EPS20-Dateiindex unvollständig; gültiger Pages-Lauf bleibt bis zur nächsten Prüfung'
@@ -423,8 +455,8 @@ def main()->int:
     if dwd:print(f'Newest common DWD run: {dwd}')
     if published:
         print(f'Published Pages run: {published}')
-        report_run('bereits auf Pages veröffentlicht',published)
-    report=freshness_report(dwd,meta,should_run,reason)
+        if not expired:report_run('bereits auf Pages veröffentlicht',published)
+    report=freshness_report(dwd,meta,should_run,reason,now=clock)
     report_freshness(report,os.getenv('GITHUB_STEP_SUMMARY'))
     write_github_outputs(args.github_output,[
         ('should_run','true' if should_run else 'false'),
@@ -433,6 +465,9 @@ def main()->int:
         ('published_run',published),
         ('freshness_metrics',json.dumps(report,ensure_ascii=False,allow_nan=False,separators=(',',':'))),
     ])
+    if expired:
+        print(f'::error::{reason}',file=sys.stderr,flush=True)
+        return 1
     return 0
 
 if __name__=='__main__':

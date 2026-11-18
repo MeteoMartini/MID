@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "version": "0.9.85.492",
+  "date": "2026-11-18",
+  "title": "Frischeprüfung für RUC-Niederschlagsdaten",
+  "external": [
+    "Wenn der neueste gemeinsame DWD-RUC- und RUC-EPS-Lauf nachweislich zu alt ist, bricht MID die Aufbereitung frühzeitig ab. Der zuletzt veröffentlichte Datenstand bleibt erhalten."
+  ],
+  "internal": [
+    "Basis: MID v0.9.85.491, `3f9c5e24dc55fa5154732a1ba73961ba76c29788`. Drei unveränderte Originalblobs aus #541, QA-HEAD `70cc07b881dd18e780e0c4e5d08c5759fbe60305`. Vorgesehen für das vollständige MID Source-Gate und den regulären Release-Train. Fast-Lane und RUC-Veröffentlichungsvorgaben bleiben unverändert."
+  ]
+}
