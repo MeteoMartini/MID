@@ -7,7 +7,7 @@
 - Vor jedem Schreiben: `main=mid-stable=9fe4dfbcdfd5a1f8fec55efa868e22110a612953`, veröffentlichte Version `0.9.85.488` in `package.json`, `MID_BASELINE.json`, `contracts/index.json`, fünf aktive Rulesets. `AGENTS.md`, `MID_SOURCE_OF_TRUTH.md`, `MID_UI_ARCHITECTURE_CONTRACT.md`, `MID_CROSS_PLATFORM_CONTRACT.md` geprüft.
 - Originalblobs: `src/DashboardModuleSettings.tsx` = `c58d78b17ca6d73ee5becf946aa728f305fa0c45`; `scripts/test-dashboard-touch-c55.mjs` = `38ce78c8f45efb7073d0a3a0b9282c1d635d3e65`.
 - Vor Integration #868 (verändert `App.tsx`, aber diese zwei Pfade nicht), #815, #896, #891, #893, #828 und weiteren Design-/Karten-Spezial-PRs gegen Überlappung geprüft. Der Auftrag verändert keine globalen Navigationstabellen, CSS-Bundles, gespeicherte Schlüssel, WMO-/DWD-Daten, Warnstufen oder Meteorologielogik.
-- Dieses Arbeitspaket **ändert keinen Build/Versionsspiegel**. Es ist ein Feature-QA-Draft, keine Version .489, kein Merge und keine Promotion.
+- Der ursprüngliche Feature-Draft hatte keinen Versionsbump. Der Integrationskandidat #918 führt den Patch mit Versionsspiegeln für v0.9.85.490.
 
 ## Befund aus der veröffentlichten Originalkomponente
 

@@ -32,12 +32,12 @@ try{
  // Returning to the source or leaving the module list clears the prior pending target.
  tree=render();targetId='forecast';
  grip('current').props.onPointerDown(event('pointerdown'));grip('current').props.onPointerMove(event('pointermove'));
- targetId='current';grip('current').props.onPointerMove(event('pointermove'));
+ targetId='current';
  grip('current').props.onPointerUp(event('pointerup'));
  assert.equal(writes,0,'Releasing over original row must not commit a stale target');
  tree=render();targetId='forecast';
  grip('current').props.onPointerDown(event('pointerdown'));grip('current').props.onPointerMove(event('pointermove'));
- targetId='outside-module-list';grip('current').props.onPointerMove(event('pointermove'));
+ targetId='outside-module-list';
  grip('current').props.onPointerUp(event('pointerup'));
  assert.equal(writes,0,'Releasing outside a valid module must not commit stale order');
 

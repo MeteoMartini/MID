@@ -1,4 +1,4 @@
-import {formatWeatherValue} from './weatherValueFormat';
+import {formatTemperatureRange,formatWeatherValue} from './weatherValueFormat';
 import {isTwinVerifiedNonnegative,isTwinVerifiedTemperaturePair} from './twinObservationEvidence';
 
 /** Presentation only. No data, threshold, archive or source is modified.
@@ -11,7 +11,7 @@ export function formatTwinReferenceReadout(reference:{
 }):string{
  const max=reference.max,min=reference.min,rain=reference.precipitation;
  const temperature=isTwinVerifiedTemperaturePair(max,min)
-  ?String(Math.round(min as number))+'–'+String(Math.round(max as number))+' °C'
+  ?formatTemperatureRange(min,max,'overview')+' °C'
   :'Temperatur nicht gemessen';
  const precipitation=isTwinVerifiedNonnegative(rain)
   ?formatWeatherValue(rain,'precipitation')+' mm'

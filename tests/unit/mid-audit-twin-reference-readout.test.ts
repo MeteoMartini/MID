@@ -26,8 +26,8 @@ describe('MID PDF Audit · independent observed reference does not display NaN o
    .toBe('Temperatur nicht gemessen · Niederschlag nicht gemessen');
  });
  it('preserves valid temperature and extreme precipitation readings unmodified',()=>{
-  const result=formatTwinReferenceReadout({max:46,min:-28,precipitation:250});
-  expect(result).toContain('-28–46 °C');
+  const result=formatTwinReferenceReadout({max:46,min:-28.5,precipitation:250});
+  expect(result).toContain('-29–46 °C');
   expect(result).toContain('250 mm');
   expect(result).not.toContain('nicht gemessen');
  });
