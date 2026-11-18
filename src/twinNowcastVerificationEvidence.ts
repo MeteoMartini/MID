@@ -61,7 +61,7 @@ function admissible(row:NowcastCase,window:NowcastWindow):NowcastHorizon|null{
     !['raw-heuristic','native-probability','independently-calibrated'].includes(row.probabilityOrigin))return null;
  if(![row.issuedAtMs,row.archivedAtMs,row.validStartMs,row.validEndMs,row.observedAvailableAtMs,row.baselineIssuedAtMs].every(ms)||
     row.issuedAtMs>row.archivedAtMs||row.archivedAtMs>row.validStartMs||
-    row.baselineIssuedAtMs>row.validStartMs||
+    row.baselineIssuedAtMs>row.issuedAtMs||
     row.validStartMs<window.startMs||row.validEndMs>window.endMs||
     row.observedAvailableAtMs<row.validEndMs||row.observedAvailableAtMs>window.endMs||
     row.validStartMs-row.issuedAtMs<0||row.validStartMs-row.issuedAtMs>15*MINUTE||
