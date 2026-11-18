@@ -1,3 +1,10 @@
+## MID v0.9.85.495 · 2026-11-18 · Ensemble- und Stations-Niederschlagsdaten ohne falsche Nullwerte
+
+- Ausgangs-Stable v0.9.85.494 auf eee0bb0ac351115f5e85b7625825cc8d1376594f. Exakte ursprüngliche Git-Produkt- und Testblobs aus QA-Draft #919 (HEAD d3a0f9b6cb8f893d01dccf56bb30a0f0708493d6) sowie #936 (HEAD e802d2aae99c661d48d27a179d74446082a74439), auf aktuellem Stable konfliktfrei. Isolierte Vor-CI: #44272385899 (919) und #44386911744 (936), jeweils SUCCESS, nicht als kombiniertes Gate werten.
+- Native Ensemble-Tagesfolgen müssen eindeutig, endlich, nichtnegativ und tatsächlich vollständig akkumuliert sein. Echte extreme Niederschläge und valide Nullwerte bleiben erhalten; künstliche Best-Match-PoP oder amtliche Warnstatus werden nicht daraus abgeleitet. Die sourceQuality-Änderung betrifft Stationsrelevanz und negative Beobachtungsakkumulation, nicht RUC/EPS-GRIB.
+- Zusätzlicher Qualitätsguard aus dem historischen PR #925: kein neuer Timer, Netzwerkrequest, Listener, React-State-Owner oder localStorage in SelectedPlaceBar; bestehender gerenderter Status-Test bleibt zusätzlich erhalten.
+- Vollständiges Source-PR-Gate, unabhängige Core-/Heavy-Matrix, relevante Review-/Browser-/iOS- und Installer-/Pages-/Worker-/Stable-Gates sind auf dem finalen kombinierten HEAD gesondert zu qualifizieren. Diese Release-Notiz ist keine Freigabe.
+
 ## MID v0.9.85.495 · 2026-11-18 · Vollständige Ensemble-Niederschläge und Stationsdaten-Provenienz
 
 Ausgangsbasis: erfolgreich veröffentlichtes MID v0.9.85.494, `eee0bb0ac351115f5e85b7625825cc8d1376594f` ([Installer #44387133357](https://github.com/MeteoMartini/MID/actions/runs/44387133357)). SHA-verifizierte, auf dieser Basis konfliktfreie Original-Produkt-/Testblobs aus QA-Drafts #919 (HEAD `d3a0f9b6cb8f893d01dccf56bb30a0f0708493d6`) und #936 (HEAD `e802d2aae99c661d48d27a179d74446082a74439`). Isolierte frühere QA: [#44272385899](https://github.com/MeteoMartini/MID/actions/runs/44272385899) und [#44386911744](https://github.com/MeteoMartini/MID/actions/runs/44386911744) SUCCESS, ausdrücklich keine Abnahme dieses kombinierten HEAD.
