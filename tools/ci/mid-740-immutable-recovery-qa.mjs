@@ -10,9 +10,9 @@ const REPO='MeteoMartini/MID';
 export const REQUIRED_ASSETS=Object.freeze(['MID-professional-replacement.zip','MID-dist-release.zip','MID-release-manifest.json']);
 const reject=reason=>Object.freeze({schema:'mid.740.immutable-recovery-qa.v1',status:'BLOCKED',reason,metadataCoherent:false,releaseAuthorized:false,recoveryAuthorized:false,reviewEnforced:false,bytesVerified:false,attestationVerified:false});
 const positive=n=>Number.isSafeInteger(n)&&n>0;
-export function assessMid740ImmutableRecovery({release,tagSha,sourceSha,mainSha,stableSha,version,independentDigests}={}){
- if(!SHA.test(sourceSha??'')||!SHA.test(tagSha??'')||!SHA.test(mainSha??'')||!SHA.test(stableSha??'')||!VERSION.test(version??''))return reject('BAD_SHA_OR_VERSION');
- if(mainSha!==sourceSha||stableSha!==sourceSha)return reject('STABLE_MAIN_DRIFT');
+export function assessMid740ImmutableRecovery({release,tagSha,sourceSha,mainSha,stableSha,currentSha=sourceSha,version,independentDigests}={}){
+ if(!SHA.test(sourceSha??'')||!SHA.test(tagSha??'')||!SHA.test(mainSha??'')||!SHA.test(stableSha??'')||!SHA.test(currentSha??'')||!VERSION.test(version??''))return reject('BAD_SHA_OR_VERSION');
+ if(mainSha!==currentSha||stableSha!==currentSha)return reject('STABLE_MAIN_DRIFT');
  // release.target_commitish can be a branch. Caller must dereference tag via authenticated Git API.
  if(tagSha!==sourceSha)return reject('TAG_TARGET_DRIFT');
  if(!positive(release?.id)||release?.tag_name!=='v'+version||release?.immutable!==true||release?.draft!==false||release?.prerelease!==false)return reject('NO_PUBLISHED_IMMUTABLE_RELEASE');

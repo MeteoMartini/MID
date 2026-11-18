@@ -40,9 +40,9 @@ async function matchesLocalAsset(path,asset,capture=false){
 }
 
 export async function inspectMid740LiveRecovery({
- version,expectedSourceSha,independentDigests,assetDirectory,restoreDestination,installerEvidence=false
+ version,expectedSourceSha,expectedCurrentSha=expectedSourceSha,independentDigests,assetDirectory,restoreDestination,installerEvidence=false
 }={},get,verifyAsset,restoreDist,verifyInstallerManifest){
- if(!VERSION.test(version??'')||!SHA.test(expectedSourceSha??'')||typeof get!=='function')
+ if(!VERSION.test(version??'')||!SHA.test(expectedSourceSha??'')||!SHA.test(expectedCurrentSha??'')||typeof get!=='function')
   return block('BAD_INPUT');
  if(!independentDigests||typeof independentDigests!=='object'||
     Object.keys(independentDigests).length!==REQUIRED_ASSETS.length||
@@ -53,6 +53,8 @@ export async function inspectMid740LiveRecovery({
     !assetDirectory||typeof restoreDist!=='function'))return block('ISOLATED_RESTORE_INPUT_REQUIRED');
  if(installerEvidence&&(!restoreRequested||typeof verifyInstallerManifest!=='function'))
   return block('INSTALLER_ATTESTATION_INPUT_REQUIRED');
+ const historical=expectedCurrentSha!==expectedSourceSha;
+ if(historical&&!installerEvidence)return block('HISTORICAL_INSTALLER_ATTESTATION_REQUIRED');
  const tag='v'+version,read=path=>get(PREFIX+(path?'/'+path:''));
  let repo,main,stable;
  try{[repo,main,stable]=await Promise.all([
@@ -60,8 +62,16 @@ export async function inspectMid740LiveRecovery({
  ])}catch{return block('SOURCE_READ_UNAVAILABLE')}
  if(repo?.id!==ID||repo.full_name!==REPO)return block('REPOSITORY_ID_DRIFT');
  const match=(ref,branch)=>ref?.ref==='refs/heads/'+branch&&
-   ref.object?.type==='commit'&&ref.object.sha===expectedSourceSha;
+   ref.object?.type==='commit'&&ref.object.sha===expectedCurrentSha;
  if(!match(main,'main')||!match(stable,'mid-stable'))return block('SOURCE_REF_DRIFT');
+ if(historical){
+  let ancestry;
+  try{ancestry=await read('compare/'+expectedSourceSha+'...'+expectedCurrentSha+'?per_page=1')}
+  catch{return block('HISTORICAL_ANCESTRY_UNAVAILABLE')}
+  if(ancestry?.status!=='ahead'||ancestry.base_commit?.sha!==expectedSourceSha||
+     ancestry.merge_base_commit?.sha!==expectedSourceSha||ancestry.behind_by!==0||
+     !goodId(ancestry.ahead_by))return block('HISTORICAL_TARGET_NOT_ANCESTOR');
+ }
  let release,tagRef;
  try{[release,tagRef]=await Promise.all([
   read('releases/tags/'+tag),read('git/ref/tags/'+tag)
@@ -103,7 +113,7 @@ export async function inspectMid740LiveRecovery({
   return block('ASSET_DETAIL_DRIFT');
  const v=assessMid740ImmutableRecovery({
   release:{...release,assets:details},tagSha:target,sourceSha:expectedSourceSha,
-  mainSha:main.object.sha,stableSha:stable.object.sha,version,independentDigests
+  mainSha:main.object.sha,stableSha:stable.object.sha,currentSha:expectedCurrentSha,version,independentDigests
  });
  if(v.status!=='METADATA_COHERENT')return block(v.reason);
  let distTreeSha;
@@ -181,15 +191,15 @@ export async function inspectMid740LiveRecovery({
    checkBytes?'ATTESTED_ASSETS_VERIFIED_QA_ONLY':'METADATA_COHERENT_QA_ONLY',
   ...(restored&&{distTreeSha,restoredFiles:restored.files,
    distTreeEvidence:installerEvidence?'installer-attestation':'stable-git-tree'}),
-  version,sourceSha:expectedSourceSha,releaseId:release.id,
+  version,sourceSha:expectedSourceSha,...(historical&&{currentSha:expectedCurrentSha}),releaseId:release.id,
   assets:Object.freeze(v.assetMetadata),metadataVerified:true,
   bytesVerified:checkBytes,attestationVerified:checkBytes,reviewEnforced:false,
   sourceBotVerified:false,recoveryAuthorized:false,releaseAuthorized:false});
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  try{
-  const [version,sha,digestPath,assetDirectory,restoreDestination,mode,...extra]=process.argv.slice(2);
-  if(extra.length||!version||!sha||!digestPath||(mode!==undefined&&mode!=='--installer-attestation'))
+  const [version,sha,digestPath,assetDirectory,restoreDestination,mode,currentSha,...extra]=process.argv.slice(2);
+  if(extra.length||(currentSha!==undefined&&mode!=='--installer-attestation')||!version||!sha||!digestPath||(mode!==undefined&&mode!=='--installer-attestation'))
    throw Error('BAD_CLI_INPUT');
   // Evidence JSON must be constructed from a separate verified binary-source path.
   const independentDigests=JSON.parse(readFileSync(digestPath,'utf8'));
@@ -220,7 +230,7 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
    }finally{rmSync(directory,{recursive:true,force:true})}
   };
   const result=await inspectMid740LiveRecovery({version,
-   expectedSourceSha:sha,independentDigests,assetDirectory,restoreDestination,
+   expectedSourceSha:sha,expectedCurrentSha:currentSha,independentDigests,assetDirectory,restoreDestination,
    installerEvidence:mode!==undefined},get,verifyAsset,restoreDist,verifyInstallerManifest);
   process.stdout.write(JSON.stringify(result)+'\n');
   if(result.status==='BLOCKED')process.exitCode=1;

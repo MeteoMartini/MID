@@ -191,3 +191,21 @@ it.each(['clean','clean-restore','digest','symlink','missing','attestation','met
    }
   }finally{rmSync(directory,{recursive:true,force:true})}
  });
+
+it('binds historical recovery to the current branches and a verified target ancestor',async()=>{
+ const x=fixture(),current='b'.repeat(40);
+ const args={...x.args,expectedCurrentSha:current,assetDirectory:'/unused',
+  restoreDestination:'/unused-dist',installerEvidence:true};
+ const read=()=>inspect(args,x.get,()=>true,()=>true,()=>true);
+ expect((await inspect({...args,installerEvidence:false},x.get,()=>true,()=>true)).reason)
+  .toBe('HISTORICAL_INSTALLER_ATTESTATION_REQUIRED');
+ expect((await read()).reason).toBe('SOURCE_REF_DRIFT');
+ for(const branch of ['main','mid-stable'])x.responses['git/ref/heads/'+branch].object.sha=current;
+ expect((await read()).reason).toBe('HISTORICAL_ANCESTRY_UNAVAILABLE');
+ const ancestry={status:'diverged',base_commit:{sha:SHA},merge_base_commit:{sha:SHA},behind_by:0,ahead_by:1};
+ x.responses['compare/'+SHA+'...'+current+'?per_page=1']=ancestry;
+ expect((await read()).reason).toBe('HISTORICAL_TARGET_NOT_ANCESTOR');
+ ancestry.status='ahead';
+ delete x.responses['releases/tags/'+TAG];
+ expect((await read()).reason).toBe('RELEASE_OR_TAG_UNVERIFIED');
+});
