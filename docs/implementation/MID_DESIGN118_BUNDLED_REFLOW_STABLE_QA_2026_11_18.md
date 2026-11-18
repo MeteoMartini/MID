@@ -1,0 +1,62 @@
+# MID Design 1.21 · STABLE-v0.9.85.494-Intake und unverlierbarer Herkunftsmerge
+**18.11.2026 · QA-DRAFT · NICHT READY · NICHT MERGEN · NICHT VERÖFFENTLICHEN**
+
+## Neu überprüfte maßgebliche Basis
+- Quelle `MeteoMartini/MID` GitHub: `main=mid-stable=eee0bb0ac351115f5e85b7625825cc8d1376594f`, synchron `v0.9.85.494` in `package.json`, `MID_BASELINE.json`, `contracts/index.json`; `AGENTS.md`, `MID_SOURCE_OF_TRUTH.md`, UI-/Cross-Platform-/State-Verträge und fünf aktive Rulesets geprüft.
+- [#933](https://github.com/MeteoMartini/MID/pull/933) mit Orten/Quellen/Info-ARIA ist inzwischen in Stable .494 integriert. [#934](https://github.com/MeteoMartini/MID/pull/934) behält zehn **unveränderte geprüfte Produkt-/Test-/Visual-/Browser-Runner-Blobs** aus Drafts [#930](https://github.com/MeteoMartini/MID/pull/930) und [#931](https://github.com/MeteoMartini/MID/pull/931).
+- Original-Draft-HEAD `fdae6e2fb8475f80ed9329e7028496710c983038`. Dieser nachgezogene Merge-Commit hat als ersten Parent **den aktuellen .494 Stable-SHA** `eee0bb0ac351115f5e85b7625825cc8d1376594f` und als zweiten Parent den unveränderten ursprünglichen Draft-HEAD `fdae6e2fb8475f80ed9329e7028496710c983038`. Die alte Arbeit ist damit SHA-/History-verifizierbar gesichert, ohne Reset, Force-Push oder heimliches Ersetzen veröffentlichter Dateien.
+- Die finale Baumwurzel wird ausschließlich aus dem aktuellen .494 Stable-Tree plus den zehn explizit SHA-geprüften Originalblobs und **diesem vorangestellten Aktualisierungsabschnitt** erstellt. Kein `App.tsx`, RUC, Warn- oder Wettermodell, Worker, CSS-Golden, Installer, Release-/Versionstag oder Ruleset wird geändert.
+- Die produktiven Paare sind weiterhin auf Stable .494 unverändert und zu integrieren: `src/ModuleLoadingState.tsx` vor `28d464fcd3bd0762130d58a2386e48dc1a168cad` → Ziel `1f0089f3d4e7601ea9732f76a2eb713331345917`; `src/ForecastConfidence.tsx` vor `868937d780c8cf331da25d0b1cbe2fed02c7c395` → Ziel `b3d68a84c5828490aee89ce0df10302f5318ac60`.
+
+## Kombinierte Qualität und fachliche Grenzen
+- Bislang (historischer .491-HEAD) Vitest [#44358147434](https://github.com/MeteoMartini/MID/actions/runs/44358147434) **438 ausgeführte Tests bestanden / 3 übersprungen**. Diese Zahl **ist keine Abnahme des neuen Merge-HEADs**. Neue SHA-gebundene Vitest-/Typ-/gezielte Regressionen abwarten und genau zuordnen.
+- Zwei Komponenten: vollständiger Wrapping-Grid-Loading-Text ohne erfundene Wetterwerte; Ensemble-Detail-Labels in Flex-Wrap mit `0.875rem`, nativem 44px-Methodik-Disclosure. Missing Data unbekannt lassen, Konfidenzindex nicht als Trefferwahrscheinlichkeit oder DWD-Warnung ausgeben.
+- Originale optionale Browser-Fixtures (je 320/360/390/430/834/1024/1440 CSS px × Light/Dark × 100/200% Text) sind **noch kein ausgeführter App-Browser-Test**. Vor echter Integration Full-App/Maps/LongRange/Ensemble, 23/25-h-Tage, Safe Areas, Tab/Fokus, WKWebView/VoiceOver, Forced Colors, Scroll-/Overflow-Check und WMO/DWD-/Quellenintegrität separat durchführen.
+- P1-Pilot `PILOT_FINDINGS_OR_FAILURE` in älterem Workflow trotz `success` / `releaseAuthorized:false` nicht als Security-Gate grün melden. Kein gemessener CPU-/INP-/FPS-Gewinn behauptet.
+
+## Priorität des Leit-Chats/Leit-Works
+- **P0** neue Stable .494 gegen vollständige Source-/Installer-/Pages-/Worker-Gates absichern (nur belegte Ergebnisse).
+- **P1** diesen bereits bestehenden #934-Draft nach SHA-/Pfadabgleich und neuer Kombinations-CI als **ein einziges** Reflow-Paket qualifizieren. #930/#931 nicht separat mergen.
+- **P1** [#920](https://github.com/MeteoMartini/MID/pull/920) (Settings) versus [#929](https://github.com/MeteoMartini/MID/pull/929) (Radar) haben gemeinsamen großen `src/App.tsx`-Owner: Hunk-/Head-Kombination statt Voll-Dateiersetzung, 9 Tabs/State/NoData/Nowcast gemeinsam prüfen.
+- **P2** [#932](https://github.com/MeteoMartini/MID/pull/932) und Karten/Umfeld einschließlich echten 15-min-Zeitfeldern separat fachlich qualifizieren.
+- Alle Original-PRs erst nach nachgewiesener Integration als historisch ersetzt schließen; keine parallelen Doppelmerges. Keine Produktion aus QA-Draft.
+
+## Vergleichs- und Abnahmereferenzen
+W3C [WCAG 2.2 Reflow](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html), [Target Size Minimum](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html) (24×24 AA, 44×44 enhanced), [meteoblue Android-Design 2026](https://www.meteoblue.com/en/blog/article/show/40646_Android%2BApp%2BUpdate%3A%2BA%2BNew%2BInterface%2C%2BSame%2BDepth), [Chrome Content Visibility](https://developer.chrome.com/docs/modern-web-guidance/guides/performance/defer-rendering-heavy-content) nur unter geprüften Accessibility-/Karten-/Warnungsbedingungen. **Nicht pauschal `content-visibility:auto` oder künstliche Optimierungsversprechen einführen.**
+
+## Ursprüngliche Dokumentation (vollständig unverändert darunter)
+---
+# MID Design 1.18 – gemeinsamer QA-Intake Loader + Ensemble-Reflow
+**Stand 18.11.2026 · ausschließlich Draft, kein Release**
+
+## Ausgangsbasis / unabhängige GitHub-Quellen
+- `MeteoMartini/MID` `main = mid-stable = 3f9c5e24dc55fa5154732a1ba73961ba76c29788`, Version **v0.9.85.491** in `package.json`, `MID_BASELINE.json` und `contracts/index.json`; fünf aktive Rulesets, `AGENTS.md`, `MID_SOURCE_OF_TRUTH.md`, `MID_UI_ARCHITECTURE_CONTRACT.md`, `MID_CROSS_PLATFORM_CONTRACT.md`, State- und Bottom-Bar-Verträge live geprüft.
+- Keine blind übernommenen Archive. **10 Produkt-/Unit-/Browser-Fixture-Dateien sind 1:1-Git-Blobs** aus den bereits selektiv auf Stable verankerten QA-Drafts [#930](https://github.com/MeteoMartini/MID/pull/930) mit HEAD `c63580e9c371b451f9bc97dcad8fd4fb8ba55bfe` und [#931](https://github.com/MeteoMartini/MID/pull/931) mit HEAD `10ce063a54d9de32479839d9a9282b5ad8f2b756`. Die zwei produktiven Originalblobs sind `src/ModuleLoadingState.tsx=1f0089f3d4e7601ea9732f76a2eb713331345917` und `src/ForecastConfidence.tsx=b3d68a84c5828490aee89ce0df10302f5318ac60`. Die einzige neu verfasste Datei ist dieses aktuelle Integrationsdokument.
+- Diese Produkte überschneiden sich **weder miteinander noch mit aktuellem Release-Kandidaten [#933](https://github.com/MeteoMartini/MID/pull/933) für v0.9.85.494** (der bereits #925+#927 bündelt) oder mit RUC [#924](https://github.com/MeteoMartini/MID/pull/924). #933 bleibt unangetastet. Die separate Karten-/Radar-Arbeit #929/#932 hat eigene Owner. Vor späterer Integration aktuelle Köpfe und Dateipfade erneut prüfen.
+- **Konflikt-/Redundanzregel:** Nach erfolgreicher späterer Integration des kombinierten Kandidaten #930 und #931 als historische Quellen klassifizieren, erst dann schließen; bis dahin keine doppelte Übernahme. Für den aktuellen #933-Release keine zusätzliche Abhängigkeit erfinden.
+
+## Präziser, performanter Produkt-Scope (statische Layoutkorrekturen)
+1. Gemeinsames `ModuleLoadingState` für Karten-/Langfristmodule: `gridTemplateColumns:'minmax(0,1fr)'`, `minWidth:0,maxWidth:'100%',overflowWrap:'anywhere'` erlauben vollständiges Umbrechen lokalisiert langer Statusmeldungen auf schmalen Displays. `role=status`, `aria-live=polite`, rein dekoratives Skeleton `aria-hidden=true`. Keine vorgetäuschten Wetterwerte/Prozentangaben/Progress, keine Timer, Requests, Animationen, Modell- oder Warnlogik.
+2. `EnsembleAssessmentDetails`: `dt`-Label/Übereinstimmung umbrechen über `flexWrap:'wrap'`, `minWidth:0`, `overflowWrap:anywhere`; `fontSize:'0.875rem'` respektiert Browser-Root-Skalierung; Methodik-`summary` min. 44 px. Fehlende Ensemble-Coverage bleibt `Datenabdeckung unbekannt` und der Index wird ausdrücklich **nicht** als Ereigniswahrscheinlichkeit/amtliches Warnsignal interpretiert.
+3. Keine Änderungen an `src/App.tsx`, React-Router, CSS-Golden/fingerprints, Modellen, WMO/DWD, Worker/RUC, Wetterdaten, Favoriten/Storage, Release-Gates, CI-/Rule-Dateien. **Keine behauptete gemessene INP/FPS- oder Netzwerkverbesserung.**
+
+## Prüfmatrix, Qualitätsgrenzen und Release-Gate
+- SHA-gebundene unabhängige GitHub-Vitest-Piloten zuvor bestanden: #930 [Lauf 44338517640](https://github.com/MeteoMartini/MID/actions/runs/44338517640), **434 Tests bestanden / 3 skipped**; #931 [Lauf 44343838490](https://github.com/MeteoMartini/MID/actions/runs/44343838490), **432 Tests bestanden / 3 skipped**. **Diese Zahlen sind keine kombinierte QA.** Der kombinierte HEAD muss neu getestet werden.
+- Unveränderte Unit-Suites: `mid-design113-shared-loading-reflow.test.ts` (6 Fälle) und `mid-design110-ensemble-detail-reflow.test.ts` (4 Fälle). Zwei opt-in Original-React+synthetisches-Label Browser-QA-Skripte: `verifyDesign113LoadingReflowBrowser.mjs` und `verifyDesign110EnsembleReflowBrowser.mjs`. Jeweils 320/360/390/430/834/1024/1440 CSS px × Light/Dark × 100/200%-Schrift = 28 Kontexte, tatsächliche beiden React-Komponenten mit synthetischen Layoutdaten. Erst als `PASS` melden, wenn am **gleichen finalen HEAD** ausgeführt, artefaktgebunden und `ready:true`. Zuvor erstellte isolierte DOM-Synthesetests sind **keine** Vollapp-/React-Abnahme.
+- Negative Cases: überlange deutsche Orts-/Ensemblebezeichner, kombinierte Unicode-/Wortumbrüche, 200%-Typografie; 320px Root-Overflow, Methode-Focus/Enter/Space, Escape-/Focus-Stack im tatsächlichen Overlay, PWA-/iOS-SafeAreas, Farben in Light/Dark/Forced Colors, echte NoData, Warnstatus und dynamische Statusmeldungen. Keine 0 für fehlende Daten; keine veralteten Modelle oder nicht belegte Konfidenz verstecken.
+- Browser-/Simulatorprüfungen ersetzen keine echte native iOS-WKWebView-/VoiceOver-Abnahme. Echte React-/MID-Vollapp-Gates und Source-/Core-/Heavy-/Review-/Installer-/Worker-/Pages-Gates des autorisierten Leitchats bleiben verbindlich. Bereits bekannte separate P1-Security-Toolpilot-Findings (`releaseAuthorized:false`) nicht als grün verschweigen.
+- **Release nicht in diesem Draft**. Keine Versionserhöhung eines reinen QA-Intakes; nach #933-Promotion zuerst neuen `main=mid-stable`-SHA, aktuellen Versionsspiegel, Hunk-/Dateiüberlappung und Regeln neu lesen. Dann nur etablierter Source-PR → kontrollierter SHA-gebundener Merge → server-ZIP → `install-mid.yml` → Worker-/Pages-Gates → Stable-Promotion. Nie direkt `main`/`mid-stable` beschreiben.
+
+## Vergleichsmaßstäbe und Anwendungsentscheidung
+- [WCAG 2.2 Reflow](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html): 320 CSS px, Inhalt vollständig erhalten; meteorologische Karten haben die dokumentierte zweidimensionale Ausnahme, Lesetexte nicht.
+- [meteoblue Android-Redesign Juni 2026](https://www.meteoblue.com/de/blog/article/show/40646_Android-App-Update%3A%2BNeue%2BOberfl%C3%A4che%2C%2Bgewohnte%2BTiefe): gut zugängliche Information ohne Verlust meteorologischer Tiefe. [Met Office Annual Report 2025/26](https://assets.publishing.service.gov.uk/media/6ae378e2976f73ef5cfb687d/met-office-annual-report-and-accounts-2025-2026-web-optimised.pdf): konsistente Nutzerführung auf gemeinsamen Plattformen.
+- [Chrome Defer Rendering Heavy Content](https://developer.chrome.com/docs/modern-web-guidance/guides/performance/defer-rendering-heavy-content): `content-visibility` kann bei großen Offscreen-Bereichen helfen, ist aber für MID **nicht pauschal freigegeben**; Accessibility-Tree, Reveal, Kartenlayout/Height, Focus und Wetterwarnungen erfordern echte End-to-End-Tests. Hier bewusst keine neue CSS-Containment-/JS-Lazy-/Unmount-Regel ohne Performancebeweis.
+
+## Auto-Priorisierung für den LC/LW
+1. **P0** regulären [#924](https://github.com/MeteoMartini/MID/pull/924) RUC-/EPS-Fachrelease getrennt kontrollieren, ohne Designer-Abkürzung.
+2. **P1** [#933](https://github.com/MeteoMartini/MID/pull/933) Design-Release v0.9.85.494 zuerst vollständig durch Source-/Review-/Release-Gates; diese Arbeit darf ihn nicht blockieren.
+3. **P1** [#920](https://github.com/MeteoMartini/MID/pull/920) Settings vs. [#929](https://github.com/MeteoMartini/MID/pull/929) Radar: `src/App.tsx` trotz disjunkter Hunk-Bereiche ausschließlich mit aktueller SHA-/9-Tab-/NoData-/Radar-Kombinations-QA integrieren.
+4. **P2** **dieser gebündelte QA-Intake** #930+#931, erst auf dem danach tatsächlich autoritativen Stable-SHA als Release-Bestandteil übernehmen, nicht den #933-Head überschreiben.
+5. **P2/P3** neue Karten-/Umfeld-UX [#932](https://github.com/MeteoMartini/MID/pull/932) braucht Original-Pixel-/WMS-CRS- und DWD/EUMETSAT/OPERA-Tests; keine falsche Freigabe durch grüne Unit-CI.
+
+**QA-DRAFT: Source portiert, produktive Veröffentlichung nicht beansprucht.**
