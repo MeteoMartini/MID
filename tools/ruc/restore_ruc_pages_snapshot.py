@@ -61,6 +61,17 @@ def restore(base:str,target:Path,required=False,workers=16):
     if not objects:
         if required: raise RuntimeError('deployed RUC snapshot has no object manifest')
         return False
+    # Validate the whole inventory before starting concurrent writes: two
+    # individually valid entries must never race to the same on-disk path.
+    keys=set()
+    for row in objects:
+        if not isinstance(row,dict): raise RuntimeError('invalid RUC object manifest entry')
+        key=row.get('key')
+        if (not isinstance(key,str) or not key.startswith('runs/') or
+            any(part in ('','.','..') for part in key.split('/'))):
+            raise RuntimeError(f'unsafe RUC object key: {key}')
+        if key in keys: raise RuntimeError(f'duplicate RUC object key: {key}')
+        keys.add(key)
     tmp=target.with_name(target.name+'.tmp');shutil.rmtree(tmp,ignore_errors=True);tmp.mkdir(parents=True)
     def one(row):
         key=str(row.get('key') or '')
