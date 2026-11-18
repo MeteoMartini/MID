@@ -13,6 +13,8 @@ export type TwinEnsembleCrpsCase=Readonly<{
  observationSource:'official-measured'|'private-sensor'|'analysis'|'reanalysis'|'model-fallback';
  observationQuality:'historical-checked'|'recent-provisional'|'unverified';
  stationMetadataVerified:boolean;spatialMatchVerified:boolean;
+ forecastUnit:'celsius'|'millimetres'|'kelvin'|'inches';
+ observationUnit:'celsius'|'millimetres'|'kelvin'|'inches';
  observed:number;accumulationComplete?:boolean;
  originalNativeMembers:boolean;forecastSha256:string;
  expectedMembers:number;memberIds:readonly string[];members:readonly number[];
@@ -68,6 +70,8 @@ function admission(row:TwinEnsembleCrpsCase,window:CrpsWindow):{band:CrpsLeadBan
  else if(row.variable==='precipitation'){
   if(periodMs<=0||periodMs>25*HOUR||periodMs%60000!==0||row.accumulationComplete!==true||row.observed<0)return null;
  }else return null;
+ if(row.variable==='temperature'?(row.forecastUnit!=='celsius'||row.observationUnit!=='celsius'):
+    (row.forecastUnit!=='millimetres'||row.observationUnit!=='millimetres'))return null;
  if(!Number.isInteger(row.expectedMembers)||row.expectedMembers<2||row.expectedMembers>MAX_MEMBERS||
     !Array.isArray(row.members)||!Array.isArray(row.memberIds)||
     row.members.length!==row.expectedMembers||row.memberIds.length!==row.expectedMembers)return null;
