@@ -53,8 +53,11 @@ describe('MID Design19 – selected-place bar, full location/alias label across 
   expect(html).toContain('&amp;');
   expect(html).toContain('&quot;');
  });
- it('does not add JS listeners, timers, new network requests or a second favorite-state owner',()=>{
-  const src=SelectedPlaceBar.toString();
-  expect(src).not.toMatch(/setInterval|setTimeout|fetch\(|addEventListener|useEffect|useState|localStorage|scrollIntoView/);
+ it('renders a read-only location status in both tracking modes',()=>{
+  for(const tracked of [false,true]){
+   const html=render('Rheidt',tracked);
+   expect(html).not.toMatch(/<(?:button|input|a|select)\b|\btabindex=/i);
+  }
+  expect(render('Rheidt',false)).not.toContain('<span>Standort</span>');
  });
 });

@@ -20,13 +20,6 @@ describe('MID shared AppInfoHint portal ownership and accessibility',()=>{
   expect(html).not.toContain('role="dialog"');
   expect(html).toContain('width:44px;height:44px');
  });
- it('binds a unique React useId to the mounted portal only while open',()=>{
-  expect(source).toContain('popoverId=useId()');
-  expect(source).toContain('aria-controls={open?popoverId:undefined}');
-  expect(source).toContain('id={popoverId}');
-  expect(source).toContain('role="dialog" ariaLabel={label}');
-  expect(source).toContain('aria-expanded={open} aria-haspopup="dialog"');
- });
  it('keeps stable dismiss callback identity and all canonical closure paths',()=>{
   expect(source).toContain('const close=useCallback(()=>setOpen(false),[])');
   expect(source).toContain('onClose={close}');

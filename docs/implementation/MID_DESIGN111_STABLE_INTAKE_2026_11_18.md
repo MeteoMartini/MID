@@ -1,15 +1,15 @@
-# MID Design 111 · AppInfoHint Stable-Intake auf v0.9.85.491 – QA-Draft
+# MID Design 111 · AppInfoHint für v0.9.85.494 auf Basis von v0.9.85.491
 
 ## Herkunft / unveränderlicher Source
 - `MeteoMartini/MID` readback: `main=mid-stable=3f9c5e24dc55fa5154732a1ba73961ba76c29788`, Version `v0.9.85.491` in `package.json`, `MID_BASELINE.json`, `contracts/index.json`. Fünf aktive Rulesets, `AGENTS.md`, `MID_SOURCE_OF_TRUTH.md`, UI-/Cross-Platform-Verträge geprüft.
-- Unveränderte Originalblobs **ohne Neuentwicklung** aus Spezial-PR [#912](https://github.com/MeteoMartini/MID/pull/912), HEAD `cc7bf9f35f7b1db6d49cce909b316f07b1e749b8`, auf exakt diesen Stable-SHA selektiv übernommen. Die konkrete Produktdatei `src/AppInfoPopover.tsx` trägt Originalblob `fbf71d8fa289130ae60db0b1bef42282a4e4ab90`.
+- Unveränderte Originalblobs **ohne Neuentwicklung** aus Spezial-PR [#912](https://github.com/MeteoMartini/MID/pull/912), HEAD `cc7bf9f35f7b1db6d49cce909b316f07b1e749b8`, über [#927](https://github.com/MeteoMartini/MID/pull/927) (Head `aaf69ac3ee5d7042d5520292ec57a2495f5f6de7`) auf exakt diesen Stable-SHA selektiv übernommen. #927 ist die direkte Quelle für die ARIA-Produktdatei, den Unit-Test sowie die Browser-Fixture und deren Runner. #912 dokumentiert deren ursprüngliche Provenienz. Die konkrete Produktdatei `src/AppInfoPopover.tsx` trägt Originalblob `fbf71d8fa289130ae60db0b1bef42282a4e4ab90`.
 - `src/AppPortalPopover.tsx` ist auf beiden Quellen blob-identisch (`7d2c92aa39cb7529d4e7190a67a07a1f4dae30de`); keine Änderungen am globalen Fokusmanager, CSS, App.tsx, Weather-Daten, Warnungen, Quellenlogik oder Release-Dateien. Das separate LC-Release [#924](https://github.com/MeteoMartini/MID/pull/924) überschneidet die fünf geerbten Dateipfade nicht.
-- **QA-Draft, keine Release-Version, keine Produktfreigabe**. Die alte #912-Quelle bleibt Provenienz; nach echter Integration genau eine der beiden Fassungen übernehmen, nicht beide mergen.
+- **Quellkandidat v0.9.85.494 in #933. Produktfreigabe erst nach den regulären MID-Gates**. Die alte #912-Quelle bleibt Provenienz; nach echter Integration genau eine der beiden Fassungen übernehmen, nicht beide mergen.
 
 ## UI / Accessibility / Performance
 1. Für die geteilte `AppInfoHint`-Komponente erzeugt React `useId()` pro Instanz eine stabile ID. Der Trigger führt `aria-controls` nur, während sein zugeordnetes Dialogportal tatsächlich existiert. Das Dialogportal erhält dieselbe ID; `aria-haspopup=dialog`, `aria-expanded`, Label, Schließwege bleiben bestehen.
 2. `useCallback(()=>setOpen(false),[])` vermeidet einen neuen Funktionsverweis pro Eltern-Render und unnötiges Re-Abonnieren des bestehenden Outside-Pointer-/Escape-Effekts in `AppPortalPopover` auf identischen Öffnungszuständen. **Kein gemessener INP-, FPS- oder CPU-Gewinn behauptet**.
-3. Die Original-Unit-Regression prüft 2 SSR-Triggers, eindeutige Beziehungen, stabile Close-Callback-Quelle, 44px opt-in Touchfläche und den Browser-Runner. Der originale opt-in Vite+Chromium-Runner testet 320/390/834/1440 CSS px × Light/Dark = 8 synthetische Kontexte inkl. Fokusrückkehr, Escape, Enter, Outside-Pointer und Overflow, ist aber **nicht Teil des automatisch behaupteten Builds**.
+3. Die Unit-Regression prüft zwei geschlossene SSR-Trigger, die stabile Close-Callback-Quelle, die 44px-Opt-in-Touchfläche und den Browser-Runner. Der Browser-Runner prüft die Dialog-ID-Beziehung am gerenderten Portal. Der originale opt-in Vite+Chromium-Runner testet 320/390/834/1440 CSS px × Light/Dark = 8 synthetische Kontexte inkl. Fokusrückkehr, Escape, Enter, Outside-Pointer und Overflow, ist aber **nicht Teil des automatisch behaupteten Builds**.
 
 ## Wissenschaftliche und technische Qualitätsschranken
 - Offizielle React useId Dokumentation: https://react.dev/reference/react/useId ; useCallback: https://react.dev/reference/react/useCallback
