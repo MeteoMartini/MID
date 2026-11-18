@@ -1,4 +1,5 @@
 import {daySkybarCalendarWindow} from './daySkybarTimeline';
+import {verifiedCumulativeEnsembleRain} from './ensembleCumulativeSourceEvidence';
 import {reconcileForecastDaysWithHours} from './forecastFusion';
 import {fetchWorkerJson,workerBaseCandidates} from './workerClient';
 import {fetchWithDeadline} from './fetchDeadline';
