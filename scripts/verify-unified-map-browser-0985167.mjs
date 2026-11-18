@@ -712,6 +712,22 @@ async function verifySurroundings(width,theme){
    })).catch(e=>({inspectionError:String(e)}));
    throw new Error('Umfeld-Radar-Fixturnier (echte Bilddaten erforderlich): '+JSON.stringify({state,requests:requests.slice(-16),pageErrors:errors})+'; Ursache: '+String(error));
   }
+  // The observed WMS PNG is deliberately fully transparent, but has the
+  // exact WIDTH/HEIGHT requested by the fitted camera. That must NOT be
+  // treated as a failed meteorological observation or as proven dry weather.
+  assert.match(await radarObserved.innerText(),/Quellabdeckung nicht bestätigt/,
+   'Decoded transparent WMS image has unknown source coverage, never proven 0 mm');
+  const observedWms=requests.map(value=>new URL(value)).find(url=>
+   url.searchParams.get('mode')==='composite-wms'&&url.searchParams.get('time')===observed);
+  assert.ok(observedWms,'Actual observed WMS query must use source timestamp');
+  const imageWidth=Number(observedWms.searchParams.get('width'));
+  const imageHeight=Number(observedWms.searchParams.get('height'));
+  const bbox=observedWms.searchParams.get('bbox')?.split(',').map(Number)??[];
+  assert.ok(imageWidth>=16&&imageWidth<=512&&imageHeight>=16&&imageHeight<=256&&
+   imageWidth*imageHeight<=512*256,'WMS image remains within the source pixel budget');
+  assert.equal(bbox.length,4);
+  assert.ok(Math.abs(imageWidth/imageHeight-(bbox[2]-bbox[0])/(bbox[3]-bbox[1]))<.02,
+   'Synthetic WMS image dimensions follow actual EPSG:4326 BBOX aspect');
   // #795/.478 replaces the old approximate SVG borders with the real MapLibre vector basemap.
   // The independent radar admission still requires a real rendered frame after explicit selection.
   await page.locator('.current-surroundings-maplibre canvas').first().waitFor({timeout:30000});
