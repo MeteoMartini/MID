@@ -328,7 +328,8 @@ with mock.patch.object(guard,'newest_common_run',return_value=NEW), \
      mock.patch.object(guard,'may_defer_incomplete_eps',wraps=guard.may_defer_incomplete_eps) as defer, \
      mock.patch.object(guard,'report_run'), \
      mock.patch.object(sys,'argv',['guard.py']), \
-     mock.patch.dict(os.environ,{'GITHUB_OUTPUT':'','GITHUB_STEP_SUMMARY':''}):
+     mock.patch.dict(os.environ,{'GITHUB_OUTPUT':'','GITHUB_STEP_SUMMARY':'',
+                                 'MID_RUC_MAX_AGE_MINUTES':str(guard.DEFAULT_MAX_AGE_MINUTES)}):
     with contextlib.redirect_stdout(io.StringIO()):
         assert guard.main(now=clock)==0
     defer.assert_called_once_with(NEW,'2026-08-30T02:00',healthy,False,
