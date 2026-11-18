@@ -325,4 +325,27 @@ describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
   expect(source).toContain("getImageData(0,0,1,1)");
   expect(source).toContain("window.__mid.burst(80)");
  });
+
+ it('does not invoke the data-change render callback in a hidden document',()=>{
+  const source=readFileSync(new URL('../../src/MapLibreCore.tsx',import.meta.url),'utf8');
+  const start=source.indexOf('export function CanvasOverlay');
+  const end=source.indexOf('export function ImageQuadLayer',start);
+  const overlay=source.slice(start,end);
+  const effect=overlay.indexOf('useEffect(()=>{const canvas=canvasRef.current;if(!map||!canvas)return;');
+  const hidden=overlay.indexOf("if(document.visibilityState!=='visible'){",effect);
+  const stop=overlay.indexOf('return;',hidden);
+  const originalDrawing=overlay.indexOf('render(map,canvas)',effect);
+  const backing=overlay.indexOf('mapCanvasCrossfadeBackingSize(canvas,map.getCanvas())',effect);
+  expect(effect).toBeGreaterThan(0);
+  expect(hidden).toBeGreaterThan(effect);
+  expect(stop).toBeGreaterThan(hidden);
+  expect(backing).toBeGreaterThan(stop);
+  expect(originalDrawing).toBeGreaterThan(stop);
+  expect(overlay.slice(hidden,stop)).not.toContain('render(map,canvas)');
+  expect(overlay.slice(hidden,stop)).toContain("canvas.style.transition='none'");
+  expect(overlay.slice(hidden,stop)).toContain('canvas.style.opacity=String(Math.max(0,Math.min(1,opacityRef.current)))');
+  // The separate map-owned scheduler always redraws the current callback on return.
+  expect(overlay).toContain('()=>renderRef.current(map,canvas)');
+  expect(overlay).toContain("scheduler.visibilityChange(document.visibilityState==='visible')");
+ });
 });
