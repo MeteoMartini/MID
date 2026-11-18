@@ -37,7 +37,7 @@ describe('MID Karten · RainViewer free API original observations and foreground
  it('rejects discontinued nowcast, future and missing observations',()=>{
   const now=2_000_000;
   expect(rainViewerPastObservations({radar:{past:[frame(now-600)],nowcast:[frame(now+600)]}},now)).toEqual([frame(now-600)]);
-  expect(rainViewerPastObservations({radar:{past:[frame(now+120)]}},now)).toEqual([]);
+  expect(rainViewerPastObservations({radar:{past:[frame(now+90),frame(now+120)]}},now)).toEqual([]);
   expect(rainViewerPastObservations({radar:{past:[],nowcast:[frame(now+300)]}},now)).toEqual([]);
   expect(rainViewerPastObservations(null,now)).toEqual([]);
  });
