@@ -25,6 +25,7 @@ try{
   try{
    const page=await context.newPage(),errors=[];
    page.on('pageerror',error=>errors.push(error.message));
+   page.on('console',message=>{if(message.type()==='error')errors.push('console: '+message.text())});
    await page.route('**/*',route=>new URL(route.request().url()).origin===base?route.continue():route.abort());
    await page.goto(base+'/tests/visual/design111-infohint-qa.html?theme='+theme,{waitUntil:'domcontentloaded'});
    const first=page.getByRole('button',{name:'Info-Test eins'}),second=page.getByRole('button',{name:'Info-Test zwei'});
@@ -39,11 +40,21 @@ try{
    const id=await first.getAttribute('aria-controls');
    assert.ok(id&&id===await dialog.getAttribute('id'),'Trigger-to-portal ID mismatch');
    assert.equal(await dialog.getAttribute('aria-modal'),'true');
+   // Portal positioning is updated on requestAnimationFrame. A merely visible dialog
+   // can still have its temporary, unclamped width at 320 CSS px.
+   await page.waitForFunction(dialogId=>{
+    const element=document.getElementById(dialogId);
+    if(!element||element.getAttribute('role')!=='dialog')return false;
+    const r=element.getBoundingClientRect();
+    return r.width>0&&r.height>0&&r.left>=-1&&r.top>=-1&&r.right<=innerWidth+1&&r.bottom<=innerHeight+1;
+   },id,{timeout:5000});
    const box=await dialog.boundingBox();
    assert.ok(box&&box.x>=-1&&box.y>=-1&&box.x+box.width<=width+1&&box.y+box.height<=height+1,'Portal outside viewport');
    await page.evaluate(()=>window.__midInfoHintQaRerender?.());
    await page.waitForFunction(()=>document.querySelector('.qa-shell')?.getAttribute('data-render-revision')==='1');
    assert.equal(await first.getAttribute('aria-controls'),id,'Dialog ID drift on parent rerender');
+   const firstOpenOverflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1||document.body.scrollWidth>innerWidth+1);
+   assert.equal(firstOpenOverflow,false,'First open dialog introduced viewport overflow');
    await page.keyboard.press('Escape');
    await dialog.waitFor({state:'hidden'});
    const escape=!(await dialog.isVisible());
@@ -60,6 +71,14 @@ try{
    const secondId=await second.getAttribute('aria-controls');
    const uniqueId=Boolean(secondId&&secondId!==id&&secondId===await secondDialog.getAttribute('id'));
    assert.ok(uniqueId,'Nonunique controlled dialogs');
+   await page.waitForFunction(dialogId=>{
+    const element=document.getElementById(dialogId);
+    if(!element||element.getAttribute('role')!=='dialog')return false;
+    const r=element.getBoundingClientRect();
+    return r.width>0&&r.height>0&&r.left>=-1&&r.top>=-1&&r.right<=innerWidth+1&&r.bottom<=innerHeight+1;
+   },secondId,{timeout:5000});
+   const secondOpenOverflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1||document.body.scrollWidth>innerWidth+1);
+   assert.equal(secondOpenOverflow,false,'Second open dialog introduced viewport overflow');
    const keyboard=await secondDialog.isVisible();
    assert.ok(keyboard,'Enter must open the dialog');
    await page.locator('[data-qa-backdrop]').click();
