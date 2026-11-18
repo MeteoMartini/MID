@@ -1,8 +1,16 @@
-# MID LC · v0.9.85.489 · Release-Train und SHA-Gates (18.11.2026)
+# MID LC · v0.9.85.489 · Release-Train und SHA-Gates (Train 17.11.2026; Prüfstand 18.11.2026)
 
 ## Verifizierter Ausgangspunkt
 
 Ausgangs-Stable `main=mid-stable=9fe4dfbcdfd5a1f8fec55efa868e22110a612953`, Version 0.9.85.488, fünf aktive Rulesets. LC-PR #902 ist der einzige für diese .489-Integration vorgesehene Branch. Ein Merge, ZIP, Installer, Worker-/Pages-Promotion oder tatsächliche Stable-Veröffentlichung wird hier **nicht** vorweggenommen.
+
+## Stand der verpflichtenden Gates (18.11.2026)
+
+- Full Source-PR Gate `44203788790` auf Source-HEAD `3758d463e07576a49a36302e43068f206c231d99`: **SUCCESS**, Source-Kern, Core-4/4, Heavy-6/6 und Aggregator success. RUC-Originaldaten-Sonderjobs nach Vertragsprüfung skipped; kein positiver Originaldaten-Nachweis daraus ableiten.
+- Vorheriger Full-Gate-Fehllauf `44183104251`: `npm run audit:all` meldete 11 Findings (5 HIGH, 6 MODERATE). Gepinnter Fix-Alias nach isolierter Node/npm-Prüfung: 0 HIGH/CRITICAL, 6 MODERATE. Der Community-Fork ist kein offizieller Micromatch-Patch und muss risikobewertet und ausdrücklich als Dependency-Entscheidung freigegeben werden.
+- Release-Bot `44205541585`: **FAILURE**, Originalmeldung `MID_REVIEW_OPEN_THREAD`, fünf neue fachliche Cubic-Reviewthreads auf dem Source-HEAD. Kein Merge, ZIP, Installer oder Stable-Promotion. #839/#740 separat; deren offener Status ist kein pauschaler Blocker.
+- Vite 8.3.5 hängt **direkt** von `picomatch ^4.0.7` ab und `tinyglobby` ebenfalls von `picomatch ^4.0.4`. Ein nur auf einen Parent beschränkter Alias behebt nicht beide Pfade. Der global gepinnte npm-Override ersetzt ausschließlich die `picomatch`-Auflösung laut Lockfile; er ist eine bewusste Supply-Chain-Entscheidung, nicht ohne Owner-Akzeptanz freizugeben.
+- Vier weitere Cubic-Threads verlangen präzise Status-, Changelog-, Release-Notizen- und Datumsangaben. Diese Dokumentationskorrektur ist zunächst ausschließlich ein SHA-gebundener, **ref-freier** QA-Handoff; kein PR-HEAD wurde bewegt, alle Original-Gates müssen auf einem später autorisiert integrierten HEAD erneut erfolgen.
 
 ## Selektiv übernommener Produktumfang
 

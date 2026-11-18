@@ -1,9 +1,7 @@
 # MID v0.9.85.489
 
 - Der Wetterzwilling wertet archivierte Modellvorläufe nur aus, wenn Ausgabezeit, örtlicher Zielmittag und tatsächliche Zeitdifferenz zusammenpassen. Unplausible Horizonte beeinflussen die Prognosegüte nicht.
-- Der Changelog übernimmt pro Veröffentlichung nur die aktuellen Release-Notizen. Die vollständige ältere Versionshistorie bleibt erhalten und wird nicht erneut dupliziert.
-- Im Repository ist die aktuelle Änderungsübersicht weiterhin direkt erreichbar. Noch fehlende separate GitHub-Release- und Tag-Einträge werden unter Issue #901 nachgewiesen und behandelt.
-- Sicherheitswartung: Die Wetter-App verwendet für eine verwundbare Build-Abhängigkeit einen auf Paketintegrität und konkrete Angriffsmuster geprüften Ersatz. Prognosewerte und amtliche Warnungen bleiben unverändert.
+- Sicherheitswartung im vorbereiteten Build: Für GHSA-fc5q-39xc-vjpf / CVE-2026-112366 wird die betroffene Build-Abhängigkeit durch das gepinnte Community-Fork-Paket `@ryotsu/picomatch@4.0.7-a` ersetzt. Dies ist kein offizieller Upstream-Fix; Prognosewerte und amtliche Warnungen bleiben unverändert.
 
 # MID v0.9.85.488
 
