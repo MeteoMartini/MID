@@ -1,5 +1,7 @@
 import {describe,expect,it} from 'vitest';
 import {readFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import {MAP_CANVAS_CROSSFADE_MAX_PIXELS,createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from '../../src/mapCanvasCrossfadePolicy';
 
 const defaults={width:390,height:844,visible:true,reducedMotion:false,saveData:false};
@@ -310,5 +312,17 @@ describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
   expect(overlay).toContain('for(const event of events)map.on(event,redraw)');
   expect(overlay).toContain('for(const event of events)map.off(event,redraw)');
   expect(overlay).toContain("document.removeEventListener('visibilitychange',onVisibility)");
+ });
+
+ it('keeps the standalone Chromium Canvas probe Node-syntax valid and scope-honest',()=>{
+  const url=new URL('../../scripts/qa/verify-map-canvas-resume-browser.mjs',import.meta.url);
+  const source=readFileSync(url,'utf8');
+  expect(()=>execFileSync(process.execPath,['--check',fileURLToPath(url)],{timeout:30000})).not.toThrow();
+  expect(source).toContain("src/mapCanvasCrossfadePolicy.ts");
+  expect(source).toContain("createMapCanvasRedrawScheduler");
+  expect(source).toContain("synthetic visibilitychange events");
+  expect(source).toContain("NOT full MID/WebKit/iOS");
+  expect(source).toContain("getImageData(0,0,1,1)");
+  expect(source).toContain("window.__mid.burst(80)");
  });
 });
