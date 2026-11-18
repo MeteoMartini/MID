@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "version": "0.9.85.490",
+  "date": "2026-11-18",
+  "title": "Touch-Sortierung und Wetterzwilling-Messlücken",
+  "external": [
+    "Auf Touch-Geräten wird die neue Reihenfolge der Dashboard-Module erst beim Loslassen gespeichert. Abgebrochene Bewegungen belassen die ursprüngliche Reihenfolge.",
+    "Der Wetterzwilling zeigt fehlende Temperatur- und Niederschlagsmessungen ausdrücklich als fehlend an. Tatsächlich gemessene 0 mm bleiben als Messwert sichtbar."
+  ],
+  "internal": [
+    "Basis: MID v0.9.85.489, `5fe79b03852a7464b4a510813920c1965d8ee0d0`. Quell- und Testdateien aus #900 (`d44d8dddbb63f4f31136dd518895ed51a27c0b61`) und #907 (`ca7d3ce048d48801879c14fbfc1ab874a6f64c7f`) wurden mit Stable abgeglichen und blob-identisch übernommen. Die kombinierte Abnahme erfolgt über den Release-Train."
+  ]
+}
