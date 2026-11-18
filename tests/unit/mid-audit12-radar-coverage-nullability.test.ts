@@ -19,6 +19,12 @@ describe('MID Audit 1.2 · NoData 5min Radar, explicit dry vs missing',()=>{
  it('does not discard already valid 120-minute complete amount',()=>{
   const c=radarForecastCoverage(radar());expect(c.complete).toBe(true);expect(c.partialAmountMm).toBe(2.4);
  });
+ it('counts identical duplicate evidence only once',()=>{
+  const a=radar();a.nowcastSeries!.push({...a.nowcastSeries![0]});
+  const coverage=radarForecastCoverage(a);
+  expect(coverage.complete).toBe(true);
+  expect(coverage.partialAmountMm).toBe(2.4);
+ });
  it('does not accept overlapping duplicate timestamps regardless of order',()=>{
   const a=radar();a.nowcastSeries!.push({...frame(1),rate:0,amountMm:0});
   const b=radar();b.nowcastSeries!.unshift({...frame(1),rate:0,amountMm:0});
