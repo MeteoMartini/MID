@@ -407,7 +407,7 @@ def report_freshness(report:dict,summary_path:str|None=None)->None:
 
 from run_progress import report_run
 
-def main()->int:
+def main(*, now:dt.datetime|None=None)->int:
     parser=argparse.ArgumentParser()
     parser.add_argument('--pages-base',default=os.getenv('MID_RUC_PAGES_BASE_URL','https://midwx.app/ruc/'))
     parser.add_argument('--max-age-minutes',type=int,default=int(os.getenv('MID_RUC_MAX_AGE_MINUTES',str(DEFAULT_MAX_AGE_MINUTES))))
@@ -422,12 +422,12 @@ def main()->int:
     if error:
         should_run=True;reason=f'{error}; fail-open build';published=str((meta or {}).get('run') or '')
     else:
-        should_run,reason,dwd,published=decide(dwd,meta,max_age_minutes=args.max_age_minutes)
+        should_run,reason,dwd,published=decide(dwd,meta,now=now,max_age_minutes=args.max_age_minutes)
         # A demonstrably expired newest common DWD/EPS run cannot yield a
         # fresh full product. Fail the job explicitly *before* pip/ecCodes and
         # the 500+ GRIB download; never call it an up-to-date no-op. Manual
         # --run qualification and authenticated snapshot reuse are separate.
-        expired=joint_run_expired(dwd,max_age_minutes=args.max_age_minutes)
+        expired=valid_pages_meta(meta) and joint_run_expired(dwd,now=now,max_age_minutes=args.max_age_minutes)
         if expired:
             should_run=False
             reason=('Kein frischer gemeinsamer DWD-RUC/RUC-EPS-Lauf: '

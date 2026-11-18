@@ -347,11 +347,10 @@ with tempfile.TemporaryDirectory() as directory:
          mock.patch.object(guard,'published_meta',return_value=meta('2026-11-17T07:00')), \
          mock.patch.object(guard,'report_run'), \
          mock.patch.object(sys,'argv',['guard.py','--github-output',str(output)]), \
-         mock.patch.dict(os.environ,{'GITHUB_STEP_SUMMARY':str(summary)}), \
-         mock.patch.object(guard,'joint_run_expired',return_value=True):
+         mock.patch.dict(os.environ,{'GITHUB_STEP_SUMMARY':str(summary)}):
         out=io.StringIO();err=io.StringIO()
         with contextlib.redirect_stdout(out),contextlib.redirect_stderr(err):
-            code=guard.main()
+            code=guard.main(now=RUC_NOW)
     # This is a red job by design; no deceptive success or publisher dispatch.
     assert code==1
     assert '::error::' in err.getvalue() and 'kein Decode/Release' in err.getvalue()
@@ -363,3 +362,15 @@ with tempfile.TemporaryDirectory() as directory:
     assert metrics['shouldRun'] is False and metrics['reason']==result['reason']
     assert 'RUC-Aktualitätsdiagnostik' in summary.read_text()
 print('RUC expired joint source: no wasted decode, explicit failure and NoData preserved PASS')
+
+# An expired source must not override the existing recovery path when Pages metadata is invalid.
+with tempfile.TemporaryDirectory() as directory:
+    output=Path(directory)/'github_outputs.txt'
+    with mock.patch.object(guard,'newest_common_run',return_value='2026-11-17T22:00'), \
+         mock.patch.object(guard,'published_meta',return_value={}), \
+         mock.patch.object(sys,'argv',['guard.py','--github-output',str(output)]), \
+         mock.patch.dict(os.environ,{'GITHUB_STEP_SUMMARY':str(Path(directory)/'summary.md')}):
+        with contextlib.redirect_stdout(io.StringIO()),contextlib.redirect_stderr(io.StringIO()):
+            assert guard.main(now=RUC_NOW)==0
+    result=dict(line.split('=',1) for line in output.read_text().strip().splitlines())
+    assert result['should_run']=='true'
