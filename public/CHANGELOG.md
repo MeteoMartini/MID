@@ -1,6 +1,6 @@
 # MID v0.9.85.496
 
-- Neue Pull Requests werden mit dem veröffentlichten MID-Code lesend auf SHA-, Versions- und Git-Blob-Konsistenz sowie parallele Änderungen geprüft. Der Cleaner erteilt selbst keine Merge- oder Releasefreigabe.
+- Eine rein lesende Eingangsprüfung für neue Pull Requests ist vorbereitet. Ihr aktiver Einsatz gilt erst nach erfolgreicher Stable-Veröffentlichung und geprüftem Echt-PR-Ereignis als nachgewiesen; sie erteilt selbst keine Merge- oder Releasefreigabe.
 - Hyperlokale Stationsanalysen verwenden nur belegte ursprüngliche Messzeiten und unterscheiden fehlende Messwerte zuverlässig von tatsächlich gemessenen Nullwerten.
 - Beim Wiederherstellen von RUC-Datensnapshots werden doppelte oder nichtkanonische Manifest-Schlüssel vor parallelen Schreibvorgängen zurückgewiesen.
 
