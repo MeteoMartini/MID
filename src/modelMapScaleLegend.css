@@ -20,3 +20,8 @@
 
 /* Component width, not the outer viewport, decides if sidebar map controls stack. */
 @container mid-model-map-legend (max-width:460px){.mid-model-map-legend__header{flex-direction:column;align-items:stretch;gap:8px}.mid-model-map-legend__modes{flex:0 0 auto;width:100%}}
+
+/* Retain the narrow-viewport layout on WebViews without size queries. */
+@supports not (container-type:inline-size){
+ @media(max-width:560px){.mid-model-map-legend__header{flex-direction:column;align-items:stretch;gap:8px}.mid-model-map-legend__modes{flex:0 0 auto;width:100%}}
+}

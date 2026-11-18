@@ -21,12 +21,12 @@ const settings=(overrides:Record<string,unknown>={})=>({
 const render=(overrides:Record<string,unknown>={})=>renderToStaticMarkup(createElement(ModelMapScaleLegend,settings(overrides)));
 
 describe('MID Design114 container-reflowed map-scale mode controls',()=>{
- it('uses a named inline-size component container without viewport-dependent stacking',()=>{
+ it('uses a named inline-size component container with a viewport fallback limited to legacy WebViews',()=>{
   expect(css).toContain('container:mid-model-map-legend/inline-size');
   expect(css).toContain('@container mid-model-map-legend (max-width:460px)');
   expect(css).toContain('.mid-model-map-legend__header{flex-direction:column;align-items:stretch;gap:8px}');
   expect(css).toContain('.mid-model-map-legend__modes{flex:0 0 auto;width:100%}');
-  expect(css).not.toContain('@media(max-width:560px)');
+  expect(css).toMatch(/@supports not \(container-type:inline-size\)\{\s*@media\(max-width:560px\)/);;
  });
  it('keeps legible mode words at 200 percent root text scale without changing touch sizing',()=>{
   expect(css).toContain('font-size:.75rem');
