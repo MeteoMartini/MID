@@ -24,8 +24,8 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: mid-readonly-pr-cleaner-${{ github.event.pull_request.number || inputs.pr_number }}
-  cancel-in-progress: true
+  group: mid-readonly-pr-cleaner-${{ github.event_name }}-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   stable_ready:

@@ -64,7 +64,7 @@ export function assessMidCleanerIntake(input){
  return {schema:'mid.cleaner.intake.v1',repository:REPOSITORY,version:versionMirrors[0],
   stableSha,mainSha,target:{number:target.number,headSha:target.headSha,
     baseSha:target.baseSha,draft:target.draft,changedFiles:target.changedFiles},
-  verifiedPeerCount:peers.length,leadPrNumber,leadStatus:lead,overlaps,
+  verifiedPeerCount:peers.length,verifiedPeers:peers.map(p=>({number:p.number,headSha:p.headSha})).sort((a,b)=>a.number-b.number),leadPrNumber,leadStatus:lead,overlaps,
   exactStableBlobMatches:target.files.filter(f=>['added','modified'].includes(f.status)&&
      stableBlobs[f.filename]===f.sha).length,
   historicalIntegrationCandidate:alreadyInStable,checksRequired:checks,
@@ -81,7 +81,7 @@ async function get(path,token,{allow404=false}={}){
  if(!res.ok)fail('GITHUB_HTTP_'+res.status);
  return res.json();
 }
-async function pages(path,token,cap=3){
+export async function pages(path,token,cap=3){
  const all=[];
  for(let n=1;n<=cap;n++){
   const batch=await get(path+(path.includes('?')?'&':'?')+'per_page=100&page='+n,token);
@@ -89,7 +89,10 @@ async function pages(path,token,cap=3){
   all.push(...batch);
   if(batch.length<100)return all;
  }
- fail('PAGINATION_TRUNCATED');
+ const probe=await get(path+(path.includes('?')?'&':'?')+'per_page=1&page='+(cap*100+1),token);
+ if(!Array.isArray(probe))fail('PAGINATION_INVALID');
+ if(probe.length)fail('PAGINATION_TRUNCATED');
+ return all;
 }
 const identity=p=>JSON.stringify([p.number,p.state,p.draft,p.merged,p.head?.sha,
   p.head?.repo?.full_name,p.base?.sha,p.base?.ref,p.changed_files]);

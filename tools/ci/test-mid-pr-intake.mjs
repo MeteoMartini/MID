@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {assessMidCleanerIntake,inspectMidCleanerRemote} from './mid-pr-intake.mjs';
+import {assessMidCleanerIntake,inspectMidCleanerRemote,pages} from './mid-pr-intake.mjs';
 const a='a'.repeat(40),b='b'.repeat(40),c='c'.repeat(40),d='d'.repeat(40);
 const core=()=>({mainSha:a,stableSha:a,checkoutSha:a,
   versionMirrors:['0.9.85.495','0.9.85.495','0.9.85.495'],
@@ -45,6 +45,29 @@ test('same SHA overlap differs from conflicting SHA and reports both',()=>{
   assert.equal(p.leadStatus,'IN_VERIFIED_PEER_INVENTORY');
   assert.deepEqual(p.overlaps[0].paths.map(v=>v.relation),['EXACT_SAME_GIT_BLOB','CONFLICT_OR_RENAME_REVIEW']);
   assert.equal(p.releaseAuthorized,false);
+});
+test('all validated non-overlap peer HEADs remain in the verifiable evidence',()=>{
+ const x=core();x.peers=[{number:35,headSha:b,changedFiles:1,files:[{filename:'unrelated',status:'added',sha:c}]},
+  {number:12,headSha:a,changedFiles:1,files:[{filename:'second',status:'modified',sha:d}]}];
+ const evidence=assessMidCleanerIntake(x);
+ assert.equal(evidence.verifiedPeerCount,2);
+ assert.deepEqual(evidence.verifiedPeers,[{number:12,headSha:a},{number:35,headSha:b}]);
+ assert.equal(evidence.mergeAuthorized,false);
+});
+test('exact full final pagination page succeeds, real overflow is blocked',async()=>{
+ const original=globalThis.fetch;
+ let overflow=false;const calls=[];
+ globalThis.fetch=async(url,opts)=>{
+  const u=new URL(url);calls.push([u.searchParams.get('per_page'),u.searchParams.get('page'),opts?.method||'GET']);
+  const values=u.searchParams.get('per_page')==='100'?Array.from({length:100},(_,i)=>({number:i+1})):(overflow?[{number:101}]:[]);
+  return {ok:true,status:200,json:async()=>values};
+ };
+ try{
+  assert.equal((await pages('pulls?state=open',undefined,1)).length,100);
+  overflow=true;
+  await assert.rejects(pages('pulls?state=open',undefined,1),/PAGINATION_TRUNCATED/);
+  assert.ok(calls.every(c=>c[2]==='GET'));
+ }finally{globalThis.fetch=original}
 });
 test('no explicit Lead never masquerades as a verified Lead',()=>{
   const p=assessMidCleanerIntake(core());
@@ -137,6 +160,8 @@ test('workflow mirrors match exactly and never execute the triggering PR', async
   assert.equal(active,canonical);
   for(const required of [
     'pull_request:\n    branches: [main]',
+    'group: mid-readonly-pr-cleaner-${{ github.event_name }}-',
+    "cancel-in-progress: ${{ github.event_name == 'pull_request' }}",
     'permissions:\n  contents: read\n  pull-requests: read',
     'ref: mid-stable',
     'persist-credentials: false',
