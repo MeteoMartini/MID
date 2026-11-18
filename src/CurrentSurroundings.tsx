@@ -92,6 +92,7 @@ export default function CurrentSurroundings(props:Props){
  // Bind every Rad/Sat original to the actual post-fit camera rectangle.
  const [rasterState,setRasterState]=useState<{lat:number;lon:number;plan:SurroundingsRasterPlan|undefined}>();
  const rasterPlan=rasterState?.lat===lat&&rasterState.lon===lon?rasterState.plan:undefined;
+ const rasterPending=!rasterState||rasterState.lat!==lat||rasterState.lon!==lon;
  const mapFigureRef=useRef<HTMLElement|null>(null);
  const darkMap=useDarkMapTheme();
  useEffect(()=>{
@@ -321,8 +322,8 @@ export default function CurrentSurroundings(props:Props){
     <UnifiedVectorBasemap dark={darkMap}/>
     {mode==='cloud'&&cloudForecast.image&&<ImageQuadLayer id="surroundings-model-cloud-weather" url={cloudForecast.image.url}
      bounds={cloudForecast.image.bounds} resampling="nearest" zIndex={270} frameKey={`${cloudForecast.image.run}:${cloudForecast.image.validTime}:pseudo`}/>}
-    {mode==='radar'&&visibleClouds&&mapBounds&&<ImageQuadLayer key={`surroundings-clouds:${operaRequestKey}`} id="surroundings-clouds" url={clouds} bounds={mapBounds} zIndex={220} onError={()=>setCloudError(clouds)}/>}
-    {mode==='radar'&&mapBounds&&(displayedOpera??displayedRadar)&&<ImageQuadLayer key={`surroundings-radar:${operaRequestKey}`} id="surroundings-radar" url={displayedPhase?.url??(displayedOpera??displayedRadar)!.url} bounds={mapBounds} zIndex={360}/>}
+    {mode==='radar'&&visibleClouds&&mapBounds&&<ImageQuadLayer id="surroundings-clouds" key={`surroundings-clouds:${operaRequestKey}`} url={clouds} bounds={mapBounds} zIndex={220} onError={()=>setCloudError(clouds)}/>}
+    {mode==='radar'&&mapBounds&&(displayedOpera??displayedRadar)&&<ImageQuadLayer id="surroundings-radar" key={`surroundings-radar:${operaRequestKey}`} url={displayedPhase?.url??(displayedOpera??displayedRadar)!.url} bounds={mapBounds} zIndex={360}/>}
     <VectorReferenceLayer url={referenceTileUrl} glyphsUrl={referenceGlyphsUrl} layers={mapReferences} zIndex={790}/>
     <MapCityInventory onChange={updateMapCities}/>
     {nearbyCities.map((place,index)=>{
@@ -346,7 +347,7 @@ export default function CurrentSurroundings(props:Props){
      {cloudForecast.unavailable&&<small>Aktualisierung nicht erreichbar; letzter gültiger Bildstand.</small>}
     </>
     :<span>{cloudForecast.loading?'Verifiziertes PseudoSat-/SigWx-Modellbild wird geladen …':'Kein gültiges Wolken-/SigWx-Modellbild für Ort und Termin; keine Satellitenbeobachtung oder Entwarnung.'}</span>
-    :<span>{!rasterPlan?'Radar-/Satellitenausschnitt geometrisch nicht verfügbar; keine Wetterdaten als 0 interpretiert.':displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr{displayedOpera.coverage.kind==='partial'?` · Teilabdeckung ${displayedOpera.coverage.percentageLabel} gültige Rasterzellen`:''}</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:radarStep!==0&&(!radar||target===undefined)?'Kein originales Radar-/Nowcast-Bild für diesen 15-Minuten-Termin':failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</span>}</div>
+    :<span>{!rasterPlan?(rasterPending?'Kartenausschnitt wird vorbereitet …':'Radar-/Satellitenausschnitt geometrisch nicht verfügbar; keine Wetterdaten als 0 interpretiert.'):displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr{displayedOpera.coverage.kind==='partial'?` · Teilabdeckung ${displayedOpera.coverage.percentageLabel} gültige Rasterzellen`:''}</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:radarStep!==0&&(!radar||target===undefined)?'Kein originales Radar-/Nowcast-Bild für diesen 15-Minuten-Termin':failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</span>}</div>
   <details className="current-surroundings-sources">
    <summary>Quellen und Datenstand</summary>
    <p>Kartengrundlage · MID-Kartenbereich, OpenFreeMap / OpenStreetMap; Orte Natural Earth und Kartenkacheln</p>
