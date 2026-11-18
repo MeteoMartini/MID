@@ -18,9 +18,46 @@ try{
  const event=(type,pointerId=7)=>({type,pointerId,pointerType:'touch',clientX:10,clientY:10,preventDefault(){},stopPropagation(){},currentTarget:{setPointerCapture(id){assert.equal(id,pointerId)}}});
  grip('current').props.onPointerDown(event('pointerdown'));grip('current').props.onPointerMove(event('pointermove'));assert.equal(frames.size,1);assert.equal(writes,0);
  grip('current').props.onPointerCancel(event('pointercancel'));assert.equal(frames.size,0);assert.equal(writes,0,'Cancellation must not flush a pending reorder');
- tree=render();grip('current').props.onPointerDown(event('pointerdown'));grip('current').props.onPointerMove(event('pointermove'));grip('current').props.onPointerUp(event('pointerup'));assert.equal(settings.order.indexOf('current'),8);assert.equal(writes,1);
+ // A completed animation-frame preview must NOT persist a drag that is later cancelled.
+ tree=render();targetId='forecast';
+ grip('current').props.onPointerDown(event('pointerdown'));grip('current').props.onPointerMove(event('pointermove'));
+ const previewFrames=[...frames.values()];frames.clear();previewFrames.forEach(callback=>callback());
+ assert.equal(writes,0,'Hover/preview must not persist or broadcast module order');
+ assert.equal(settings.order.indexOf('current'),0,'Module order stays unchanged during touch preview');
+ tree=render();assert.ok(row('forecast').props.className.includes('drag-over'),'Preview still identifies the drop target');
+ grip('current').props.onPointerCancel(event('pointercancel'));
+ assert.equal(writes,0,'Cancellation after visible preview must not commit');
+ assert.equal(settings.order.indexOf('current'),0);
+
+ // Returning to the source or leaving the module list clears the prior pending target.
+ tree=render();targetId='forecast';
+ grip('current').props.onPointerDown(event('pointerdown'));grip('current').props.onPointerMove(event('pointermove'));
+ targetId='current';
+ grip('current').props.onPointerUp(event('pointerup'));
+ assert.equal(writes,0,'Releasing over original row must not commit a stale target');
+ tree=render();targetId='forecast';
+ grip('current').props.onPointerDown(event('pointerdown'));grip('current').props.onPointerMove(event('pointermove'));
+ targetId='outside-module-list';
+ grip('current').props.onPointerUp(event('pointerup'));
+ assert.equal(writes,0,'Releasing outside a valid module must not commit stale order');
+
+ // Commit at the final pointerup only, even if several animation frames already ran.
+ tree=render();targetId='forecast';
+ grip('current').props.onPointerDown(event('pointerdown'));grip('current').props.onPointerMove(event('pointermove'));
+ const beforeUp=[...frames.values()];frames.clear();beforeUp.forEach(callback=>callback());
+ assert.equal(writes,0);
+ grip('current').props.onPointerUp(event('pointerup'));
+ assert.equal(settings.order.indexOf('current'),8);assert.equal(writes,1,'Successful touch gesture must persist exactly once');
  tree=render();const down=nodes(row('current')).find(n=>n.type==='button'&&n.props['aria-label']?.includes('nach unten'));down.props.onClick();tree=render();assert.equal(settings.order.indexOf('current'),9);assert.match(nodes(tree).find(n=>n.props?.role==='status').props.children.join(''),/Position 10 von 19/);
  grip('current').props.onPointerDown(event('pointerdown'));targetId='favorites';grip('current').props.onPointerMove(event('pointermove'));grip('current').props.onLostPointerCapture(event('lostpointercapture'));assert.equal(frames.size,0);
+ // Desktop native HTML5 drop still performs one commit; touch-preview cleanup must not add a second.
+ tree=render();
+ row('favorites').props.onDragStart({dataTransfer:{effectAllowed:'',setData(_type,_value){}}});
+ tree=render();const beforeNativeDrop=writes;
+ row('forecast').props.onDrop({preventDefault(){},dataTransfer:{getData(){return'favorites'}}});
+ assert.equal(writes,beforeNativeDrop+1,'Native desktop drop persists exactly once');
+ row('favorites').props.onDragEnd();
+ assert.equal(writes,beforeNativeDrop+1,'Drag-end cleanup must not persist again');
  tree=render();grip('current').props.onPointerDown(event('pointerdown'));grip('current').props.onPointerMove(event('pointermove'));mod.cleanup();assert.equal(frames.size,0,'Unmount clears pending animation');
  const css=await readFile('src/styles-src/10-features.css','utf8');assert.match(css,/grid-template-columns:44px minmax\(0,1fr\) auto/);assert.match(css,/dashboard-module-grip\{display:grid;width:44px;height:44px/);
  const modern=await readFile('src/styles-src/30-modern.css','utf8');const coarse=modern.slice(modern.indexOf('@media(hover:none),(pointer:coarse){'));const sharedTouch=coarse.slice(0,coarse.indexOf('\n/*'));

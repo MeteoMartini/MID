@@ -1,3 +1,36 @@
+## MID v0.9.85.491 · 2026-11-18 · Ensemble-Skalierung, Kartenlegende und vollständige Wochenwerte
+
+Basis: MID v0.9.85.490, `42c188f44606f511826d2b6665b764c36b23412c`. Zwölf Originalblobs aus #913 (`f99b5e5ebc31fdaa923a6919d36de172ffbd5e4d`), #916 (`e5d4702ca88979c35e213ec2b6622de95cd13e2b`), #917 (`c9a7247a9426fe877616bb02ddd467af05205f48`) wurden mit Stable abgeglichen.
+
+## MID v0.9.85.490 · 2026-11-18 · Touch-Sortierung und Wetterzwilling-Messlücken
+
+Basis: MID v0.9.85.489, `5fe79b03852a7464b4a510813920c1965d8ee0d0`. Quell- und Testdateien aus #900 (`d44d8dddbb63f4f31136dd518895ed51a27c0b61`) und #907 (`ca7d3ce048d48801879c14fbfc1ab874a6f64c7f`) wurden mit Stable abgeglichen und blob-identisch übernommen. Die kombinierte Abnahme erfolgt über den Release-Train.
+
+## MID v0.9.85.489 · 2026-11-17 · Archiv-Vorlauf und Changelog-Integrität
+
+- Ausgangs-Stable main=mid-stable=9fe4dfbcdfd5a1f8fec55efa868e22110a612953 / v0.9.85.488, fünf unveränderte aktive Rulesets.
+- Audit #899 original HEAD 115012fce035b4d7dfc6eb937654bcda93ce8fb5: sechs SHA-identische Dateien, Einzel-CI 44135776780 completed/success; Validierung ISO-Zeit/Offset, Zielmittag und DST-23-/25h-Tage ohne Kalender-Normalisierung.
+- Leitwork-Karten-Quell-Draft #868 original HEAD dd9a9cc6eaca641785b095bf79862a4b1ba051cd: nur drei SHA-identische, disjunkte Changelog-Korrekturblobs, nicht die 213 unfreigegebenen Karten-/CSS-/GPU-Pfade.
+- Historische CHANGELOG.md und public/CHANGELOG.md Git-Originalbytes 1:1 erhalten, ausschließlich .489-Abschnitt vorangestellt; idempotentes sync-version geschützt durch neuen Test.
+- GitHub Releases/Tags weiterhin extern separater Issue #901; keine neuen Rechte, Worker-Pipelines, ZIP- oder Release-Workflowänderungen; #839/#740 in Security-Spezialarbeit. Vollständige Source-/Review-/Core-/Heavy-/Installer-/Pages-/Worker-/Stable-Gates auf finalem SHA erforderlich.
+
+- Security-Only-Fix #903: genau zwei Git-Commits nach LC-Draft c094a971 (34560bd7 Dependency-Alias/Lockfile, 771b6a5a bestehende Pflichtregression); npm SHA512-gepinnter, signaturgeprüfter Scoped-Fork @ryotsu/picomatch@4.0.7-a, 42 bounded CVE-2026-112366-Testfälle. Isolierte Node22/npm10 npm ci, audit:all (0 HIGH/CRITICAL), audit:dependencies, npm audit signatures sowie Vite8/React19-Smoke bestanden. Kein echter MID Source-/Installer-/Stable-Beleg; kein automatischer Security-/Release-Bypass. #839/#740 kein pauschaler Blocker.
+
+## MID v0.9.85.488 · 2026-11-17 · Wetterzwilling-Messwerte und mobile Navigation
+
+- Verifizierte Ausgangsbasis main=mid-stable=ee70a92ae6ed83d3fa46445f4941e3db8b8675d4 (v0.9.85.487), fünf aktive Rulesets.
+- Wetterzwilling-Originalquellen #897 HEAD e5830085739252d2bc7e4a40b88d2abe39e883df: fünf Git-Blobs unverändert übernommen; Einzel-Vitest und gezielte Regressionen #44114471352 completed/success.
+- Design-Originalquellen #893 HEAD c25c205844c29d1fb1bb2074be660332de2db10a: vier Git-Blobs unverändert übernommen; bestehende geänderte Quellpfade seit v0.9.85.486 identisch, Einzel-Vitest und gezielte Regressionen #44102613813 completed/success.
+- Source-Integration erst durch kombinierten SHA-/CI-Readback zu validieren; kein Produktiv-Release, bevor Source-Gate, kontrollierter Merge, ZIP, Installer, Worker/Pages und Stable-Promotion nachgewiesen sind. #839/#740 bleiben getrennt.
+
+## MID v0.9.85.487 · 2026-11-17 · Wetterzwilling und Modellfrische
+
+- Basis: Stable `a78465b655d25cafc9ecc0390080694cb7aca957`. Auditkorrekturen aus #884, #885, #886 und #890, geprüft in #868 auf `dd9a9cc6eaca641785b095bf79862a4b1ba051cd`. Veröffentlichung über Source-PR-Gate, Release-Bot, Installer und Stable-Promotion.
+
+## MID v0.9.85.487 · Audit-Teilrelease
+
+Basis: Stable `a78465b655d25cafc9ecc0390080694cb7aca957`. Auditkorrekturen aus #884, #885, #886 und #890, geprüft in #868 auf `dd9a9cc6eaca641785b095bf79862a4b1ba051cd`. Veröffentlichung über Source-PR-Gate, Release-Bot, Installer und Stable-Promotion.
+
 ## MID v0.9.85.486 · 2026-11-16 · Karten-Home-End und 14-Tage-Responsive-QA
 
 - Additional QA source: #846 HEAD e70b5aa36a1832aba6a1c081add4f839c629dc5a, exactly two original Git blobs; MapTimelineControls + associated unit file already identical with #842 and therefore not imported again. Deferred-ACK Home/End is tested in real React/Chromium by mandatory map heavy regression; no skip or timeout dilution.

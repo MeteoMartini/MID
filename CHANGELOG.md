@@ -1,3 +1,31 @@
+# MID v0.9.85.491
+
+- Die Prognosespannen der Ensemble-Ansicht werden einmal je Darstellung skaliert. Fehlende oder ungültige Quantile fließen nicht als Nullwerte in die Skala ein.
+- Die Legende nativer Modellkarten passt sich der Breite ihres Kartenbereichs an und ordnet ihre Bedienelemente bei wenig Platz untereinander an.
+- EC46- und GEFS-Wochenwerte und ihr Klimavergleich verwenden vollständige Sieben-Tage-Zeiträume. Fehlende Tage und unvollständige Randwochen werden nicht als vollständige Wochensummen ausgegeben.
+
+# MID v0.9.85.490
+
+- Auf Touch-Geräten wird die neue Reihenfolge beim Loslassen über einem anderen gültigen Modul gespeichert. Ein ungültiges Loslassen oder ein Abbruch verwirft die Vorschau.
+- Der Wetterzwilling zeigt fehlende Temperatur- und Niederschlagsmessungen ausdrücklich als fehlend an. Tatsächlich gemessene 0 mm bleiben als Messwert sichtbar.
+
+# MID v0.9.85.489
+
+- Der Wetterzwilling wertet archivierte Modellvorläufe nur aus, wenn Ausgabezeit, örtlicher Zielmittag und tatsächliche Zeitdifferenz zusammenpassen. Unplausible Horizonte beeinflussen die Prognosegüte nicht.
+- Sicherheitswartung im vorbereiteten Build: Für GHSA-fc5q-39xc-vjpf / CVE-2026-112366 wird die betroffene Build-Abhängigkeit durch das gepinnte Community-Fork-Paket `@ryotsu/picomatch@4.0.7-a` ersetzt. Dies ist kein offizieller Upstream-Fix; Prognosewerte und amtliche Warnungen bleiben unverändert.
+
+# MID v0.9.85.488
+
+- Fehlende, fehlerhafte oder negative beobachtete Niederschlagsmengen zählen bei der Verifikation weder als trockene Tage noch als gültige Brier- oder Kalibrationsbelege.
+- Wetterzwilling-Vergleiche verwenden für Temperatur, Windböen und Sonnenschein nur tatsächlich gültige Messwerte; fehlende Beobachtungen bleiben fehlend.
+- Die mobile Bottom-Navigation vermeidet redundante Style-Änderungen bei unveränderter Bildschirmtastatur-Geometrie und bewahrt fremde Inline-Einstellungen.
+
+# MID v0.9.85.487
+
+- Die Wetterzwilling-Auswertung berücksichtigt für den Volltagesvergleich nur Prognosen, die spätestens zu Beginn des Zielorts-Tages vorlagen.
+- Ungültige archivierte Regenwahrscheinlichkeiten zählen weder als 0 % noch für Brier-Score oder Kalibrierung. Die Anzeige nennt den Brier-Score und die Vergleichstage ohne unbelegte Güteklasse.
+- Die Anzeige der Modellfrische fasst fehlende Zeitnachweise kompakter zusammen. Die ausführliche Modellliste bleibt verfügbar.
+
 # MID v0.9.85.486
 
 - Die Kartenzeitachse verarbeitet Home/End auch nach neu eingetroffenen Modell- und Zeitdaten zuverlässiger.

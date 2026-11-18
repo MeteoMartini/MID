@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "version": "0.9.85.489",
+  "date": "2026-11-17",
+  "title": "Archiv-Vorlauf und Changelog-Integrität",
+  "external": [
+    "Der Wetterzwilling wertet archivierte Modellvorläufe nur aus, wenn Ausgabezeit, örtlicher Zielmittag und tatsächliche Zeitdifferenz zusammenpassen. Unplausible Horizonte beeinflussen die Prognosegüte nicht.",
+    "Sicherheitswartung im vorbereiteten Build: Für GHSA-fc5q-39xc-vjpf / CVE-2026-112366 wird die betroffene Build-Abhängigkeit durch das gepinnte Community-Fork-Paket `@ryotsu/picomatch@4.0.7-a` ersetzt. Dies ist kein offizieller Upstream-Fix; Prognosewerte und amtliche Warnungen bleiben unverändert."
+  ],
+  "internal": [
+    "Ausgangs-Stable main=mid-stable=9fe4dfbcdfd5a1f8fec55efa868e22110a612953 / v0.9.85.488, fünf unveränderte aktive Rulesets.",
+    "Audit #899 original HEAD 115012fce035b4d7dfc6eb937654bcda93ce8fb5: sechs SHA-identische Dateien, Einzel-CI 44135776780 completed/success; Validierung ISO-Zeit/Offset, Zielmittag und DST-23-/25h-Tage ohne Kalender-Normalisierung.",
+    "Leitwork-Karten-Quell-Draft #868 original HEAD dd9a9cc6eaca641785b095bf79862a4b1ba051cd: nur drei SHA-identische, disjunkte Changelog-Korrekturblobs, nicht die 213 unfreigegebenen Karten-/CSS-/GPU-Pfade.",
+    "Historische CHANGELOG.md und public/CHANGELOG.md Git-Originalbytes 1:1 erhalten, ausschließlich .489-Abschnitt vorangestellt; idempotentes sync-version geschützt durch neuen Test.",
+    "GitHub Releases/Tags weiterhin extern separater Issue #901; keine neuen Rechte, Worker-Pipelines, ZIP-Transport- oder Review-Policy-Umstellung; #839/#740 in Security-Spezialarbeit. Vollständige Source-/Review-/Core-/Heavy-/Installer-/Pages-/Worker-/Stable-Gates auf finalem SHA erforderlich.",
+    "Cubic-P2-Triage: gemischte Abschnittsgrenzen, doppelte aktuelle Notizen, veraltete aktuelle Texte, Paketsuffixe und Validierung beider Changelog-Spiegel vor Schreiben korrigiert; zusätzliche Originalsyncer-Fixture.",
+    "Sicherheitsblocker #903: npm 10.9.2 / Node 22.16.0, Override picomatch → npm:@ryotsu/picomatch@4.0.7-a; exakte Registry-Tarball-SHA512, kein Vite-Downgrade; Original Source-PR-HEAD c094a97126ce755e4917a1051e462bbd5b6b8039.",
+    "SHA-lineare ref-freie Security-Handoffs 34560bd791072e65672f3af69a2e2f3d77c772f2 und 771b6a5a772f63c6ef328e53d149de423d66a5a4: ausschließlich Manifest/Lockfile und bestehende Pflichtregression mit 42 begrenzten ReDoS-Proben. Externe isolierte npm-ci-, audit:all-, audit:dependencies-, audit-signatures- und Vite8/React19-Smoke-Ergebnisse erfolgreich, jedoch keine Vollprojekt-/iOS-/Source-/Installer-/Worker-/Pages-/Stable-Abnahme.",
+    "Der npm-Alias bleibt ein Community-Fork (kein offizieller Upstream-Patch). Origin-Git-SHA, npm-Attestation und Integritätsprüfung sind notwendig, zusätzlich muss das unveränderte vollständige MID Source-Gate tatsächlich erfolgreich sein; #839/#740 ist keine pauschale Releasesperre.",
+    "Separierung von #839/#740: Die optionalen Installer-/Source-Artifact-Shadow-Dateien sind nicht Bestandteil dieses .489-Produktreleases. Die eigenständige QA in PR #839 bleibt erhalten und muss vor einer späteren Integration erst die noch offenen P1/P2-Sicherheits- und Provenienzbefunde nachweisen; dadurch keine pauschale Blockade von .489.",
+    "GitHub-Release-Katalog #901 bleibt eigenständiger, unverdrahteter Folgeschritt: der Draft-Katalogskript- und Testprototyp ist nicht in .489 enthalten; keine Annahme einer erfolgreichen Release-Tag-/Asset-Veröffentlichung."
+  ]
+}

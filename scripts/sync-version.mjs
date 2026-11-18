@@ -1,4 +1,5 @@
 import {readFile,writeFile} from 'node:fs/promises';
+import {prependMidCurrentRelease} from './lib/changelogCurrentRelease.mjs';
 
 const packageUrl=new URL('../package.json',import.meta.url);
 const pkg=JSON.parse(await readFile(packageUrl,'utf8'));
@@ -13,13 +14,17 @@ if(pkg.scripts?.['test:regressions']!==canonicalRegressionRunner){
 
 const releaseNotesUrl=new URL('../RELEASE_NOTES.md',import.meta.url);
 const releaseNotes=(await readFile(releaseNotesUrl,'utf8')).trim();
-const releaseHeading=`# MID v${version}`;
-if(!releaseNotes.startsWith(releaseHeading))throw new Error(`RELEASE_NOTES.md muss mit ${releaseHeading} beginnen.`);
+const changelogUpdates=[];
 for(const relativePath of ['../CHANGELOG.md','../public/CHANGELOG.md']){
  const changelogUrl=new URL(relativePath,import.meta.url);
  const changelog=await readFile(changelogUrl,'utf8');
- if(!changelog.startsWith(releaseHeading))await writeFile(changelogUrl,`${releaseNotes}\n\n${changelog.replace(/^\s+/,'')}`);
+ // Historical release notes must remain in place: prepend only the current
+ // entry, never the entire rolling RELEASE_NOTES.md.
+ const next=prependMidCurrentRelease(changelog,releaseNotes,version);
+ if(next!==changelog)changelogUpdates.push({changelogUrl,next});
 }
+
+for(const {changelogUrl,next} of changelogUpdates)await writeFile(changelogUrl,next,'utf8');
 
 await writeFile(new URL('../src/version.ts',import.meta.url),`export const MID_VERSION='${version}';\n`);
 await writeFile(new URL('../public/version.json',import.meta.url),`${JSON.stringify({version},null,2)}\n`);
