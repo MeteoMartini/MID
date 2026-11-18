@@ -90,6 +90,8 @@ describe('MID Design112 ensemble range scale and responsive model legend',()=>{
   expect(forecastRangeScaleDomains(days).get('temperature-pair')?.low).toBe(-60);
   const html=renderToStaticMarkup(createElement(ForecastRangeGuide,{day:wet,days,temperature:0,compact:true,unit:'kn'}));
   expect(html).toContain('data-temperature-pair="shared-scale"');
+  // The wet-day Tmin starts at 18 °C on the mutated common −60 to 44 °C scale.
+  expect(html).toContain('--range-start:75%;--range-width:');
   expect(html).toContain('P10–P90');
   expect(html).toContain('Median');
   expect(html).not.toContain('parameter-wind');

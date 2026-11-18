@@ -117,7 +117,7 @@ interface MultiSeriesDefinition{
 const SEASONAL_ENDPOINT='https://seasonal-api.open-meteo.com/v1/seasonal';
 const ENSEMBLE_ENDPOINT='https://ensemble-api.open-meteo.com/v1/ensemble';
 const CLIMATE_ENDPOINT='https://archive-api.open-meteo.com/v1/archive';
-const CACHE_PREFIX='mid:subseasonal-trend:v7';
+const CACHE_PREFIX='mid:subseasonal-trend:v8';
 const CLIMATE_CACHE_PREFIX='mid:subseasonal-climatology:1991-2020:v3';
 const CACHE_MAX_AGE_MS=36*60*60*1000;
 const TREND_SOURCE_TIMEOUT_MS=12000;

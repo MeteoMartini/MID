@@ -1,5 +1,7 @@
 # MID Design 1.12 · Modellspanne performant und responsiv, ohne meteorologische Semantikänderung
 
+Die folgenden Scope-Angaben beschreiben den Design112-Spezialpatch aus #913. Der gemeinsame Release integriert auch #916 und #917.
+
 **17. November 2026 · Spezial-Handoff an LC/LW · ausschließlich QA DRAFT, NO RELEASE**
 
 ## 0 · Kanonische Provenienz und sichere Integration
@@ -23,7 +25,7 @@ MID besitzt bereits getrennte Prognose-/Modellspannen, 7d/14d, Karten und eine g
 
 ## 3 · P3 realer source-patch
 
-**`src/ForecastRangeGuide.tsx`:** Bisher wurde für jede Tageskarte eine `days.flatMap(adaptiveForecastRanges)`-Referenztabelle erstellt; beim Rendern jedes einzelnen Bands wurden Temperaturpeers oder andere Parameter separat gefiltert und `Math.min/`Math.max über neue `map`-Arrays gerechnet. Das erzeugt wiederholte Daten-/Zwischenarray-Scans bei 7d/14d-Mount, Favoriten-, Einheiten-, Ansicht- oder Theme-Re-Renders. Jetzt ermittelt `forecastRangeScaleDomains(days)` die Domain für jedes vorhandene Element in **einem linearen Durchlauf** über validierte Bereiche; kein zusätzlicher Store, globaler Cache, Timer, Listener, Fetch oder Worker.
+**`src/ForecastRangeGuide.tsx`:** Bisher wurde für jede Tageskarte eine `days.flatMap(adaptiveForecastRanges)`-Referenztabelle erstellt; beim Rendern jedes einzelnen Bands wurden Temperaturpeers oder andere Parameter separat gefiltert und `Math.min`/`Math.max` über neue `map`-Arrays gerechnet. Das erzeugt wiederholte Daten-/Zwischenarray-Scans bei 7d/14d-Mount, Favoriten-, Einheiten-, Ansicht- oder Theme-Re-Renders. Jetzt ermittelt `forecastRangeScaleDomains(days)` die Domain für jedes vorhandene Element in **einem linearen Durchlauf** über validierte Bereiche; kein zusätzlicher Store, globaler Cache, Timer, Listener, Fetch oder Worker.
 
 Fachinvarianten: `adaptiveForecastRanges` bleibt unverändert; nur gültige vollständige Quantilfolgen, mindestens zwei Modelle oder Mitglieder; `Tmin` und `Tmax` verwenden eine gemeinsame `temperature-pair`-Skala; Böen und Niederschlag behalten die **originalen** Minima/Maxima (einschließlich 0 mm, wenn wirklich belegt); Missing Data, NaN, unsupported members, inkonsistente Quantile werden nie als 0 betrachtet; Prozentpositionen und tatsächliche Mediane bleiben unverändert. Domain-Fallback berücksichtigt auch ein ausgewähltes Element, das nicht in der Referenzliste steckt. Die Domain wird auf jedem Render frisch aufgebaut, um bei rezyklierten, mutierten Arrays keine veralteten Wetterwerte aus einem referenziellen Cache anzuzeigen. **Keine behauptete INP-/Heap-Reduktion ohne A/B-Profiler.**
 

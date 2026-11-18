@@ -55,7 +55,14 @@ describe('MID Audit 1.1 · only truly complete subseasonal weeks',()=>{
   expect(hasCompleteSubseasonalWeek(days('2026-10-23'))).toBe(true);
   expect(hasCompleteSubseasonalWeek(days('2026-12-29'))).toBe(true);
  });
+ it('rejects pressure in kPa and temperature in Kelvin as incompatible with the declared units',()=>{
+  expect(aggregateCompleteSubseasonalWeek(Array(7).fill(101.3),0,'mean','pressure')).toBeNull();
+  expect(aggregateCompleteSubseasonalWeek(Array(7).fill(280),0,'mean','temperature_max')).toBeNull();
+  expect(aggregateCompleteSubseasonalWeek(Array(7).fill(-89.2),0,'mean','temperature_min')).toBeCloseTo(-89.2);
+ });
  it('rejects missing, duplicated, out-of-order and impossible calendar days',()=>{
+  const ordered=days('2026-03-26');
+  expect(hasCompleteSubseasonalWeek([ordered[1],ordered[0],...ordered.slice(2)])).toBe(false);
   expect(hasCompleteSubseasonalWeek(days('2026-03-26',6))).toBe(false);
   expect(hasCompleteSubseasonalWeek([...days('2026-03-26').slice(0,5),'2026-03-31','2026-04-02'])).toBe(false);
   expect(hasCompleteSubseasonalWeek(['2026-11-01','2026-11-02','2026-11-03','2026-11-03','2026-11-05','2026-11-06','2026-11-07'])).toBe(false);
@@ -82,5 +89,6 @@ describe('MID Audit 1.1 · only truly complete subseasonal weeks',()=>{
   expect(source).toContain("series.length===time.length");
   expect(source).toContain("aggregateCompleteSubseasonalWeek(");
   expect(source).toContain("samples.length===7");
+  expect(source).toContain("mid:subseasonal-trend:v8");
  });
 });

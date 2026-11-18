@@ -49,7 +49,9 @@ export function aggregateCompleteSubseasonalWeek(
    if(value<0)return null;
   }else if(metric==='cloud'){
    if(value<0||value>100)return null;
-  }else if(metric==='pressure'&&value<=0)return null;
+  }else if(metric==='pressure'){
+   if(value<850||value>1090)return null;
+  }else if(value< -90||value>60)return null;
   sum+=value;
   if(!Number.isFinite(sum))return null;
  }

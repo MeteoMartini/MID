@@ -1,6 +1,6 @@
 # MID v0.9.85.491
 
-- Die Prognosespannen der Ensemble-Ansicht werden einmal je Darstellung skaliert. Die Modelllegende bleibt bei schmaler Darstellung bedienbar.
+- Die Prognosespannen der Ensemble-Ansicht werden einmal je Darstellung skaliert. Fehlende oder ungültige Quantile fließen nicht als Nullwerte in die Skala ein.
 - Die Legende nativer Modellkarten passt sich der Breite ihres Kartenbereichs an und ordnet ihre Bedienelemente bei wenig Platz untereinander an.
 - EC46- und GEFS-Wochenwerte und ihr Klimavergleich verwenden vollständige Sieben-Tage-Zeiträume. Fehlende Tage und unvollständige Randwochen werden nicht als vollständige Wochensummen ausgegeben.
 
