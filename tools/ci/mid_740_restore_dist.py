@@ -31,7 +31,7 @@ def restore_dist(archive_path, destination, expected_digest, expected_tree, vers
     with tempfile.TemporaryDirectory(prefix='.mid740-restore-', dir=destination.parent) as temp:
         staging = Path(temp)
         files = {}
-        directories = set()
+        seen = set()
         expanded = 0
         with archive_path.open('rb') as stream:
             if sha256_of_stream(stream)[0] != expected_digest:
@@ -48,10 +48,11 @@ def restore_dist(archive_path, destination, expected_digest, expected_tree, vers
                     mode = entry.external_attr >> 16
                     # git archive omits Unix metadata for plain files and directories.
                     portable_mode = 0x10 if entry.is_dir() else 0
-                    if (entry.flag_bits & 1 or name in directories or name in files or
+                    if (entry.flag_bits & 1 or name in seen or
                             (entry.create_system != 3 and
                              (entry.create_system != 0 or entry.external_attr != portable_mode))):
                         raise Rejected('UNSAFE_DIST_ENTRY')
+                    seen.add(name)
                     if name == 'dist' or name.startswith('dist/'):
                         target = staging / name
                     else:
@@ -60,7 +61,6 @@ def restore_dist(archive_path, destination, expected_digest, expected_tree, vers
                         if (entry.create_system == 3 and not stat.S_ISDIR(mode)) or entry.file_size:
                             raise Rejected('UNSAFE_DIST_DIRECTORY')
                         target.mkdir(parents=True, exist_ok=True)
-                        directories.add(name)
                         continue
                     if (name == 'dist' or (entry.create_system == 3 and not stat.S_ISREG(mode)) or
                             entry.file_size > MAX_ENTRY_BYTES or
@@ -81,7 +81,7 @@ def restore_dist(archive_path, destination, expected_digest, expected_tree, vers
                             output.write(chunk)
                     if length != entry.file_size:
                         raise Rejected('DIST_ENTRY_SIZE_MISMATCH')
-                    executable = bool(mode & 0o111)
+                    executable = bool(mode & 0o100)
                     target.chmod(0o755 if executable else 0o644)
                     files[name.removeprefix('dist/')] = ('100755' if executable else '100644', oid.hexdigest())
         required = {'index.html', 'version.json', 'sw.js'}

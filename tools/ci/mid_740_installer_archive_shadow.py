@@ -9,6 +9,8 @@ No archive content is ever extracted or executed.
 """
 import argparse
 import hashlib
+import gzip
+import zlib
 import json
 from pathlib import Path
 import re
@@ -21,10 +23,53 @@ MAX_OUTER = 900 * 1024 * 1024
 MAX_FILES = 100000
 MAX_ENTRY_BYTES = 200 * 1024 * 1024
 MAX_EXPANDED = 2 * 1024 * 1024 * 1024
+# tarfile consumes extended headers before yielding a member. Bound that
+# internal parser input as well as the full decompressed stream, not just files.
+MAX_METADATA = 64 * 1024
+MAX_METADATA_TOTAL = 128 * 1024 * 1024
+MAX_TAR_BYTES = MAX_EXPANDED + MAX_METADATA_TOTAL
 GIT_SHA = re.compile(r'^[a-f0-9]{40}$')
 
 class Rejected(Exception):
     pass
+
+
+class BoundedTarInfo(tarfile.TarInfo):
+    def _proc_member(self, archive):
+        # TarFile(tarinfo=...) is the standard extension point; this guard runs
+        # before CPython's PAX/GNU handlers allocate/read their payload. Keep
+        # explicit parser regressions when updating the qualified Python line.
+        metadata = self.type in (tarfile.XHDTYPE, tarfile.XGLTYPE,
+            tarfile.SOLARIS_XHDTYPE, tarfile.GNUTYPE_LONGNAME, tarfile.GNUTYPE_LONGLINK)
+        if metadata:
+            total = getattr(archive, '_mid_metadata_total', 0) + self.size
+            depth = getattr(archive, '_mid_metadata_depth', 0) + 1
+            if not 0 <= self.size <= MAX_METADATA or total > MAX_METADATA_TOTAL or depth > 32:
+                raise Rejected('EXCESSIVE_TAR_METADATA')
+            archive._mid_metadata_total, archive._mid_metadata_depth = total, depth
+        else:
+            archive._mid_metadata_depth = 0
+            if self.size < 0 or self.size > MAX_ENTRY_BYTES:
+                raise Rejected('UNSAFE_MEMBER_SIZE')
+            if self.type not in (tarfile.REGTYPE, tarfile.AREGTYPE, tarfile.DIRTYPE):
+                raise Rejected('UNSAFE_MEMBER_TYPE')
+        return super()._proc_member(archive)
+
+
+class BoundedTarStream:
+    def __init__(self, stream):
+        self.stream, self.remaining = stream, MAX_TAR_BYTES
+
+    def read(self, size):
+        # r| requests bounded blocks. Prevent oversized upstream allocations
+        # even if a future parser changes its read strategy.
+        if not 0 <= size <= MAX_ENTRY_BYTES:
+            raise Rejected('UNSAFE_TAR_READ_SIZE')
+        data = self.stream.read(min(size, self.remaining + 1))
+        self.remaining -= len(data)
+        if self.remaining < 0:
+            raise Rejected('EXCESSIVE_DECOMPRESSED_TAR_SIZE')
+        return data
 
 
 def check_path(s):
@@ -145,13 +190,15 @@ def verify_file(path, envelope_digest, event_sha, git_blobs=None, expected_dist_
         if tarhash != manifest['archiveSha256']:
             raise Rejected('TAR_SHA_MISMATCH')
         seen=set(); n=0; dirs=0; total_size=0; verified_blobs=0; dist_files={}
-        with outer.open('release.tar.gz') as gz:
-            with tarfile.open(fileobj=gz,mode='r|gz') as tf:
+        with outer.open('release.tar.gz') as gz, gzip.GzipFile(fileobj=gz) as expanded:
+            with tarfile.open(fileobj=BoundedTarStream(expanded),mode='r|',tarinfo=BoundedTarInfo) as tf:
                 for member in tf:
                     n += 1
                     if n > MAX_FILES + 30000:
                         raise Rejected('EXCESSIVE_MEMBER_COUNT')
-                    name = member.name.removeprefix('./').rstrip('/')
+                    name = member.name.removeprefix('./')
+                    if member.isdir():
+                        name = name.rstrip('/')
                     if name in ('', '.') and member.isdir():
                         dirs += 1
                         continue
@@ -194,7 +241,7 @@ def verify_file(path, envelope_digest, event_sha, git_blobs=None, expected_dist_
                         verified_blobs += 1
                     if expected_dist_tree_sha is not None and name.startswith('dist/'):
                         dist_files[name[len('dist/'):]] = (
-                            '100755' if member.mode & 0o111 else '100644',
+                            '100755' if member.mode & 0o100 else '100644',
                             gitsha.hexdigest())
                     if sha.hexdigest() != files[name]:
                         raise Rejected('MANIFEST_FILE_DIGEST_MISMATCH')
@@ -230,7 +277,7 @@ if __name__ == '__main__':
     try:
         blobs = {} if a.git_blobs_json is None else json.loads(Path(a.git_blobs_json).read_text())
         print(json.dumps(verify_file(a.file,a.expected_envelope_sha256,a.event_sha,blobs,a.expected_dist_tree_sha),sort_keys=True))
-    except (Rejected,zipfile.BadZipFile,tarfile.TarError,ValueError,OSError,KeyError,TypeError,EOFError) as exc:
+    except (Rejected,zipfile.BadZipFile,tarfile.TarError,ValueError,OSError,KeyError,TypeError,EOFError,zlib.error,RecursionError,OverflowError) as exc:
         print(json.dumps({'schema':'mid.740.real-installer-artifact-shadow.v1',
                           'status':'BLOCKED','reason':str(exc),
                           'producerVerified':False,'nativeReviewVerified':False,
