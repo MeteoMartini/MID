@@ -33,6 +33,12 @@ def fetch(url:str,timeout=30,retries=DEFAULT_FETCH_RETRIES)->bytes:
 
 def sha(data:bytes)->str:return hashlib.sha256(data).hexdigest()
 
+def safe_object_key(key)->bool:
+    return (isinstance(key,str) and key.startswith('runs/') and
+            not any(mark in key for mark in ('\\','?','#','%')) and
+            not any(ord(char)<32 or ord(char)==127 for char in key) and
+            all(part not in ('','.','..') for part in key.split('/')))
+
 def restore(base:str,target:Path,required=False,workers=16):
     base=base.rstrip('/')+'/'
     try:meta_bytes=fetch(urllib.parse.urljoin(base,'latest.json')+'?mid_ruc_restore='+str(time.time_ns()),15)
@@ -67,15 +73,14 @@ def restore(base:str,target:Path,required=False,workers=16):
     for row in objects:
         if not isinstance(row,dict): raise RuntimeError('invalid RUC object manifest entry')
         key=row.get('key')
-        if (not isinstance(key,str) or not key.startswith('runs/') or
-            any(part in ('','.','..') for part in key.split('/'))):
+        if not safe_object_key(key):
             raise RuntimeError(f'unsafe RUC object key: {key}')
         if key in keys: raise RuntimeError(f'duplicate RUC object key: {key}')
         keys.add(key)
     tmp=target.with_name(target.name+'.tmp');shutil.rmtree(tmp,ignore_errors=True);tmp.mkdir(parents=True)
     def one(row):
         key=str(row.get('key') or '')
-        if not key.startswith('runs/') or '..' in key.split('/'): raise RuntimeError(f'unsafe RUC object key: {key}')
+        if not safe_object_key(key): raise RuntimeError(f'unsafe RUC object key: {key}')
         data=fetch(urllib.parse.urljoin(base,key),45)
         if len(data)!=int(row.get('bytes') or -1) or sha(data)!=row.get('sha256'): raise RuntimeError(f'RUC object verification failed: {key}')
         path=tmp/key;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(data)

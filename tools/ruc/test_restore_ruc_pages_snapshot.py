@@ -99,7 +99,11 @@ def run():
                    'sha256':hashlib.sha256(payload).hexdigest()}
             conflicting={**valid,'sha256':hashlib.sha256(b'other').hexdigest()}
             aliased={**valid,'key':'runs/test//x.bin'}
-            for rows in ([valid,dict(valid)],[valid,conflicting],[aliased]):
+            unsafe_keys=[r'runs/test\a.bin','runs/test?q.bin','runs/test#f.bin',
+                         'runs/test%2Fescape.bin','runs/test/../escape.bin','runs/test/\x00x.bin']
+            invalid_inventories=[[valid,dict(valid)],[valid,conflicting],[aliased]]
+            invalid_inventories.extend([[{**valid,'key':key}] for key in unsafe_keys])
+            for rows in invalid_inventories:
                 bad_meta={'storageProfile':'pages-free-v1','run':'2026-10-09T17:00',
                           'pages':{'objects':rows}}
                 object_calls=[]
@@ -111,7 +115,9 @@ def run():
                 try:
                     module.restore('https://midwx.app/ruc/',target,True,2)
                     raise AssertionError('duplicate or noncanonical object key accepted')
-                except RuntimeError:pass
+                except RuntimeError as error:
+                    assert ('duplicate RUC object key:' in str(error) or
+                            'unsafe RUC object key:' in str(error)),f'unexpected RUC error: {error}'
                 assert object_calls==[], 'manifest must fail before concurrent downloads'
                 assert (target/'old').read_bytes()==b'previous-good-snapshot'
                 assert not target.with_name('ruc.tmp').exists()
