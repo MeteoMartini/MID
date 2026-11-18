@@ -99,6 +99,8 @@ describe('MID Karten · RainViewer free API original observations and foreground
   expect(src).toContain('rainViewerPastObservations(data,Date.now()/1000)');
   expect(src).not.toContain("...(data.radar?.nowcast??[]).map(item=>({...item,future:true}))");
   expect(src).toContain("document.addEventListener('visibilitychange',visibilityChanged)");
-  expect(src).toContain("window.addEventListener('pageshow',visibilityChanged)");
+  expect(src).toContain("window.addEventListener('pagehide',onPageHide)");
+  expect(src).toContain("window.addEventListener('pageshow',onPageShow)");
+  expect(src).toContain('href="https://www.rainviewer.com/"');
  });
 });
