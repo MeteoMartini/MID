@@ -26,9 +26,19 @@ for(const token of [
 ])assert.ok(app.includes(token),'Gesundheitswetter-/Pollenvertrag fehlt: '+token);
 assert.ok(settingsCss.includes('.settings-split-navigation>.settings-section,.settings-split-navigation>.time-display-settings'),'Bestehender Settings-Split darf Darstellungsoptionen weiterhin ausblenden.');
 assert.ok(responsiveCss.includes('.settings-split-navigation>.settings-primary-options,'),'Responsive Split darf den Darstellungscontainer weiterhin ausblenden.');
-const primaryEnd=app.indexOf('</section>{section===\'navigation\'&&<><div className="settings-option-list settings-health-weather">');
+const primaryNavigation='<div className="settings-option-list settings-health-weather">';
+const plain='</section>{section===\'navigation\'&&<>'+primaryNavigation;
+const gated='</section>}{section===\'navigation\'&&<>'+primaryNavigation;
+const hasPrimaryGate=app.includes("{(section==='view'||section==='weather')&&<section className=\"settings-section settings-primary-options\">");
+const primaryEnd=app.indexOf(hasPrimaryGate?gated:plain);
 const moduleSettings=app.indexOf('<DashboardModuleSettingsPanel settings={dashboardModuleSettings}');
 assert.ok(primaryEnd>0&&moduleSettings>primaryEnd,'Gesundheitswetter/Inhaltsmodule müssen außerhalb des ausgeblendeten Primary-Containers und vor der Modulreihenfolge liegen.');
+if(hasPrimaryGate){
+ assert.ok(app.includes("{section==='navigation'&&<DashboardModuleSettingsPanel settings={dashboardModuleSettings}"),
+  'Bei aktivem Split darf die Modulreihenfolge ausschließlich im Navigationstab mounten.');
+ assert.ok(app.indexOf(gated)>app.indexOf("{(section==='view'||section==='weather')&&<section className=\"settings-section settings-primary-options\">"),
+  'Der Settings-Primary-Container muss vor der Navigation geschlossen und selbst korrekt gegatet sein.');
+}
 assert.ok(app.indexOf('settings-health-weather',primaryEnd)<app.indexOf('settings-content-modules',primaryEnd),'Gesundheitswetter muss vor den übrigen optionalen Inhaltsmodulen stehen.');
 
 // Primärnavigation: explizit und unabhängig vom Untermodul persistieren.
