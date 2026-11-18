@@ -5,7 +5,7 @@ import {verifiedCumulativeEnsembleRain,type CumulativeEnsembleDay} from '../../s
 const days=(from='2026-11-01',count=7)=>Array.from({length:count},(_,i)=>
  new Date(Date.parse(from+'T00:00:00Z')+i*86400000).toISOString().slice(0,10));
 const records=(dates:readonly string[],values:readonly number[]):CumulativeEnsembleDay[]=>
- dates.map((date,i)=>({date,precipitation:values[i]}));
+ dates.map((date,i)=>({date,precipitation:values[i],complete:{precipitation:true}}));
 describe('MID Audit 1.2 · cumulative ensemble precipitation retains genuine gaps',()=>{
  it('retains a valid zero-rain event exactly as 0, not NoData',()=>{
   const dates=days();
@@ -14,6 +14,11 @@ describe('MID Audit 1.2 · cumulative ensemble precipitation retains genuine gap
  it('sums all seven genuine complete daily rainfall values',()=>{
   const dates=days();
   expect(verifiedCumulativeEnsembleRain(records(dates,[0,1,0,2,3,0,4]),new Set(dates))).toBe(10);
+ });
+ it('rejects incomplete hourly precipitation coverage even if daily amount appears numeric',()=>{
+  const dates=days(),rows=records(dates,[0,1,2,3,4,5,6]);
+  expect(verifiedCumulativeEnsembleRain([{...rows[0],complete:{precipitation:false}},...rows.slice(1)],new Set(dates))).toBeNull();
+  expect(verifiedCumulativeEnsembleRain([{date:rows[0].date,precipitation:0},...rows.slice(1)],new Set(dates))).toBeNull();
  });
  it('rejects one missing source member day instead of inventing a dry day',()=>{
   const dates=days(),rows=records(dates,[0,1,2,3,4,5,6]).filter((_,i)=>i!==3);

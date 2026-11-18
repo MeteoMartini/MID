@@ -11,6 +11,7 @@ const failures=[];
 for(const token of [
  'seen.size===requiredDates.size?total:null',
  'if(seen.has(row.date))return null',
+ 'row.complete?.precipitation!==true',
  '!Number.isFinite(row.precipitation)||row.precipitation<0',
  'day-previous!==86_400_000'
 ])if(!scientificGuard.includes(token))failures.push(`Member-Originalbeleg fehlt: ${token}`);

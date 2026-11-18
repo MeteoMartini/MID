@@ -5,7 +5,7 @@
  * and finite extremes are preserved. This does not itself authenticate a
  * provider header or the underlying local-day accumulation interval.
  */
-export type CumulativeEnsembleDay=Readonly<{date:string;precipitation:number}>;
+export type CumulativeEnsembleDay=Readonly<{date:string;precipitation:number;complete?:Readonly<{precipitation?:boolean}>}>;
 
 function utcCalendarDay(date:string):number|null{
  if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return null;
@@ -34,6 +34,7 @@ export function verifiedCumulativeEnsembleRain(
  for(const row of memberDays){
   if(!requiredDates.has(row.date))continue;
   if(seen.has(row.date))return null;
+  if(row.complete?.precipitation!==true)return null;
   if(typeof row.precipitation!=='number'||
      !Number.isFinite(row.precipitation)||row.precipitation<0)return null;
   seen.add(row.date);
