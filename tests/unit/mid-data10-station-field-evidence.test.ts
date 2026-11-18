@@ -1,7 +1,7 @@
 import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
-import {stationFieldAgeMinutes,stationObservationNumber} from '../../src/stationFieldEvidence';
+import {stationCalendarDateValid,stationFieldAgeMinutes,stationObservationNumber} from '../../src/stationFieldEvidence';
 import {fieldObservationRelevance,fieldRelevanceLimits} from '../../src/sourceQuality';
 const NOW=Date.parse('2026-11-18T12:00:00Z');
 const read=(p:string)=>readFileSync(fileURLToPath(new URL('../../'+p,import.meta.url)),'utf8');
@@ -19,6 +19,20 @@ describe('MID Data 1.0 · source-time and missing-station-value admission',()=>{
  it('rejects reports more than five minutes ahead, retaining bounded time-skew allowance',()=>{
   expect(stationFieldAgeMinutes('2026-11-18T12:06:00.000Z',NOW)).toBe(Infinity);
   expect(stationFieldAgeMinutes('2026-11-18T12:03:00.000Z',NOW)).toBe(0);
+ });
+ it('rejects invalid source calendar days before Date normalization',()=>{
+  for(const raw of ['2026-02-31T12:00:00Z','2026-04-31T12:00:00Z','1900-02-29T12:00:00Z','2026-00-12T12:00:00Z']){
+   expect(stationCalendarDateValid(raw)).toBe(false);
+   expect(stationFieldAgeMinutes(raw,NOW)).toBe(Infinity);
+  }
+  for(const raw of ['2024-02-29T12:00:00Z','2000-02-29T12:00:00Z','2026-11-18T12:00:00Z'])expect(stationCalendarDateValid(raw)).toBe(true);
+  expect(fragment).toContain("value===''||!stationCalendarDateValid(value)");
+ });
+ it('keeps duplicate-station zero and rejects invalid candidate values',()=>{
+  const values=[null,0,undefined,'',-1];
+  expect(values.filter(value=>Number.isFinite(stationObservationNumber(value))&&stationObservationNumber(value)>=0)).toEqual([0]);
+  expect(fragment).toContain("candidates=[a,b].filter(candidate=>{const value=stationObservationNumber(candidate[field])");
+  expect(fragment).toContain("fields.some(field=>{const value=stationObservationNumber(station[field])");
  });
  it('preserves physical zero and refuses null/blank/boolean/invalid sensor values',()=>{
   expect(stationObservationNumber(0)).toBe(0);
