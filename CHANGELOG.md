@@ -1,3 +1,8 @@
+# MID v0.9.85.490
+
+- Auf Touch-Geräten wird die neue Reihenfolge beim Loslassen über einem anderen gültigen Modul gespeichert. Ein ungültiges Loslassen oder ein Abbruch verwirft die Vorschau.
+- Der Wetterzwilling zeigt fehlende Temperatur- und Niederschlagsmessungen ausdrücklich als fehlend an. Tatsächlich gemessene 0 mm bleiben als Messwert sichtbar.
+
 # MID v0.9.85.489
 
 - Der Wetterzwilling wertet archivierte Modellvorläufe nur aus, wenn Ausgabezeit, örtlicher Zielmittag und tatsächliche Zeitdifferenz zusammenpassen. Unplausible Horizonte beeinflussen die Prognosegüte nicht.

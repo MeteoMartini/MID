@@ -1,3 +1,7 @@
+# MID v0.9.85.490 · Touch-Sortierung und Wetterzwilling-Messlücken
+
+Basis: MID v0.9.85.489, `5fe79b03852a7464b4a510813920c1965d8ee0d0`. Quell- und Testdateien aus #900 (`d44d8dddbb63f4f31136dd518895ed51a27c0b61`) und #907 (`ca7d3ce048d48801879c14fbfc1ab874a6f64c7f`) wurden mit Stable abgeglichen und blob-identisch übernommen. Status: Source-Kandidat. Die Veröffentlichung setzt den erfolgreichen Release-Train voraus. [Release-Notizen](docs/releases/MID_RELEASE_NOTES_0.9.85.490.json), [Touch-Umsetzung](docs/implementation/MID_DESIGN20_DASHBOARD_TOUCH_TRANSACTION_2026_11_17.md) und [Messwert-Umsetzung](docs/implementation/MID_AUDIT10_OBSERVATION_DISPLAY_2026_11_17.md).
+
 # MID v0.9.85.489 · Archiv-Vorlauf und Changelog-Integrität
 
 Verifizierter Source-Train ab Stable `9fe4dfbcdfd5a1f8fec55efa868e22110a612953` / v0.9.85.488; Audit-Quellkandidat #899 `115012fce035b4d7dfc6eb937654bcda93ce8fb5` mit sechs Originalblobs, Changelog-Quellkorrektur aus #868 `dd9a9cc6eaca641785b095bf79862a4b1ba051cd` mit drei unveränderten Originalblobs. Versionierte Notizen unter `docs/releases/MID_RELEASE_NOTES_0.9.85.489.json`, technische Provenienz unter `docs/implementation/MID_LC_RELEASE_TRAIN_489_2026_11_17.md`. Geänderter `sync-version`-Vertrag aktualisiert nur den neuen Changelog-Abschnitt und bewahrt vorherige Inhalte exakt. Keine Integration der übrigen Karten-/Security-Spezialpfade. Fehlende GitHub-Release-Tags separat als #901, #839/#740 weiter unabhängig. Kein Release ohne vollständige SHA-/Core-/Heavy-/Review-/Installer-/Pages-/Worker-/Stable-Gates.

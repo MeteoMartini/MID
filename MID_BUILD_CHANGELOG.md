@@ -1,3 +1,7 @@
+## MID v0.9.85.490 · 2026-11-18 · Touch-Sortierung und Wetterzwilling-Messlücken
+
+Basis: MID v0.9.85.489, `5fe79b03852a7464b4a510813920c1965d8ee0d0`. Quell- und Testdateien aus #900 (`d44d8dddbb63f4f31136dd518895ed51a27c0b61`) und #907 (`ca7d3ce048d48801879c14fbfc1ab874a6f64c7f`) wurden mit Stable abgeglichen und blob-identisch übernommen. Die kombinierte Abnahme erfolgt über den Release-Train.
+
 ## MID v0.9.85.489 · 2026-11-17 · Archiv-Vorlauf und Changelog-Integrität
 
 - Ausgangs-Stable main=mid-stable=9fe4dfbcdfd5a1f8fec55efa868e22110a612953 / v0.9.85.488, fünf unveränderte aktive Rulesets.
