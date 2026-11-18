@@ -4,6 +4,7 @@ import datetime as dt
 import importlib.util
 import json
 import os
+import sys
 import tempfile
 import contextlib
 import io
@@ -323,3 +324,42 @@ assert 'listing=bounded_eps_listing_complete(dwd)' in main_source
 assert 'now=dt.datetime.now(dt.timezone.utc)' in main_source
 
 print('RUC EPS advertised-incomplete 20x28 directory guard: fail-open negatives and healthy-only wait PASS')
+
+# MID LC 1.18 regression: a genuinely expired newest common DWD/EPS
+# directory must fail explicitly BEFORE expensive pip/ecCodes/GRIB steps.
+# A stale Pages pointer is never a healthy outcome or an EPS value of zero.
+RUC_NOW=dt.datetime(2026,11,18,9,11,tzinfo=dt.timezone.utc)
+for source,expected in [
+    ('2026-11-17T22:00',True),('2026-11-18T06:00',False),
+    ('2026-11-18T05:11',False),('2026-11-18T05:10',True),
+    ('2026-11-18T10:00',False),('2026-02-30T00:00',False),
+    ('not-a-run',False)]:
+    assert guard.joint_run_expired(source,now=RUC_NOW)==expected, source
+assert guard.joint_run_expired('2026-11-18T05:11',now=RUC_NOW,max_age_minutes=200)
+assert guard.joint_run_expired('2026-11-17T22:00',now=RUC_NOW,max_age_minutes=600)
+assert not guard.joint_run_expired('2026-11-17T22:00',now=RUC_NOW,max_age_minutes=0)
+assert not guard.joint_run_expired('2026-11-17T22:00',now=RUC_NOW.replace(tzinfo=None))
+# Test the ACTUAL main() fail-fast path without a DWD network request.
+with tempfile.TemporaryDirectory() as directory:
+    output=Path(directory)/'github_outputs.txt'
+    summary=Path(directory)/'summary.md'
+    with mock.patch.object(guard,'newest_common_run',return_value='2026-11-17T22:00'), \
+         mock.patch.object(guard,'published_meta',return_value=meta('2026-11-17T07:00')), \
+         mock.patch.object(guard,'report_run'), \
+         mock.patch.object(sys,'argv',['guard.py','--github-output',str(output)]), \
+         mock.patch.dict(os.environ,{'GITHUB_STEP_SUMMARY':str(summary)}), \
+         mock.patch.object(guard,'joint_run_expired',return_value=True):
+        out=io.StringIO();err=io.StringIO()
+        with contextlib.redirect_stdout(out),contextlib.redirect_stderr(err):
+            code=guard.main()
+    # This is a red job by design; no deceptive success or publisher dispatch.
+    assert code==1
+    assert '::error::' in err.getvalue() and 'kein Decode/Release' in err.getvalue()
+    result=dict(line.split('=',1) for line in output.read_text().strip().splitlines())
+    assert result['should_run']=='false'
+    assert result['published_run']=='2026-11-17T07:00'
+    assert result['dwd_run']=='2026-11-17T22:00'
+    metrics=json.loads(result['freshness_metrics'])
+    assert metrics['shouldRun'] is False and metrics['reason']==result['reason']
+    assert 'RUC-Aktualitätsdiagnostik' in summary.read_text()
+print('RUC expired joint source: no wasted decode, explicit failure and NoData preserved PASS')

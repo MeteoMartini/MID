@@ -1,3 +1,7 @@
+## MID v0.9.85.492 · 2026-11-18 · Frischeprüfung für RUC-Niederschlagsdaten
+
+Basis: MID v0.9.85.491, `3f9c5e24dc55fa5154732a1ba73961ba76c29788`. Drei unveränderte Originalblobs aus #541, QA-HEAD `70cc07b881dd18e780e0c4e5d08c5759fbe60305`. Vorgesehen für das vollständige MID Source-Gate und den regulären Release-Train. Fast-Lane und RUC-Veröffentlichungsvorgaben bleiben unverändert.
+
 ## MID v0.9.85.491 · 2026-11-18 · Ensemble-Skalierung, Kartenlegende und vollständige Wochenwerte
 
 Basis: MID v0.9.85.490, `42c188f44606f511826d2b6665b764c36b23412c`. Zwölf Originalblobs aus #913 (`f99b5e5ebc31fdaa923a6919d36de172ffbd5e4d`), #916 (`e5d4702ca88979c35e213ec2b6622de95cd13e2b`), #917 (`c9a7247a9426fe877616bb02ddd467af05205f48`) wurden mit Stable abgeglichen.

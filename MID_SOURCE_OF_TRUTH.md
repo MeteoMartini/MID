@@ -1,3 +1,7 @@
+# MID v0.9.85.492 · Frischeprüfung für RUC-Niederschlagsdaten (Source-Kandidat)
+
+Basis: MID v0.9.85.491, `3f9c5e24dc55fa5154732a1ba73961ba76c29788`. Drei unveränderte Originalblobs aus #541, QA-HEAD `70cc07b881dd18e780e0c4e5d08c5759fbe60305`. Vorgesehen für das vollständige MID Source-Gate und den regulären Release-Train. Fast-Lane und RUC-Veröffentlichungsvorgaben bleiben unverändert.
+
 # MID v0.9.85.491 · Ensemble-Skalierung, Kartenlegende und vollständige Wochenwerte
 
 Status: Source-Kandidat. Source-, Review-, Installer-, Worker-/Pages- und Stable-Freigaben stehen aus. [Release-Notizen](docs/releases/MID_RELEASE_NOTES_0.9.85.491.json) und [Umsetzung](docs/implementation/MID_DESIGN112_ENSEMBLE_SCALE_BENCHMARK_HANDOFF_2026_11_17.md), [Umsetzung](docs/implementation/MID_DESIGN114_MODEL_MAP_LEGEND_CONTAINER_2026_11_18.md), [Umsetzung](docs/implementation/MID_AUDIT11_SUBSEASONAL_WEEK_COVERAGE_2026_11_18.md).
