@@ -1,3 +1,11 @@
+## MID v0.9.85.496 · 2026-11-18 · PR-Cleaner, Stationsprovenienz und RUC-Restore
+
+- Ausgangs-Stable v0.9.85.495 auf 8382ff3461ae21a385636e8261104b99bb8fccd0; fünf aktive Branch-Rulesets. Alle Original-Git-Blobs aus drei parallel geprüften QA-Drafts auf unverändertem Stable geprüft.
+- Selektive 16 Dateien: Cleaner #941 (HEAD 710d3b7e06fb6dac860e313ea79164b4504a078a, sieben Dateien), Stationsprovenienz #940 (HEAD 4e568721389eb260f90c5ff1a3a78fcf75947070, sieben Dateien), RUC-Restore #939 (HEAD 025595b1d0b70fb880005fb6eb435ca0fa2fdb2e, zwei Dateien). Ursprüngliche Draft-Branches unverändert; #939-Basisblobs .494 und .495 identisch.
+- Unprivilegierter GitHub-pull_request-Intake mit ausschließlicher Stable-Checkout-Ausführung und read-only SHA-/Blob-/Peer-Vergleichen; keinerlei Schließ-, Merge- oder Freigabeberechtigung. Ein grünes stable_ready ohne ausgeführten intake ist kein Cleaner-PASS.
+- Stationsdaten: originale UTC-Messzeit und Missing/Null getrennt, neue Quellenhelper und vollständige unveränderte 4-Fragment-Aggregation von src/weather.ts. RUC: doppelte oder nichtkanonische Restore-Manifest-Schlüssel vor jedem parallelen Download/Write ausschließen, Originalwerte unverändert.
+- Vorqualifizierte Einzel-CI: #941 44411135343 (458 passed, 3 skipped), #940 44397398591 SUCCESS, #939 44392686616 SUCCESS. Vollständige kombinierte Source-/Review-/Core-/Heavy-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates bleiben auf diesem HEAD separat erforderlich, ebenso nach Stable-Promotion ein tatsächlicher neuer PR-Event mit intake-Job SUCCESS. Dokumentation erteilt keine Freigabe.
+
 ## MID v0.9.85.495 · 2026-11-18 · Ensemble- und Stations-Niederschlagsdaten ohne falsche Nullwerte
 
 - Ausgangs-Stable v0.9.85.494 auf eee0bb0ac351115f5e85b7625825cc8d1376594f. Exakte ursprüngliche Git-Produkt- und Testblobs aus QA-Draft #919 (HEAD d3a0f9b6cb8f893d01dccf56bb30a0f0708493d6) sowie #936 (HEAD e802d2aae99c661d48d27a179d74446082a74439), auf aktuellem Stable konfliktfrei. Isolierte Vor-CI: #44272385899 (919) und #44386911744 (936), jeweils SUCCESS, nicht als kombiniertes Gate werten.

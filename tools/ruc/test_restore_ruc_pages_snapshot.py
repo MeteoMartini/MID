@@ -89,6 +89,32 @@ def run():
                     assert not (target/'latest.json').exists()
                     assert len(calls)==(module.DEFAULT_FETCH_RETRIES+1 if mode=='interrupted' else 1)
                 assert not target.with_name('ruc.tmp').exists()
+        # Concurrent writes cannot safely consume repeated or aliased paths.
+        # Reject their manifest before any object download or target mutation.
+        with tempfile.TemporaryDirectory() as directory:
+            target=Path(directory)/'ruc';target.mkdir()
+            (target/'old').write_bytes(b'previous-good-snapshot')
+            payload=b'complete-native-object'
+            valid={'key':'runs/test/x.bin','bytes':len(payload),
+                   'sha256':hashlib.sha256(payload).hexdigest()}
+            conflicting={**valid,'sha256':hashlib.sha256(b'other').hexdigest()}
+            aliased={**valid,'key':'runs/test//x.bin'}
+            for rows in ([valid,dict(valid)],[valid,conflicting],[aliased]):
+                bad_meta={'storageProfile':'pages-free-v1','run':'2026-10-09T17:00',
+                          'pages':{'objects':rows}}
+                object_calls=[]
+                def bad_inventory(req,timeout=0):
+                    if 'latest.json' in req.full_url:return Response(json.dumps(bad_meta).encode())
+                    object_calls.append(req.full_url)
+                    return Response(payload)
+                module.urllib.request.urlopen=bad_inventory
+                try:
+                    module.restore('https://midwx.app/ruc/',target,True,2)
+                    raise AssertionError('duplicate or noncanonical object key accepted')
+                except RuntimeError:pass
+                assert object_calls==[], 'manifest must fail before concurrent downloads'
+                assert (target/'old').read_bytes()==b'previous-good-snapshot'
+                assert not target.with_name('ruc.tmp').exists()
         assert module.MAX_RESTORE_WORKERS==8
     finally:
         module.urllib.request.urlopen=original_open;module.time.sleep=original_sleep
