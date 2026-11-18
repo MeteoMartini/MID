@@ -60,4 +60,8 @@ describe('MID Design19 – selected-place bar, full location/alias label across 
   }
   expect(render('Rheidt',false)).not.toContain('<span>Standort</span>');
  });
+ it('does not add JS listeners, timers, new network requests or a second favorite-state owner',()=>{
+  const src=SelectedPlaceBar.toString();
+  expect(src).not.toMatch(/setInterval|setTimeout|fetch\(|addEventListener|useEffect|useState|localStorage|scrollIntoView/);
+ });
 });

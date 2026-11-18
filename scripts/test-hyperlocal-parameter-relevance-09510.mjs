@@ -25,6 +25,13 @@ const qualityModule=await import(`data:text/javascript;base64,${Buffer.from(comp
 assert.equal(qualityModule.fieldObservationRelevance('temperature',90,5,0,10),0,'90 Minuten alte Temperatur darf nicht mehr ankern.');
 assert.equal(qualityModule.fieldObservationRelevance('temperature',10,50,0,10),0,'50 km entfernte Temperatur darf nicht mehr ankern.');
 assert.equal(qualityModule.fieldObservationRelevance('precipitation',45,2,0,5),0,'45 Minuten alter Punktniederschlag darf nicht mehr ankern.');
+// Missing source-time, geometry and precipitation observations must not become high-quality zeros.
+assert.equal(qualityModule.fieldObservationRelevance('temperature',NaN,2,0,10),0,'NaN-Alter ist kein frischer hyperlokaler Anker.');
+assert.equal(qualityModule.fieldObservationRelevance('pressure',45,NaN,0,60),0,'NaN-Entfernung darf QFF nicht auf 0 km setzen.');
+assert.equal(qualityModule.fieldObservationRelevance('precipitation',5,2,NaN,5),0,'NaN-Höhendifferenz ist keine Nullhöhe.');
+assert.equal(qualityModule.fieldObservationCanAnchor('pressure',45,NaN),false,'Druck darf bei fehlender Distanz nicht ankern.');
+assert.equal(qualityModule.normalisePrecipitationAccumulation(-.1,10,60),undefined,'Negativer Niederschlag ist Missing, nicht 0 mm.');
+assert.equal(qualityModule.normalisePrecipitationAccumulation(0,10,60),0,'Echte gemessene Trockenheit (0 mm) bleibt erhalten.');
 const freshTemp=qualityModule.fieldObservationRelevance('temperature',8,3,40,10),marginalTemp=qualityModule.fieldObservationRelevance('temperature',55,30,100,60);
 assert.ok(freshTemp>marginalTemp*12,'Frische, nahe Temperaturmessung muss deutlich stärker gewichtet werden.');
 assert.ok(qualityModule.fieldObservationRelevance('pressure',90,50,80,60)>0,'Luftdruck darf aufgrund seiner räumlichen Glätte länger/weiter stützen.');
