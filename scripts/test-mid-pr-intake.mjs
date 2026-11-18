@@ -136,7 +136,7 @@ test('workflow mirrors match exactly and never execute the triggering PR', async
   const canonical=await readFile(join(root,'ci/github/workflows/mid-pr-intake.yml'),'utf8');
   assert.equal(active,canonical);
   for(const required of [
-    'pull_request_target:',
+    'pull_request:\n    branches: [main]',
     'permissions:\n  contents: read\n  pull-requests: read',
     'ref: mid-stable',
     'persist-credentials: false',
@@ -145,6 +145,7 @@ test('workflow mirrors match exactly and never execute the triggering PR', async
     'node --test scripts/test-mid-pr-intake.mjs',
     'node tools/ci/mid-pr-intake.mjs',
   ])assert.ok(canonical.includes(required),required);
+  assert.ok(!canonical.includes('pull_request_target:'));
   assert.ok(!/^\s+(?:contents|pull-requests|issues): write\s*$/m.test(canonical));
   assert.ok(!/\bgh pr (merge|close)\b|git push|workflow_dispatch.*install-mid/.test(canonical));
   const checkout=canonical.slice(canonical.indexOf('uses: actions/checkout@'),canonical.indexOf('- name: Node.js'));
