@@ -50,7 +50,7 @@ describe('MID Audit 1.2 · independent 15/30/60 min nowcast verification (QA-onl
    {forecastOrigin:'reconstructed'},{forecastOrigin:'historical-replay'},
    {referenceKind:'radar-product'},{referenceQuality:'recent-provisional'},
    {stationMetadataVerified:false},{spatialMatchVerified:false},
-   {baselineOrigin:'posthoc'},{baselineIssuedAtMs:base+M},
+   {baselineOrigin:'posthoc'},{baselineIssuedAtMs:base+M},{baselineIssuedAtMs:base-4*M},
    {forecastSha256:'wrong'}
   ];
   for(const c of cases)expect(summarizeTwinNowcastVerification([sample(c)],window).acceptedCases).toBe(0);
