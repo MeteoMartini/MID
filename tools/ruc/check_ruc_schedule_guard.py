@@ -419,15 +419,16 @@ def main(*, now:dt.datetime|None=None)->int:
     if not error:
         try:meta=published_meta(args.pages_base)
         except Exception as exc:error=f'Pages latest failed: {type(exc).__name__}: {exc}'
+    clock=now if now is not None else dt.datetime.now(dt.timezone.utc)
     if error:
         should_run=True;reason=f'{error}; fail-open build';published=str((meta or {}).get('run') or '')
     else:
-        should_run,reason,dwd,published=decide(dwd,meta,now=now,max_age_minutes=args.max_age_minutes)
+        should_run,reason,dwd,published=decide(dwd,meta,now=clock,max_age_minutes=args.max_age_minutes)
         # A demonstrably expired newest common DWD/EPS run cannot yield a
         # fresh full product. Fail the job explicitly *before* pip/ecCodes and
         # the 500+ GRIB download; never call it an up-to-date no-op. Manual
         # --run qualification and authenticated snapshot reuse are separate.
-        expired=valid_pages_meta(meta) and joint_run_expired(dwd,now=now,max_age_minutes=args.max_age_minutes)
+        expired=valid_pages_meta(meta) and joint_run_expired(dwd,now=clock,max_age_minutes=args.max_age_minutes)
         if expired:
             should_run=False
             reason=('Kein frischer gemeinsamer DWD-RUC/RUC-EPS-Lauf: '
@@ -439,13 +440,12 @@ def main(*, now:dt.datetime|None=None)->int:
         # On index uncertainty, bad metadata or stale Pages, fail open.
         if should_run and dwd and meta and valid_pages_meta(meta) and meta.get('storageProfile')==FULL_STORAGE_PROFILE:
             try:
-                clock=dt.datetime.now(dt.timezone.utc)
                 age=(clock-run_time(published)).total_seconds()/60
                 if (0<=age<=min(DEFAULT_MAX_AGE_MINUTES,max(1,args.max_age_minutes))
                     and run_time(dwd)-run_time(published)==dt.timedelta(hours=1)):
                     listing=bounded_eps_listing_complete(dwd)
                     if may_defer_incomplete_eps(dwd,published,meta,listing,
-                                                 now=dt.datetime.now(dt.timezone.utc),
+                                                 now=clock,
                                                  max_age_minutes=args.max_age_minutes):
                         should_run=False
                         reason='Neuer DWD-EPS20-Dateiindex unvollständig; gültiger Pages-Lauf bleibt bis zur nächsten Prüfung'
@@ -456,7 +456,7 @@ def main(*, now:dt.datetime|None=None)->int:
     if published:
         print(f'Published Pages run: {published}')
         if not expired:report_run('bereits auf Pages veröffentlicht',published)
-    report=freshness_report(dwd,meta,should_run,reason)
+    report=freshness_report(dwd,meta,should_run,reason,now=clock)
     report_freshness(report,os.getenv('GITHUB_STEP_SUMMARY'))
     write_github_outputs(args.github_output,[
         ('should_run','true' if should_run else 'false'),

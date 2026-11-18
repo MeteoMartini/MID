@@ -321,7 +321,7 @@ assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,False,n
 import inspect
 main_source=inspect.getsource(guard.main)
 assert 'listing=bounded_eps_listing_complete(dwd)' in main_source
-assert 'now=dt.datetime.now(dt.timezone.utc)' in main_source
+assert 'now=clock' in main_source
 
 print('RUC EPS advertised-incomplete 20x28 directory guard: fail-open negatives and healthy-only wait PASS')
 
@@ -360,6 +360,7 @@ with tempfile.TemporaryDirectory() as directory:
     assert result['dwd_run']=='2026-11-17T22:00'
     metrics=json.loads(result['freshness_metrics'])
     assert metrics['shouldRun'] is False and metrics['reason']==result['reason']
+    assert metrics['upstreamRunAgeMinutes']==671
     assert 'RUC-Aktualitätsdiagnostik' in summary.read_text()
 print('RUC expired joint source: no wasted decode, explicit failure and NoData preserved PASS')
 
