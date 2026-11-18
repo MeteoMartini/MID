@@ -16,9 +16,14 @@ export function radarForecastCoverage(radar:RadarNowcast,minutes=120){
  for(const frame of radar.nowcastSeries??[]){
   const epoch=Date.parse(frame.time);
   if(!Number.isFinite(epoch))continue;
-  // An ambiguous duplicate must not silently replace a missing frame with a dry one, or vice versa.
-  if(byTime.has(epoch))byTime.set(epoch,null);
-  else byTime.set(epoch,frame);
+  const previous=byTime.get(epoch);
+  if(previous===undefined){byTime.set(epoch,frame);continue}
+  // Identical evidence counts once. Conflicting or unavailable evidence leaves the slot unverified.
+  if(!previous||!radarFrameAvailable(previous)||!radarFrameAvailable(frame)||
+   previous.future!==frame.future||previous.rate!==frame.rate||previous.amountMm!==frame.amountMm||
+   previous.intervalStartAt!==frame.intervalStartAt||previous.intervalEndAt!==frame.intervalEndAt){
+   byTime.set(epoch,null);
+  }
  }
  let availableSlots=0,partialAmountMm=0;
  for(let slot=1;slot<=expectedSlots;slot++){
