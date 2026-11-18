@@ -5,6 +5,7 @@ import {guardedOpenMeteoFetch,isOpenMeteoRateLimitError} from './openMeteoGuard'
 import type {EnsembleConfidenceCalibration,EnsembleParameter,EnsembleSkillBucket,EnsembleSkillMetric} from './ensembleAssessment';
 import {fetchWithDeadline} from './fetchDeadline';
 import {isFullDayForecastEvidenceIssuedBeforeDay} from './forecastCaptureEvidence';
+import {isArchivedDailyForecastLeadCoherent} from './forecastLeadTimeEvidence';
 import {isVerifiableTwinRainProbability} from './twinProbabilityValidity';
 import {isTwinVerifiedNonnegative,isTwinVerifiedTemperaturePair} from './twinObservationEvidence';
 
@@ -475,22 +476,23 @@ function isIndependentTwinReference(row:ForecastReference):boolean{
 }
 function chosenEvaluations(store:Store,beforeDate?:string){
  const references=new Map(store.references.filter(row=>(!beforeDate||row.date<beforeDate)&&isIndependentTwinReference(row)).map(row=>[row.date,row]));
- const byKey=new Map<string,ForecastCapture[]>(),dayBounds=new Map<string,{start:number;end:number;valid:boolean}>(),now=Date.now();
+ const byKey=new Map<string,ForecastCapture[]>(),dayBounds=new Map<string,{start:number;noon:number;end:number;valid:boolean}>(),now=Date.now();
  for(const capture of store.captures){
   if(beforeDate&&capture.targetDate>=beforeDate||!references.has(capture.targetDate))continue;
   const boundsKey=capture.targetDate+'|'+String(capture.timezone||''),cached=dayBounds.get(boundsKey);
   let bounds=cached;
   if(!bounds){
-   const start=localDateTimeEpoch(capture.targetDate,capture.timezone,0,0),end=localDateTimeEpoch(capture.targetDate,capture.timezone,23,59);
-   const valid=Number.isFinite(start)&&Number.isFinite(end)&&end>start&&
+   const start=localDateTimeEpoch(capture.targetDate,capture.timezone,0,0),noon=localDateTimeEpoch(capture.targetDate,capture.timezone,12,0),end=localDateTimeEpoch(capture.targetDate,capture.timezone,23,59);
+   const valid=Number.isFinite(start)&&Number.isFinite(noon)&&Number.isFinite(end)&&end>noon&&noon>start&&
     (!capture.timezone||dateTimeParts(start,capture.timezone)!==null)&&
     (capture.timezone?dateAtEpoch(start,capture.timezone):new Date(start).toISOString().slice(0,10))===capture.targetDate;
-   bounds={start,end,valid};
+   bounds={start,noon,end,valid};
    dayBounds.set(boundsKey,bounds);
   }
   // Daily observed maxima, minima and 00–24h precipitation can contain facts
   // already known at issue time. Do not score same-day/hindsight snapshots.
-  if(!bounds.valid||bounds.end>=now||!isFullDayForecastEvidenceIssuedBeforeDay(capture.issuedAt,capture.leadHours,bounds.start))continue;
+  if(!bounds.valid||bounds.end>=now||!isFullDayForecastEvidenceIssuedBeforeDay(capture.issuedAt,capture.leadHours,bounds.start)||
+    !isArchivedDailyForecastLeadCoherent(capture.issuedAt,capture.leadHours,bounds.noon))continue;
   const horizon=horizonBucket(capture.leadHours),key=capture.targetDate+':'+horizon,list=byKey.get(key)??[];
   list.push(capture);byKey.set(key,list);
  }
