@@ -52,8 +52,13 @@ describe('MID Audit 1.0 · no hindsight in independent full-day skill',()=>{
    const date='2024-01-'+String(i+1).padStart(2,'0'),source={id:'qa-station',label:'Synthetische Station',kind:'measured',quality:.95};
    return{date,max:10,min:2,precipitation:0,source:source.label,regime:'wechselhaft',quality:.95,confidence:'high',kind:'measured',sources:[source],coverageHours:24};
   });
+  // Preserve all original hindsight/invalid-time scenarios; for the three
+  // eligible pre-day captures, the archived lead must match local noon.
+  const validLeads:[number,number,number]=[15,12,15];
   const captures=issued.map((issuedAt,i)=>({
-   id:'qa-'+i,targetDate:references[i].date,issuedAt,leadHours:i===6?null:24,timezone:i===8?'Invalid/Zone':'Europe/Berlin',predictedRegime:'wechselhaft',
+   id:'qa-'+i,targetDate:references[i].date,issuedAt,
+   leadHours:i===6?null:i===0?validLeads[0]:i===1?validLeads[1]:i===7?validLeads[2]:24,
+   timezone:i===8?'Invalid/Zone':'Europe/Berlin',predictedRegime:'wechselhaft',
    predictions:[{id:'best_match',label:'Best Match',max:10,min:2,precipitation:0,probability:0,probabilityKind:'daily-wet-native'}],
   }));
   const archive=JSON.stringify({version:3,updatedAt:'2024-01-09T00:00:00Z',captures,references,observations:[]});
