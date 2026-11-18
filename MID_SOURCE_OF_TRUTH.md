@@ -1,3 +1,9 @@
+# MID v0.9.85.491 · Ensemble-Skalierung, Kartenlegende und vollständige Wochenwerte
+
+Status: Source-Kandidat. Source-, Review-, Installer-, Worker-/Pages- und Stable-Freigaben stehen aus. [Release-Notizen](docs/releases/MID_RELEASE_NOTES_0.9.85.491.json) und [Umsetzung](docs/implementation/MID_DESIGN112_ENSEMBLE_SCALE_BENCHMARK_HANDOFF_2026_11_17.md), [Umsetzung](docs/implementation/MID_DESIGN114_MODEL_MAP_LEGEND_CONTAINER_2026_11_18.md), [Umsetzung](docs/implementation/MID_AUDIT11_SUBSEASONAL_WEEK_COVERAGE_2026_11_18.md).
+
+Basis: MID v0.9.85.490, `42c188f44606f511826d2b6665b764c36b23412c`. Zwölf Originalblobs aus #913 (`f99b5e5ebc31fdaa923a6919d36de172ffbd5e4d`), #916 (`e5d4702ca88979c35e213ec2b6622de95cd13e2b`), #917 (`c9a7247a9426fe877616bb02ddd467af05205f48`) wurden mit Stable abgeglichen.
+
 # MID v0.9.85.490 · Touch-Sortierung und Wetterzwilling-Messlücken
 
 Basis: MID v0.9.85.489, `5fe79b03852a7464b4a510813920c1965d8ee0d0`. Quell- und Testdateien aus #900 (`d44d8dddbb63f4f31136dd518895ed51a27c0b61`) und #907 (`ca7d3ce048d48801879c14fbfc1ab874a6f64c7f`) wurden mit Stable abgeglichen und blob-identisch übernommen. Status: Source-Kandidat. Die Veröffentlichung setzt den erfolgreichen Release-Train voraus. [Release-Notizen](docs/releases/MID_RELEASE_NOTES_0.9.85.490.json), [Touch-Umsetzung](docs/implementation/MID_DESIGN20_DASHBOARD_TOUCH_TRANSACTION_2026_11_17.md) und [Messwert-Umsetzung](docs/implementation/MID_AUDIT10_OBSERVATION_DISPLAY_2026_11_17.md).

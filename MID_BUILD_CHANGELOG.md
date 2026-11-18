@@ -1,3 +1,7 @@
+## MID v0.9.85.491 · 2026-11-18 · Ensemble-Skalierung, Kartenlegende und vollständige Wochenwerte
+
+Basis: MID v0.9.85.490, `42c188f44606f511826d2b6665b764c36b23412c`. Zwölf Originalblobs aus #913 (`f99b5e5ebc31fdaa923a6919d36de172ffbd5e4d`), #916 (`e5d4702ca88979c35e213ec2b6622de95cd13e2b`), #917 (`c9a7247a9426fe877616bb02ddd467af05205f48`) wurden mit Stable abgeglichen.
+
 ## MID v0.9.85.490 · 2026-11-18 · Touch-Sortierung und Wetterzwilling-Messlücken
 
 Basis: MID v0.9.85.489, `5fe79b03852a7464b4a510813920c1965d8ee0d0`. Quell- und Testdateien aus #900 (`d44d8dddbb63f4f31136dd518895ed51a27c0b61`) und #907 (`ca7d3ce048d48801879c14fbfc1ab874a6f64c7f`) wurden mit Stable abgeglichen und blob-identisch übernommen. Die kombinierte Abnahme erfolgt über den Release-Train.
