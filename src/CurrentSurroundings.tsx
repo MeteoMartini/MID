@@ -17,6 +17,7 @@ import {chooseSurroundingsCities,citiesFromMapFeatures,type SurroundingsCityCand
 import {loadSurroundingsTemperatures} from './currentSurroundingsTemperature';
 import {currentSurroundingsTemperature,type SurroundingsTemperatureRequest} from './surroundingsTemperatureDisplay';
 import SurroundingsViewportCapture from './SurroundingsViewportCapture';
+import {admitSurroundingsWmsDecodedImage} from './surroundingsWmsImageAdmission';
 import {mercatorLatitudeAtImageFraction,type SurroundingsRasterPlan} from './surroundingsViewportRaster';
 import {summarizeSurroundingsOperaCoverage,type SurroundingsOperaCoverage} from './surroundingsOperaCoverage';
 import './CurrentSurroundings.css';
@@ -173,28 +174,26 @@ export default function CurrentSurroundings(props:Props){
  const datedClock=(time:number)=>new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:timezone}).format(time);
  useEffect(()=>{
   if(mode!=='radar'||!radar||target===undefined)return;
+  // WMS alpha is presentation, not a weather validity mask. Verify only
+  // decoded dimensions against the exact post-fit request; coverage stays unknown.
+  const admittedRasterPlan=rasterPlan;
+  if(!admittedRasterPlan)return;
+  let active=true;
   const img=new Image();
   img.crossOrigin='anonymous';
   img.onload=()=>{
-   const canvas=document.createElement('canvas');
-   canvas.width=img.naturalWidth;
-   canvas.height=img.naturalHeight;
-   const context=canvas.getContext('2d',{willReadFrequently:true});
-   try{
-    if(context&&canvas.width&&canvas.height){
-     context.drawImage(img,0,0);
-     if(context.getImageData(0,0,canvas.width,canvas.height).data.some((value,index)=>index%4===3&&value>0)){
-      setLoaded({url:radar,time:target,kind:radarOriginal!.kind});
-      return;
-     }
-    }
-   }catch{/* A frame with unreadable pixels cannot establish coverage. */}
-   setImageError(radar);
+   if(!active)return;
+   if(admitSurroundingsWmsDecodedImage(admittedRasterPlan,img.naturalWidth,img.naturalHeight)&&
+      radarOriginal?.time===target){
+    setLoaded({url:radar,time:target,kind:radarOriginal.kind});
+   }else{
+    setImageError(radar);
+   }
   };
-  img.onerror=()=>setImageError(radar);
+  img.onerror=()=>{if(active)setImageError(radar)};
   img.src=radar;
-  return ()=>{img.onload=null;img.onerror=null};
- },[radar,target,mode,radarOriginal?.kind]);
+  return ()=>{active=false;img.onload=null;img.onerror=null};
+ },[radar,target,mode,rasterPlan,radarOriginal?.kind,radarOriginal?.time]);
  const needsOpera=mode==='radar'&&radarAtNow&&Boolean(rasterPlan)&&Boolean(showPhase||(catalog&&!radar)||failed||(radar&&imageError===radar));
  // biome-ignore lint/correctness/useExhaustiveDependencies: A refreshed composite catalog intentionally revalidates OPERA availability even when location/radar mode remain unchanged.
  useEffect(()=>{
@@ -347,7 +346,7 @@ export default function CurrentSurroundings(props:Props){
      {cloudForecast.unavailable&&<small>Aktualisierung nicht erreichbar; letzter gültiger Bildstand.</small>}
     </>
     :<span>{cloudForecast.loading?'Verifiziertes PseudoSat-/SigWx-Modellbild wird geladen …':'Kein gültiges Wolken-/SigWx-Modellbild für Ort und Termin; keine Satellitenbeobachtung oder Entwarnung.'}</span>
-    :<span>{!rasterPlan?(rasterPending?'Kartenausschnitt wird vorbereitet …':'Radar-/Satellitenausschnitt geometrisch nicht verfügbar; keine Wetterdaten als 0 interpretiert.'):displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr{displayedOpera.coverage.kind==='partial'?` · Teilabdeckung ${displayedOpera.coverage.percentageLabel} gültige Rasterzellen`:''}</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:radarStep!==0&&(!radar||target===undefined)?'Kein originales Radar-/Nowcast-Bild für diesen 15-Minuten-Termin':failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</span>}</div>
+    :<span>{!rasterPlan?(rasterPending?'Kartenausschnitt wird vorbereitet …':'Radar-/Satellitenausschnitt geometrisch nicht verfügbar; keine Wetterdaten als 0 interpretiert.'):displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr{displayedOpera.coverage.kind==='partial'?` · Teilabdeckung ${displayedOpera.coverage.percentageLabel} gültige Rasterzellen`:''}</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr · WMS-Bild geladen, Quellabdeckung nicht bestätigt{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:radarStep!==0&&(!radar||target===undefined)?'Kein originales Radar-/Nowcast-Bild für diesen 15-Minuten-Termin':failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</span>}</div>
   <details className="current-surroundings-sources">
    <summary>Quellen und Datenstand</summary>
    <p>Kartengrundlage · MID-Kartenbereich, OpenFreeMap / OpenStreetMap; Orte Natural Earth und Kartenkacheln</p>
