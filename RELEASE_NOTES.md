@@ -1,3 +1,9 @@
+# MID v0.9.85.494
+
+- Lange Orts- und Favoritennamen brechen auf kleinen Bildschirmen um und bleiben vollständig lesbar.
+- Die Quellenangaben lassen sich leichter antippen. Die Bezeichnungen der Prognosereihen sind verständlicher.
+- Schaltflächen für Wetterinfos sind für assistive Technik eindeutig mit ihrem jeweiligen Dialog verbunden.
+
 # MID v0.9.85.491
 
 - Die Prognosespannen der Ensemble-Ansicht werden einmal je Darstellung skaliert. Fehlende oder ungültige Quantile fließen nicht als Nullwerte in die Skala ein.

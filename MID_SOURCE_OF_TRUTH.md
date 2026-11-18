@@ -1,3 +1,7 @@
+# MID v0.9.85.494 · Lesbare Ortsnamen und zugängliche Wetterinfos (Source-Kandidat)
+
+Basis: MID v0.9.85.491, `3f9c5e24dc55fa5154732a1ba73961ba76c29788`. Originalblobs aus #925 (`1e67e76ec0bf54204968c477ba64a3282a0158fc`) und #927 (`aaf69ac3ee5d7042d5520292ec57a2495f5f6de7`). Draft-CI und isolierte Chromium-Prüfung lagen vor. Der kombinierte Kandidat durchläuft die regulären MID-Source-, Installer-, Worker-/Pages- und Stable-Gates.
+
 # MID v0.9.85.491 · Ensemble-Skalierung, Kartenlegende und vollständige Wochenwerte
 
 Status: Source-Kandidat. Source-, Review-, Installer-, Worker-/Pages- und Stable-Freigaben stehen aus. [Release-Notizen](docs/releases/MID_RELEASE_NOTES_0.9.85.491.json) und [Umsetzung](docs/implementation/MID_DESIGN112_ENSEMBLE_SCALE_BENCHMARK_HANDOFF_2026_11_17.md), [Umsetzung](docs/implementation/MID_DESIGN114_MODEL_MAP_LEGEND_CONTAINER_2026_11_18.md), [Umsetzung](docs/implementation/MID_AUDIT11_SUBSEASONAL_WEEK_COVERAGE_2026_11_18.md).

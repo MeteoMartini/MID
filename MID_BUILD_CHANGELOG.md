@@ -1,3 +1,7 @@
+## MID v0.9.85.494 · 2026-11-18 · Lesbare Ortsnamen und zugängliche Wetterinfos
+
+Basis: MID v0.9.85.491, `3f9c5e24dc55fa5154732a1ba73961ba76c29788`. Originalblobs aus #925 (`1e67e76ec0bf54204968c477ba64a3282a0158fc`) und #927 (`aaf69ac3ee5d7042d5520292ec57a2495f5f6de7`). Draft-CI und isolierte Chromium-Prüfung lagen vor. Der kombinierte Kandidat durchläuft die regulären MID-Source-, Installer-, Worker-/Pages- und Stable-Gates.
+
 ## MID v0.9.85.491 · 2026-11-18 · Ensemble-Skalierung, Kartenlegende und vollständige Wochenwerte
 
 Basis: MID v0.9.85.490, `42c188f44606f511826d2b6665b764c36b23412c`. Zwölf Originalblobs aus #913 (`f99b5e5ebc31fdaa923a6919d36de172ffbd5e4d`), #916 (`e5d4702ca88979c35e213ec2b6622de95cd13e2b`), #917 (`c9a7247a9426fe877616bb02ddd467af05205f48`) wurden mit Stable abgeglichen.
