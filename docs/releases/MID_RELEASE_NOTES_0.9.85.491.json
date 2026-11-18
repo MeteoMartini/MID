@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "version": "0.9.85.491",
+  "date": "2026-11-18",
+  "title": "Ensemble-Skalierung, Kartenlegende und vollständige Wochenwerte",
+  "external": [
+    "Die Prognosespannen der Ensemble-Ansicht werden einmal je Darstellung skaliert. Die Modelllegende bleibt bei schmaler Darstellung bedienbar.",
+    "Die Legende nativer Modellkarten passt sich der Breite ihres Kartenbereichs an und ordnet ihre Bedienelemente bei wenig Platz untereinander an.",
+    "EC46- und GEFS-Wochenwerte und ihr Klimavergleich verwenden vollständige Sieben-Tage-Zeiträume. Fehlende Tage und unvollständige Randwochen werden nicht als vollständige Wochensummen ausgegeben."
+  ],
+  "internal": [
+    "Basis: MID v0.9.85.490, `42c188f44606f511826d2b6665b764c36b23412c`. Zwölf Originalblobs aus #913 (`f99b5e5ebc31fdaa923a6919d36de172ffbd5e4d`), #916 (`e5d4702ca88979c35e213ec2b6622de95cd13e2b`), #917 (`c9a7247a9426fe877616bb02ddd467af05205f48`) wurden mit Stable abgeglichen."
+  ]
+}
