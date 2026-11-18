@@ -6,11 +6,21 @@ const [panel,weather,pkg,baseline]=await Promise.all([
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
 ]);
 const helper=await readFile(new URL('../src/ensembleCumulativeDisplay.ts',import.meta.url),'utf8');
+const scientificGuard=await readFile(new URL('../src/ensembleCumulativeSourceEvidence.ts',import.meta.url),'utf8');
 const failures=[];
+for(const token of [
+ 'seen.size===requiredDates.size?total:null',
+ 'if(seen.has(row.date))return null',
+ '!Number.isFinite(row.precipitation)||row.precipitation<0',
+ 'day-previous!==86_400_000'
+])if(!scientificGuard.includes(token))failures.push(`Member-Originalbeleg fehlt: ${token}`);
+if(weather.includes('Number.isFinite(item.precipitation)?Math.max(0,item.precipitation):0'))
+ failures.push('Missing source rain may not count as zero in cumulative ensemble members.');
+
 for(const token of [
  'cumulativePrecipitationMean:number;cumulativePrecipitationLow:number;cumulativePrecipitationHigh:number;cumulativePrecipitationQ25:number;cumulativePrecipitationQ75:number;',
  'cumulativeTargetDates=new Set(allDates.slice(0,lead+1))',
- 'covered.length!==cumulativeTargetDates.size',
+ 'verifiedCumulativeEnsembleRain(memberDays,cumulativeTargetDates)',
  'cumulativeRainVals.push({value:total,weight:cumulativeWeight})',
  'cumulativePrecipitationLow=weightedQuantile(cumulativeRainVals,.1)',
  'cumulativePrecipitationQ25=weightedQuantile(cumulativeRainVals,.25)',
