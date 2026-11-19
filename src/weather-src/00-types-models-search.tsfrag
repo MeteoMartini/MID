@@ -33,7 +33,7 @@ export type WindUnit='kn'|'kmh'|'ms'|'mph';
 export type UrbanClass='urban'|'suburban'|'rural'|'unknown';
 export type CloudObservation='cavok'|'clear'|'layers';
 export type Location={id:number;name:string;latitude:number;longitude:number;elevation?:number;timezone?:string;country?:string;country_code?:string;city?:string;locality?:string;admin1?:string;admin2?:string;postcodes?:string[];icao?:string;autolocated?:boolean;source?:string;poiType?:string;poiCategory?:string;featureCode?:string;population?:number;urbanClass?:UrbanClass};
-export type CoreForecastProxyMeta={provider?:string;fallback?:boolean;cached?:boolean;stale?:boolean;ageMs?:number;upstreamStatus?:number;upstreamReason?:string;sourceUpdatedAt?:string;horizonDays?:number;precipitationProbabilityAvailable?:boolean;checkedAt?:string;version?:string};
+export type CoreForecastProxyMeta={provider?:string;fallback?:boolean;cached?:boolean;stale?:boolean;ageMs?:number;upstreamStatus?:number;upstreamReason?:string;sourceUpdatedAt?:string;horizonDays?:number;precipitationProbabilityAvailable?:boolean;checkedAt?:string;version?:string;spatialMatch?:'exact'|'nearby'|'unknown';spatialFallbackDistanceM?:number;sourceLatitude?:number;sourceLongitude?:number};
 export type Weather={latitude:number;longitude:number;elevation:number;timezone:string;timezone_abbreviation?:string;utc_offset_seconds?:number;current:Record<string,number|string>;hourly:Record<string,(number|string|null)[]>;daily:Record<string,(number|string|null)[]>;minutely_15?:Record<string,(number|string|null)[]>;_mid_core_proxy?:CoreForecastProxyMeta;_mid_ensemble_source_time?:{timezone:string;utc_offset_seconds?:number;time:string[]}};
 export type Hour={sourceTime?:string;sourceUtcOffsetSeconds?:number;time:string;epoch:number;timezone:string;temperature:number;apparent:number;apparentKind?:'utci'|'provider-fallback';elevation?:number;humidity:number;dewPoint:number;pressure:number;precipitation:number;precipitationAvailable?:boolean;precipitationComponentsAvailable?:Partial<Record<'rain'|'showers'|'snowfall',boolean>>;probabilityAvailable?:boolean;rain:number;showers:number;snowfall:number;probability:number;code:number;wind:number;gust:number;gustAdjusted?:boolean;direction:number;cloud:number;lowCloud:number;midCloud?:number;highCloud?:number;uvIndex:number;visibility:number;ceiling?:number;ceilingSourceLabel?:string;freezingLevel?:number;snowline?:number;surfaceTemperature?:number;wetBulbTemperature?:number;snowDepth?:number;cape:number;liftedIndex?:number;convectiveInhibition?:number;columnWaterVapour?:number;sunshineDuration?:number|null;weatherSourceId?:string;weatherSourceLabel?:string;weatherBundleKind?:'best-match'|'coherent-model'|'nowcast';precipitationPhenomenonObserved?:boolean;localAdjustment?:number;localAdjustmentSourceLabel?:string;sunriseEpoch?:number;sunsetEpoch?:number;isDay:boolean};
 export type Minute15={sourceTime?:string;sourceUtcOffsetSeconds?:number;time:string;epoch:number;timezone:string;precipitation:number;precipitationAvailable?:boolean;probabilityAvailable?:boolean;rain:number;showers:number;snowfall:number;probability:number;code:number;temperature?:number;humidity?:number;dewPoint?:number;pressure?:number;wind?:number;gust?:number;direction?:number;cloud?:number;lowCloud?:number;midCloud?:number;highCloud?:number;visibility?:number;ceiling?:number;freezingLevel?:number;snowline?:number;surfaceTemperature?:number;wetBulbTemperature?:number;nativeStateSeconds?:number;nativeVisibilitySeconds?:number;nativeCeilingSeconds?:number;precipitationPhenomenonObserved?:boolean;sunshineDuration?:number|null;sunriseEpoch?:number;sunsetEpoch?:number;isDay?:boolean};
@@ -360,7 +360,8 @@ const FORECAST_CORE_FRESH_MS=8*60*1000;
 const FORECAST_CORE_STALE_MS=18*3600000;
 const FORECAST_CORE_NEARBY_FALLBACK_M=2500;
 type ForecastRequestOptions={forceFresh?:boolean;priority?:OpenMeteoPriority;timeZone?:string;elevation?:number};
-type ForecastCoreCache={time:number;value:Weather};
+type ForecastCoreCache={time:number;value:Weather;requestLocation?:{latitude:number;longitude:number}};
+type ForecastCoreCacheRead=ForecastCoreCache&{age:number;distance:number;spatialMatch:'exact'|'nearby'|'unknown'};
 type ForecastCoreDimensions={timeZone:string;elevation?:number;elevationKey:string};
 function primaryCoreForecast(value:unknown):value is Weather{const row=value as Partial<Weather>|null,meta=row?._mid_core_proxy;return Boolean(row&&typeof row==='object'&&row.current&&row.hourly&&row.daily&&Array.isArray(row.hourly.time)&&Array.isArray(row.daily.time)&&meta?.fallback!==true&&!/MET Norway/i.test(String(meta?.provider||'')))}
 function forecastCoreTimeZone(value?:string){const candidate=String(value||'').trim();if(!candidate)return'auto';try{new Intl.DateTimeFormat('en-US',{timeZone:candidate}).format(new Date(0));return candidate}catch{return'auto'}}
@@ -369,12 +370,54 @@ function forecastCoreDimensionSuffix(options:ForecastRequestOptions={}){const di
 function forecastCoreCacheKey(lat:number,lon:number,options:ForecastRequestOptions={}){return`${FORECAST_CORE_CACHE_PREFIX}${Number(lat).toFixed(3)}:${Number(lon).toFixed(3)}:${forecastCoreDimensionSuffix(options)}`}
 function parseForecastCoreCache(raw:string|null){try{if(!raw)return null;const parsed=JSON.parse(raw) as ForecastCoreCache,age=Date.now()-Number(parsed?.time);if(!primaryCoreForecast(parsed?.value)||!Number.isFinite(parsed.value.utc_offset_seconds)||!Number.isFinite(age)||age<0||age>FORECAST_CORE_STALE_MS)return null;return{...parsed,age}}catch{return null}}
 function forecastCoreCacheCoordinates(key:string,options:ForecastRequestOptions={}){const suffix=`:${forecastCoreDimensionSuffix(options)}`;if(!key.startsWith(FORECAST_CORE_CACHE_PREFIX)||!key.endsWith(suffix))return null;const coordinates=key.slice(FORECAST_CORE_CACHE_PREFIX.length,key.length-suffix.length).match(/^(-?\d+(?:\.\d+)?):(-?\d+(?:\.\d+)?)$/);return coordinates?{lat:Number(coordinates[1]),lon:Number(coordinates[2])}:null}
-function readForecastCoreCache(lat:number,lon:number,options:ForecastRequestOptions={}){try{const exact=parseForecastCoreCache(localStorage.getItem(forecastCoreCacheKey(lat,lon,options)));if(exact)return exact;let best:(ForecastCoreCache&{age:number;distance:number})|null=null;for(let index=0;index<localStorage.length;index++){const key=localStorage.key(index)||'',coordinates=forecastCoreCacheCoordinates(key,options);if(!coordinates)continue;const entry=parseForecastCoreCache(localStorage.getItem(key));if(!entry)continue;const distance=haversine(lat,lon,coordinates.lat,coordinates.lon);if(distance>FORECAST_CORE_NEARBY_FALLBACK_M)continue;if(!best||entry.age<best.age||entry.age===best.age&&distance<best.distance)best={...entry,distance}}if(best){writeForecastCoreCache(lat,lon,best.value,best.time,options);return{time:best.time,value:best.value,age:best.age}}return null}catch{return null}}
-function writeForecastCoreCache(lat:number,lon:number,value:Weather,time=Date.now(),options:ForecastRequestOptions={}){if(!primaryCoreForecast(value))return;try{writeBoundedStorage(localStorage,forecastCoreCacheKey(lat,lon,options),{time,value},[FORECAST_CORE_CACHE_PREFIX,...FORECAST_CORE_LEGACY_CACHE_PREFIXES],14,FORECAST_CORE_STALE_MS)}catch{}}
-function cachedForecastResult(entry:ForecastCoreCache&{age:number},reason:'offline-local-cache'|'fresh-local-cache'|'network-fallback-local-cache'){const prior=entry.value._mid_core_proxy;return{...entry.value,_mid_core_proxy:{...prior,cached:true,stale:entry.age>FORECAST_CORE_FRESH_MS,ageMs:entry.age,sourceUpdatedAt:prior?.sourceUpdatedAt??new Date(entry.time).toISOString(),upstreamReason:reason}}}
+/** v5 entries without a verified origin remain readable only as unverified emergency fallbacks.
+ * Open-Meteo's returned latitude/longitude describes its grid cell, not the original request. */
+function forecastCoreCacheOrigin(entry:ForecastCoreCache){
+ const origin=entry.requestLocation;
+ if(!origin||!Number.isFinite(origin.latitude)||!Number.isFinite(origin.longitude)||Math.abs(origin.latitude)>90||Math.abs(origin.longitude)>180)return null;
+ return origin;
+}
+function readForecastCoreCache(lat:number,lon:number,options:ForecastRequestOptions={},allowNearby=false):ForecastCoreCacheRead|null{
+ try{
+  const exact=parseForecastCoreCache(localStorage.getItem(forecastCoreCacheKey(lat,lon,options)));
+  const original=exact&&forecastCoreCacheOrigin(exact);
+  // Quantized 0.001-degree cache keys can legitimately represent slightly different GPS readings.
+  if(exact&&original&&haversine(lat,lon,original.latitude,original.longitude)<=125)return{...exact,distance:0,spatialMatch:'exact'};
+  if(!allowNearby)return null;
+  let best:ForecastCoreCacheRead|null=null;
+  for(let index=0;index<localStorage.length;index++){
+   const key=localStorage.key(index)||'',coordinates=forecastCoreCacheCoordinates(key,options);
+   if(!coordinates)continue;
+   const entry=parseForecastCoreCache(localStorage.getItem(key));
+   if(!entry)continue;
+   const origin=forecastCoreCacheOrigin(entry),source=origin??{latitude:coordinates.lat,longitude:coordinates.lon};
+   const distance=haversine(lat,lon,source.latitude,source.longitude);
+   if(!Number.isFinite(distance)||distance>FORECAST_CORE_NEARBY_FALLBACK_M)continue;
+   const spatialMatch=origin?'nearby':'unknown';
+   const candidate:ForecastCoreCacheRead={...entry,distance,spatialMatch};
+   // Prefer a known nearby source to an unverifiable legacy entry; then prefer fresh data.
+   if(!best||(best.spatialMatch==='unknown'&&spatialMatch==='nearby')||(best.spatialMatch===spatialMatch&&(candidate.age<best.age||(candidate.age===best.age&&candidate.distance<best.distance))))best=candidate;
+  }
+  return best;
+ }catch{return null}
+}
+function writeForecastCoreCache(lat:number,lon:number,value:Weather,time=Date.now(),options:ForecastRequestOptions={}){if(!primaryCoreForecast(value))return;try{writeBoundedStorage(localStorage,forecastCoreCacheKey(lat,lon,options),{time,value,requestLocation:{latitude:lat,longitude:lon}},[FORECAST_CORE_CACHE_PREFIX,...FORECAST_CORE_LEGACY_CACHE_PREFIXES],14,FORECAST_CORE_STALE_MS)}catch{}}
+function cachedForecastResult(entry:ForecastCoreCache&{age:number},reason:'offline-local-cache'|'fresh-local-cache'|'network-fallback-local-cache'){
+ const prior=entry.value._mid_core_proxy,spatial=(entry as ForecastCoreCacheRead).spatialMatch??'unknown',origin=forecastCoreCacheOrigin(entry);
+ return{...entry.value,_mid_core_proxy:{...prior,cached:true,stale:entry.age>FORECAST_CORE_FRESH_MS,ageMs:entry.age,sourceUpdatedAt:prior?.sourceUpdatedAt??new Date(entry.time).toISOString(),upstreamReason:reason,spatialMatch:spatial,spatialFallbackDistanceM:spatial==='nearby'?Math.round((entry as ForecastCoreCacheRead).distance):undefined,sourceLatitude:origin?.latitude,sourceLongitude:origin?.longitude}};
+}
 /** Only an exact-location, same-elevation and same-timezone validated snapshot may
  * be shown while a new forecast request runs. No cross-place warm start. */
+/** Instant warm-start requires proven same-location provenance; legacy entries are not exact. */
 export function instantCachedCoreForecast(lat:number,lon:number,options:ForecastRequestOptions={}):Weather|null{
+ try{
+  const exact=parseForecastCoreCache(localStorage.getItem(forecastCoreCacheKey(lat,lon,options)));
+  if(!exact||exact.age>45*60*1000)return null;
+  const origin=forecastCoreCacheOrigin(exact);
+  if(!origin||haversine(lat,lon,origin.latitude,origin.longitude)>125)return null;
+  return cachedForecastResult({...exact,spatialMatch:'exact',distance:0},'network-fallback-local-cache');
+ }catch{return null}
+}
  try{
   const exact=parseForecastCoreCache(localStorage.getItem(forecastCoreCacheKey(lat,lon,options)));
   if(!exact||exact.age>45*60*1000)return null;
@@ -385,7 +428,23 @@ function linkedTimeoutSignal(parent:AbortSignal|undefined,timeoutMs:number){cons
 function forecastQuery(lat:number,lon:number,options:ForecastRequestOptions={}){const dimensions=forecastCoreDimensions(options),query=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:dimensions.timeZone,forecast_days:'14',past_hours:'25',forecast_hours:'336',forecast_minutely_15:'24',past_minutely_15:'4',models:'best_match',wind_speed_unit:'kn',current:['temperature_2m','relative_humidity_2m','dew_point_2m','apparent_temperature','is_day','precipitation','rain','showers','snowfall','weather_code','cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high','pressure_msl','wind_speed_10m','wind_direction_10m','wind_gusts_10m','visibility','cape','sunshine_duration'].join(','),minutely_15:['precipitation_probability','precipitation','rain','showers','snowfall','weather_code','sunshine_duration'].join(','),hourly:['temperature_2m','relative_humidity_2m','dew_point_2m','apparent_temperature','precipitation_probability','precipitation','rain','showers','snowfall','weather_code','cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high','pressure_msl','wind_speed_10m','wind_direction_10m','wind_gusts_10m','uv_index','visibility','cape','lifted_index','convective_inhibition','total_column_integrated_water_vapour','is_day','sunshine_duration'].join(','),daily:['weather_code','temperature_2m_max','temperature_2m_min','sunrise','sunset','moonrise','moonset','moon_phase','precipitation_sum','rain_sum','showers_sum','snowfall_sum','precipitation_hours','precipitation_probability_max','wind_speed_10m_max','wind_gusts_10m_max','wind_direction_10m_dominant','uv_index_max','sunshine_duration'].join(',')});if(dimensions.elevation!==undefined)query.set('elevation',String(dimensions.elevation));return query}
 async function directOpenMeteoCoreForecast(lat:number,lon:number,signal:AbortSignal|undefined,priority:OpenMeteoPriority,options:ForecastRequestOptions={}){const request=linkedTimeoutSignal(signal,6500);try{const url=`https://api.open-meteo.com/v1/forecast?${forecastQuery(lat,lon,options)}`,payload=await guardedOpenMeteoJson<Weather>(url,{signal:request.signal,cache:'no-store'},{priority,maxRetries:priority==='foreground'?1:priority==='normal'?1:0});if(!primaryCoreForecast(payload))throw new Error('Open-Meteo lieferte keine vollständige Best-Match-Kernvorhersage.');return payload}finally{request.cleanup()}}
 async function workerForecastCore(lat:number,lon:number,signal:AbortSignal|undefined,forceFresh:boolean,options:ForecastRequestOptions={}){if(!workerBaseCandidates('general').length)return null;const request=linkedTimeoutSignal(signal,11000),dimensions=forecastCoreDimensions(options);try{const value=await fetchWorkerJson<Weather&{error?:string}>('forecast-core',{lat:Number(lat).toFixed(5),lon:Number(lon).toFixed(5),refresh:forceFresh?1:0,timezone:dimensions.timeZone,elevation:dimensions.elevation},{purpose:'general',signal:request.signal,timeoutMs:7000,cache:forceFresh?'no-store':'default',maxAgeMs:forceFresh?0:2*60*1000,staleIfErrorMs:FORECAST_CORE_STALE_MS,cacheKey:`forecast-core:v5:${Number(lat).toFixed(3)}:${Number(lon).toFixed(3)}:${forecastCoreDimensionSuffix(options)}`});if(Number(value?._mid_core_proxy?.upstreamStatus)===429)registerOpenMeteoCooldown(Date.now()+30_000);return primaryCoreForecast(value)?value:null}catch(error){if(signal?.aborted)throw error;return null}finally{request.cleanup()}}
-export async function forecast(lat:number,lon:number,signal?:AbortSignal,options:ForecastRequestOptions={}){const cached=readForecastCoreCache(lat,lon,options),priority=options.priority??'normal',offline=typeof navigator!=='undefined'&&navigator.onLine===false,cooldownAt=openMeteoCooldownRetryAt(),cooldownActive=cooldownAt>Date.now();if(offline){if(cached)return cachedForecastResult(cached,'offline-local-cache');throw new Error('Offline: Für diesen Ort ist noch kein gespeicherter Wetterstand verfügbar.')}if(!options.forceFresh&&cached&&cached.age<=FORECAST_CORE_FRESH_MS)return cachedForecastResult(cached,'fresh-local-cache');const useDirectFirst=priority==='foreground'&&!cooldownActive;let directError:unknown=null;if(useDirectFirst){try{const value=await directOpenMeteoCoreForecast(lat,lon,signal,priority,options);writeForecastCoreCache(lat,lon,value,Date.now(),options);return value}catch(error){if(signal?.aborted)throw error;directError=error}}const proxied=await workerForecastCore(lat,lon,signal,options.forceFresh===true,options);if(proxied){writeForecastCoreCache(lat,lon,proxied,Date.now(),options);return proxied}if(!useDirectFirst&&!cooldownActive){try{const value=await directOpenMeteoCoreForecast(lat,lon,signal,priority,options);writeForecastCoreCache(lat,lon,value,Date.now(),options);return value}catch(error){if(signal?.aborted)throw error;directError=error}}if(cached)return cachedForecastResult(cached,'network-fallback-local-cache');if(cooldownActive)throw new OpenMeteoRateLimitError(cooldownAt);if(directError)throw directError;throw new Error('Open-Meteo Best Match ist vorübergehend nicht erreichbar.')}
+export async function forecast(lat:number,lon:number,signal?:AbortSignal,options:ForecastRequestOptions={}){
+ const cached=readForecastCoreCache(lat,lon,options),priority=options.priority??'normal',offline=typeof navigator!=='undefined'&&navigator.onLine===false,cooldownAt=openMeteoCooldownRetryAt(),cooldownActive=cooldownAt>Date.now();
+ if(offline){if(cached)return cachedForecastResult(cached,'offline-local-cache');const nearby=readForecastCoreCache(lat,lon,options,true);if(nearby)return cachedForecastResult(nearby,'offline-local-cache');throw new Error('Offline: Für diesen Ort ist noch kein gespeicherter Wetterstand verfügbar.')}
+ if(!options.forceFresh&&cached&&cached.age<=FORECAST_CORE_FRESH_MS)return cachedForecastResult(cached,'fresh-local-cache');
+ const useDirectFirst=priority==='foreground'&&!cooldownActive;
+ let directError:unknown=null;
+ if(useDirectFirst){try{const value=await directOpenMeteoCoreForecast(lat,lon,signal,priority,options);writeForecastCoreCache(lat,lon,value,Date.now(),options);return value}catch(error){if(signal?.aborted)throw error;directError=error}}
+ const proxied=await workerForecastCore(lat,lon,signal,options.forceFresh===true,options);
+ if(proxied){writeForecastCoreCache(lat,lon,proxied,Date.now(),options);return proxied}
+ if(!useDirectFirst&&!cooldownActive){try{const value=await directOpenMeteoCoreForecast(lat,lon,signal,priority,options);writeForecastCoreCache(lat,lon,value,Date.now(),options);return value}catch(error){if(signal?.aborted)throw error;directError=error}}
+ if(cached)return cachedForecastResult(cached,'network-fallback-local-cache');
+ const nearby=readForecastCoreCache(lat,lon,options,true);
+ if(nearby)return cachedForecastResult(nearby,'network-fallback-local-cache');
+ if(cooldownActive)throw new OpenMeteoRateLimitError(cooldownAt);
+ if(directError)throw directError;
+ throw new Error('Open-Meteo Best Match ist vorübergehend nicht erreichbar.');
+}
 const AIR_QUALITY_CACHE_PREFIX='mid:air-quality:v1:';
 const AIR_QUALITY_FRESH_MS=15*60000;
 const AIR_QUALITY_STALE_MS=2*3600000;
