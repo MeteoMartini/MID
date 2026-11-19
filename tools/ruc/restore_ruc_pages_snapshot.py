@@ -7,6 +7,9 @@ from pathlib import Path
 TRANSIENT_HTTP_CODES={429,500,502,503,504,520}
 MAX_RESTORE_WORKERS=8
 DEFAULT_FETCH_RETRIES=4
+# Bound work before constructing canonical ancestor prefixes for each manifest object.
+MAX_RUC_OBJECT_KEY_LENGTH=1024
+MAX_RUC_OBJECT_KEY_SEGMENTS=32
 
 def _retry_delay(url:str,attempt:int,retry_after:str|None=None)->float:
     if retry_after:
@@ -34,7 +37,8 @@ def fetch(url:str,timeout=30,retries=DEFAULT_FETCH_RETRIES)->bytes:
 def sha(data:bytes)->str:return hashlib.sha256(data).hexdigest()
 
 def safe_object_key(key)->bool:
-    return (isinstance(key,str) and key.startswith('runs/') and
+    return (isinstance(key,str) and 0 < len(key) <= MAX_RUC_OBJECT_KEY_LENGTH and
+            key.count('/') < MAX_RUC_OBJECT_KEY_SEGMENTS and key.startswith('runs/') and
             not any(mark in key for mark in ('\\','?','#','%')) and
             not any(ord(char)<32 or ord(char)==127 for char in key) and
             all(part not in ('','.','..') for part in key.split('/')))

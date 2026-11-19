@@ -101,6 +101,12 @@ def run():
             aliased={**valid,'key':'runs/test//x.bin'}
             unsafe_keys=[r'runs/test\a.bin','runs/test?q.bin','runs/test#f.bin',
                          'runs/test%2Fescape.bin','runs/test/../escape.bin','runs/test/\x00x.bin']
+            # Deny pathological keys before building their quadratic ancestor inventory.
+            unsafe_keys.extend(['runs/'+'/'.join(['nest']*32)+'/x.bin',
+                                'runs/test/'+('x'*1025)])
+            assert module.safe_object_key('runs/'+'/'.join(['a']*31))
+            assert module.safe_object_key('runs/test/'+('x'*1014))
+            assert not module.safe_object_key('runs/test/'+('x'*1015))
             invalid_inventories=[[valid,dict(valid)],[valid,conflicting],[aliased]]
             invalid_inventories.extend([[{**valid,'key':key}] for key in unsafe_keys])
             # Reject prefix, case-folded and Unicode NFC aliases on all host OSes.
