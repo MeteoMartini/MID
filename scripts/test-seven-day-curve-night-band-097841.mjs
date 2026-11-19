@@ -14,7 +14,9 @@ for(const token of [
   'const nightBandTop=skyBarY-7,nightBandBottom=precipBase+8;',
   'y={nightBandTop}',
   'height={nightBandBottom-nightBandTop}',
-  'className="night-band seven-day-curve-night-band"'
+  'className="night-band seven-day-curve-night-band"',
+  'className="seven-day-curve-daylight" fill="rgba(217,225,236,.09)"',
+  'nightColor="var(--mg-night,rgba(1,8,18,.22))"'
 ])assert.ok(curve.includes(token),`7-Tage-Nachtband-Vertrag fehlt: ${token}`);
 const test='scripts/test-seven-day-curve-night-band-097841.mjs';
 assert.ok(baseline.regressionTests?.includes(test),'Regressionstest fehlt in MID_BASELINE.json (regressionTests).');
