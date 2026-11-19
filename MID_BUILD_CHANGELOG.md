@@ -1,3 +1,47 @@
+## MID v0.9.85.497 · 2026-11-19 · Responsive Lade- und Ensemble-Anzeigen mit Tageslicht-Kontrast
+
+- Ausgangs-Stable v0.9.85.496 SHA 256aabe286f7daa00dc0e320815dd8dacb7b4706; #948 QA-HEAD 5aa3a2cf768311fbd71977365b1bc92bcfc3baf7.
+- Exakte Spezialblobs aus #934 (11) und #942 (2), korrigierter exportfähiger SVG-Nachtband-Fallback ohne Testaufweichung.
+- Neue Source-/Core-/Heavy-/Review-/Browser-/iOS-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates auf finalem Release-Head weiterhin notwendig.
+- RUC #541/#946 und Release-Gate #947 ausdrücklich nicht enthalten; Pilot-Scanner-Befunde separat prüfen.
+
+## MID v0.9.85.497 · 2026-11-19 · Responsive Ladehinweise, Ensemble-Reflow und 7-Tage-Tageslichtkontrast
+
+- Kanonischer Ausgangsstand v0.9.85.496, SHA `256aabe286f7daa00dc0e320815dd8dacb7b4706`; fünf aktive GitHub-Rulesets, drei primäre Versionsspiegel identisch. QA-Intake #948 HEAD `5aa3a2cf768311fbd71977365b1bc92bcfc3baf7`.
+- Spezial-Provenienz: #934 HEAD `f977cf30077a84791a4c212df93466199f295fd4` elf Original-Git-Blobs; #942 HEAD `4b274322383b580e8794482bb255698230c5e199` zwei Original-Git-Blobs. Der Widget-SVG-Export behält explizite Paint-Fallbacks; keine Regression absichtlich gelockert.
+- Historisches Changelog byteidentisch bewahrt, release-spezifische Versionsspiegel synchronisiert. Kein RUC-Fast-Pages-Transfer (#541/#946), keine Source-Gate-Aufweichung (#947), keine Radar-/Karten-/Settings-Aufnahme (#929/#937/#920). Diese parallelen QA-Owner bleiben unabhängig.
+- Draft-Checks #44477061382: gezielte Regressionen SUCCESS und Vitest/Coverage SUCCESS; P1-Scanner-Pilot meldete dennoch `PILOT_FINDINGS_OR_FAILURE` und braucht fachliche Triage. Source-/Review-/Heavy-/Browser-/iOS-/Installer-/Worker-/Pages-/Stable-Nachweise auf diesem Version-HEAD stehen aus.
+
+## MID v0.9.85.496 · 2026-11-18 · Automatische PR-Eingangsprüfung, belegte Stationswerte und sichere RUC-Wiederherstellung
+
+- Original Stable v0.9.85.495 SHA 8382ff3461ae21a385636e8261104b99bb8fccd0. Exakt 16 ausgewählte Original-Git-Blobs: #941 HEAD 710d3b7e06fb6dac860e313ea79164b4504a078a (7), #940 HEAD 4e568721389eb260f90c5ff1a3a78fcf75947070 (7), #939 HEAD 025595b1d0b70fb880005fb6eb435ca0fa2fdb2e (2).
+- Zwei workflow YAML-Mirrors identisch, unprivilegierte pull_request-/Stable-only-Prüfung. Vier Original-weather.ts-Fragmente bleiben gegenüber generierter Datei bytegleich. RUC-Restore-Originalbasisblob von Stable .494 bis .495 unverändert.
+- QA-Vortests der Original-Drafts: #941 Run 44411135343 (458 passed/3 skipped), #940 Run 44397398591 SUCCESS, #939 Run 44392686616 SUCCESS. Kein kombinierter Source-/Review-/Core-/Heavy-/Installer-/Worker-/Pages-/Stable-Nachweis.
+- Nach erfolgreicher Promotion ist ein neues echtes PR-Ereignis mit aktiviertem Cleaner-intake-Job zu prüfen; erfolgreiches stable_ready mit intake=SKIPPED ist keine Abnahme.
+
+## MID v0.9.85.496 · 2026-11-18 · PR-Cleaner, Stationsprovenienz und RUC-Restore
+
+- Ausgangs-Stable v0.9.85.495 auf 8382ff3461ae21a385636e8261104b99bb8fccd0; fünf aktive Branch-Rulesets. Alle Original-Git-Blobs aus drei parallel geprüften QA-Drafts auf unverändertem Stable geprüft.
+- Selektive 16 Dateien: Cleaner #941 (HEAD 710d3b7e06fb6dac860e313ea79164b4504a078a, sieben Dateien), Stationsprovenienz #940 (HEAD 4e568721389eb260f90c5ff1a3a78fcf75947070, sieben Dateien), RUC-Restore #939 (HEAD 025595b1d0b70fb880005fb6eb435ca0fa2fdb2e, zwei Dateien). Ursprüngliche Draft-Branches unverändert; #939-Basisblobs .494 und .495 identisch.
+- Unprivilegierter GitHub-pull_request-Intake mit ausschließlicher Stable-Checkout-Ausführung und read-only SHA-/Blob-/Peer-Vergleichen; keinerlei Schließ-, Merge- oder Freigabeberechtigung. Ein grünes stable_ready ohne ausgeführten intake ist kein Cleaner-PASS.
+- Stationsdaten: originale UTC-Messzeit und Missing/Null getrennt, neue Quellenhelper und vollständige unveränderte 4-Fragment-Aggregation von src/weather.ts. RUC: doppelte oder nichtkanonische Restore-Manifest-Schlüssel vor jedem parallelen Download/Write ausschließen, Originalwerte unverändert.
+- Vorqualifizierte Einzel-CI: #941 44411135343 (458 passed, 3 skipped), #940 44397398591 SUCCESS, #939 44392686616 SUCCESS. Vollständige kombinierte Source-/Review-/Core-/Heavy-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates bleiben auf diesem HEAD separat erforderlich, ebenso nach Stable-Promotion ein tatsächlicher neuer PR-Event mit intake-Job SUCCESS. Dokumentation erteilt keine Freigabe.
+
+## MID v0.9.85.495 · 2026-11-18 · Ensemble- und Stations-Niederschlagsdaten ohne falsche Nullwerte
+
+- Ausgangs-Stable v0.9.85.494 auf eee0bb0ac351115f5e85b7625825cc8d1376594f. Exakte ursprüngliche Git-Produkt- und Testblobs aus QA-Draft #919 (HEAD d3a0f9b6cb8f893d01dccf56bb30a0f0708493d6) sowie #936 (HEAD e802d2aae99c661d48d27a179d74446082a74439), auf aktuellem Stable konfliktfrei. Isolierte Vor-CI: #44272385899 (919) und #44386911744 (936), jeweils SUCCESS, nicht als kombiniertes Gate werten.
+- Native Ensemble-Tagesfolgen müssen eindeutig, endlich, nichtnegativ und tatsächlich vollständig akkumuliert sein. Echte extreme Niederschläge und valide Nullwerte bleiben erhalten; künstliche Best-Match-PoP oder amtliche Warnstatus werden nicht daraus abgeleitet. Die sourceQuality-Änderung betrifft Stationsrelevanz und negative Beobachtungsakkumulation, nicht RUC/EPS-GRIB.
+- Zusätzlicher Qualitätsguard aus dem historischen PR #925: kein neuer Timer, Netzwerkrequest, Listener, React-State-Owner oder localStorage in SelectedPlaceBar; bestehender gerenderter Status-Test bleibt zusätzlich erhalten.
+- Vollständiges Source-PR-Gate, unabhängige Core-/Heavy-Matrix, relevante Review-/Browser-/iOS- und Installer-/Pages-/Worker-/Stable-Gates sind auf dem finalen kombinierten HEAD gesondert zu qualifizieren. Diese Release-Notiz ist keine Freigabe.
+
+## MID v0.9.85.495 · 2026-11-18 · Vollständige Ensemble-Niederschläge und Stationsdaten-Provenienz
+
+Ausgangsbasis: erfolgreich veröffentlichtes MID v0.9.85.494, `eee0bb0ac351115f5e85b7625825cc8d1376594f` ([Installer #44387133357](https://github.com/MeteoMartini/MID/actions/runs/44387133357)). SHA-verifizierte, auf dieser Basis konfliktfreie Original-Produkt-/Testblobs aus QA-Drafts #919 (HEAD `d3a0f9b6cb8f893d01dccf56bb30a0f0708493d6`) und #936 (HEAD `e802d2aae99c661d48d27a179d74446082a74439`). Isolierte frühere QA: [#44272385899](https://github.com/MeteoMartini/MID/actions/runs/44272385899) und [#44386911744](https://github.com/MeteoMartini/MID/actions/runs/44386911744) SUCCESS, ausdrücklich keine Abnahme dieses kombinierten HEAD.
+
+Fachlogik: kumulierte Ensemble-Mitgliedsniederschläge ausschließlich aus lückenlosen, eindeutigen und als vollständig gekennzeichneten Quelltagen; NoData niemals 0, echte 0 und Extreme erhalten, 23-/25-h-Lokaltage separat abgesichert. Stationsbeobachtungen mit NaN-Alter/-Distanz/-Höhendifferenz werden nicht als räumlich und zeitlich exakte Anker zugelassen. Negative Quell-Niederschlagswerte bleiben Missing. Der historische Seiteneffekt-Testguard der SelectedPlaceBar aus #925 wird ergänzend zu den tatsächlich gerenderten Status-Assertions wiederhergestellt.
+
+Nicht Bestandteil: laufendes RUC-Problem #541, Forecast-Cache-Provenienz #935, amtliche Warnungen, Worker-Netzwerklogik, produktive Release-Governance. Der endgültige Source-PR benötigt die neue kombinierte Core-/Heavy-/Browser-/iOS-/Review-Abnahme und den unveränderten SHA-gebundenen Releasepfad; dieser Absatz behauptet keine neue Veröffentlichung.
+
 ## MID v0.9.85.494 · 2026-11-18 · Lesbare Ortsnamen und zugängliche Wetterinfos
 
 Basis: MID v0.9.85.492, `040402cf8ecd40c10a3fe3389d15a1c4f96c2826` nach erfolgreicher Stable-Promotion [Installer #44362133124](https://github.com/MeteoMartini/MID/actions/runs/44362133124). Git-Blob-identische UI-Quellen aus #925 (HEAD `1e67e76ec0bf54204968c477ba64a3282a0158fc`) und #927 (HEAD `aaf69ac3ee5d7042d5520292ec57a2495f5f6de7`) wurden ursprünglich in #933 HEAD `450a01aaf7bb34659fe3dc0d8c58f4604f3824d4`, Reviewkorrekturen bis `ad3c59dabb3c5aa001aaab3dc52810a944d7914d`, qualifiziert. Getrennte frühere Draft-CI: #925 [44304449418](https://github.com/MeteoMartini/MID/actions/runs/44304449418), #927 [44336876164](https://github.com/MeteoMartini/MID/actions/runs/44336876164), #933 [Source #44360390192](https://github.com/MeteoMartini/MID/actions/runs/44360390192) und [Vitest #44360390008](https://github.com/MeteoMartini/MID/actions/runs/44360390008). Die isolierte, echte Chromium-React-Fixture aus #927 umfasst acht Viewport/Themen-Kontexte, ist aber kein nativer iOS-/VoiceOver-Vollappnachweis.
