@@ -1,3 +1,10 @@
+## MID v0.9.85.496 · 2026-11-18 · Automatische PR-Eingangsprüfung, belegte Stationswerte und sichere RUC-Wiederherstellung
+
+- Original Stable v0.9.85.495 SHA 8382ff3461ae21a385636e8261104b99bb8fccd0. Exakt 16 ausgewählte Original-Git-Blobs: #941 HEAD 710d3b7e06fb6dac860e313ea79164b4504a078a (7), #940 HEAD 4e568721389eb260f90c5ff1a3a78fcf75947070 (7), #939 HEAD 025595b1d0b70fb880005fb6eb435ca0fa2fdb2e (2).
+- Zwei workflow YAML-Mirrors identisch, unprivilegierte pull_request-/Stable-only-Prüfung. Vier Original-weather.ts-Fragmente bleiben gegenüber generierter Datei bytegleich. RUC-Restore-Originalbasisblob von Stable .494 bis .495 unverändert.
+- QA-Vortests der Original-Drafts: #941 Run 44411135343 (458 passed/3 skipped), #940 Run 44397398591 SUCCESS, #939 Run 44392686616 SUCCESS. Kein kombinierter Source-/Review-/Core-/Heavy-/Installer-/Worker-/Pages-/Stable-Nachweis.
+- Nach erfolgreicher Promotion ist ein neues echtes PR-Ereignis mit aktiviertem Cleaner-intake-Job zu prüfen; erfolgreiches stable_ready mit intake=SKIPPED ist keine Abnahme.
+
 ## MID v0.9.85.496 · 2026-11-18 · PR-Cleaner, Stationsprovenienz und RUC-Restore
 
 - Ausgangs-Stable v0.9.85.495 auf 8382ff3461ae21a385636e8261104b99bb8fccd0; fünf aktive Branch-Rulesets. Alle Original-Git-Blobs aus drei parallel geprüften QA-Drafts auf unverändertem Stable geprüft.
