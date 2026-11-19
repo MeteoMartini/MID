@@ -13,3 +13,11 @@
 **Keine Rückdatierung:** Veröffentlichung nur für neu abgeschlossene reale Releases nach tatsächlicher Stable-Promotion; keine historischen Tags, gefälschten Assets, ZIP-Recovery-Autorität oder Immutable-Signaturbehauptungen. Bestehender fremder Tag/Release => fail-closed; identischer gültiger Eintrag => idempotent. `make_latest` erst nach Original-SHA-/Job-/Notes-Nachweisen. Aktive RUC #541 und QA #947 bleiben unabhängig.
 
 **Restchecks:** Wiederholung der Unit-/Security-Negativtests auf aktuellem Commit; unabhängige Shell/YAML-/Token-Provenienz- und Job-Abhängigkeitsprüfung, exakter GitHub-Review, vollständiges Source-/Core-/Heavy-/Installer-/Pages-/Stable-Gate. Erst produktives neues GitHub Release mit verifiziertem `/releases/latest` ist Erfolg, dieser QA-Draft nicht. Die tatsächliche GitHub-Rolle für den Katalog-Publisher ist vor Integration nach Least Privilege freizugeben.
+
+## Sicherheitsnachschärfung: Tag-Races, Idempotenz und Latest-Readback
+
+- Existiert bereits ein Tag ohne exakt identischen, autorisierten Katalogeintrag, wird keine Veröffentlichung daran angehängt; der Zustand bleibt BLOCKED. Direkt vor dem einzelnen GitHub-POST werden Tag und Release nochmals auf eine zwischenzeitliche Kollision gelesen.
+- Ein bereits bestehender Katalogeintrag ist nur dann idempotent, wenn ID/Tag/Name/Status, null Assets sowie der gesamte normalisierte Original-Release-Body (Stable-SHA, aktueller vollständiger Installer-Run-Link, Changelog, Hinweise ohne Recovery-Rechte) exakt übereinstimmen. Ein im freien Markdown zufällig enthaltener SHA genügt nicht.
+- Erfolgreiches Pages muss eindeutig sein: genau ein erfolgreicher Pages-Versuch; weitere Versuche dürfen ausschließlich übersprungen sein. Damit werden widersprüchliche Deploy-Belege abgewiesen.
+- Nach dem schreibenden POST wird zusätzlich `/releases/latest` gegen die neue Release-ID und das exakte Tag verglichen; eine unerwartete andere `latest`-Antwort wird als Abnahmefehler gemeldet. Die Prüfung bleibt im QA-Draft inaktiv, bis der Leitchat die vollständige Installer-/Source-/Review-/GitHub-App-Berechtigungskette geprüft hat.
+- Amtliche Wetter-, RUC-, Karten-, Worker- und Pages-Inhalte sowie vorhandene Deployment-/Rollback-Gates bleiben vollständig unverändert.

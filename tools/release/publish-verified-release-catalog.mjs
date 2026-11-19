@@ -22,6 +22,29 @@ const heavy=['heavy-mountain-visual ·','heavy-native-map ·','heavy-browser-sta
  'heavy-unified-map · 1/3','heavy-unified-map · 2/3','heavy-unified-map · 3/3'];
 const block=reason=>Object.freeze({state:'BLOCKED',reason,createAllowed:false,recoveryAuthorized:false});
 const succeeded=job=>job?.status==='completed'&&job.conclusion==='success';
+export function renderMidCatalogBody({tag,notes,sha,runId}) {
+ return [
+  '## MID '+tag+' · '+notes.title,'',
+  '### Änderungen',...notes.external.map(x=>'- '+x),'',
+  '### Nachgewiesene Veröffentlichung',
+  '- Stable SHA: '+sha,
+  '- Vollständiger Installer/Worker/Pages-Nachweis: https://github.com/'+REPO+'/actions/runs/'+runId,
+  '- Changelog: https://github.com/'+REPO+'/blob/'+sha+'/CHANGELOG.md','',
+  'Hinweis: GitHub Release-Katalogeintrag ohne attestierte ZIP/Recovery-Assets.',
+  'Eine Immutable-Recovery-Freigabe ist damit NICHT verbunden (#839/#740).'
+ ].join('\n');
+}
+const normalizeBody=body=>body.replace(/\r\n/g,'\n').trimEnd();
+export function verifyMidCatalogReadback({created,postTag,postRelease,latestRelease,tag,sha,body}) {
+ return Number.isSafeInteger(created?.id)&&created.id>0&&
+   postTag?.ref==='refs/tags/'+tag&&postTag.object?.type==='commit'&&postTag.object.sha===sha&&
+   postRelease?.id===created.id&&postRelease.tag_name===tag&&
+   postRelease.name==='MID '+tag&&postRelease.draft===false&&postRelease.prerelease===false&&
+   Array.isArray(postRelease.assets)&&postRelease.assets.length===0&&
+   typeof postRelease.body==='string'&&normalizeBody(postRelease.body)===normalizeBody(body)&&
+   latestRelease?.id===created.id&&latestRelease.tag_name===tag;
+}
+
 
 export function assessMidCatalogEvidence(data={}){
  const {repo,releaseSha,localSha,mainSha,stableSha,versions,notes,
@@ -66,20 +89,27 @@ export function assessMidCatalogEvidence(data={}){
   return block('CORE_SHARD_NOT_GREEN');
  for(const id of heavy)if(!exactlyOneSuccess('Release-Heavy · '+id))
   return block('HEAVY_SHARD_NOT_GREEN');
- if(!jobs.some(j=>j.name?.startsWith('MID auf GitHub Pages veröffentlichen · Versuch ')&&succeeded(j)))
+ const pageJobs=jobs.filter(j=>/^MID auf GitHub Pages veröffentlichen · Versuch [1-9]\d*$/.test(j?.name||''));
+ if(!pageJobs.length||pageJobs.filter(succeeded).length!==1||
+    pageJobs.some(j=>j.status!=='completed'||!['success','skipped'].includes(j.conclusion)))
   return block('PAGES_DEPLOYMENT_NOT_GREEN');
  const tag='v'+version;
  if(tagRef!=null&&(tagRef.ref!=='refs/tags/'+tag||
     tagRef.object?.type!=='commit'||tagRef.object.sha!==releaseSha))
   return block('EXISTING_TAG_CONFLICT');
+ const expectedBody=renderMidCatalogBody({tag,notes,sha:releaseSha,runId});
  if(existingRelease!=null){
-  if(!tagRef||existingRelease.tag_name!==tag||
+  if(!tagRef||!Number.isSafeInteger(existingRelease.id)||existingRelease.id<=0||
+     existingRelease.tag_name!==tag||existingRelease.name!=='MID '+tag||
      existingRelease.draft!==false||existingRelease.prerelease!==false||
+     !Array.isArray(existingRelease.assets)||existingRelease.assets.length!==0||
      typeof existingRelease.body!=='string'||
-     !existingRelease.body.includes(releaseSha)||!existingRelease.body.includes(tag))
+     normalizeBody(existingRelease.body)!==normalizeBody(expectedBody))
    return block('EXISTING_RELEASE_CONFLICT');
   return Object.freeze({state:'EXISTS',tag,version,releaseSha,createAllowed:false,recoveryAuthorized:false});
  }
+ // A pre-existing tag without an exact matching Catalog release has untrusted provenance.
+ if(tagRef!=null)return block('UNPAIRED_PREEXISTING_TAG');
  return Object.freeze({state:'ELIGIBLE_METADATA_ONLY',tag,version,releaseSha,createAllowed:true,recoveryAuthorized:false});
 }
 
@@ -146,27 +176,20 @@ export function publishMidCatalogFromInstaller(){
  if(!evidence.createAllowed)throw Error('Catalog blocked: '+evidence.reason);
  if(refSha('main')!==sha||refSha('mid-stable')!==sha)
   throw Error('Branch SHA drift immediately before catalog create');
- const body=[
-  '## MID '+tag+' · '+notes.title,'',
-  '### Änderungen',...notes.external.map(x=>'- '+x),'',
-  '### Nachgewiesene Veröffentlichung',
-  '- Stable SHA: '+sha,
-  '- Vollständiger Installer/Worker/Pages-Nachweis: https://github.com/'+REPO+'/actions/runs/'+runId,
-  '- Changelog: https://github.com/'+REPO+'/blob/'+sha+'/CHANGELOG.md','',
-  'Hinweis: GitHub Release-Katalogeintrag ohne attestierte ZIP/Recovery-Assets.',
-  'Eine Immutable-Recovery-Freigabe ist damit NICHT verbunden (#839/#740).'
- ].join('\n');
+ // GitHub's release POST is the only write. Detect late competing tags/releases first.
+ if(githubApi('repos/'+REPO+'/git/ref/tags/'+tag,'GET',undefined,true)!=null||
+    githubApi('repos/'+REPO+'/releases/tags/'+tag,'GET',undefined,true)!=null)
+  throw Error('Late tag or release race: refuse metadata publication');
+ const body=renderMidCatalogBody({tag,notes,sha,runId});
  const created=githubApi('repos/'+REPO+'/releases','POST',{
   tag_name:tag,target_commitish:sha,name:'MID '+tag,
   body,draft:false,prerelease:false,make_latest:'true'
  });
  const postTag=githubApi('repos/'+REPO+'/git/ref/tags/'+tag);
  const postRelease=githubApi('repos/'+REPO+'/releases/tags/'+tag);
- if(postTag?.object?.type!=='commit'||postTag.object.sha!==sha||
-    postRelease?.id!==created.id||postRelease.tag_name!==tag||
-    postRelease.draft!==false||postRelease.prerelease!==false||
-    !postRelease.body?.includes(sha))
-  throw Error('New release tag/SHA/readback mismatch');
+ const latestRelease=githubApi('repos/'+REPO+'/releases/latest');
+ if(!verifyMidCatalogReadback({created,postTag,postRelease,latestRelease,tag,sha,body}))
+  throw Error('New release tag/SHA/content/latest readback mismatch');
  console.log('MID_GITHUB_CATALOG_ENTRY='+JSON.stringify({
   version,tag,sha,runId,releaseId:created.id,catalogOnly:true,recoveryAuthorized:false
  }));

@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {assessMidCatalogEvidence} from '../../tools/release/publish-verified-release-catalog.mjs';
+import {assessMidCatalogEvidence,renderMidCatalogBody,verifyMidCatalogReadback} from '../../tools/release/publish-verified-release-catalog.mjs';
 const sha='a'.repeat(40),packageSha='b'.repeat(40),mergeSha='c'.repeat(40),
  version='0.9.85.497',runId=44121560818;
 const green=name=>({name,status:'completed',conclusion:'success'});
@@ -81,14 +81,38 @@ describe('MID post-Stable GitHub Releases catalog eligibility (not recovery auth
   reject({tagRef:{ref:'refs/tags/v'+version,object:{type:'commit',sha:'b'.repeat(40)}}});
   reject({tagRef:{ref:'refs/tags/v'+version,object:{type:'tag',sha}}});
  });
- it('is idempotent only if the exact matching non-draft release already exists',()=>{
+ it('refuses ambiguous multi-success or failing Pages attempts',()=>{
+  reject({jobs:[...baseline().jobs,green('MID auf GitHub Pages veröffentlichen · Versuch 2')]});
+  reject({jobs:[...baseline().jobs,{name:'MID auf GitHub Pages veröffentlichen · Versuch 2',status:'completed',conclusion:'failure'}]});
+ });
+ it('blocks a pre-existing tag without independently matching release',()=>{
+  reject({tagRef:{ref:'refs/tags/v'+version,object:{type:'commit',sha}}});
+ });
+ it('idempotence requires exact verified metadata rather than embedded SHA tokens',()=>{
   const tagRef={ref:'refs/tags/v'+version,object:{type:'commit',sha}};
-  const release={id:1,tag_name:'v'+version,draft:false,prerelease:false,body:'MID v'+version+' '+sha};
+  const tag='v'+version;
+  const body=renderMidCatalogBody({tag,notes:baseline().notes,sha,runId});
+  const release={id:1,tag_name:tag,name:'MID '+tag,draft:false,prerelease:false,assets:[],body};
   expect(evalWith({tagRef,existingRelease:release})).toMatchObject({
    state:'EXISTS',createAllowed:false,recoveryAuthorized:false});
   reject({existingRelease:release});
   reject({tagRef,existingRelease:{...release,draft:true}});
-  reject({tagRef,existingRelease:{...release,body:'wrong SHA'}});
+  reject({tagRef,existingRelease:{...release,body:'wrong SHA '+sha+' '+tag}});
+  reject({tagRef,existingRelease:{...release,body:body.replace('actions/runs/'+runId,'actions/runs/999')}});
+  reject({tagRef,existingRelease:{...release,assets:[{name:'unverified.zip'}]}});
+  reject({tagRef,existingRelease:{...release,name:'Another publisher'}});
   reject({tagRef,existingRelease:{...release,tag_name:'v0.9.85.488'}});
+ });
+ it('readback requires real latest-release identity, exact tag, SHA and metadata',()=>{
+  const tag='v'+version,body=renderMidCatalogBody({tag,notes:baseline().notes,sha,runId});
+  const created={id:15},postTag={ref:'refs/tags/'+tag,object:{type:'commit',sha}},
+        postRelease={id:15,tag_name:tag,name:'MID '+tag,draft:false,prerelease:false,assets:[],body},
+        latestRelease={id:15,tag_name:tag};
+  const original={created,postTag,postRelease,latestRelease,tag,sha,body};
+  expect(verifyMidCatalogReadback(original)).toBe(true);
+  expect(verifyMidCatalogReadback({...original,latestRelease:{id:14,tag_name:tag}})).toBe(false);
+  expect(verifyMidCatalogReadback({...original,postTag:{...postTag,object:{type:'tag',sha}}})).toBe(false);
+  expect(verifyMidCatalogReadback({...original,postRelease:{...postRelease,body:'stale '+sha}})).toBe(false);
+  expect(verifyMidCatalogReadback({...original,postRelease:{...postRelease,assets:[{name:'recovery.zip'}]}})).toBe(false);
  });
 });
