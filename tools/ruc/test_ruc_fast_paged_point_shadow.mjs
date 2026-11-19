@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {gzipSync} from 'node:zlib';
 import {readPagedFastPointShadow,sha256hex} from './ruc_fast_paged_point_shadow.mjs';
 const run='2026-11-02T09:00',start=Date.parse(run+'Z'),source='a'.repeat(64);
 const names={'lookup.bin':[4,964*596],'deterministic.bin':[168,542040],'rapid-5m.bin':[146,542040],'rapid-15m.bin':[150,542040]};
@@ -88,4 +89,30 @@ test('missing native lookup is unavailable without extra fetches',async()=>{
  const raw=new TextEncoder().encode(JSON.stringify(f.manifest));
  let calls=0;const o=await readPagedFastPointShadow(raw,await sha256hex(raw),async path=>{calls++;return f.pages[path]},0);
  assert.equal(o.available,false);assert.equal(calls,1);
+});
+test('bounded gzip transport preserves original native values and rejects corruption',async()=>{
+ const f=await fixture();
+ const read=key=>Promise.resolve(f.pages[key]);
+ const baseline=await readPagedFastPointShadow(f.raw,f.sha,read,0);
+ const part=f.manifest.objects['deterministic.bin'].parts[0];
+ const original=f.pages[part.key];
+ f.manifest.storageCodec='gzip-or-raw-v1';
+ part.key=part.key.replace(/\.bin$/,'.gzip.bin');
+ part.encoding='gzip';
+ const encode=async bytes=>{
+  const zipped=new Uint8Array(gzipSync(bytes));
+  part.storedBytes=zipped.length;
+  part.storedSha256=await sha256hex(zipped);
+  f.pages[part.key]=zipped;
+  const raw=new TextEncoder().encode(JSON.stringify(f.manifest));
+  return [raw,await sha256hex(raw)];
+ };
+ const [raw,sha]=await encode(original);
+ assert.deepEqual(await readPagedFastPointShadow(raw,sha,read,0),baseline);
+ f.pages[part.key][0]^=1;
+ await assert.rejects(readPagedFastPointShadow(raw,sha,read,0),/stored Fast chunk SHA/);
+ const extended=new Uint8Array(original.length+1);
+ extended.set(original);
+ const [rawOversize,shaOversize]=await encode(extended);
+ await assert.rejects(readPagedFastPointShadow(rawOversize,shaOversize,read,0),/expanded Fast chunk exceeds/);
 });

@@ -99,7 +99,14 @@ def check_contract(install: str, ruc: str, watchdog: str,
     sha_guard = 'if [ "${main_sha}" != "${actual_sha}" ]; then'
     if publisher.count(sha_capture) != 2 or publisher.count(sha_guard) != 2:
         raise ValueError("RUC publish missing both main/stable exact-SHA drift gates")
-    if publisher.count("digest-mismatch: error") != 2:
+    archive_ids = ("needs.prepare.outputs.data_artifact_id",
+                   "needs.prepare.outputs.rollback_artifact_id",
+                   "steps.retained_fast_source.outputs.artifact_id")
+    downloads = [step for step in re.split(r'\n      - ', publisher)
+                 if "uses: actions/download-artifact@" in step]
+    if any(sum("artifact-ids: ${{ " + artifact_id + " }}" in step
+               and "digest-mismatch: error" in step for step in downloads) != 1
+           for artifact_id in archive_ids):
         raise ValueError("RUC immutable data and rollback artifact digest gates absent")
     if "--run-id \"$GITHUB_RUN_ID\" --require-fresh" not in ruc_jobs["prepare"]:
         raise ValueError("RUC core handoff missing exact 240-minute freshness recheck")
