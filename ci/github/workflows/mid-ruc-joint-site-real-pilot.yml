@@ -379,6 +379,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
       - name: Bind inputs to released source, successful Pages deployment and native proof
+        id: base
         env:
           GH_TOKEN: ${{ github.token }}
           SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
@@ -389,19 +390,16 @@ jobs:
           for branch in mid-stable main; do
             test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$branch" --jq .object.sha)" = 256aabe286f7daa00dc0e320815dd8dacb7b4706
           done
-          gh api "repos/$GITHUB_REPOSITORY/deployments/7904727023/statuses" |
-            jq -e '.[0].state == "success" and (.[0].log_url | contains("/actions/runs/44461870246/job/"))' >/dev/null
-          gh api "repos/$GITHUB_REPOSITORY/actions/runs/44461870246" |
-            jq -e '.conclusion == "success" and .path == ".github/workflows/install-mid.yml"' >/dev/null
-          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/14501251160" |
-            jq -e '.expired == false and .workflow_run.id == 44461870246 and .digest == "sha256:d78eb5c173d8c86bdbcfd2642a5f721f35e3373bc3daad5e76ebc3f8647ddfa4"' >/dev/null
+          python tools/ruc/test_resolve_fast_pages_base.py
+          python tools/ruc/resolve_fast_pages_base.py --stable-sha 256aabe286f7daa00dc0e320815dd8dacb7b4706 > pages-base.json
+          jq -r '"artifact_id=\(.artifact_id)\nrun_id=\(.run_id)"' pages-base.json >> "$GITHUB_OUTPUT"
           gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/14500714855" |
             jq -e '.expired == false and .workflow_run.id == 44464260206 and .digest == "sha256:18612063706840aa95d980c8c56bb1eeedb8b462d353d3e68242e5ceebd5e86a"' >/dev/null
       - name: Download exactly deployed Stable Pages bytes with digest enforcement
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
-          artifact-ids: '14501251160'
-          run-id: 44461870246
+          artifact-ids: ${{ steps.base.outputs.artifact_id }}
+          run-id: ${{ steps.base.outputs.run_id }}
           github-token: ${{ github.token }}
           digest-mismatch: error
           merge-multiple: true
