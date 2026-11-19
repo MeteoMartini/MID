@@ -1,4 +1,6 @@
 # MID Design 1.21 · STABLE-v0.9.85.494-Intake und unverlierbarer Herkunftsmerge
+
+**Release-Intake am 19.11.2026:** [#948](https://github.com/MeteoMartini/MID/pull/948) hat elf Blobs des Reflow-Bundles [#934](https://github.com/MeteoMartini/MID/pull/934) und zwei Blobs des Tageslicht-Drafts [#942](https://github.com/MeteoMartini/MID/pull/942) auf Stable .496 integriert. Der .497-Kandidat umfasst auch `src/ForecastCockpit.tsx`, die Nachtband-Regression, die Widget-Exportkorrektur und die synchronisierten Versionsspiegel für Worker und Service Worker. Die folgenden Aufnahmehinweise beschreiben den historischen .494-Draft.
 **18.11.2026 · QA-DRAFT · NICHT READY · NICHT MERGEN · NICHT VERÖFFENTLICHEN**
 
 ## Neu überprüfte maßgebliche Basis

@@ -15,7 +15,8 @@ for(const token of [
   'y={nightBandTop}',
   'height={nightBandBottom-nightBandTop}',
   'className="night-band seven-day-curve-night-band"',
-  'className="seven-day-curve-daylight" fill="rgba(217,225,236,.09)"',
+  'hasDayNight&&<rect className="seven-day-curve-daylight" fill="var(--s3,#d9e1ec)" fillOpacity={.32}',
+  'const isNight=hour.isDay===false;',
   'nightColor="var(--mg-night,rgba(1,8,18,.22))"'
 ])assert.ok(curve.includes(token),`7-Tage-Nachtband-Vertrag fehlt: ${token}`);
 const test='scripts/test-seven-day-curve-night-band-097841.mjs';

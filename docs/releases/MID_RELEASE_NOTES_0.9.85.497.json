@@ -6,7 +6,8 @@
   "external": [
     "Lange Ladehinweise in Wettermodulen umbrechen besser auf Smartphones und bei größerer Schrift.",
     "Ensemble-Detailinformationen werden besser lesbar; Methodik ist leichter per Touch erreichbar.",
-    "Die 7-Tage-Kurve hebt Tageslicht klarer von der Nacht ab, ohne Prognosen oder Sonnenzeiten zu verändern."
+    "Die 7-Tage-Kurve hebt Tageslicht klarer von der Nacht ab, ohne Prognosen oder Sonnenzeiten zu verändern.",
+    "Nachtbänder behalten im Widget-SVG-Export eine ausfallsichere Ersatzfarbe."
   ],
   "internal": [
     "Ausgangs-Stable v0.9.85.496 SHA 256aabe286f7daa00dc0e320815dd8dacb7b4706; #948 QA-HEAD 5aa3a2cf768311fbd71977365b1bc92bcfc3baf7.",

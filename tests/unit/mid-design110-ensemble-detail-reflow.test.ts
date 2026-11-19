@@ -36,7 +36,7 @@ describe('MID Design 1.10 ensemble detail reflow',()=>{
   expect(details).toContain("lineHeight:1.45");
  });
  it('exposes a 44px methodology disclosure target without changing its content',()=>{
-  expect(details).toContain("<details><summary style={{minHeight:44,display:'flex',alignItems:'center',cursor:'pointer'}}>");
+  expect(details).toContain("<details><summary style={{minHeight:44,display:'list-item',alignContent:'center',cursor:'pointer'}}>");
   expect(details).toContain('Methodik, Datenstand und Kalibrierung');
   expect(details).toContain('Die Gesamtbewertung ist eine gewichtete robuste Aggregation');
  });

@@ -31,7 +31,7 @@ describe('MID Design113 shared loading-state reflow',()=>{
   expect(html).not.toContain('mm/h');
   expect(html).not.toContain('animation:');
  });
- it('retains the existing reserved map-height CSS ownership, not app-wide overrides',()=>{
+ it('keeps map loading branches on the shared status component',()=>{
   const html=renderToStaticMarkup(createElement(ModuleLoadingState,{label:'Kartenprodukt wird geladen …',kind:'map',className:'lazy-placeholder map-workspace-loading'}));
   expect(html).toContain('module-loading-state inner lazy-placeholder map-workspace-loading');
   expect(html).toContain('box-sizing:border-box');

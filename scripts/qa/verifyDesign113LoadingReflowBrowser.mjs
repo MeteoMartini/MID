@@ -27,6 +27,7 @@ try{
   try{
    const page=await context.newPage(),errors=[];
    page.on('pageerror',error=>errors.push(error.message));
+   page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});
    await page.route('**/*',route=>new URL(route.request().url()).origin===base?route.continue():route.abort());
    await page.goto(base+'/tests/visual/design113-loading-reflow-qa.html?theme='+theme,{waitUntil:'domcontentloaded'});
    await page.addStyleTag({content:'html{font-size:'+16*scale+'px!important}'});
