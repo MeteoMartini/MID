@@ -20,7 +20,9 @@ assert.ok(baseline.requiredFiles?.includes(test),'Missing required file declarat
 assert.match(weather,/export function instantCachedCoreForecast\(lat:number,lon:number,options:ForecastRequestOptions=\{\}\)/);
 assert.match(weather,/parseForecastCoreCache\(localStorage\.getItem\(forecastCoreCacheKey\(lat,lon,options\)\)\)/);
 assert.match(weather,/if\(!exact\|\|exact\.age>45\*60\*1000\)return null/);
-assert.match(weather,/cachedForecastResult\(exact,'network-fallback-local-cache'\)/);
+assert.match(weather,/forecastCoreCacheOrigin\(exact\)/);
+assert.match(weather,/if\(!origin\|\|haversine\(lat,lon,origin\.latitude,origin\.longitude\)>125\)return null/);
+assert.match(weather,/cachedForecastResult\(\{\.\.\.exact,spatialMatch:'exact',distance:0\},'network-fallback-local-cache'\)/);
 assert.match(app,/setLocState\(normalized\);setW\(instantCachedCoreForecast\(normalized\.latitude,normalized\.longitude,\{/);
 assert.match(app,/timeZone:normalized\.timezone\|\|\(normalized\.autolocated\?/);
 assert.match(app,/elevation:normalized\.elevation/);
