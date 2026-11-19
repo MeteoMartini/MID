@@ -6,8 +6,8 @@ import {resolve} from 'node:path';
 const root=resolve(import.meta.dirname,'../..');
 const canonical=resolve(root,'ci/github/workflows');
 const active=resolve(root,'.github/workflows');
-const authorized={'deploy.yml':3,'install-mid.yml':3,'mid-ruc-preprocess.yml':1};
-const actionInventory={'deploy.yml':3,'install-mid.yml':3,'mid-ruc-preprocess.yml':2};
+const authorized={'deploy.yml':3,'install-mid.yml':3,'mid-ruc-preprocess.yml':2};
+const actionInventory={'deploy.yml':3,'install-mid.yml':3,'mid-ruc-preprocess.yml':4};
 function jobsOf(text){
  const starts=[...text.matchAll(/^  ([A-Za-z_][A-Za-z0-9_-]*):\s*$/gm)];
  const jobs=[];
@@ -47,7 +47,15 @@ test('all GitHub Pages publishers are enumerated, SHA mirrored and share global 
     assert.match(job.body,/steps\.ruc_guard\.outputs\.current == 'true'/,'release can bypass RUC source freshness');
    }
    if(name==='mid-ruc-preprocess.yml'){
-    assert.match(job.body,/needs\.prepare/,'publisher must depend on sealed RUC producer snapshot');
+    if(job.id==='publish_fast'){
+     assert.match(job.body,/needs\.prepare_fast\.result == 'success'/);
+     assert.match(job.body,/MID_RUC_FAST_PAGES_ENABLED == 'true'/);
+     assert.match(job.body,/verify_fast_pages_publish\.py/);
+     assert.match(job.body,/steps\.fast_publish_guard\.outcome == 'success'/);
+     assert.match(job.body,/steps\.fast_deployment\.outcome == 'success' && steps\.fast_readback\.outcome == 'failure'/);
+    }else{
+     assert.match(job.body,/needs\.prepare/,'publisher must depend on sealed RUC producer snapshot');
+    }
    }
   }
   observed[name]=jobs.length;

@@ -895,6 +895,9 @@ jobs:
   prepare_fast:
     name: Aktuelle Stable-Site und geprüfte Fast Lane für Pages vorbereiten
     needs: qualify_fast
+    outputs:
+      artifact_id: ${{ steps.fast_candidate_archive.outputs.artifact-id }}
+      artifact_digest: ${{ steps.fast_candidate_archive.outputs.artifact-digest }}
     if: ${{ needs.qualify_fast.result == 'success' && needs.qualify_fast.outputs.artifact_id != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -969,6 +972,7 @@ jobs:
           python tools/ruc/resolve_fast_pages_base.py --stable-sha "$STABLE_SHA" > pages-base-after.json
           cmp pages-base.json pages-base-after.json
       - name: Gebauten Kandidaten mit zugehörigem Herkunftsnachweis versiegeln
+        id: fast_candidate_archive
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: mid-ruc-fast-pages-candidate-${{ github.run_id }}-${{ github.run_attempt }}
@@ -978,3 +982,133 @@ jobs:
             fast-delivery-proof.json
           retention-days: 2
           if-no-files-found: error
+
+  publish_fast:
+    name: Unabhängige Fast Lane geschützt auf Pages veröffentlichen
+    needs: [qualify_fast, prepare_fast]
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.fast_only == true && vars.MID_RUC_FAST_PAGES_ENABLED == 'true' && needs.prepare_fast.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      actions: read
+      deployments: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: mid-pages
+      queue: max
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.fast_deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.qualify_fast.outputs.stable_sha }}
+          persist-credentials: false
+      - name: Versiegelten Kandidaten und unverändertes Stable-Deployment im Pages-Lock prüfen
+        id: fast_baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STABLE_SHA: ${{ needs.qualify_fast.outputs.stable_sha }}
+          CANDIDATE_ID: ${{ needs.prepare_fast.outputs.artifact_id }}
+          CANDIDATE_DIGEST: ${{ needs.prepare_fast.outputs.artifact_digest }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$STABLE_SHA"
+          test "$GITHUB_SHA" = "$STABLE_SHA"
+          [[ "$CANDIDATE_ID" =~ ^[1-9][0-9]*$ && "$CANDIDATE_DIGEST" =~ ^[a-f0-9]{64}$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$CANDIDATE_ID" |
+            jq -e --argjson run "$GITHUB_RUN_ID" --arg sha "$STABLE_SHA" --arg digest "sha256:$CANDIDATE_DIGEST" '.workflow_run.id == $run and .workflow_run.head_sha == $sha and .digest == $digest and .expired == false' >/dev/null
+          python tools/ruc/resolve_fast_pages_base.py --stable-sha "$STABLE_SHA" > active-pages-base.json
+          jq -r '"artifact_id=\(.artifact_id)\nrun_id=\(.run_id)"' active-pages-base.json >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          artifact-ids: ${{ needs.prepare_fast.outputs.artifact_id }}
+          merge-multiple: true
+          digest-mismatch: error
+          path: bundle
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          artifact-ids: ${{ steps.fast_baseline.outputs.artifact_id }}
+          run-id: ${{ steps.fast_baseline.outputs.run_id }}
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          digest-mismatch: error
+          path: original-pages
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 22.16.0
+      - name: Rückfallsite und ausschließlich Fast-spezifische Änderung verifizieren
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STABLE_SHA: ${{ needs.qualify_fast.outputs.stable_sha }}
+        run: |
+          set -euo pipefail
+          cmp active-pages-base.json bundle/pages-base.json
+          python -m pip install --disable-pip-version-check 'numpy>=2.0,<3'
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, 'tools/ruc')
+          from prepare_fast_pages_delivery import extract_pages_tar
+          archives=[p for p in Path('original-pages').rglob('*') if p.is_file()]
+          if len(archives)!=1:
+              raise ValueError('unexpected rollback archive inventory')
+          target=Path('rollback-site')
+          target.mkdir()
+          extract_pages_tar(archives[0], target)
+          PY
+          python tools/ruc/verify_fast_pages_publish.py --bundle bundle --rollback-site rollback-site --stable-sha "$STABLE_SHA"
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
+        with:
+          name: mid-fast-pages-${{ github.run_id }}-${{ github.run_attempt }}
+          path: bundle/candidate-site
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
+        with:
+          name: mid-fast-rollback-${{ github.run_id }}-${{ github.run_attempt }}
+          path: rollback-site
+      - name: Stable, aktives Deployment und Frische unmittelbar vor Release erneut prüfen
+        id: fast_publish_guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STABLE_SHA: ${{ needs.qualify_fast.outputs.stable_sha }}
+        run: python tools/ruc/verify_fast_pages_publish.py --bundle bundle --rollback-site rollback-site --stable-sha "$STABLE_SHA"
+      - uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346
+        id: fast_deployment
+        if: steps.fast_publish_guard.outcome == 'success'
+        with:
+          artifact_name: mid-fast-pages-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Exakten Fast-Punkt und unveränderten Vollpointer öffentlich abfragen
+        id: fast_readback
+        if: steps.fast_deployment.outcome == 'success'
+        run: |
+          set -euo pipefail
+          fast_sha="$(jq -er .fastManifestSha256 bundle/fast-delivery-proof.json)"
+          full_sha="$(jq -er .primaryManifestSha256 bundle/fast-delivery-proof.json)"
+          run="$(jq -er .run bundle/fast-delivery-proof.json)"
+          for attempt in 1 2 3 4 5; do
+            if node tools/ruc/ruc_fast_pages_readback.mjs https://www.midwx.app "$fast_sha" "${run}:00.000Z" 294442 &&
+               curl --max-time 15 --max-filesize 3000000 -fsS https://www.midwx.app/ruc/latest.json -o live-full.json &&
+               printf '%s  live-full.json\n' "$full_sha" | sha256sum --check --status; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 5 ]; then sleep 10; fi
+          done
+          exit 1
+      - uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346
+        id: fast_rollback
+        if: ${{ failure() && steps.fast_deployment.outcome == 'success' && steps.fast_readback.outcome == 'failure' }}
+        with:
+          artifact_name: mid-fast-rollback-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Rückkehr des originalen Vollpointers prüfen
+        if: ${{ failure() && steps.fast_rollback.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+          full_sha="$(jq -er .primaryManifestSha256 bundle/fast-delivery-proof.json)"
+          curl --max-time 15 --max-filesize 3000000 -fsS https://www.midwx.app/ruc/latest.json -o restored-full.json
+          printf '%s  restored-full.json\n' "$full_sha" | sha256sum --check --status

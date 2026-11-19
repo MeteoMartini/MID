@@ -441,3 +441,24 @@ jobs:
           console.log(JSON.stringify({run:proof.run,nativePointReadback:true}));
           JS
           cat fast-delivery-proof.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Rehearse protected deployment admission and bit-identical rollback
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import sys
+          from datetime import datetime
+          from pathlib import Path
+          sys.path.insert(0,'tools/ruc')
+          from prepare_fast_pages_delivery import extract_pages_tar
+          from verify_fast_pages_publish import verify_delivery
+          rollback=Path('verified-rollback')
+          rollback.mkdir()
+          archive=next(p for p in Path('pages-release').rglob('*') if p.is_file())
+          extract_pages_tar(archive,rollback)
+          proof=verify_delivery(Path('.'),rollback,'256aabe286f7daa00dc0e320815dd8dacb7b4706',
+                                now=datetime.fromisoformat('2026-11-19T07:00:00+00:00'))
+          print('Fast deployment admission and intact rollback verified:',proof['run'])
+          PY
