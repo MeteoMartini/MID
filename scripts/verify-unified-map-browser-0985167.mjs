@@ -726,8 +726,20 @@ async function verifySurroundings(width,theme){
   assert.ok(imageWidth>=16&&imageWidth<=512&&imageHeight>=16&&imageHeight<=256&&
    imageWidth*imageHeight<=512*256,'WMS image remains within the source pixel budget');
   assert.equal(bbox.length,4);
+  assert.equal(observedWms.searchParams.get('srs'),'EPSG:3857',
+   'Verified DWD RV original must use WMS 1.1.1 native WebMercator source pixels');
+  assert.ok(bbox.every(Number.isFinite)&&bbox[0]<bbox[2]&&bbox[1]<bbox[3]&&
+   bbox.some(value=>Math.abs(value)>100000),
+   'Radar BBOX contains ordered projected metres, not degree coordinates');
   assert.ok(Math.abs(imageWidth/imageHeight-(bbox[2]-bbox[0])/(bbox[3]-bbox[1]))<.02,
-   'Synthetic WMS image dimensions follow actual EPSG:4326 BBOX aspect');
+   'Radar PNG shape corresponds to native EPSG:3857 projected BBOX');
+  // Satellite providers remain geographic until EACH layer has independent
+  // GetCapabilities, rights and actual image-pixel CRS qualification.
+  for(const satelliteWms of requests.map(value=>new URL(value)).filter(url=>
+   url.searchParams.get('mode')==='composite-wms'&&
+   url.searchParams.get('layers')!=='dwd:Radar_rv_product_1x1km_ger'))
+   assert.equal(satelliteWms.searchParams.get('srs'),'EPSG:4326',
+    'Unverified satellite source projection must not silently change');
   // #795/.478 replaces the old approximate SVG borders with the real MapLibre vector basemap.
   // The independent radar admission still requires a real rendered frame after explicit selection.
   await page.locator('.current-surroundings-maplibre canvas').first().waitFor({timeout:30000});

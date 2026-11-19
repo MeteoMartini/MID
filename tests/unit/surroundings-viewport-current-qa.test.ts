@@ -24,8 +24,8 @@ describe('MID Karten 1.17 #853: current Stable-bound viewport wiring',()=>{
   expect(ui).toContain('const rasterPlan=rasterState?.lat===lat&&rasterState.lon===lon?rasterState.plan:undefined;');
   expect(ui).toContain('const operaRequestKey=JSON.stringify([lat,lon,bounds,rasterPlan?.width,rasterPlan?.height]);');
   expect(ui).toContain('bbox:plan.bbox,width:String(plan.width),height:String(plan.height)');
-  expect(ui).toContain("imageUrl('dwd',rvLayer,target,rasterPlan)");
-  expect(ui).toContain('imageUrl(satellite.provider,satellite.layer,satelliteTime,rasterPlan)');
+  expect(ui).toContain("imageUrl('dwd',rvLayer,target,radarWmsPlan)");
+  expect(ui).toContain('imageUrl(satellite.provider,satellite.layer,satelliteTime,geographicWmsPlan)');
   expect(ui).toContain('key={`surroundings-radar:${operaRequestKey}`}');
   expect(ui).toContain('key={`surroundings-clouds:${operaRequestKey}`}');
   expect(ui).toContain('bounds={mapBounds}');
@@ -56,9 +56,17 @@ describe('MID Karten 1.17 #853: current Stable-bound viewport wiring',()=>{
   expect(ui).toContain('Radar-/Satellitenausschnitt geometrisch nicht verfügbar; keine Wetterdaten als 0 interpretiert.');
   expect(planSurroundingsViewportRaster({west:170,south:40,east:-170,north:42},{width:390,height:220})).toBeUndefined();
  });
- it('does not pretend to have solved the separate WMS interior CRS mismatch',()=>{
-  // Until per-product capabilities and true georeferenced image tests permit EPSG:3857.
-  expect(ui).toContain("version:'1.1.1',srs:'EPSG:4326'");
-  expect(ui).not.toContain("srs:'EPSG:3857'");
+ it('uses source-advertised native Mercator WMS only for DWD RV; satellite projection remains gated',()=>{
+  // Official DWD RV GetCapabilities advertises EPSG:3857 and native GetMap PNG.
+  // No blanket EPSG:3857 attribution to EUMETSAT or another satellite layer.
+  expect(ui).toContain("version:'1.1.1',srs:plan.srs");
+  expect(ui).toContain("planSurroundingsMercatorWmsRaster(rasterPlan)");
+  expect(ui).toContain("const radarWmsPlan=useMemo(");
+  expect(ui).toContain("const geographicWmsPlan=useMemo(");
+  expect(ui).toContain("srs:'EPSG:4326' as const");
+  expect(ui).toContain('const admittedRasterPlan=radarWmsPlan;');
+  expect(ui).toContain("imageUrl('dwd',rvLayer,target,radarWmsPlan)");
+  expect(ui).toContain('imageUrl(satellite.provider,satellite.layer,satelliteTime,geographicWmsPlan)');
+  expect(ui).not.toContain("version:'1.1.1',srs:'EPSG:4326'");
  });
 });

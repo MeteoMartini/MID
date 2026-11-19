@@ -18,6 +18,7 @@ import {loadSurroundingsTemperatures} from './currentSurroundingsTemperature';
 import {currentSurroundingsTemperature,type SurroundingsTemperatureRequest} from './surroundingsTemperatureDisplay';
 import SurroundingsViewportCapture from './SurroundingsViewportCapture';
 import {admitSurroundingsWmsDecodedImage} from './surroundingsWmsImageAdmission';
+import {planSurroundingsMercatorWmsRaster} from './surroundingsMercatorWmsRaster';
 import {mercatorLatitudeAtImageFraction,type SurroundingsRasterPlan} from './surroundingsViewportRaster';
 import {summarizeSurroundingsOperaCoverage,type SurroundingsOperaCoverage} from './surroundingsOperaCoverage';
 import './CurrentSurroundings.css';
@@ -47,11 +48,11 @@ function MapCityInventory({onChange}:{onChange:(values:SurroundingsCityCandidate
  return null;
 }
 
-function imageUrl(provider:WmsProvider,layer:string,time:number,plan:SurroundingsRasterPlan|undefined){
+function imageUrl(provider:WmsProvider,layer:string,time:number,plan:(Pick<SurroundingsRasterPlan,'bbox'|'width'|'height'>&{srs:'EPSG:4326'|'EPSG:3857'})|undefined){
  const proxy=compositeWmsProxy(provider);
  if(!proxy||!plan)return '';
  const url=new URL(proxy,window.location.href);
- const parameters={service:'WMS',request:'GetMap',version:'1.1.1',srs:'EPSG:4326',layers:layer,format:'image/png',transparent:'true',bbox:plan.bbox,width:String(plan.width),height:String(plan.height),time:new Date(time).toISOString()};
+ const parameters={service:'WMS',request:'GetMap',version:'1.1.1',srs:plan.srs,layers:layer,format:'image/png',transparent:'true',bbox:plan.bbox,width:String(plan.width),height:String(plan.height),time:new Date(time).toISOString()};
  for(const [key,value] of Object.entries(parameters))url.searchParams.set(key,value);
  return url.href;
 }
@@ -93,6 +94,13 @@ export default function CurrentSurroundings(props:Props){
  // Bind every Rad/Sat original to the actual post-fit camera rectangle.
  const [rasterState,setRasterState]=useState<{lat:number;lon:number;plan:SurroundingsRasterPlan|undefined}>();
  const rasterPlan=rasterState?.lat===lat&&rasterState.lon===lon?rasterState.plan:undefined;
+ // Only DWD RV is verified for native EPSG:3857 GetMap. Satellite providers
+ // retain original EPSG:4326 until their specific CRS/PIXEL gate succeeds.
+ const radarWmsPlan=useMemo(()=>planSurroundingsMercatorWmsRaster(rasterPlan),[rasterPlan]);
+ const geographicWmsPlan=useMemo(()=>rasterPlan?{
+  bbox:rasterPlan.bbox,width:rasterPlan.width,height:rasterPlan.height,
+  srs:'EPSG:4326' as const
+ }:undefined,[rasterPlan]);
  const rasterPending=!rasterState||rasterState.lat!==lat||rasterState.lon!==lon;
  const mapFigureRef=useRef<HTMLElement|null>(null);
  const darkMap=useDarkMapTheme();
@@ -166,17 +174,17 @@ export default function CurrentSurroundings(props:Props){
   const signature=(places:SurroundingsCityCandidate[])=>places.map(p=>`${p.name}:${p.lat.toFixed(3)}:${p.lon.toFixed(3)}`).sort().join('|');
   return signature(previous)===signature(next)?previous:next;
  }),[]);
- const radar=mode!=='radar'||target===undefined?'':imageUrl('dwd',rvLayer,target,rasterPlan);
+ const radar=mode!=='radar'||target===undefined?'':imageUrl('dwd',rvLayer,target,radarWmsPlan);
  const satellite=catalog?.satelliteRgbProduct??catalog?.satelliteIrProduct;
  const satelliteTime=radarStep>0?undefined:nearestVerifiedOriginal(satellite?.times,radarTarget,now);
- const clouds=mode==='radar'&&satellite&&satelliteTime!==undefined?imageUrl(satellite.provider,satellite.layer,satelliteTime,rasterPlan):'';
+ const clouds=mode==='radar'&&satellite&&satelliteTime!==undefined?imageUrl(satellite.provider,satellite.layer,satelliteTime,geographicWmsPlan):'';
  const clock=(time:number)=>new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:timezone}).format(time);
  const datedClock=(time:number)=>new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:timezone}).format(time);
  useEffect(()=>{
   if(mode!=='radar'||!radar||target===undefined)return;
   // WMS alpha is presentation, not a weather validity mask. Verify only
   // decoded dimensions against the exact post-fit request; coverage stays unknown.
-  const admittedRasterPlan=rasterPlan;
+  const admittedRasterPlan=radarWmsPlan;
   if(!admittedRasterPlan)return;
   let active=true;
   const img=new Image();
@@ -193,7 +201,7 @@ export default function CurrentSurroundings(props:Props){
   img.onerror=()=>{if(active)setImageError(radar)};
   img.src=radar;
   return ()=>{active=false;img.onload=null;img.onerror=null};
- },[radar,target,mode,rasterPlan,radarOriginal?.kind,radarOriginal?.time]);
+ },[radar,target,mode,radarWmsPlan,radarOriginal?.kind,radarOriginal?.time]);
  const needsOpera=mode==='radar'&&radarAtNow&&Boolean(rasterPlan)&&Boolean(showPhase||(catalog&&!radar)||failed||(radar&&imageError===radar));
  // biome-ignore lint/correctness/useExhaustiveDependencies: A refreshed composite catalog intentionally revalidates OPERA availability even when location/radar mode remain unchanged.
  useEffect(()=>{
