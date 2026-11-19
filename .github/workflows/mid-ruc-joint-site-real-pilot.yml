@@ -413,38 +413,31 @@ jobs:
           digest-mismatch: error
           merge-multiple: true
           path: native-release
-      - name: Rebuild and measure byte-exact Fast without deploying
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 22.16.0
+      - name: Assemble the exact deployed baseline and test the independent Fast point reader
         run: |
           set -euo pipefail
-          python tools/ruc/ruc_fast_pages_chunker.py --shadow native-release --output fast-pages --gzip
-          python - <<'PY' | tee -a "$GITHUB_STEP_SUMMARY"
-          import json
-          from pathlib import Path, PurePosixPath
-          import sys
-          import tarfile
-          sys.path.insert(0, 'tools/ruc')
-          from ruc_fast_pointer_staging import count_files, strict_budget
-
-          archives = [p for p in Path('pages-release').rglob('*') if p.is_file()]
-          if len(archives) != 1:
-              raise ValueError('unexpected Pages archive inventory')
-          base = 0
-          files = set()
-          with tarfile.open(archives[0], mode='r|*') as archive:
-              for entry in archive:
-                  path = PurePosixPath(entry.name)
-                  if path.is_absolute() or '..' in path.parts or not (entry.isdir() or entry.isfile()):
-                      raise ValueError('unexpected Pages tar entry')
-                  if path == PurePosixPath('ruc/fast') or path.is_relative_to('ruc/fast'):
-                      raise ValueError('deployed Pages artifact already has a Fast namespace')
-                  if entry.isfile():
-                      if path in files:
-                          raise ValueError('duplicate Pages tar file')
-                      files.add(path)
-                      base += entry.size
-          if not {PurePosixPath('index.html'), PurePosixPath('ruc/latest.json')} <= files:
-              raise ValueError('deployed App and full RUC files absent')
-          fast = count_files(Path('fast-pages'))
-          print(json.dumps({'basePagesBytes': base, 'fastPagesBytes': fast, 'jointPagesBytes': base + fast}))
-          print('Remaining bytes under strict 900 MB limit:', strict_budget(base, fast))
-          PY
+          python -m pip install --disable-pip-version-check 'numpy>=2.0,<3'
+          test "$(find pages-release -type f | wc -l)" -eq 1
+          pages_tar="$(find pages-release -type f)"
+          python tools/ruc/prepare_fast_pages_delivery.py \
+            --pages-tar "$pages_tar" --native-shadow native-release --output candidate-site \
+            --qualification-time 2026-11-19T07:00:00+00:00 | tee fast-delivery-proof.json
+          node --input-type=module <<'JS'
+          import {readFile} from 'node:fs/promises';
+          import {readPagedFastPointShadow} from './tools/ruc/ruc_fast_paged_point_shadow.mjs';
+          const proof=JSON.parse(await readFile('fast-delivery-proof.json','utf8'));
+          const ruc='candidate-site/ruc/';
+          const manifest=await readFile(ruc+'fast/paged-shadow.json');
+          const cell=await readPagedFastPointShadow(manifest,proof.fastManifestSha256,key=>readFile(ruc+key),294442);
+          if(!cell.available||cell.epsAvailable!==false||cell.hours.length!==7||
+             cell.rapid5Minutes.length!==73||cell.rapid15Minutes.length!==25||
+             cell.modelRunUtc.slice(0,16)!==proof.run)throw Error('Fast delivery candidate failed point readback');
+          console.log(JSON.stringify({run:proof.run,nativePointReadback:true}));
+          JS
+          cat fast-delivery-proof.json >> "$GITHUB_STEP_SUMMARY"
