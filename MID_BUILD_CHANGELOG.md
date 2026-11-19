@@ -1,3 +1,10 @@
+## MID v0.9.85.497 · 2026-11-19 · Responsive Ladehinweise, Ensemble-Reflow und 7-Tage-Tageslichtkontrast
+
+- Kanonischer Ausgangsstand v0.9.85.496, SHA `256aabe286f7daa00dc0e320815dd8dacb7b4706`; fünf aktive GitHub-Rulesets, drei primäre Versionsspiegel identisch. QA-Intake #948 HEAD `5aa3a2cf768311fbd71977365b1bc92bcfc3baf7`.
+- Spezial-Provenienz: #934 HEAD `f977cf30077a84791a4c212df93466199f295fd4` elf Original-Git-Blobs; #942 HEAD `4b274322383b580e8794482bb255698230c5e199` zwei Original-Git-Blobs. Der Widget-SVG-Export behält explizite Paint-Fallbacks; keine Regression absichtlich gelockert.
+- Historisches Changelog byteidentisch bewahrt, release-spezifische Versionsspiegel synchronisiert. Kein RUC-Fast-Pages-Transfer (#541/#946), keine Source-Gate-Aufweichung (#947), keine Radar-/Karten-/Settings-Aufnahme (#929/#937/#920). Diese parallelen QA-Owner bleiben unabhängig.
+- Draft-Checks #44477061382: gezielte Regressionen SUCCESS und Vitest/Coverage SUCCESS; P1-Scanner-Pilot meldete dennoch `PILOT_FINDINGS_OR_FAILURE` und braucht fachliche Triage. Source-/Review-/Heavy-/Browser-/iOS-/Installer-/Worker-/Pages-/Stable-Nachweise auf diesem Version-HEAD stehen aus.
+
 ## MID v0.9.85.496 · 2026-11-18 · Automatische PR-Eingangsprüfung, belegte Stationswerte und sichere RUC-Wiederherstellung
 
 - Original Stable v0.9.85.495 SHA 8382ff3461ae21a385636e8261104b99bb8fccd0. Exakt 16 ausgewählte Original-Git-Blobs: #941 HEAD 710d3b7e06fb6dac860e313ea79164b4504a078a (7), #940 HEAD 4e568721389eb260f90c5ff1a3a78fcf75947070 (7), #939 HEAD 025595b1d0b70fb880005fb6eb435ca0fa2fdb2e (2).

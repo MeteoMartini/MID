@@ -1,3 +1,7 @@
+# MID v0.9.85.497 · LC 1.21: responsive Lade- und Ensemble-Anzeige, Tag-/Nacht-Kontrast (Source-Kandidat)
+
+Verifizierte Ausgangsbasis: `main=mid-stable=256aabe286f7daa00dc0e320815dd8dacb7b4706` / v0.9.85.496. Aus dem isolierten QA-Sammel-Intake #948 wurden 13 exakt quellengebundene Original-Git-Blobs aus den Spezial-Drafts #934 (11) und #942 (2) auf Stable übernommen. Die auf #948 erkannte Widget-SVG-Exportregression wurde ohne Testabschwächung durch einen ausdrücklich exportfähigen Fallback beseitigt. Datenwerte, Wettermodelle, NoData, WMO/DWD-Warnungen und RUC-Produktionswege bleiben unverändert. Die bisherige QA zum kombinierten Draft ersetzt **nicht** die unabhängigen Source-/Review-/Core-/Heavy-/Web-/iOS-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates dieses versionierten Integrations-HEADs. Keine automatische Merge-/Releasefreigabe aus Dokumentation.
+
 # MID v0.9.85.496 · Read-only PR-Cleaner, Stationsdaten und RUC-Restore (Source-Kandidat)
 
 Verifizierter veröffentlichter Ausgangsstand ist v0.9.85.495, `8382ff3461ae21a385636e8261104b99bb8fccd0`. Der Leit-Chat integriert selektiv 16 unveränderte Original-Git-Blobs aus den QA-Drafts #941 (7), #940 (7), #939 (2) und bewahrt alle übrigen bestehenden Code- und Fachverträge. Der Cleaner prüft künftig nur lesend eingehende PRs gegen den wirklich veröffentlichten Stable, ohne autonome Schließ-/Merge-/Releaseentscheidung. Stationsobservationsalter und Messnull/NoData werden nachvollziehbar gehalten; parallele RUC-Snapshot-Wiederherstellung verhindert konkurrierende doppelte Manifest-Pfade.

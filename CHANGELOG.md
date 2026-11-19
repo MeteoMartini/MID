@@ -1,3 +1,10 @@
+# MID v0.9.85.497
+
+- Lange Ladehinweise bleiben auch auf schmalen Displays und bei vergrößerter Schrift vollständig lesbar.
+- Ensemble-Detailinformationen umbrechen besser und die Erklärung der Methodik lässt sich leichter per Touch öffnen.
+- Die 7-Tage-Kurve unterscheidet Tageslicht und Nacht deutlicher. Sonnenzeiten und Wetterprognosen bleiben unverändert.
+- Nachtbänder behalten im Widget-SVG-Export eine ausfallsichere Ersatzfarbe.
+
 # MID v0.9.85.496
 
 - Eine rein lesende Eingangsprüfung für neue Pull Requests ist vorbereitet. Ihr aktiver Einsatz gilt erst nach erfolgreicher Stable-Veröffentlichung und geprüftem Echt-PR-Ereignis als nachgewiesen; sie erteilt selbst keine Merge- oder Releasefreigabe.
