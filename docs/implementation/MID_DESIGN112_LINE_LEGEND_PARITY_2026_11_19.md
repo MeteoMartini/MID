@@ -11,6 +11,7 @@
 
 ## Korrektur
 - Ausschließlich das Taupunkt-Legendenmuster von durchgehend auf `2px Linie + 5px Lücke` ändern, identisch zur produktiven SVG-Linie; bestehendes Farbtoken `--param-dewpoint` unverändert.
+- Im bytegenau aus fünf Style-Shards zusammengesetzten `src/styles.css` denselben Patch führen. `scripts/test-aggregate-source-of-truth-098595.mjs` verlangt **byteidentische Konkatenation**, vor Git-Blobs rechnerisch nachgewiesen.
 - Im aus 68 Quellen abgeleiteten `src/midPresentation.css` dieselbe letzte Regel ersetzen und die frühe, zuvor deduplizierte Foundation-Deklaration wiederherstellen. Dies ist die direkte Konsequenz des in `scripts/lib/cssCascade.mjs` dokumentierten byteidentischen Deduplizierungsvertrags. Vor Integration `npm run maintain:aggregates && npm run check:css-consolidation` und Git-Tree-Parität **auf der finalen SHA** nachweisen.
 - Ein Vitest-Regressionsfall vergleicht tatsächliche `parameterLineStyle`-Strokes für UTCI/gefühlte Temperatur, Taupunkt, PoP und Böen mit der jeweils letzten Quell- und Aggregate-Legendenregel. Keinerlei Wetterwerte, Quellen, Einheiten, Warnfarben, Persistenz, Netzwerk- oder Animationslogik ändern.
 

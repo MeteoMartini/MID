@@ -7,6 +7,7 @@ import {parameterLineStyle} from '../../src/parameterLineStyle';
 
 const modern=readFileSync(new URL('../../src/styles-src/30-modern.css',import.meta.url),'utf8');
 const generated=readFileSync(new URL('../../src/midPresentation.css',import.meta.url),'utf8');
+const aggregate=readFileSync(new URL('../../src/styles.css',import.meta.url),'utf8');
 const app=readFileSync(new URL('../../src/App.tsx',import.meta.url),'utf8');
 const roles=['apparent','dewpoint','probability','gust'] as const;
 const legendClass={apparent:'apparent',dewpoint:'dewpoint',probability:'probability',gust:'gustline'} as const;
@@ -25,7 +26,7 @@ describe('MID 1.12 actual 24h SVG line and CSS legend dash parity',()=>{
   const token=String(line.stroke);
   expect(token).toMatch(/^var\(--[a-z-]+\)$/);
   const expected='background:repeating-linear-gradient(90deg,'+token+' 0 '+draw+'px,transparent '+draw+'px '+(draw+gap)+'px)!important';
-  for(const css of [modern,generated])expect(finalLegendRule(css,legendClass[role])).toContain(expected);
+  for(const css of [modern,aggregate,generated])expect(finalLegendRule(css,legendClass[role])).toContain(expected);
   expect(app).toContain("data-parameter-line=\""+role+"\" style={parameterLineStyle('"+role+"')}");
  });
  it('preserves the original foundation opacity without hiding the new fine-dot legend',()=>{

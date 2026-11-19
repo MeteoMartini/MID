@@ -8250,7 +8250,7 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 .forecast-inline-detail-metrics>span:nth-child(2) b{color:var(--param-precipitation)}
 .detaillegend .temp,.detaillegend i.temp{border-top-color:var(--param-temperature)!important;background:var(--param-temperature)!important}
 .detaillegend .probability,.detaillegend i.probability{border-top-color:var(--param-precipitation)!important;background:var(--param-precipitation)!important}
-.detaillegend i.dewpoint{background:var(--param-dewpoint)!important}
+.detaillegend i.dewpoint{background:repeating-linear-gradient(90deg,var(--param-dewpoint) 0 2px,transparent 2px 7px)!important}
 .detaillegend i.windline{background:var(--param-wind)!important}
 .detaillegend i.gustline{background:repeating-linear-gradient(90deg,var(--param-gust) 0 9px,transparent 9px 13px)!important}
 .detaillegend i.apparent{background:repeating-linear-gradient(90deg,var(--apparent-line) 0 5px,transparent 5px 9px)!important}
