@@ -41,7 +41,7 @@ assert.ok(qualityModule.fieldRelevanceLimits('temperature').hardDistanceKm<=45,'
 assert.ok(qualityModule.fieldRelevanceLimits('precipitation').hardDistanceKm<=28,'Punktniederschlag ist räumlich zu großzügig.');
 
 // Jeder Parameter muss seine eigene Provenienz/Aktualität behalten; kein jüngerer Windwert darf alte Temperatur künstlich verjüngen.
-for(const token of ['fieldObservedAt?:Partial<Record<StationAnalysisField,string>>','function stationFieldObservationContext(','station.fieldSources?.[field]','fieldObservationRelevance(field','stationAgeMinutes(station.fieldObservedAt?.[field]??station.timestamp,now)','stationFieldObservationUsable('])assert.ok(weather.includes(token),`Parameter-Provenienz fehlt: ${token}`);
+for(const token of ['fieldObservedAt?:Partial<Record<StationAnalysisField,string>>','function stationFieldObservationContext(','station.fieldSources?.[field]','fieldObservationRelevance(field','stationFieldAgeMinutes(normalizeStationTimestamp(station.fieldObservedAt?.[field]??station.timestamp),now)','stationFieldObservationUsable('])assert.ok(weather.includes(token),`Parameter-Provenienz fehlt: ${token}`);
 assert.ok(weather.includes("backgroundModel:backgroundSet.modelLabel"),'Hyperlokale Analyse weist das tatsächlich verwendete Regionalmodell nicht aus.');
 assert.ok(weather.includes("country==='DE'?['dwd_icon_d2','knmi_harmonie_arome_europe']"),'Deutschland verwendet keinen hochaufgelösten ICON-D2-Hintergrund.');
 assert.ok(weather.includes("support=Math.min(.98,(1-Math.exp"),'Restfeldstützung ist nicht vertrauensabhängig.');
@@ -70,6 +70,10 @@ for(const token of [
  "fieldObservedAt:{}",
  "cf:{cacheTtl:60,cacheEverything:true}"
 ])assert.ok(worker.includes(token),`Hochfrequenter Beobachtungsvertrag fehlt: ${token}`);
+
+// Field admission requires original time and non-null scalar values; no synthetic 120-minute QFF anchor.
+for(const token of ['stationObservationNumber(station[field])','stationObservationNumber(station[key])','source.observedAt===undefined?fallbackAge:stationFieldAgeMinutes(','stationObservationNumber(s.pressure)'])assert.ok(weather.includes(token),`Missing/source-time station admission drift: ${token}`);
+assert.ok(!weather.includes('if(!station||!Number.isFinite(Number(station[field])))return false;'),'Legacy null-to-zero station admission must not return.');
 
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw);
 assert.equal(pkg.version,baseline.releaseVersion,'Version und Baseline müssen übereinstimmen.');

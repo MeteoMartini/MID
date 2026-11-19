@@ -1,0 +1,113 @@
+name: MID PR Cleaner Intake (read-only)
+run-name: SHA-/Blob-Pruefung eines MID-PR ohne Schreibzugriff
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Bestehende PR-Nummer; nur lesende Aufnahme'
+        type: number
+        required: true
+      lead_pr_number:
+        description: 'Optional: exakt benannte Leit-Chat-Integrations-PR (0 = unbekannt)'
+        type: number
+        default: 0
+
+# Standard read-only PR event. Never grant secrets or write permissions.
+# The workflow is advisory only; checkout executes the immutable Stable code,
+# not event PR code. PR-modified workflow content is never a release gate.
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: mid-readonly-pr-cleaner-${{ github.event_name }}-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  stable_ready:
+    name: Cleaner bereits auf Stable veroeffentlicht? (nur Nachweis)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    outputs:
+      active: ${{ steps.check.outputs.active }}
+    steps:
+      - name: Ausschliesslich veroeffentlichten Stable-Code auf Vorhandensein pruefen
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: mid-stable
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Stable-Verfuegbarkeit ohne PR-Code-Ausfuehrung nachweisen
+        id: check
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -f tools/ci/mid-pr-intake.mjs && -f tools/ci/test-mid-pr-intake.mjs ]]; then
+            echo "active=true" >> "$GITHUB_OUTPUT"
+            echo "Stable-only Cleaner ist installiert; Intake wird auf vertrauenswuerdigem Stable-Code gestartet." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "active=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=MID Cleaner noch nicht in Stable::Automatischer Intake bis zur geschuetzten Stable-Promotion ausgesetzt, keine QA-/Release-Freigabe."
+            echo "**MID Cleaner ist noch nicht in Stable installiert.** Intake wird bewusst SKIPPED (nicht als geprueft oder releasefaehig werten)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+  intake:
+    needs: stable_ready
+    if: needs.stable_ready.outputs.active == 'true'
+    name: Lesende SHA-, Blob-, Peer- und Stable-Eingangspruefung
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Ausschliesslich veroeffentlichten Stable-Code laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: mid-stable
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Node.js ohne npm-Cache und ohne Fremdcode einrichten
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          package-manager-cache: false
+      - name: Deterministische Negativtests (nur Stable-Dateien)
+        run: node --test tools/ci/test-mid-pr-intake.mjs
+      - name: PR-Metadaten und Git-Blobs ausschliesslich lesen
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          MID_CLEANER_PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+          MID_CLEANER_EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}
+          MID_CLEANER_LEAD_PR_NUMBER: ${{ inputs.lead_pr_number || '0' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          export MID_CLEANER_CHECKOUT_SHA="$(git rev-parse HEAD)"
+          node tools/ci/mid-pr-intake.mjs > "$RUNNER_TEMP/mid-cleaner-intake.json"
+          node --input-type=module - "$RUNNER_TEMP/mid-cleaner-intake.json" <<'NODE'
+          import {readFileSync,appendFileSync} from 'node:fs';
+          const p=JSON.parse(readFileSync(process.argv[2],'utf8'));
+          const md=[
+            '### MID PR Cleaner – rein lesender SHA-gebundener Handoff',
+            '',
+            `- Stable: \`${p.stableSha}\`; Version: \`${p.version}\``,
+            `- PR #${p.target.number}, HEAD: \`${p.target.headSha}\`, ${p.target.changedFiles} Original-Dateien`,
+            `- Vollstaendig Git-Blob-identisch zu Stable (nur Schliesskandidat): **${p.historicalIntegrationCandidate}**`,
+            `- Abgeglichene offene Peer-PRs: ${p.verifiedPeerCount}; Dateipfad-Ueberschneidungen: ${p.overlaps.length}`,
+            `- Leit-Chat-Kandidat: ${p.leadStatus}`,
+            `- Weitere Pruefungen: ${p.checksRequired.join(', ')||'Leit-Chat-Freigabe weiter erforderlich'}`,
+            '',
+            '**Keine PR-Schliessung, Merge-/Review-/Release-Freigabe, kein Deployment.**',
+            'Der JSON-Artefaktnachweis enthaelt exakte Peer-HEADs, betroffene Pfade und Blob-Relationen.'
+          ].join('\n')+'\n';
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY,md);
+          NODE
+      - name: Beleg ohne Schreibzugriff am Repository sichern
+        if: success()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-readonly-cleaner-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/mid-cleaner-intake.json
+          retention-days: 7
+          if-no-files-found: error

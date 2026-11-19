@@ -17,6 +17,7 @@ import {precipitationParts,reconcileForecastPrecipitation} from './precipitation
 import type {AirQualityStationMeta} from './airQuality';
 import {naturalPossibleEventFallback,naturalPossibleEventText} from './forecastWording';
 import {fieldObservationRelevance,fieldRelevanceLimits,fieldSiteCompatibility,fieldWeightPolicy,normalisePrecipitationAccumulation,precipitationIntervalMinutes,sourcePolicyFor,type StationAnalysisField} from './sourceQuality';
+import {stationCalendarDateValid,stationFieldAgeMinutes,stationObservationNumber} from './stationFieldEvidence';
 import {constrainTemperatureWithDirectObservations,detectStableNightThermalRegime,stableNightThermalWeightFactor,type StableNightThermalSample} from './hyperlocalThermal';
 import {dayPeriodHoursForDate} from './forecastPeriods';
 import {loadAndSampleRadolan} from './RadolanRasterSource';
