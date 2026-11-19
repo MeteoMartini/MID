@@ -299,3 +299,5 @@ export default{async fetch(request,env){
 };
 export {pushThunderState,thunderPushBody};
 export {synopticUpstreamBearing};
+
+export {dwdRucNativeFastPagesPointPayload};

@@ -14,7 +14,12 @@ assert.throws(
   /Catch-up-Vertrag/,
   'Native ecCodes-Selbstprüfung darf nie stillschweigend entfallen.',
 );
-assert.equal((canonical.match(/cron:/g)||[]).length,2,'RUC braucht genau zwei versetzte Schedulerchancen pro Stunde.');
+assert.throws(()=>assertCanonicalRucWorkflow(canonical.replace("cron: '41 * * * *'","cron: '42 * * * *'")),/Catch-up-Vertrag/);
+if(canonical.includes("cron: '13,43 * * * *'")){
+ assert.throws(()=>assertCanonicalRucWorkflow(canonical.replace("cron: '13,43 * * * *'","cron: '13 * * * *'")),/Catch-up-Vertrag/);
+ const fastCheck=canonical.lastIndexOf('python -m eccodes selfcheck');
+ assert.throws(()=>assertCanonicalRucWorkflow(canonical.slice(0,fastCheck)+canonical.slice(fastCheck).replace('python -m eccodes selfcheck','echo unsafe-skip')),/Catch-up-Vertrag/);
+}
 for(const token of ['FORECAST_REQUIRED=','GRID_REQUIRED=','newest_common_run','published_meta','fail-open build','Catch-up erforderlich',"SCHEMA='mid.dwd.ruc.grid.v2'","STORAGE_PROFILE='pages-free-v1'",'DEFAULT_MAX_AGE_MINUTES=240'])assert.ok(guard.includes(token),`RUC-Guard-Vertrag fehlt: ${token}`);
 assert.ok(guardTest.includes('RUC schedule guard unit contract OK'),'Python-Unitregression für Schedulerguard fehlt.');
 console.log('RUC scheduler catch-up contract OK: staggered schedules, non-cancelling concurrency and cheap exact-run freshness guard protected.');

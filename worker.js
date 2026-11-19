@@ -529,9 +529,270 @@ function parseDwdRucPointPayload(payload,model,apiId='dwd_icon_d2_ruc'){
  const axis=rucSourceWindow({hours:times.map(time=>({epoch:rucHourlyEpoch(time,offsetSeconds)})),midRuc:data?.mid_ruc}),window=axis&&rucSourceWindow({hours,midRuc:data?.mid_ruc}),successful=hours.length>=6&&Boolean(window);
  return{...model,apiId,successful,maxHours:window?.maxHours,weatherBundleReady:false,reason:successful?undefined:'RUC-Punktadapter ohne gültige Laufzeitachse und mindestens sechs verwertbare Stunden',timezone:String(data?.timezone||'UTC'),days:[],hours,rapid:data?.rapid&&typeof data.rapid==='object'?data.rapid:{},midRuc:data?.mid_ruc,initialisationTime:window?.initialisationTime,availabilityTime:safeDate(data?.mid_ruc?.generatedAt)};
 }
+const midNativeFastPagedReader=(()=>{
+/* Pages-only original-DWD Fast 0-6h immutable read-only point consumer.
+ * SHADOW ONLY. Fetches four <=86kB immutable chunks; checks every fetched
+ * SHA-256. Requires the SHA of the full paged manifest from a trusted release,
+ * never from a URL parameter or another untrusted HTTP response.
+ * No activation, R2 writing, probability fabrication or client SLO claim.
+ */
+const SCHEMA='mid.ruc.fast-paged-shadow.v1';
+const PARTS={'lookup.bin':[4,1], 'deterministic.bin':[168,7], 'rapid-5m.bin':[146,73], 'rapid-15m.bin':[150,25]};
+const FIELDS=[
+ ['temperature_2m','°C',.01,0],['dew_point_2m','°C',.01,0],['relative_humidity_2m','%',.1,0],
+ ['pressure_msl','hPa',.1,0],['wind_speed_10m','kn',.01,0],['wind_direction_10m','°',.1,0],
+ ['wind_gusts_10m','kn',.01,0],['precipitation','mm',.01,0],['cloud_cover','%',.1,0],
+ ['cloud_cover_low','%',.1,0],['cape','J/kg',.1,0],['convective_inhibition','J/kg',.1,0]
+];
+const SHA=/^[a-f0-9]{64}$/;
+const fail=(condition,reason)=>{if(condition)throw Error(reason)};
+function utcRun(value) {
+ fail(typeof value!=='string'||!/^20\d{2}-\d\d-\d\dT\d\d:00$/.test(value),'not a canonical DWD UTC run');
+ const d=new Date(value+'Z');
+ fail(!Number.isFinite(d.getTime())||d.toISOString().slice(0,16)!==value,'invalid native calendar');
+ return d.getTime();
+}
+const isoMinute=(n)=>new Date(n).toISOString().slice(0,16);
+async function sha256hex(bytes) {
+ fail(!(bytes instanceof Uint8Array)||bytes.byteLength>4_000_000,'unbounded SHA input');
+ fail(!globalThis.crypto?.subtle,'SHA-256 runtime unavailable');
+ const hash=await globalThis.crypto.subtle.digest('SHA-256',bytes);
+ return Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,'0')).join('');
+}
+function inspect(manifest) {
+ fail(!manifest||manifest.schema!==SCHEMA,'unknown paged Fast schema');
+ fail(manifest.storageCodec!==undefined&&manifest.storageCodec!=='gzip-or-raw-v1','unknown Fast storage codec');
+ for(const flag of ['productionEnabled','publicationAuthorized','realtimeConsumerEnabled'])
+  fail(manifest[flag]!==false,'unapproved Fast activation');
+ fail(manifest.epsAvailable!==false||manifest.nativePoints!==542040||manifest.chunkCells!==512,'invalid original Fast/EPS geometry');
+ const start=utcRun(manifest.run);
+ fail(!SHA.test(manifest.sourceManifestSha256||'')||!SHA.test(manifest.sourceGribSha256||''),'untrusted DWD SHA');
+ const expectedAxis=(step,length)=>Array.from({length},(_,i)=>isoMinute(start+step*60_000*i));
+ for(const [name,step,length] of [['hourly',60,7],['rapid5',5,73],['rapid15',15,25]])
+  fail(JSON.stringify(manifest.timeAxes?.[name])!==JSON.stringify(expectedAxis(step,length)),'invalid model validity or accumulation axis: '+name);
+ fail(manifest.fields?.length!==12||FIELDS.some((spec,i)=>spec.some((x,k)=>manifest.fields[i][['name','unit','scale','offset'][k]]!==x)),
+  'native field units or scale mismatch');
+ const {nx,ny,nativePointCount}=manifest.grid||{};
+ fail(!Number.isInteger(nx)||!Number.isInteger(ny)||nx!==964||ny!==596||nativePointCount!==542040,'native projection geometry mismatch');
+ fail(Object.keys(manifest.objects||{}).sort().join(',')!==Object.keys(PARTS).sort().join(','),'original Fast object inventory incomplete');
+ let total=0;
+ const prefix='fast/pages/'+manifest.run.replaceAll('-','').replaceAll(':','')+'/';
+ for(const [name,[bytesPerCell]] of Object.entries(PARTS)) {
+  const obj=manifest.objects[name],count=name==='lookup.bin'?nx*ny:542040;
+  fail(!obj||obj.cellCount!==count||obj.bytesPerCell!==bytesPerCell||!SHA.test(obj.sourceSha256||''),'native part provenance mismatch');
+  const all=obj.parts;
+  fail(!Array.isArray(all)||all.length!==Math.ceil(count/512)||all.length>2000,'unbounded/incomplete native chunks');
+  let next=0;
+  for(let i=0;i<all.length;i++){
+   const part=all[i],cells=Math.min(512,count-next);
+   const compressed=part.encoding==='gzip';
+   const key=prefix+name.slice(0,-4)+'/'+String(i).padStart(4,'0')+(compressed?'.gzip.bin':'.bin');
+   if(compressed){
+    fail(manifest.storageCodec!=='gzip-or-raw-v1'||!Number.isInteger(part.storedBytes)||
+      part.storedBytes<=0||part.storedBytes>=part.bytes||!SHA.test(part.storedSha256||''),'invalid compressed chunk metadata');
+   } else {
+    fail(part.encoding!==undefined||part.storedBytes!==undefined||part.storedSha256!==undefined,'unexpected native chunk encoding');
+   }
+   fail(part.firstCell!==next||part.cells!==cells||part.bytes!==cells*bytesPerCell||part.key!==key||!SHA.test(part.sha256||''),'tampered chunk index/path/hash');
+   next+=cells;
+  }
+  fail(next!==count,'missing native source cells');total+=count*bytesPerCell;
+ }
+ fail(total!==manifest.sourceNativeBytes||total!==253804736,'original native binary physical length drift');
+ return {start,nx,ny};
+}
+function asUint8Array(value){
+ fail(!(value instanceof Uint8Array),'invalid fetched native chunk');
+ return value;
+}
+async function inflateFastChunk(stored,part) {
+ fail(stored.length!==part.storedBytes||await sha256hex(stored)!==part.storedSha256,'stored Fast chunk SHA mismatch');
+ const reader=new Blob([stored]).stream().pipeThrough(new DecompressionStream('gzip')).getReader();
+ const result=new Uint8Array(part.bytes);
+ let offset=0;
+ try {
+  for(;;){
+   const {done,value}=await reader.read();
+   if(done)break;
+   if(offset+value.byteLength>result.byteLength){
+    await reader.cancel();
+    throw Error('expanded Fast chunk exceeds its original byte count');
+   }
+   result.set(value,offset);
+   offset+=value.byteLength;
+  }
+ } finally {
+  reader.releaseLock();
+ }
+ fail(offset!==result.byteLength,'expanded Fast chunk is truncated');
+ return result;
+}
+async function fetchNative(manifest,objectName,index,read) {
+ const obj=manifest.objects[objectName],n=Math.floor(index/512),part=obj.parts[n];
+ fail(!part||index<part.firstCell||index>=part.firstCell+part.cells,'point index beyond native chunk');
+ const stored=asUint8Array(await read(part.key));
+ fail(stored.byteLength>512*168,'oversized Fast chunk');
+ const bytes=part.encoding==='gzip'?await inflateFastChunk(stored,part):stored;
+ fail(bytes.length!==part.bytes,'missing/oversized original chunk');
+ fail(await sha256hex(bytes)!==part.sha256,'native chunk SHA mismatch');
+ return {view:new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),offset:(index-part.firstCell)*obj.bytesPerCell};
+}
+function numberOrMissing(view,position,field){
+ const x=view.getInt16(position,true);
+ if(x===-32768)return null;
+ const result=x*field[2]+field[3];
+ // The GRIB producer, not the consumer, must distinguish true dry hours from
+ // negative quantization error. Never silently clamp negative rainfall to zero.
+ fail(field[0]==='precipitation'&&result<0,'negative original Fast precipitation is untrusted, not dry');
+ return result;
+}
+async function readPagedFastPointShadow(manifestBytes,verifiedManifestSha256,read,lookupGridIndex) {
+ const original=asUint8Array(manifestBytes);
+ fail(original.byteLength>3_000_000||!SHA.test(verifiedManifestSha256||''),'manifest not release SHA pinned');
+ fail(await sha256hex(original)!==verifiedManifestSha256,'paged manifest not SHA admitted');
+ const manifest=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(original));
+ const {start,nx,ny}=inspect(manifest);
+ fail(typeof read!=='function'||!Number.isSafeInteger(lookupGridIndex)||lookupGridIndex<0||lookupGridIndex>=nx*ny,'unverified native lookup request');
+ const found=await fetchNative(manifest,'lookup.bin',lookupGridIndex,read);
+ const nativeIndex=found.view.getUint32(found.offset,true);
+ if(nativeIndex===0xffffffff)return {available:false,reason:'outside-native-grid',productionAuthorized:false};
+ fail(nativeIndex>=542040,'invalid native lookup index');
+ const data={};
+ for(const [name,[length,count]] of Object.entries(PARTS)){
+  if(name==='lookup.bin')continue;
+  const {view,offset}=await fetchNative(manifest,name,nativeIndex,read);
+  const fields=name==='deterministic.bin'?FIELDS:name==='rapid-5m.bin'?[FIELDS[7]]:[FIELDS[7],FIELDS[10],FIELDS[11]];
+  const recordBytes=length/count;
+  data[name]=Array.from({length:count},(_,time)=>fields.map((field,index)=>numberOrMissing(view,offset+time*recordBytes+2*index,field)));
+ }
+ const hours=data['deterministic.bin'].map((values,i)=>({
+  validTimeUtc:new Date(start+i*3600000).toISOString(),
+  intervalStartUtc:i===0?null:new Date(start+(i-1)*3600000).toISOString(),
+  fields:Object.fromEntries(FIELDS.map((f,k)=>[f[0],k===7&&i===0?null:values[k]]))
+ }));
+ const intervals=(name,step)=>data[name].map((values,i)=>({
+  validTimeUtc:new Date(start+i*step*60000).toISOString(),
+  intervalStartUtc:i===0?null:new Date(start+(i-1)*step*60000).toISOString(),
+  intervalEndUtc:i===0?null:new Date(start+i*step*60000).toISOString(),
+  precipitationMm:i===0?null:values[0],...(step===15?{capeJkg:values[1],cinJkg:values[2]}:{})
+ }));
+ return {schema:'mid.ruc.fast-paged-cell-shadow.v1',available:true,modelRunUtc:new Date(start).toISOString(),
+  source:'DWD ICON-D2 RUC original native deterministic',nativeIndex,hours,rapid5Minutes:intervals('rapid-5m.bin',5),
+  rapid15Minutes:intervals('rapid-15m.bin',15),epsAvailable:false,productionAuthorized:false,consumerAdoptionVerified:false};
+}
+
+return {sha256hex,readPagedFastPointShadow};
+})();
+
+
+// Independent SHA-pinned 0–6h DWD fast Pages point adapter.
+// Deliberately disabled until a trusted MID release updates both Worker bindings.
+// A digest advertised by Pages, query parameters or the manifest itself is NEVER a proof.
+const MID_RUC_FAST_PAGES_ROOT='https://www.midwx.app/ruc/';
+const MID_RUC_FAST_SHA256=/^[a-f0-9]{64}$/;
+async function midRucFastResponseBytes(response,maxBytes){
+ if(!response?.ok)throw Error('Fast Pages HTTP unavailable');
+ const advertised=Number(response.headers.get('content-length'));
+ if(advertised>maxBytes)throw Error('Fast Pages response size exceeds limit');
+ const stream=response.body;
+ if(!stream?.getReader){
+  const raw=new Uint8Array(await response.arrayBuffer());
+  if(raw.byteLength>maxBytes)throw Error('Fast Pages body exceeds limit');
+  return raw;
+ }
+ const reader=stream.getReader(),parts=[];
+ let total=0;
+ try{
+  while(true){
+   const {done,value}=await reader.read();
+   if(done)break;
+   total+=value.byteLength;
+   if(total>maxBytes){
+    await reader.cancel();
+    throw Error('Fast Pages response streamed beyond limit');
+   }
+   parts.push(value);
+  }
+ }finally{reader.releaseLock()}
+ const result=new Uint8Array(total);
+ let offset=0;
+ for(const part of parts){result.set(part,offset);offset+=part.byteLength}
+ return result;
+}
+async function dwdRucNativeFastPagesPointPayload(lat,lon,env){
+ const trustedSha=String(env?.MID_DWD_RUC_FAST_MANIFEST_SHA256||'').trim();
+ if(env?.MID_DWD_RUC_FAST_ENABLED!=='true'||!MID_RUC_FAST_SHA256.test(trustedSha))return null;
+ if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat<40||lat>61||lon<(-7)||lon>24)return null;
+ try{
+  const manifestUrl=new URL('fast/paged-shadow.json',MID_RUC_FAST_PAGES_ROOT);
+  const response=await fetchWithDeadline(manifestUrl.toString(),{
+   headers:{Accept:'application/json'},cf:{cacheTtl:30,cacheEverything:true}
+  },3200);
+  const bytes=await midRucFastResponseBytes(response,3_000_000);
+  if(await midNativeFastPagedReader.sha256hex(bytes)!==trustedSha)return null;
+  const meta=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
+  // Match original DWD run UTC, not response retrieval time or an untrusted cache timestamp.
+  const init=typeof meta?.run==='string'&&/^20\d{2}-\d\d-\d\dT\d\d:00$/.test(meta.run)?
+   Date.parse(meta.run+'Z'):NaN;
+  if(!rucWindowFresh({initialisationEpoch:init},Date.now()))return null;
+  const offset=dwdRucLookupOffset(meta,lat,lon);
+  if(offset===null)return null;
+  const read=async key=>{
+   if(!/^fast\/pages\/20\d{6}T\d{4}\/(?:lookup|deterministic|rapid-5m|rapid-15m)\/\d{4}(?:\.gzip)?\.bin$/.test(key)){
+    throw Error('Untrusted Fast Pages chunk URL');
+   }
+   const url=new URL(key,MID_RUC_FAST_PAGES_ROOT);
+   if(url.origin!==manifestUrl.origin||!url.pathname.startsWith('/ruc/fast/pages/')){
+    throw Error('Fast Pages origin/path mismatch');
+   }
+   const resource=await fetchWithDeadline(url.toString(),{
+    headers:{Accept:'application/octet-stream'},cf:{cacheTtl:600,cacheEverything:true}
+   },2600);
+   return midRucFastResponseBytes(resource,512*168);
+  };
+  const native=await midNativeFastPagedReader.readPagedFastPointShadow(
+   bytes,trustedSha,read,offset/4
+  );
+  if(!native.available||native.epsAvailable!==false||native.hours.length!==7||
+     native.rapid5Minutes.length!==73||native.rapid15Minutes.length!==25||
+     !rucWindowFresh({initialisationEpoch:Date.parse(native.modelRunUtc)},Date.now())){
+   return null;
+  }
+  const hourly={time:native.hours.map(hour=>hour.validTimeUtc)};
+  const names=[
+   'temperature_2m','dew_point_2m','relative_humidity_2m','pressure_msl',
+   'wind_speed_10m','wind_direction_10m','wind_gusts_10m','precipitation',
+   'cloud_cover','cloud_cover_low','cape','convective_inhibition'
+  ];
+  for(const name of names)hourly[name]=native.hours.map(hour=>hour.fields[name]??null);
+  const rapid={
+   precip5:{
+    time:native.rapid5Minutes.map(row=>row.validTimeUtc),
+    precipitation:native.rapid5Minutes.map(row=>row.precipitationMm)
+   },
+   convection15:{
+    time:native.rapid15Minutes.map(row=>row.validTimeUtc),
+    precipitation:native.rapid15Minutes.map(row=>row.precipitationMm),
+    cape:native.rapid15Minutes.map(row=>row.capeJkg),
+    convective_inhibition:native.rapid15Minutes.map(row=>row.cinJkg)
+   }
+  };
+  // EPS20 was not ingested and must never be represented as zero probability.
+  return {latitude:lat,longitude:lon,timezone:'GMT',utc_offset_seconds:0,
+   hourly,rapid,mid_ruc:{run:meta.run,generatedAt:native.modelRunUtc,
+    source:'DWD ICON-D2-RUC original native deterministic',
+    storage:'SHA-pinned GitHub Pages Fast',epsAvailability:'unavailable',
+    fastManifestSha256:trustedSha}};
+ }catch{
+  // A corrupt, expired or unreachable immutable source is NoData, never dry.
+  return null;
+ }
+}
+
 async function fetchDwdRucPointAdapter(model,lat,lon,elevation,env){
  const r2Payload=await dwdRucR2PointPayload(lat,lon,env);if(r2Payload){const parsed=parseDwdRucPointPayload(r2Payload,model,'dwd_icon_d2_ruc_r2');if(parsed.successful)return{...parsed,adapter:'MID_DWD_RUC_DATA',provider:'DWD ICON-D2-RUC · R2-Punktadapter'}}
  const staticPayload=await dwdRucStaticPointPayload(lat,lon,env);if(staticPayload){const parsed=parseDwdRucPointPayload(staticPayload,model,'dwd_icon_d2_ruc_pages');if(parsed.successful)return{...parsed,rapid:staticPayload.rapid||{},adapter:'MID_DWD_RUC_STATIC_BASE_URL',provider:'DWD ICON-D2-RUC · GitHub-Pages-Punktadapter'}}
+ const fastPayload=await dwdRucNativeFastPagesPointPayload(lat,lon,env);if(fastPayload){const parsed=parseDwdRucPointPayload(fastPayload,model,'dwd_icon_d2_ruc_fast_pages');if(parsed.successful)return{...parsed,rapid:fastPayload.rapid,adapter:'MID_DWD_RUC_FAST_PAGES',provider:'DWD ICON-D2-RUC · geprüfte native 0–6h-Fast-Lane'}}
  const endpoint=adapterEndpoint(env,'MID_DWD_RUC_POINT_ENDPOINT');if(!endpoint)return null;
  endpoint.searchParams.set('lat',String(lat));endpoint.searchParams.set('lon',String(lon));endpoint.searchParams.set('forecast_hours',String(Math.min(27,Number(model.maxHours)||27)));if(Number.isFinite(elevation))endpoint.searchParams.set('elevation',String(clamp(elevation,-500,9000)));
  const headers={Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},token=String(env?.MID_DWD_RUC_POINT_TOKEN||'').trim();if(token)headers.Authorization=`Bearer ${token}`;
@@ -4039,3 +4300,5 @@ export default{async fetch(request,env){
 };
 export {pushThunderState,thunderPushBody};
 export {synopticUpstreamBearing};
+
+export {dwdRucNativeFastPagesPointPayload};

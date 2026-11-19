@@ -30,14 +30,22 @@ export function isCanonicalCatchupRucWorkflow(workflow){
   const calculate=workflow.indexOf('Native Python-ecCodes-Wheel vor DWD-Decode prüfen');
   const prepare=workflow.indexOf('Native Python-ecCodes-Wheel vor RUC-Aufbereitung prüfen');
   const checks=[...workflow.matchAll(/python -m eccodes selfcheck/g)].map(row=>row.index);
+  const schedules=[...workflow.matchAll(/^\s*- cron: '([^']+)'$/gm)].map(match=>match[1]);
+  const full=['11 * * * *','41 * * * *'];
+  const fastSchedule='13,43 * * * *';
+  const fast=workflow.indexOf('name: Install pinned MID native RUC dependencies');
+  const hasFast=schedules.includes(fastSchedule);
+  const expected=hasFast?[...full,fastSchedule]:full;
   return includesAll(workflow,RUC_CATCHUP_TOKENS)
-    && (workflow.match(/cron:/g)||[]).length===2
+    && JSON.stringify(schedules)===JSON.stringify(expected)
+    && (workflow.match(/cron:/g)||[]).length===expected.length
     && workflow.indexOf('RUC-Schedulerlücke und Aktualität vorab prüfen')<calculate
     && prepare>calculate
     // A single selfcheck in just one job is NOT sufficient. Each native GRIB
     // stage must prove its own installed ECMWF decoder, without Ubuntu apt.
-    && checks.length===2 && checks[0]>calculate && checks[0]<prepare
+    && checks.length===(hasFast?3:2) && checks[0]>calculate && checks[0]<prepare
     && checks[1]>prepare
+    && (hasFast ? fast>checks[1] && checks[2]>fast : fast===-1)
     && !workflow.includes('sudo apt-get');
 }
 

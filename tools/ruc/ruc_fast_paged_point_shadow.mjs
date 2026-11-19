@@ -29,6 +29,7 @@ export async function sha256hex(bytes) {
 }
 function inspect(manifest) {
  fail(!manifest||manifest.schema!==SCHEMA,'unknown paged Fast schema');
+ fail(manifest.storageCodec!==undefined&&manifest.storageCodec!=='gzip-or-raw-v1','unknown Fast storage codec');
  for(const flag of ['productionEnabled','publicationAuthorized','realtimeConsumerEnabled'])
   fail(manifest[flag]!==false,'unapproved Fast activation');
  fail(manifest.epsAvailable!==false||manifest.nativePoints!==542040||manifest.chunkCells!==512,'invalid original Fast/EPS geometry');
@@ -52,7 +53,14 @@ function inspect(manifest) {
   let next=0;
   for(let i=0;i<all.length;i++){
    const part=all[i],cells=Math.min(512,count-next);
-   const key=prefix+name.slice(0,-4)+'/'+String(i).padStart(4,'0')+'.bin';
+   const compressed=part.encoding==='gzip';
+   const key=prefix+name.slice(0,-4)+'/'+String(i).padStart(4,'0')+(compressed?'.gzip.bin':'.bin');
+   if(compressed){
+    fail(manifest.storageCodec!=='gzip-or-raw-v1'||!Number.isInteger(part.storedBytes)||
+      part.storedBytes<=0||part.storedBytes>=part.bytes||!SHA.test(part.storedSha256||''),'invalid compressed chunk metadata');
+   } else {
+    fail(part.encoding!==undefined||part.storedBytes!==undefined||part.storedSha256!==undefined,'unexpected native chunk encoding');
+   }
    fail(part.firstCell!==next||part.cells!==cells||part.bytes!==cells*bytesPerCell||part.key!==key||!SHA.test(part.sha256||''),'tampered chunk index/path/hash');
    next+=cells;
   }
@@ -65,11 +73,35 @@ function asUint8Array(value){
  fail(!(value instanceof Uint8Array),'invalid fetched native chunk');
  return value;
 }
+async function inflateFastChunk(stored,part) {
+ fail(stored.length!==part.storedBytes||await sha256hex(stored)!==part.storedSha256,'stored Fast chunk SHA mismatch');
+ const reader=new Blob([stored]).stream().pipeThrough(new DecompressionStream('gzip')).getReader();
+ const result=new Uint8Array(part.bytes);
+ let offset=0;
+ try {
+  for(;;){
+   const {done,value}=await reader.read();
+   if(done)break;
+   if(offset+value.byteLength>result.byteLength){
+    await reader.cancel();
+    throw Error('expanded Fast chunk exceeds its original byte count');
+   }
+   result.set(value,offset);
+   offset+=value.byteLength;
+  }
+ } finally {
+  reader.releaseLock();
+ }
+ fail(offset!==result.byteLength,'expanded Fast chunk is truncated');
+ return result;
+}
 async function fetchNative(manifest,objectName,index,read) {
  const obj=manifest.objects[objectName],n=Math.floor(index/512),part=obj.parts[n];
  fail(!part||index<part.firstCell||index>=part.firstCell+part.cells,'point index beyond native chunk');
- const bytes=asUint8Array(await read(part.key));
- fail(bytes.length!==part.bytes||bytes.byteLength>512*168,'missing/oversized original chunk');
+ const stored=asUint8Array(await read(part.key));
+ fail(stored.byteLength>512*168,'oversized Fast chunk');
+ const bytes=part.encoding==='gzip'?await inflateFastChunk(stored,part):stored;
+ fail(bytes.length!==part.bytes,'missing/oversized original chunk');
  fail(await sha256hex(bytes)!==part.sha256,'native chunk SHA mismatch');
  return {view:new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),offset:(index-part.firstCell)*obj.bytesPerCell};
 }
