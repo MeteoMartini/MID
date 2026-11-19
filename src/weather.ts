@@ -381,8 +381,8 @@ function readForecastCoreCache(lat:number,lon:number,options:ForecastRequestOpti
  try{
   const exact=parseForecastCoreCache(localStorage.getItem(forecastCoreCacheKey(lat,lon,options)));
   const original=exact&&forecastCoreCacheOrigin(exact);
-  // Quantized 0.001-degree cache keys can legitimately represent slightly different GPS readings.
-  if(exact&&original&&haversine(lat,lon,original.latitude,original.longitude)<=125)return{...exact,distance:0,spatialMatch:'exact'};
+  // A shared 0.001-degree key alone does not prove identical GPS locations.
+  if(exact&&original&&haversine(lat,lon,original.latitude,original.longitude)<=25)return{...exact,distance:0,spatialMatch:'exact'};
   if(!allowNearby)return null;
   let best:ForecastCoreCacheRead|null=null;
   for(let index=0;index<localStorage.length;index++){
@@ -414,7 +414,7 @@ export function instantCachedCoreForecast(lat:number,lon:number,options:Forecast
   const exact=parseForecastCoreCache(localStorage.getItem(forecastCoreCacheKey(lat,lon,options)));
   if(!exact||exact.age>45*60*1000)return null;
   const origin=forecastCoreCacheOrigin(exact);
-  if(!origin||haversine(lat,lon,origin.latitude,origin.longitude)>125)return null;
+  if(!origin||haversine(lat,lon,origin.latitude,origin.longitude)>25)return null;
   return cachedForecastResult({...exact,spatialMatch:'exact',distance:0},'network-fallback-local-cache');
  }catch{return null}
 }
