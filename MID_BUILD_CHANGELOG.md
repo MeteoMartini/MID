@@ -1,3 +1,10 @@
+## MID v0.9.85.497 · 2026-11-19 · Responsive Lade- und Ensemble-Anzeigen mit Tageslicht-Kontrast
+
+- Ausgangs-Stable v0.9.85.496 SHA 256aabe286f7daa00dc0e320815dd8dacb7b4706; #948 QA-HEAD 5aa3a2cf768311fbd71977365b1bc92bcfc3baf7.
+- Exakte Spezialblobs aus #934 (11) und #942 (2), korrigierter exportfähiger SVG-Nachtband-Fallback ohne Testaufweichung.
+- Neue Source-/Core-/Heavy-/Review-/Browser-/iOS-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates auf finalem Release-Head weiterhin notwendig.
+- RUC #541/#946 und Release-Gate #947 ausdrücklich nicht enthalten; Pilot-Scanner-Befunde separat prüfen.
+
 ## MID v0.9.85.497 · 2026-11-19 · Responsive Ladehinweise, Ensemble-Reflow und 7-Tage-Tageslichtkontrast
 
 - Kanonischer Ausgangsstand v0.9.85.496, SHA `256aabe286f7daa00dc0e320815dd8dacb7b4706`; fünf aktive GitHub-Rulesets, drei primäre Versionsspiegel identisch. QA-Intake #948 HEAD `5aa3a2cf768311fbd71977365b1bc92bcfc3baf7`.
