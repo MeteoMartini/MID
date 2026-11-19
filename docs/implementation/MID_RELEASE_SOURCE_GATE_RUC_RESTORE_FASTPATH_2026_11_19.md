@@ -25,4 +25,3 @@
 ## Lead work handoff
 
 Read back exact original Git blobs/parent SHA, review classifier and 30 negative cases, run full independent QA and adopt selected source/test/workflow/doc blobs in the next existing, versioned combined `chatgpt/*` lead candidate only. Sync both workflow mirrors and all usual version/changelog mirrors in that combined build. Do not directly merge this specialized Draft. Pair later with issue #526 timing evidence; keep the actual RUC P0 #541 independent.
-
