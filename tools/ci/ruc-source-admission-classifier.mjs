@@ -14,6 +14,7 @@ export const RESTORE_ONLY = new Set([
 ]);
 export const NATIVE_ADMISSION_SURFACES = new Set([
   'scripts/verify-ruc-composites.mjs',
+  'scripts/test-github-workflow-bootstrap-08263.mjs',
   'src/rucSynopticFields.ts',
   'src/nativeSynopticFields.ts',
   'src/cloudWeatherData.ts',

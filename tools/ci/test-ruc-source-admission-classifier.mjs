@@ -22,6 +22,7 @@ const cases=[
  ['path suffix trick',[restore+'.bak'],true,false],
  ['newline trick',[restore+'\nother'],true,false],
  ['RUC composite verifier',['scripts/verify-ruc-composites.mjs'],true,false],
+ ['contract verifier modified',['scripts/test-github-workflow-bootstrap-08263.mjs'],true,false],
  ['RUC synoptic consumer',['src/rucSynopticFields.ts'],true,false],
  ['native synoptic consumer',['src/nativeSynopticFields.ts'],true,false],
  ['cloud original consumer',['src/cloudWeatherData.ts'],true,false],
@@ -47,7 +48,7 @@ test('restore exemption exact set',()=>{
  assert.equal(RESTORE_ONLY.size,2);
 });
 test('sensitive gate changes never become exempt',()=>{
- assert.equal(NATIVE_ADMISSION_SURFACES.size,9);
+ assert.equal(NATIVE_ADMISSION_SURFACES.size,10);
  for(const p of NATIVE_ADMISSION_SURFACES)assert.equal(classifyRucSourceChanges([restore,p]).enabled,true,p);
 });
 test('invalid diff fails closed',()=>{
