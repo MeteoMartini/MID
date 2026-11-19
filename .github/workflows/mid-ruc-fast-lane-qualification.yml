@@ -1,19 +1,5 @@
 name: MID RUC 0-6h isolated native fast qualification (never publishes)
 on:
-  workflow_call:
-    inputs:
-      run:
-        type: string
-        required: true
-    outputs:
-      stable_sha:
-        value: ${{ jobs.qualify.outputs.stable_sha }}
-      model_run:
-        value: ${{ jobs.qualify.outputs.model_run }}
-      artifact_id:
-        value: ${{ jobs.qualify.outputs.artifact_id }}
-      artifact_digest:
-        value: ${{ jobs.qualify.outputs.artifact_digest }}
   workflow_dispatch:
     inputs:
       run:
@@ -31,11 +17,6 @@ jobs:
     if: ${{ vars.MID_RUC_PIPELINE_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    outputs:
-      stable_sha: ${{ steps.lineage.outputs.sha }}
-      model_run: ${{ steps.choice.outputs.run }}
-      artifact_id: ${{ steps.native_archive.outputs.artifact-id }}
-      artifact_digest: ${{ steps.native_archive.outputs.artifact-digest }}
     steps:
       - name: Released MID Stable source only
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -44,7 +25,6 @@ jobs:
           persist-credentials: false
           fetch-depth: 1
       - name: Verify exact Stable/Main lineage before real DWD work
-        id: lineage
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -57,7 +37,6 @@ jobs:
             echo '::error::MID Stable/Main drift. No provider downloads permitted.'
             exit 1
           fi
-          echo "sha=$checked" >> "$GITHUB_OUTPUT"
       - name: Set up native Python and ecCodes
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -104,7 +83,7 @@ jobs:
         run: |
           set -euo pipefail
           python tools/ruc/ruc_fast_lane_producer.py --run "$FAST_RUN" --stage .ruc-fast-grib-staging --output .ruc-fast-candidate
-          python tools/ruc/ruc_fast_pointer_staging.py --candidate .ruc-fast-candidate --output ruc-fast-shadow
+          python tools/ruc/ruc_fast_pointer_staging.py --candidate .ruc-fast-candidate --output .ruc-fast-shadow
           python - <<'PY'
           import json,sys
           from pathlib import Path
@@ -114,21 +93,20 @@ jobs:
           root=Path('.ruc-fast-candidate')
           meta=json.loads((root/'fast-candidate.json').read_text())
           assert verify_candidate_manifest(meta,root)=={'verifiedLocalBytes':True,'publicationAuthorized':False}
-          pointer=json.loads(next(Path('ruc-fast-shadow').rglob('latest.json')).read_text())
+          pointer=json.loads(next(Path('.ruc-fast-shadow').rglob('latest.json')).read_text())
           assert pointer['publicationAuthorized'] is False
           assert pointer['productionEnabled'] is False
           assert pointer['realtimeConsumerEnabled'] is False
           assert pointer['consumerAdoptionVerified'] is False
-          assert strict_budget(0,count_files(Path('ruc-fast-shadow')))>0
+          assert strict_budget(0,count_files(Path('.ruc-fast-shadow')))>0
           print('Verified immutable 0-6h fast shadow; not published, not an app consumer.')
           PY
       - name: Store ONLY immutable inactive short-lived diagnostic artifact
-        id: native_archive
         if: steps.choice.outputs.ready == 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mid-ruc-fast-native-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ruc-fast-shadow/
+          path: .ruc-fast-shadow/
           retention-days: 2
           if-no-files-found: error
           compression-level: 1
