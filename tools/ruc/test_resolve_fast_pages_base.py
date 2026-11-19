@@ -61,6 +61,36 @@ class InstallerPagesResolverTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'ambiguous'):
             self.resolve()
 
+    def fast_fixture(self, *, rollback=False):
+        self.manifest['deployments?environment=github-pages&per_page=1'][0]['sha'] = STABLE
+        run = self.manifest['actions/runs/2']
+        job = self.manifest['actions/jobs/3']
+        run.update(path='.github/workflows/mid-ruc-preprocess.yml', head_sha=STABLE)
+        job.update(name='Unabhängige Fast Lane geschützt auf Pages veröffentlichen', head_sha=STABLE)
+        names = ('Fast-Pages-Rückfall veröffentlichen', 'Rückkehr des originalen Vollpointers prüfen') if rollback else (
+            'Fast-Pages-Kandidat veröffentlichen', 'Exakten Fast-Punkt und unveränderten Vollpointer öffentlich abfragen')
+        job['steps'] = [{'name': name, 'conclusion': 'success'} for name in names]
+        run['conclusion'] = job['conclusion'] = 'failure' if rollback else 'success'
+        artifact = self.manifest['actions/runs/2/artifacts?per_page=100']['artifacts'][0]
+        artifact['name'] = 'mid-fast-rollback-2-1' if rollback else 'mid-fast-pages-2-1'
+
+    def test_repeated_fast_uses_exact_verified_archive(self):
+        self.fast_fixture()
+        self.assertEqual(self.resolve()['source_sha'], STABLE)
+
+    def test_verified_rollback_can_be_the_next_baseline(self):
+        self.fast_fixture(rollback=True)
+        self.assertEqual(self.resolve()['artifact_id'], 4)
+        self.manifest['actions/jobs/3']['steps'][1]['conclusion'] = 'failure'
+        with self.assertRaisesRegex(ValueError, 'readback'):
+            self.resolve()
+
+    def test_fast_attempt_without_public_readback_rejected(self):
+        self.fast_fixture()
+        self.manifest['actions/jobs/3']['steps'].pop()
+        with self.assertRaisesRegex(ValueError, 'readback'):
+            self.resolve()
+
 
 if __name__ == '__main__':
     unittest.main()

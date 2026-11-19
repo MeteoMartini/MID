@@ -33,11 +33,18 @@ def verify_delivery(candidate_bundle, rollback_site, stable_sha, *, api=None, no
             or proof['publicationAuthorized'] is not False):
         raise ValueError('candidate size or seal does not match its proof')
 
-    # Only the independent namespace may differ on first deployment.
+    # Only the independent namespace may differ on a rolling update.
     prefix = Path('ruc/fast')
-    original = {p.relative_to(rollback_site) for p in rollback_site.rglob('*') if p.is_file()}
-    if any(p.is_relative_to(prefix) for p in original):
-        raise ValueError('first Fast publication requires an intact non-Fast baseline')
+    old_pointer = rollback_site / prefix / 'paged-shadow.json'
+    old_sha = sha_file(old_pointer) if old_pointer.is_file() else None
+    if old_sha != proof.get('previousFastManifestSha256'):
+        raise ValueError('rollback Fast pointer SHA changed')
+    if old_pointer.is_file():
+        old_run = json.loads(old_pointer.read_text(encoding='utf-8'))['run']
+        if old_run >= proof['run']:
+            raise ValueError('Fast candidate must advance the previous Fast run')
+    original = {p.relative_to(rollback_site) for p in rollback_site.rglob('*') if p.is_file()
+                and not p.relative_to(rollback_site).is_relative_to(prefix)}
     actual = {p.relative_to(candidate) for p in candidate.rglob('*') if p.is_file()
               and not p.relative_to(candidate).is_relative_to(prefix)}
     if original != actual or any(sha_file(rollback_site / p) != sha_file(candidate / p)

@@ -32,8 +32,9 @@ on:
     # staggered :11 recovery slot; the freshness guard below makes duplicates cheap.
     - cron: '11 * * * *'
     - cron: '41 * * * *'
+    - cron: '13,43 * * * *'
 concurrency:
-  group: mid-dwd-ruc-preprocess
+  group: mid-dwd-ruc-preprocess${{ (github.event.schedule == '13,43 * * * *' || (github.event_name == 'workflow_dispatch' && inputs.fast_only == true)) && '-fast' || '' }}
   # Never cancel a nearly completed delayed RUC preparation. A queued duplicate
   # self-skips after the first run publishes the current DWD cycle.
   cancel-in-progress: false
@@ -43,7 +44,7 @@ jobs:
   calculate:
     # The expensive DWD download/decode deliberately runs without the Pages
     # lock. Only the short publish job below serializes against MID releases.
-    if: ${{ vars.MID_RUC_PIPELINE_ENABLED == 'true' && !inputs.reuse_run_id && !inputs.fast_only }}
+    if: ${{ vars.MID_RUC_PIPELINE_ENABLED == 'true' && !inputs.reuse_run_id && !(github.event.schedule == '13,43 * * * *' || (github.event_name == 'workflow_dispatch' && inputs.fast_only == true)) }}
     outputs:
       should_run: ${{ steps.freshness.outputs.should_run }}
       stable_sha: ${{ steps.stable_revision.outputs.sha }}
@@ -175,7 +176,7 @@ jobs:
 
   prepare:
     needs: calculate
-    if: ${{ always() && !inputs.fast_only && vars.MID_RUC_PIPELINE_ENABLED == 'true' && ((needs.calculate.result == 'success' && needs.calculate.outputs.should_run == 'true') || inputs.reuse_run_id != '') }}
+    if: ${{ always() && !(github.event.schedule == '13,43 * * * *' || (github.event_name == 'workflow_dispatch' && inputs.fast_only == true)) && vars.MID_RUC_PIPELINE_ENABLED == 'true' && ((needs.calculate.result == 'success' && needs.calculate.outputs.should_run == 'true') || inputs.reuse_run_id != '') }}
     outputs:
       should_run: ${{ steps.ready.outputs.ready }}
       stable_sha: ${{ steps.stable_revision.outputs.sha }}
@@ -796,7 +797,7 @@ jobs:
 
   qualify_fast:
     name: Native Fast Lane unabhängig von EPS qualifizieren
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.fast_only == true && github.ref == 'refs/heads/main' && vars.MID_RUC_PIPELINE_ENABLED == 'true' && !inputs.reuse_run_id && !inputs.force && !inputs.native_d2_approval_run_id }}
+    if: ${{ (github.event.schedule == '13,43 * * * *' || (github.event_name == 'workflow_dispatch' && inputs.fast_only == true)) && (github.event_name != 'schedule' || vars.MID_RUC_FAST_PAGES_ENABLED == 'true') && github.ref == 'refs/heads/main' && vars.MID_RUC_PIPELINE_ENABLED == 'true' && !inputs.reuse_run_id && !inputs.force && !inputs.native_d2_approval_run_id }}
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -947,6 +948,7 @@ jobs:
         with:
           node-version: 22.16.0
       - name: Frische Fast Lane in echte Pages-Site einbauen und verifizieren
+        id: fast_assembly
         env:
           GH_TOKEN: ${{ github.token }}
           STABLE_SHA: ${{ needs.qualify_fast.outputs.stable_sha }}
@@ -956,7 +958,11 @@ jobs:
           python -m pip install --disable-pip-version-check 'numpy>=2.0,<3'
           test "$(find pages-baseline -type f | wc -l)" -eq 1
           pages_tar="$(find pages-baseline -type f)"
-          python tools/ruc/prepare_fast_pages_delivery.py             --pages-tar "$pages_tar" --native-shadow fast-native --output candidate-site             | tee fast-delivery-proof.json
+          python tools/ruc/prepare_fast_pages_delivery.py             --pages-tar "$pages_tar" --native-shadow fast-native --output candidate-site --skip-current             | tee fast-delivery-proof.json
+          if jq -e '.skipped == true' fast-delivery-proof.json >/dev/null; then
+            echo 'candidate=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           jq -e --arg run "$FAST_RUN" '.run == $run and .publicationAuthorized == false' fast-delivery-proof.json
           node --input-type=module <<'JS'
           import {readFile} from 'node:fs/promises';
@@ -971,8 +977,10 @@ jobs:
           JS
           python tools/ruc/resolve_fast_pages_base.py --stable-sha "$STABLE_SHA" > pages-base-after.json
           cmp pages-base.json pages-base-after.json
+          echo 'candidate=true' >> "$GITHUB_OUTPUT"
       - name: Gebauten Kandidaten mit zugehörigem Herkunftsnachweis versiegeln
         id: fast_candidate_archive
+        if: steps.fast_assembly.outputs.candidate == 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: mid-ruc-fast-pages-candidate-${{ github.run_id }}-${{ github.run_attempt }}
@@ -986,7 +994,7 @@ jobs:
   publish_fast:
     name: Unabhängige Fast Lane geschützt auf Pages veröffentlichen
     needs: [qualify_fast, prepare_fast]
-    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.fast_only == true && vars.MID_RUC_FAST_PAGES_ENABLED == 'true' && needs.prepare_fast.result == 'success' }}
+    if: ${{ (github.event.schedule == '13,43 * * * *' || (github.event_name == 'workflow_dispatch' && inputs.fast_only == true)) && github.ref == 'refs/heads/main' && vars.MID_RUC_FAST_PAGES_ENABLED == 'true' && needs.prepare_fast.result == 'success' && needs.prepare_fast.outputs.artifact_id != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     permissions:
@@ -1078,7 +1086,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           STABLE_SHA: ${{ needs.qualify_fast.outputs.stable_sha }}
         run: python tools/ruc/verify_fast_pages_publish.py --bundle bundle --rollback-site rollback-site --stable-sha "$STABLE_SHA"
-      - uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346
+      - name: Fast-Pages-Kandidat veröffentlichen
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346
         id: fast_deployment
         if: steps.fast_publish_guard.outcome == 'success'
         with:
@@ -1100,7 +1109,8 @@ jobs:
             if [ "$attempt" -lt 5 ]; then sleep 10; fi
           done
           exit 1
-      - uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346
+      - name: Fast-Pages-Rückfall veröffentlichen
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346
         id: fast_rollback
         if: ${{ failure() && steps.fast_deployment.outcome == 'success' && steps.fast_readback.outcome == 'failure' }}
         with:
@@ -1112,3 +1122,12 @@ jobs:
           full_sha="$(jq -er .primaryManifestSha256 bundle/fast-delivery-proof.json)"
           curl --max-time 15 --max-filesize 3000000 -fsS https://www.midwx.app/ruc/latest.json -o restored-full.json
           printf '%s  restored-full.json\n' "$full_sha" | sha256sum --check --status
+          previous_sha="$(jq -r '.previousFastManifestSha256 // empty' bundle/fast-delivery-proof.json)"
+          for attempt in 1 2 3 4 5; do
+            status="$(curl --max-time 15 --max-filesize 3000000 -sS -w '%{http_code}' "https://www.midwx.app/ruc/fast/paged-shadow.json?verify=${GITHUB_RUN_ID}-${attempt}" -o restored-fast.json || true)"
+            if [ -z "$previous_sha" ] && [ "$status" = 404 ]; then exit 0; fi
+            if [ -n "$previous_sha" ] && [ "$status" = 200 ] &&
+               printf '%s  restored-fast.json\n' "$previous_sha" | sha256sum --check --status; then exit 0; fi
+            if [ "$attempt" -lt 5 ]; then sleep 10; fi
+          done
+          exit 1
