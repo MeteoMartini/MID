@@ -1,5 +1,7 @@
 """No-network regressions for optional sub-builds and fatal native process exits."""
 import json
+from contextlib import redirect_stdout
+from io import StringIO
 import subprocess
 import sys
 import tempfile
@@ -19,7 +21,10 @@ class SidecarTests(unittest.TestCase):
                 output.write_text('partial')
                 raise RuntimeError('upstream cycle incomplete')
             with patch.dict(sys.modules, {'build_precipitation_totals': types.SimpleNamespace(build=fail)}):
-                run_stage('totals', root)
+                annotation = StringIO()
+                with redirect_stdout(annotation):
+                    run_stage('totals', root)
+                self.assertIn('::warning::ICON-D2 totals unavailable: upstream cycle incomplete', annotation.getvalue())
             self.assertFalse((root / 'precipitation-totals.json').exists())
 
     def test_observed_source_failure_never_publishes_partial_radolan(self):
@@ -29,7 +34,10 @@ class SidecarTests(unittest.TestCase):
                 output.write_text('partial')
                 raise ValueError('incomplete 48h source window')
             with patch.dict(sys.modules, {'build_observed_precipitation': types.SimpleNamespace(build=fail)}):
-                run_stage('observed', root)
+                annotation = StringIO()
+                with redirect_stdout(annotation):
+                    run_stage('observed', root)
+                self.assertIn('::warning::RADOLAN sums unavailable: incomplete 48h source window', annotation.getvalue())
             self.assertFalse((root / 'observed-precipitation.json').exists())
 
     def test_native_map_uses_verified_totals_and_omits_failed_sidecar(self):
@@ -42,7 +50,10 @@ class SidecarTests(unittest.TestCase):
                 (output / 'partial.bin').write_bytes(b'partial')
                 raise OSError('optional map upstream unavailable')
             with patch.dict(sys.modules, {'build_model_map_fields': types.SimpleNamespace(build=fail)}):
-                run_stage('model-fields', root)
+                annotation = StringIO()
+                with redirect_stdout(annotation):
+                    run_stage('model-fields', root)
+                self.assertIn('::warning::ICON-D2 native maps unavailable: optional map upstream unavailable', annotation.getvalue())
             self.assertFalse((root / 'model-fields').exists())
 
     def test_unexpected_failure_is_not_relabelled_optional(self):

@@ -161,19 +161,16 @@ jobs:
           python tools/ruc/test_fetch_resilience.py
           python tools/ruc/test_ruc_health_check.py
           python tools/ruc/test_ruc_native_sidecar.py
+          python tools/ruc/test_restore_ruc_pages_snapshot.py
           python -m unittest discover -s tools/ruc -p test_ruc_horizon_probe.py
+          node --test tools/ci/test-ruc-source-admission-classifier.mjs
 
-      - name: Änderungen am nativen RUC-Kartenpfad erkennen
+      - name: SHA-genaue RUC-Originaldaten-Relevanz (Restore-only getrennt)
         id: ruc_native_changes
         shell: bash
         run: |
           set -euo pipefail
-          changed="$(git diff --name-only HEAD^1 HEAD -- tools/ruc/)"
-          if [ -n "$changed" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-          fi
+          node tools/ci/ruc-source-admission-classifier.mjs
 
       - name: Drei native RUC-Läufe und Kartenaufnahme bis +27 h prüfen
         if: steps.ruc_native_changes.outputs.enabled == 'true'
@@ -486,7 +483,7 @@ jobs:
         with:
           fetch-depth: 2
           persist-credentials: false
-      - name: Verify exact source SHA and detect RUC change paths
+      - name: Verify exact source SHA and classify RUC original admission fail-closed
         id: changed
         shell: bash
         env:
@@ -494,12 +491,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse 'HEAD^2')" = "$EXPECTED_PR_HEAD_SHA"
-          changed="$(git diff --name-only HEAD^1 HEAD -- tools/ruc/ scripts/verify-ruc-composites.mjs src/rucSynopticFields.ts src/nativeSynopticFields.ts src/cloudWeatherData.ts ci/github/workflows/chatgpt-pr-gate.yml .github/workflows/chatgpt-pr-gate.yml)"
-          if [ -n "$changed" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-          fi
+          node tools/ci/ruc-source-admission-classifier.mjs
 
   ruc_native_full_admission:
     name: Admit three genuine DWD 27h original runs, codec and contour (read-only)
