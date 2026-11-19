@@ -481,6 +481,7 @@ jobs:
     permissions:
       contents: read
       actions: read
+      deployments: read
       pages: write
       id-token: write
     concurrency:
@@ -604,6 +605,39 @@ jobs:
           fi
           test ! -e .ruc-site/ruc/eps-members.bin
           find .ruc-site/ruc -type f -name 'eps-members.bin' -print -quit | grep -q . && { echo '::error::Native EPS member cube must not be published by the free Pages profile.'; exit 1; } || true
+      - name: Aktives Pages-Artefakt für die Fast-Übernahme ermitteln
+        id: retained_fast_source
+        if: steps.predownload_guard.outputs.allowed == 'true' && vars.MID_RUC_FAST_PAGES_ENABLED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STABLE_SHA: ${{ steps.stable_guard.outputs.consumer_sha }}
+        run: |
+          set -euo pipefail
+          python tools/ruc/resolve_fast_pages_base.py --stable-sha "$STABLE_SHA" > retained-fast-base.json
+          jq -r '"artifact_id=\(.artifact_id)\nrun_id=\(.run_id)"' retained-fast-base.json >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        if: steps.retained_fast_source.outcome == 'success'
+        with:
+          artifact-ids: ${{ steps.retained_fast_source.outputs.artifact_id }}
+          run-id: ${{ steps.retained_fast_source.outputs.run_id }}
+          github-token: ${{ github.token }}
+          digest-mismatch: error
+          merge-multiple: true
+          path: active-pages-for-fast
+      - name: Noch frische Fast-Daten beim Voll-RUC-Deploy erhalten
+        if: steps.retained_fast_source.outcome == 'success'
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,'tools/ruc')
+          from prepare_fast_pages_delivery import carry_fresh_fast_archive
+          archives=[p for p in Path('active-pages-for-fast').rglob('*') if p.is_file()]
+          if len(archives)!=1:
+              raise ValueError('unexpected active Pages archive inventory')
+          print(json.dumps(carry_fresh_fast_archive(archives[0],Path('.ruc-site')),sort_keys=True))
+          PY
       - name: MID-Stable und Releasefenster unmittelbar vor dem Pages-Publish erneut prüfen
         id: publish_guard
         if: steps.predownload_guard.outputs.allowed == 'true'
@@ -715,6 +749,7 @@ jobs:
           cp -a .ruc-site .ruc-rollback-site
           rm -rf .ruc-rollback-site/ruc
           cp -a .ruc-rollback/ruc .ruc-rollback-site/ruc
+          if [ -d .ruc-site/ruc/fast ]; then cp -a .ruc-site/ruc/fast .ruc-rollback-site/ruc/fast; fi
           bytes="$(du -sb .ruc-rollback-site | awk '{print $1}')"
           test "$bytes" -lt 950000000
       - name: Rollback-Rohdaten als GitHub-Pages-Artefakt hochladen

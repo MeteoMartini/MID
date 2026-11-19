@@ -2,13 +2,13 @@
 """Assemble a candidate from an Actions-digest-verified Pages tar and native Fast."""
 
 import argparse
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path, PurePosixPath
 import tarfile
 import tempfile
 
-from ruc_fast_independent_pages import stage_independent_fast_pages
+from ruc_fast_pages_preserve import preserve_fast_pages
 from ruc_fast_pointer_staging import sha_file, strict_budget
 
 
@@ -32,6 +32,8 @@ def extract_pages_tar(archive, target):
 
 
 def prepare_delivery(archive, native_shadow, output, *, now=None, skip_current=False):
+    from ruc_fast_independent_pages import stage_independent_fast_pages
+
     output = Path(output)
     if not output.parent.is_dir():
         raise ValueError('Pages candidate output parent must exist')
@@ -47,6 +49,29 @@ def prepare_delivery(archive, native_shadow, output, *, now=None, skip_current=F
                 return {'skipped': True, 'run': new_run, 'previousRun': old_run}
         proof = stage_independent_fast_pages(base, native_shadow, output, now=now, compress=True)
     return {'basePagesBytes': original_size, 'previousFastManifestSha256': previous_sha, **proof}
+
+
+def carry_fresh_fast_site(previous_site, next_site, *, now=None):
+    """Carry a qualified Fast snapshot out of a digest-authenticated Pages tree."""
+    pointer = previous_site / 'ruc/fast/paged-shadow.json'
+    if not pointer.exists():
+        return {'carried': False, 'reason': 'no-fast-baseline'}
+    run = json.loads(pointer.read_text(encoding='utf-8'))['run']
+    stamp = datetime.strptime(run, '%Y-%m-%dT%H:%M').replace(tzinfo=timezone.utc)
+    if stamp.strftime('%Y-%m-%dT%H:%M') != run or stamp.minute != 0:
+        raise ValueError('invalid archived Fast run')
+    clock = now if now is not None else datetime.now(timezone.utc)
+    if clock - stamp > timedelta(hours=4):
+        return {'carried': False, 'reason': 'previous-fast-expired', 'run': run}
+    return {'carried': True, **preserve_fast_pages(previous_site, next_site, sha_file(pointer), now=clock)}
+
+
+def carry_fresh_fast_archive(archive, next_site):
+    """Use this only with an archive accepted by Actions digest enforcement."""
+    with tempfile.TemporaryDirectory(prefix='.mid-active-pages-', dir=next_site.parent) as scratch:
+        previous = Path(scratch)
+        extract_pages_tar(archive, previous)
+        return carry_fresh_fast_site(previous, next_site)
 
 
 def main():
