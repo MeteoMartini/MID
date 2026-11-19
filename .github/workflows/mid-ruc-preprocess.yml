@@ -871,9 +871,8 @@ jobs:
       - name: Install pinned MID native RUC dependencies
         run: |
           set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y libeccodes-tools
           python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+          python -m eccodes selfcheck
       - name: Fail-closed offline fast producer, pointer and selector tests
         shell: bash
         run: |
