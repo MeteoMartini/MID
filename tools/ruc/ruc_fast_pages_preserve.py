@@ -44,6 +44,9 @@ def preserve_fast_pages(previous_site, next_site, expected_sha, *, now=None):
             or document.get('nativePoints') != 542040
             or document.get('chunkCells') != 512):
         raise ValueError('unexpected native Fast Pages manifest')
+    codec = document.get('storageCodec')
+    if codec not in (None, 'gzip-or-raw-v1'):
+        raise ValueError('unknown Fast Pages storage codec')
     run = datetime.strptime(document['run'], '%Y-%m-%dT%H:%M').replace(tzinfo=timezone.utc)
     if run.strftime('%Y-%m-%dT%H:%M') != document['run'] or run.minute != 0:
         raise ValueError('noncanonical Fast Pages model run')
@@ -67,10 +70,21 @@ def preserve_fast_pages(previous_site, next_site, expected_sha, *, now=None):
             relative = Path('pages', run_key, name.removesuffix('.bin'), f'{index:04d}.bin')
             length = min(512, cells - 512 * index) * record_bytes
             checksum = part['sha256']
-            if (part['key'] != 'fast/' + relative.as_posix()
-                    or part['bytes'] != length
-                    or not re.fullmatch(r'[a-f0-9]{64}', checksum)):
-                raise ValueError('noncanonical Fast Pages chunk')
+            if part['bytes'] != length or not re.fullmatch(r'[a-f0-9]{64}', checksum):
+                raise ValueError('noncanonical Fast Pages raw chunk')
+            if part.get('encoding') == 'gzip':
+                stored_bytes = part.get('storedBytes')
+                stored_sha = part.get('storedSha256', '')
+                if (codec != 'gzip-or-raw-v1' or type(stored_bytes) is not int
+                        or not 0 < stored_bytes < length
+                        or not re.fullmatch(r'[a-f0-9]{64}', stored_sha)):
+                    raise ValueError('noncanonical Fast Pages gzip chunk')
+                relative = relative.with_suffix('.gzip.bin')
+                length, checksum = stored_bytes, stored_sha
+            elif any(field in part for field in ('encoding', 'storedBytes', 'storedSha256')):
+                raise ValueError('unexpected Fast Pages transport metadata')
+            if part['key'] != 'fast/' + relative.as_posix():
+                raise ValueError('noncanonical Fast Pages chunk path')
             files[relative] = (length, checksum)
     if {file.relative_to(previous) for file in previous.rglob('*') if file.is_file()} != set(files):
         raise ValueError('unexpected object in Fast Pages namespace')

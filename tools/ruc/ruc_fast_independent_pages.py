@@ -18,7 +18,7 @@ FAST = Path('ruc/fast')
 MANIFEST = 'paged-shadow.json'
 
 
-def stage_independent_fast_pages(site, fast_shadow, output, *, now=None):
+def stage_independent_fast_pages(site, fast_shadow, output, *, now=None, compress=False):
     """Keep the primary site intact, even when its full RUC run is stale or absent."""
     site, fast_shadow, output = map(Path, (site, fast_shadow, output))
     if not site.is_dir() or site.is_symlink():
@@ -55,7 +55,8 @@ def stage_independent_fast_pages(site, fast_shadow, output, *, now=None):
     with tempfile.TemporaryDirectory(prefix='.mid-independent-fast-', dir=output.parent) as temp:
         temp = Path(temp)
         package = temp / 'fast-package'
-        partition = partition_native_fast(fast_shadow, package)
+        partition = (partition_native_fast(fast_shadow, package, compress=True)
+                     if compress else partition_native_fast(fast_shadow, package))
         if partition['run'] != shadow['run']:
             raise ValueError('Fast run changed during staging')
         package_fast = package / FAST
@@ -94,8 +95,9 @@ def main():
     parser.add_argument('--site', required=True, type=Path)
     parser.add_argument('--fast-shadow', required=True, type=Path)
     parser.add_argument('--output', required=True, type=Path)
+    parser.add_argument('--gzip', action='store_true')
     args = parser.parse_args()
-    print(json.dumps(stage_independent_fast_pages(args.site, args.fast_shadow, args.output), sort_keys=True))
+    print(json.dumps(stage_independent_fast_pages(args.site, args.fast_shadow, args.output, compress=args.gzip), sort_keys=True))
 
 
 if __name__ == '__main__':
