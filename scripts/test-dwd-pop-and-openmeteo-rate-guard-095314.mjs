@@ -47,7 +47,7 @@ assert.doesNotMatch(guard,/acquire\(priority,init\.signal\)/);
 assert.match(weather,/FORECAST_CORE_FRESH_MS=8\*60\*1000/);
 assert.match(weather,/FORECAST_CORE_STALE_MS=18\*3600000/);
 assert.match(weather,/FORECAST_CORE_(?:LEGACY_)?CACHE_PREFIX/);
-assert.match(weather,/function cachedForecastResult\(entry:ForecastCoreCache&\{age:number\},reason:'offline-local-cache'\|'fresh-local-cache'\|'network-fallback-local-cache'\)/);
+assert.match(weather,/function cachedForecastResult\(entry:ForecastCoreCacheRead,reason:'offline-local-cache'\|'fresh-local-cache'\|'network-fallback-local-cache'\)/);
 assert.match(weather,/if\(offline\)\{if\(cached\)return cachedForecastResult\(cached,'offline-local-cache'\)/);
 assert.match(weather,/if\(!options\.forceFresh&&cached&&cached\.age<=FORECAST_CORE_FRESH_MS\)return cachedForecastResult\(cached,'fresh-local-cache'\)/);
 assert.match(weather,/if\(cached\)return cachedForecastResult\(cached,'network-fallback-local-cache'\)/);
