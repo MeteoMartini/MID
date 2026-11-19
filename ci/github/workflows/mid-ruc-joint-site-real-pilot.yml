@@ -360,3 +360,93 @@ jobs:
         run: |
           cat joint-proof.json >> "$GITHUB_STEP_SUMMARY"
           echo 'Real site proof only. No Pages deploy/Worker switch/CAS/rollback or Web/iOS/Widget/Export consumer SLO authorization.' >> "$GITHUB_STEP_SUMMARY"
+
+  published-pages-budget:
+    name: Physical Fast budget against successful Stable Pages artifact
+    if: >-
+      github.event.pull_request.number == 946 &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'chatgpt/v0.9.85.497-ruc-independent-fast-pages'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+      deployments: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Bind inputs to released source, successful Pages deployment and native proof
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          cmp ci/github/workflows/mid-ruc-joint-site-real-pilot.yml .github/workflows/mid-ruc-joint-site-real-pilot.yml
+          for branch in mid-stable main; do
+            test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$branch" --jq .object.sha)" = 256aabe286f7daa00dc0e320815dd8dacb7b4706
+          done
+          gh api "repos/$GITHUB_REPOSITORY/deployments/7904727023/statuses" |
+            jq -e '.[0].state == "success" and (.[0].log_url | contains("/actions/runs/44461870246/job/"))' >/dev/null
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/44461870246" |
+            jq -e '.conclusion == "success" and .path == ".github/workflows/install-mid.yml"' >/dev/null
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/14501251160" |
+            jq -e '.expired == false and .workflow_run.id == 44461870246 and .digest == "sha256:d78eb5c173d8c86bdbcfd2642a5f721f35e3373bc3daad5e76ebc3f8647ddfa4"' >/dev/null
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/14500714855" |
+            jq -e '.expired == false and .workflow_run.id == 44464260206 and .digest == "sha256:18612063706840aa95d980c8c56bb1eeedb8b462d353d3e68242e5ceebd5e86a"' >/dev/null
+      - name: Download exactly deployed Stable Pages bytes with digest enforcement
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          artifact-ids: '14501251160'
+          run-id: 44461870246
+          github-token: ${{ github.token }}
+          digest-mismatch: error
+          merge-multiple: true
+          path: pages-release
+      - name: Download original DWD native Fast archive with digest enforcement
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          artifact-ids: '14500714855'
+          run-id: 44464260206
+          github-token: ${{ github.token }}
+          digest-mismatch: error
+          merge-multiple: true
+          path: native-release
+      - name: Rebuild and measure byte-exact Fast without deploying
+        run: |
+          set -euo pipefail
+          python tools/ruc/ruc_fast_pages_chunker.py --shadow native-release --output fast-pages --gzip
+          python - <<'PY' | tee -a "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path, PurePosixPath
+          import sys
+          import tarfile
+          sys.path.insert(0, 'tools/ruc')
+          from ruc_fast_pointer_staging import count_files, strict_budget
+
+          archives = [p for p in Path('pages-release').rglob('*') if p.is_file()]
+          if len(archives) != 1:
+              raise ValueError('unexpected Pages archive inventory')
+          base = 0
+          files = set()
+          with tarfile.open(archives[0], mode='r|*') as archive:
+              for entry in archive:
+                  path = PurePosixPath(entry.name)
+                  if path.is_absolute() or '..' in path.parts or not (entry.isdir() or entry.isfile()):
+                      raise ValueError('unexpected Pages tar entry')
+                  if path == PurePosixPath('ruc/fast') or path.is_relative_to('ruc/fast'):
+                      raise ValueError('deployed Pages artifact already has a Fast namespace')
+                  if entry.isfile():
+                      if path in files:
+                          raise ValueError('duplicate Pages tar file')
+                      files.add(path)
+                      base += entry.size
+          if not {PurePosixPath('index.html'), PurePosixPath('ruc/latest.json')} <= files:
+              raise ValueError('deployed App and full RUC files absent')
+          fast = count_files(Path('fast-pages'))
+          print(json.dumps({'basePagesBytes': base, 'fastPagesBytes': fast, 'jointPagesBytes': base + fast}))
+          print('Remaining bytes under strict 900 MB limit:', strict_budget(base, fast))
+          PY
