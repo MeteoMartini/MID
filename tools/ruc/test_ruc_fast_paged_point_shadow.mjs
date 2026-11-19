@@ -89,3 +89,97 @@ test('missing native lookup is unavailable without extra fetches',async()=>{
  let calls=0;const o=await readPagedFastPointShadow(raw,await sha256hex(raw),async path=>{calls++;return f.pages[path]},0);
  assert.equal(o.available,false);assert.equal(calls,1);
 });
+
+
+import {verifyPublicFastShadowReadback,fetchCanonicalPublicRucBytes}
+ from './ruc_fast_public_site_admission.mjs';
+import {FAST_POINTER_SCHEMA} from './ruc_fast_cas.mjs';
+async function publicFixtures(){
+ const f=await fixture(),fullRun='2026-11-02T08:00';
+ const start=Date.parse(fullRun+'Z');
+ const times=Array.from({length:28},(_,i)=>new Date(start+i*3600000).toISOString().slice(0,16));
+ const original={schema:'mid.dwd.ruc.grid.v2',storageProfile:'pages-lossless-v1',
+   run:fullRun,pointCount:542040,deterministic:{times},eps:{memberCount:20,times},epsSummary:{fields:['pop']}};
+ const encoder=new TextEncoder(),bytes=encoder.encode(JSON.stringify(original));
+ const pointer={schema:FAST_POINTER_SCHEMA,generation:1,stableSha:'d'.repeat(40),
+   siteSha256:'a'.repeat(64),primaryManifestSha256:await sha256hex(bytes),
+   fastManifestSha256:f.sha,primaryRun:fullRun,fastRun:run,
+   horizonHours:6,epsAvailable:false,mode:'shadow',
+   rootPrimaryNeverChanged:true,fullEps20Readmission:true};
+ const read=async path=>path==='latest.json'?bytes:
+   path==='fast/paged-shadow.json'?f.raw:f.pages[path];
+ return {f,original,bytes,pointer,read};
+}
+test('public full 27h/EPS20 plus exact Fast 7h/5min/15min spot SHA verified, never release',async()=>{
+ const {pointer,read}=await publicFixtures(),keys=[];
+ const report=await verifyPublicFastShadowReadback(pointer,async key=>{
+   keys.push(key);return read(key);
+ },0);
+ assert.equal(report.publicFilesReadbackShaVerified,6);
+ assert.equal(report.nativeBinaryChunksVerified,4);
+ assert.equal(report.epsOriginalMetadataMembers,20);
+ assert.equal(report.fiveMinuteTerms,73);
+ assert.equal(report.fifteenMinuteTerms,25);
+ assert.equal(report.modelHourCount,7);
+ assert.equal(report.shaBoundMetadataAndSampleVerified,true);
+ assert.equal(report.actualPublicHttpReadback,false);
+ for(const key of ['globalCasVerified','productionAuthorized','realClientAdoptionVerified',
+                   'sixtyMinuteP95Verified','allPublicPagesObjectsVerified'])
+   assert.equal(report[key],false);
+ assert.equal(keys.length,8);
+ assert.equal(new Set(keys).size,6);
+});
+test('public readback rejects forged shadow-to-active identity, missing EPS20 or source drift',async()=>{
+ const {pointer,read,original,f,bytes}=await publicFixtures();
+ for(const fake of [
+  {...pointer,mode:'active'},
+  {...pointer,primaryManifestSha256:'0'.repeat(64)},
+  {...pointer,fastManifestSha256:'0'.repeat(64)},
+  {...pointer,fastRun:'2026-11-02T10:00'},
+  {...pointer,primaryRun:'2026-11-02T07:00'}
+ ]){
+  await assert.rejects(verifyPublicFastShadowReadback(fake,read,0));
+ }
+ const broken={...original,eps:{...original.eps,memberCount:19}};
+ const raw=new TextEncoder().encode(JSON.stringify(broken));
+ await assert.rejects(verifyPublicFastShadowReadback(
+   {...pointer,primaryManifestSha256:await sha256hex(raw)},
+   async key=>key==='latest.json'?raw:read(key),0),/EPS20/);
+ const first=f.manifest.objects['lookup.bin'].parts[0];
+ const tampered=f.pages[first.key].slice();tampered[0]^=1;
+ await assert.rejects(verifyPublicFastShadowReadback(pointer,
+   async key=>key===first.key?tampered:read(key),0),/chunk SHA/);
+ await assert.rejects(verifyPublicFastShadowReadback(pointer,
+   async key=>key==='latest.json'?new Uint8Array(0):read(key),0),/missing public Pages/);
+ assert.ok(bytes.length>0);
+});
+test('public fetch forbids external paths, redirects, 404, oversized bodies and fake URLs',async()=>{
+ await assert.rejects(fetchCanonicalPublicRucBytes('../admin'),/nonimmutable/);
+ await assert.rejects(fetchCanonicalPublicRucBytes('fast/pages/20261102T0900/lookup/0000.bin?x=1'),/nonimmutable/);
+ const respond=(body,status=200,url='https://midwx.app/ruc/latest.json')=>
+   ({status,ok:status===200,url,headers:new Headers(),body:new Response(body).body});
+ const good=new TextEncoder().encode('{"schema":"test"}');
+ const bytes=await fetchCanonicalPublicRucBytes('latest.json',async()=>respond(good));
+ assert.deepEqual(bytes,good);
+ await assert.rejects(fetchCanonicalPublicRucBytes('latest.json',async()=>respond(good,404)),/HTTP result/);
+ await assert.rejects(fetchCanonicalPublicRucBytes('latest.json',async()=>respond(good,200,'https://evil.example/ruc/latest.json')),/HTTP result/);
+ await assert.rejects(fetchCanonicalPublicRucBytes('latest.json',async()=>({
+  ...respond(good),headers:new Headers({'content-length':'999999999'})
+ })),/Content-Length/);
+ await assert.rejects(fetchCanonicalPublicRucBytes('latest.json',async()=>respond(new Uint8Array(8_000_001))),/overbudget/);
+});
+
+test('public post-readback detects changed full/Fast mutable manifests, despite verified chunks',async()=>{
+ const {pointer,read,f}=await publicFixtures();
+ let fullReads=0;
+ await assert.rejects(verifyPublicFastShadowReadback(pointer,async key=>{
+   if(key==='latest.json'&&++fullReads===2)return new TextEncoder().encode('{"tampered":true}');
+   return read(key);
+ },0),/full pointer changed during/);
+ let fastReads=0;
+ await assert.rejects(verifyPublicFastShadowReadback(pointer,async key=>{
+   if(key==='fast/paged-shadow.json'&&++fastReads===2)return new TextEncoder().encode('{"tampered":true}');
+   return read(key);
+ },0),/Fast manifest changed during/);
+ assert.ok(f.raw.length>0);
+});
