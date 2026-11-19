@@ -24,12 +24,21 @@ def gh_api(path):
     return json.loads(result.stdout)
 
 
-def resolve_installer_pages(expected_stable, api=gh_api):
+def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None):
     """Accept only the verified installer, Fast deployment, or verified Fast rollback."""
     require(SHA.fullmatch(expected_stable), 'invalid expected Stable SHA')
-    for ref in ('main', 'mid-stable'):
-        require(api('git/ref/heads/' + ref)['object']['sha'] == expected_stable,
-                'main/Stable lineage changed')
+    require(api('git/ref/heads/mid-stable')['object']['sha'] == expected_stable,
+            'Stable lineage changed')
+    expected_main = pending_release or expected_stable
+    require(SHA.fullmatch(expected_main)
+            and api('git/ref/heads/main')['object']['sha'] == expected_main,
+            'main/Stable lineage changed')
+    if pending_release and expected_main != expected_stable:
+        lineage = api(f'compare/{expected_stable}...{expected_main}')
+        require(lineage['status'] == 'ahead'
+                and lineage['merge_base_commit']['sha'] == expected_stable
+                and lineage['base_commit']['sha'] == expected_stable,
+                'pending release does not descend from Stable')
     stable = api('git/commits/' + expected_stable)
     require(stable['sha'] == expected_stable and len(stable['parents']) == 1
             and re.fullmatch(r'Install MID v\d+(?:\.\d+){3}', stable['message'].strip()),
@@ -65,6 +74,14 @@ def resolve_installer_pages(expected_stable, api=gh_api):
                 and any(re.fullmatch(r'GitHub-Pages-Deployment · Versuch [1-3]', step) for step in passed),
                 'Pages deployment job or installer attempt does not match')
         artifact_prefix = 'github-pages'
+        # Installer names its artifacts by deploy slot, not workflow attempt.
+        slot = re.fullmatch(r'MID auf GitHub Pages veröffentlichen · Versuch ([1-3])',
+                            job.get('name', ''))
+        require(slot, 'installer Pages deployment slot is unknown')
+        slot = int(slot[1])
+        if slot != 1:
+            require(f'Pages-Artefakt nur bei Bedarf hochladen · Versuch {slot}' in passed,
+                    'installer reused an earlier artifact without an unambiguous identity')
     elif run['path'] == '.github/workflows/mid-ruc-preprocess.yml':
         require(run['head_sha'] == expected_stable, 'RUC Pages job is not on current Stable')
         if job['name'] == 'Unabhängige Fast Lane geschützt auf Pages veröffentlichen':
@@ -91,7 +108,7 @@ def resolve_installer_pages(expected_stable, api=gh_api):
         raise ValueError('latest Pages deployment uses an unknown publisher')
     inventory = api(f'actions/runs/{run_id}/artifacts?per_page=100')
     require(inventory['total_count'] <= 100, 'incomplete installer artifact inventory')
-    name = f"{artifact_prefix}-{run_id}-{run['run_attempt']}"
+    name = f"{artifact_prefix}-{run_id}-{slot if artifact_prefix == 'github-pages' else run['run_attempt']}"
     archives = [artifact for artifact in inventory['artifacts'] if artifact['name'] == name]
     require(len(archives) == 1, 'missing or ambiguous Stable Pages artifact')
     archive = archives[0]

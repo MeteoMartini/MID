@@ -1099,7 +1099,7 @@ jobs:
       ruc_run: ${{ steps.ruc_snapshot.outputs.run }}
     name: GitHub-Pages-Artefakt parallel vorbereiten
     needs: install_build
-    if: needs.install_build.result == 'success'
+    if: needs.install_build.result == 'success' && vars.MID_RUC_FAST_PAGES_ENABLED != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     permissions:
@@ -1173,7 +1173,7 @@ jobs:
       - install_build
       - deploy_worker
       - prepare_pages_artifact
-    if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success'
+    if: always() && vars.MID_RUC_FAST_PAGES_ENABLED != 'true' && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -1267,6 +1267,8 @@ jobs:
     timeout-minutes: 18
     permissions:
       contents: read
+      actions: read
+      deployments: read
       pages: write
       id-token: write
     concurrency:
@@ -1282,11 +1284,12 @@ jobs:
         id: artifact_plan
         shell: bash
         env:
+          FAST_ENABLED: ${{ vars.MID_RUC_FAST_PAGES_ENABLED }}
           PREVIOUS_READY: ${{ needs.deploy_pages_1.outputs.artifact_ready }}
           PREVIOUS_NAME: ${{ needs.deploy_pages_1.outputs.artifact_name }}
         run: |
           set -euo pipefail
-          if [ "$PREVIOUS_READY" = "true" ] && [ -n "$PREVIOUS_NAME" ]; then
+          if [ "$FAST_ENABLED" != "true" ] && [ "$PREVIOUS_READY" = "true" ] && [ -n "$PREVIOUS_NAME" ]; then
             echo 'needs_upload=false' >> "$GITHUB_OUTPUT"
             echo "name=$PREVIOUS_NAME" >> "$GITHUB_OUTPUT"
           else
@@ -1321,6 +1324,13 @@ jobs:
           args=(--base "$base" --target dist/ruc --workers 16)
           if [ "$MID_RUC_PIPELINE_ENABLED" = "true" ]; then args+=(--required); fi
           python tools/ruc/restore_ruc_pages_snapshot.py "${args[@]}"
+
+      - name: Frischen Fast-Snapshot aus dem aktiven Pages-Artefakt erhalten
+        if: vars.MID_RUC_FAST_PAGES_ENABLED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: python3 tools/ruc/install_fast_pages.py retain --release-sha "$RELEASE_SHA" --dist dist --proof installer-fast-proof.json
 
       - name: Pages-Artefakt nur bei Bedarf hochladen · Versuch 2
         id: upload_artifact
@@ -1381,9 +1391,17 @@ jobs:
           fi
           echo 'valid=true' >> "$GITHUB_OUTPUT"
 
+      - name: Aktiven Fast-Stand unmittelbar vor Installer-Deploy bestätigen
+        id: installer_fast_guard
+        if: vars.MID_RUC_FAST_PAGES_ENABLED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: python3 tools/ruc/install_fast_pages.py verify --release-sha "$RELEASE_SHA" --dist dist --proof installer-fast-proof.json
+
       - name: GitHub-Pages-Deployment · Versuch 2
         id: deployment
-        if: always() && steps.artifact_state.outputs.ready == 'true' && steps.ruc_guard.outputs.current == 'true' && steps.main_fence_pages.outputs.valid == 'true'
+        if: always() && steps.artifact_state.outputs.ready == 'true' && steps.ruc_guard.outputs.current == 'true' && steps.main_fence_pages.outputs.valid == 'true' && (vars.MID_RUC_FAST_PAGES_ENABLED != 'true' || steps.installer_fast_guard.outcome == 'success')
         continue-on-error: true
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
@@ -1427,6 +1445,8 @@ jobs:
     timeout-minutes: 18
     permissions:
       contents: read
+      actions: read
+      deployments: read
       pages: write
       id-token: write
     concurrency:
@@ -1442,11 +1462,12 @@ jobs:
         id: artifact_plan
         shell: bash
         env:
+          FAST_ENABLED: ${{ vars.MID_RUC_FAST_PAGES_ENABLED }}
           PREVIOUS_READY: ${{ needs.deploy_pages_2.outputs.artifact_ready }}
           PREVIOUS_NAME: ${{ needs.deploy_pages_2.outputs.artifact_name }}
         run: |
           set -euo pipefail
-          if [ "$PREVIOUS_READY" = "true" ] && [ -n "$PREVIOUS_NAME" ]; then
+          if [ "$FAST_ENABLED" != "true" ] && [ "$PREVIOUS_READY" = "true" ] && [ -n "$PREVIOUS_NAME" ]; then
             echo 'needs_upload=false' >> "$GITHUB_OUTPUT"
             echo "name=$PREVIOUS_NAME" >> "$GITHUB_OUTPUT"
           else
@@ -1481,6 +1502,13 @@ jobs:
           args=(--base "$base" --target dist/ruc --workers 16)
           if [ "$MID_RUC_PIPELINE_ENABLED" = "true" ]; then args+=(--required); fi
           python tools/ruc/restore_ruc_pages_snapshot.py "${args[@]}"
+
+      - name: Frischen Fast-Snapshot aus dem aktiven Pages-Artefakt erhalten
+        if: vars.MID_RUC_FAST_PAGES_ENABLED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: python3 tools/ruc/install_fast_pages.py retain --release-sha "$RELEASE_SHA" --dist dist --proof installer-fast-proof.json
 
       - name: Pages-Artefakt nur bei Bedarf hochladen · Versuch 3
         if: steps.artifact_plan.outputs.needs_upload == 'true'
@@ -1522,8 +1550,16 @@ jobs:
           fi
           echo 'valid=true' >> "$GITHUB_OUTPUT"
 
+      - name: Aktiven Fast-Stand unmittelbar vor Installer-Deploy bestätigen
+        id: installer_fast_guard
+        if: vars.MID_RUC_FAST_PAGES_ENABLED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: python3 tools/ruc/install_fast_pages.py verify --release-sha "$RELEASE_SHA" --dist dist --proof installer-fast-proof.json
+
       - name: GitHub-Pages-Deployment · Versuch 3
-        if: steps.ruc_guard.outputs.current == 'true' && steps.main_fence_pages.outputs.valid == 'true'
+        if: steps.ruc_guard.outputs.current == 'true' && steps.main_fence_pages.outputs.valid == 'true' && (vars.MID_RUC_FAST_PAGES_ENABLED != 'true' || steps.installer_fast_guard.outcome == 'success')
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:

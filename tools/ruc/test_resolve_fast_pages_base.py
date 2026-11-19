@@ -24,7 +24,7 @@ class InstallerPagesResolverTest(unittest.TestCase):
             'actions/runs/2': {'id': 2, 'conclusion': 'success', 'path': '.github/workflows/install-mid.yml',
                                'head_sha': SOURCE, 'head_branch': 'main', 'run_attempt': 1,
                                'head_repository': {'full_name': REPOSITORY}},
-            'actions/jobs/3': {'id': 3, 'run_id': 2, 'head_sha': SOURCE, 'run_attempt': 1, 'conclusion': 'success',
+            'actions/jobs/3': {'name': 'MID auf GitHub Pages veröffentlichen · Versuch 1', 'id': 3, 'run_id': 2, 'head_sha': SOURCE, 'run_attempt': 1, 'conclusion': 'success',
                                'steps': [{'name': 'GitHub-Pages-Deployment · Versuch 1', 'conclusion': 'success'}]},
             'actions/runs/2/artifacts?per_page=100': {'total_count': 1, 'artifacts': [
                 {'id': 4, 'name': 'github-pages-2-1', 'digest': DIGEST, 'expired': False},
@@ -90,6 +90,29 @@ class InstallerPagesResolverTest(unittest.TestCase):
         self.manifest['actions/jobs/3']['steps'].pop()
         with self.assertRaisesRegex(ValueError, 'readback'):
             self.resolve()
+
+    def test_pending_installer_must_descend_from_actual_stable(self):
+        pending = 'f' * 40
+        self.manifest['git/ref/heads/main']['object']['sha'] = pending
+        lineage = {'status': 'ahead', 'merge_base_commit': {'sha': STABLE},
+                   'base_commit': {'sha': STABLE}}
+        self.manifest[f'compare/{STABLE}...{pending}'] = lineage
+        proof = resolve_installer_pages(STABLE, self.manifest.__getitem__, pending_release=pending)
+        self.assertEqual(proof['artifact_id'], 4)
+        lineage['merge_base_commit']['sha'] = SOURCE
+        with self.assertRaisesRegex(ValueError, 'descend'):
+            resolve_installer_pages(STABLE, self.manifest.__getitem__, pending_release=pending)
+
+    def test_installer_second_slot_requires_its_own_successful_upload(self):
+        job = self.manifest['actions/jobs/3']
+        job['name'] = 'MID auf GitHub Pages veröffentlichen · Versuch 2'
+        job['steps'] = [{'name': 'GitHub-Pages-Deployment · Versuch 2', 'conclusion': 'success'}]
+        with self.assertRaisesRegex(ValueError, 'ambiguous'):
+            self.resolve()
+        job['steps'].append({'name': 'Pages-Artefakt nur bei Bedarf hochladen · Versuch 2',
+                             'conclusion': 'success'})
+        self.manifest['actions/runs/2/artifacts?per_page=100']['artifacts'][0]['name'] = 'github-pages-2-2'
+        self.assertEqual(self.resolve()['artifact_id'], 4)
 
 
 if __name__ == '__main__':
