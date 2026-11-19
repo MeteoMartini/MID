@@ -52,6 +52,8 @@ const weatherFixture={latitude:50,longitude:7,utc_offset_seconds:0,current:{temp
 api.writeForecastCoreCache(50,7,weatherFixture);
 assert.equal(api.readForecastCoreCache(50,7)?.spatialMatch,'exact','stamped same-location source is fresh');
 assert(api.instantCachedCoreForecast(50,7),'verified exact cache remains usable for instant warm-start');
+assert.equal(api.readForecastCoreCache(50.0004,7),null,'same rounded key but 44m away must not be labelled exact');
+assert.equal(api.readForecastCoreCache(50.0004,7,{},true)?.spatialMatch,'nearby','same bucket is only an emergency nearby fallback');
 assert.equal(api.readForecastCoreCache(50.01,7),null,'neighbor entry must never be an online fresh hit');
 const nearby=api.readForecastCoreCache(50.01,7,{},true);
 assert.equal(nearby?.spatialMatch,'nearby');
