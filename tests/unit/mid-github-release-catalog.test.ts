@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {assessMidCatalogEvidence,renderMidCatalogBody,verifyMidCatalogReadback} from '../../tools/release/publish-verified-release-catalog.mjs';
+import {assessMidCatalogEvidence,renderMidCatalogBody,verifyMidCatalogReadback,verifyMidExistingCatalogLatest} from '../../tools/release/publish-verified-release-catalog.mjs';
 const sha='a'.repeat(40),packageSha='b'.repeat(40),mergeSha='c'.repeat(40),
  version='0.9.85.497',runId=44121560818;
 const green=name=>({name,status:'completed',conclusion:'success'});
@@ -108,6 +108,17 @@ describe('MID post-Stable GitHub Releases catalog eligibility (not recovery auth
   reject({tagRef,existingRelease:{...release,assets:[{name:'unverified.zip'}]}});
   reject({tagRef,existingRelease:{...release,name:'Another publisher'}});
   reject({tagRef,existingRelease:{...release,tag_name:'v0.9.85.488'}});
+ });
+ it('existing idempotent catalog must really be GitHub latest, not just match its tag',()=>{
+  const tag='v'+version,body=renderMidCatalogBody({tag,notes:baseline().notes,sha,runId});
+  const tagRef={ref:'refs/tags/'+tag,object:{type:'commit',sha}},
+    existingRelease={id:15,tag_name:tag,name:'MID '+tag,
+      draft:false,prerelease:false,assets:[],body};
+  const evidence={tagRef,existingRelease,latestRelease:{id:15,tag_name:tag},tag,sha,body};
+  expect(verifyMidExistingCatalogLatest(evidence)).toBe(true);
+  expect(verifyMidExistingCatalogLatest({...evidence,latestRelease:{id:14,tag_name:tag}})).toBe(false);
+  expect(verifyMidExistingCatalogLatest({...evidence,latestRelease:{id:15,tag_name:'v0.9.85.119'}})).toBe(false);
+  expect(verifyMidExistingCatalogLatest({...evidence,tagRef:{...tagRef,object:{type:'commit',sha:'b'.repeat(40)}}})).toBe(false);
  });
  it('readback requires real latest-release identity, exact tag, SHA and metadata',()=>{
   const tag='v'+version,body=renderMidCatalogBody({tag,notes:baseline().notes,sha,runId});

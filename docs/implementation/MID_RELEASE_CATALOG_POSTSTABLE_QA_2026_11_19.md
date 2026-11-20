@@ -21,3 +21,10 @@
 - Erfolgreiches Pages muss eindeutig sein: genau ein erfolgreicher Pages-Versuch; weitere Versuche dürfen ausschließlich übersprungen sein. Damit werden widersprüchliche Deploy-Belege abgewiesen.
 - Nach dem schreibenden POST wird zusätzlich `/releases/latest` gegen die neue Release-ID und das exakte Tag verglichen; eine unerwartete andere `latest`-Antwort wird als Abnahmefehler gemeldet. Die Prüfung bleibt im QA-Draft inaktiv, bis der Leitchat die vollständige Installer-/Source-/Review-/GitHub-App-Berechtigungskette geprüft hat.
 - Amtliche Wetter-, RUC-, Karten-, Worker- und Pages-Inhalte sowie vorhandene Deployment-/Rollback-Gates bleiben vollständig unverändert.
+
+## MID Release Konzept 1.10 · Idempotenz ohne falschen Latest-Erfolg (20.11.2026)
+
+- Ein bereits vorhandener, exakt zum aktuellen Stable passender GitHub-Release-Katalogeintrag darf **nur dann** als erfolgreich idempotent gelten, wenn auch `GET /releases/latest` dieselbe Release-ID und denselben Tag zurückliefert. Sonst **fail-closed**, kein erneuter POST, kein Überschreiben oder automatisches `make_latest`.
+- Vor diesem Erfolg werden `main` und `mid-stable` auf dieselbe echte Release-SHA zurückgelesen; der unveränderte Katalog-Body und der auf den Commit zeigende Tag bleiben Pflicht.
+- Der reine Entscheidungs-/Readback-Helper ist mit erfolgreichen und negativen Latest-/Tag-/SHA-Fällen testbar, ohne einen echten Release zu erzeugen.
+- QA-Änderung nur in diesem bestehenden Draft; keine Installer-Verdrahtung, keine Produktionsfreigabe. Der Leit-Chat benötigt nach erfolgreichem `finalize_release` weiterhin einen gesondert geprüften minimal berechtigten Katalog-Aufruf, volle Source/Core/Heavy/Review/Installer/Worker/Pages/Stable-Gates und echtes Release-/Latest-Readback.

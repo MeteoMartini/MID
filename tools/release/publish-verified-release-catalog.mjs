@@ -46,6 +46,12 @@ export function verifyMidCatalogReadback({created,postTag,postRelease,latestRele
 }
 
 
+// An idempotent entry is only complete if GitHub still lists it as latest.
+export function verifyMidExistingCatalogLatest({existingRelease,tagRef,latestRelease,tag,sha,body}){
+ return verifyMidCatalogReadback({created:existingRelease,postTag:tagRef,
+   postRelease:existingRelease,latestRelease,tag,sha,body});
+}
+
 export function assessMidCatalogEvidence(data={}){
  const {repo,releaseSha,localSha,mainSha,stableSha,versions,notes,
   run,runId,attempt,jobs,stableCommit,packageCommit,packageCompare,
@@ -173,7 +179,13 @@ export function publishMidCatalogFromInstaller(){
   stableCommit,packageCommit,packageCompare,tagRef,existingRelease
  });
  if(evidence.state==='EXISTS'){
-  console.log('MID catalog already exists with verified tag '+tag);
+  const latestRelease=githubApi('repos/'+REPO+'/releases/latest');
+  const expectedBody=renderMidCatalogBody({tag,notes,sha,runId});
+  if(refSha('main')!==sha||refSha('mid-stable')!==sha||
+    !verifyMidExistingCatalogLatest({existingRelease,tagRef,latestRelease,
+      tag,sha,body:expectedBody}))
+   throw Error('Existing MID catalog is not latest for verified Stable SHA');
+  console.log('MID catalog already exists as verified latest release '+tag);
   return;
  }
  if(!evidence.createAllowed)throw Error('Catalog blocked: '+evidence.reason);
