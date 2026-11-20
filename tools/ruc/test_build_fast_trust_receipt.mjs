@@ -26,9 +26,10 @@ test('untrusted event/repo, wrong parent, missing SHA, future or expired source 
   [{...proof,fastManifestSha256:undefined},env,NOW],
   [{...proof,primaryManifestSha256:undefined},env,NOW],
   [{...proof,siteBytes:-1},env,NOW],
+  [proof,env,NOW,'invalid-version'],
   [{...proof,run:'2026-11-19T01:00'},env,NOW],
   [{...proof,run:'2026-11-20T07:00'},env,NOW],
   [{...proof,run:'2026-02-30T06:00'},env,NOW],
  ];
- for(const [p,e,t] of cases)assert.throws(()=>trustedFastReceipt(p,e,'0.9.85.498',t),/FAST_TRUST_DENIED/);
+ for(const [p,e,t,version='0.9.85.498'] of cases)assert.throws(()=>trustedFastReceipt(p,e,version,t),/FAST_TRUST_DENIED/);
 });

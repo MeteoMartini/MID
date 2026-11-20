@@ -28,13 +28,15 @@ class IndependentFastPages(unittest.TestCase):
         self.output = self.root / 'output'
         self.now = datetime(2026, 11, 19, 5, 30, tzinfo=timezone.utc)
         self.run = '2026-11-19T04:00'
+        self.partition_modes = []
         inspect = patch('ruc_fast_independent_pages.inspect_shadow', return_value={'run': self.run})
         stage = patch('ruc_fast_independent_pages.partition_native_fast', side_effect=self.stage_chunks)
         for mock in (inspect, stage):
             mock.start()
             self.addCleanup(mock.stop)
 
-    def stage_chunks(self, source, destination):
+    def stage_chunks(self, source, destination, *, compress=False):
+        self.partition_modes.append(compress)
         fast = destination / FAST
         fast.mkdir(parents=True)
         (fast / MANIFEST).write_text(self.manifest(self.run), encoding='utf-8')
@@ -55,6 +57,13 @@ class IndependentFastPages(unittest.TestCase):
         self.assertEqual((self.output / 'ruc/latest.json').read_bytes(),
                          (self.site / 'ruc/latest.json').read_bytes())
         self.assertEqual((self.output / 'index.html').read_bytes(), b'MID')
+        self.assertTrue((self.output / FAST / MANIFEST).is_file())
+
+    def test_compressed_staging_uses_actual_production_partition_mode(self):
+        proof = stage_independent_fast_pages(self.site, self.shadow, self.output,
+                                             now=self.now, compress=True)
+        self.assertEqual(self.partition_modes, [True])
+        self.assertEqual(proof['run'], self.run)
         self.assertTrue((self.output / FAST / MANIFEST).is_file())
 
     def test_missing_original_primary_cannot_mint_a_publishable_receipt(self):

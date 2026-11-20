@@ -53,11 +53,11 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
         # Match that exact immutable bot-only single-file ZIP commit.
         package = api('commits/' + expected_stable)
         actor = 'mid-release-bot-meteomartini[bot]'
-        files = package.get('files', [])
+        files = package.get('files') or []
         require(package.get('sha') == expected_stable
-                and package.get('author', {}).get('login') == actor
-                and package.get('committer', {}).get('login') == actor
-                and len(package.get('parents', [])) == 1
+                and (package.get('author') or {}).get('login') == actor
+                and (package.get('committer') or {}).get('login') == actor
+                and len(package.get('parents') or []) == 1
                 and package['parents'][0]['sha'] == stable['parents'][0]['sha']
                 and len(files) == 1
                 and files[0].get('filename') == 'MID-professional-replacement.zip'

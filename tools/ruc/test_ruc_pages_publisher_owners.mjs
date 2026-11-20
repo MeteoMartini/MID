@@ -30,6 +30,10 @@ test('all GitHub Pages publishers are enumerated, SHA mirrored and share global 
   if(!jobs.length)continue;
   assert.ok(Object.hasOwn(authorized,name),'unknown Pages writer: '+name);
   assert.equal(jobs.length,authorized[name],'unreviewed Pages publisher job count: '+name);
+  if(name==='mid-ruc-preprocess.yml'){
+   assert.deepEqual(jobs.map(job=>job.id).sort(),['publish','publish_fast'],
+     'expected exactly the full and independent Fast Pages publishers');
+  }
   assert.equal((workflow.match(/uses: actions\/deploy-pages@/g)||[]).length,actionInventory[name],
     'unreviewed Normal- or Rollback Pages publish action: '+name);
   for(const job of jobs){

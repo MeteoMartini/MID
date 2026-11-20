@@ -15,7 +15,9 @@ assert.throws(
   'Native ecCodes-Selbstprüfung darf nie stillschweigend entfallen.',
 );
 assert.throws(()=>assertCanonicalRucWorkflow(canonical.replace("cron: '41 * * * *'","cron: '42 * * * *'")),/Catch-up-Vertrag/);
-if(canonical.includes("cron: '13,43 * * * *'")){
+assert.ok(canonical.includes("cron: '13,43 * * * *'"),
+ 'Canonical RUC Fast schedule must never silently disappear');
+{
  assert.throws(()=>assertCanonicalRucWorkflow(canonical.replace("cron: '13,43 * * * *'","cron: '13 * * * *'")),/Catch-up-Vertrag/);
  const fastCheck=canonical.lastIndexOf('python -m eccodes selfcheck');
  assert.throws(()=>assertCanonicalRucWorkflow(canonical.slice(0,fastCheck)+canonical.slice(fastCheck).replace('python -m eccodes selfcheck','echo unsafe-skip')),/Catch-up-Vertrag/);

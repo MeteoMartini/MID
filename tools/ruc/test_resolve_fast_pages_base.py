@@ -80,6 +80,24 @@ class InstallerPagesResolverTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'untrusted Pages workflow'):
             self.resolve()
 
+    def test_noop_null_actor_and_null_file_inventory_rejected_without_traceback(self):
+        self.no_op_fixture()
+        commit = self.manifest['commits/' + STABLE]
+        commit['author'] = None
+        with self.assertRaisesRegex(ValueError, 'untrusted installer no-op'):
+            self.resolve()
+        commit['author'] = {'login': 'mid-release-bot-meteomartini[bot]'}
+        commit['files'] = None
+        with self.assertRaisesRegex(ValueError, 'untrusted installer no-op'):
+            self.resolve()
+
+    def test_verified_noop_zip_can_underpin_later_fast_publication(self):
+        self.no_op_fixture()
+        self.fast_fixture()
+        result = self.resolve()
+        self.assertEqual(result['source_sha'], STABLE)
+        self.assertEqual(result['artifact_digest'], DIGEST)
+
     def test_noop_style_commit_without_verified_zip_lineage_is_rejected(self):
         self.manifest['git/commits/' + STABLE]['message'] = 'Prepare MID agent release from PR #948'
         with self.assertRaisesRegex(KeyError, 'commits/'):
@@ -122,7 +140,10 @@ class InstallerPagesResolverTest(unittest.TestCase):
 
     def test_repeated_fast_uses_exact_verified_archive(self):
         self.fast_fixture()
-        self.assertEqual(self.resolve()['source_sha'], STABLE)
+        proof = self.resolve()
+        self.assertEqual(proof['source_sha'], STABLE)
+        self.assertEqual(proof['artifact_id'], 4)
+        self.assertEqual(proof['artifact_digest'], DIGEST)
 
     def test_verified_rollback_can_be_the_next_baseline(self):
         self.fast_fixture(rollback=True)
