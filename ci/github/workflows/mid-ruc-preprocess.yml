@@ -1129,14 +1129,19 @@ jobs:
       - name: Exakten Fast-Punkt und unveränderten Vollpointer öffentlich abfragen
         id: fast_readback
         if: steps.fast_deployment.outcome == 'success'
+        env:
+          MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL || 'https://midwx.app/ruc/' }}
         run: |
           set -euo pipefail
           fast_sha="$(jq -er .fastManifestSha256 bundle/fast-delivery-proof.json)"
           full_sha="$(jq -er .primaryManifestSha256 bundle/fast-delivery-proof.json)"
           run="$(jq -er .run bundle/fast-delivery-proof.json)"
+          configured="${MID_RUC_PAGES_BASE_URL%/}"
+          [[ "$configured" =~ ^https://[^[:space:]?#]+/ruc$ ]] || { echo '::error::Invalid configured HTTPS RUC Pages base'; exit 1; }
+          site_root="${configured%/ruc}/"
           for attempt in 1 2 3 4 5; do
-            if node tools/ruc/ruc_fast_pages_readback.mjs https://www.midwx.app "$fast_sha" "${run}:00.000Z" 294442 &&
-               curl --max-time 15 --max-filesize 3000000 -fsS https://www.midwx.app/ruc/latest.json -o live-full.json &&
+            if node tools/ruc/ruc_fast_pages_readback.mjs "$site_root" "$fast_sha" "${run}:00.000Z" 294442 &&
+               curl --proto-redir =https --location --max-time 15 --max-filesize 3000000 -fsS "${site_root}ruc/latest.json" -o live-full.json &&
                printf '%s  live-full.json\n' "$full_sha" | sha256sum --check --status; then
               exit 0
             fi
@@ -1170,14 +1175,19 @@ jobs:
           artifact_name: mid-fast-rollback-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Rückkehr des originalen Vollpointers prüfen
         if: ${{ failure() && steps.fast_rollback.outcome == 'success' }}
+        env:
+          MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL || 'https://midwx.app/ruc/' }}
         run: |
           set -euo pipefail
           full_sha="$(jq -er .primaryManifestSha256 bundle/fast-delivery-proof.json)"
-          curl --max-time 15 --max-filesize 3000000 -fsS https://www.midwx.app/ruc/latest.json -o restored-full.json
+          configured="${MID_RUC_PAGES_BASE_URL%/}"
+          [[ "$configured" =~ ^https://[^[:space:]?#]+/ruc$ ]] || { echo '::error::Invalid configured HTTPS RUC Pages base'; exit 1; }
+          site_root="${configured%/ruc}/"
+          curl --proto-redir =https --location --max-time 15 --max-filesize 3000000 -fsS "${site_root}ruc/latest.json" -o restored-full.json
           printf '%s  restored-full.json\n' "$full_sha" | sha256sum --check --status
           previous_sha="$(jq -r '.previousFastManifestSha256 // empty' bundle/fast-delivery-proof.json)"
           for attempt in 1 2 3 4 5; do
-            status="$(curl --max-time 15 --max-filesize 3000000 -sS -w '%{http_code}' "https://www.midwx.app/ruc/fast/paged-shadow.json?verify=${GITHUB_RUN_ID}-${attempt}" -o restored-fast.json || true)"
+            status="$(curl --max-time 15 --max-filesize 3000000 -sS -w '%{http_code}' "${site_root}ruc/fast/paged-shadow.json?verify=${GITHUB_RUN_ID}-${attempt}" -o restored-fast.json || true)"
             if [ -z "$previous_sha" ] && [ "$status" = 404 ]; then exit 0; fi
             if [ -n "$previous_sha" ] && [ "$status" = 200 ] &&
                printf '%s  restored-fast.json\n' "$previous_sha" | sha256sum --check --status; then exit 0; fi

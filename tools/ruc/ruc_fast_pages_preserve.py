@@ -42,7 +42,9 @@ def preserve_fast_pages(previous_site, next_site, expected_sha, *, now=None):
     if (document.get('schema') != 'mid.ruc.fast-paged-shadow.v1'
             or document.get('epsAvailable') is not False
             or document.get('nativePoints') != 542040
-            or document.get('chunkCells') != 512):
+            or document.get('chunkCells') != 512
+            or any(document.get(key) is not False for key in
+                   ('productionEnabled', 'publicationAuthorized', 'realtimeConsumerEnabled'))):
         raise ValueError('unexpected native Fast Pages manifest')
     codec = document.get('storageCodec')
     if codec not in (None, 'gzip-or-raw-v1'):
@@ -63,10 +65,17 @@ def preserve_fast_pages(previous_site, next_site, expected_sha, *, now=None):
     files = {Path(MANIFEST): (pointer.stat().st_size, expected_sha)}
     for name, record_bytes in SIZES.items():
         cells = 964 * 596 if name == 'lookup.bin' else 542040
-        parts = objects[name]['parts']
-        if len(parts) != (cells + 511) // 512:
+        obj = objects[name]
+        if (not isinstance(obj, dict) or obj.get('bytesPerCell') != record_bytes
+                or obj.get('cellCount') != cells):
+            raise ValueError('Fast Pages native object metadata mismatch')
+        parts = obj.get('parts')
+        if not isinstance(parts, list) or len(parts) != (cells + 511) // 512:
             raise ValueError('incomplete Fast Pages chunk inventory')
         for index, part in enumerate(parts):
+            if (not isinstance(part, dict) or part.get('firstCell') != index * 512
+                    or part.get('cells') != min(512, cells - index * 512)):
+                raise ValueError('Fast Pages chunk address metadata mismatch')
             relative = Path('pages', run_key, name.removesuffix('.bin'), f'{index:04d}.bin')
             length = min(512, cells - 512 * index) * record_bytes
             checksum = part['sha256']

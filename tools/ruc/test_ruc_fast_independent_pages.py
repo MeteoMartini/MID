@@ -2,6 +2,7 @@
 """Publication-candidate tests for Fast Lane without a current EPS base."""
 
 from datetime import datetime, timezone
+import hashlib
 import json
 from pathlib import Path
 import tempfile
@@ -9,6 +10,8 @@ import unittest
 from unittest.mock import patch
 
 from ruc_fast_independent_pages import FAST, MANIFEST, stage_independent_fast_pages
+from ruc_fast_pages_preserve import preserve_fast_pages
+from ruc_fast_pages_chunker import SIZES
 
 
 class IndependentFastPages(unittest.TestCase):
@@ -85,6 +88,41 @@ class IndependentFastPages(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'advance'):
             self.stage()
         self.assertFalse(self.output.exists())
+
+    def test_fast_preservation_rejects_activated_shadow_manifest(self):
+        folder = self.site / FAST
+        folder.mkdir(parents=True)
+        manifest = {
+            'run': self.run, 'schema': 'mid.ruc.fast-paged-shadow.v1',
+            'epsAvailable': False, 'nativePoints': 542040, 'chunkCells': 512,
+            'productionEnabled': True, 'publicationAuthorized': False,
+            'realtimeConsumerEnabled': False,
+        }
+        pointer = folder / MANIFEST
+        pointer.write_text(json.dumps(manifest), encoding='utf-8')
+        sha = hashlib.sha256(pointer.read_bytes()).hexdigest()
+        with self.assertRaisesRegex(ValueError, 'unexpected native Fast Pages manifest'):
+            preserve_fast_pages(self.site, self.shadow, sha, now=self.now)
+
+    def test_fast_preservation_rejects_wrong_native_object_metadata(self):
+        folder = self.site / FAST
+        folder.mkdir(parents=True)
+        objects = {}
+        for name, width in SIZES.items():
+            cells = 964 * 596 if name == 'lookup.bin' else 542040
+            objects[name] = {'bytesPerCell': width, 'cellCount': cells, 'parts': []}
+        objects['deterministic.bin']['bytesPerCell'] = 1
+        manifest = {
+            'run': self.run, 'schema': 'mid.ruc.fast-paged-shadow.v1',
+            'epsAvailable': False, 'nativePoints': 542040, 'chunkCells': 512,
+            'productionEnabled': False, 'publicationAuthorized': False,
+            'realtimeConsumerEnabled': False, 'objects': objects,
+        }
+        pointer = folder / MANIFEST
+        pointer.write_text(json.dumps(manifest), encoding='utf-8')
+        sha = hashlib.sha256(pointer.read_bytes()).hexdigest()
+        with self.assertRaisesRegex(ValueError, 'native object metadata'):
+            preserve_fast_pages(self.site, self.shadow, sha, now=self.now)
 
     def test_output_under_either_input_is_rejected(self):
         for parent in (self.site, self.shadow):
