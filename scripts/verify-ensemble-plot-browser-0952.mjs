@@ -76,12 +76,13 @@ try{
     // the nearest SVG coordinate system and would falsely validate/deny moved ticks.
     const svgTop=surface.getBoundingClientRect().top;
     const labels=allLabels.map(text=>{const rect=text.getBoundingClientRect();return{x:rect.x,y:rect.top-svgTop,width:rect.width,height:rect.height,value:text.textContent}});
-    const xAxisText=[...host.querySelectorAll('.recharts-xAxis text.ensemble-date-axis-tick')].map(text=>{const rect=text.getBoundingClientRect();return {y:rect.top-svgTop,height:rect.height,text:text.textContent}});
+    const xAxisText=[...host.querySelectorAll('text.ensemble-date-axis-tick')].map(text=>{const rect=text.getBoundingClientRect();return {y:rect.top-svgTop,height:rect.height,text:text.textContent}});
     const lines=host.querySelectorAll('svg.recharts-surface .recharts-line .recharts-curve').length;
     const size=host.getBoundingClientRect();
     return{plot:mainPlot,weather,labels,xAxisText,lines,width:size.width,height:size.height,
      pageOverflow:document.documentElement.scrollWidth>innerWidth+2,
-     theme:document.documentElement.dataset.theme};
+     theme:document.documentElement.dataset.theme,
+     axisDebug:xAxisText.length?undefined:{axisNode:host.querySelector('.recharts-xAxis')?.outerHTML.slice(0,1400),allDateClass:host.querySelectorAll('.ensemble-date-axis-tick').length,surfaceTextCount:host.querySelectorAll('svg.recharts-surface text').length}};
    });
    assert.ok(measure.plot.y>=0&&measure.plot.height>60,'No valid real chart plot rectangle');
    const bottom=measure.plot.y+measure.plot.height;
