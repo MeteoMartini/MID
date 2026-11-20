@@ -54,8 +54,11 @@ export function assessMidCatalogEvidence(data={}){
   return block('INVALID_SHA_OR_REPOSITORY');
  if(new Set([releaseSha,localSha,mainSha,stableSha]).size!==1)return block('BRANCH_OR_CHECKOUT_DRIFT');
  const version=versions?.package;
- if(!VERSION.test(version||'')||Object.keys(versions||{}).length!==6||
-   Object.values(versions).some(x=>x!==version))return block('VERSION_MIRROR_MISMATCH');
+ const expectedVersionKeys=['baseline','notes','package','public','registry','source'];
+ if(!VERSION.test(version||'')||!versions||Array.isArray(versions)||
+   Object.keys(versions).sort().join('|')!==expectedVersionKeys.join('|')||
+   expectedVersionKeys.some(key=>versions[key]!==version))
+  return block('VERSION_MIRROR_MISMATCH');
  if(notes?.schema!==1||notes.version!==version||typeof notes.title!=='string'||
   !notes.title.trim()||notes.title.length>160||
   !/^20\d\d-\d\d-\d\d$/.test(notes.date||'')||
