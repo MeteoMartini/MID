@@ -74,12 +74,13 @@ try{
     const weather=pickRect(band),allLabels=[...host.querySelectorAll('.ensemble-temperature-value text')];
     // Screen-space bounds include Recharts <g> transforms. getBBox() alone is local to
     // the nearest SVG coordinate system and would falsely validate/deny moved ticks.
-    const svgTop=surface.getBoundingClientRect().top;
+    const svgTop=surface.getBoundingClientRect().top,svgLeft=surface.getBoundingClientRect().left;
     const labels=allLabels.map(text=>{const rect=text.getBoundingClientRect();return{x:rect.x,y:rect.top-svgTop,width:rect.width,height:rect.height,value:text.textContent}});
-    const xAxisText=[...host.querySelectorAll('text.ensemble-date-axis-tick')].map(text=>{const rect=text.getBoundingClientRect();return {y:rect.top-svgTop,height:rect.height,text:text.textContent}});
+    const xAxisText=[...host.querySelectorAll('text.ensemble-date-axis-tick')].map(text=>{const rect=text.getBoundingClientRect();return {x:rect.left-svgLeft,y:rect.top-svgTop,width:rect.width,height:rect.height,text:text.textContent}});
+    const xAxisMarks=host.querySelectorAll('.recharts-xAxis .recharts-cartesian-axis-tick-line').length;
     const lines=host.querySelectorAll('svg.recharts-surface .recharts-line .recharts-curve').length;
     const size=host.getBoundingClientRect();
-    return{plot:mainPlot,weather,labels,xAxisText,lines,width:size.width,height:size.height,
+    return{plot:mainPlot,weather,labels,xAxisText,xAxisMarks,lines,width:size.width,height:size.height,
      pageOverflow:document.documentElement.scrollWidth>innerWidth+2,
      theme:document.documentElement.dataset.theme,
      axisDebug:xAxisText.length?undefined:{axisNode:host.querySelector('.recharts-xAxis')?.outerHTML.slice(0,1400),allDateClass:host.querySelectorAll('.ensemble-date-axis-tick').length,surfaceTextCount:host.querySelectorAll('svg.recharts-surface text').length}};
@@ -91,7 +92,10 @@ try{
    assert.ok(measure.labels.length>=14,'Not all Best Match temperature labels rendered');
    assert.ok(measure.labels.every(l=>finiteNumber(l.y)&&l.y>=measure.plot.y-1&&l.y+l.height<=bottom+1),'Best Match label overlaps weatherband or leaves plot');
    assert.ok(measure.lines>=2,'Temperature min/max source paths missing');
-   assert.ok(measure.xAxisText.length>=7,'Daily ticks not rendered in real Recharts');
+   assert.equal(measure.xAxisMarks,14,'All 14 actual day tick positions must remain available for tooltip/weatherband alignment');
+   assert.ok(measure.xAxisText.length>=2&&measure.xAxisText.length<=14,'Adaptive day labels must remain readable on small screens without hiding the underlying time scale');
+   const dateRects=[...measure.xAxisText].sort((a,b)=>a.x-b.x);
+   for(let i=1;i<dateRects.length;i++)assert.ok(dateRects[i-1].x+dateRects[i-1].width<=dateRects[i].x+1,'Adjacent custom date labels physically overlap');
    assert.ok(measure.xAxisText.every(l=>l.y>=measure.weather.y+measure.weather.height-2),'Date tick text overlaps weatherband');
    assert.equal(measure.theme,theme,'Light/Dark theme missing');
    assert.equal(measure.pageOverflow,false,'Horizontal viewport overflow');
