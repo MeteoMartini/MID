@@ -19,6 +19,15 @@ function jobsOf(text){
  }
  return jobs;
 }
+test('RUC Fast overlay changes trigger the existing mirrored P2–P5 QA workflow',()=>{
+ for(const file of ['tools/ruc/ruc_fast_pages_overlay.py','tools/ruc/test_ruc_fast_pages_overlay.py']){
+  const entry="      - '"+file+"'";
+  for(const folder of [canonical,active]){
+   const yaml=readFileSync(resolve(folder,'mid-ruc-fast-p2345-shadow-qa.yml'),'utf8');
+   assert.ok(yaml.includes(entry),'overlay-only change must trigger P2–P5 QA: '+folder+'/'+file);
+  }
+ }
+});
 test('all GitHub Pages publishers are enumerated, SHA mirrored and share global mid-pages lease',()=>{
  const observed={};
  for(const name of readdirSync(canonical).filter(x=>x.endsWith('.yml'))){

@@ -113,6 +113,15 @@ class IndependentFastPages(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'unexpected native Fast Pages manifest'):
             preserve_fast_pages(self.site, self.shadow, sha, now=self.now)
 
+    def test_archive_envelope_allows_metadata_overhead_beyond_physical_site_budget(self):
+        from install_fast_pages import ARCHIVE_ENVELOPE_MAX_BYTES, valid_archive_envelope
+        self.assertEqual(valid_archive_envelope(900_000_001), 900_000_001)
+        self.assertEqual(valid_archive_envelope(ARCHIVE_ENVELOPE_MAX_BYTES - 1),
+                         ARCHIVE_ENVELOPE_MAX_BYTES - 1)
+        for invalid in (0, -1, None, True, '900000000', ARCHIVE_ENVELOPE_MAX_BYTES):
+            with self.assertRaisesRegex(ValueError, 'transport archive envelope'):
+                valid_archive_envelope(invalid)
+
     def test_installer_verify_rejects_post_retention_chunk_corruption(self):
         from install_fast_pages import verify
         clock_run = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)

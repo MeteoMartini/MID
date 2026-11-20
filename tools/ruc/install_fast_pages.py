@@ -13,7 +13,17 @@ from zipfile import ZipFile
 from prepare_fast_pages_delivery import carry_fresh_fast_archive
 from ruc_fast_pages_preserve import preserve_fast_pages
 from resolve_fast_pages_base import gh_api, resolve_installer_pages
-from ruc_fast_pointer_staging import sha_file, strict_budget
+from ruc_fast_pointer_staging import sha_file
+
+# ZIP/TAR envelope bytes include metadata; the existing 900 MB Pages budget
+# is separately enforced on extracted regular-file bytes.
+ARCHIVE_ENVELOPE_MAX_BYTES = 1_073_741_824
+
+
+def valid_archive_envelope(size):
+    if type(size) is not int or size <= 0 or size >= ARCHIVE_ENVELOPE_MAX_BYTES:
+        raise ValueError('Pages transport archive envelope exceeds its safety limit')
+    return size
 
 
 def active_pages(release):
@@ -31,14 +41,14 @@ def retain(release, dist, proof):
                 'gh', 'api', '--method', 'GET',
                 f"repos/MeteoMartini/MID/actions/artifacts/{identity['artifact_id']}/zip",
             ], check=True, stdout=output, timeout=240)
-        strict_budget(archive.stat().st_size, 0)
+        valid_archive_envelope(archive.stat().st_size)
         if 'sha256:' + sha_file(archive) != identity['artifact_digest']:
             raise ValueError('active Pages archive changed in transit')
         with ZipFile(archive) as zipped:
             entries = zipped.infolist()
             if len(entries) != 1 or entries[0].filename != 'artifact.tar':
                 raise ValueError('active Pages zip has an unexpected layout')
-            strict_budget(entries[0].file_size, 0)
+            valid_archive_envelope(entries[0].file_size)
             tar = scratch / 'artifact.tar'
             with zipped.open(entries[0]) as source, tar.open('xb') as dest:
                 shutil.copyfileobj(source, dest)
