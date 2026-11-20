@@ -3280,7 +3280,7 @@ async function weatherMapWmsResponse(request){
 /** Validate bounded OGC WMS GetMap syntax before any upstream fetch.
  * This only admits request geometry; it never proves weather/source coverage. */
 function compositeWmsRequestGeometryError(url){
- const protectedKeys=new Set(['service','request','version','provider','layers','srs','crs','bbox','width','height','time','format']);
+ const protectedKeys=new Set(['service','request','version','provider','layers','styles','format','transparent','crs','srs','bbox','width','height','time','elevation','dim_reference_time','exceptions','bgcolor','tiled']);
  const values=new Map();
  for(const [name,value]of url.searchParams){
   const key=name.toLowerCase();

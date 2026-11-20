@@ -72,7 +72,7 @@ describe('MID-Karten 1.19: bounded composite GetMap proxy, zero external calls o
   }
  });
  it('rejects case-folded duplicate query keys, preventing first-value validation and last-value forwarding',async()=>{
-  for(const added of [['WIDTH','9000'],['height','8000'],['BBOX','0,0,999,999'],['LAYERS','dwd:other'],['Time','garbage'],['REQUEST','GetCapabilities']]){
+  for(const added of [['WIDTH','9000'],['height','8000'],['BBOX','0,0,999,999'],['LAYERS','dwd:other'],['Time','garbage'],['REQUEST','GetCapabilities'],['STYLES','unexpected'],['DIM_REFERENCE_TIME','2026-11-20T14:00Z'],['TRANSPARENT','false'],['elevation','850'],['TILED','true'],['FORMAT','image/jpeg']]){
    const result=await probe({},[added]);
    expect(result.status,added[0]).toBe(400);
    expect(result.upstream,added[0]).toHaveLength(0);

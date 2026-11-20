@@ -1,5 +1,5 @@
 # MID Data · GPS-Core-Cache-Quellenort und frische Feldprovenienz · QA Draft (19.11.2026)
-Issue [#935](https://github.com/MeteoMartini/MID/issues/935). Basis ist veröffentlichtes Stable v0.9.85.497, SHA `9fd872a789f4b158bc691d085589616c2c04f776`.
+Issue [#935](https://github.com/MeteoMartini/MID/issues/935). Historischer QA-Ursprung: Stable v0.9.85.497 (`9fd872a789f4b158bc691d085589616c2c04f776`). Aktuelle Integrationsbasis dieses .499-PR: veröffentlichtes v0.9.85.498 (`1592963e12688af4b2f8c74f933033235849dcb7`). Historische QA ist keine .499-Freigabe.
 
 ## Nachgewiesene Ursache
 `readForecastCoreCache()` speicherte vormals den letzten Forecast eines anderen, maximal 2,5 km entfernten Orts unter dem Zielort-Schlüssel; `forecast()` nahm diesen online acht Minuten lang als Fresh-Hit an. `instantCachedCoreForecast()` konnte deshalb ohne echte Zielort-Provenienz starten. GPS-Rasterung im bestehenden v5-Schlüssel beträgt 0,001° und ist selbst **keine** Quelle für den tatsächlichen Abrufort.
