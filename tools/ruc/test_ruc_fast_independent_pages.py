@@ -104,6 +104,29 @@ class IndependentFastPages(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'unexpected native Fast Pages manifest'):
             preserve_fast_pages(self.site, self.shadow, sha, now=self.now)
 
+    def test_installer_verify_rejects_post_retention_chunk_corruption(self):
+        from install_fast_pages import verify
+        clock_run = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
+        folder = self.site / FAST
+        folder.mkdir(parents=True)
+        pointer = folder / MANIFEST
+        pointer.write_text(json.dumps({'run': clock_run.strftime('%Y-%m-%dT%H:%M')}), encoding='utf-8')
+        sha = hashlib.sha256(pointer.read_bytes()).hexdigest()
+        baseline = {'run_id': 12, 'stable_sha': 'a' * 40}
+        proof = self.root / 'install-proof.json'
+        proof.write_text(json.dumps({
+            'baseline': baseline,
+            'retention': {'carried': True, 'run': clock_run.strftime('%Y-%m-%dT%H:%M'),
+                          'fastManifestSha256': sha},
+        }), encoding='utf-8')
+        with patch('install_fast_pages.active_pages', return_value=baseline), patch(
+            'install_fast_pages.preserve_fast_pages',
+            side_effect=ValueError('Fast Pages object failed readback: corrupted chunk'),
+        ) as validation:
+            with self.assertRaisesRegex(ValueError, 'corrupted chunk'):
+                verify('a' * 40, self.site, proof)
+            self.assertEqual(validation.call_count, 1)
+
     def test_fast_preservation_rejects_wrong_native_object_metadata(self):
         folder = self.site / FAST
         folder.mkdir(parents=True)

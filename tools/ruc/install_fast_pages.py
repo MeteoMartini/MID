@@ -11,6 +11,7 @@ import tempfile
 from zipfile import ZipFile
 
 from prepare_fast_pages_delivery import carry_fresh_fast_archive
+from ruc_fast_pages_preserve import preserve_fast_pages
 from resolve_fast_pages_base import gh_api, resolve_installer_pages
 from ruc_fast_pointer_staging import sha_file, strict_budget
 
@@ -59,8 +60,14 @@ def verify(release, dist, proof):
         if sha_file(file) != retention['fastManifestSha256']:
             raise ValueError('Installer Fast manifest differs from retention proof')
         run = datetime.strptime(retention['run'], '%Y-%m-%dT%H:%M').replace(tzinfo=timezone.utc)
-        if not timedelta(0) <= datetime.now(timezone.utc) - run <= timedelta(hours=4):
+        clock = datetime.now(timezone.utc)
+        if not timedelta(0) <= clock - run <= timedelta(hours=4):
             raise ValueError('carried Fast model run expired before Installer publish')
+        # The original archive was SHA-verified at retention, but dist can be
+        # modified afterwards. Revalidate every immutable Fast chunk immediately
+        # before Pages upload, using the same strict preservation contract.
+        with tempfile.TemporaryDirectory(prefix='.mid-installer-fast-verify-', dir=dist.parent) as scratch:
+            preserve_fast_pages(dist, Path(scratch), retention['fastManifestSha256'], now=clock)
 
 
 def main():
