@@ -31,7 +31,7 @@ assert.match(rollbackStep,/^        if: .*steps\.fast_deployment\.outcome == 'su
  'The actual Pages rollback step must cover failed R2 trust transfer');
 assert.match(rollbackReadback,/^        if: .*steps\.fast_rollback\.outcome == 'success'/m,
  'Original Pages SHA must be read back after rollback');
-assert.match(restoreStep,/^        if: .*steps\.fast_trust\.outputs\.wrote == 'true'.*steps\.fast_rollback_readback\.outcome == 'success'/m,
+assert.match(restoreStep,/^        if: .*steps\.fast_trust\.outputs\.attempted == 'true'.*steps\.fast_rollback_readback\.outcome == 'success'/m,
  'No R2 restoration before verified Pages rollback');
 const worker=readFileSync(new URL('../worker.js',import.meta.url),'utf8');
 const workerMirror=readFileSync(new URL('../worker/metar-proxy.js',import.meta.url),'utf8');

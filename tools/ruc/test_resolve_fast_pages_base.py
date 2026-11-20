@@ -175,7 +175,7 @@ class InstallerPagesResolverTest(unittest.TestCase):
 
     def test_superseded_deployment_is_rejected(self):
         self.manifest['deployments/1/statuses?per_page=1'][0]['state'] = 'inactive'
-        with self.assertRaisesRegex(ValueError, 'not successful'):
+        with self.assertRaisesRegex(ValueError, 'not in a safe terminal state'):
             self.resolve()
 
     def test_retried_action_cannot_supply_another_attempt(self):

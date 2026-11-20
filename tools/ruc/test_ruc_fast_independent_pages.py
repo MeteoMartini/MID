@@ -188,13 +188,24 @@ class IndependentFastPages(unittest.TestCase):
     def test_native_provenance_and_axes_must_match_public_point_reader(self):
         from ruc_fast_pages_preserve import validate_native_reader_contract, NATIVE_FIELDS
         from datetime import timedelta
+        # Independent public point-reader contract; do not derive fixtures from the
+        # validator under test, or field/unit/scale drift would silently pass.
+        expected_reader_fields = (
+            ('temperature_2m', '°C', .01, 0), ('dew_point_2m', '°C', .01, 0),
+            ('relative_humidity_2m', '%', .1, 0), ('pressure_msl', 'hPa', .1, 0),
+            ('wind_speed_10m', 'kn', .01, 0), ('wind_direction_10m', '°', .1, 0),
+            ('wind_gusts_10m', 'kn', .01, 0), ('precipitation', 'mm', .01, 0),
+            ('cloud_cover', '%', .1, 0), ('cloud_cover_low', '%', .1, 0),
+            ('cape', 'J/kg', .1, 0), ('convective_inhibition', 'J/kg', .1, 0),
+        )
+        self.assertEqual(tuple(NATIVE_FIELDS), expected_reader_fields)
         clock = datetime.strptime(self.run, '%Y-%m-%dT%H:%M').replace(tzinfo=timezone.utc)
         entry = {
             'sourceSchema': 'mid.ruc.fast-shadow-pointer.v1',
             'sourceManifestSha256': 'a' * 64, 'sourceGribSha256': 'b' * 64,
             'sourceNativeBytes': 253804736,
             'grid': {'nx': 964, 'ny': 596, 'nativePointCount': 542040},
-            'fields': [dict(zip(('name','unit','scale','offset'), row)) for row in NATIVE_FIELDS],
+            'fields': [dict(zip(('name','unit','scale','offset'), row)) for row in expected_reader_fields],
             'timeAxes': {name: [(clock+timedelta(minutes=step*i)).strftime('%Y-%m-%dT%H:%M')
                          for i in range(count)]
                          for name,step,count in (('hourly',60,7),('rapid5',5,73),('rapid15',15,25))},
@@ -206,6 +217,41 @@ class IndependentFastPages(unittest.TestCase):
             modified = dict(entry, **{field: change})
             with self.assertRaisesRegex(ValueError, 'native Fast'):
                 validate_native_reader_contract(modified, clock)
+
+    def test_delivery_extracts_archive_and_preserves_original_full_pointer(self):
+        from prepare_fast_pages_delivery import prepare_delivery
+        import tarfile
+
+        original_pointer = (self.site / 'ruc/latest.json').read_bytes()
+        (self.site / 'index.html').write_bytes(b'MID-APP')
+        archive = self.root / 'authentic-pages.tar'
+        with tarfile.open(archive, 'w') as bundle:
+            bundle.add(self.site / 'index.html', arcname='index.html')
+            bundle.add(self.site / 'ruc/latest.json', arcname='ruc/latest.json')
+        result = prepare_delivery(archive, self.shadow, self.output, now=self.now)
+        self.assertEqual(result['basePagesBytes'], len(b'MID-APP') + len(original_pointer))
+        self.assertEqual(result['run'], self.run)
+        self.assertEqual(self.partition_modes, [True])
+        self.assertEqual((self.output / 'index.html').read_bytes(), b'MID-APP')
+        self.assertEqual((self.output / 'ruc/latest.json').read_bytes(), original_pointer)
+        self.assertTrue((self.output / FAST / MANIFEST).is_file())
+
+    def test_delivery_rejects_unsafe_and_duplicate_tar_entries(self):
+        from prepare_fast_pages_delivery import prepare_delivery
+        import io
+        import tarfile
+
+        archive = self.root / 'untrusted-pages.tar'
+        for names in (('../escape',), ('index.html', 'index.html')):
+            with self.subTest(entries=names):
+                with tarfile.open(archive, 'w') as bundle:
+                    for name in names:
+                        entry = tarfile.TarInfo(name)
+                        entry.size = 1
+                        bundle.addfile(entry, io.BytesIO(b'x'))
+                with self.assertRaisesRegex(ValueError, 'unsafe or duplicate Pages tar entry'):
+                    prepare_delivery(archive, self.shadow, self.output, now=self.now)
+                self.assertFalse(self.output.exists())
 
     def test_output_under_either_input_is_rejected(self):
         for parent in (self.site, self.shadow):
