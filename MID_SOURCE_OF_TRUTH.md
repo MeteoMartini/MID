@@ -1,3 +1,14 @@
+# MID v0.9.85.498 · LC 1.23: unabhängige DWD-RUC-Fast-Lane, Pages-Rollback und geprüfter Worker-Punktpfad (SHA-gebundener Source-Kandidat)
+
+**Kanonische Quellbasis:** main=mid-stable=`9fd872a789f4b158bc691d085589616c2c04f776`, veröffentlichtes v0.9.85.497. Quell-Intake: ref-freier Git-Commit `089cb6a34d3837620d5a3ecd5ad1b93a61730e7e` mit exakt dieser Stable-SHA als Parent. Das ursprüngliche #946-Draft liegt noch auf .496 und darf nicht ungeprüft anstelle des aktuellen Stands gemergt werden.
+
+**Fachumfang:** unabhängiger originaler DWD ICON-D2-RUC +0…+6h-Pages-Stream, native Quellen (7 Stunden, 73 echte 5-Minuten-Termine, 25 echte 15-Minuten-Termine), SHA-geprüfte gzip/raw-Chunks, eigenständiger Publisher unter bestehendem `mid-pages`-Lock, atomarer Rückfall und Worker-Punktadapter nur bei extern authentisiertem Manifest-Digest. Fehlendes EPS ist `unavailable` und niemals 0%-PoP; Missing Data ist `null`, echte Nullen bleiben 0. Regulärer +27h/EPS20-Pfad und `ruc/latest.json` bleiben unangetastet.
+
+**Bisherige Originaldaten-Evidenz, nicht aktuelle Produktion:** 19.11.2026 21Z, 188/188 DWD-Original-GRIB2 mit ecCodes erfolgreich dekodiert, 542040 native Rasterpunkte, 253804736 Byte Original-FAST-Daten, 4300 komprimierte Chunks mit insgesamt 100867012 Byte und echter Offline-Punktdecoder. Siehe PR #946 Kommentare 7024465544 / 7024894315. Die produktive Worker-Aktivierung ist ohne unabhängig aktualisierten `MID_DWD_RUC_FAST_MANIFEST_SHA256` gesperrt.
+
+**Release-Grenzen:** Dieser Text dokumentiert ausschließlich einen vorbereiteten Quellkandidaten. Kein neues Release, kein install-mid.yml, keine produktive Worker-/Pages-Promotion, kein echter iOS-/VoiceOver-Beleg. Der vorhandene Source-PR-Gate → kontrollierter Bot-Merge → serverseitiges ZIP → Installer → einschlägige Worker-/Pages-Gates → Stable-Promotion ist vollständig nachzuweisen. Reviewerbefunde und unveröffentlichte, überlappende Worker-Arbeit (#955) vor gemeinsamer Übernahme sorgfältig behandeln.
+
+---
 # MID v0.9.85.497 · LC 1.21: responsive Lade- und Ensemble-Anzeige, Tag-/Nacht-Kontrast (Source-Kandidat)
 
 Verifizierte Ausgangsbasis: `main=mid-stable=256aabe286f7daa00dc0e320815dd8dacb7b4706` / v0.9.85.496. Aus dem isolierten QA-Sammel-Intake #948 wurden 13 exakt quellengebundene Original-Git-Blobs aus den Spezial-Drafts #934 (11) und #942 (2) auf Stable übernommen. Die auf #948 erkannte Widget-SVG-Exportregression wurde ohne Testabschwächung durch einen ausdrücklich exportfähigen Fallback beseitigt. Datenwerte, Wettermodelle, NoData, WMO/DWD-Warnungen und RUC-Produktionswege bleiben unverändert. Die bisherige QA zum kombinierten Draft ersetzt **nicht** die unabhängigen Source-/Review-/Core-/Heavy-/Web-/iOS-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates dieses versionierten Integrations-HEADs. Keine automatische Merge-/Releasefreigabe aus Dokumentation.
