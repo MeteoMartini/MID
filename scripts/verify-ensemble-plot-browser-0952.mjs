@@ -56,7 +56,7 @@ try{
    const canvas=page.locator('.ensemble-temperature-canvas');
    await canvas.locator('svg.recharts-surface').waitFor({timeout:25000});
    await canvas.locator('svg.ensemble-temperature-weather-overlay.weather .ensemble-sky-strip-outline').waitFor({timeout:25000});
-   await page.waitForFunction(()=>document.querySelectorAll('.ensemble-temperature-canvas .ensemble-temperature-value text').length>=14,null,{timeout:12000});
+   await page.waitForFunction(()=>document.querySelectorAll('.ensemble-temperature-canvas .ensemble-temperature-value circle').length===28&&document.querySelectorAll('.ensemble-temperature-canvas .ensemble-temperature-value text').length>=4,null,{timeout:12000});
    const measure=measured=await canvas.evaluate(host=>{
     const finite=value=>Number.isFinite(value);
     const pickRect=node=>({x:Number(node.getAttribute('x')),y:Number(node.getAttribute('y')),width:Number(node.getAttribute('width')),height:Number(node.getAttribute('height'))});
