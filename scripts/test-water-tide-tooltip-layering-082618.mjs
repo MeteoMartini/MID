@@ -14,7 +14,7 @@ const [water,panel,styles,pkg,baseline]=await Promise.all([
 const failures=[];const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: fehlt ${token}`)};
 for(const token of ['function solveQuadraticNormalEquation(','radius=step===15?6:3','Math.abs(vertex)<=step*.8','<h3>Gezeiten</h3>','<b>Gezeiten</b>'])need('Gezeiten',water,token);
 if(water.includes('Gezeiten- und Wasserstandswendepunkte'))failures.push('Alte Gezeitenüberschrift ist noch vorhanden.');
-for(const token of ['hazardY=Math.max(plotTop+8,cellY-16)','clipPathUnits="userSpaceOnUse"','clipPath={`url(#${clipId})`}','Math.min(1.24','ensemble-chart-temperature','ensemble-chart-precipitation','ensemble-chart-wind'])need('Ensemble-Overlay',panel,token);
+for(const token of ['hazardY=plotBottom+8','weatherY=plotBottom+28','ensembleTemperatureZones(height,margin,xAxisHeight)','clipPathUnits="userSpaceOnUse"','clipPath={`url(#${clipId})`}','Math.min(1.24','ensemble-chart-temperature','ensemble-chart-precipitation','ensemble-chart-wind'])need('Ensemble-Overlay',panel,token);
 for(const token of ['.ensemble-chart-temperature{z-index:30}', '.ensemble-chart-precipitation{z-index:20}', '.ensemble-chart-wind{z-index:10}', '.ensemble-temperature-canvas>.recharts-wrapper{z-index:3}', '.ensemble-chart-export .recharts-tooltip-wrapper{z-index:100!important}', '.ensemble-chart-export:has(.recharts-tooltip-wrapper[style*="visibility: visible"]){z-index:100}'])need('Tooltip-Layering',styles,token);
 const start=water.indexOf('type TideEvent='),end=water.indexOf('function tideAnalysis(');
 if(start<0||end<0)failures.push('Gezeiten-Hilfslogik konnte nicht isoliert werden.');else{
@@ -30,4 +30,4 @@ if(start<0||end<0)failures.push('Gezeiten-Hilfslogik konnte nicht isoliert werde
 for(const [file,source,kind] of [['WaterSportsPanel.tsx',water,ts.ScriptKind.TSX],['EnsemblePanel.tsx',panel,ts.ScriptKind.TSX]]){const parsed=ts.createSourceFile(file,source,ts.ScriptTarget.ESNext,true,kind);if(parsed.parseDiagnostics.length)failures.push(...parsed.parseDiagnostics.map(item=>`${file}: ${ts.flattenDiagnosticMessageText(item.messageText,' ')}`))}
 const p=JSON.parse(pkg),b=JSON.parse(baseline);if(!p.scripts?.['test:water-tide-tooltip-layering'])failures.push('Package-Testskript fehlt.');if(!b.regressionTests?.includes('scripts/test-water-tide-tooltip-layering-082618.mjs'))failures.push('Baseline-Regression fehlt.');
 if(failures.length){console.error('Gezeiten-/Ensemble-Tooltip-Layering fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Gezeiten werden aus dem Wasserstandsverlauf minutengenau geschätzt; Hazard-/Niederschlags-Overlays und Tooltip-Ebenen sind kollisionsfrei abgesichert.');
+console.log('Gezeiten-Wendepunkte geprüft; Ensemble-/Tooltip-Layering-Quellsignaturen vorhanden. Echte Pixelkollisionen prüft separat die Chromium-Geometrie-QA.');

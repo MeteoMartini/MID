@@ -77,7 +77,7 @@ try{
  assert(!summary([{...missingDay,code:3}],[]).includes('trocken'),'unknown totals must not become an unsupported dry summary');
  assert(summary([dry],[]).includes('trocken'),'a real known zero remains available to dry-weather interpretation');
  const weatherSource=await readFile('src/weather.ts','utf8'),prefix=weatherSource.match(/const FORECAST_CORE_CACHE_PREFIX='([^']+)'/)[1];
- const cachedWeather={...fixture(null),current:{},_mid_core_proxy:{fallback:false,provider:'Open-Meteo'}},storage=new Map([[`${prefix}50.000:7.000:eauto:tzauto`,JSON.stringify({time:Date.now(),value:cachedWeather})]]);
+ const cachedWeather={...fixture(null),current:{},_mid_core_proxy:{fallback:false,provider:'Open-Meteo'}},storage=new Map([[`${prefix}50.000:7.000:eauto:tzauto`,JSON.stringify({time:Date.now(),value:cachedWeather,origin:{lat:50,lon:7}})]]);
  const priorStorage=Object.getOwnPropertyDescriptor(globalThis,'localStorage'),priorFetch=globalThis.fetch;let fetches=0;
  Object.defineProperty(globalThis,'localStorage',{configurable:true,value:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,String(value)),removeItem:key=>storage.delete(key),key:index=>[...storage.keys()][index]??null,get length(){return storage.size}}});
  globalThis.fetch=async()=>{fetches++;throw new Error('cache fixture must not request network')};

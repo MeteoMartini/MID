@@ -113,9 +113,10 @@ test('corrupted original native chunk fails SHA verification instead of returnin
 });
 
 
+const expectedReceiptVersion=JSON.parse(readFileSync(new URL('../../package.json',import.meta.url),'utf8')).version;
 const fastTrustReceipt=(sha,overrides={})=>({
- schema:'mid.ruc.fast-publisher-trust.v1',version:'0.9.85.498',
- repository:'MeteoMartini/MID',stableSha:'9fd872a789f4b158bc691d085589616c2c04f776',
+ schema:'mid.ruc.fast-publisher-trust.v1',version:expectedReceiptVersion,
+ repository:'MeteoMartini/MID',stableSha:'1592963e12688af4b2f8c74f933033235849dcb7',
  run,fastManifestSha256:sha,...overrides
 });
 const withR2Receipt=(receipt,calls={count:0})=>({

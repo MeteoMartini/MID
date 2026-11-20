@@ -1,3 +1,11 @@
+# MID v0.9.85.499 · Leit-Integrationskandidat: ortsrichtige Forecast-Provenienz, Ensemble-Geometrie und WMS-Schutz
+
+**Verifizierte Basis:** main=mid-stable=`1592963e12688af4b2f8c74f933033235849dcb7` / v0.9.85.498. Originalquellen: [#953](https://github.com/MeteoMartini/MID/pull/953) `62f3c7554daeb1fe3b823353fc9e93b835a24c15`, [#957](https://github.com/MeteoMartini/MID/pull/957) `a4d558a5e729dceb2308c4d0f483a44e418ca67e`, [#955](https://github.com/MeteoMartini/MID/pull/955) `cbb159525f6ae0edd8994437a49f17a396fbb07d` und [#958](https://github.com/MeteoMartini/MID/pull/958) `bad89812662a45487638604e3b46e9345c733332`.
+
+**Integration:** originale SHA-gebundene Daten-/Diagramm-/CSS-/WMS-Blobs, ergänzte Pflichtregressionen, synchrones Worker-Doppelbundle aus neuester RUC-Fast-Lane plus WMS-Guard, vierteilige v0.9.85.499-Versionsspiegel inklusive Web/iOS/Service-Worker. Räumlich unbekannte Cache-Provenienz ist nicht als exakter Fresh-Hit zu behandeln, Missing Data nie als 0. NoData, Originaldaten, amtliche Warnungen, das 27h-Full-RUC und eigenständige 0–6h-Fast-Lane bleiben getrennt.
+
+**Status:** Source-Kandidat – keine erfolgte .499-Veröffentlichung, keine autonome QA-Freigabe. GitHub Source/Core/Heavy/Reviews, serverseitiges ZIP, install-mid.yml, betroffene Worker/Pages und Stable-Promotion bleiben unverändert verpflichtend; kein neues Gate oder Admin-/Force-Push-Bypass.
+
 # MID v0.9.85.498 · LC 1.23: unabhängige DWD-RUC-Fast-Lane, Pages-Rollback und geprüfter Worker-Punktpfad (SHA-gebundener Source-Kandidat)
 
 **Kanonische Quellbasis:** main=mid-stable=`9fd872a789f4b158bc691d085589616c2c04f776`, veröffentlichtes v0.9.85.497. Quell-Intake: ref-freier Git-Commit `089cb6a34d3837620d5a3ecd5ad1b93a61730e7e` mit exakt dieser Stable-SHA als Parent. Das ursprüngliche #946-Draft liegt noch auf .496 und darf nicht ungeprüft anstelle des aktuellen Stands gemergt werden.
