@@ -39,6 +39,52 @@ class InstallerPagesResolverTest(unittest.TestCase):
         self.assertEqual(proof['artifact_id'], 4)
         self.assertEqual(proof['artifact_digest'], DIGEST)
 
+    def no_op_fixture(self):
+        self.manifest['git/commits/' + STABLE]['message'] = 'Prepare MID agent release from PR #948'
+        self.manifest['commits/' + STABLE] = {
+            'sha': STABLE,
+            'author': {'login': 'mid-release-bot-meteomartini[bot]'},
+            'committer': {'login': 'mid-release-bot-meteomartini[bot]'},
+            'parents': [{'sha': SOURCE}],
+            'files': [{'filename': 'MID-professional-replacement.zip', 'status': 'added'}],
+        }
+        self.manifest['deployments?environment=github-pages&per_page=1'][0]['sha'] = STABLE
+        self.manifest['actions/runs/2']['head_sha'] = STABLE
+        self.manifest['actions/jobs/3']['head_sha'] = STABLE
+
+    def test_authenticated_bot_zip_noop_installer_resolves_deployed_site(self):
+        self.no_op_fixture()
+        proof = self.resolve()
+        self.assertEqual(proof['source_sha'], STABLE)
+        self.assertEqual(proof['stable_sha'], STABLE)
+        self.assertEqual(proof['artifact_id'], 4)
+
+    def test_noop_must_be_bot_authored_only_zip_not_a_synthetic_promotion(self):
+        self.no_op_fixture()
+        commit = self.manifest['commits/' + STABLE]
+        commit['author']['login'] = 'untrusted-author'
+        with self.assertRaisesRegex(ValueError, 'untrusted installer no-op'):
+            self.resolve()
+        commit['author']['login'] = 'mid-release-bot-meteomartini[bot]'
+        commit['files'][0]['filename'] = 'worker.js'
+        with self.assertRaisesRegex(ValueError, 'untrusted installer no-op'):
+            self.resolve()
+
+    def test_bot_zip_noop_still_requires_real_successful_installer_pages_job(self):
+        self.no_op_fixture()
+        self.manifest['actions/runs/2']['conclusion'] = 'failure'
+        with self.assertRaisesRegex(ValueError, 'Pages deployment job'):
+            self.resolve()
+        self.manifest['actions/runs/2']['conclusion'] = 'success'
+        self.manifest['actions/jobs/3']['head_sha'] = SOURCE
+        with self.assertRaisesRegex(ValueError, 'untrusted Pages workflow'):
+            self.resolve()
+
+    def test_noop_style_commit_without_verified_zip_lineage_is_rejected(self):
+        self.manifest['git/commits/' + STABLE]['message'] = 'Prepare MID agent release from PR #948'
+        with self.assertRaisesRegex(KeyError, 'commits/'):
+            self.resolve()
+
     def test_main_drift_is_rejected(self):
         self.manifest['git/ref/heads/main']['object']['sha'] = SOURCE
         with self.assertRaisesRegex(ValueError, 'lineage'):

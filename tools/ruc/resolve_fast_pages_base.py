@@ -40,10 +40,32 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
                 and lineage['base_commit']['sha'] == expected_stable,
                 'pending release does not descend from Stable')
     stable = api('git/commits/' + expected_stable)
-    require(stable['sha'] == expected_stable and len(stable['parents']) == 1
-            and re.fullmatch(r'Install MID v\d+(?:\.\d+){3}', stable['message'].strip()),
+    require(stable['sha'] == expected_stable and len(stable['parents']) == 1,
             'Stable is not an unambiguous installer promotion')
-    source = stable['parents'][0]['sha']
+    message = stable['message'].strip()
+    installed = bool(re.fullmatch(r'Install MID v\d+(?:\.\d+){3}', message))
+    noop_package = bool(re.fullmatch(r'Prepare MID agent release from PR #[1-9]\d*', message))
+    require(installed or noop_package, 'Stable is not an unambiguous installer promotion')
+    if noop_package:
+        # install-mid.yml explicitly permits a byte-identical ZIP no-op:
+        # no new "Install MID" commit is made, and the already authenticated
+        # release-bot ZIP commit is promoted unchanged after all installer gates.
+        # Match that exact immutable bot-only single-file ZIP commit.
+        package = api('commits/' + expected_stable)
+        actor = 'mid-release-bot-meteomartini[bot]'
+        files = package.get('files', [])
+        require(package.get('sha') == expected_stable
+                and package.get('author', {}).get('login') == actor
+                and package.get('committer', {}).get('login') == actor
+                and len(package.get('parents', [])) == 1
+                and package['parents'][0]['sha'] == stable['parents'][0]['sha']
+                and len(files) == 1
+                and files[0].get('filename') == 'MID-professional-replacement.zip'
+                and files[0].get('status') in ('added', 'modified'),
+                'untrusted installer no-op ZIP identity')
+        source = expected_stable
+    else:
+        source = stable['parents'][0]['sha']
 
     deployments = api('deployments?environment=github-pages&per_page=1')
     require(len(deployments) == 1, 'latest Pages deployment is missing')
