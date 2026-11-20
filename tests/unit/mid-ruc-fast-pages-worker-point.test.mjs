@@ -68,8 +68,9 @@ test('release-SHA-pinned Fast Pages point preserves 7/73/25 UTC, native zero vs 
   assert.equal(p.hourly.time.length,7);
   assert.equal(p.rapid.precip5.time.length,73);
   assert.equal(p.rapid.convection15.time.length,25);
-  assert.ok(p.rapid.precip5.time.every(value=>/^20\d{2}-\d\d-\d\dT\d\d:\d\d$/.test(value)));
-  assert.ok(p.rapid.convection15.time.every(value=>/^20\d{2}-\d\d-\d\dT\d\d:\d\d$/.test(value)));
+  assert.deepEqual(p.hourly.time,axis(60,7),'native hourly UTC validity timeline must be exact');
+  assert.deepEqual(p.rapid.precip5.time,axis(5,73),'native 5min UTC validity timeline must be exact');
+  assert.deepEqual(p.rapid.convection15.time,axis(15,25),'native 15min UTC validity timeline must be exact');
   assert.equal(p.hourly.temperature_2m[0],null);
   assert.equal(p.hourly.dew_point_2m[0],0);
   assert.equal(p.rapid.precip5.precipitation[0],null);
