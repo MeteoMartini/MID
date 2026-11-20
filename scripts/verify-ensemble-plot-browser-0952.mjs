@@ -47,7 +47,7 @@ const browserExecutable=process.env.MID_BROWSER_EXECUTABLE||midCssQaBrowserExecu
 if(process.env.GITHUB_ACTIONS==='true'&&!browserExecutable)execFileSync('node',[cli,'install','chromium'],{stdio:'inherit',timeout:240000});
 const evidenceDir=resolve(root,process.env.MID_ENSEMBLE_BROWSER_QA_DIR||'artifacts/ensemble-952-browser-qa');
 mkdirSync(evidenceDir,{recursive:true});
-const report={schema:'mid.ensemble-952.real-render-geometry.v1',version:pkg.version,head:checkedOutHead,eventSha:process.env.GITHUB_SHA||null,
+const report={schema:'mid.ensemble-952.real-render-geometry.v1',version:pkg.version,head:checkedOutHead,sourceHead:expectedHead||checkedOutHead,eventSha:process.env.GITHUB_SHA||null,
 fixture:'14 fully synthetic deterministic dates; original EnsemblePanel/Recharts module; no real forecast',
 browser:null,cases:[],errors:[],passed:false};
 const server=await createServer({root,server:{host:'127.0.0.1',port:0,hmr:false,watch:null},cacheDir:'node_modules/.vite-ensemble-952-qa'});
