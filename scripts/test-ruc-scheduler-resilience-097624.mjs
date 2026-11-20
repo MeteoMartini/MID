@@ -9,6 +9,8 @@ const setup=read('MID_RUC_SCHEDULER_RESILIENCE_SETUP.md');
 const must=(value,message)=>assert.ok(value,message);
 
 for(const token of ["cron: '11 * * * *'","cron: '41 * * * *'",'trigger_source:','default: manual','inputs.force'])must(preprocess.includes(token),`RUC preprocess resilience token missing: ${token}`);
+assert.equal((preprocess.match(/^\s*-\s+cron\s*:/gm)||[]).length,3,
+ 'Exactly the two original full-RUC slots and one guarded Fast schedule are permitted.');
 assert.deepEqual(
  [...preprocess.matchAll(/^\s*-\s+cron:\s*'([^']+)'$/gm)].map(match=>match[1]),
  ['11 * * * *','41 * * * *','13,43 * * * *'],

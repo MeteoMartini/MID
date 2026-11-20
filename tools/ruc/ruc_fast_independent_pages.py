@@ -51,7 +51,9 @@ def stage_independent_fast_pages(site, fast_shadow, output, *, now=None, compres
         previous_bytes = count_files(previous)
 
     primary = Path('ruc/latest.json')
-    primary_sha = sha_file(site / primary) if (site / primary).is_file() else None
+    if not (site / primary).is_file() or (site / primary).is_symlink():
+        raise ValueError('existing Pages site requires the original primary RUC pointer')
+    primary_sha = sha_file(site / primary)
     with tempfile.TemporaryDirectory(prefix='.mid-independent-fast-', dir=output.parent) as temp:
         temp = Path(temp)
         package = temp / 'fast-package'

@@ -18,6 +18,8 @@ class IndependentFastPages(unittest.TestCase):
         self.root = Path(temp.name)
         self.site = self.root / 'site'
         self.site.mkdir()
+        (self.site / 'ruc').mkdir()
+        (self.site / 'ruc/latest.json').write_bytes(b'{"run":"2026-11-17T07:00"}')
         self.shadow = self.root / 'shadow'
         self.shadow.mkdir()
         self.output = self.root / 'output'
@@ -43,8 +45,6 @@ class IndependentFastPages(unittest.TestCase):
         return stage_independent_fast_pages(self.site, self.shadow, self.output, now=self.now)
 
     def test_stale_primary_and_app_bytes_remain_intact(self):
-        (self.site / 'ruc').mkdir()
-        (self.site / 'ruc/latest.json').write_bytes(b'{"run":"2026-11-17T07:00"}')
         (self.site / 'index.html').write_bytes(b'MID')
         result = self.stage()
         self.assertEqual(result['run'], self.run)
@@ -54,8 +54,11 @@ class IndependentFastPages(unittest.TestCase):
         self.assertEqual((self.output / 'index.html').read_bytes(), b'MID')
         self.assertTrue((self.output / FAST / MANIFEST).is_file())
 
-    def test_primary_can_be_absent(self):
-        self.assertIsNone(self.stage()['primaryManifestSha256'])
+    def test_missing_original_primary_cannot_mint_a_publishable_receipt(self):
+        (self.site / 'ruc/latest.json').unlink()
+        with self.assertRaisesRegex(ValueError, 'primary RUC pointer'):
+            self.stage()
+        self.assertFalse(self.output.exists())
 
     def test_freshness_rejects_future_and_stale_without_output(self):
         for hour in (3, 9):
