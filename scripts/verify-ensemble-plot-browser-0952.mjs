@@ -12,13 +12,16 @@ import {midCssQaBrowserExecutable} from './lib/cssQaBrowserExecutable.mjs';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const pkg=JSON.parse(readFileSync(join(root,'package.json'),'utf8'));
+const checkedOutHead=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
+assert.match(checkedOutHead,/^[0-9a-f]{40}$/,'A real checked-out SHA is required for browser evidence');
+if(process.env.HEAD_SHA)assert.equal(checkedOutHead,process.env.HEAD_SHA,'Browser evidence must match the exact authorized PR head');
 const cli=realpathSync(execFileSync('npm',['exec','--yes','--package=playwright@1.56.1','--','which','playwright'],{encoding:'utf8'}).trim());
 const {chromium}=createRequire(import.meta.url)(join(dirname(dirname(cli)),'playwright'));
 const browserExecutable=process.env.MID_BROWSER_EXECUTABLE||midCssQaBrowserExecutable();
 if(process.env.GITHUB_ACTIONS==='true'&&!browserExecutable)execFileSync('node',[cli,'install','chromium'],{stdio:'inherit',timeout:240000});
 const evidenceDir=resolve(root,process.env.MID_ENSEMBLE_BROWSER_QA_DIR||'artifacts/ensemble-952-browser-qa');
 mkdirSync(evidenceDir,{recursive:true});
-const report={schema:'mid.ensemble-952.real-render-geometry.v1',version:pkg.version,head:process.env.GITHUB_SHA||null,
+const report={schema:'mid.ensemble-952.real-render-geometry.v1',version:pkg.version,head:checkedOutHead,eventSha:process.env.GITHUB_SHA||null,
 fixture:'14 fully synthetic deterministic dates; original EnsemblePanel/Recharts module; no real forecast',
 browser:null,cases:[],errors:[],passed:false};
 const server=await createServer({root,server:{host:'127.0.0.1',port:0,hmr:false,watch:null},cacheDir:'node_modules/.vite-ensemble-952-qa'});
@@ -76,11 +79,12 @@ try{
     // the nearest SVG coordinate system and would falsely validate/deny moved ticks.
     const svgTop=surface.getBoundingClientRect().top,svgLeft=surface.getBoundingClientRect().left;
     const labels=allLabels.map(text=>{const rect=text.getBoundingClientRect();return{x:rect.x,y:rect.top-svgTop,width:rect.width,height:rect.height,value:text.textContent}});
+    const markerCount=host.querySelectorAll('.ensemble-temperature-value circle').length;
     const xAxisText=[...host.querySelectorAll('text.ensemble-date-axis-tick')].map(text=>{const rect=text.getBoundingClientRect();return {x:rect.left-svgLeft,y:rect.top-svgTop,width:rect.width,height:rect.height,text:text.textContent}});
     const xAxisMarks=host.querySelectorAll('.recharts-xAxis .recharts-cartesian-axis-tick-line').length;
     const lines=host.querySelectorAll('svg.recharts-surface .recharts-line .recharts-curve').length;
     const size=host.getBoundingClientRect();
-    return{plot:mainPlot,weather,labels,xAxisText,xAxisMarks,lines,width:size.width,height:size.height,
+    return{plot:mainPlot,weather,labels,markerCount,xAxisText,xAxisMarks,lines,width:size.width,height:size.height,
      pageOverflow:document.documentElement.scrollWidth>innerWidth+2,
      theme:document.documentElement.dataset.theme,
      axisDebug:xAxisText.length?undefined:{axisNode:host.querySelector('.recharts-xAxis')?.outerHTML.slice(0,1400),allDateClass:host.querySelectorAll('.ensemble-date-axis-tick').length,surfaceTextCount:host.querySelectorAll('svg.recharts-surface text').length}};
@@ -89,7 +93,13 @@ try{
    const bottom=measure.plot.y+measure.plot.height;
    assert.ok(measure.weather.y>=bottom+8,'Weatherband intrudes into the real Recharts temperature plot');
    assert.ok(measure.weather.y+measure.weather.height<measure.height-7,'Weatherband clipped by chart frame');
-   assert.ok(measure.labels.length>=14,'Not all Best Match temperature labels rendered');
+   assert.equal(measure.markerCount,28,'All 14 Best-Match Tmin and Tmax source-point markers must remain visible');
+   assert.ok(measure.labels.length>=4&&measure.labels.length<=28,'Responsive labels must show some representative temperatures while retaining all point markers');
+   for(let i=0;i<measure.labels.length;i++)for(let j=i+1;j<measure.labels.length;j++){
+    const a=measure.labels[i],b=measure.labels[j];
+    const overlapX=a.x+1<b.x+b.width&&b.x+1<a.x+a.width,overlapY=a.y+1<b.y+b.height&&b.y+1<a.y+a.height;
+    assert.ok(!(overlapX&&overlapY),'Temperature value labels physically overlap: '+a.value+' / '+b.value);
+   }
    assert.ok(measure.labels.every(l=>finiteNumber(l.y)&&l.y>=measure.plot.y-1&&l.y+l.height<=bottom+1),'Best Match label overlaps weatherband or leaves plot');
    assert.ok(measure.lines>=2,'Temperature min/max source paths missing');
    assert.equal(measure.xAxisMarks,14,'All 14 actual day tick positions must remain available for tooltip/weatherband alignment');
