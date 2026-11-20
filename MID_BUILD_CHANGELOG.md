@@ -1,3 +1,11 @@
+## MID v0.9.85.498 · 2026-11-20 · DWD-RUC 0–6h-Fast-Lane – geprüfte unabhängige Veröffentlichung und Punkt-Consumer
+
+- Quellbasis main=mid-stable v0.9.85.497 @ 9fd872a789f4b158bc691d085589616c2c04f776.
+- Die getrennte, ref-freie Ausgangsvorlage 089cb6a34d3837620d5a3ecd5ad1b93a61730e7e integriert RUC-#946-Code und den SHA-/NoData-sicheren Fast-Worker-Adapter.
+- Original-DWD-Test 19.11. 21Z: 188/188 GRIB-Dateien ecCodes-Dekodierung, 542040 native Punkte, sieben stündliche/73 fünfminütige/25 fünfzehnminütige Termine, SHA-gebundener Pages-Punkt-Readback offline.
+- Ref-freier Versionskandidat: KEIN produzierter Release, KEIN echter Pages-/Worker-Deploy oder produktiver Fast-Schalter, keine aktuelle Live-Frischebehauptung.
+- Vor realem Release: vorhandener Source-Gate/Review, signierter Merge via MID-Bot, Installer, betroffene Worker-/Pages-Prüfungen, Stable-Promotion und unabhängiger Manifest-Digest-Transport zum Worker.
+
 ## MID v0.9.85.498 · 2026-11-20 · DWD ICON-D2-RUC eigenständige 0–6h-Fast-Lane (Source-Kandidat, kein Release)
 
 - Geprüfte Ausgangsbasis: Stable .497 = `9fd872a789f4b158bc691d085589616c2c04f776`, fünf aktive Rulesets. Verifizierter ref-freier 0–6h-Quellstand `089cb6a34d3837620d5a3ecd5ad1b93a61730e7e`, parent exakt Stable.

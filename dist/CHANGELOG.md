@@ -1,3 +1,12 @@
+# MID v0.9.85.498
+
+- Die DWD-ICON-D2-RUC-Fast-Lane kann qualifizierte, eigenständige Prognosen für die nächsten sechs Stunden bereitstellen, ohne auf einen vollständigen 27h-Ensemble-Lauf zu warten.
+- Originale Temperatur-, Wind-, Wolken- und Niederschlagswerte bleiben mit Laufzeit und Herkunft erkennbar; schnelle Niederschlagsdaten verwenden echte 5-Minuten-Schritte, Konvektionsdaten echte 15-Minuten-Schritte.
+- Fehlende EPS-Ensemblewerte bleiben ausdrücklich nicht verfügbar und werden nicht als null Prozent Regenwahrscheinlichkeit oder Trockenheit ausgegeben.
+- Die Fast-Pages-Veröffentlichung erhält den bisherigen Voll-RUC-Stand und kann bei fehlgeschlagener Prüfung zurückrollen.
+- Bei einem neueren authentifizierten Modelllauf nutzt MID die eigenständige 0–6h-Fast-Lane; ein gleich aktueller oder neuerer Voll-RUC-Lauf behält seinen 27h-Horizont. Unbestätigte Fast-Daten verdrängen nie einen geprüften Voll-Lauf.
+- Der Worker akzeptiert Fast-Daten ausschließlich mit einem extern gesetzten, SHA-geprüften Manifest-Digest: entweder über die ausdrücklich konfigurierte administrative Bindung oder über den nach erfolgreicher Pages-Prüfung gesicherten R2-Publisher-Beleg. Der unveränderte Datenpfad bleibt als Rückfall erhalten.
+
 # MID v0.9.85.497
 
 - Lange Ladehinweise bleiben auch auf schmalen Displays und bei vergrößerter Schrift vollständig lesbar.
