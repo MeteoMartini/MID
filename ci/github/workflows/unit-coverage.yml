@@ -385,3 +385,13 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: node tools/ci/mid-draft-regression-preflight.mjs --base "$BASE_SHA" --head "$HEAD_SHA" --run
+
+      - name: SHA-gebundene Ensemble-Browserbilder und Recharts-Geometriemessungen aufbewahren
+        if: always() && steps.regression-plan.outputs.needs_npm == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-draft-ensemble-geometry-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/ensemble-952-browser-qa/
+          if-no-files-found: ignore
+          retention-days: 7
+
