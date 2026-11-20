@@ -52,7 +52,12 @@ test('all GitHub Pages publishers are enumerated, SHA mirrored and share global 
      assert.match(job.body,/MID_RUC_FAST_PAGES_ENABLED == 'true'/);
      assert.match(job.body,/verify_fast_pages_publish\.py/);
      assert.match(job.body,/steps\.fast_publish_guard\.outcome == 'success'/);
-     assert.match(job.body,/steps\.fast_deployment\.outcome == 'success' && steps\.fast_readback\.outcome == 'failure'/);
+     assert.match(job.body,/id:\s*fast_trust/,'independent trusted R2 SHA relay absent');
+     assert.match(job.body,/if:\s*steps\.fast_readback\.outcome == 'success'/,'trust receipt before public Pages verification');
+     assert.match(job.body,/steps\.fast_deployment\.outcome == 'success' && \(steps\.fast_readback\.outcome == 'failure' \|\| steps\.fast_trust\.outcome == 'failure'\)/,
+       'Pages rollback must also protect failed independent R2 SHA transport');
+     assert.ok(job.body.indexOf('id: fast_readback')<job.body.indexOf('id: fast_trust')&&job.body.indexOf('id: fast_trust')<job.body.indexOf('id: fast_rollback'),
+       'Trust receipt may only follow public SHA readback, with rollback after both');
     }else{
      assert.match(job.body,/needs\.prepare/,'publisher must depend on sealed RUC producer snapshot');
     }
