@@ -46,7 +46,8 @@ try{
     }
     window.Date=FrozenDate;
     localStorage.setItem('theme',theme);
-    document.documentElement.style.fontSize=(scale*100)+'%';
+    const applyFont=()=>{if(document.documentElement)document.documentElement.style.fontSize=(scale*100)+'%';};
+    if(document.documentElement)applyFont();else document.addEventListener('DOMContentLoaded',applyFont,{once:true});
    },{scale:fontScale,theme});
    await page.goto(origin+'/tests/visual/ensemble-geometry-qa.html?theme='+theme,{waitUntil:'domcontentloaded'});
    const canvas=page.locator('.ensemble-temperature-canvas');
@@ -62,8 +63,13 @@ try{
     const band=host.querySelector('svg.ensemble-temperature-weather-overlay.weather .ensemble-sky-strip-outline');
     if(!band)throw Error('Missing original MID weatherband SVG');
     const weather=pickRect(band),allLabels=[...host.querySelectorAll('.ensemble-temperature-value text')];
-    const labels=allLabels.map(text=>{const bbox=text.getBBox();return{x:bbox.x,y:bbox.y,width:bbox.width,height:bbox.height,value:text.textContent}});
-    const xAxisText=[...host.querySelectorAll('.recharts-xAxis .recharts-cartesian-axis-tick text')].map(text=>{const bbox=text.getBBox();return {y:bbox.y,height:bbox.height,text:text.textContent}});
+    // Screen-space bounds include Recharts <g> transforms. getBBox() alone is local to
+    // the nearest SVG coordinate system and would falsely validate/deny moved ticks.
+    const surface=host.querySelector('svg.recharts-surface');
+    if(!surface)throw Error('Missing Recharts surface for transformed label geometry');
+    const svgTop=surface.getBoundingClientRect().top;
+    const labels=allLabels.map(text=>{const rect=text.getBoundingClientRect();return{x:rect.x,y:rect.top-svgTop,width:rect.width,height:rect.height,value:text.textContent}});
+    const xAxisText=[...host.querySelectorAll('.recharts-xAxis .recharts-cartesian-axis-tick text')].map(text=>{const rect=text.getBoundingClientRect();return {y:rect.top-svgTop,height:rect.height,text:text.textContent}});
     const lines=host.querySelectorAll('svg.recharts-surface .recharts-line .recharts-curve').length;
     const size=host.getBoundingClientRect();
     return{plot:mainPlot,weather,labels,xAxisText,lines,width:size.width,height:size.height,
