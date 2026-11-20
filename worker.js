@@ -819,15 +819,45 @@ async function dwdRucNativeFastPagesPointPayload(lat,lon,env){
 }
 
 async function fetchDwdRucPointAdapter(model,lat,lon,elevation,env){
- const r2Payload=await dwdRucR2PointPayload(lat,lon,env);if(r2Payload){const parsed=parseDwdRucPointPayload(r2Payload,model,'dwd_icon_d2_ruc_r2');if(parsed.successful)return{...parsed,adapter:'MID_DWD_RUC_DATA',provider:'DWD ICON-D2-RUC · R2-Punktadapter'}}
- const staticPayload=await dwdRucStaticPointPayload(lat,lon,env);if(staticPayload){const parsed=parseDwdRucPointPayload(staticPayload,model,'dwd_icon_d2_ruc_pages');if(parsed.successful)return{...parsed,rapid:staticPayload.rapid||{},adapter:'MID_DWD_RUC_STATIC_BASE_URL',provider:'DWD ICON-D2-RUC · GitHub-Pages-Punktadapter'}}
- const fastPayload=await dwdRucNativeFastPagesPointPayload(lat,lon,env);if(fastPayload){const parsed=parseDwdRucPointPayload(fastPayload,model,'dwd_icon_d2_ruc_fast_pages');if(parsed.successful)return{...parsed,rapid:fastPayload.rapid,adapter:'MID_DWD_RUC_FAST_PAGES',provider:'DWD ICON-D2-RUC · geprüfte native 0–6h-Fast-Lane'}}
+ // Keep the last independently verified full 27h/EPS payload available as a
+ // fallback; a newer, SHA-authenticated native 0–6h run may arrive first.
+ let full=null;
+ const r2Payload=await dwdRucR2PointPayload(lat,lon,env);
+ if(r2Payload){
+  const parsed=parseDwdRucPointPayload(r2Payload,model,'dwd_icon_d2_ruc_r2');
+  if(parsed.successful)full={...parsed,adapter:'MID_DWD_RUC_DATA',provider:'DWD ICON-D2-RUC · R2-Punktadapter'};
+ }
+ if(!full){
+  const staticPayload=await dwdRucStaticPointPayload(lat,lon,env);
+  if(staticPayload){
+   const parsed=parseDwdRucPointPayload(staticPayload,model,'dwd_icon_d2_ruc_pages');
+   if(parsed.successful)full={...parsed,rapid:staticPayload.rapid||{},adapter:'MID_DWD_RUC_STATIC_BASE_URL',provider:'DWD ICON-D2-RUC · GitHub-Pages-Punktadapter'};
+  }
+ }
+ // Cheap independent R2 trust proof may avoid fetching any Fast binary chunks
+ // when the full source is already from the same or a newer UTC model run.
+ // A manually configured SHA has no run until the pinned manifest is checked.
+ const trust=await dwdRucTrustedFastManifestSha(env);
+ const fullEpoch=Date.parse(full?.initialisationTime||'');
+ const provenFastEpoch=Date.parse(trust?.run?trust.run+'Z':'');
+ if(trust&&(!full||!Number.isFinite(fullEpoch)||!Number.isFinite(provenFastEpoch)||provenFastEpoch>fullEpoch)){
+  const fastPayload=await dwdRucNativeFastPagesPointPayload(lat,lon,env);
+  if(fastPayload){
+   const parsed=parseDwdRucPointPayload(fastPayload,model,'dwd_icon_d2_ruc_fast_pages');
+   const nativeEpoch=Date.parse(parsed.initialisationTime||'');
+   if(parsed.successful&&(!full||(Number.isFinite(nativeEpoch)&&nativeEpoch>fullEpoch))){
+    return {...parsed,rapid:fastPayload.rapid,adapter:'MID_DWD_RUC_FAST_PAGES',provider:'DWD ICON-D2-RUC · geprüfte native 0–6h-Fast-Lane'};
+   }
+  }
+ }
+ if(full)return full;
  const endpoint=adapterEndpoint(env,'MID_DWD_RUC_POINT_ENDPOINT');if(!endpoint)return null;
  endpoint.searchParams.set('lat',String(lat));endpoint.searchParams.set('lon',String(lon));endpoint.searchParams.set('forecast_hours',String(Math.min(27,Number(model.maxHours)||27)));if(Number.isFinite(elevation))endpoint.searchParams.set('elevation',String(clamp(elevation,-500,9000)));
  const headers={Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},token=String(env?.MID_DWD_RUC_POINT_TOKEN||'').trim();if(token)headers.Authorization=`Bearer ${token}`;
  const response=await fetchWithDeadline(endpoint.toString(),{headers,cf:{cacheTtl:300,cacheEverything:true}},14500),body=await response.text();let payload={};try{payload=JSON.parse(body)}catch{}
  if(!response.ok)throw new Error(`DWD ICON-D2-RUC Point-Adapter HTTP ${response.status}`);if(payload?.error)throw new Error(String(payload.reason||payload.error));const parsed=parseDwdRucPointPayload(payload,model);return{...parsed,adapter:'MID_DWD_RUC_POINT_ENDPOINT',provider:'DWD ICON-D2-RUC · Punktadapter',reason:parsed.successful?undefined:parsed.reason||'Point-Adapter ohne verwertbare Reihen'};
 }
+
 function rucEpsProbabilityRows(payload){const data=payload?.data&&typeof payload.data==='object'?payload.data:payload,hourly=data?.hourly??{},times=Array.isArray(hourly.time)?hourly.time:[],offsetSeconds=number(data?.utc_offset_seconds)||0,native=Array.isArray(hourly.precipitation_probability)?hourly.precipitation_probability:null,significant=Array.isArray(hourly.precipitation_probability_significant)?hourly.precipitation_probability_significant:null,q75=Array.isArray(hourly.precipitation_q75)?hourly.precipitation_q75:null,mean=Array.isArray(hourly.precipitation_mean)?hourly.precipitation_mean:null,memberKeys=Object.keys(hourly).filter(key=>/^precipitation(?:_sum)?_member\d+$/i.test(key)&&Array.isArray(hourly[key])),declaredMembers=Math.max(0,number(data?.mid_ruc?.member_count)||0);return times.map((time,index)=>{const epoch=rucHourlyEpoch(time,offsetSeconds);if(!Number.isFinite(epoch))return null;let probability=number(native?.[index]),significantProbability=number(significant?.[index]),q75Mm=number(q75?.[index]),meanMm=number(mean?.[index]),memberCount=Number.isFinite(probability)?declaredMembers:0;if(memberKeys.length&&(!Number.isFinite(probability)||!Number.isFinite(significantProbability)||!Number.isFinite(q75Mm))){const values=memberKeys.map(key=>number(hourly[key][index])).filter(Number.isFinite).sort((a,b)=>a-b);memberCount=values.length;if(values.length){if(!Number.isFinite(probability))probability=100*values.filter(value=>value>.2).length/values.length;if(!Number.isFinite(significantProbability))significantProbability=100*values.filter(value=>value>5).length/values.length;if(!Number.isFinite(q75Mm)){const pos=.75*(values.length-1),lo=Math.floor(pos),hi=Math.ceil(pos),mix=pos-lo;q75Mm=values[lo]*(1-mix)+values[hi]*mix}if(!Number.isFinite(meanMm))meanMm=values.reduce((sum,value)=>sum+value,0)/values.length}}return Number.isFinite(probability)?{time:String(time),epoch,probability:clamp(probability,0,100),significantProbability:Number.isFinite(significantProbability)?clamp(significantProbability,0,100):undefined,q75Mm:Number.isFinite(q75Mm)?Math.max(0,q75Mm):undefined,meanMm:Number.isFinite(meanMm)?Math.max(0,meanMm):undefined,memberCount}:null}).filter(Boolean)}
 async function fetchDwdRucEpsProbabilityAdapter(lat,lon,elevation,env){
  const result=(payload,adapter,aggregation)=>{const data=payload?.data&&typeof payload.data==='object'?payload.data:payload,hours=rucEpsProbabilityRows(payload),run=String(data?.mid_ruc?.run||''),axis=rucSourceWindow({hours:(data?.hourly?.time||[]).map(time=>({epoch:rucHourlyEpoch(time,number(data?.utc_offset_seconds)||0)})),run}),window=axis&&rucSourceWindow({hours,run}),successful=hours.length>=4&&Boolean(window);return{successful,configured:true,hours,maxHours:window?.maxHours,memberCount:Number(payload?.mid_ruc?.member_count||Math.max(0,...hours.map(row=>row.memberCount||0)))||0,adapter,aggregation,run,initialisationTime:window?.initialisationTime,availabilityTime:safeDate(data?.mid_ruc?.generatedAt),reason:successful?undefined:'RUC-EPS-Punktadapter ohne gültige Laufzeitachse und verwertbare Wahrscheinlichkeitsreihen'}};

@@ -181,3 +181,68 @@ test('explicitly disabled Fast binding prevents even trusted R2 read and Pages I
   assert.equal(m.urls.length,0);
  }finally{m.restore()}
 });
+
+import {readFileSync} from 'node:fs';
+
+// Exercise the exact canonical source adapter without expanding the production
+// Worker export surface; all provenance and network dependencies are stubbed.
+const adapterText=readFileSync(new URL('../../worker-src/00-core-observations.js',import.meta.url),'utf8');
+const adapterStart=adapterText.indexOf('async function fetchDwdRucPointAdapter(');
+const adapterEnd=adapterText.indexOf('\nfunction rucEpsProbabilityRows(',adapterStart);
+assert.ok(adapterStart>=0&&adapterEnd>adapterStart,'canonical RUC adapter is present');
+
+function pointAdapterHarness({fullRun,fastRun,trustRun=fastRun,fastValid=true,fullFromStatic=false}={}){
+ const calls={r2:0,static:0,trust:0,fast:0};
+ const payload=(utc,maxHours)=>utc?{mid_ruc:{run:utc},maxHours}:null;
+ const adapters={
+  dwdRucR2PointPayload:async()=>{calls.r2++;return fullFromStatic?null:payload(fullRun,27)},
+  dwdRucStaticPointPayload:async()=>{calls.static++;return fullFromStatic?payload(fullRun,27):null},
+  dwdRucTrustedFastManifestSha:async()=>{calls.trust++;return trustRun===undefined?null:{sha:'a'.repeat(64),run:trustRun}},
+  dwdRucNativeFastPagesPointPayload:async()=>{calls.fast++;return fastValid?payload(fastRun,6):null},
+  parseDwdRucPointPayload:(entry,_model,apiId)=>({
+   successful:Boolean(entry?.mid_ruc?.run),apiId,
+   initialisationTime:entry?.mid_ruc?.run?new Date(entry.mid_ruc.run+'Z').toISOString():undefined,
+   maxHours:entry?.maxHours,
+   hours:Array.from({length:entry?.maxHours===6?7:28},()=>({precipitation:0})),
+   rapid:entry?.rapid||{},
+  }),
+ };
+ const build=new Function(...Object.keys(adapters),
+  adapterText.slice(adapterStart,adapterEnd)+'\nreturn fetchDwdRucPointAdapter;');
+ return {adapter:build(...Object.values(adapters)),calls};
+}
+test('newer externally trusted native 0–6h run supersedes an older full RUC source',async()=>{
+ const fastRun=run,fullRun=new Date(start-3600000).toISOString().slice(0,16);
+ const {adapter,calls}=pointAdapterHarness({fullRun,fastRun});
+ const point=await adapter({},48,8,0,{});
+ assert.equal(point.adapter,'MID_DWD_RUC_FAST_PAGES');
+ assert.equal(point.maxHours,6);
+ assert.equal(point.initialisationTime,new Date(start).toISOString());
+ assert.equal(calls.fast,1);
+});
+test('full RUC run with same or newer UTC initialization retains full 27h horizon without Fast chunks',async()=>{
+ for(const fullRun of [run,new Date(start+3600000).toISOString().slice(0,16)]){
+  const {adapter,calls}=pointAdapterHarness({fullRun,fastRun:run});
+  const point=await adapter({},48,8,0,{});
+  assert.equal(point.adapter,'MID_DWD_RUC_DATA');
+  assert.equal(point.maxHours,27);
+  assert.equal(calls.fast,0);
+  assert.equal(calls.trust,1);
+ }
+});
+test('newer Fast corruption falls back to existing full RUC and independent Fast works without full source',async()=>{
+ const oldRun=new Date(start-3600000).toISOString().slice(0,16);
+ const invalid=pointAdapterHarness({fullRun:oldRun,fastRun:run,fastValid:false});
+ assert.equal((await invalid.adapter({},48,8,0,{})).maxHours,27);
+ assert.equal(invalid.calls.fast,1);
+ const independent=pointAdapterHarness({fastRun:run});
+ assert.equal((await independent.adapter({},48,8,0,{})).adapter,'MID_DWD_RUC_FAST_PAGES');
+ assert.equal(independent.calls.fast,1);
+});
+test('explicit digest override rechecks native UTC before superseding full RUC',async()=>{
+ const fullRun=run,oldRun=new Date(start-3600000).toISOString().slice(0,16);
+ const {adapter,calls}=pointAdapterHarness({fullRun,fastRun:oldRun,trustRun:null});
+ const point=await adapter({},48,8,0,{});
+ assert.equal(point.maxHours,27);
+ assert.equal(calls.fast,1);
+});
