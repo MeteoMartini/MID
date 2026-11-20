@@ -147,7 +147,7 @@ jobs:
           npm run audit:all
 
       - name: Python für echte RUC-GRIB-Regressionen einrichten
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -330,7 +330,7 @@ jobs:
           [ "$installed" = true ] || { echo "::error::npm ci konnte nicht erfolgreich abgeschlossen werden."; exit 1; }
 
       - name: Python für fachliche RUC-/GRIB-Core-Tests einrichten
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
           cache: pip
@@ -528,7 +528,7 @@ jobs:
           node-version: 22.16.0
           package-manager-cache: false
       - name: Set up pinned native Python GRIB runtime
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
           cache: pip
@@ -584,7 +584,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Python einrichten
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
       - name: Bestehende native Testumgebung installieren

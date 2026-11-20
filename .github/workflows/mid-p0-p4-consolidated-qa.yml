@@ -52,7 +52,7 @@ jobs:
       - name: Joint MapLibre recovery and native D2 field tests
         run: npx vitest run tests/unit/native-d2-full-domain.test.ts tests/unit/map-layer-recovery.test.ts
       - name: Python 3.12 for native map and physical map regressions
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
           cache: pip
@@ -77,7 +77,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
       - name: Python 3.12
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
       - name: Install only existing native validation requirements
@@ -110,7 +110,7 @@ jobs:
         with:
           node-version: 22.16.0
       - name: Python 3.12
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
       - name: Strict combined full/EPS20, bounded Fast and hostile CAS tests
