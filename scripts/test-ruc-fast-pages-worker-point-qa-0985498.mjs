@@ -11,8 +11,28 @@ assert.doesNotMatch(active,/node tools\/ruc\/ruc_fast_pages_readback\.mjs https:
 const readback=readFileSync(new URL('../tools/ruc/ruc_fast_pages_readback.mjs',import.meta.url),'utf8');
 assert.match(readback,/new URL\('ruc\/', origin\.endsWith\('\/'\)/, 'readback must preserve configured Pages site-path prefix');
 assert.match(active,/site_root='https:\/\/www\.midwx\.app\/'; fi/, 'known apex redirect must use canonical HTTPS www readback');
-assert.match(active,/id: fast_trust/,'Independent R2 publisher receipt missing');
-assert.match(active,/steps\.fast_trust\.outcome == 'failure'/,'Failed trust handoff must trigger Pages rollback');
+// Match the actual step-level YAML guards. Loose string tokens could remain
+// in comments or unrelated jobs while production rollback is unprotected.
+const fastJob=active.split(/^  publish_fast:\s*$/m)[1];
+assert.ok(fastJob,'Protected Fast publisher job missing');
+const steps=fastJob.split(/^      - name: /m).slice(1);
+const stepById=id=>{
+ const matches=steps.filter(s=>new RegExp('^        id: '+id+'$', 'm').test(s));
+ assert.equal(matches.length,1,'Fast publisher step missing or duplicated: '+id);
+ return matches[0];
+};
+const trustStep=stepById('fast_trust');
+const rollbackStep=stepById('fast_rollback');
+const rollbackReadback=stepById('fast_rollback_readback');
+const restoreStep=stepById('fast_trust_restore');
+assert.match(trustStep,/^        if: steps\.fast_readback\.outcome == 'success'$/m,
+ 'R2 receipt must follow successful public Pages SHA readback');
+assert.match(rollbackStep,/^        if: .*steps\.fast_deployment\.outcome == 'success'.*steps\.fast_trust\.outcome == 'failure'/m,
+ 'The actual Pages rollback step must cover failed R2 trust transfer');
+assert.match(rollbackReadback,/^        if: .*steps\.fast_rollback\.outcome == 'success'/m,
+ 'Original Pages SHA must be read back after rollback');
+assert.match(restoreStep,/^        if: .*steps\.fast_trust\.outputs\.wrote == 'true'.*steps\.fast_rollback_readback\.outcome == 'success'/m,
+ 'No R2 restoration before verified Pages rollback');
 const worker=readFileSync(new URL('../worker.js',import.meta.url),'utf8');
 const workerMirror=readFileSync(new URL('../worker/metar-proxy.js',import.meta.url),'utf8');
 assert.equal(worker,workerMirror,'Generated Worker mirror drift');
