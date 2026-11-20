@@ -1111,7 +1111,8 @@
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
     "scripts/test-www-proxy-hotfix-0985184.mjs",
-    "scripts/test-css-ownership-0985484.mjs"
+    "scripts/test-css-ownership-0985484.mjs",
+    "scripts/test-ensemble-plot-browser-0952.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -2212,7 +2213,8 @@
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
     "scripts/test-www-proxy-hotfix-0985184.mjs",
-    "scripts/test-css-ownership-0985484.mjs"
+    "scripts/test-css-ownership-0985484.mjs",
+    "scripts/test-ensemble-plot-browser-0952.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/chatgpt-pr-gate.yml",
@@ -3239,7 +3241,11 @@
     "worker-src/20-composite-models.js",
     "worker-src/25-dach-extreme-outlook.js",
     "worker-src/30-push-events.js",
-    "worker-src/40-aviation-router.js"
+    "worker-src/40-aviation-router.js",
+    "scripts/test-ensemble-plot-browser-0952.mjs",
+    "scripts/verify-ensemble-plot-browser-0952.mjs",
+    "tests/visual/ensemble-geometry-qa.html",
+    "tests/visual/ensemble-geometry-qa.tsx"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
