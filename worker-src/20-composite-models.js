@@ -820,14 +820,46 @@ async function weatherMapWmsResponse(request){
  const attempt=async base=>{const upstream=new URL(base);for(const[key,value]of url.searchParams){const normalized=key.toLowerCase();if(!allowed.has(normalized))continue;const outgoing=normalized==='layers'?String(value).split(',').map(layer=>dwdLayerForEndpoint(layer,base)).join(','):provider==='geomet'&&['time','dim_reference_time'].includes(normalized)?new Date(Date.parse(value)).toISOString().replace(/\.000Z$/,'Z'):value;upstream.searchParams.set(normalized,outgoing)}if(provider==='geomet')upstream.searchParams.set('interpolation',layers.some(layer=>WEATHER_MAP_LAYER_CONFIG.get(layer)?.categorical)?'false':'true');if(!upstream.searchParams.has('service'))upstream.searchParams.set('service','WMS');if(!upstream.searchParams.has('request'))upstream.searchParams.set('request','GetMap');if(String(upstream.searchParams.get('request')).toLowerCase()==='getlegendgraphic'){upstream.searchParams.set('layer',dwdLayerForEndpoint(layers[0],base));upstream.searchParams.set('style',url.searchParams.get('styles')||'');upstream.searchParams.delete('layers');upstream.searchParams.delete('styles')}const response=await fetchWithDeadline(upstream.toString(),{headers:{Accept:'image/png,image/webp,image/jpeg,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`,'Cache-Control':'no-cache'},cache:'no-store'},9000),type=String(response.headers.get('content-type')||'').toLowerCase();if(!response.ok)throw new Error(`${new URL(base).hostname}${new URL(base).pathname} HTTP ${response.status}`);if(!type.startsWith('image/')){await response.body?.cancel().catch(()=>undefined);throw new Error(`WMS_UPSTREAM_CONTENT_TYPE_${response.status}`)}return{response,type,base}};
  try{const{response,type,base}=await Promise.any((provider==='geomet'?[GEOMET_WEATHER_WMS]:DWD_RADAR_WMS_BASES).map(attempt));return new Response(response.body,{status:200,headers:{'content-type':type,'access-control-allow-origin':'*','cache-control':'public, max-age=120, stale-while-revalidate=300','x-mid-wms-provider':provider,'x-mid-wms-layer':layers[0],'x-mid-wms-endpoint':new URL(base).pathname,'x-mid-worker-version':WORKER_VERSION}})}catch{return new Response('Wetterkarte derzeit nicht verfügbar.',{status:502,headers:{'content-type':'text/plain; charset=utf-8','access-control-allow-origin':'*','cache-control':'no-store','x-mid-worker-version':WORKER_VERSION}})}
 }
+
+/** Validate bounded OGC WMS GetMap syntax before any upstream fetch.
+ * This only admits request geometry; it never proves weather/source coverage. */
+function compositeWmsRequestGeometryError(url){
+ const protectedKeys=new Set(['service','request','version','provider','layers','srs','crs','bbox','width','height','time','format']);
+ const values=new Map();
+ for(const [name,value]of url.searchParams){
+  const key=name.toLowerCase();
+  if(!protectedKeys.has(key))continue;
+  if(values.has(key))return'DUPLICATE_WMS_PARAMETER';
+  values.set(key,value);
+ }
+ if(values.has('service')&&String(values.get('service')).toUpperCase()!=='WMS')return'INVALID_WMS_SERVICE';
+ if(values.has('request')&&String(values.get('request')).toLowerCase()!=='getmap')return'INVALID_WMS_OPERATION';
+ const version=values.get('version');
+ if(version&&version!=='1.1.1'&&version!=='1.3.0')return'INVALID_WMS_VERSION';
+ const rawWidth=values.get('width'),rawHeight=values.get('height');
+ if(!/^\d{1,4}$/.test(rawWidth||'')||!/^\d{1,4}$/.test(rawHeight||''))return'INVALID_WMS_PIXELS';
+ const width=Number(rawWidth),height=Number(rawHeight);
+ if(!Number.isSafeInteger(width)||!Number.isSafeInteger(height)||width<1||height<1||
+    width>4096||height>4096||width*height>8388608)return'WMS_PIXEL_BUDGET';
+ const rawBbox=values.get('bbox');
+ if(typeof rawBbox!=='string'||rawBbox.length>160)return'INVALID_WMS_BBOX';
+ const parts=rawBbox.split(',');
+ if(parts.length!==4||parts.some(value=>!/^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?$/.test(value.trim())))return'INVALID_WMS_BBOX';
+ const [west,south,east,north]=parts.map(Number);
+ if(![west,south,east,north].every(Number.isFinite)||west>=east||south>=north||
+    [west,south,east,north].some(value=>Math.abs(value)>100000000))return'INVALID_WMS_BBOX';
+ return'';
+}
 async function compositeWmsResponse(request){
- const url=new URL(request.url),provider=String(url.searchParams.get('provider')||'').toLowerCase(),bases=provider==='dwd'?DWD_RADAR_WMS_BASES:provider==='eumetsat'?[EUMETSAT_WMS]:[];
+ const url=new URL(request.url),paramsByKey=new Map([...url.searchParams].map(([name,value])=>[name.toLowerCase(),value])),provider=String(paramsByKey.get('provider')||'').toLowerCase(),bases=provider==='dwd'?DWD_RADAR_WMS_BASES:provider==='eumetsat'?[EUMETSAT_WMS]:[];
  if(!bases.length)return json({error:'Ungültiger WMS-Provider',version:WORKER_VERSION},400,{'cache-control':'no-store'});
- const layers=String(url.searchParams.get('layers')||'').split(',').map(value=>value.trim()).filter(Boolean),allowedLayers=WMS_ALLOWED_LAYERS[provider];
+ const layers=String(paramsByKey.get('layers')||'').split(',').map(value=>value.trim()).filter(Boolean),allowedLayers=WMS_ALLOWED_LAYERS[provider];
  if(!layers.length||layers.some(layer=>!allowedLayers?.has(layer)))return json({error:'Nicht freigegebener WMS-Layer',version:WORKER_VERSION},400,{'cache-control':'no-store'});
- const requestedTime=url.searchParams.get('time'),requestedMs=requestedTime?Date.parse(requestedTime):NaN;if(requestedTime&&!Number.isFinite(requestedMs))return json({error:'Ungültiger WMS-Zeitpunkt',version:WORKER_VERSION},400,{'cache-control':'no-store'});
+ const requestedTime=paramsByKey.get('time'),requestedMs=requestedTime?Date.parse(requestedTime):NaN;if(requestedTime&&!Number.isFinite(requestedMs))return json({error:'Ungültiger WMS-Zeitpunkt',version:WORKER_VERSION},400,{'cache-control':'no-store'});
  if(Number.isFinite(requestedMs)){const now=Date.now(),isRadar=layers.some(layer=>DWD_RADAR_LAYERS.includes(layer)),isSynoptic=layers.every(layer=>Object.values(SYNOPTIC_WMS_PRODUCTS).some(product=>product.layer===layer)),isLightning=layers.some(layer=>layer==='dwd:Blitzdichte'||layer==='mtg_fd:li_afa'),isSatellitePrecip=layers.some(layer=>SATELLITE_PRECIP_CANDIDATES.some(item=>item.layer===layer)),isDwdSatellite=provider==='dwd'&&layers.some(layer=>SATELLITE_DAY_CANDIDATES.concat(SATELLITE_IR_CANDIDATES).some(item=>item.layer===layer)),minimum=now-(isRadar?70:isLightning?135:isSatellitePrecip?195:isDwdSatellite?240:195)*60000,maximum=now+(isRadar?125:isSynoptic?180:15)*60000;if(requestedMs<minimum||requestedMs>maximum)return json({error:'Der angeforderte WMS-Zeitpunkt liegt außerhalb des zulässigen Live-/Nowcast-Fensters.',version:WORKER_VERSION,serverTime:new Date(now).toISOString()},409,{'cache-control':'no-store'})}
  const allowed=new Set(['service','request','version','layers','styles','format','transparent','crs','srs','bbox','width','height','time','elevation','dim_reference_time','exceptions','bgcolor','tiled']);
+ const requestGeometryError=compositeWmsRequestGeometryError(url);
+ if(requestGeometryError)return json({error:requestGeometryError,version:WORKER_VERSION},400,{'cache-control':'no-store'});
  const attempt=async base=>{const upstream=new URL(base);for(const[key,value]of url.searchParams){const normalized=key.toLowerCase();if(!allowed.has(normalized))continue;const outgoing=provider==='dwd'&&normalized==='layers'?String(value).split(',').map(layer=>dwdLayerForEndpoint(layer,base)).join(','):value;upstream.searchParams.set(normalized,outgoing)}if(!upstream.searchParams.has('service'))upstream.searchParams.set('service','WMS');if(!upstream.searchParams.has('request'))upstream.searchParams.set('request','GetMap');const response=await fetchWithDeadline(upstream.toString(),{headers:{Accept:'image/png,image/webp,image/jpeg,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`,'Cache-Control':'no-cache'},cache:'no-store'},7000),type=String(response.headers.get('content-type')||'').toLowerCase();if(!response.ok)throw new Error(`${new URL(base).hostname}${new URL(base).pathname} HTTP ${response.status}`);if(!type.startsWith('image/')){await response.body?.cancel().catch(()=>undefined);throw new Error(`WMS_UPSTREAM_CONTENT_TYPE_${response.status}`)}return{response,type,base}};
  try{const{response,type,base}=await Promise.any(bases.map(attempt));return new Response(response.body,{status:200,headers:{'content-type':type,'access-control-allow-origin':'*','cache-control':'no-store, no-cache, must-revalidate','pragma':'no-cache','expires':'0','x-mid-wms-provider':provider,'x-mid-wms-layer':layers.join(','),'x-mid-wms-endpoint':new URL(base).pathname,'x-mid-worker-version':WORKER_VERSION}})}catch{return new Response('WMS-Karte derzeit nicht verfügbar.',{status:502,headers:{'content-type':'text/plain; charset=utf-8','access-control-allow-origin':'*','cache-control':'no-store','x-mid-worker-version':WORKER_VERSION}})};
 }

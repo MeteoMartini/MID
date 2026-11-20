@@ -18,8 +18,8 @@ assert.ok(main.indexOf('startRuntimeLifecycleBridge()')>main.indexOf('startDevic
 
 for(const source of [weatherFrag,weather]){
  assert.match(source,/offline=typeof navigator!==['"]undefined['"]&&navigator\.onLine===false/,'Forecast muss Offline vor dem Netzpfad erkennen.');
- assert.match(source,/if\(offline\)\{if\(cached\)return cachedForecastResult\(cached,'offline-local-cache'\);throw new Error\('Offline:/,'Offline muss sofort Cache oder verständlichen Fehler liefern.');
- assert.match(source,/cached:true,stale:entry\.age>FORECAST_CORE_FRESH_MS,ageMs:entry\.age/,'Offline-/Fallback-Forecast muss Cachealter diagnostisch tragen.');
+ assert.match(source,/if\(offline\)\{if\(cached\)return cachedForecastResult\(cached,'offline-local-cache'\);const nearby=readForecastCoreCache\(lat,lon,options,true\);if\(nearby\)return cachedForecastResult\(nearby,'offline-local-cache'\);throw new Error\('Offline:/,'Offline muss exakten Cache, klar gekennzeichneten Nearby-Notstand oder eine verständliche Fehlermeldung liefern.');
+ assert.match(source,/cached:true,stale:entry\.age>FORECAST_CORE_FRESH_MS\|\|match!=='exact',ageMs:entry\.age/,'Offline-/Fallback-Forecast muss Alter und räumliche Provenienz zusammen diagnostisch tragen.');
  assert.ok(source.indexOf('if(offline)')<source.indexOf("const useDirectFirst"),'Offline-Short-Circuit muss vor dem ersten Netzwerkpfad liegen.');
 }
 assert.match(app,/MID_RUNTIME_RESUME_EVENT/,'App muss den gemeinsamen Resume-Event auswerten.');

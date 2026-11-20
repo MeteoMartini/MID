@@ -1,3 +1,11 @@
+# MID v0.9.85.499
+
+- Der Prognose-Cache unterscheidet jetzt exakt passende Ortsdaten von Daten aus nahegelegenen Orten. Ein räumlich abweichender Cache-Eintrag wird nicht länger als ortsgenaue frische Vorhersage dargestellt.
+- Das Ensemble-Temperaturdiagramm trennt Wetter- und Gefahrenstreifen vom eigentlichen Datenplot und schützt Beschriftungen sowie Best-Match-Werte vor Überlagerung auf schmalen Displays.
+- Der WMS-Kartenproxy begrenzt große Rasteranfragen und prüft Bounding-Boxen, Bildabmessungen und doppelte Parameter, bevor externe Kartendienste angesprochen werden.
+- Die Taupunkt-Legende verwendet wieder das gleiche gestrichelte Linienmuster wie die zugehörige Kurve.
+- Die vorhandenen DWD-RUC-Fast-Lane-Funktionen, amtlichen Warnungen und meteorologischen Originalwerte bleiben erhalten. Fehlende Daten werden nicht als gemessene Nullwerte ausgegeben.
+
 # MID v0.9.85.498
 
 - Die DWD-ICON-D2-RUC-Fast-Lane kann qualifizierte, eigenständige Prognosen für die nächsten sechs Stunden bereitstellen, ohne auf einen vollständigen 27h-Ensemble-Lauf zu warten.

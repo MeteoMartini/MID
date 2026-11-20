@@ -1,3 +1,9 @@
+## MID v0.9.85.499 · 20.11.2026 · Leit-Integrationskandidat (Source, noch kein Release)
+
+- Verifizierter Stable-Ausgangspunkt `1592963e12688af4b2f8c74f933033235849dcb7` / v0.9.85.498, vier geprüfte Originalquellen #953, #957, #955 und #958.
+- Originalblob-konsistente Quellintegration; Worker-Bundles nach genau einer WMS-Originalhunk-Übernahme aus aktuell veröffentlichter RUC-Fast-Lane erzeugt; Version/Lockfile/Verträge/Web-/iOS-Mirrors synchronisiert.
+- Erst die vollständigen Source-, Build-, Regression-, Review-, Installer-, Worker-/Pages- und Stable-Nachweise dürfen einen tatsächlichen Release bestätigen. Dieser Kandidaten-Commit behauptet keinen dieser Erfolge.
+
 ## MID v0.9.85.498 · 2026-11-20 · DWD-RUC 0–6h-Fast-Lane – geprüfte unabhängige Veröffentlichung und Punkt-Consumer
 
 - Quellbasis main=mid-stable v0.9.85.497 @ 9fd872a789f4b158bc691d085589616c2c04f776.
