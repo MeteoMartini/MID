@@ -1,3 +1,13 @@
+## MID v0.9.85.498 · 2026-11-20 · DWD ICON-D2-RUC eigenständige 0–6h-Fast-Lane (Source-Kandidat, kein Release)
+
+- Geprüfte Ausgangsbasis: Stable .497 = `9fd872a789f4b158bc691d085589616c2c04f776`, fünf aktive Rulesets. Verifizierter ref-freier 0–6h-Quellstand `089cb6a34d3837620d5a3ecd5ad1b93a61730e7e`, parent exakt Stable.
+- Release-Version und gemeinsame Mirror-Pfade werden für .498 synchronisiert; neue Node-Worker-Fast-Regression in bestehenden Baseline-/Pflichtregressionen registriert. Keine alten Komponenten vollständig überschrieben.
+- Reale Original-GRIB-Daten/Offline-Producer vom 19.11. 21Z mit 188 dekodierten Einzeldateien, 7/73/25 nativen Terminen und SHA-gesiegelten Pages-Chunks auf #946 dokumentiert. Kein Vergleich mit einem angeblich aktuell frischen EPS20-Lauf und keine fiktiven Ensemble-Werte.
+- Aktueller Worker-Fast-Pfad bleibt bis zum authentisierten externen Digest-Transport deaktiviert; #955 verändert Worker-Bundles parallel und ist **nicht** ohne generierten Shard-Rebuild integrierbar. #947 ist ausschließlich Restore-only-Source-Optimierung, keine Fast-Freigabe.
+- Status: ref-frei; neue Vitest-/Core-/Heavy-/Browser-/Review-/Source-/ZIP-/Installer-/Worker-/Pages-/Stable-Ergebnisse noch nicht ausgeführt. Release erst über vorhandenen MID-Releasebot und alle wirklich anwendbaren Prüfungen.
+
+- Der zusätzlich vorbereitete geschützte Fast-Publisher→Worker-Digest-Transport speichert nach positivem Pages-Readback einen unabhängigen SHA-/Run-Beleg im bereits vorhandenen RUC-R2-Bucket; der Worker kann entweder den von einem geschützten Publisher gesicherten R2-Beleg oder eine ausdrücklich administrativ gesetzte SHA-Bindung verwenden; niemals den öffentlichen Pages-Manifest-SHA als eigenen Vertrauensanker. Bei Schreib-/Readback-Fehlern greift der Pages-Rollback. Details und zehn Worker-/zwei Receipt-Tests in `docs/implementation/MID_RUC_FAST_TRUST_RELAY_2026_11_20.md`. Diese neue Schicht ist noch **ref-frei und nicht produktiv geprüft**.
+
 ## MID v0.9.85.497 · 2026-11-19 · Responsive Lade- und Ensemble-Anzeigen mit Tageslicht-Kontrast
 
 - Ausgangs-Stable v0.9.85.496 SHA 256aabe286f7daa00dc0e320815dd8dacb7b4706; #948 QA-HEAD 5aa3a2cf768311fbd71977365b1bc92bcfc3baf7.

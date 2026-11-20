@@ -16,8 +16,19 @@ on:
       - 'ci/github/workflows/deploy.yml'
       - '.github/workflows/deploy.yml'
       - 'tools/ruc/test_ruc_fast_cell_shadow.mjs'
+      - 'tools/ruc/ruc_fast_pages_overlay.py'
+      - 'tools/ruc/test_ruc_fast_pages_overlay.py'
+      - 'tools/ruc/ruc_fast_consumer_shadow.py'
+      - 'tools/ruc/resolve_fast_pages_base.py'
+      - 'tools/ruc/ruc_fast_lane_producer.py'
+      - 'tools/ruc/ruc_fast_pages_preserve.py'
+      - 'tools/ruc/install_fast_pages.py'
+      - 'tools/ruc/prepare_fast_pages_delivery.py'
+      - 'tools/ruc/ruc_fast_pointer_staging.py'
       - 'tools/ruc/ruc_fast_pages_chunker.py'
       - 'tools/ruc/test_ruc_fast_pages_chunker.py'
+      - 'tools/ruc/ruc_fast_independent_pages.py'
+      - 'tools/ruc/test_ruc_fast_independent_pages.py'
       - 'ci/github/workflows/mid-ruc-fast-p2345-shadow-qa.yml'
       - '.github/workflows/mid-ruc-fast-p2345-shadow-qa.yml'
 permissions:
@@ -54,6 +65,11 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
+      - name: Test independent Fast Pages staging and existing overlay
+        run: |
+          python -m pip install --disable-pip-version-check 'numpy>=2.0,<3'
+          python tools/ruc/test_ruc_fast_independent_pages.py -v
+          python tools/ruc/test_ruc_fast_pages_overlay.py -v
       - name: Native R2 conditional CAS, bounded point, NoData and UTC, immutable Fast partition
         shell: bash
         run: |

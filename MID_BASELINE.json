@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.497",
+  "releaseVersion": "0.9.85.498",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -828,6 +828,7 @@
     "scripts/test-ruc-dual-read-0985258.mjs",
     "scripts/test-ruc-dwd-pipeline-09690.mjs",
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
+    "scripts/test-ruc-fast-pages-worker-point-qa-0985498.mjs",
     "scripts/test-ruc-full-fusion-horizon-0985363.mjs",
     "scripts/test-ruc-full-production-0985267.mjs",
     "scripts/test-ruc-fusion-runtime-09691.mjs",
@@ -1929,6 +1930,7 @@
     "scripts/test-ruc-dual-read-0985258.mjs",
     "scripts/test-ruc-dwd-pipeline-09690.mjs",
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
+    "scripts/test-ruc-fast-pages-worker-point-qa-0985498.mjs",
     "scripts/test-ruc-full-fusion-horizon-0985363.mjs",
     "scripts/test-ruc-full-production-0985267.mjs",
     "scripts/test-ruc-fusion-runtime-09691.mjs",
@@ -3980,7 +3982,7 @@
     "scripts/test-skybar-solid-colors-0985358.mjs",
     "scripts/test-current-moisture-0985462.mjs"
   ],
-  "version": "0.9.85.497",
+  "version": "0.9.85.498",
   "updatedAt": "2026-11-12",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",
