@@ -8,6 +8,9 @@ const mirror=readFileSync(new URL('../ci/github/workflows/mid-ruc-preprocess.yml
 assert.equal(active,mirror,'Protected RUC Publisher workflow mirror drift');
 assert.match(active,/node tools\/ruc\/ruc_fast_pages_readback\.mjs "\$site_root"/, 'Fast Pages public readback must use configured site root');
 assert.doesNotMatch(active,/node tools\/ruc\/ruc_fast_pages_readback\.mjs https:\/\/www\.midwx\.app/, 'Fast Pages site URL must not be hardcoded');
+const readback=readFileSync(new URL('../tools/ruc/ruc_fast_pages_readback.mjs',import.meta.url),'utf8');
+assert.match(readback,/new URL\('ruc\/', origin\.endsWith\('\/'\)/, 'readback must preserve configured Pages site-path prefix');
+assert.match(active,/site_root='https:\/\/www\.midwx\.app\/'; fi/, 'known apex redirect must use canonical HTTPS www readback');
 assert.match(active,/id: fast_trust/,'Independent R2 publisher receipt missing');
 assert.match(active,/steps\.fast_trust\.outcome == 'failure'/,'Failed trust handoff must trigger Pages rollback');
 const worker=readFileSync(new URL('../worker.js',import.meta.url),'utf8');

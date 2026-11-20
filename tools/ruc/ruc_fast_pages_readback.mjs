@@ -10,7 +10,7 @@ export async function verifyFastPagesReadback({
   fetchImpl = globalThis.fetch,
   signal,
 }) {
-  const base = new URL('/ruc/', origin);
+  const base = new URL('ruc/', origin.endsWith('/') ? origin : origin + '/');
   if (base.protocol !== 'https:' || base.username || base.password ||
       !/^[a-f0-9]{64}$/.test(manifestSha256 ?? '') ||
       !/^20\d\d-\d\d-\d\dT\d\d:00:00\.000Z$/.test(modelRunUtc ?? '') ||

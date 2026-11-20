@@ -1139,6 +1139,7 @@ jobs:
           configured="${MID_RUC_PAGES_BASE_URL%/}"
           [[ "$configured" =~ ^https://[^[:space:]?#]+/ruc$ ]] || { echo '::error::Invalid configured HTTPS RUC Pages base'; exit 1; }
           site_root="${configured%/ruc}/"
+          if [ "$site_root" = 'https://midwx.app/' ]; then site_root='https://www.midwx.app/'; fi
           for attempt in 1 2 3 4 5; do
             if node tools/ruc/ruc_fast_pages_readback.mjs "$site_root" "$fast_sha" "${run}:00.000Z" 294442 &&
                curl --proto-redir =https --location --max-time 15 --max-filesize 3000000 -fsS "${site_root}ruc/latest.json" -o live-full.json &&
@@ -1183,6 +1184,7 @@ jobs:
           configured="${MID_RUC_PAGES_BASE_URL%/}"
           [[ "$configured" =~ ^https://[^[:space:]?#]+/ruc$ ]] || { echo '::error::Invalid configured HTTPS RUC Pages base'; exit 1; }
           site_root="${configured%/ruc}/"
+          if [ "$site_root" = 'https://midwx.app/' ]; then site_root='https://www.midwx.app/'; fi
           curl --proto-redir =https --location --max-time 15 --max-filesize 3000000 -fsS "${site_root}ruc/latest.json" -o restored-full.json
           printf '%s  restored-full.json\n' "$full_sha" | sha256sum --check --status
           previous_sha="$(jq -r '.previousFastManifestSha256 // empty' bundle/fast-delivery-proof.json)"
