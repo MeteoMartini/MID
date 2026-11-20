@@ -335,7 +335,7 @@ type EnsembleChartMargin={top:number;right:number;bottom:number;left:number};
 function ensembleTemperatureZones(height:number,margin:EnsembleChartMargin,xAxisHeight:number){
  const plotTop=margin.top,plotBottom=Math.max(plotTop,height-margin.bottom-xAxisHeight);
  const weatherHeight=clamp((plotBottom-plotTop)*.07,14,22);
- const hazardY=plotBottom+11,weatherY=plotBottom+28;
+ const hazardY=plotBottom+8,weatherY=plotBottom+28;
  const dayTickMargin=weatherY+weatherHeight-plotBottom+9;
  return{plotTop,plotBottom,weatherHeight,hazardY,weatherY,dayTickMargin};
 }
