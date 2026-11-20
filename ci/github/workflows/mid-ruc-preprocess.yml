@@ -1143,10 +1143,29 @@ jobs:
             if [ "$attempt" -lt 5 ]; then sleep 10; fi
           done
           exit 1
+      - name: SHA-geprüften Fast-Publisher-Digest nach öffentlichem Readback in MID-RUC-R2 sichern
+        id: fast_trust
+        if: steps.fast_readback.outcome == 'success'
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          MID_RUC_R2_BUCKET: ${{ vars.MID_RUC_R2_BUCKET }}
+          STABLE_SHA: ${{ needs.qualify_fast.outputs.stable_sha }}
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_ACCOUNT_ID" && test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Bestehende Cloudflare-Publisher-Autorisierung fehlt"; exit 1; }
+          [[ "$MID_RUC_R2_BUCKET" =~ ^[a-z0-9][a-z0-9-]{2,62}$ ]] || { echo "::error::Bekannter MID-RUC-R2-Bucket nicht konfiguriert"; exit 1; }
+          node tools/ruc/build_fast_trust_receipt.mjs bundle/fast-delivery-proof.json "$RUNNER_TEMP/fast-trust.json"
+          object="$MID_RUC_R2_BUCKET/ruc/fast/publisher-trust.v1.json"
+          npm exec --yes --package=wrangler@4.125.0 -- wrangler r2 object put "$object" --remote --file "$RUNNER_TEMP/fast-trust.json" --content-type application/json
+          npm exec --yes --package=wrangler@4.125.0 -- wrangler r2 object get "$object" --remote --file "$RUNNER_TEMP/fast-trust-readback.json"
+          cmp "$RUNNER_TEMP/fast-trust.json" "$RUNNER_TEMP/fast-trust-readback.json"
       - name: Fast-Pages-Rückfall veröffentlichen
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         id: fast_rollback
-        if: ${{ failure() && steps.fast_deployment.outcome == 'success' && steps.fast_readback.outcome == 'failure' }}
+        if: ${{ failure() && steps.fast_deployment.outcome == 'success' && (steps.fast_readback.outcome == 'failure' || steps.fast_trust.outcome == 'failure') }}
         with:
           artifact_name: mid-fast-rollback-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Rückkehr des originalen Vollpointers prüfen

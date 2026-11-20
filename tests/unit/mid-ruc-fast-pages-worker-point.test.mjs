@@ -107,3 +107,66 @@ test('corrupted original native chunk fails SHA verification instead of returnin
   assert.ok(m.urls.length>=3);
  }finally{m.restore()}
 });
+
+
+const fastTrustReceipt=(sha,overrides={})=>({
+ schema:'mid.ruc.fast-publisher-trust.v1',version:'0.9.85.498',
+ repository:'MeteoMartini/MID',stableSha:'9fd872a789f4b158bc691d085589616c2c04f776',
+ run,fastManifestSha256:sha,...overrides
+});
+const withR2Receipt=(receipt,calls={count:0})=>({
+ MID_DWD_RUC_DATA:{get:async key=>{
+  calls.count++;
+  assert.equal(key,'ruc/fast/publisher-trust.v1.json');
+  return receipt===null?null:{text:async()=>JSON.stringify(receipt)};
+ }}
+});
+test('trusted R2 receipt automatically enables native Fast without public or manual digest binding',async()=>{
+ const f=await fixture(),m=mockPages(f),calls={count:0};
+ try{
+  const payload=await dwdRucNativeFastPagesPointPayload(48,8,withR2Receipt(fastTrustReceipt(f.sha),calls));
+  assert.ok(payload);
+  assert.equal(payload.mid_ruc.fastManifestSha256,f.sha);
+  assert.equal(payload.mid_ruc.epsAvailability,'unavailable');
+  assert.equal(payload.hourly.temperature_2m[0],null);
+  assert.equal(payload.hourly.dew_point_2m[0],0);
+  assert.equal(m.urls.length,5);
+  assert.equal(calls.count,1);
+ }finally{m.restore()}
+});
+test('untrusted or missing R2 receipt causes NoData before public Pages read',async()=>{
+ const f=await fixture(),m=mockPages(f);
+ try{
+  for(const receipt of [
+   null,
+   fastTrustReceipt(f.sha,{version:'0.9.85.497'}),
+   fastTrustReceipt(f.sha,{repository:'other/repo'}),
+   fastTrustReceipt('not-a-sha'),
+   fastTrustReceipt(f.sha,{stableSha:'z'.repeat(40)}),
+   fastTrustReceipt(f.sha,{run:'not-a-run'})
+  ]){
+   const calls={count:0};
+   assert.equal(await dwdRucNativeFastPagesPointPayload(48,8,withR2Receipt(receipt,calls)),null);
+   assert.equal(calls.count,1);
+  }
+  assert.equal(m.urls.length,0);
+ }finally{m.restore()}
+});
+test('stale R2 trust proof cannot authorize a cached historic deterministic run',async()=>{
+ const f=await fixture(),m=mockPages(f);
+ try{
+  const proof=fastTrustReceipt(f.sha,{run:new Date(Date.now()-6*3600000).toISOString().slice(0,13)+':00'});
+  assert.equal(await dwdRucNativeFastPagesPointPayload(48,8,withR2Receipt(proof)),null);
+  assert.equal(m.urls.length,0);
+ }finally{m.restore()}
+});
+test('explicitly disabled Fast binding prevents even trusted R2 read and Pages I/O',async()=>{
+ const f=await fixture(),m=mockPages(f),calls={count:0};
+ try{
+  const e=withR2Receipt(fastTrustReceipt(f.sha),calls);
+  e.MID_DWD_RUC_FAST_ENABLED='false';
+  assert.equal(await dwdRucNativeFastPagesPointPayload(48,8,e),null);
+  assert.equal(calls.count,0);
+  assert.equal(m.urls.length,0);
+ }finally{m.restore()}
+});

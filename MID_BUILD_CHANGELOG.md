@@ -6,6 +6,8 @@
 - Aktueller Worker-Fast-Pfad bleibt bis zum authentisierten externen Digest-Transport deaktiviert; #955 verändert Worker-Bundles parallel und ist **nicht** ohne generierten Shard-Rebuild integrierbar. #947 ist ausschließlich Restore-only-Source-Optimierung, keine Fast-Freigabe.
 - Status: ref-frei; neue Vitest-/Core-/Heavy-/Browser-/Review-/Source-/ZIP-/Installer-/Worker-/Pages-/Stable-Ergebnisse noch nicht ausgeführt. Release erst über vorhandenen MID-Releasebot und alle wirklich anwendbaren Prüfungen.
 
+- Der zusätzlich vorbereitete geschützte Fast-Publisher→Worker-Digest-Transport speichert nach positivem Pages-Readback einen unabhängigen SHA-/Run-Beleg im bereits vorhandenen RUC-R2-Bucket; der Worker liest ausschließlich diese vertrauenswürdige Quelle, nie den öffentlichen Manifest-SHA. Bei Schreib-/Readback-Fehlern greift der Pages-Rollback. Details und zehn Worker-/zwei Receipt-Tests in `docs/implementation/MID_RUC_FAST_TRUST_RELAY_2026_11_20.md`. Diese neue Schicht ist noch **ref-frei und nicht produktiv geprüft**.
+
 ## MID v0.9.85.497 · 2026-11-19 · Responsive Lade- und Ensemble-Anzeigen mit Tageslicht-Kontrast
 
 - Ausgangs-Stable v0.9.85.496 SHA 256aabe286f7daa00dc0e320815dd8dacb7b4706; #948 QA-HEAD 5aa3a2cf768311fbd71977365b1bc92bcfc3baf7.

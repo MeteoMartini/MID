@@ -1,8 +1,24 @@
-// SHA-bound MID #946 native Fast Pages Worker point contract.
-// Execute real Node test fixtures in the existing core regression runner.
+// SHA-bound MID #946 Fast Producer→Worker trust contract and source mirror checks.
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-const file=fileURLToPath(new URL('../tests/unit/mid-ruc-fast-pages-worker-point.test.mjs',import.meta.url));
-const run=spawnSync(process.execPath,['--test',file],{stdio:'inherit',timeout:120000});
-if(run.error)throw run.error;
-if(run.status!==0)process.exit(run.status??1);
+const active=readFileSync(new URL('../.github/workflows/mid-ruc-preprocess.yml',import.meta.url),'utf8');
+const mirror=readFileSync(new URL('../ci/github/workflows/mid-ruc-preprocess.yml',import.meta.url),'utf8');
+assert.equal(active,mirror,'Protected RUC Publisher workflow mirror drift');
+assert.match(active,/id: fast_trust/,'Independent R2 publisher receipt missing');
+assert.match(active,/steps\.fast_trust\.outcome == 'failure'/,'Failed trust handoff must trigger Pages rollback');
+const worker=readFileSync(new URL('../worker.js',import.meta.url),'utf8');
+const workerMirror=readFileSync(new URL('../worker/metar-proxy.js',import.meta.url),'utf8');
+assert.equal(worker,workerMirror,'Generated Worker mirror drift');
+assert.match(worker,/MID_RUC_FAST_TRUST_KEY='ruc\/fast\/publisher-trust\.v1\.json'/);
+const cases=[
+ '../tests/unit/mid-ruc-fast-pages-worker-point.test.mjs',
+ '../tools/ruc/test_build_fast_trust_receipt.mjs'
+];
+for(const relative of cases){
+ const test=fileURLToPath(new URL(relative,import.meta.url));
+ const run=spawnSync(process.execPath,['--test',test],{stdio:'inherit',timeout:120000});
+ if(run.error)throw run.error;
+ if(run.status!==0)process.exit(run.status??1);
+}

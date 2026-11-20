@@ -8,6 +8,9 @@
 
 **Release-Grenzen:** Dieser Text dokumentiert ausschließlich einen vorbereiteten Quellkandidaten. Kein neues Release, kein install-mid.yml, keine produktive Worker-/Pages-Promotion, kein echter iOS-/VoiceOver-Beleg. Der vorhandene Source-PR-Gate → kontrollierter Bot-Merge → serverseitiges ZIP → Installer → einschlägige Worker-/Pages-Gates → Stable-Promotion ist vollständig nachzuweisen. Reviewerbefunde und unveröffentlichte, überlappende Worker-Arbeit (#955) vor gemeinsamer Übernahme sorgfältig behandeln.
 
+**Neuer ref-freier Fast-Trust-Integrationsstand:** Der geschützte Pages-Publisher erstellt einen SHA-/Run-/Stable-gebundenen Beleg und schreibt ihn nach erfolgreichem öffentlichen Readback in den bestehenden MID-RUC-R2-Bucket. Der Worker kann diesen vom öffentlichen Pages-Manifest unabhängigen Beleg ohne erneutes Worker-Deployment übernehmen; eine ausdrücklich deaktivierte Funktion bleibt aus. Fehlgeschlagene Trust-Übertragung führt zum bereits vorgesehenen Pages-Rollback. Source-/CI-/Cloudflare-/Live-Abnahme **noch offen**. Siehe `docs/implementation/MID_RUC_FAST_TRUST_RELAY_2026_11_20.md`.
+
+
 ---
 # MID v0.9.85.497 · LC 1.21: responsive Lade- und Ensemble-Anzeige, Tag-/Nacht-Kontrast (Source-Kandidat)
 

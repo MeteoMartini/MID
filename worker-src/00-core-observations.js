@@ -719,9 +719,37 @@ async function midRucFastResponseBytes(response,maxBytes){
  for(const part of parts){result.set(part,offset);offset+=part.byteLength}
  return result;
 }
+// A protected Publisher writes this receipt to the existing RUC R2 bucket
+// only after a successful public Pages SHA readback. Pages JSON cannot set
+// or override the independent trust anchor.
+const MID_RUC_FAST_TRUST_KEY='ruc/fast/publisher-trust.v1.json';
+const midRucFastTrustCache=new WeakMap();
+async function dwdRucTrustedFastManifestSha(env){
+ if(env?.MID_DWD_RUC_FAST_ENABLED==='false')return null;
+ const explicit=String(env?.MID_DWD_RUC_FAST_MANIFEST_SHA256||'').trim();
+ if(env?.MID_DWD_RUC_FAST_ENABLED==='true'&&MID_RUC_FAST_SHA256.test(explicit))return explicit;
+ const bucket=env?.MID_DWD_RUC_DATA;
+ if(!bucket||typeof bucket.get!=='function')return null;
+ try{
+  const cached=midRucFastTrustCache.get(bucket);
+  if(cached&&Date.now()-cached.at<30000&&rucWindowFresh({initialisationEpoch:cached.run},Date.now()))
+   return cached.sha;
+  const object=await bucket.get(MID_RUC_FAST_TRUST_KEY);
+  if(!object||typeof object.text!=='function')return null;
+  const proof=JSON.parse(await object.text());
+  if(proof?.schema!=='mid.ruc.fast-publisher-trust.v1'||proof.version!==WORKER_VERSION||
+     proof.repository!=='MeteoMartini/MID'||!MID_RUC_FAST_SHA256.test(proof.fastManifestSha256)||
+     !/^[a-f0-9]{40}$/.test(proof.stableSha||'')||
+     !/^20\d{2}-\d\d-\d\dT\d\d:00$/.test(proof.run||''))return null;
+  const run=Date.parse(proof.run+'Z');
+  if(!Number.isFinite(run)||!rucWindowFresh({initialisationEpoch:run},Date.now()))return null;
+  midRucFastTrustCache.set(bucket,{at:Date.now(),run,sha:proof.fastManifestSha256});
+  return proof.fastManifestSha256;
+ }catch{return null}
+}
 async function dwdRucNativeFastPagesPointPayload(lat,lon,env){
- const trustedSha=String(env?.MID_DWD_RUC_FAST_MANIFEST_SHA256||'').trim();
- if(env?.MID_DWD_RUC_FAST_ENABLED!=='true'||!MID_RUC_FAST_SHA256.test(trustedSha))return null;
+ const trustedSha=await dwdRucTrustedFastManifestSha(env);
+ if(!trustedSha)return null;
  if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat<40||lat>61||lon<(-7)||lon>24)return null;
  try{
   const manifestUrl=new URL('fast/paged-shadow.json',MID_RUC_FAST_PAGES_ROOT);
