@@ -30,7 +30,7 @@ try{
  browser=await chromium.launch({headless:true,...(browserExecutable?{executablePath:browserExecutable}:{}),args:['--no-sandbox','--disable-dev-shm-usage']});
  report.browser=browser.version();
  for(const [width,height] of viewports)for(const theme of ['light','dark'])for(const fontScale of [1,...([390,1024].includes(width)?[2]:[])]){
-  const context=await browser.newContext({viewport:{width,height},colorScheme:theme,deviceScaleFactor:1,hasTouch:width<=834,reducedMotion:'reduce'}),page=await context.newPage(),errors=[],externalRequests=[];
+  const context=await browser.newContext({viewport:{width,height},colorScheme:theme,deviceScaleFactor:1,hasTouch:width<=834,reducedMotion:'reduce'}),page=await context.newPage(),errors=[],externalRequests=[];let measured=null;
   try{
    page.on('pageerror',error=>errors.push(error.message));
    await page.route('**/*',route=>{
@@ -54,7 +54,7 @@ try{
    await canvas.locator('svg.recharts-surface').waitFor({timeout:25000});
    await canvas.locator('svg.ensemble-temperature-weather-overlay.weather .ensemble-sky-strip-outline').waitFor({timeout:25000});
    await page.waitForFunction(()=>document.querySelectorAll('.ensemble-temperature-canvas .ensemble-temperature-value text').length>=14,null,{timeout:12000});
-   const measure=await canvas.evaluate(host=>{
+   const measure=measured=await canvas.evaluate(host=>{
     const finite=value=>Number.isFinite(value);
     const pickRect=node=>({x:Number(node.getAttribute('x')),y:Number(node.getAttribute('y')),width:Number(node.getAttribute('width')),height:Number(node.getAttribute('height'))});
     const surface=host.querySelector('svg.recharts-surface');
@@ -99,9 +99,10 @@ try{
    const suffix=width+'-'+theme+'-'+Math.round(fontScale*100)+'pct';
    await canvas.screenshot({path:join(evidenceDir,suffix+'.png'),animations:'disabled'});
    report.cases.push({width,height,theme,fontScale,measure,synthetic:true,passed:true,externalRequests:externalRequests.length});
+   console.log('MID #952 real SVG PASS '+suffix+' plot='+Math.round(measure.plot.height)+'px bandY='+Math.round(measure.weather.y)+'px dateTicks='+measure.xAxisText.length);
   }catch(error){
    const label=width+'-'+theme+'-'+Math.round(fontScale*100)+'pct';
-   report.errors.push({case:label,error:String(error),pageErrors:errors,externalRequests:externalRequests.slice(0,10)});
+   report.errors.push({case:label,error:String(error),measure:measured,pageErrors:errors,externalRequests:externalRequests.slice(0,10)});
    await page.screenshot({path:join(evidenceDir,'failed-'+label+'.png'),animations:'disabled'}).catch(()=>{});
   }finally{await context.close()}
  }
