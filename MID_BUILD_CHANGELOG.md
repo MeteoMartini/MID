@@ -1,3 +1,9 @@
+## MID v0.9.85.499 · 2026-11-20 · Ortsrichtiger Cache, Ensemble-Geometrie und WMS-Kartenschutz
+
+- Stable-Basis 1592963e12688af4b2f8c74f933033235849dcb7 / v0.9.85.498.
+- Verifizierte Originalheads: #953 62f3c7554daeb1fe3b823353fc9e93b835a24c15, #957 a4d558a5e729dceb2308c4d0f483a44e418ca67e, #955 cbb159525f6ae0edd8994437a49f17a396fbb07d, #958 bad89812662a45487638604e3b46e9345c733332.
+- Quellcode allein ist noch kein erfolgreicher Build, kein Release und keine produktive RUC-Datenfrische-Freigabe.
+
 ## MID v0.9.85.499 · 20.11.2026 · Leit-Integrationskandidat (Source, noch kein Release)
 
 - Verifizierter Stable-Ausgangspunkt `1592963e12688af4b2f8c74f933033235849dcb7` / v0.9.85.498, vier geprüfte Originalquellen #953, #957, #955 und #958.
