@@ -57,16 +57,23 @@ try{
    const measure=await canvas.evaluate(host=>{
     const finite=value=>Number.isFinite(value);
     const pickRect=node=>({x:Number(node.getAttribute('x')),y:Number(node.getAttribute('y')),width:Number(node.getAttribute('width')),height:Number(node.getAttribute('height'))});
-    const clipRects=[...host.querySelectorAll('svg.recharts-surface clipPath rect')].map(pickRect).filter(r=>Object.values(r).every(finite)&&r.width>100&&r.height>50);
-    if(!clipRects.length)throw Error('Missing actual Recharts SVG plot clip rectangle');
-    const mainPlot=clipRects.sort((a,b)=>b.width*b.height-a.width*a.height)[0];
+    const surface=host.querySelector('svg.recharts-surface');
+    if(!surface)throw Error('Missing actual Recharts SVG chart');
+    // Recharts 3 need not emit a full plot clipPath when neither Area nor Line
+    // needs clipping. Read the *actual rendered axis lines*, not theoretical margins.
+    const xAxisLine=surface.querySelector('.recharts-xAxis .recharts-cartesian-axis-line');
+    const yAxisLine=surface.querySelector('.recharts-yAxis .recharts-cartesian-axis-line');
+    const surfaceRect=surface.getBoundingClientRect(),xRect=xAxisLine?.getBoundingClientRect(),yRect=yAxisLine?.getBoundingClientRect();
+    const axes=xRect&&yRect?{x:xRect.left-surfaceRect.left,y:yRect.top-surfaceRect.top,width:xRect.width,height:yRect.height}:null;
+    const clipRects=[...surface.querySelectorAll('clipPath rect')].map(pickRect).filter(r=>Object.values(r).every(finite)&&r.width>100&&r.height>50);
+    const mainPlot=axes&&axes.width>100&&axes.height>50?axes:clipRects.sort((a,b)=>b.width*b.height-a.width*a.height)[0];
+    if(!mainPlot||!Object.values(mainPlot).every(finite))
+     throw Error('Actual Recharts plot axes/clip unavailable: '+JSON.stringify({xAxisLine:xAxisLine?.outerHTML.slice(0,230),yAxisLine:yAxisLine?.outerHTML.slice(0,230),rawClipRects:[...surface.querySelectorAll('clipPath rect')].slice(0,3).map(n=>n.outerHTML.slice(0,200)),xAxisCount:surface.querySelectorAll('.recharts-xAxis').length,yAxisCount:surface.querySelectorAll('.recharts-yAxis').length}));
     const band=host.querySelector('svg.ensemble-temperature-weather-overlay.weather .ensemble-sky-strip-outline');
     if(!band)throw Error('Missing original MID weatherband SVG');
     const weather=pickRect(band),allLabels=[...host.querySelectorAll('.ensemble-temperature-value text')];
     // Screen-space bounds include Recharts <g> transforms. getBBox() alone is local to
     // the nearest SVG coordinate system and would falsely validate/deny moved ticks.
-    const surface=host.querySelector('svg.recharts-surface');
-    if(!surface)throw Error('Missing Recharts surface for transformed label geometry');
     const svgTop=surface.getBoundingClientRect().top;
     const labels=allLabels.map(text=>{const rect=text.getBoundingClientRect();return{x:rect.x,y:rect.top-svgTop,width:rect.width,height:rect.height,value:text.textContent}});
     const xAxisText=[...host.querySelectorAll('.recharts-xAxis .recharts-cartesian-axis-tick text')].map(text=>{const rect=text.getBoundingClientRect();return {y:rect.top-svgTop,height:rect.height,text:text.textContent}});
