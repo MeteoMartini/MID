@@ -101,7 +101,13 @@ try{
      throw Error('Actual Recharts plot axes/clip unavailable: '+JSON.stringify({xAxisLine:xAxisLine?.outerHTML.slice(0,230),yAxisLine:yAxisLine?.outerHTML.slice(0,230),rawClipRects:[...surface.querySelectorAll('clipPath rect')].slice(0,3).map(n=>n.outerHTML.slice(0,200)),xAxisCount:surface.querySelectorAll('.recharts-xAxis').length,yAxisCount:surface.querySelectorAll('.recharts-yAxis').length}));
     const band=host.querySelector('svg.ensemble-temperature-weather-overlay.weather .ensemble-sky-strip-outline');
     if(!band)throw Error('Missing original MID weatherband SVG');
-    const weather=pickRect(band),allLabels=[...host.querySelectorAll('.ensemble-temperature-value text')];
+    // Compare the actual browser-rendered SVG bounds in one coordinate system.
+    // The attribute-only y was local to the SVG; hazards were screen-relative
+    // to Recharts, producing false overlap assertions on some viewports.
+    const weatherRect=band.getBoundingClientRect();
+    const weather={x:weatherRect.left-surfaceRect.left,y:weatherRect.top-surfaceRect.top,
+     width:weatherRect.width,height:weatherRect.height};
+    const allLabels=[...host.querySelectorAll('.ensemble-temperature-value text')];
     const hazardMarkers=[...host.querySelectorAll('svg.ensemble-temperature-weather-overlay.hazards .ensemble-hazard-marker circle')].map(circle=>{const rect=circle.getBoundingClientRect(),origin=surface.getBoundingClientRect();return{x:rect.left-origin.left,y:rect.top-origin.top,width:rect.width,height:rect.height}});
     // Screen-space bounds include Recharts <g> transforms. getBBox() alone is local to
     // the nearest SVG coordinate system and would falsely validate/deny moved ticks.
