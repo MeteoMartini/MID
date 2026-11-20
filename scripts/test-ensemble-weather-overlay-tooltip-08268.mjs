@@ -1,6 +1,8 @@
 import {readFileSync} from 'node:fs';
 import {transform} from 'esbuild';
 import vm from 'node:vm';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 const panel=readFileSync(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8');
 const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const chartMath=readFileSync(new URL('../src/chartMath.ts',import.meta.url),'utf8');
@@ -62,6 +64,40 @@ if(panel.includes('Math.min(...fallbackValues)-1.5,Math.max(...fallbackValues)+1
 // Existing generated chart geometry must remain optically and numerically coherent.
 if(!panel.includes('type="monotone" dataKey="bestMin"')||!panel.includes('type="monotone" dataKey="bestMax"'))
  failures.push('Temperature min/max plotted curves are missing');
+
+
+// QA pilot is an explicit, runnable browser evidence harness. Its existence is NOT
+// proof that Chromium screenshots or native Safari/iOS checks have run.
+const visualFixture=readFileSync(new URL('../tests/visual/ensemble-geometry-qa.tsx',import.meta.url),'utf8');
+const visualHtml=readFileSync(new URL('../tests/visual/ensemble-geometry-qa.html',import.meta.url),'utf8');
+const visualRunnerPath=fileURLToPath(new URL('./verify-ensemble-plot-browser-0952.mjs',import.meta.url));
+const visualRunner=readFileSync(visualRunnerPath,'utf8');
+const syntax=spawnSync(process.execPath,['--check',visualRunnerPath],{encoding:'utf8'});
+if(syntax.status!==0)failures.push('Browser QA runner fails Node syntax check: '+syntax.stderr);
+try{await transform(visualFixture,{loader:'tsx',target:'es2022'});}catch(e){failures.push('Deterministic React fixture fails transpile: '+String(e));}
+for(const token of ["import EnsemblePanel from '../../src/EnsemblePanel'","date,maxLow:day.max-width","precipitationAvailable:true","probabilityAvailable:true","const ensembleFixture:EnsembleDay[]"]){
+ if(!visualFixture.includes(token))failures.push('Synthetic fixture missing source/NoData contract: '+token);
+}
+for(const token of ['ensemble-geometry-qa.tsx','<meta name="viewport"']){
+ if(!visualHtml.includes(token))failures.push('Vite fixture entry missing: '+token);
+}
+for(const token of [
+ 'const viewports=[[320,568],[390,844],[430,932],[834,1112],[1024,768],[1440,900],[1920,1080]]',
+ 'synthetic deterministic dates',
+ "page.route('**/*'",
+ "host.querySelectorAll('svg.recharts-surface clipPath rect')",
+ 'text.getBoundingClientRect()',
+ 'measure.weather.y>=bottom+8',
+ 'measure.xAxisText.every',
+ "measure.labels.every",
+ 'report.errors.push',
+ 'report.passed=report.errors.length===0&&report.cases.length===18',
+ "writeFileSync(join(evidenceDir,'report.json')"
+]){
+ if(!visualRunner.includes(token))failures.push('Real Chromium/React plot-geometry gate missing: '+token);
+}
+if(visualRunner.includes('report.passed=true;')||visualRunner.includes('test.skip('))
+ failures.push('Real Chromium browser pilot must fail closed, not mark itself green unconditionally');
 
 if(failures.length){console.error('Ensemble-Wetterband-/Tooltip-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Achsengebundenes Wetterband, Hazards und unclipped mobile Tooltips geprüft.');
