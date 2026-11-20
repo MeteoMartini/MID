@@ -68,7 +68,8 @@ test('release-SHA-pinned Fast Pages point preserves 7/73/25 UTC, native zero vs 
   assert.equal(p.hourly.time.length,7);
   assert.equal(p.rapid.precip5.time.length,73);
   assert.equal(p.rapid.convection15.time.length,25);
-  assert.deepEqual(p.hourly.time,axis(60,7),'native hourly UTC validity timeline must be exact');
+  // Hourly consumer deliberately exposes full ISO 8601 UTC; rapid axes use minute precision.
+   assert.deepEqual(p.hourly.time,axis(60,7).map(value=>`${value}:00.000Z`),'native hourly UTC validity timeline must be exact');
   assert.deepEqual(p.rapid.precip5.time,axis(5,73),'native 5min UTC validity timeline must be exact');
   assert.deepEqual(p.rapid.convection15.time,axis(15,25),'native 15min UTC validity timeline must be exact');
   assert.equal(p.hourly.temperature_2m[0],null);
