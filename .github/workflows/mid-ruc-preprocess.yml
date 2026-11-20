@@ -1165,7 +1165,23 @@ jobs:
           [[ "$MID_RUC_R2_BUCKET" =~ ^[a-z0-9][a-z0-9-]{2,62}$ ]] || { echo "::error::Bekannter MID-RUC-R2-Bucket nicht konfiguriert"; exit 1; }
           node tools/ruc/build_fast_trust_receipt.mjs bundle/fast-delivery-proof.json "$RUNNER_TEMP/fast-trust.json"
           object="$MID_RUC_R2_BUCKET/ruc/fast/publisher-trust.v1.json"
+          previous="$RUNNER_TEMP/fast-trust-previous.json"
+          # HTTPS 404 proves absence. Other HTTP/network failures must halt.
+          code="$(curl --proto '=https' --tlsv1.2 --silent --show-error --max-time 20 --max-filesize 8192 \
+            -o "$previous" -w '%{http_code}' -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/r2/buckets/$MID_RUC_R2_BUCKET/objects/ruc/fast/publisher-trust.v1.json")"
+          case "$code" in
+            200)
+              prior="$(jq -r '.previousFastManifestSha256 // empty' bundle/fast-delivery-proof.json)"
+              if [ -z "$prior" ] || ! jq -e --arg sha "$prior" --arg repo "$GITHUB_REPOSITORY" \
+                '.schema == "mid.ruc.fast-publisher-trust.v1" and .repository == $repo and .fastManifestSha256 == $sha' "$previous" >/dev/null; then
+                rm -f "$previous"
+              fi ;;
+            404) rm -f "$previous" ;;
+            *) echo "::error::Cannot verify prior R2 trust receipt (HTTP $code)"; exit 1 ;;
+          esac
           npm exec --yes --package=wrangler@4.125.0 -- wrangler r2 object put "$object" --remote --file "$RUNNER_TEMP/fast-trust.json" --content-type application/json
+          echo 'wrote=true' >> "$GITHUB_OUTPUT"
           npm exec --yes --package=wrangler@4.125.0 -- wrangler r2 object get "$object" --remote --file "$RUNNER_TEMP/fast-trust-readback.json"
           cmp "$RUNNER_TEMP/fast-trust.json" "$RUNNER_TEMP/fast-trust-readback.json"
       - name: Fast-Pages-Rückfall veröffentlichen
@@ -1175,6 +1191,7 @@ jobs:
         with:
           artifact_name: mid-fast-rollback-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Rückkehr des originalen Vollpointers prüfen
+        id: fast_rollback_readback
         if: ${{ failure() && steps.fast_rollback.outcome == 'success' }}
         env:
           MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL || 'https://midwx.app/ruc/' }}
@@ -1196,3 +1213,33 @@ jobs:
             if [ "$attempt" -lt 5 ]; then sleep 10; fi
           done
           exit 1
+
+      - name: R2-Vertrauensbeleg nach SHA-bestaetigtem Pages-Rueckfall konsistent wiederherstellen
+        id: fast_trust_restore
+        if: ${{ failure() && steps.fast_trust.outputs.wrote == 'true' && steps.fast_rollback_readback.outcome == 'success' }}
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          MID_RUC_R2_BUCKET: ${{ vars.MID_RUC_R2_BUCKET }}
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_ACCOUNT_ID" && test -n "$CLOUDFLARE_API_TOKEN"
+          [[ "$MID_RUC_R2_BUCKET" =~ ^[a-z0-9][a-z0-9-]{2,62}$ ]]
+          object="$MID_RUC_R2_BUCKET/ruc/fast/publisher-trust.v1.json"
+          previous="$RUNNER_TEMP/fast-trust-previous.json"
+          current="$RUNNER_TEMP/fast-trust-current.json"
+          npm exec --yes --package=wrangler@4.125.0 -- wrangler r2 object get "$object" --remote --file "$current"
+          cmp "$RUNNER_TEMP/fast-trust.json" "$current"
+          if [ -f "$previous" ]; then
+            npm exec --yes --package=wrangler@4.125.0 -- wrangler r2 object put "$object" --remote --file "$previous" --content-type application/json
+            npm exec --yes --package=wrangler@4.125.0 -- wrangler r2 object get "$object" --remote --file "$RUNNER_TEMP/fast-trust-restored.json"
+            cmp "$previous" "$RUNNER_TEMP/fast-trust-restored.json"
+          else
+            npm exec --yes --package=wrangler@4.125.0 -- wrangler r2 object delete "$object" --remote
+            code="$(curl --proto '=https' --tlsv1.2 --silent --show-error --max-time 20 --max-filesize 8192 \
+              -o "$RUNNER_TEMP/fast-trust-deleted.json" -w '%{http_code}' -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/r2/buckets/$MID_RUC_R2_BUCKET/objects/ruc/fast/publisher-trust.v1.json")"
+            test "$code" = 404
+          fi

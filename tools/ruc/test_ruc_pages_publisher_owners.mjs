@@ -66,6 +66,12 @@ test('all GitHub Pages publishers are enumerated, SHA mirrored and share global 
      assert.match(job.body,/verify_fast_pages_publish\.py/);
      assert.match(job.body,/steps\.fast_publish_guard\.outcome == 'success'/);
      assert.match(job.body,/id:\s*fast_trust/,'independent trusted R2 SHA relay absent');
+     assert.match(job.body,/id:\s*fast_rollback_readback/,'rollback readback is unobserved');
+     assert.match(job.body,/id:\s*fast_trust_restore/,'independent R2 trust restore is missing');
+     assert.match(job.body,/steps\.fast_trust\.outputs\.wrote == 'true' && steps\.fast_rollback_readback\.outcome == 'success'/,'trust restore must follow verified rollback');
+     assert.match(job.body,/fast-trust-previous\.json/,'valid prior R2 trust proof was not preserved');
+     assert.match(job.body,/r2 object delete "\$object" --remote/,'first-time rollback must revoke stale trust');
+     assert.match(job.body,/cmp "\$RUNNER_TEMP\/fast-trust\.json" "\$current"/,'unsafe R2 overwrite after another publisher');
      assert.match(job.body,/if:\s*steps\.fast_readback\.outcome == 'success'/,'trust receipt before public Pages verification');
      assert.match(job.body,/steps\.fast_deployment\.outcome == 'success' && \(steps\.fast_readback\.outcome == 'failure' \|\| steps\.fast_trust\.outcome == 'failure'\)/,
        'Pages rollback must also protect failed independent R2 SHA transport');
