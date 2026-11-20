@@ -9,4 +9,4 @@ if((panel.match(/ensembleTemperatureZones\(height,margin,xAxisHeight\)/g)||[]).l
 if(panel.includes('hazardY=Math.max(plotTop+8,cellY-16)'))failures.push('Historische überlappende Hazard-Geometrie darf nicht zurückkehren');
 const source=ts.createSourceFile('EnsemblePanel.tsx',panel,ts.ScriptTarget.ESNext,true,ts.ScriptKind.TSX);if(source.parseDiagnostics.length)failures.push(...source.parseDiagnostics.map(item=>`Parser: ${item.messageText}`));
 if(failures.length){console.error('Recharts-3-Wetterebenen-Buildfix fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Recharts-3-Wetter-, Niederschlags- und Hazardebenen verwenden eine typsichere, achsengebundene SVG-Ebene.');
+console.log('Recharts-3-Wetter-/Hazard-Quellstruktur und TSX-Parsing geprüft; reale SVG-Geometrie und Typprüfung sind separate Gates.');

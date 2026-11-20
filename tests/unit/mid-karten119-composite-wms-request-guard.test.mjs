@@ -72,10 +72,17 @@ describe('MID-Karten 1.19: bounded composite GetMap proxy, zero external calls o
   }
  });
  it('rejects case-folded duplicate query keys, preventing first-value validation and last-value forwarding',async()=>{
-  for(const added of [['WIDTH','9000'],['height','8000'],['BBOX','0,0,999,999'],['LAYERS','dwd:other'],['Time','garbage'],['REQUEST','GetCapabilities'],['STYLES','unexpected'],['DIM_REFERENCE_TIME','2026-11-20T14:00Z'],['TRANSPARENT','false'],['elevation','850'],['TILED','true'],['FORMAT','image/jpeg']]){
+  for(const added of [['WIDTH','9000'],['height','8000'],['BBOX','0,0,999,999'],['LAYERS','dwd:other'],['Time','garbage'],['REQUEST','GetCapabilities'],['STYLES','unexpected'],['TRANSPARENT','false'],['FORMAT','image/jpeg']]){
    const result=await probe({},[added]);
    expect(result.status,added[0]).toBe(400);
    expect(result.upstream,added[0]).toHaveLength(0);
+  }
+ });
+ it('rejects duplicate WMS dimension/style forwarding keys even if the original key was absent',async()=>{
+  for(const [key,value] of [['dim_reference_time','2026-11-20T14:00Z'],['elevation','850'],['tiled','true'],['exceptions','application/vnd.ogc.se_xml'],['bgcolor','0xFFFFFF']]){
+   const result=await probe({},[[key,value],[key.toUpperCase(),value]]);
+   expect(result.status,key).toBe(400);
+   expect(result.upstream,key).toHaveLength(0);
   }
  });
  it('does not permit non-GetMap operations or non-WMS services through the image proxy',async()=>{

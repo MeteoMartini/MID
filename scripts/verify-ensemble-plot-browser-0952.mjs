@@ -36,6 +36,7 @@ try{
   const context=await browser.newContext({viewport:{width,height},colorScheme:theme,deviceScaleFactor:1,hasTouch:width<=834,reducedMotion:'reduce'}),page=await context.newPage(),errors=[],externalRequests=[];let measured=null;
   try{
    page.on('pageerror',error=>errors.push(error.message));
+   page.on('console',message=>{if(message.type()==='error')errors.push('console: '+message.text())});
    await page.route('**/*',route=>{
     const url=route.request().url();
     if(url.startsWith(origin+'/'))return route.continue();
@@ -75,6 +76,7 @@ try{
     const band=host.querySelector('svg.ensemble-temperature-weather-overlay.weather .ensemble-sky-strip-outline');
     if(!band)throw Error('Missing original MID weatherband SVG');
     const weather=pickRect(band),allLabels=[...host.querySelectorAll('.ensemble-temperature-value text')];
+    const hazardMarkers=[...host.querySelectorAll('svg.ensemble-temperature-weather-overlay.hazards .ensemble-hazard-marker circle')].map(circle=>{const rect=circle.getBoundingClientRect(),origin=surface.getBoundingClientRect();return{x:rect.left-origin.left,y:rect.top-origin.top,width:rect.width,height:rect.height}});
     // Screen-space bounds include Recharts <g> transforms. getBBox() alone is local to
     // the nearest SVG coordinate system and would falsely validate/deny moved ticks.
     const svgTop=surface.getBoundingClientRect().top,svgLeft=surface.getBoundingClientRect().left;
@@ -84,7 +86,7 @@ try{
     const xAxisMarks=host.querySelectorAll('.recharts-xAxis .recharts-cartesian-axis-tick-line').length;
     const lines=host.querySelectorAll('svg.recharts-surface .recharts-line .recharts-curve').length;
     const size=host.getBoundingClientRect();
-    return{plot:mainPlot,weather,labels,markerCount,xAxisText,xAxisMarks,lines,width:size.width,height:size.height,
+    return{plot:mainPlot,weather,hazardMarkers,labels,markerCount,xAxisText,xAxisMarks,lines,width:size.width,height:size.height,
      pageOverflow:document.documentElement.scrollWidth>innerWidth+2,
      theme:document.documentElement.dataset.theme,
      axisDebug:xAxisText.length?undefined:{axisNode:host.querySelector('.recharts-xAxis')?.outerHTML.slice(0,1400),allDateClass:host.querySelectorAll('.ensemble-date-axis-tick').length,surfaceTextCount:host.querySelectorAll('svg.recharts-surface text').length}};
@@ -92,6 +94,9 @@ try{
    assert.ok(measure.plot.y>=0&&measure.plot.height>60,'No valid real chart plot rectangle');
    const bottom=measure.plot.y+measure.plot.height;
    assert.ok(measure.weather.y>=bottom+8,'Weatherband intrudes into the real Recharts temperature plot');
+   assert.ok(measure.hazardMarkers.length>=1,'Synthetic day-3 wind hazard was not rendered');
+   assert.ok(measure.hazardMarkers.every(marker=>marker.y>=bottom+1&&marker.y+marker.height<=measure.weather.y-1),
+    'Hazard marker overlaps measured temperature plot or weather band');
    assert.ok(measure.weather.y+measure.weather.height<measure.height-7,'Weatherband clipped by chart frame');
    assert.equal(measure.markerCount,28,'All 14 Best-Match Tmin and Tmax source-point markers must remain visible');
    assert.ok(measure.labels.length>=4&&measure.labels.length<=28,'Responsive labels must show some representative temperatures while retaining all point markers');
@@ -109,7 +114,8 @@ try{
    assert.ok(measure.xAxisText.every(l=>l.y>=measure.weather.y+measure.weather.height-2),'Date tick text overlaps weatherband');
    assert.equal(measure.theme,theme,'Light/Dark theme missing');
    assert.equal(measure.pageOverflow,false,'Horizontal viewport overflow');
-   assert.deepEqual(errors,[],'Browser JS errors');
+   assert.deepEqual(errors,[],'Browser JS/console errors');
+   assert.deepEqual(externalRequests,[],'Synthetic test must not request live/external weather or fonts');
    // Screenshots are evidence only, never a substitute for the geometric assertions.
    const suffix=width+'-'+theme+'-'+Math.round(fontScale*100)+'pct';
    await canvas.screenshot({path:join(evidenceDir,suffix+'.png'),animations:'disabled'});

@@ -3,7 +3,7 @@
 import React from 'react';
 import {createRoot} from 'react-dom/client';
 import EnsemblePanel from '../../src/EnsemblePanel';
-import type {Day,EnsembleDay} from '../../src/weather';
+import type {Day,EnsembleDay,Hour} from '../../src/weather';
 import '../../src/styles.css';
 
 const start=Date.UTC(2026,10,20,12),dates=Array.from({length:14},(_,i)=>new Date(start+i*86400000).toISOString().slice(0,10));
@@ -24,6 +24,15 @@ const ensembleFixture:EnsembleDay[]=dates.map((date,i)=>{
   gustLow:10,gustHigh:21,gustMean:15,gustQ25:13,gustQ75:17,modelCount:2,memberCount:20
  };
 });
+// Synthetic 90-kt gust on day 3 exercises MID's derived, explicitly non-official
+// wind-hazard overlay without any live weather source or official warning.
+const syntheticHours:Hour[]=dates.map((date,i)=>({
+ time:date+'T12:00:00.000Z',epoch:Date.parse(date+'T12:00:00.000Z'),timezone:'UTC',
+ temperature:5,apparent:5,humidity:70,dewPoint:0,pressure:1015,
+ precipitation:0,rain:0,showers:0,snowfall:0,probability:0,code:3,
+ wind:8,gust:i===2?90:15,direction:240,cloud:50,lowCloud:30,uvIndex:1,
+ visibility:20000,cape:0,isDay:true
+}));
 const theme=new URLSearchParams(window.location.search).get('theme')==='dark'?'dark':'light';
 document.documentElement.dataset.theme=theme;
 document.documentElement.classList.toggle('dark',theme==='dark');
@@ -33,7 +42,7 @@ function QAFixture(){
  return <div className="app navigation-bottom-tabs" style={{width:'100%',minWidth:0,padding:0}}>
  <main style={{width:'100%',minWidth:0,maxWidth:'100%',margin:'0 auto'}}>
  <EnsemblePanel data={ensembleFixture} scenarios={[]} models={['QA synthetic ENS A','QA synthetic ENS B']}
- runs={[]} days={dayFixture} hours={[]} elevation={0} unit="kn" climate={[]} climateLoading={false}
+ runs={[]} days={dayFixture} hours={syntheticHours} elevation={0} unit="kn" climate={[]} climateLoading={false}
  climateError="" loading={false} error="" advancedMode={false} locationKey="mid-952-synthetic"
  locationName="MID synthetic QA — not a forecast" changeRadarEnabled={false} presentation="widget" widgetMetric="temperature"/>
  </main></div>;

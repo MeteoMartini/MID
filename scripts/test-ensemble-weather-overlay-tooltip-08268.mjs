@@ -57,7 +57,7 @@ for(const [name,minimum,maximum] of [
  if(!axis.ticks.every((value,index)=>index===0||Math.abs(value-axis.ticks[index-1]-step)<1e-6)||![1,2,5,10].some(x=>Math.abs(mantissa-x)<1e-6))
   failures.push(name+': temperature ticks are not uniform round 1/2/5/10-K intervals');
 }
-if(!panel.includes('row.maxLow,row.maxHigh,row.minLow,row.minHigh,row.bestMax,row.bestMin')||!panel.includes('temperatureScale=niceTemperatureScale('))
+if(!panel.includes('row.maxLow,row.maxHigh,row.minLow,row.minHigh,row.bestMax,row.bestMin')||!panel.includes('scaleValues=vals.length?vals:fallbackValues')||!panel.includes('temperatureScale=niceTemperatureScale(Math.min(...scaleValues)-1.5,Math.max(...scaleValues)+1.5,5)'))
  failures.push('Visible ensemble extrema must remain part of the common temperature-axis domain');
 if(panel.includes('Math.min(...fallbackValues)-1.5,Math.max(...fallbackValues)+1.5,5),minV='))
  failures.push('Do not silently replace ensemble domain with Best-Match-only limits');
