@@ -50,6 +50,12 @@ describe('MID post-Stable GitHub Releases catalog eligibility (not recovery auth
   reject({notes:{...baseline().notes,external:[]}});
   reject({notes:{...baseline().notes,version:'0.9.85.488'}});
  });
+ it('refuses same-sized version mirrors with wrong field names (release contract)',()=>{
+  const {notes: _missingNotes,...withoutNotes}=baseline().versions;
+  reject({versions:{...withoutNotes,placeholder:version}});
+  const {source: _missingSource,...withoutSource}=baseline().versions;
+  reject({versions:{...withoutSource,sourceTypo:version}});
+ });
  it('requires original installer id, attempt, workflow and event',()=>{
   reject({runId:5});reject({attempt:2});
   reject({run:{...baseline().run,event:'push'}});
