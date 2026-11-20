@@ -727,13 +727,13 @@ const midRucFastTrustCache=new WeakMap();
 async function dwdRucTrustedFastManifestSha(env){
  if(env?.MID_DWD_RUC_FAST_ENABLED==='false')return null;
  const explicit=String(env?.MID_DWD_RUC_FAST_MANIFEST_SHA256||'').trim();
- if(env?.MID_DWD_RUC_FAST_ENABLED==='true'&&MID_RUC_FAST_SHA256.test(explicit))return explicit;
+ if(env?.MID_DWD_RUC_FAST_ENABLED==='true'&&MID_RUC_FAST_SHA256.test(explicit))return {sha:explicit,run:null};
  const bucket=env?.MID_DWD_RUC_DATA;
  if(!bucket||typeof bucket.get!=='function')return null;
  try{
   const cached=midRucFastTrustCache.get(bucket);
   if(cached&&Date.now()-cached.at<30000&&rucWindowFresh({initialisationEpoch:cached.run},Date.now()))
-   return cached.sha;
+   return {sha:cached.sha,run:new Date(cached.run).toISOString().slice(0,16)};
   const object=await bucket.get(MID_RUC_FAST_TRUST_KEY);
   if(!object||typeof object.text!=='function')return null;
   const proof=JSON.parse(await object.text());
@@ -744,12 +744,12 @@ async function dwdRucTrustedFastManifestSha(env){
   const run=Date.parse(proof.run+'Z');
   if(!Number.isFinite(run)||!rucWindowFresh({initialisationEpoch:run},Date.now()))return null;
   midRucFastTrustCache.set(bucket,{at:Date.now(),run,sha:proof.fastManifestSha256});
-  return proof.fastManifestSha256;
+  return {sha:proof.fastManifestSha256,run:proof.run};
  }catch{return null}
 }
 async function dwdRucNativeFastPagesPointPayload(lat,lon,env){
- const trustedSha=await dwdRucTrustedFastManifestSha(env);
- if(!trustedSha)return null;
+ const trustedFast=await dwdRucTrustedFastManifestSha(env);
+ if(!trustedFast)return null;
  if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat<40||lat>61||lon<(-7)||lon>24)return null;
  try{
   const manifestUrl=new URL('fast/paged-shadow.json',MID_RUC_FAST_PAGES_ROOT);
@@ -757,8 +757,9 @@ async function dwdRucNativeFastPagesPointPayload(lat,lon,env){
    headers:{Accept:'application/json'},cf:{cacheTtl:30,cacheEverything:true}
   },3200);
   const bytes=await midRucFastResponseBytes(response,3_000_000);
-  if(await midNativeFastPagedReader.sha256hex(bytes)!==trustedSha)return null;
+  if(await midNativeFastPagedReader.sha256hex(bytes)!==trustedFast.sha)return null;
   const meta=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
+  if(trustedFast.run!==null&&meta?.run!==trustedFast.run)return null;
   // Match original DWD run UTC, not response retrieval time or an untrusted cache timestamp.
   const init=typeof meta?.run==='string'&&/^20\d{2}-\d\d-\d\dT\d\d:00$/.test(meta.run)?
    Date.parse(meta.run+'Z'):NaN;
@@ -779,7 +780,7 @@ async function dwdRucNativeFastPagesPointPayload(lat,lon,env){
    return midRucFastResponseBytes(resource,512*168);
   };
   const native=await midNativeFastPagedReader.readPagedFastPointShadow(
-   bytes,trustedSha,read,offset/4
+   bytes,trustedFast.sha,read,offset/4
   );
   if(!native.available||native.epsAvailable!==false||native.hours.length!==7||
      native.rapid5Minutes.length!==73||native.rapid15Minutes.length!==25||
@@ -795,11 +796,11 @@ async function dwdRucNativeFastPagesPointPayload(lat,lon,env){
   for(const name of names)hourly[name]=native.hours.map(hour=>hour.fields[name]??null);
   const rapid={
    precip5:{
-    time:native.rapid5Minutes.map(row=>row.validTimeUtc),
+    time:native.rapid5Minutes.map(row=>row.validTimeUtc.slice(0,16)),
     precipitation:native.rapid5Minutes.map(row=>row.precipitationMm)
    },
    convection15:{
-    time:native.rapid15Minutes.map(row=>row.validTimeUtc),
+    time:native.rapid15Minutes.map(row=>row.validTimeUtc.slice(0,16)),
     precipitation:native.rapid15Minutes.map(row=>row.precipitationMm),
     cape:native.rapid15Minutes.map(row=>row.capeJkg),
     convective_inhibition:native.rapid15Minutes.map(row=>row.cinJkg)
@@ -810,7 +811,7 @@ async function dwdRucNativeFastPagesPointPayload(lat,lon,env){
    hourly,rapid,mid_ruc:{run:meta.run,generatedAt:native.modelRunUtc,
     source:'DWD ICON-D2-RUC original native deterministic',
     storage:'SHA-pinned GitHub Pages Fast',epsAvailability:'unavailable',
-    fastManifestSha256:trustedSha}};
+    fastManifestSha256:trustedFast.sha}};
  }catch{
   // A corrupt, expired or unreachable immutable source is NoData, never dry.
   return null;

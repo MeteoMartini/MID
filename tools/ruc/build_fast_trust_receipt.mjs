@@ -25,7 +25,7 @@ export function trustedFastReceipt(proof,env,version,now=Date.now()){
   fail('invalid source run calendar');
  if(!Number.isFinite(now)||now-when>4*3600000||when-now>5*60000)
   fail('unfresh/future native source run');
- if(!Number.isSafeInteger(proof.siteBytes)||proof.siteBytes<=0||proof.siteBytes>900000000)
+ if(!Number.isSafeInteger(proof.siteBytes)||proof.siteBytes<=0||proof.siteBytes>=900000000)
   fail('Pages physical budget missing or exceeded');
  return {
   schema:'mid.ruc.fast-publisher-trust.v1',

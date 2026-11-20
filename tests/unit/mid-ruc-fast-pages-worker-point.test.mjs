@@ -68,6 +68,8 @@ test('release-SHA-pinned Fast Pages point preserves 7/73/25 UTC, native zero vs 
   assert.equal(p.hourly.time.length,7);
   assert.equal(p.rapid.precip5.time.length,73);
   assert.equal(p.rapid.convection15.time.length,25);
+  assert.ok(p.rapid.precip5.time.every(value=>/^20\d{2}-\d\d-\d\dT\d\d:\d\d$/.test(value)));
+  assert.ok(p.rapid.convection15.time.every(value=>/^20\d{2}-\d\d-\d\dT\d\d:\d\d$/.test(value)));
   assert.equal(p.hourly.temperature_2m[0],null);
   assert.equal(p.hourly.dew_point_2m[0],0);
   assert.equal(p.rapid.precip5.precipitation[0],null);
@@ -132,6 +134,15 @@ test('trusted R2 receipt automatically enables native Fast without public or man
   assert.equal(payload.hourly.dew_point_2m[0],0);
   assert.equal(m.urls.length,5);
   assert.equal(calls.count,1);
+ }finally{m.restore()}
+});
+test('R2 receipt with valid SHA but a mismatched UTC run fails before chunks',async()=>{
+ const f=await fixture(),m=mockPages(f);
+ try{
+  const otherRun=new Date(start-3600000).toISOString().slice(0,16);
+  assert.notEqual(otherRun,run);
+  assert.equal(await dwdRucNativeFastPagesPointPayload(48,8,withR2Receipt(fastTrustReceipt(f.sha,{run:otherRun}))),null);
+  assert.equal(m.urls.length,1);
  }finally{m.restore()}
 });
 test('untrusted or missing R2 receipt causes NoData before public Pages read',async()=>{
