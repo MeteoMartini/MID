@@ -14,7 +14,16 @@ const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const pkg=JSON.parse(readFileSync(join(root,'package.json'),'utf8'));
 const checkedOutHead=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
 assert.match(checkedOutHead,/^[0-9a-f]{40}$/,'A real checked-out SHA is required for browser evidence');
-if(process.env.HEAD_SHA)assert.equal(checkedOutHead,process.env.HEAD_SHA,'Browser evidence must match the exact authorized PR head');
+const githubActionHead=()=>{
+ if(process.env.GITHUB_ACTIONS!=='true')return null;
+ let event={};
+ try{if(process.env.GITHUB_EVENT_PATH)event=JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH,'utf8'))}catch{throw new Error('Cannot verify GitHub Actions event provenance for browser QA')}
+ const sha=event?.pull_request?.head?.sha||event?.workflow_run?.head_sha||process.env.GITHUB_SHA;
+ assert.match(String(sha||''),/^[0-9a-f]{40}$/,'GitHub Actions browser QA requires a valid event-bound head SHA');
+ return sha;
+};
+const expectedHead=process.env.HEAD_SHA||githubActionHead();
+if(expectedHead)assert.equal(checkedOutHead,expectedHead,'Browser evidence must match the exact event-authorized PR head');
 const cli=realpathSync(execFileSync('npm',['exec','--yes','--package=playwright@1.56.1','--','which','playwright'],{encoding:'utf8'}).trim());
 const {chromium}=createRequire(import.meta.url)(join(dirname(dirname(cli)),'playwright'));
 const browserExecutable=process.env.MID_BROWSER_EXECUTABLE||midCssQaBrowserExecutable();
