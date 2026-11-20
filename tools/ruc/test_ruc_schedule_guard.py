@@ -47,6 +47,27 @@ def fake_fetch(url):
     return listing
 assert guard.newest_common_run(fake_fetch)=='2026-08-30T01:00'
 
+def delayed_eps_fetch(url):
+    if url.startswith(guard.EPS_BASE):
+        return '<a href="2026-08-30T00:00/">older EPS run</a>'
+    return listing
+
+assert guard.newest_common_run(delayed_eps_fetch)=='2026-08-30T00:00'
+assert guard.newest_common_run(lambda url: '' if url.startswith(guard.EPS_BASE) else listing) is None
+
+def unreachable_eps_fetch(url):
+    if url.startswith(guard.EPS_BASE):
+        raise TimeoutError('EPS listing unavailable')
+    return listing
+
+try:
+    guard.newest_common_run(unreachable_eps_fetch)
+except TimeoutError:
+    pass
+else:
+    raise AssertionError('An unavailable upstream listing must reach the fail-open caller')
+
+
 report=guard.freshness_report('2026-08-30T02:00',meta('2026-08-30T01:00'),True,'catch-up',now=NOW)
 assert report['publishedRunAgeMinutes']==120 and report['upstreamRunAgeMinutes']==60
 assert report['availabilityLagMinutes']==60 and report['pagesMetaValid'] is True
