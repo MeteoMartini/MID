@@ -14,16 +14,33 @@ const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const pkg=JSON.parse(readFileSync(join(root,'package.json'),'utf8'));
 const checkedOutHead=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
 assert.match(checkedOutHead,/^[0-9a-f]{40}$/,'A real checked-out SHA is required for browser evidence');
-const githubActionHead=()=>{
+const githubEvent=()=>{
  if(process.env.GITHUB_ACTIONS!=='true')return null;
- let event={};
- try{if(process.env.GITHUB_EVENT_PATH)event=JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH,'utf8'))}catch{throw new Error('Cannot verify GitHub Actions event provenance for browser QA')}
- const sha=event?.pull_request?.head?.sha||event?.workflow_run?.head_sha||process.env.GITHUB_SHA;
- assert.match(String(sha||''),/^[0-9a-f]{40}$/,'GitHub Actions browser QA requires a valid event-bound head SHA');
- return sha;
+ assert.ok(process.env.GITHUB_EVENT_PATH,'GitHub Actions browser QA requires its authentic event payload');
+ let event;
+ try{event=JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH,'utf8'))}
+ catch{throw new Error('Cannot verify GitHub Actions event provenance for browser QA')}
+ const head=event?.pull_request?.head?.sha||event?.workflow_run?.head_sha||process.env.GITHUB_SHA;
+ assert.match(String(head||''),/^[0-9a-f]{40}$/,'GitHub Actions browser QA requires an event-bound source SHA');
+ return{event,head};
 };
-const expectedHead=process.env.HEAD_SHA||githubActionHead();
-if(expectedHead)assert.equal(checkedOutHead,expectedHead,'Browser evidence must match the exact event-authorized PR head');
+const eventContext=githubEvent(),expectedHead=process.env.HEAD_SHA||eventContext?.head;
+if(expectedHead){
+ assert.match(expectedHead,/^[0-9a-f]{40}$/,'Browser QA requires a valid authorized source SHA');
+ if(checkedOutHead!==expectedHead){
+  // pull_request CI uses refs/pull/N/merge, not necessarily the source HEAD.
+  // Raw Git commit parent lines remain readable with checkout fetch-depth: 1.
+  assert.equal(process.env.GITHUB_EVENT_NAME,'pull_request','Only authentic PR synthetic merges may differ from the source SHA');
+  assert.equal(process.env.GITHUB_SHA,checkedOutHead,'Checkout must equal the GitHub event merge SHA');
+  const event=eventContext?.event,pr=event?.pull_request;
+  assert.equal(pr?.head?.sha,expectedHead,'PR event must bind the source SHA');
+  assert.match(String(pr?.base?.sha||''),/^[0-9a-f]{40}$/,'PR event must bind the base SHA');
+  assert.equal(process.env.GITHUB_REF,`refs/pull/${event?.number}/merge`,'Checkout must be the matching PR merge ref');
+  const raw=execFileSync('git',['cat-file','-p',checkedOutHead],{cwd:root,encoding:'utf8'});
+  const parents=raw.split('\n').filter(row=>row.startsWith('parent ')).map(row=>row.slice(7));
+  assert.deepEqual(parents,[pr.base.sha,expectedHead],'Synthetic merge must have exactly the expected base and PR-head parents');
+ }
+}
 const cli=realpathSync(execFileSync('npm',['exec','--yes','--package=playwright@1.56.1','--','which','playwright'],{encoding:'utf8'}).trim());
 const {chromium}=createRequire(import.meta.url)(join(dirname(dirname(cli)),'playwright'));
 const browserExecutable=process.env.MID_BROWSER_EXECUTABLE||midCssQaBrowserExecutable();

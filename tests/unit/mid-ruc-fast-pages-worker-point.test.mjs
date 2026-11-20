@@ -1,6 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
 import {dwdRucNativeFastPagesPointPayload} from '../../worker.js';
 import {sha256hex} from '../../tools/ruc/ruc_fast_paged_point_shadow.mjs';
 const run=new Date(Math.floor(Date.now()/3600000)*3600000).toISOString().slice(0,16),start=Date.parse(run+'Z'),source='a'.repeat(64);
