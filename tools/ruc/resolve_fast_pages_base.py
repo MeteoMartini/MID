@@ -67,23 +67,78 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
     else:
         source = stable['parents'][0]['sha']
 
-    deployments = api('deployments?environment=github-pages&per_page=1')
-    require(len(deployments) == 1, 'latest Pages deployment is missing')
-    deployment = deployments[0]
-    require(deployment['environment'] == 'github-pages'
-            and deployment['sha'] in {source, expected_stable},
-            'latest Pages deployment does not match the current Stable source')
-    statuses = api(f"deployments/{deployment['id']}/statuses?per_page=1")
-    require(len(statuses) == 1 and statuses[0]['state'] == 'success',
+    # Failed newer Pages deployments must not hide the last successfully
+    # attested Stable deployment from Installer retries. Refuse unknown
+    # successful sources and pending deployments; inspect bounded history.
+    deployments = api('deployments?environment=github-pages&per_page=30')
+    require(isinstance(deployments, list) and 0 < len(deployments) < 30,
+            'Pages deployment history missing or incomplete')
+    deployment = None
+    statuses = None
+    for item in deployments:
+        require(item.get('environment') == 'github-pages',
+                'Pages deployment environment differs')
+        recent = api(f"deployments/{item['id']}/statuses?per_page=1")
+        require(len(recent) == 1, 'Pages deployment status missing')
+        if recent[0]['state'] == 'success':
+            require(item.get('sha') in {source, expected_stable},
+                    'latest successful Pages deployment not on Stable source')
+            deployment, statuses = item, recent
+            break
+        require(recent[0]['state'] in ('failure', 'error'),
+                'newest Pages deployment not in a safe terminal state')
+    require(deployment is not None,
             'latest Pages deployment is not successful')
-    jobs_url = re.fullmatch(
-        rf'https://github\.com/{REPOSITORY}/actions/runs/([1-9]\d*)/job/([1-9]\d*)',
-        statuses[0]['log_url'],
+    # deploy-pages publishes a run-level status URL on some valid Pages
+    # deployments. Never infer a job without independently verifying its
+    # identity, source SHA, run attempt and successful deploy/rollback step.
+    url = statuses[0].get('log_url', '')
+    run_link = re.fullmatch(
+        rf'https://github\.com/{REPOSITORY}/actions/runs/([1-9]\d*)(?:/job/([1-9]\d*))?',
+        url,
     )
-    require(jobs_url, 'untrusted Pages deployment job link')
-    run_id, job_id = map(int, jobs_url.groups())
+    require(run_link, 'untrusted Pages deployment run link')
+    run_id = int(run_link[1])
     run = api(f'actions/runs/{run_id}')
-    job = api(f'actions/jobs/{job_id}')
+    require(run['id'] == run_id and run['head_sha'] == deployment['sha']
+            and run['head_branch'] == 'main'
+            and run['head_repository']['full_name'] == REPOSITORY,
+            'untrusted Pages workflow or attempt')
+    if run_link[2]:
+        job_id = int(run_link[2])
+        job = api(f'actions/jobs/{job_id}')
+    else:
+        inventory = api(f'actions/runs/{run_id}/jobs?per_page=100')
+        require(inventory.get('total_count', 101) <= 100
+                and isinstance(inventory.get('jobs'), list)
+                and len(inventory['jobs']) == inventory['total_count'],
+                'incomplete Pages job inventory')
+        jobs = inventory['jobs']
+        def deployment_step(item):
+            steps = item.get('steps') or []
+            if run['path'] == '.github/workflows/install-mid.yml':
+                return (re.fullmatch(r'MID auf GitHub Pages veröffentlichen · Versuch [1-3]',
+                                     item.get('name', '')) is not None
+                        and any(re.fullmatch(r'GitHub-Pages-Deployment · Versuch [1-3]',
+                                             s.get('name', ''))
+                                and s.get('conclusion') == 'success' for s in steps))
+            if run['path'] == '.github/workflows/mid-ruc-preprocess.yml':
+                if item.get('name') == 'Unabhängige Fast Lane geschützt auf Pages veröffentlichen':
+                    return any(s.get('name') in ('Fast-Pages-Kandidat veröffentlichen',
+                                               'Fast-Pages-Rückfall veröffentlichen')
+                               and s.get('conclusion') == 'success' for s in steps)
+                if item.get('name') == 'MID + RUC kostenfrei auf GitHub Pages veröffentlichen':
+                    return any(s.get('name') in ('MID + RUC kostenfrei auf GitHub Pages veröffentlichen',
+                                               'Nach fehlgeschlagenem Codec-Healthcheck RUC-Rohsnapshot zurückveröffentlichen')
+                               and s.get('conclusion') == 'success' for s in steps)
+            return False
+        selected = [item for item in jobs if item.get('run_id') == run_id
+                    and item.get('head_sha') == run['head_sha']
+                    and item.get('run_attempt') == run['run_attempt']
+                    and deployment_step(item)]
+        require(len(selected) == 1, 'missing or ambiguous Pages deployment job')
+        job = selected[0]
+        job_id = job['id']
     require(run['id'] == run_id and run['head_sha'] == deployment['sha']
             and run['head_branch'] == 'main' and run['head_repository']['full_name'] == REPOSITORY
             and job['id'] == job_id and job['run_id'] == run_id

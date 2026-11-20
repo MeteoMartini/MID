@@ -1245,7 +1245,15 @@ jobs:
     steps:
       - name: Backoff vor zweitem Pages-Versuch
         shell: bash
+        env:
+          FAST_ENABLED: ${{ vars.MID_RUC_FAST_PAGES_ENABLED }}
+          FIRST_RESULT: ${{ needs.deploy_pages_1.result }}
         run: |
+          set -euo pipefail
+          if [ "$FAST_ENABLED" = "true" ] && [ "$FIRST_RESULT" = "skipped" ]; then
+            echo "Fast Pages: erster regulärer Pages-Deploy absichtlich übersprungen; keine künstliche Retry-Verzögerung."
+            exit 0
+          fi
           echo "Erster Pages-Versuch scheiterte. 75 s Backoff; ein bereits hochgeladenes Artefakt wird wiederverwendet."
           sleep 75
 

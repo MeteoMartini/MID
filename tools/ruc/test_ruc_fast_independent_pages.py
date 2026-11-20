@@ -165,6 +165,48 @@ class IndependentFastPages(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'native object metadata'):
             preserve_fast_pages(self.site, self.shadow, sha, now=self.now)
 
+    def test_preservation_rejects_nested_output_and_codec_null(self):
+        folder = self.site / FAST
+        folder.mkdir(parents=True)
+        pointer = folder / MANIFEST
+        pointer.write_text(self.manifest(self.run), encoding='utf-8')
+        sha = hashlib.sha256(pointer.read_bytes()).hexdigest()
+        for output in (self.site / 'child', self.site.parent):
+            output.mkdir(exist_ok=True)
+            with self.assertRaisesRegex(ValueError, 'non-nested'):
+                preserve_fast_pages(self.site, output, sha, now=self.now)
+        pointer.write_text(json.dumps({
+            'schema': 'mid.ruc.fast-paged-shadow.v1', 'run': self.run,
+            'epsAvailable': False, 'nativePoints': 542040, 'chunkCells': 512,
+            'productionEnabled': False, 'publicationAuthorized': False,
+            'realtimeConsumerEnabled': False, 'storageCodec': None,
+        }), encoding='utf-8')
+        sha = hashlib.sha256(pointer.read_bytes()).hexdigest()
+        with self.assertRaisesRegex(ValueError, 'storage codec'):
+            preserve_fast_pages(self.site, self.shadow, sha, now=self.now)
+
+    def test_native_provenance_and_axes_must_match_public_point_reader(self):
+        from ruc_fast_pages_preserve import validate_native_reader_contract, NATIVE_FIELDS
+        from datetime import timedelta
+        clock = datetime.strptime(self.run, '%Y-%m-%dT%H:%M').replace(tzinfo=timezone.utc)
+        entry = {
+            'sourceSchema': 'mid.ruc.fast-shadow-pointer.v1',
+            'sourceManifestSha256': 'a' * 64, 'sourceGribSha256': 'b' * 64,
+            'sourceNativeBytes': 253804736,
+            'grid': {'nx': 964, 'ny': 596, 'nativePointCount': 542040},
+            'fields': [dict(zip(('name','unit','scale','offset'), row)) for row in NATIVE_FIELDS],
+            'timeAxes': {name: [(clock+timedelta(minutes=step*i)).strftime('%Y-%m-%dT%H:%M')
+                         for i in range(count)]
+                         for name,step,count in (('hourly',60,7),('rapid5',5,73),('rapid15',15,25))},
+        }
+        validate_native_reader_contract(entry, clock)
+        for field, change in [('sourceNativeBytes', 0),('sourceGribSha256', 'bad'),
+                              ('grid', {'nx': 965, 'ny':596, 'nativePointCount':542040}),
+                              ('timeAxes', {}), ('fields', [])]:
+            modified = dict(entry, **{field: change})
+            with self.assertRaisesRegex(ValueError, 'native Fast'):
+                validate_native_reader_contract(modified, clock)
+
     def test_output_under_either_input_is_rejected(self):
         for parent in (self.site, self.shadow):
             self.output = parent / 'child'

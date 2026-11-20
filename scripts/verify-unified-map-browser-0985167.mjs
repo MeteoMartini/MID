@@ -178,6 +178,13 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
    console.error('Selected source term did not commit',{expected:value,detail});
    throw error;
   });
+  // The React source-select can commit before the visible native range.
+  // Wait for both controls to reflect the exact same selected source term.
+  await page.waitForFunction(expected=>{
+   const select=document.querySelector('select[aria-label="Kartentermin auswählen"]');
+   const range=document.querySelector('.composite-timeline-range input[type="range"]');
+   return select?.value===expected&&range?.value===expected;
+  },value,{timeout:5000});
   assert.equal(await timelineRange.inputValue(),value,'Visible range and exact source term stay synchronized');
  }
  await chooseTerm('0');

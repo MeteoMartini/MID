@@ -39,6 +39,9 @@ export function isCanonicalCatchupRucWorkflow(workflow){
   const jobTail=jobStart>=0?workflow.slice(jobStart+1):'';
   const nextJob=jobTail.slice(1).search(/\n  [A-Za-z][\w-]*:\s*\n/);
   const jobEnd=jobStart>=0?(nextJob<0?workflow.length:jobStart+2+nextJob):(-1);
+  const fastRequirements=workflow.indexOf('python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt', fast);
+  const pinnedFastDependencies=jobStart>=0 && fast>jobStart && fast<jobEnd &&
+    fastRequirements>fast && fastRequirements<checks[2] && fastRequirements<jobEnd;
   const expected=hasFast?[...full,fastSchedule]:full;
   return includesAll(workflow,RUC_CATCHUP_TOKENS)
     && JSON.stringify(schedules)===JSON.stringify(expected)
@@ -49,7 +52,7 @@ export function isCanonicalCatchupRucWorkflow(workflow){
     // stage must prove its own installed ECMWF decoder, without Ubuntu apt.
     && checks.length===(hasFast?3:2) && checks[0]>calculate && checks[0]<prepare
     && checks[1]>prepare
-    && (hasFast ? jobStart>=0 && fast>jobStart && fast<jobEnd && checks[2]>fast && checks[2]<jobEnd : fast===-1)
+    && (hasFast ? pinnedFastDependencies && checks[2]>fast && checks[2]<jobEnd : fast===-1)
     && !workflow.includes('sudo apt-get');
 }
 

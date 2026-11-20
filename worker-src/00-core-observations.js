@@ -732,10 +732,19 @@ async function dwdRucTrustedFastManifestSha(env){
  if(!bucket||typeof bucket.get!=='function')return null;
  try{
   const cached=midRucFastTrustCache.get(bucket);
-  if(cached&&Date.now()-cached.at<30000&&rucWindowFresh({initialisationEpoch:cached.run},Date.now()))
-   return {sha:cached.sha,run:new Date(cached.run).toISOString().slice(0,16)};
+  if(cached&&Date.now()-cached.at<30000){
+   if(cached.absent===true)return null;
+   if(rucWindowFresh({initialisationEpoch:cached.run},Date.now()))
+    return {sha:cached.sha,run:new Date(cached.run).toISOString().slice(0,16)};
+  }
   const object=await bucket.get(MID_RUC_FAST_TRUST_KEY);
-  if(!object||typeof object.text!=='function')return null;
+  if(!object){
+   // Only a genuinely absent object gets a negative 30s cache; auth failures
+   // and malformed/expired receipts remain fail-closed and are never invented.
+   midRucFastTrustCache.set(bucket,{at:Date.now(),absent:true});
+   return null;
+  }
+  if(typeof object.text!=='function')return null;
   const proof=JSON.parse(await object.text());
   if(proof?.schema!=='mid.ruc.fast-publisher-trust.v1'||proof.version!==WORKER_VERSION||
      proof.repository!=='MeteoMartini/MID'||!MID_RUC_FAST_SHA256.test(proof.fastManifestSha256)||

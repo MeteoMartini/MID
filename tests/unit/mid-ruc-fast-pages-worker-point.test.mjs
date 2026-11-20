@@ -123,6 +123,16 @@ const withR2Receipt=(receipt,calls={count:0})=>({
   return receipt===null?null:{text:async()=>JSON.stringify(receipt)};
  }}
 });
+test('absent R2 Fast receipt uses a short negative cache without repeated object reads',async()=>{
+ const m=mockPages({raw:new Uint8Array(0),pages:{}}),calls={count:0};
+ try{
+  const env=withR2Receipt(null,calls);
+  assert.equal(await dwdRucNativeFastPagesPointPayload(48,8,env),null);
+  assert.equal(await dwdRucNativeFastPagesPointPayload(48,8,env),null);
+  assert.equal(calls.count,1);
+  assert.equal(m.urls.length,0);
+ }finally{m.restore()}
+});
 test('trusted R2 receipt automatically enables native Fast without public or manual digest binding',async()=>{
  const f=await fixture(),m=mockPages(f),calls={count:0};
  try{

@@ -16,6 +16,14 @@ assert.deepEqual(
  ['11 * * * *','41 * * * *','13,43 * * * *'],
  'The original primary :11/:41 RUC slots and the isolated :13/:43 Fast schedule must remain exact.'
 );
+const workflowJob=id=>preprocess.split(new RegExp('^  '+id+':\\s*$', 'm'))[1]?.split(/^  [a-z][\w-]*:\s*$/m)[0]??'';
+for(const job of ['calculate','prepare']){
+ const body=workflowJob(job);
+ const condition=body.match(/^    if:\s*(.*)$/m)?.[1]??'';
+ must(condition.includes("!(github.event.schedule == '13,43 * * * *'") &&
+      condition.includes("inputs.fast_only == true"),
+      'The full RUC '+job+' job must exclude independent Fast slots');
+}
 must(preprocess.includes("github.event.schedule == '13,43 * * * *'"),
  'The independent Fast slots must remain separately classified from the original EPS/full pipeline.');
 must(preprocess.includes('default: false'),'Manual RUC dispatch must default to the freshness guard; forced rebuild remains explicit.');

@@ -16,14 +16,55 @@ FAST = Path("ruc/fast")
 MANIFEST = "paged-shadow.json"
 
 
+# Keep this contract aligned with the public original-DWD Fast point reader.
+# This verification does not itself make an unpublished model run official.
+NATIVE_FIELDS = (
+    ('temperature_2m', '°C', .01, 0), ('dew_point_2m', '°C', .01, 0),
+    ('relative_humidity_2m', '%', .1, 0), ('pressure_msl', 'hPa', .1, 0),
+    ('wind_speed_10m', 'kn', .01, 0), ('wind_direction_10m', '°', .1, 0),
+    ('wind_gusts_10m', 'kn', .01, 0), ('precipitation', 'mm', .01, 0),
+    ('cloud_cover', '%', .1, 0), ('cloud_cover_low', '%', .1, 0),
+    ('cape', 'J/kg', .1, 0), ('convective_inhibition', 'J/kg', .1, 0),
+)
+
+
+def validate_native_reader_contract(document, run):
+    if (document.get('sourceSchema') != 'mid.ruc.fast-shadow-pointer.v1'
+            or not all(isinstance(document.get(k), str)
+                       and re.fullmatch(r'[a-f0-9]{64}', document[k])
+                       for k in ('sourceManifestSha256', 'sourceGribSha256'))
+            or document.get('sourceNativeBytes') != 253804736):
+        raise ValueError('native Fast source provenance/total bytes invalid')
+    grid = document.get('grid')
+    if (not isinstance(grid, dict) or grid.get('nx') != 964
+            or grid.get('ny') != 596 or grid.get('nativePointCount') != 542040):
+        raise ValueError('native Fast grid metadata invalid')
+    fields = document.get('fields')
+    if (not isinstance(fields, list) or len(fields) != len(NATIVE_FIELDS)
+            or any(not isinstance(field, dict)
+                   or tuple(field.get(k) for k in ('name', 'unit', 'scale', 'offset')) != spec
+                   for field, spec in zip(fields, NATIVE_FIELDS))):
+        raise ValueError('native Fast field units/scales invalid')
+    axes = document.get('timeAxes')
+    if not isinstance(axes, dict):
+        raise ValueError('native Fast valid-time axes absent')
+    for key, minutes, count in (('hourly', 60, 7), ('rapid5', 5, 73),
+                                ('rapid15', 15, 25)):
+        expected = [(run + timedelta(minutes=minutes * i)).strftime('%Y-%m-%dT%H:%M')
+                    for i in range(count)]
+        if axes.get(key) != expected:
+            raise ValueError('native Fast UTC axes/accumulation invalid')
+
+
 def preserve_fast_pages(previous_site, next_site, expected_sha, *, now=None):
     """Call under the Pages publication lock with a trusted manifest SHA."""
     previous_site, next_site = map(Path, (previous_site, next_site))
     for site in (previous_site, next_site):
         if not site.is_dir() or site.is_symlink():
             raise ValueError('Pages roots must be local directories')
-    if previous_site.resolve() == next_site.resolve():
-        raise ValueError('Pages roots must be distinct')
+    old_root, new_root = previous_site.resolve(), next_site.resolve()
+    if old_root == new_root or old_root.is_relative_to(new_root) or new_root.is_relative_to(old_root):
+        raise ValueError('Pages roots must be distinct and non-nested')
     previous = previous_site / FAST
     target = next_site / FAST
     if not previous.is_dir() or previous.parent.is_symlink() or previous.is_symlink():
@@ -47,7 +88,7 @@ def preserve_fast_pages(previous_site, next_site, expected_sha, *, now=None):
                    ('productionEnabled', 'publicationAuthorized', 'realtimeConsumerEnabled'))):
         raise ValueError('unexpected native Fast Pages manifest')
     codec = document.get('storageCodec')
-    if codec not in (None, 'gzip-or-raw-v1'):
+    if 'storageCodec' in document and codec != 'gzip-or-raw-v1':
         raise ValueError('unknown Fast Pages storage codec')
     run = datetime.strptime(document['run'], '%Y-%m-%dT%H:%M').replace(tzinfo=timezone.utc)
     if run.strftime('%Y-%m-%dT%H:%M') != document['run'] or run.minute != 0:
@@ -69,6 +110,8 @@ def preserve_fast_pages(previous_site, next_site, expected_sha, *, now=None):
         if (not isinstance(obj, dict) or obj.get('bytesPerCell') != record_bytes
                 or obj.get('cellCount') != cells):
             raise ValueError('Fast Pages native object metadata mismatch')
+        if not re.fullmatch(r'[a-f0-9]{64}', str(obj.get('sourceSha256') or '')):
+            raise ValueError('native Fast original object digest missing')
         parts = obj.get('parts')
         if not isinstance(parts, list) or len(parts) != (cells + 511) // 512:
             raise ValueError('incomplete Fast Pages chunk inventory')
@@ -95,6 +138,7 @@ def preserve_fast_pages(previous_site, next_site, expected_sha, *, now=None):
             if part['key'] != 'fast/' + relative.as_posix():
                 raise ValueError('noncanonical Fast Pages chunk path')
             files[relative] = (length, checksum)
+    validate_native_reader_contract(document, run)
     if {file.relative_to(previous) for file in previous.rglob('*') if file.is_file()} != set(files):
         raise ValueError('unexpected object in Fast Pages namespace')
 

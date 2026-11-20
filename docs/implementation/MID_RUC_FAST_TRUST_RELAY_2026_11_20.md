@@ -2,7 +2,7 @@
 
 ## Iststand und Quelle
 
-Kanonische Produktionsbasis vor Integration: `main=mid-stable=9fd872a789f4b158bc691d085589616c2c04f776`, v0.9.85.497. Dieser Nachweis betrifft den **ref-freien** .498-Quellkandidaten und ist **keine** Source-PR-, Worker-/Pages- oder Stable-Freigabe. Der historische Spezial-Draft #946 entstand auf v0.9.85.496; Integrations-Originalquelle ist mittlerweile PR #960 auf Stable .497. Die beiden PR-HEADs und alle ref-freien Korrekturen sind vor Transport neu zu prüfen. Vor jedem Merge erneut den aktuellen Stable-SHA und parallele Änderungen (insbesondere #955 an den beiden generierten Worker-Bundles) prüfen.
+Kanonische Produktionsbasis vor Integration: `main=mid-stable=9fd872a789f4b158bc691d085589616c2c04f776`, v0.9.85.497. Dieser Nachweis betrifft den SHA-gebundenen .498-Integrationskandidaten im Source-PR #960 und ist **keine** Source-PR-, Worker-/Pages- oder Stable-Freigabe. Der historische Spezial-Draft #946 entstand auf v0.9.85.496; Integrations-Originalquelle ist mittlerweile PR #960 auf Stable .497. Die beiden PR-HEADs und alle ref-freien Korrekturen sind vor Transport neu zu prüfen. Vor jedem Merge erneut den aktuellen Stable-SHA und parallele Änderungen (insbesondere #955 an den beiden generierten Worker-Bundles) prüfen.
 
 Die echten 0–6h-Originaldaten wurden am 19.11.2026 21Z mit 188 Original-GRIB2-Dateien (DWD ecCodes 2.50), 542040 nativen Rasterpunkten, 7 stündlichen, 73 nativen 5-Minuten- und 25 nativen 15-Minuten-Zeitpunkten dekodiert. Dieser ursprüngliche Beleg ist **nicht** automatisch ein frischer 20.11.-Run; kein EPS20/27h wird für die Fast-Quelle erfunden.
 
@@ -18,8 +18,8 @@ Missing Data bleibt `null`, eine tatsächlich belegte Niederschlagsmenge `0` ble
 
 ## Im Quellkandidaten vorhandene Prüfschritte
 
-- `node --test tools/ruc/test_build_fast_trust_receipt.mjs`: 2 Tests mit zwölf Negativfällen; Ref-/Repository-/SHA-/UTC-/Budget-Missbrauch wird verweigert.
-- `node --test tests/unit/mid-ruc-fast-pages-worker-point.test.mjs`: zehn Tests, darunter neuer R2-Positivpfad und Abwehr von fehlerhaften, veralteten, fehlenden Belegen oder deaktivierter Funktion.
+- `node --test tools/ruc/test_build_fast_trust_receipt.mjs`: 2 Tests mit 19 Negativfällen; Ref-/Repository-/SHA-/UTC-/Budget-Missbrauch wird verweigert.
+- `node --test tests/unit/mid-ruc-fast-pages-worker-point.test.mjs`: 16 Tests, darunter neuer R2-Positivpfad und Abwehr von fehlerhaften, veralteten, fehlenden Belegen oder deaktivierter Funktion.
 - Die beiden Serien sind über `scripts/test-ruc-fast-pages-worker-point-qa-0985498.mjs` in den bestehenden `MID_BASELINE.json`-Pflichtregressionen registriert. Der Wrapper prüft zusätzlich die bytegleichen Workflow- und Worker-Spiegel sowie die Rollback-Bedingung.
 
 **Stand der tatsächlichen Ausführung:** Die neuen Writer-Original-Git-Blobs wurden unter Node 22 außerhalb der CI bytegleich nachgebildet und beide Builder-Tests bestanden. Die **ganze** Worker-Regression, GitHub Source/Core/Heavy, Cloudflare-Objektschreibrecht, realer Pages-/Worker-Readback, iOS und Stable-Promotion wurden für diesen Kandidaten nicht ausgeführt und sind nicht als erfolgreich zu melden.
