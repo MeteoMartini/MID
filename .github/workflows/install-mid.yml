@@ -1372,6 +1372,14 @@ jobs:
           fi
           python3 tools/ruc/check_ruc_snapshot_current.py --base "$RUC_BASE" --enabled "$RUC_ENABLED" --expected "$RUC_EXPECTED"
 
+      - name: Aktiven Fast-Stand unmittelbar vor Installer-Deploy bestätigen
+        id: installer_fast_guard
+        if: vars.MID_RUC_FAST_PAGES_ENABLED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: python3 tools/ruc/install_fast_pages.py verify --release-sha "$RELEASE_SHA" --dist dist --proof installer-fast-proof.json
+
       - name: Unverändertes main unmittelbar vor Pages-Versuch 2 prüfen
         id: main_fence_pages
         shell: bash
@@ -1390,14 +1398,6 @@ jobs:
             exit 1
           fi
           echo 'valid=true' >> "$GITHUB_OUTPUT"
-
-      - name: Aktiven Fast-Stand unmittelbar vor Installer-Deploy bestätigen
-        id: installer_fast_guard
-        if: vars.MID_RUC_FAST_PAGES_ENABLED == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
-        run: python3 tools/ruc/install_fast_pages.py verify --release-sha "$RELEASE_SHA" --dist dist --proof installer-fast-proof.json
 
       - name: GitHub-Pages-Deployment · Versuch 2
         id: deployment
@@ -1531,6 +1531,14 @@ jobs:
           fi
           python3 tools/ruc/check_ruc_snapshot_current.py --base "$RUC_BASE" --enabled "$RUC_ENABLED" --expected "$RUC_EXPECTED"
 
+      - name: Aktiven Fast-Stand unmittelbar vor Installer-Deploy bestätigen
+        id: installer_fast_guard
+        if: vars.MID_RUC_FAST_PAGES_ENABLED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: python3 tools/ruc/install_fast_pages.py verify --release-sha "$RELEASE_SHA" --dist dist --proof installer-fast-proof.json
+
       - name: Unverändertes main unmittelbar vor Pages-Versuch 3 prüfen
         id: main_fence_pages
         shell: bash
@@ -1549,14 +1557,6 @@ jobs:
             exit 1
           fi
           echo 'valid=true' >> "$GITHUB_OUTPUT"
-
-      - name: Aktiven Fast-Stand unmittelbar vor Installer-Deploy bestätigen
-        id: installer_fast_guard
-        if: vars.MID_RUC_FAST_PAGES_ENABLED == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
-        run: python3 tools/ruc/install_fast_pages.py verify --release-sha "$RELEASE_SHA" --dist dist --proof installer-fast-proof.json
 
       - name: GitHub-Pages-Deployment · Versuch 3
         if: steps.ruc_guard.outputs.current == 'true' && steps.main_fence_pages.outputs.valid == 'true' && (vars.MID_RUC_FAST_PAGES_ENABLED != 'true' || steps.installer_fast_guard.outcome == 'success')

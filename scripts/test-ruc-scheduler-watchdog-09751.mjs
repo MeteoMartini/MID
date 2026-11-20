@@ -8,7 +8,14 @@ const [primary,watchdog,sync,baselineText]=await Promise.all([
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
 ]);
 
-assert.equal((primary.match(/cron:/g)||[]).length,2,'Primärer RUC-Workflow muss exakt :11/:41 behalten.');
+assert.deepEqual(
+ [...primary.matchAll(/^\s*-\s+cron:\s*'([^']+)'$/gm)].map(m=>m[1]),
+ ['11 * * * *','41 * * * *','13,43 * * * *'],
+ 'Der reguläre RUC muss seine exakt gleichen :11/:41-Slots behalten; Fast :13/:43 ist ein getrennter Zeitplan.'
+);
+assert.ok(primary.includes("github.event.schedule == '13,43 * * * *'") &&
+          primary.includes("MID_RUC_FAST_PAGES_ENABLED == 'true'"),
+ 'Fast-spezifischer Scheduler muss separat gated bleiben.');
 for(const token of [
  "cron: '11 * * * *'","cron: '41 * * * *'",'workflow_dispatch:','force:','default: false','type: boolean',
  '"${{ inputs.force }}" != "false"','tools/ruc/check_ruc_schedule_guard.py','cancel-in-progress: false'
