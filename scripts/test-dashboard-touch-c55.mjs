@@ -48,6 +48,7 @@ try{
  assert.equal(writes,0);
  grip('current').props.onPointerUp(event('pointerup'));
  assert.equal(settings.order.indexOf('current'),8);assert.equal(writes,1,'Successful touch gesture must persist exactly once');
+ tree=render();assert.match(nodes(tree).find(n=>n.props?.role==='status').props.children.join(''),/Position 9 von 19/,'Successful touch reorder must announce destination');
  tree=render();const down=nodes(row('current')).find(n=>n.type==='button'&&n.props['aria-label']?.includes('nach unten'));down.props.onClick();tree=render();assert.equal(settings.order.indexOf('current'),9);assert.match(nodes(tree).find(n=>n.props?.role==='status').props.children.join(''),/Position 10 von 19/);
  grip('current').props.onPointerDown(event('pointerdown'));targetId='favorites';grip('current').props.onPointerMove(event('pointermove'));grip('current').props.onLostPointerCapture(event('lostpointercapture'));assert.equal(frames.size,0);
  // Desktop native HTML5 drop still performs one commit; touch-preview cleanup must not add a second.
@@ -56,8 +57,13 @@ try{
  tree=render();const beforeNativeDrop=writes;
  row('forecast').props.onDrop({preventDefault(){},dataTransfer:{getData(){return'favorites'}}});
  assert.equal(writes,beforeNativeDrop+1,'Native desktop drop persists exactly once');
+ tree=render();assert.match(nodes(tree).find(n=>n.props?.role==='status').props.children.join(''),/Position \d+ von 19/,'Native desktop reorder must announce destination');
  row('favorites').props.onDragEnd();
  assert.equal(writes,beforeNativeDrop+1,'Drag-end cleanup must not persist again');
+ tree=render();const reset=nodes(tree).find(n=>n.props?.className==='dashboard-module-reset');reset.props.onClick();
+ tree=render();assert.match(nodes(tree).find(n=>n.props?.role==='status').props.children.join(''),/Standardreihenfolge und Sichtbarkeit wiederhergestellt/,'Reset must announce changed module settings');
+ assert.match(nodes(tree).find(n=>n.props?.role==='list').props['aria-label'],/Pfeilschaltflächen oder Ziehen/,'List instructions must be exposed to assistive technology');
+ assert.equal(nodes(tree).find(n=>n.props?.role==='status').props['aria-atomic'],'true','Module announcement must be atomic');
  tree=render();grip('current').props.onPointerDown(event('pointerdown'));grip('current').props.onPointerMove(event('pointermove'));mod.cleanup();assert.equal(frames.size,0,'Unmount clears pending animation');
  const css=await readFile('src/styles-src/10-features.css','utf8');assert.match(css,/grid-template-columns:44px minmax\(0,1fr\) auto/);assert.match(css,/dashboard-module-grip\{display:grid;width:44px;height:44px/);
  const modern=await readFile('src/styles-src/30-modern.css','utf8');const coarse=modern.slice(modern.indexOf('@media(hover:none),(pointer:coarse){'));const sharedTouch=coarse.slice(0,coarse.indexOf('\n/*'));
