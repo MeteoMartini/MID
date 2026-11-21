@@ -1,3 +1,9 @@
+# MID v0.9.85.501
+
+- Die unabhängige DWD-ICON-D2-RUC-Fast-Lane wird für einen SHA-authentifizierten, R2-freien GitHub-Pages-Vertrauenspfad vorbereitet. Neue zusätzliche Cloudflare-R2-Kosten oder Abonnements sind dafür nicht vorgesehen.
+- Die geplante Fast-Versorgung prüft originale 0–6-Stunden-DWD-Daten, veröffentlicht einen kryptografisch gebundenen Herkunftsbeleg und verwendet nur nach erfolgreicher Worker-Prüfung gültige Wetterwerte; fehlende EPS-Daten bleiben nicht verfügbar.
+- Das bisherige 27-Stunden-RUC/EPS-Produkt, amtliche Warnungen und die Unterscheidung zwischen fehlenden und tatsächlichen Nullwerten bleiben geschützt. Die produktive Fast-Lane gilt erst nach den vorgeschriebenen Release- und echten End-to-End-Prüfungen als aktiv.
+
 # MID v0.9.85.500
 
 - Die Einstellungen laden die Bedienbereiche Ansicht, Wetter, Navigation und Einheiten erst beim Öffnen des jeweiligen Bereichs. Alle neun Einstellungsregister und gespeicherten Präferenzen bleiben erhalten.

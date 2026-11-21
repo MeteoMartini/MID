@@ -139,6 +139,25 @@ def preserve_fast_pages(previous_site, next_site, expected_sha, *, now=None):
                 raise ValueError('noncanonical Fast Pages chunk path')
             files[relative] = (length, checksum)
     validate_native_reader_contract(document, run)
+    # New R2-free signed provenance is an immutable, bounded part of the Fast
+    # namespace. This checks only its transport shape and exact copied bytes;
+    # the MID Worker independently verifies the GitHub issuer RSA signature.
+    signed = previous / 'publisher-proof.v2.json'
+    if signed.exists():
+        if not signed.is_file() or signed.is_symlink() or not 0 < signed.stat().st_size <= 16000:
+            raise ValueError('unsafe signed Fast publisher proof')
+        receipt = json.loads(signed.read_text(encoding='utf-8'))
+        if (receipt.get('schema') != 'mid.ruc.fast-oidc-proof.v1'
+                or receipt.get('run') != document['run']
+                or receipt.get('manifestSha256') != expected_sha
+                or not re.fullmatch(r'[a-f0-9]{40}', str(receipt.get('stableSha') or ''))
+                or any(type(receipt.get(key)) is not int or receipt[key] <= 0
+                       for key in ('runId', 'runAttempt'))
+                or not isinstance(receipt.get('oidcToken'), str)
+                or len(receipt['oidcToken']) > 12000
+                or len(receipt['oidcToken'].split('.')) != 3):
+            raise ValueError('signed Fast publisher proof inconsistent with native manifest')
+        files[Path('publisher-proof.v2.json')] = (signed.stat().st_size, sha_file(signed))
     if {file.relative_to(previous) for file in previous.rglob('*') if file.is_file()} != set(files):
         raise ValueError('unexpected object in Fast Pages namespace')
 

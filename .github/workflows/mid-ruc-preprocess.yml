@@ -940,6 +940,7 @@ jobs:
       contents: read
       actions: read
       deployments: read
+      id-token: write # GitHub SHA-audience signature without a MID secret
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -1012,6 +1013,11 @@ jobs:
           python tools/ruc/resolve_fast_pages_base.py --stable-sha "$STABLE_SHA" > pages-base-after.json
           cmp pages-base.json pages-base-after.json
           echo 'candidate=true' >> "$GITHUB_OUTPUT"
+      - name: GitHub-signierten Fast-Vertrauensbeleg ohne R2 im Pages-Baum versiegeln
+        if: steps.fast_assembly.outputs.candidate == 'true'
+        env:
+          STABLE_SHA: ${{ needs.qualify_fast.outputs.stable_sha }}
+        run: node tools/ruc/build_fast_oidc_proof.mjs fast-delivery-proof.json candidate-site/ruc/fast/publisher-proof.v2.json
       - name: Gebauten Kandidaten mit zugehörigem Herkunftsnachweis versiegeln
         id: fast_candidate_archive
         if: steps.fast_assembly.outputs.candidate == 'true'
@@ -1149,48 +1155,23 @@ jobs:
             if [ "$attempt" -lt 5 ]; then sleep 10; fi
           done
           exit 1
-      - name: SHA-geprüften Fast-Publisher-Digest nach öffentlichem Readback in MID-RUC-R2 sichern
-        id: fast_trust
+      - name: Öffentlichen GitHub-OIDC-SHA-Beleg nach Pages-Deploy unabhängig prüfen
+        id: fast_oidc_readback
         if: steps.fast_readback.outcome == 'success'
         env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          MID_RUC_R2_BUCKET: ${{ vars.MID_RUC_R2_BUCKET }}
-          STABLE_SHA: ${{ needs.qualify_fast.outputs.stable_sha }}
-        shell: bash
-        timeout-minutes: 8
+          MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL || 'https://midwx.app/ruc/' }}
         run: |
           set -euo pipefail
-          test -n "$CLOUDFLARE_ACCOUNT_ID" && test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Bestehende Cloudflare-Publisher-Autorisierung fehlt"; exit 1; }
-          [[ "$MID_RUC_R2_BUCKET" =~ ^[a-z0-9][a-z0-9-]{2,62}$ ]] || { echo "::error::Bekannter MID-RUC-R2-Bucket nicht konfiguriert"; exit 1; }
-          node tools/ruc/build_fast_trust_receipt.mjs bundle/fast-delivery-proof.json "$RUNNER_TEMP/fast-trust.json"
-          object="$MID_RUC_R2_BUCKET/ruc/fast/publisher-trust.v1.json"
-          previous="$RUNNER_TEMP/fast-trust-previous.json"
-          # HTTPS 404 proves absence. Other HTTP/network failures must halt.
-          code="$(curl --proto '=https' --tlsv1.2 --silent --show-error --max-time 20 --max-filesize 8192 \
-            -o "$previous" -w '%{http_code}' -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/r2/buckets/$MID_RUC_R2_BUCKET/objects/ruc/fast/publisher-trust.v1.json")"
-          case "$code" in
-            200)
-              prior="$(jq -r '.previousFastManifestSha256 // empty' bundle/fast-delivery-proof.json)"
-              if [ -z "$prior" ] || ! jq -e --arg sha "$prior" --arg repo "$GITHUB_REPOSITORY" \
-                '.schema == "mid.ruc.fast-publisher-trust.v1" and .repository == $repo and .fastManifestSha256 == $sha' "$previous" >/dev/null; then
-                rm -f "$previous"
-              fi ;;
-            404) rm -f "$previous" ;;
-            *) echo "::error::Cannot verify prior R2 trust receipt (HTTP $code)"; exit 1 ;;
-          esac
-          # A network failure can occur AFTER R2 has committed the object.
-          # Record the attempt before PUT so rollback reconciliation always runs.
-          echo 'attempted=true' >> "$GITHUB_OUTPUT"
-          npm exec --yes --package=wrangler@4.125.0 -- wrangler r2 object put "$object" --remote --file "$RUNNER_TEMP/fast-trust.json" --content-type application/json
-          echo 'wrote=true' >> "$GITHUB_OUTPUT"
-          npm exec --yes --package=wrangler@4.125.0 -- wrangler r2 object get "$object" --remote --file "$RUNNER_TEMP/fast-trust-readback.json"
-          cmp "$RUNNER_TEMP/fast-trust.json" "$RUNNER_TEMP/fast-trust-readback.json"
+          configured="${MID_RUC_PAGES_BASE_URL%/}"
+          [[ "$configured" =~ ^https://[^[:space:]?#]+/ruc$ ]] || exit 1
+          site_root="${configured%/ruc}/"
+          if [ "$site_root" = 'https://midwx.app/' ]; then site_root='https://www.midwx.app/'; fi
+          fast_sha="$(jq -er .fastManifestSha256 bundle/fast-delivery-proof.json)"
+          node tools/ruc/ruc_fast_oidc_readback.mjs "$site_root" bundle/candidate-site/ruc/fast/publisher-proof.v2.json "$fast_sha"
       - name: Fast-Pages-Rückfall veröffentlichen
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         id: fast_rollback
-        if: ${{ failure() && steps.fast_deployment.outcome == 'success' && (steps.fast_readback.outcome == 'failure' || steps.fast_trust.outcome == 'failure') }}
+        if: ${{ failure() && steps.fast_deployment.outcome == 'success' && (steps.fast_readback.outcome == 'failure' || steps.fast_oidc_readback.outcome == 'failure') }}
         with:
           artifact_name: mid-fast-rollback-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Rückkehr des originalen Vollpointers prüfen
@@ -1216,49 +1197,3 @@ jobs:
             if [ "$attempt" -lt 5 ]; then sleep 10; fi
           done
           exit 1
-
-      - name: R2-Vertrauensbeleg nach SHA-bestaetigtem Pages-Rueckfall konsistent wiederherstellen
-        id: fast_trust_restore
-        if: ${{ failure() && steps.fast_trust.outputs.attempted == 'true' && steps.fast_rollback_readback.outcome == 'success' }}
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          MID_RUC_R2_BUCKET: ${{ vars.MID_RUC_R2_BUCKET }}
-        shell: bash
-        timeout-minutes: 8
-        run: |
-          set -euo pipefail
-          test -n "$CLOUDFLARE_ACCOUNT_ID" && test -n "$CLOUDFLARE_API_TOKEN"
-          [[ "$MID_RUC_R2_BUCKET" =~ ^[a-z0-9][a-z0-9-]{2,62}$ ]]
-          object="$MID_RUC_R2_BUCKET/ruc/fast/publisher-trust.v1.json"
-          previous="$RUNNER_TEMP/fast-trust-previous.json"
-          current="$RUNNER_TEMP/fast-trust-current.json"
-          # Re-read the actual remote state: an ambiguous PUT may have changed
-          # nothing, written exactly our new receipt, or raced another writer.
-          code="$(curl --proto '=https' --tlsv1.2 --silent --show-error --max-time 20 --max-filesize 8192 \
-            -o "$current" -w '%{http_code}' -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/r2/buckets/$MID_RUC_R2_BUCKET/objects/ruc/fast/publisher-trust.v1.json")"
-          case "$code" in
-            200)
-              if cmp -s "$RUNNER_TEMP/fast-trust.json" "$current"; then
-                if [ -f "$previous" ]; then
-                  npm exec --yes --package=wrangler@4.125.0 -- wrangler r2 object put "$object" --remote --file "$previous" --content-type application/json
-                  npm exec --yes --package=wrangler@4.125.0 -- wrangler r2 object get "$object" --remote --file "$RUNNER_TEMP/fast-trust-restored.json"
-                  cmp "$previous" "$RUNNER_TEMP/fast-trust-restored.json"
-                else
-                  npm exec --yes --package=wrangler@4.125.0 -- wrangler r2 object delete "$object" --remote
-                  verify="$(curl --proto '=https' --tlsv1.2 --silent --show-error --max-time 20 --max-filesize 8192 \
-                    -o "$RUNNER_TEMP/fast-trust-deleted.json" -w '%{http_code}' -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-                    "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/r2/buckets/$MID_RUC_R2_BUCKET/objects/ruc/fast/publisher-trust.v1.json")"
-                  test "$verify" = 404
-                fi
-              elif [ -f "$previous" ] && cmp -s "$previous" "$current"; then
-                echo 'Earlier R2 trust receipt remained unchanged after failed PUT.'
-              else
-                echo '::error::An independently changed R2 trust receipt cannot be overwritten'
-                exit 1
-              fi ;;
-            404)
-              test ! -f "$previous" || { echo '::error::Previously verified R2 trust receipt disappeared'; exit 1; } ;;
-            *) echo "::error::Cannot reconcile remote R2 trust receipt (HTTP $code)"; exit 1 ;;
-          esac
