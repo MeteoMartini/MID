@@ -1,4 +1,4 @@
-## MID v0.9.85.500 · 2026-11-21 · LC 1.27 Settings-Mount und Dashboard-A11y (Source-Kandidat)
+## MID v0.9.85.500 · 2026-11-21 · Bedarfsgesteuerte Einstellungen und zugängliche Dashboard-Reihenfolge
 
 - Ausgangspunkt: veröffentlichte v0.9.85.499, main=mid-stable 43759c68d001e5c8e6409f6ef2916a6610bbbad4.
 - Originale QA-Spezial-Drafts: #959 HEAD deee1e570b90b1a31d87039d3a2337187dfc9e81 und #963 HEAD f5ec03a6f39207b9887f3e645cfe2a08d78d0f7c.

@@ -17,7 +17,7 @@ const run=(script:string,...args:string[])=>execFileSync(process.execPath,[path(
  cwd:root,encoding:'utf8',timeout:15000,stdio:['ignore','pipe','pipe']
 });
 const inspect=(script:string,...args:string[])=>JSON.parse(run(script,...args));
-const ORIGINAL_APP_BLOB='d5fd0cee5c6cf8df187f3493c864d136ab11bcd9';
+const PR_BASE_APP_BLOB='985ff40005ba4e3103149df494f70e818da0e3b3'; // Stable .499 verified input, not historical .497
 
 describe('MID Design20 source-owner and protected-view guards',()=>{
  it('keeps eight productive view groups and inventories six candidates without deleting them',()=>{
@@ -39,23 +39,19 @@ describe('MID Design20 source-owner and protected-view guards',()=>{
  });
  it('checks the exact source patch or the reviewed post-patch state twice without writes',()=>{
   const before=readFileSync(appPath,'utf8');
-  const original=gitBlob(before)===ORIGINAL_APP_BLOB;
-  const state=original?'--selftest':'--check-after';
-  const first=inspect('scripts/qa/design20SettingsTabSplit.mjs',state);
-  const second=inspect('scripts/qa/design20SettingsTabSplit.mjs',state);
+  // An unmodified .499 App must not be accepted as the deployed .500 Settings split.
+  expect(gitBlob(before)).not.toBe(PR_BASE_APP_BLOB);
+  const first=inspect('scripts/qa/design20SettingsTabSplit.mjs','--check-after');
+  const second=inspect('scripts/qa/design20SettingsTabSplit.mjs','--check-after');
   expect(first).toEqual(second);
-  if(original){
-   expect(first.result).toBe('PASS-dry-run');
-   expect(first.writes).toBe(0);
-   expect(first.baseBlob).toBe(ORIGINAL_APP_BLOB);
-   expect(first.tabOwnerGroups).toBe(13);
-   expect(first.deltaBytes).toBeGreaterThanOrEqual(200);
-   expect(first.deltaBytes).toBeLessThanOrEqual(500);
-  }else{
-   expect(first.result).toBe('PASS-after');
-   expect(first.sha).toBe(gitBlob(before));
-   expect(first.checks).toEqual({groups:11,items:9});
-  }
+  expect(first.result).toBe('PASS-after');
+  expect(first.sha).toBe(gitBlob(before));
+  expect(first.checks).toEqual({groups:11,items:9});
+  const verifier=readFileSync(path('scripts/qa/verifyDesign20SettingsRouteOwners.mjs'),'utf8');
+  expect(verifier).toContain("['--check-after']");
+  expect(verifier).not.toContain("'--selftest'");
+  const applyHelper=readFileSync(path('scripts/qa/design20SettingsTabSplit.mjs'),'utf8');
+  expect(applyHelper).toContain("['status','--porcelain','--untracked-files=all']");
   expect(readFileSync(appPath,'utf8')).toBe(before);
  });
  it('executes nine-route ownership verifier inside Vitest',()=>{
@@ -65,7 +61,7 @@ describe('MID Design20 source-owner and protected-view guards',()=>{
  });
  it('parses the entire productive App.tsx after the 13 JSX gates without a synthetic replacement tree',()=>{
   const content=readFileSync(appPath,'utf8');
-  expect(gitBlob(content)).not.toBe(ORIGINAL_APP_BLOB);
+  expect(gitBlob(content)).not.toBe(PR_BASE_APP_BLOB);
   const result=transformSync(content,{loader:'tsx',format:'esm',target:'es2022',sourcefile:'src/App.tsx',logLevel:'silent'});
   expect(result.code.length).toBeGreaterThan(350000);
   expect(content).toContain("{section==='navigation'&&<DashboardModuleSettingsPanel");

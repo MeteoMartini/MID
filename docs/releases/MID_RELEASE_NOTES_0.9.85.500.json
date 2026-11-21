@@ -2,7 +2,7 @@
   "schema": 1,
   "version": "0.9.85.500",
   "date": "2026-11-21",
-  "title": "Schnellere Einstellungen und zugängliche Dashboard-Reihenfolge",
+  "title": "Bedarfsgesteuerte Einstellungen und zugängliche Dashboard-Reihenfolge",
   "external": [
     "Die Einstellungen laden die Bedienbereiche Ansicht, Wetter, Navigation und Einheiten erst beim Öffnen des jeweiligen Bereichs. Alle neun Einstellungsregister und gespeicherten Präferenzen bleiben erhalten.",
     "Beim Umordnen der Dashboard-Module werden Status und Änderungen für Tastatur, Maus und Touch einheitlicher zugänglich angesagt. Die bestehende Modulreihenfolge bleibt gespeichert.",

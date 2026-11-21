@@ -97,7 +97,7 @@ if(command==='--preview'||command==='--selftest'){
 if(command!=='--apply')throw new Error('usage: --preview | --selftest | --apply | --check-after');
 const branch=execFileSync('git',['symbolic-ref','--quiet','--short','HEAD'],{encoding:'utf8'}).trim();
 if(!/^(chatgpt|codex)\/v0\.9\.85\.497-[a-z0-9-]+$/.test(branch))throw new Error('fail-closed: unauthorized agent branch '+branch);
-const dirty=execFileSync('git',['status','--porcelain','--','src/App.tsx'],{encoding:'utf8'}).trim();
-if(dirty)throw new Error('fail-closed: App.tsx has uncommitted changes');
+const dirty=execFileSync('git',['status','--porcelain','--untracked-files=all'],{encoding:'utf8'}).trim();
+if(dirty)throw new Error('fail-closed: complete worktree has uncommitted or untracked changes');
 writeFileSync(file,next,'utf8');
 console.log(JSON.stringify({result:'APPLIED-on-authorized-agent-branch',branch,baseBlob:sha,proposedBlob:gitBlob(next),tabOwnerGroups:13}));
