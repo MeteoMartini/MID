@@ -1,0 +1,110 @@
+name: MID RUC P3 real DWD EPS20 same-input A/B (read-only)
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'tools/ruc/ruc_p3_real_same_input_ab.py'
+      - 'tools/ruc/test_ruc_p3_real_same_input_ab.py'
+      - 'tools/ruc/build_ruc_bundle.py'
+      - 'tools/ruc/ruc_p3_eps_quantile_candidate.py'
+      - 'tools/ruc/test_ruc_p3_default_off_integration.py'
+      - 'ci/github/workflows/mid-ruc-p3-original-eps-ab.yml'
+      - '.github/workflows/mid-ruc-p3-original-eps-ab.yml'
+permissions:
+  contents: read
+concurrency:
+  group: mid-ruc-p3-original-ab-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  original-eps20-ab:
+    name: Original DWD 0-27h EPS20 original/candidate full byte A/B (never publish)
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (startsWith(github.head_ref, 'chatgpt/v') || startsWith(github.head_ref, 'codex/v'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout authenticated exact PR SHA without stored credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Verify current Stable/Main, PR lineage and canonical/active mirrors
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          cmp ci/github/workflows/mid-ruc-p3-original-eps-ab.yml .github/workflows/mid-ruc-p3-original-eps-ab.yml
+          current="$(git rev-parse HEAD)"
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          test "$current" = "$EXPECTED_HEAD"
+          test "$main" = "$stable"
+          comparison="$(gh api "repos/$GITHUB_REPOSITORY/compare/$stable...$current")"
+          jq -e --arg stable "$stable" '.status=="ahead" and .merge_base_commit.sha==$stable and .base_commit.sha==$stable' <<< "$comparison" >/dev/null
+          ! grep -q ruc_p3_real_same_input_ab ci/github/workflows/mid-ruc-preprocess.yml
+          # Requalified consolidated P3 branch: the candidate now exists in
+          # source but is unreachable from the production workflow.
+          grep -Fxq '_P3_ACCELERATED_QUANTILE_ENABLED = False' tools/ruc/build_ruc_bundle.py
+          ! grep -q '_P3_ACCELERATED_QUANTILE_ENABLED' ci/github/workflows/mid-ruc-preprocess.yml
+          ! grep -q '_P3_ACCELERATED_QUANTILE_ENABLED' .github/workflows/mid-ruc-preprocess.yml
+      - name: Native Python, ecCodes and the already pinned MID science dependencies
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Install read-only original GRIB decoder requirements
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y libeccodes-tools
+          python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+      - name: Offline adversarial P3 tests before network access
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile tools/ruc/ruc_p3_real_same_input_ab.py tools/ruc/test_ruc_p3_real_same_input_ab.py
+          python tools/ruc/test_ruc_p3_real_same_input_ab.py -v
+          python tools/ruc/test_ruc_p3_default_off_integration.py -v
+          python tools/ruc/test_ruc_p3_eps_quantile_candidate.py -v
+          python tools/ruc/test_ruc_p3_phase_profile.py -v
+      - name: Stage real DWD EPS20 once and compare all 133 original native point chunks
+        timeout-minutes: 37
+        shell: bash
+        env:
+          MID_RUC_EPS_DECODE_WORKERS: '2'
+          PYTHONFAULTHANDLER: '1'
+        run: |
+          set -euo pipefail
+          python tools/ruc/ruc_p3_real_same_input_ab.py --run auto --stage .ruc-p3-original-native --output ruc-p3-original-ab.json
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          x=json.loads(Path('ruc-p3-original-ab.json').read_text())
+          assert x['schema']=='mid.ruc.p3-authentic-original-eps20-ab.v1'
+          assert x['nativeOriginal']['sourceInventorySha256Verified'] is True
+          a=x['sameInputAB']
+          assert (a['originalDwdSourceTimeTermsVerified'],a['originalDwdNativePointsVerified'],a['originalDwdEpsMembersVerified'],a['chunks'])==(28,542040,20,133)
+          assert a['exactFloatQuantilesAllChunks'] and a['exactPackedEpsSummaryAllChunks'] and a['sameOriginalInputsCompared']
+          assert x['publicationAuthorized'] is False
+          assert x['productionSpeedupOrFreshnessSloAuthorized'] is False
+          assert x['physicalPagesBudgetVerified'] is False
+          with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a') as out:
+              out.write('### P3 original EPS20 same-source shadow only; no release authority\n\n')
+              out.write(f"Run: {x['runUtc']} · original GRIB manifest SHA256: {x['nativeOriginal']['sourceManifestSha256']}\n\n")
+              out.write(f"Reference {a['referenceSeconds']} s · candidate {a['candidateSeconds']} s · {a['chunks']} chunks; NoData kept; packed bytes identical.\n")
+              out.write('No original first-publication timestamp, full Pages budget, app adoption, production P95 or activation verified.\n')
+          PY
+      - name: Retain tiny SHA-bound read-only result, never original GRIB or secrets
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-ruc-p3-original-ab-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ruc-p3-original-ab.json
+          if-no-files-found: ignore
+          retention-days: 2

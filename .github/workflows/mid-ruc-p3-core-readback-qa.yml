@@ -1,0 +1,141 @@
+name: MID RUC P3 sealed core postpacked EPS20 readback (read-only)
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'tools/ruc/ruc_p3_core_readback_qa.py'
+      - 'tools/ruc/test_ruc_p3_core_readback_qa.py'
+      - 'ci/github/workflows/mid-ruc-p3-core-readback-qa.yml'
+      - '.github/workflows/mid-ruc-p3-core-readback-qa.yml'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: mid-ruc-p3-core-readback-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  postpacked-eps-qa:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (startsWith(github.head_ref, 'chatgpt/v') || startsWith(github.head_ref, 'codex/v'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Exact unprivileged source SHA, no saved credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Verify Stable, Main, authorized candidate and mirrored QA
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$HEAD_SHA"
+          cmp ci/github/workflows/mid-ruc-p3-core-readback-qa.yml .github/workflows/mid-ruc-p3-core-readback-qa.yml
+          cmp ci/github/workflows/mid-ruc-preprocess.yml .github/workflows/mid-ruc-preprocess.yml
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq '.object.sha')"
+          main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          test "$stable" = "$main"
+          gh api "repos/$GITHUB_REPOSITORY/compare/$stable...$HEAD_SHA" |
+            jq -e --arg stable "$stable" '.status=="ahead" and .merge_base_commit.sha==$stable' >/dev/null
+          ! grep -q 'ruc_p3_eps_quantile_candidate' tools/ruc/build_ruc_bundle.py
+          ! grep -q 'ruc_p3_core_readback_qa' ci/github/workflows/mid-ruc-preprocess.yml
+      - name: Python 3.12
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Install same science dependencies without DWD calls
+        run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+      - name: Run offline negative tests before any artifact retrieval
+        run: |
+          set -euo pipefail
+          python -m py_compile tools/ruc/ruc_p3_core_readback_qa.py tools/ruc/test_ruc_p3_core_readback_qa.py
+          python tools/ruc/test_ruc_p3_core_readback_qa.py -v
+      - name: Select existing SHA-attested original producer core, never dispatch DWD
+        id: select
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq '.object.sha')"
+          test "$stable" = "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          runs="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/mid-ruc-preprocess.yml/runs?status=success&per_page=25")"
+          selected=''
+          for run in $(jq -r --arg stable "$stable" '.workflow_runs[] | select(.head_sha==$stable and .head_branch=="main" and (.event=="schedule" or .event=="workflow_dispatch") and .status=="completed" and .conclusion=="success") | .id' <<< "$runs"); do
+            jobs="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run/jobs?per_page=100")"
+            if ! jq -e '[.jobs[] | select(.name=="calculate" and .status=="completed" and .conclusion=="success")] | length==1' <<< "$jobs" >/dev/null; then continue; fi
+            attempt="$(jq -r '[.jobs[] | select(.name=="calculate" and .status=="completed" and .conclusion=="success")][0].run_attempt' <<< "$jobs")"
+            artifacts="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run/artifacts?per_page=100")"
+            match="$(jq -c --arg name "mid-ruc-core-$run-$attempt" '[.artifacts[] | select(.name==$name and .expired==false and (.size_in_bytes>600000000 and .size_in_bytes<1600000000) and (.digest|startswith("sha256:")))]' <<< "$artifacts")"
+            if [ "$(jq 'length' <<< "$match")" != 1 ]; then continue; fi
+            selected="$run"
+            selected_attempt="$attempt"
+            selected_artifact="$(jq -r '.[0].id' <<< "$match")"
+            selected_digest="$(jq -r '.[0].digest' <<< "$match")"
+            break
+          done
+          test -n "$selected"
+          test -n "$selected_artifact"
+          test "$selected_attempt" -gt 0
+          test "${#selected_digest}" -eq 71
+          echo "producer_run_id=$selected" >> "$GITHUB_OUTPUT"
+          echo "producer_attempt=$selected_attempt" >> "$GITHUB_OUTPUT"
+          echo "producer_sha=$stable" >> "$GITHUB_OUTPUT"
+          echo "artifact_id=$selected_artifact" >> "$GITHUB_OUTPUT"
+          echo "Sealed producer core selected: run=$selected attempt=$selected_attempt sha=$stable"
+      - name: Retrieve exactly one original immutable core artifact with SHA256 verification
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ steps.select.outputs.artifact_id }}
+          run-id: ${{ steps.select.outputs.producer_run_id }}
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          digest-mismatch: error
+          path: ./.ruc-core-proof
+      - name: Inspect all genuine packed EPS points in bounded streaming process
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_STABLE: ${{ steps.select.outputs.producer_sha }}
+          EXPECTED_RUN: ${{ steps.select.outputs.producer_run_id }}
+          EXPECTED_ATTEMPT: ${{ steps.select.outputs.producer_attempt }}
+          PYTHONFAULTHANDLER: '1'
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq '.object.sha')" = "$EXPECTED_STABLE"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')" = "$EXPECTED_STABLE"
+          PYTHONPATH=tools/ruc python tools/ruc/ruc_p3_core_readback_qa.py \
+            --checkpoint .ruc-core-proof --producer-sha "$EXPECTED_STABLE" \
+            --run-id "$EXPECTED_RUN" --attempt "$EXPECTED_ATTEMPT" \
+            --output ruc-p3-postpacked-core-evidence.json
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          x=json.loads(Path('ruc-p3-postpacked-core-evidence.json').read_text())
+          assert x['schema']=='mid.ruc.p3-postpacked-core-snapshot-qa.v1'
+          assert (x['points'],x['validTimes'],x['members'],x['chunks'])==(542040,28,20,133)
+          assert x['referenceComparedChunksOnly']==4
+          assert not x['authenticOriginalGribFloatsPresent']
+          assert not x['realOriginalGribBuilderSpeedupVerified']
+          assert not x['publicationAuthorized']
+          assert not x['sixtyMinuteProductionP95Authorized']
+          with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a') as out:
+              out.write('### P3 actual sealed core post-quantization QA — NOT original GRIB\n')
+              out.write(f"Run {x['modelRunUtc']}, {x['chunks']} native chunks; RSS {x['postpackedStreamingProcessPeakRssMiB']} MiB, {x['postpackedStreamingWallSeconds']}s\n")
+              out.write('No authentic original GRIB floats, full builder RAM/speedup, SLO or release authority.\n')
+          PY
+      - name: Archive only tiny SHA-bound report, not production arrays
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-ruc-p3-postpacked-core-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ruc-p3-postpacked-core-evidence.json
+          retention-days: 5
+          if-no-files-found: ignore

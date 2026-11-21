@@ -40,8 +40,11 @@ jobs:
           set -euo pipefail
           if [ "${GITHUB_EVENT_NAME}" = pull_request ]; then test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"; fi
           cmp ci/github/workflows/mid-ruc-p3-eps-quantile-qa.yml .github/workflows/mid-ruc-p3-eps-quantile-qa.yml
-          # Fail closed if a later change quietly enables an experimental production path.
-          ! grep -q 'ruc_p3_eps_quantile_candidate' tools/ruc/build_ruc_bundle.py
+          # P3 source scaffold is deliberately test-only and permanently OFF.
+          # A future ENABLE must have its own signed source/release QA and code diff.
+          grep -Fxq '_P3_ACCELERATED_QUANTILE_ENABLED = False' tools/ruc/build_ruc_bundle.py
+          ! grep -q '_P3_ACCELERATED_QUANTILE_ENABLED' ci/github/workflows/mid-ruc-preprocess.yml
+          ! grep -q '_P3_ACCELERATED_QUANTILE_ENABLED' .github/workflows/mid-ruc-preprocess.yml
       - name: NumPy 2.x scientific test runtime
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -54,6 +57,7 @@ jobs:
           set -euo pipefail
           python -m py_compile tools/ruc/ruc_p3_eps_quantile_candidate.py tools/ruc/test_ruc_p3_eps_quantile_candidate.py
           python tools/ruc/test_ruc_p3_eps_quantile_candidate.py -v
+          python tools/ruc/test_ruc_p3_default_off_integration.py -v
           python tools/ruc/test_ruc_p3_phase_profile.py -v
           python tools/ruc/test_ruc_p3_native_log_audit.py -v
-          echo '13+ candidate-only synthetic tests including original production eps_summary AST and exact ruc_pack wire byte equality; NO original DWD GRIB or app/worker SLO evidence, NO release authorization.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Original production np.nanquantile remains the only enabled path. Isolated test injects P3 flag into AST memory only; optimized method/packed bytes parity offline. NO DWD GRIB, full-process RAM, speedup, App SLO, publication, or release authorization.' >> "$GITHUB_STEP_SUMMARY"
