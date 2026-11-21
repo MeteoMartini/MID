@@ -1,3 +1,9 @@
+# MID v0.9.85.500 · LC 1.27: fokussierter Settings-Mount und bedienbare Dashboard-Reihenfolge (Source-Kandidat)
+
+**Verifizierte Ausgangsbasis:** `main=mid-stable=43759c68d001e5c8e6409f6ef2916a6610bbbad4` / v0.9.85.499. Original-Intakes: #959 `deee1e570b90b1a31d87039d3a2337187dfc9e81`, #963 `f5ec03a6f39207b9887f3e645cfe2a08d78d0f7c`. Innerhalb `SettingsManager` war der originale Eingangscode bis Stable .499 byte-identisch; nur die 301-Zeichen-Änderung wurde aus #959 übernommen, ohne die zuvor veröffentlichte räumliche Cache-Provenienz-Anzeige zu ersetzen. Dashboard-Reihenfolge/Ansage disjunkt aus #963. Kein neuer RUC-/WMS-/Warn-/Einheiten- oder Release-Autorisierungspfad; 27h-RUC, native Fast-Lane und NoData bleiben unverändert.
+
+**Status:** Nur SHA-gebundener Source-Kandidat. Original-Draft-Tests ersetzen keine unabhängigen v0.9.85.500 Source-/Core-/Heavy-/Browser-/iOS-/Review-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates. Insbesondere kein Beleg einer gemessenen Performance-Ersparnis oder einer physischen VoiceOver-Abnahme. #541 bleibt eigenständiger P0-Datenvorfall; #901 GitHub Release-Katalog bleibt bis autorisierter Installer-Verdrahtung offen.
+
 # MID v0.9.85.499 · Leit-Integrationskandidat: ortsrichtige Forecast-Provenienz, Ensemble-Geometrie und WMS-Schutz
 
 **Verifizierte Basis:** main=mid-stable=`1592963e12688af4b2f8c74f933033235849dcb7` / v0.9.85.498. Originalquellen: [#953](https://github.com/MeteoMartini/MID/pull/953) `62f3c7554daeb1fe3b823353fc9e93b835a24c15`, [#957](https://github.com/MeteoMartini/MID/pull/957) `a4d558a5e729dceb2308c4d0f483a44e418ca67e`, [#955](https://github.com/MeteoMartini/MID/pull/955) `cbb159525f6ae0edd8994437a49f17a396fbb07d` und [#958](https://github.com/MeteoMartini/MID/pull/958) `bad89812662a45487638604e3b46e9345c733332`.
