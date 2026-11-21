@@ -10,12 +10,12 @@ target.searchParams.set('readback',String(process.env.GITHUB_RUN_ID||''));
 const fetched=await fetch(target,{redirect:'error',cache:'no-store',signal:AbortSignal.timeout(12000)});
 if(!fetched.ok||fetched.status!==200)throw Error('Signed public Pages proof missing');
 async function readBounded(response,maxBytes){
- if(!response.body)throw Error('Missing OIDC response body');
+ if(!response.body)throw Error('Missing HTTP response body');
  const chunks=[];
  let size=0;
  for await(const chunk of response.body){
   size+=chunk.byteLength;
-  if(size>maxBytes)throw Error('OIDC response exceeds byte limit');
+  if(size>maxBytes)throw Error('HTTP response exceeds byte limit');
   chunks.push(chunk);
  }
  return Buffer.concat(chunks,size);
