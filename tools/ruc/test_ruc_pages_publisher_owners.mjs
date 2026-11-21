@@ -74,7 +74,7 @@ test('all GitHub Pages publishers are enumerated, SHA mirrored and share global 
      assert.ok(job.body.indexOf('id: fast_readback')<job.body.indexOf('id: fast_oidc_readback')&&
        job.body.indexOf('id: fast_oidc_readback')<job.body.indexOf('id: fast_rollback'),
        'GitHub OIDC trust may only be checked after public DWD Pages readback');
-     assert.doesNotMatch(job.body,/MID_RUC_R2_BUCKET|r2 object (put|delete)|fast_trust_restore/,
+     assert.doesNotMatch(job.body,/MID_RUC_R2_BUCKET|r2 object (put|delete)|fast_trust/,
        'Fast Pages publisher must not require a billable R2 subscription');
     }else{
      assert.match(job.body,/needs\.prepare/,'publisher must depend on sealed RUC producer snapshot');

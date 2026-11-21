@@ -1,5 +1,7 @@
 # MID v0.9.85.501
 
+Basis `9756419d` → OIDC `1b791cbd` → Version `8e984426` → geprüfter Source-PR-Stand `f8fa9f2130031369481fe3640707e3bb00e0ca00` (signierter Pages-Beleg vor optionalem R2-Altpfad).
+
 - Die unabhängige DWD-ICON-D2-RUC-Fast-Lane wird für einen SHA-authentifizierten, R2-freien GitHub-Pages-Vertrauenspfad vorbereitet. Neue zusätzliche Cloudflare-R2-Kosten oder Abonnements sind dafür nicht vorgesehen.
 - Die geplante Fast-Versorgung prüft originale 0–6-Stunden-DWD-Daten, veröffentlicht einen kryptografisch gebundenen Herkunftsbeleg und verwendet nur nach erfolgreicher Worker-Prüfung gültige Wetterwerte; fehlende EPS-Daten bleiben nicht verfügbar.
 - Das bisherige 27-Stunden-RUC/EPS-Produkt, amtliche Warnungen und die Unterscheidung zwischen fehlenden und tatsächlichen Nullwerten bleiben geschützt. Die produktive Fast-Lane gilt erst nach den vorgeschriebenen Release- und echten End-to-End-Prüfungen als aktiv.

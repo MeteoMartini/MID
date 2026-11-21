@@ -799,17 +799,20 @@ async function midFastSignedPagesTrust(env){
   const proofResponse=await fetchWithDeadline(proofUrl.toString(),
    {redirect:'error',headers:{Accept:'application/json'},cf:{cacheTtl:15,cacheEverything:true}},9000);
   if(proofResponse.status!==200)throw Error('No signed Fast Pages proof');
-  const raw=await proofResponse.text();
-  if(raw.length>16000)throw Error('Oversized Fast Pages proof');
-  const proof=JSON.parse(raw);
+  const decoder=new TextDecoder('utf-8',{fatal:true});
+  const proof=JSON.parse(decoder.decode(await midRucFastResponseBytes(proofResponse,16000)));
+  const header=jsonJwtPart(String(proof?.oidcToken??'').split('.')[0]);
+  if(header?.alg!=='RS256'||typeof header.kid!=='string'||!header.kid||header.kid.length>128)
+   throw Error('GitHub OIDC key ID invalid');
   let jwks=midFastOidcJwksCache?.value;
-  if(!jwks||now-midFastOidcJwksCache.at>3600000){
+  const expired=!jwks||now-midFastOidcJwksCache.at>3600000;
+  const unknownKid=jwks&&!jwks.keys.some(key=>key?.kid===header.kid);
+  // Rate-limit forced refreshes even if the public proof contains arbitrary key IDs.
+  if(expired||(unknownKid&&now-midFastOidcJwksCache.at>=15000)){
    const keysResponse=await fetchWithDeadline(FAST_OIDC_JWKS,
-    {redirect:'error',headers:{Accept:'application/json'},cf:{cacheTtl:3600,cacheEverything:true}},9000);
+    {redirect:'error',headers:{Accept:'application/json'},cache:'no-store'},9000);
    if(keysResponse.status!==200)throw Error('GitHub OIDC issuer keys unavailable');
-   const keyBytes=await keysResponse.text();
-   if(keyBytes.length>64000)throw Error('Oversized issuer JWKS');
-   jwks=JSON.parse(keyBytes);
+   jwks=JSON.parse(decoder.decode(await midRucFastResponseBytes(keysResponse,64000)));
    if(!Array.isArray(jwks?.keys)||jwks.keys.length>30)throw Error('Issuer JWKS invalid');
    midFastOidcJwksCache={at:now,value:jwks};
   }

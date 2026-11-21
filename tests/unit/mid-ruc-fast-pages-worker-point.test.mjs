@@ -155,7 +155,13 @@ test('GitHub-signed OIDC Pages proof enables native 7/73/25 Fast with no R2 bind
 });
 test('forged or cross-workflow GitHub OIDC proof cannot read native Fast chunks',async()=>{
  const f=await fixture();
+ const forged=oidcFixture(f.sha);
+ const parts=forged.oidcToken.split('.');
+ const signature=Buffer.from(parts[2],'base64url');
+ signature[0]^=1;
+ parts[2]=signature.toString('base64url');
  const invalid=[
+  {...forged,oidcToken:parts.join('.')},
   oidcFixture(f.sha,{workflow_ref:'MeteoMartini/MID/.github/workflows/fake.yml@refs/heads/main'}),
   oidcFixture(f.sha,{repository_id:'100'}),
   oidcFixture(f.sha,{aud:'mid-ruc-fast-manifest:v1:'+'f'.repeat(64)}),

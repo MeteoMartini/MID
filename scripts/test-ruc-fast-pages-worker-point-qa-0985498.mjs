@@ -24,7 +24,8 @@ assert.ok(publish.indexOf('id: fast_readback')<publish.indexOf('id: fast_oidc_re
  publish.indexOf('id: fast_oidc_readback')<publish.indexOf('id: fast_rollback'));
 assert.match(publish,/steps\.fast_deployment\.outcome == 'success' && \(steps\.fast_readback\.outcome == 'failure' \|\| steps\.fast_oidc_readback\.outcome == 'failure'\)/,
  'Failed issuer signature/public proof readback must trigger original Pages rollback');
-assert.match(publish,/id: fast_rollback_readback/);
+assert.match(publish,/id: fast_oidc_readback\r?\n\s+if: steps\.fast_readback\.outcome == 'success'/);
+assert.match(publish,/id: fast_rollback_readback\r?\n\s+if: \$\{\{ failure\(\) && steps\.fast_rollback\.outcome == 'success' \}\}/);
 assert.doesNotMatch(publish,/MID_RUC_R2_BUCKET|r2 object (put|delete)|fast_trust_restore|fast_trust/);
 const pagesReadback=readFileSync(new URL('../tools/ruc/ruc_fast_pages_readback.mjs',import.meta.url),'utf8');
 assert.match(pagesReadback,/new URL\('ruc\/', origin\.endsWith\('\/'\)/);

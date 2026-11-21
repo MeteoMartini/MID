@@ -1,5 +1,7 @@
 ## MID v0.9.85.501 · 2026-11-21 · GitHub-OIDC-Fast-Provenienz ohne R2 (Source-Kandidat)
 
+Basis `9756419d` → OIDC `1b791cbd` → Version `8e984426` → geprüfter Source-PR-Stand `f8fa9f2130031369481fe3640707e3bb00e0ca00` (signierter Pages-Beleg vor optionalem R2-Altpfad).
+
 - Basis v0.9.85.500, `main=mid-stable=9756419d5af4933e9ff023aed568e42de500e97b`; Originalcommithandoff `1b791cbd4f46e6fb95109fda8b6081cf3da65325` (ein Commit voraus, 14 Pfade, keine veröffentlichten Writes).
 - Original RUC-Preprocessing-Workflowpaare, GitHub-OIDC-SHA/JWKS-Nachweise, Pages-Preserve/Readback, native Worker-Spiegel und fachspezifische Tests aus diesem Kandidaten übernommen; frühere #946-Sourceänderungen sind bereits ab v0.9.85.498 enthalten und werden nicht erneut dupliziert.
 - Versionsspiegel/Lock/Service Worker/iOS/Vertragsregister und Nutzer-/Technik-Changelog für v0.9.85.501 vorbereitet. Keine R2-Aktivierung, keine Paid-Fallbacks, keine Ruleset-/Review-/Secret-Änderung.

@@ -1,5 +1,7 @@
 # MID v0.9.85.501 · LC 1.29: Kostenneutrale DWD-RUC-Fast-Lane mit OIDC-Herkunft (Source-Kandidat)
 
+Basis `9756419d` → OIDC `1b791cbd` → Version `8e984426` → geprüfter Source-PR-Stand `f8fa9f2130031369481fe3640707e3bb00e0ca00` (signierter Pages-Beleg vor optionalem R2-Altpfad).
+
 **Ausgangsbasis:** veröffentlichtes `v0.9.85.500`, `main=mid-stable=9756419d5af4933e9ff023aed568e42de500e97b` (21.11.2026). **Original-Kandidat:** unveränderlicher Git-Commit `1b791cbd4f46e6fb95109fda8b6081cf3da65325` mit exakt einem Parent auf Stable und 14 geprüften geänderten Pfaden; kein historischer #946-Draft ungeprüft übernommen.
 
 **Inhalt:** SHA-spezifische GitHub-Actions-OIDC-Herkunft ohne R2-Binding oder R2-Abonnement, streng geprüfte native 0–6h-DWD-Run-/Punkt-/Chunk-Provenienz, Pages-Namespace/Readback/Rollback und Worker-Fast-Punktverwendung. Original-27h/EPS20- und `ruc/latest.json`-Vollpfad unverändert, EPS-Missing != 0. Bestehende Pfade für amtliche Warnungen bleiben unverändert.
