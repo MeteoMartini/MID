@@ -1,0 +1,47 @@
+name: MID AI Router Groq Free model qualification (READ ONLY)
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Public owner-created Issue ID, optional for manual owner dispatch"
+        required: false
+        type: string
+      request_id:
+        description: "Public QA correlation ID"
+        required: false
+        type: string
+      expected_stable_sha:
+        description: "Stable SHA when issue was created"
+        required: false
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: mid-ai-router-groq-free-preflight
+  cancel-in-progress: false
+  queue: max
+jobs:
+  catalog:
+    if: ${{ (github.actor == 'MeteoMartini' || github.actor == 'github-actions[bot]') && github.ref == 'refs/heads/mid-stable' }}
+    runs-on: ubuntu-24.04
+    environment: mid-ai-router-free-qa
+    timeout-minutes: 5
+    steps:
+      - name: Checkout only the immutable stable event commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Node 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22.16.0'
+      - name: Read Groq model catalog – no inference
+        env:
+          # Dedicated Environment secret + separate explicit QA arming.
+          # Never use a generic repo-wide GROQ_API_KEY secret.
+          GROQ_API_KEY: ${{ secrets.MID_AI_ROUTER_GROQ_FREE_QA_KEY }}
+          MID_AI_ROUTER_GROQ_CATALOG_ARMED: ${{ vars.MID_AI_ROUTER_GROQ_CATALOG_ARMED }}
+        run: |
+          set -euo pipefail
+          node scripts/run-mid-ai-router-groq-connectivity.mjs
