@@ -68,7 +68,7 @@ jobs:
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
           cmp ci/github/workflows/mid-ruc-p1p5-evidence-qa.yml .github/workflows/mid-ruc-p1p5-evidence-qa.yml
       - name: Prepare Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
       - name: Node.js for canonical version and workflow equivalence checks
@@ -259,7 +259,7 @@ jobs:
           git merge-base --is-ancestor "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" HEAD
           cmp ci/github/workflows/mid-ruc-p1p5-evidence-qa.yml .github/workflows/mid-ruc-p1p5-evidence-qa.yml
       - name: Prepare official read-only ecCodes original GRIB decoder
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
       - name: One bounded original DWD run and 20 EPS members, no retries
@@ -443,7 +443,7 @@ jobs:
           git merge-base --is-ancestor "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" HEAD
           cmp ci/github/workflows/mid-ruc-p1p5-evidence-qa.yml .github/workflows/mid-ruc-p1p5-evidence-qa.yml
       - name: Prepare official read-only ecCodes original GRIB decoder
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
       - name: One bounded original DWD run and 20 EPS members, no retries

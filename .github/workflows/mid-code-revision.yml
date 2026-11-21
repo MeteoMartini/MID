@@ -111,7 +111,7 @@ jobs:
       - name: Unveränderte Abhängigkeiten aus Lockfile installieren
         run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
       - name: Python für RUC-Regressionen einrichten
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -193,7 +193,7 @@ jobs:
         run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
       - name: Python für die vollständigen RUC-Regressionen einrichten
         if: steps.revision_ready.outputs.ready == 'true'
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -269,7 +269,7 @@ jobs:
         run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
       - name: Python für die vollständigen RUC-Regressionen einrichten
         if: steps.install.outcome == 'success'
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
           cache: 'pip'
