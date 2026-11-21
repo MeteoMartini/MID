@@ -1,3 +1,11 @@
+## MID v0.9.85.501 · 2026-11-21 · Kostenfreie RUC-Fast-Lane: GitHub-signierter Originaldatenbeleg
+
+- Source-Basis main=mid-stable=9756419d5af4933e9ff023aed568e42de500e97b, Version 0.9.85.500; ref-freier Originalcode 1b791cbd4f46e6fb95109fda8b6081cf3da65325 (14 geänderte Pfade, Parent identisch mit Stable).
+- Github OIDC SHA-audience issuer JWKS, protected workflow/ref/repo/run/run-attempt, HTTPS-Readback und native Chunk-Prüfungen ohne R2; bestehende Pages-Rollback-Gates bleiben.
+- Neues Versionspaket und Verträge/Versionsspiegel nach vorhandener Sync-Semantik. Kein Source-PR, keine CI, keine Build-, DWD-Original-, Worker-/Pages- oder iOS-Abnahme dieses Version-HEADs.
+- Basis 9756419d → OIDC 1b791cbd → Version 8e984426 → geprüfter Source-PR-Stand f8fa9f2130031369481fe3640707e3bb00e0ca00 (signierter Pages-Beleg vor optionalem R2-Altpfad).
+- Exakte Freigabe ausschließlich über den bestehenden MID Source-PR-Gate, Bot-Merge, ZIP, install-mid.yml, Worker/Pages und mid-stable; für den Betriebsabschluss von #541 stehen zwei verschiedene DWD-Fast-E2E-Runs noch aus.
+
 ## MID v0.9.85.501 · 2026-11-21 · GitHub-OIDC-Fast-Provenienz ohne R2 (Source-Kandidat)
 
 Basis `9756419d` → OIDC `1b791cbd` → Version `8e984426` → geprüfter Source-PR-Stand `f8fa9f2130031369481fe3640707e3bb00e0ca00` (signierter Pages-Beleg vor optionalem R2-Altpfad).
