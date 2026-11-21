@@ -48,7 +48,7 @@ describe('MID Design20 source-owner and protected-view guards',()=>{
   expect(first.sha).toBe(gitBlob(before));
   expect(first.checks).toEqual({groups:11,items:9});
   const verifier=readFileSync(path('scripts/qa/verifyDesign20SettingsRouteOwners.mjs'),'utf8');
-  expect(verifier).toContain("['--check-after']");
+  expect(verifier).toContain("[helper,'--check-after']");
   expect(verifier).not.toContain("'--selftest'");
   const applyHelper=readFileSync(path('scripts/qa/design20SettingsTabSplit.mjs'),'utf8');
   expect(applyHelper).toContain("['status','--porcelain','--untracked-files=all']");
