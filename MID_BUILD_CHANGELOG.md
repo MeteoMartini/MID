@@ -1,3 +1,11 @@
+## MID v0.9.85.500 · 2026-11-21 · LC 1.27 Settings-Mount und Dashboard-A11y (Source-Kandidat)
+
+- Ausgangspunkt: veröffentlichte v0.9.85.499, main=mid-stable 43759c68d001e5c8e6409f6ef2916a6610bbbad4.
+- Originale QA-Spezial-Drafts: #959 HEAD deee1e570b90b1a31d87039d3a2337187dfc9e81 und #963 HEAD f5ec03a6f39207b9887f3e645cfe2a08d78d0f7c.
+- SettingsManager ist zwischen früherer #959-Basis und .499 Stable byte-identisch; ausschließlich das geprüfte 301-Zeichen-Settings-Hunk wurde in den neueren App-Blob eingetragen; .499 Spatial-Cache-Hinweis unverändert erhalten.
+- DashboardModuleSettings.tsx und zugehörige Regressionen auf der jeweils unveränderten Stable-Basis, ohne App-/RUC-/Worker-Fachlogikänderungen.
+- Vor einer tatsächlichen Veröffentlichung sind Review, vollständiger aktueller Source-PR-Gate, Core/Heavy, Browser/iOS-Build, Installer, Worker/Pages (soweit betroffen) und Stable-Promotion weiterhin nachzuweisen.
+
 ## MID v0.9.85.499 · 2026-11-20 · Ortsrichtiger Cache, Ensemble-Geometrie und WMS-Kartenschutz
 
 - Stable-Basis 1592963e12688af4b2f8c74f933033235849dcb7 / v0.9.85.498.

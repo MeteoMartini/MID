@@ -1,3 +1,9 @@
+# MID v0.9.85.500
+
+- Die Einstellungen laden die Bedienbereiche Ansicht, Wetter, Navigation und Einheiten erst beim Öffnen des jeweiligen Bereichs. Alle neun Einstellungsregister und gespeicherten Präferenzen bleiben erhalten.
+- Beim Umordnen der Dashboard-Module werden Status und Änderungen für Tastatur, Maus und Touch einheitlicher zugänglich angesagt. Die bestehende Modulreihenfolge bleibt gespeichert.
+- Wetterprognosen, Originalwerte, amtliche Warnungen sowie die getrennten RUC-Voll- und Fast-Lane-Produktionswege bleiben unverändert; fehlende Werte werden nicht zu Null umgedeutet.
+
 # MID v0.9.85.499
 
 - Der Prognose-Cache unterscheidet jetzt exakt passende Ortsdaten von Daten aus nahegelegenen Orten. Ein räumlich abweichender Cache-Eintrag wird nicht länger als ortsgenaue frische Vorhersage dargestellt.
