@@ -1,5 +1,6 @@
 import {describe,expect,it} from 'vitest';
 import {hasFreshRadarObservation} from '../../src/CompositeTimeline';
+import {rainViewerPastObservations} from '../../src/rainViewerFallbackLifecycle';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 
@@ -23,7 +24,15 @@ describe('Sölden and Alpine map observation source fallback',()=>{
  });
  it('keeps RainViewer frames distinct from DWD timestamps and renders verified fallback in the unified map',()=>{
   expect(source).toContain('[rainViewerFrames,setRainViewerFrames]=useState<RadarFrame[]>([])');
-  expect(source).toContain('setRainViewerFrames([...(data.radar?.past??[])');
+  expect(source).toContain('createRainViewerFallbackLifecycle({');
+  expect(source).toContain('rainViewerPastObservations(data,Date.now()/1000)');
+  expect(source).not.toContain('setRainViewerFrames([...(data.radar?.past??[])');
+  expect(source).not.toContain("...(data.radar?.nowcast??[]).map(item=>({...item,future:true}))");
+  const now=2_000_000;
+  expect(rainViewerPastObservations({radar:{
+   past:[{time:now-600,path:'/v2/radar/1'}],
+   nowcast:[{time:now+600,path:'/v2/radar/2'}],
+  }},now)).toEqual([{time:now-600,path:'/v2/radar/1'}]);
   expect(source).toContain('rainViewerUsable=Boolean(host&&hasFreshRadarObservation');
   expect(source).toContain("activeSource==='rainviewer'?'RainViewer Radar · Fallback':'Radar nicht verfügbar'");
   expect(source).toContain('const rainBlend=blendTimedFrames(rainViewerFrames,targetSeconds');

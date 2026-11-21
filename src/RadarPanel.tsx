@@ -46,6 +46,7 @@ import {COMPOSITE_BASEMAPS as BASEMAPS,MODEL_LINE_MODES,readCompositeSettings as
 import {frontLabel,loadSynopticAnalysisPoint,type SynopticFrontType,type SynopticWorkerResponse} from './synoptic';
 import {AppPortalPopover} from './AppPortalPopover';
 import {browserExternalWeatherFallbackAllowed} from './workerClient';
+import {createRainViewerFallbackLifecycle,rainViewerPastObservations} from './rainViewerFallbackLifecycle';
 
 const LazyPx250Overlay=lazy(()=>import('./Px250Overlay'));
 const LazyOperaRasterOverlay=lazy(()=>import('./OperaRasterOverlay'));
@@ -365,10 +366,40 @@ export default function RadarPanel({lat:placeLat,lon:placeLon,timezone,analysis:
  useEffect(()=>{flushCompositeSettings()},[flushCompositeSettings,observationsEnabled,selectedRadar,selectedPrecipitationType,selectedSatellite,selectedLightning,selectedNowcastObjects,selectedMotionOverlay,selectedWarnings,selectedHighResolution,basemap,viewMode,showRadar,highResolution,showPrecipitationType,showSatellite,showLightning,showNowcastObjects,showMotionOverlay,motionTimeMode,showWarnings,modelLines,modelLineTone,isobarLineColor,isoheightLineColor,radarOpacity,radarColorTableId,precipitationTypeOpacity,satelliteOpacity,lightningOpacity,warningOpacity,modelOpacity,mapOverlayOpacity,playbackSeconds]);
  useEffect(()=>{const flush=()=>flushCompositeSettings(),onVisibility=()=>{if(document.visibilityState==='hidden')flush()};window.addEventListener('pagehide',flush);document.addEventListener('visibilitychange',onVisibility);return()=>{flush();window.removeEventListener('pagehide',flush);document.removeEventListener('visibilitychange',onVisibility)}},[flushCompositeSettings]);
  useEffect(()=>{
-  if(!panelVisible)return;let alive=true;
+  if(!panelVisible)return;
   const fallbackNeeded=!dwdUsable&&!operaUsable&&(source==='rainviewer'||operaStatus==='ready'||operaStatus==='error'||source==='opera'||dwdProductChecked||dwdTemporarilyBlocked);
-  if(!fallbackNeeded||!showRadar||highResolution){setHost('');setRainViewerFrames([]);return()=>{alive=false}}
-  const controller=new AbortController(),load=()=>{if(document.visibilityState==='hidden')return Promise.resolve();return loadRainViewer(lat,lon,controller.signal).then(data=>{if(!alive)return;setHost(data.host);setRainViewerFrames([...(data.radar?.past??[]),...(data.radar?.nowcast??[]).map(item=>({...item,future:true}))])}).catch(()=>{if(alive){setRainViewerFrames([]);setHost('')}})};void load();const timer=window.setInterval(load,300000);return()=>{alive=false;controller.abort();window.clearInterval(timer)};
+  if(!fallbackNeeded||!showRadar||highResolution){setHost('');setRainViewerFrames([]);return}
+  // RainViewer's free API has supplied past observations only since 2026-01-01.
+  // Keep original frame times; DWD/OPERA forecast paths remain independent.
+  let pageHidden=false;
+  const lifecycle=createRainViewerFallbackLifecycle({
+   fetch:signal=>loadRainViewer(lat,lon,signal),
+   onData:data=>{
+    const frames=rainViewerPastObservations(data,Date.now()/1000);
+    setHost(frames.length?data.host:'');
+    setRainViewerFrames(frames);
+   },
+   // A failed refresh must not relabel a previously verified observation.
+   // Existing hasFreshRadarObservation rejects it automatically when too old.
+   visible:()=>!pageHidden&&document.visibilityState!=='hidden',
+   subscribe:visibilityChanged=>{
+    const onPageHide=()=>{pageHidden=true;visibilityChanged()};
+    const onPageShow=()=>{pageHidden=false;visibilityChanged()};
+    document.addEventListener('visibilitychange',visibilityChanged);
+    window.addEventListener('pagehide',onPageHide);
+    window.addEventListener('pageshow',onPageShow);
+    return()=>{
+     document.removeEventListener('visibilitychange',visibilityChanged);
+     window.removeEventListener('pagehide',onPageHide);
+     window.removeEventListener('pageshow',onPageShow);
+    };
+   },
+   now:()=>Date.now(),
+   setTimer:(callback,delayMs)=>window.setTimeout(callback,delayMs),
+   clearTimer:timer=>window.clearTimeout(timer),
+  });
+  lifecycle.start();
+  return()=>lifecycle.dispose();
  },[lat,lon,source,showRadar,highResolution,operaStatus,dwdUsable,operaUsable,dwdProductChecked,dwdTemporarilyBlocked,panelVisible]);
  useEffect(()=>{
   if(!panelVisible)return;
@@ -636,7 +667,7 @@ const applyLineTonePreset=(value:ModelLineTone)=>{setModelLineTone(value);if(val
     {!rasterZooming&&showSatellite&&showSatelliteAtTime&&satelliteProduct&&satelliteRenderFrames.map(({frame,key,weight})=>{const iso=frame.iso||satelliteLatestIso||'',backgroundPreload=weight<.01&&key!==requestedSatelliteKey;if(!satelliteUntimed&&!iso)return null;return <WMSTileLayer key={`${satelliteProvider}:${satelliteLayer}:${key}:${tileRevision}`} url={rasterVersionUrl(satelliteProxy,tileRevision,key)} opacity={satelliteOpacity/100*satelliteFactor*weight} zIndex={220} keepBuffer={0} updateWhenIdle={true} updateWhenZooming={false} eventHandlers={{load:()=>markSatelliteLoaded(key),tileerror:()=>markSatelliteFailed(key,satelliteUntimed?`${satelliteName} konnte im aktuellen DWD-WMS-Snapshot nach mehreren Kachelversuchen nicht vollständig geladen werden.`:`${satelliteName} lieferte für den festen Datenstand ${iso} wiederholt keine vollständige Kartenkachel.`,backgroundPreload)}} params={({layers:satelliteLayer,styles:'',format:'image/png',transparent:true,version:satelliteProvider==='eumetsat'?'1.3.0':'1.1.1',...(satelliteUntimed?{}:{time:iso})} as any)} attribution={satelliteProvider==='dwd'?'Satellit &copy; DWD':'Satellit &copy; EUMETSAT'}/>})}
     {!rasterZooming&&showRadar&&!highResolution&&activeSource==='dwd'&&dwdVisualBlend.map(({frame,weight,preload})=>{const iso=new Date(frame.time*1000).toISOString(),backgroundPreload=preload&&requestedDwdFrame?.time!==frame.time;const layer=('future' in frame&&frame.future===true)||frame.time>referenceSeconds+90?'dwd:Radar_rv_product_1x1km_ger':dwdRenderLayer;return <WMSTileLayer key={`dwd-radar:${layer}:${dwdRadarStyle||'default'}:${iso}:${tileRevision}`} url={rasterVersionUrl(dwdProxy,tileRevision,iso)} opacity={radarOpacity/100*weight} zIndex={360} keepBuffer={1} updateWhenIdle={touchDevice} updateWhenZooming={!touchDevice} eventHandlers={{load:()=>markRadarFrameLoaded(frame.time),tileerror:()=>markRadarFrameFailed(frame.time,iso,backgroundPreload)}} params={({layers:layer,styles:dwdRadarStyle,format:'image/png',transparent:true,version:'1.1.1',time:iso,tiled:true} as any)} attribution="Radar und Nowcast &copy; DWD"/>})}
     {showRadar&&!highResolution&&activeSource==='opera'&&operaDisplayFrame&&operaFactor>.01&&<Suspense fallback={null}><LazyOperaRasterOverlay frame={operaDisplayFrame} opacity={radarOpacity/100*operaFactor} colorTable={radarColorTableId} onStatus={onOperaStatus}/></Suspense>}
-    {!rasterZooming&&showRadar&&!highResolution&&activeSource==='rainviewer'&&rainRenderBlend.map(({frame,weight})=>{const url=rainViewerTileUrl(frame,host);return url?<TileLayer key={`${frame.time}:${frame.path}:${tileRevision}`} attribution="Radar &copy; RainViewer" url={url} maxNativeZoom={7} maxZoom={12} opacity={radarOpacity/100*weight} zIndex={360} keepBuffer={1} updateWhenIdle={touchDevice} updateWhenZooming={!touchDevice}/>:null})}
+    {!rasterZooming&&showRadar&&!highResolution&&activeSource==='rainviewer'&&rainRenderBlend.map(({frame,weight})=>{const url=rainViewerTileUrl(frame,host);return url?<TileLayer key={`${frame.time}:${frame.path}:${tileRevision}`} attribution={'Radar &copy; <a href="https://www.rainviewer.com/" target="_blank" rel="noopener noreferrer">RainViewer</a>'} url={url} maxNativeZoom={7} maxZoom={12} opacity={radarOpacity/100*weight} zIndex={360} keepBuffer={1} updateWhenIdle={touchDevice} updateWhenZooming={!touchDevice}/>:null})}
     {!rasterZooming&&showRadar&&!highResolution&&activeSource!=='dwd'&&satellitePrecipProduct&&satPrecipScale>0&&satPrecipDisplayFrame&&(()=>{const iso=(satPrecipDisplayFrame as any).iso;return <WMSTileLayer key={`sat-precip:${satPrecipLayer}:${iso}:${tileRevision}`} url={rasterVersionUrl(satPrecipProxy,tileRevision,iso)} opacity={radarOpacity/100*satPrecipFactor} zIndex={350} keepBuffer={1} updateWhenIdle={touchDevice} updateWhenZooming={!touchDevice} params={({layers:satPrecipLayer,styles:'',format:'image/png',transparent:true,version:'1.3.0',time:iso} as any)} attribution="Satelliten-Niederschlagsrate &copy; EUMETSAT H SAF"/>})()}
     {showPxAtTime&&pxMeta?.available&&<Suspense fallback={null}><LazyPx250Overlay meta={pxMeta} opacity={radarOpacity/100} colorTable={radarColorTableId} onStatus={onPxStatus}/></Suspense>}
     {radarModelPhaseRenderable&&operaDisplayFrame&&<Suspense fallback={null}><LazyRadarModelPrecipTypeOverlay key={`${lat}:${lon}:${targetMs}:${operaDisplayFrame.fileUrl}`} latitude={lat} longitude={lon} targetTime={new Date(targetMs).toISOString()} operaFrame={operaDisplayFrame} showArea={!highResolution&&activeSource==='opera'} opacity={precipitationTypeOpacity/100} onStatus={onRadarModelPhaseStatus}/></Suspense>}
