@@ -136,16 +136,21 @@ function oidcFixture(manifestSha,claimsOverride={},proofOverride={}){
 test('GitHub-signed OIDC Pages proof enables native 7/73/25 Fast with no R2 binding or manually pinned SHA',async()=>{
  const f=await fixture(),m=mockPages(f,{oidc:{proof:oidcFixture(f.sha),jwks:{keys:[fastOidcJwk]}}});
  try{
-  const payload=await dwdRucNativeFastPagesPointPayload(48,8,{});
-  assert.ok(payload,'independent GitHub signature must authorize native Fast without R2');
-  assert.equal(payload.mid_ruc.storage,'SHA-pinned GitHub Pages Fast');
-  assert.equal(payload.mid_ruc.epsAvailability,'unavailable');
-  assert.equal(payload.hourly.temperature_2m[0],null);
-  assert.equal(payload.hourly.dew_point_2m[0],0);
-  assert.equal(payload.rapid.precip5.time.length,73);
-  assert.equal(payload.rapid.convection15.time.length,25);
-  assert.ok(m.urls.includes('https://token.actions.githubusercontent.com/.well-known/jwks'));
-  assert.ok(m.urls.includes('https://www.midwx.app/ruc/fast/paged-shadow.json'));
+  for(const bindR2 of [false,true]){
+   let bucketReads=0;
+   const bucket=bindR2&&{get:async()=>{bucketReads++;throw Error('R2 unavailable')}};
+   const payload=await dwdRucNativeFastPagesPointPayload(48,8,bucket?{MID_DWD_RUC_DATA:bucket}:{});
+   assert.ok(payload,'independent GitHub signature must authorize native Fast without R2');
+   assert.equal(payload.mid_ruc.storage,'SHA-pinned GitHub Pages Fast');
+   assert.equal(payload.mid_ruc.epsAvailability,'unavailable');
+   assert.equal(payload.hourly.temperature_2m[0],null);
+   assert.equal(payload.hourly.dew_point_2m[0],0);
+   assert.equal(payload.rapid.precip5.time.length,73);
+   assert.equal(payload.rapid.convection15.time.length,25);
+   assert.ok(m.urls.includes('https://token.actions.githubusercontent.com/.well-known/jwks'));
+   assert.ok(m.urls.includes('https://www.midwx.app/ruc/fast/paged-shadow.json'));
+   assert.equal(bucketReads,0);
+  }
  }finally{m.restore()}
 });
 test('forged or cross-workflow GitHub OIDC proof cannot read native Fast chunks',async()=>{
@@ -172,6 +177,7 @@ const fastTrustReceipt=(sha,overrides={})=>({
  run,fastManifestSha256:sha,...overrides
 });
 const withR2Receipt=(receipt,calls={count:0})=>({
+ MID_DWD_RUC_FAST_OIDC_ENABLED:'false',
  MID_DWD_RUC_DATA:{get:async key=>{
   calls.count++;
   assert.equal(key,'ruc/fast/publisher-trust.v1.json');

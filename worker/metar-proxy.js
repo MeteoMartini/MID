@@ -783,8 +783,7 @@ async function verifyFastOidcProof(proof,jwks,{now=Date.now()}={}){
  return {sha:proof.manifestSha256,run:proof.run,stableSha:proof.stableSha,runId:proof.runId};
 }
 
-// Prefer the existing private R2 trust only when that binding really exists.
-// Otherwise verify a GitHub-issued public OIDC statement without R2 or MID secrets.
+// Verify the GitHub-issued Pages proof before consulting legacy R2 trust.
 const midFastOidcTrustCache=new WeakMap();
 let midFastOidcJwksCache=null;
 async function midFastSignedPagesTrust(env){
@@ -828,8 +827,10 @@ async function dwdRucTrustedFastManifestSha(env){
  if(env?.MID_DWD_RUC_FAST_ENABLED==='false')return null;
  const explicit=String(env?.MID_DWD_RUC_FAST_MANIFEST_SHA256||'').trim();
  if(env?.MID_DWD_RUC_FAST_ENABLED==='true'&&MID_RUC_FAST_SHA256.test(explicit))return {sha:explicit,run:null};
+ const signed=await midFastSignedPagesTrust(env);
+ if(signed)return signed;
  const bucket=env?.MID_DWD_RUC_DATA;
- if(!bucket||typeof bucket.get!=='function')return midFastSignedPagesTrust(env);
+ if(!bucket||typeof bucket.get!=='function')return null;
  try{
   const cached=midRucFastTrustCache.get(bucket);
   if(cached&&Date.now()-cached.at<30000){
