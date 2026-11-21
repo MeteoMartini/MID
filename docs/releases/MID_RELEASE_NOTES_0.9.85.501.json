@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "version": "0.9.85.501",
+  "date": "2026-11-21",
+  "title": "Kostenfreie RUC-Fast-Lane: GitHub-signierter Originaldatenbeleg",
+  "external": [
+    "Die eigenständige DWD-ICON-D2-RUC-Fast-Lane wird für eine SHA-authentifizierte Bereitstellung über vorhandene GitHub Pages vorbereitet, ohne R2-Abonnement oder zusätzliche Infrastruktur.",
+    "Fehlende Daten, originale Nullwerte und fehlende EPS-Ensemblemitglieder bleiben fachlich getrennt; der bestehende 27h-RUC/EPS-Vollpfad bleibt erhalten.",
+    "Die neue Fast-Versorgung wird erst nach vollständiger Source-, Installer-, Worker-/Pages- und echter DWD-zu-MID-End-to-End-Abnahme produktiv aktiviert."
+  ],
+  "internal": [
+    "Source-Basis main=mid-stable=9756419d5af4933e9ff023aed568e42de500e97b, Version 0.9.85.500; ref-freier Originalcode 1b791cbd4f46e6fb95109fda8b6081cf3da65325 (14 geänderte Pfade, Parent identisch mit Stable).",
+    "Github OIDC SHA-audience issuer JWKS, protected workflow/ref/repo/run/run-attempt, HTTPS-Readback und native Chunk-Prüfungen ohne R2; bestehende Pages-Rollback-Gates bleiben.",
+    "Neues Versionspaket und Verträge/Versionsspiegel nach vorhandener Sync-Semantik. Kein Source-PR, keine CI, keine Build-, DWD-Original-, Worker-/Pages- oder iOS-Abnahme dieses Version-HEADs.",
+    "Exakte Freigabe ausschließlich über den bestehenden MID Source-PR-Gate, Bot-Merge, ZIP, install-mid.yml, Worker/Pages und mid-stable; zwei nachgewiesene verschiedene DWD-Fast-E2E-Runs für #541."
+  ]
+}

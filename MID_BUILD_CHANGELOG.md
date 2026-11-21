@@ -1,3 +1,10 @@
+## MID v0.9.85.501 · 2026-11-21 · GitHub-OIDC-Fast-Provenienz ohne R2 (Source-Kandidat)
+
+- Basis v0.9.85.500, `main=mid-stable=9756419d5af4933e9ff023aed568e42de500e97b`; Originalcommithandoff `1b791cbd4f46e6fb95109fda8b6081cf3da65325` (ein Commit voraus, 14 Pfade, keine veröffentlichten Writes).
+- Original RUC-Preprocessing-Workflowpaare, GitHub-OIDC-SHA/JWKS-Nachweise, Pages-Preserve/Readback, native Worker-Spiegel und fachspezifische Tests aus diesem Kandidaten übernommen; frühere #946-Sourceänderungen sind bereits ab v0.9.85.498 enthalten und werden nicht erneut dupliziert.
+- Versionsspiegel/Lock/Service Worker/iOS/Vertragsregister und Nutzer-/Technik-Changelog für v0.9.85.501 vorbereitet. Keine R2-Aktivierung, keine Paid-Fallbacks, keine Ruleset-/Review-/Secret-Änderung.
+- Reviewer-, CI-, Source-Core/Heavy, echte DWD-GRIB2, signierte OIDC-Token, Worker-/Pages-Live- und MID-Fusion-E2E-Nachweise sowie erfolgreicher ZIP/Installer/Stable-Release sind weiterhin ausdrücklich offen. Kein Release oder Nullkosten-Echtbetriebsnachweis wird behauptet.
+
 ## MID v0.9.85.500 · 2026-11-21 · Bedarfsgesteuerte Einstellungen und zugängliche Dashboard-Reihenfolge
 
 - Ausgangspunkt: veröffentlichte v0.9.85.499, main=mid-stable 43759c68d001e5c8e6409f6ef2916a6610bbbad4.
