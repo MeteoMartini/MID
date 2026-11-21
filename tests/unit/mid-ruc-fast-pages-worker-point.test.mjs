@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {dwdRucNativeFastPagesPointPayload} from '../../worker.js';
 import {sha256hex} from '../../tools/ruc/ruc_fast_paged_point_shadow.mjs';
+import {generateKeyPairSync,sign} from 'node:crypto';
 const run=new Date(Math.floor(Date.now()/3600000)*3600000).toISOString().slice(0,16),start=Date.parse(run+'Z'),source='a'.repeat(64);
 const names={'lookup.bin':[4,964*596],'deterministic.bin':[168,542040],'rapid-5m.bin':[146,542040],'rapid-15m.bin':[150,542040]};
 const fields=[['temperature_2m','°C',.01,0],['dew_point_2m','°C',.01,0],['relative_humidity_2m','%',.1,0],
@@ -38,10 +39,12 @@ async function fixture(){
 }
 
 const env=sha=>({MID_DWD_RUC_FAST_ENABLED:'true',MID_DWD_RUC_FAST_MANIFEST_SHA256:sha});
-function mockPages(f,{manifest=f.raw,status=200,mutate=null}={}){
+function mockPages(f,{manifest=f.raw,status=200,mutate=null,oidc=null}={}){
  const urls=[],old=globalThis.fetch;
  globalThis.fetch=async input=>{
   const u=String(input);urls.push(u);
+  if(u==='https://www.midwx.app/ruc/fast/publisher-proof.v2.json')return new Response(oidc?JSON.stringify(oidc.proof):'',{status:oidc?200:404});
+  if(u==='https://token.actions.githubusercontent.com/.well-known/jwks')return new Response(JSON.stringify(oidc?.jwks||{keys:[]}),{status:200});
   if(u==='https://www.midwx.app/ruc/fast/paged-shadow.json')return new Response(status===200?manifest:'',{status});
   const key=u.replace('https://www.midwx.app/ruc/',''),bytes=f.pages[key];
   if(!bytes)throw Error('Unmatched Fast Pages read: '+key);
@@ -53,8 +56,8 @@ test('Fast consumer without a trusted release SHA is inert, no fetch',async()=>{
  const old=globalThis.fetch;let calls=0;
  globalThis.fetch=async()=>{calls++;throw Error('unexpected network')};
  try{
-  assert.equal(await dwdRucNativeFastPagesPointPayload(48,8,{}),null);
-  assert.equal(await dwdRucNativeFastPagesPointPayload(48,8,{MID_DWD_RUC_FAST_ENABLED:'true',MID_DWD_RUC_FAST_MANIFEST_SHA256:'bad'}),null);
+  assert.equal(await dwdRucNativeFastPagesPointPayload(48,8,{MID_DWD_RUC_FAST_OIDC_ENABLED:'false'}),null);
+  assert.equal(await dwdRucNativeFastPagesPointPayload(48,8,{MID_DWD_RUC_FAST_ENABLED:'true',MID_DWD_RUC_FAST_MANIFEST_SHA256:'bad',MID_DWD_RUC_FAST_OIDC_ENABLED:'false'}),null);
   assert.equal(await dwdRucNativeFastPagesPointPayload(48,8,{MID_DWD_RUC_FAST_ENABLED:'false',MID_DWD_RUC_FAST_MANIFEST_SHA256:'a'.repeat(64)}),null);
   assert.equal(calls,0);
  }finally{globalThis.fetch=old}
@@ -112,6 +115,55 @@ test('corrupted original native chunk fails SHA verification instead of returnin
  }finally{m.restore()}
 });
 
+
+// OIDC is the operational R2-free path: the issuer signature cryptographically
+// binds manifest bytes, repository identity and the protected main workflow.
+const fastOidcKeys=generateKeyPairSync('rsa',{modulusLength:2048});
+const fastOidcJwk={...fastOidcKeys.publicKey.export({format:'jwk'}),kid:'mid-fast-unit-rsa',use:'sig',alg:'RS256'};
+function oidcFixture(manifestSha,claimsOverride={},proofOverride={}){
+ const now=Math.floor(Date.now()/1000);
+ const claims={iss:'https://token.actions.githubusercontent.com',aud:'mid-ruc-fast-manifest:v1:'+manifestSha,
+  repository:'MeteoMartini/MID',repository_id:'1305110795',ref:'refs/heads/main',
+  workflow_ref:'MeteoMartini/MID/.github/workflows/mid-ruc-preprocess.yml@refs/heads/main',
+  sha:'b'.repeat(40),run_id:'123456',run_attempt:'1',event_name:'schedule',
+  iat:now-10,nbf:now-10,exp:now+290,...claimsOverride};
+ const base64=obj=>Buffer.from(JSON.stringify(obj)).toString('base64url');
+ const unsigned=base64({alg:'RS256',typ:'JWT',kid:'mid-fast-unit-rsa'})+'.'+base64(claims);
+ const token=unsigned+'.'+sign('RSA-SHA256',Buffer.from(unsigned),fastOidcKeys.privateKey).toString('base64url');
+ return {schema:'mid.ruc.fast-oidc-proof.v1',run,manifestSha256:manifestSha,
+  stableSha:'b'.repeat(40),runId:123456,runAttempt:1,oidcToken:token,...proofOverride};
+}
+test('GitHub-signed OIDC Pages proof enables native 7/73/25 Fast with no R2 binding or manually pinned SHA',async()=>{
+ const f=await fixture(),m=mockPages(f,{oidc:{proof:oidcFixture(f.sha),jwks:{keys:[fastOidcJwk]}}});
+ try{
+  const payload=await dwdRucNativeFastPagesPointPayload(48,8,{});
+  assert.ok(payload,'independent GitHub signature must authorize native Fast without R2');
+  assert.equal(payload.mid_ruc.storage,'SHA-pinned GitHub Pages Fast');
+  assert.equal(payload.mid_ruc.epsAvailability,'unavailable');
+  assert.equal(payload.hourly.temperature_2m[0],null);
+  assert.equal(payload.hourly.dew_point_2m[0],0);
+  assert.equal(payload.rapid.precip5.time.length,73);
+  assert.equal(payload.rapid.convection15.time.length,25);
+  assert.ok(m.urls.includes('https://token.actions.githubusercontent.com/.well-known/jwks'));
+  assert.ok(m.urls.includes('https://www.midwx.app/ruc/fast/paged-shadow.json'));
+ }finally{m.restore()}
+});
+test('forged or cross-workflow GitHub OIDC proof cannot read native Fast chunks',async()=>{
+ const f=await fixture();
+ const invalid=[
+  oidcFixture(f.sha,{workflow_ref:'MeteoMartini/MID/.github/workflows/fake.yml@refs/heads/main'}),
+  oidcFixture(f.sha,{repository_id:'100'}),
+  oidcFixture(f.sha,{aud:'mid-ruc-fast-manifest:v1:'+'f'.repeat(64)}),
+  oidcFixture(f.sha,{}, {stableSha:'f'.repeat(40)})
+ ];
+ for(const proof of invalid){
+  const m=mockPages(f,{oidc:{proof,jwks:{keys:[fastOidcJwk]}}});
+  try{
+   assert.equal(await dwdRucNativeFastPagesPointPayload(48,8,{}),null);
+   assert.ok(!m.urls.some(url=>url.endsWith('/ruc/fast/paged-shadow.json')));
+  }finally{m.restore()}
+ }
+});
 
 const expectedReceiptVersion=JSON.parse(readFileSync(new URL('../../package.json',import.meta.url),'utf8')).version;
 const fastTrustReceipt=(sha,overrides={})=>({

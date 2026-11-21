@@ -723,13 +723,113 @@ async function midRucFastResponseBytes(response,maxBytes){
 // only after a successful public Pages SHA readback. Pages JSON cannot set
 // or override the independent trust anchor.
 const MID_RUC_FAST_TRUST_KEY='ruc/fast/publisher-trust.v1.json';
+
+// Signed, R2-free MID Fast publisher provenance from GitHub Actions OIDC.
+// The JWT audience cryptographically binds the immutable native manifest SHA.
+const FAST_OIDC_ISSUER='https://token.actions.githubusercontent.com';
+const FAST_OIDC_JWKS=FAST_OIDC_ISSUER+'/.well-known/jwks';
+const FAST_OIDC_WORKFLOW='MeteoMartini/MID/.github/workflows/mid-ruc-preprocess.yml@refs/heads/main';
+const FAST_OIDC_REPOSITORY_ID='1305110795';
+const SHA256_RE=/^[0-9a-f]{64}$/;
+const SHA40_RE=/^[0-9a-f]{40}$/;
+const RUN_RE=/^20\d{2}-\d{2}-\d{2}T\d{2}:00$/;
+const JWT_PART=/^[A-Za-z0-9_-]+$/;
+function fastOidcAudience(sha){
+ if(!SHA256_RE.test(String(sha)))throw new Error('invalid SHA for Fast OIDC audience');
+ return 'mid-ruc-fast-manifest:v1:'+sha;
+}
+function jwtPart(part){
+ if(typeof part!=='string'||part.length>10000||!JWT_PART.test(part))throw new Error('noncanonical Fast OIDC JWT part');
+ const padded=part.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-part.length%4)%4);
+ return Uint8Array.from(atob(padded),ch=>ch.charCodeAt(0));
+}
+function jsonJwtPart(part){return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(jwtPart(part)))}
+function safeEpoch(value){return Number.isSafeInteger(value)&&value>0?value*1000:NaN}
+async function verifyFastOidcProof(proof,jwks,{now=Date.now()}={}){
+ if(!Number.isFinite(now)||!proof||proof.schema!=='mid.ruc.fast-oidc-proof.v1'||
+    !SHA256_RE.test(proof.manifestSha256)||!SHA40_RE.test(proof.stableSha)||
+    !RUN_RE.test(proof.run)||typeof proof.oidcToken!=='string'||proof.oidcToken.length>12000||
+    !Number.isSafeInteger(proof.runId)||proof.runId<=0||
+    !Number.isSafeInteger(proof.runAttempt)||proof.runAttempt<=0)return null;
+ const runMs=Date.parse(proof.run+'Z');
+ if(!Number.isFinite(runMs)||new Date(runMs).toISOString().slice(0,16)!==proof.run||
+    now<runMs-5*60000||now-runMs>4*3600000)return null;
+ const parts=proof.oidcToken.split('.');if(parts.length!==3)return null;
+ let header,claims,signature;
+ try{header=jsonJwtPart(parts[0]);claims=jsonJwtPart(parts[1]);signature=jwtPart(parts[2])}catch{return null}
+ if(header?.alg!=='RS256'||typeof header.kid!=='string'||header.kid.length>128||
+    claims?.iss!==FAST_OIDC_ISSUER||claims?.aud!==fastOidcAudience(proof.manifestSha256)||
+    claims?.repository!=='MeteoMartini/MID'||String(claims?.repository_id)!==FAST_OIDC_REPOSITORY_ID||
+    claims?.ref!=='refs/heads/main'||claims?.workflow_ref!==FAST_OIDC_WORKFLOW||
+    claims?.sha!==proof.stableSha||String(claims?.run_id)!==String(proof.runId)||
+    String(claims?.run_attempt)!==String(proof.runAttempt)||
+    !['schedule','workflow_dispatch'].includes(claims?.event_name))return null;
+ const iat=safeEpoch(claims.iat),exp=safeEpoch(claims.exp),nbf=claims.nbf==null?iat:safeEpoch(claims.nbf);
+ if(!Number.isFinite(iat)||!Number.isFinite(exp)||!Number.isFinite(nbf)||
+    iat>now+60000||now-iat>4*3600000||exp<iat||exp-iat>15*60000||
+    nbf>iat+60000||nbf>now+60000||iat<runMs-5*60000)return null;
+ // JWT exp is an issuance-credential lifetime, not the validity of an
+ // immutable, signed historical assertion. Meteorological/run freshness above
+ // separately limits acceptance to four hours.
+ const keys=Array.isArray(jwks?.keys)?jwks.keys:[];
+ const match=keys.filter(k=>k.kid===header.kid&&k.kty==='RSA'&&k.alg==='RS256'&&k.use==='sig'&&
+   typeof k.n==='string'&&typeof k.e==='string');
+ if(match.length!==1)return null;
+ try{
+  const key=await crypto.subtle.importKey('jwk',match[0],{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['verify']);
+  const valid=await crypto.subtle.verify('RSASSA-PKCS1-v1_5',key,signature,new TextEncoder().encode(parts[0]+'.'+parts[1]));
+  if(!valid)return null;
+ }catch{return null}
+ return {sha:proof.manifestSha256,run:proof.run,stableSha:proof.stableSha,runId:proof.runId};
+}
+
+// Prefer the existing private R2 trust only when that binding really exists.
+// Otherwise verify a GitHub-issued public OIDC statement without R2 or MID secrets.
+const midFastOidcTrustCache=new WeakMap();
+let midFastOidcJwksCache=null;
+async function midFastSignedPagesTrust(env){
+ if(!env||typeof env!=='object'||env.MID_DWD_RUC_FAST_OIDC_ENABLED==='false')return null;
+ const now=Date.now(),cached=midFastOidcTrustCache.get(env);
+ if(cached&&now-cached.at<30000){
+  if(!cached.trust||rucWindowFresh({initialisationEpoch:Date.parse(cached.trust.run+'Z')},now))
+   return cached.trust;
+ }
+ let trust=null;
+ try{
+  const proofUrl=new URL('fast/publisher-proof.v2.json',MID_RUC_FAST_PAGES_ROOT);
+  const proofResponse=await fetchWithDeadline(proofUrl.toString(),
+   {redirect:'error',headers:{Accept:'application/json'},cf:{cacheTtl:15,cacheEverything:true}},9000);
+  if(proofResponse.status!==200)throw Error('No signed Fast Pages proof');
+  const raw=await proofResponse.text();
+  if(raw.length>16000)throw Error('Oversized Fast Pages proof');
+  const proof=JSON.parse(raw);
+  let jwks=midFastOidcJwksCache?.value;
+  if(!jwks||now-midFastOidcJwksCache.at>3600000){
+   const keysResponse=await fetchWithDeadline(FAST_OIDC_JWKS,
+    {redirect:'error',headers:{Accept:'application/json'},cf:{cacheTtl:3600,cacheEverything:true}},9000);
+   if(keysResponse.status!==200)throw Error('GitHub OIDC issuer keys unavailable');
+   const keyBytes=await keysResponse.text();
+   if(keyBytes.length>64000)throw Error('Oversized issuer JWKS');
+   jwks=JSON.parse(keyBytes);
+   if(!Array.isArray(jwks?.keys)||jwks.keys.length>30)throw Error('Issuer JWKS invalid');
+   midFastOidcJwksCache={at:now,value:jwks};
+  }
+  const verified=await verifyFastOidcProof(proof,jwks,{now});
+  if(verified)trust={sha:verified.sha,run:verified.run};
+ }catch{
+  // Untrusted Pages, missing GitHub keys and signature mismatch are NoData.
+ }
+ midFastOidcTrustCache.set(env,{at:now,trust});
+ return trust;
+}
+
 const midRucFastTrustCache=new WeakMap();
 async function dwdRucTrustedFastManifestSha(env){
  if(env?.MID_DWD_RUC_FAST_ENABLED==='false')return null;
  const explicit=String(env?.MID_DWD_RUC_FAST_MANIFEST_SHA256||'').trim();
  if(env?.MID_DWD_RUC_FAST_ENABLED==='true'&&MID_RUC_FAST_SHA256.test(explicit))return {sha:explicit,run:null};
  const bucket=env?.MID_DWD_RUC_DATA;
- if(!bucket||typeof bucket.get!=='function')return null;
+ if(!bucket||typeof bucket.get!=='function')return midFastSignedPagesTrust(env);
  try{
   const cached=midRucFastTrustCache.get(bucket);
   if(cached&&Date.now()-cached.at<30000){
