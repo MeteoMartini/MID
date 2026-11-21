@@ -521,8 +521,8 @@ export function validateWindPair(wind:number,gust:number){
 }
 
 export function dayEffectiveUvMax(day:Day,hours:Hour[]){
- const vals=(hours??[]).map(x=>x.uvIndex).filter(v=>Number.isFinite(v));
- return vals.length?Math.max(...vals):(Number.isFinite(day.uvMax)?Number(day.uvMax):0);
+ const vals=(hours??[]).map(x=>x.uvIndex).filter(v=>Number.isFinite(v)&&v>=0);
+ return vals.length?Math.max(...vals):(Number.isFinite(day.uvMax)&&day.uvMax>=0?Number(day.uvMax):NaN);
 }
 export function coreForecastSourceLabel(_w:Weather){return'Open-Meteo Best Match'}
 /** Legacy helper kept for compatibility with older consumers; the core forecast no longer enters provider-fallback display mode. */
