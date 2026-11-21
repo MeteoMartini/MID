@@ -1,6 +1,7 @@
 import {createContext,useContext,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {rasterTileRetryDelayMs} from './mapLayerRecovery';
 import {createMapLayerOrderScheduler} from './mapLayerOrderScheduler';
+import {createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from './mapCanvasCrossfadePolicy';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './mapPopupTheme.css';
@@ -200,8 +201,91 @@ export function HtmlMarker({latitude,longitude,html,className='',anchor='bottom'
 
 export function CanvasOverlay({id,opacity=1,zIndex=5,render,events=['moveend','zoomend','resize'] as const}:{id:string;opacity?:number;zIndex?:number;render:(map:MidMap,canvas:HTMLCanvasElement)=>void;events?:readonly ('moveend'|'zoomend'|'resize'|'render')[]}){
  const map=useMidMap(),canvasRef=useRef<HTMLCanvasElement|null>(null),renderRef=useRef(render),opacityRef=useRef(opacity);renderRef.current=render;opacityRef.current=opacity;
- useEffect(()=>{if(!map)return;let raf=0;const canvas=document.createElement('canvas');canvasRef.current=canvas;canvas.className=`mid-maplibre-canvas ${safeId(id)}`;Object.assign(canvas.style,{position:'absolute',inset:'0',pointerEvents:'none',zIndex:String(zIndex),opacity:String(opacityRef.current)});map.getCanvasContainer().appendChild(canvas);const redraw=()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;renderRef.current(map,canvas)})};for(const event of events)map.on(event,redraw);return()=>{cancelAnimationFrame(raf);for(const event of events)map.off(event,redraw);canvas.remove();canvasRef.current=null}},[map,id,zIndex,events.join('|')]);
- useEffect(()=>{const canvas=canvasRef.current;if(!map||!canvas)return;const old=document.createElement('canvas');old.width=canvas.width;old.height=canvas.height;old.style.cssText=canvas.style.cssText;old.getContext('2d')?.drawImage(canvas,0,0);canvas.before(old);render(map,canvas);canvas.style.transition='none';canvas.style.opacity='0';let raf=requestAnimationFrame(()=>{canvas.style.transition='opacity 350ms linear';old.style.transition='opacity 350ms linear';canvas.style.opacity=String(opacityRef.current);old.style.opacity='0'});const timer=window.setTimeout(()=>old.remove(),380);return()=>{cancelAnimationFrame(raf);window.clearTimeout(timer);old.remove();canvas.style.transition='none';canvas.style.opacity=String(opacityRef.current)}},[map,render]);
+ useEffect(()=>{if(!map)return;
+  const canvas=document.createElement('canvas');canvasRef.current=canvas;
+  canvas.className=`mid-maplibre-canvas ${safeId(id)}`;
+  Object.assign(canvas.style,{position:'absolute',inset:'0',pointerEvents:'none',zIndex:String(zIndex),opacity:String(opacityRef.current)});
+  map.getCanvasContainer().appendChild(canvas);
+  // Hidden-tab MapLibre events must not queue cosmetic redraw work.
+  // Upon return, redraw the latest in-memory overlay exactly once.
+  const scheduler=createMapCanvasRedrawScheduler(
+   ()=>renderRef.current(map,canvas),
+   callback=>requestAnimationFrame(callback),
+   handle=>cancelAnimationFrame(handle),
+   ()=>document.visibilityState==='visible'
+  );
+  const redraw=()=>scheduler.request();
+  const onVisibility=()=>scheduler.visibilityChange(document.visibilityState==='visible');
+  for(const event of events)map.on(event,redraw);
+  document.addEventListener('visibilitychange',onVisibility);
+  return()=>{
+   document.removeEventListener('visibilitychange',onVisibility);
+   scheduler.dispose();
+   for(const event of events)map.off(event,redraw);
+   canvas.remove();canvasRef.current=null
+  };
+ },[map,id,zIndex,events.join('|')]);
+ useEffect(()=>{const canvas=canvasRef.current;if(!map||!canvas)return;
+  // Data/prop refreshes also reach this effect while the tab is hidden.
+  // The visibility scheduler above will paint renderRef.current on return;
+  // avoid a redundant background draw or a stale meteorological canvas.
+  if(document.visibilityState!=='visible'){
+   canvas.style.transition='none';
+   canvas.style.opacity=String(Math.max(0,Math.min(1,opacityRef.current)));
+   return;
+  }
+  // A cosmetic fade must not clone a multi-megapixel canvas on mobile,
+  // during backgrounding or for users who request reduced motion.
+  const saveData=(navigator as Navigator&{connection?:{saveData?:boolean}}).connection?.saveData===true;
+  // MapLibre has an actual device-pixel backing store. An untouched overlay
+  // starts at the HTML default 300x150 and would understate retina-map cost.
+  const backing=mapCanvasCrossfadeBackingSize(canvas,map.getCanvas());
+  const animate=shouldCrossfadeMapCanvas({
+   width:backing?.width??0,height:backing?.height??0,
+   visible:document.visibilityState==='visible',
+   reducedMotion:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches===true,
+   saveData
+  });
+  if(!animate){
+   render(map,canvas);
+   canvas.style.transition='none';
+   canvas.style.opacity=String(Math.max(0,Math.min(1,opacityRef.current)));
+   return;
+  }
+  const old=document.createElement('canvas');old.width=canvas.width;old.height=canvas.height;
+  old.style.cssText=canvas.style.cssText;old.getContext('2d')?.drawImage(canvas,0,0);
+  canvas.before(old);
+  let raf=0,timer=0,settled=false;
+  // Hidden tabs may throttle RAF while allowing cleanup timers to advance.
+  // Complete an already painted frame atomically: no transparent flash on return.
+  function finishFade(){
+   if(settled)return;
+   settled=true;
+   document.removeEventListener('visibilitychange',onVisibility);
+   cancelAnimationFrame(raf);window.clearTimeout(timer);old.remove();
+   // TypeScript must re-check this captured DOM ref inside the delayed
+   // callback; React's outer effect guard does not narrow future closures.
+   if(canvas){
+    canvas.style.transition='none';
+    canvas.style.opacity=String(Math.max(0,Math.min(1,opacityRef.current)));
+   }
+  }
+  function onVisibility(){if(document.visibilityState!=='visible')finishFade()}
+  // Rendering or scheduling can fail after the previous image is inserted.
+  // Always dispose that temporary image and restore the canvas before rethrow.
+  withCanvasFadeRollback(()=>{
+   render(map,canvas);canvas.style.transition='none';canvas.style.opacity='0';
+   raf=requestAnimationFrame(()=>{
+    if(settled)return;
+    canvas.style.transition='opacity 350ms linear';old.style.transition='opacity 350ms linear';
+    canvas.style.opacity=String(opacityRef.current);old.style.opacity='0';
+   });
+   timer=window.setTimeout(finishFade,380);
+   document.addEventListener('visibilitychange',onVisibility);
+   if(document.visibilityState!=='visible')finishFade();
+  },finishFade);
+  return finishFade
+ },[map,render]);
  useEffect(()=>{if(canvasRef.current)canvasRef.current.style.opacity=String(Math.max(0,Math.min(1,opacity)))},[opacity]);return null;
 }
 
