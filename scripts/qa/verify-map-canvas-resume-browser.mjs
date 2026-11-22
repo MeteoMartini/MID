@@ -15,7 +15,7 @@ import {readFileSync,realpathSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {createRequire} from 'node:module';
 import {dirname,join} from 'node:path';
-import ts from 'typescript';
+import ts from 'typescript-strada';
 
 const require=createRequire(import.meta.url);
 const cli=realpathSync(execFileSync('npm',[
