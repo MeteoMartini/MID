@@ -3,12 +3,22 @@
 
 import argparse
 import json
+import os
 import re
 import subprocess
 
 REPOSITORY = 'MeteoMartini/MID'
 SHA = re.compile(r'[0-9a-f]{40}')
 DIGEST = re.compile(r'sha256:[0-9a-f]{64}')
+INSTALLER_WORKFLOW = '.github/workflows/install-mid.yml'
+RUC_WORKFLOW = '.github/workflows/mid-ruc-preprocess.yml'
+LOCKED_PUBLISHERS = {
+    (INSTALLER_WORKFLOW, 'deploy_pages_2'): 'MID auf GitHub Pages veröffentlichen · Versuch 2',
+    (INSTALLER_WORKFLOW, 'deploy_pages_3'): 'MID auf GitHub Pages veröffentlichen · Versuch 3',
+    (RUC_WORKFLOW, 'publish'): 'MID + RUC kostenfrei auf GitHub Pages veröffentlichen',
+    (RUC_WORKFLOW, 'publish_fast'): 'Unabhängige Fast Lane geschützt auf Pages veröffentlichen',
+}
+
 
 
 def require(condition, message):
@@ -24,7 +34,43 @@ def gh_api(path):
     return json.loads(result.stdout)
 
 
-def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None):
+def own_pages_job(api, environment):
+    """Identify the running job only at the protected, locked publisher call sites."""
+    if environment.get('GITHUB_ACTIONS') != 'true' or environment.get('GITHUB_REPOSITORY') != REPOSITORY:
+        return None
+    for (path, job_key), name in LOCKED_PUBLISHERS.items():
+        if (environment.get('GITHUB_WORKFLOW_REF') == f'{REPOSITORY}/{path}@refs/heads/main'
+                and environment.get('GITHUB_JOB') == job_key):
+            break
+    else:
+        return None
+
+    run_id = environment.get('GITHUB_RUN_ID', '')
+    attempt = environment.get('GITHUB_RUN_ATTEMPT', '')
+    event_sha = environment.get('GITHUB_SHA', '')
+    require(re.fullmatch(r'[1-9][0-9]*', run_id) and re.fullmatch(r'[1-9][0-9]*', attempt)
+            and SHA.fullmatch(event_sha), 'invalid running Pages job context')
+    run_id, attempt = int(run_id), int(attempt)
+    run = api(f'actions/runs/{run_id}')
+    require(run.get('id') == run_id and run.get('path') == path
+            and run.get('head_branch') == 'main' and run.get('head_sha') == event_sha
+            and (run.get('head_repository') or {}).get('full_name') == REPOSITORY
+            and run.get('run_attempt') == attempt and run.get('status') == 'in_progress',
+            'untrusted running Pages workflow')
+    inventory = api(f'actions/runs/{run_id}/attempts/{attempt}/jobs?per_page=100')
+    jobs = inventory.get('jobs')
+    require(isinstance(jobs, list) and len(jobs) <= 100
+            and len(jobs) == inventory.get('total_count'), 'incomplete running Pages job inventory')
+    matching = [job for job in jobs if job.get('name') == name]
+    require(len(matching) == 1, 'missing or ambiguous running Pages job')
+    job = matching[0]
+    require(type(job.get('id')) is int and job['id'] > 0 and job.get('run_id') == run_id
+            and job.get('head_sha') == event_sha and job.get('run_attempt') == attempt
+            and job.get('status') == 'in_progress', 'untrusted running Pages job')
+    return event_sha, f'https://github.com/{REPOSITORY}/actions/runs/{run_id}/job/{job["id"]}'
+
+
+def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None, environment=None):
     """Accept only the verified installer, Fast deployment, or verified Fast rollback."""
     require(SHA.fullmatch(expected_stable), 'invalid expected Stable SHA')
     require(api('git/ref/heads/mid-stable')['object']['sha'] == expected_stable,
@@ -73,6 +119,8 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
     deployments = api('deployments?environment=github-pages&per_page=30')
     require(isinstance(deployments, list) and 0 < len(deployments) <= 30,
             'Pages deployment history missing or incomplete')
+    own_job = own_pages_job(api, environment if environment is not None else {})
+    own_seen = False
     deployment = None
     statuses = None
     for item in deployments:
@@ -85,6 +133,12 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
                     'latest successful Pages deployment not on Stable source')
             deployment, statuses = item, recent
             break
+        # The environment creates this record before the job executes any step.
+        # All other pending statuses, including another job in this run, block.
+        if (not own_seen and recent[0]['state'] == 'in_progress'
+                and own_job == (item.get('sha'), recent[0].get('log_url'))):
+            own_seen = True
+            continue
         require(recent[0]['state'] in ('failure', 'error'),
                 'newest Pages deployment not in a safe terminal state')
     require(deployment is not None,
@@ -205,7 +259,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stable-sha', required=True)
     args = parser.parse_args()
-    print(json.dumps(resolve_installer_pages(args.stable_sha), sort_keys=True))
+    print(json.dumps(resolve_installer_pages(args.stable_sha, environment=os.environ), sort_keys=True))
 
 
 if __name__ == '__main__':

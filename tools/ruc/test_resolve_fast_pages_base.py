@@ -1,4 +1,8 @@
+import os
 import unittest
+from unittest.mock import patch
+
+import install_fast_pages
 
 from resolve_fast_pages_base import REPOSITORY, resolve_installer_pages
 
@@ -38,6 +42,87 @@ class InstallerPagesResolverTest(unittest.TestCase):
         proof = self.resolve()
         self.assertEqual(proof['artifact_id'], 4)
         self.assertEqual(proof['artifact_digest'], DIGEST)
+
+    def running_job_fixture(self, job_key, path, job_name):
+        self.manifest['deployments?environment=github-pages&per_page=30'].insert(
+            0, {'id': 5, 'environment': 'github-pages', 'sha': STABLE})
+        self.manifest['deployments/5/statuses?per_page=1'] = [{
+            'state': 'in_progress',
+            'log_url': f'https://github.com/{REPOSITORY}/actions/runs/6/job/7',
+        }]
+        self.manifest['actions/runs/6'] = {
+            'id': 6, 'path': path, 'head_branch': 'main', 'head_sha': STABLE,
+            'head_repository': {'full_name': REPOSITORY}, 'run_attempt': 2,
+            'status': 'in_progress',
+        }
+        self.manifest['actions/runs/6/attempts/2/jobs?per_page=100'] = {
+            'total_count': 1, 'jobs': [{
+                'id': 7, 'name': job_name, 'run_id': 6, 'run_attempt': 2,
+                'head_sha': STABLE, 'status': 'in_progress',
+            }],
+        }
+        return {
+            'GITHUB_ACTIONS': 'true', 'GITHUB_REPOSITORY': REPOSITORY,
+            'GITHUB_WORKFLOW_REF': f'{REPOSITORY}/{path}@refs/heads/main',
+            'GITHUB_JOB': job_key, 'GITHUB_RUN_ID': '6', 'GITHUB_RUN_ATTEMPT': '2',
+            'GITHUB_SHA': STABLE,
+        }
+
+    def test_running_installer_and_ruc_publishers_resolve_previous_artifact(self):
+        installer = '.github/workflows/install-mid.yml'
+        ruc = '.github/workflows/mid-ruc-preprocess.yml'
+        for key, path, name in (
+            ('deploy_pages_2', installer, 'MID auf GitHub Pages veröffentlichen · Versuch 2'),
+            ('deploy_pages_3', installer, 'MID auf GitHub Pages veröffentlichen · Versuch 3'),
+            ('publish', ruc, 'MID + RUC kostenfrei auf GitHub Pages veröffentlichen'),
+            ('publish_fast', ruc, 'Unabhängige Fast Lane geschützt auf Pages veröffentlichen'),
+        ):
+            with self.subTest(job=key):
+                self.setUp()
+                env = self.running_job_fixture(key, path, name)
+                proof = resolve_installer_pages(STABLE, self.manifest.__getitem__, environment=env)
+                self.assertEqual(proof['artifact_id'], 4)
+
+    def test_installer_entry_point_passes_running_job_context(self):
+        env = self.running_job_fixture('deploy_pages_2', '.github/workflows/install-mid.yml',
+                                       'MID auf GitHub Pages veröffentlichen · Versuch 2')
+        with (patch.dict(os.environ, env, clear=True),
+              patch.object(install_fast_pages, 'gh_api', self.manifest.__getitem__),
+              patch('resolve_fast_pages_base.subprocess.run') as gh):
+            gh.side_effect = lambda args, **kwargs: type('Result', (), {
+                'stdout': install_fast_pages.json.dumps(self.manifest[args[-1].split(REPOSITORY + '/', 1)[1]])
+            })()
+            self.assertEqual(install_fast_pages.active_pages(STABLE)['artifact_id'], 4)
+
+    def test_running_publisher_does_not_ignore_foreign_or_ambiguous_deployment(self):
+        for url in ('runs/6', 'runs/6/job/8', 'runs/9/job/7'):
+            with self.subTest(url=url):
+                self.setUp()
+                env = self.running_job_fixture('deploy_pages_2', '.github/workflows/install-mid.yml',
+                                               'MID auf GitHub Pages veröffentlichen · Versuch 2')
+                self.manifest['deployments/5/statuses?per_page=1'][0]['log_url'] = (
+                    f'https://github.com/{REPOSITORY}/actions/{url}')
+                with self.assertRaisesRegex(ValueError, 'safe terminal state'):
+                    resolve_installer_pages(STABLE, self.manifest.__getitem__, environment=env)
+
+    def test_prepare_job_does_not_ignore_pending_deployment(self):
+        env = self.running_job_fixture('prepare_fast', '.github/workflows/mid-ruc-preprocess.yml',
+                                       'Aktuelle Stable-Site und geprüfte Fast Lane für Pages vorbereiten')
+        with self.assertRaisesRegex(ValueError, 'safe terminal state'):
+            resolve_installer_pages(STABLE, self.manifest.__getitem__, environment=env)
+
+    def test_running_publisher_rejects_stale_attempt_and_duplicate_job(self):
+        env = self.running_job_fixture('deploy_pages_2', '.github/workflows/install-mid.yml',
+                                       'MID auf GitHub Pages veröffentlichen · Versuch 2')
+        inv = self.manifest['actions/runs/6/attempts/2/jobs?per_page=100']
+        inv['jobs'][0]['run_attempt'] = 1
+        with self.assertRaisesRegex(ValueError, 'untrusted running Pages job'):
+            resolve_installer_pages(STABLE, self.manifest.__getitem__, environment=env)
+        inv['jobs'][0]['run_attempt'] = 2
+        inv['jobs'].append({**inv['jobs'][0], 'id': 8})
+        inv['total_count'] = 2
+        with self.assertRaisesRegex(ValueError, 'missing or ambiguous running Pages job'):
+            resolve_installer_pages(STABLE, self.manifest.__getitem__, environment=env)
 
     def test_full_history_page_accepts_newest_success(self):
         history = self.manifest['deployments?environment=github-pages&per_page=30']
