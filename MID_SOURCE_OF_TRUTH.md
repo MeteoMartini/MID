@@ -1,3 +1,7 @@
+# MID v0.9.85.507 · Abruf des Fast-Lane-Belegs
+
+- Source-Kandidat auf Stable c13fbd57afcd30d8fce92b6b574c10d7e78debc4. Der Live-Worker .506 scheitert vor dem HTTP-Status beim signierten Fast-Beleg. Der Beleg wird über den regulären Pages-Einstieg per Abruf ohne Cache angefragt. Source-Gate, ZIP, Installer, Worker/Pages, Stable-Promotion und Produktionsnachweis stehen aus.
+
 # MID v0.9.85.506 · Fast-Lane-Vertrauensprüfung im Worker
 
 - Source-Kandidat auf Stable c710c691a5b56ef79c26325d1b167c0af073d550. Der bestehende opt-in Fast-Healthcheck erhält einen festen Prüfstatus und bei HTTP-Fehlern den Statuscode. Es werden keine Belege oder Schlüssel ausgegeben. Source-Gate, ZIP, Installer, Worker/Pages, Stable-Promotion und Produktionsnachweis stehen aus.

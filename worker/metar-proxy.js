@@ -52,7 +52,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.85.506';
+const WORKER_VERSION='0.9.85.507';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
@@ -803,9 +803,11 @@ async function midFastSignedPagesTrust(env,diagnostics){
  }
  let trust=null,stage='proof-request',httpStatus=null;
  try{
-  const proofUrl=new URL('fast/publisher-proof.v2.json',MID_RUC_FAST_PAGES_ROOT);
+  // Use the same public Pages entry point and uncached pointer transport as
+  // the regular RUC index. The apex redirects to the canonical Pages host.
+  const proofUrl=new URL('fast/publisher-proof.v2.json',DWD_RUC_STATIC_DEFAULT);
   const proofResponse=await fetchWithDeadline(proofUrl.toString(),
-   {redirect:'error',headers:{Accept:'application/json'},cf:{cacheTtl:15,cacheEverything:true}},9000);
+   {headers:{Accept:'application/json','Cache-Control':'no-cache'},cf:{cacheEverything:false,cacheTtl:0}},9000);
   if(proofResponse.status!==200){httpStatus=proofResponse.status;throw Error('No signed Fast Pages proof')}
   stage='proof-format';
   const decoder=new TextDecoder('utf-8',{fatal:true});

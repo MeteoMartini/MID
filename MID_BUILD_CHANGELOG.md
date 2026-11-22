@@ -1,3 +1,7 @@
+## MID v0.9.85.507 · Abruf des Fast-Lane-Belegs
+
+- Live-Diagnose von .506: proof-request ohne HTTP-Status. Der signierte Beleg nutzt jetzt den erfolgreichen Pages-Einstieg des regulären RUC-Index mit abweichender Cache-Behandlung für den veränderlichen Beleg. Produktionsnachweis ausstehend.
+
 ## MID v0.9.85.506 · Fast-Lane-Vertrauensprüfung im Worker
 
 - Basis c710c691a5b56ef79c26325d1b167c0af073d550. Der produktive .505-Worker meldet für den vorhandenen signierten Fast-Snapshot trusted=false. Die Diagnose unterscheidet Dokument-, Schlüssel- und Verifikationsfehler. Produktionsnachweis ausstehend.
