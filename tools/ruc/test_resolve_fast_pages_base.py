@@ -39,6 +39,22 @@ class InstallerPagesResolverTest(unittest.TestCase):
         self.assertEqual(proof['artifact_id'], 4)
         self.assertEqual(proof['artifact_digest'], DIGEST)
 
+    def test_full_history_page_accepts_newest_success(self):
+        history = self.manifest['deployments?environment=github-pages&per_page=30']
+        history.extend({'id': i, 'environment': 'github-pages', 'sha': SOURCE}
+                       for i in range(2, 31))
+        self.assertEqual(self.resolve()['artifact_id'], 4)
+
+    def test_full_history_page_without_success_fails_closed(self):
+        history = self.manifest['deployments?environment=github-pages&per_page=30']
+        history.extend({'id': i, 'environment': 'github-pages', 'sha': SOURCE}
+                       for i in range(2, 31))
+        for deployment in history:
+            self.manifest[f"deployments/{deployment['id']}/statuses?per_page=1"] = [
+                {'state': 'failure'}]
+        with self.assertRaisesRegex(ValueError, 'latest Pages deployment is not successful'):
+            self.resolve()
+
     def no_op_fixture(self):
         self.manifest['git/commits/' + STABLE]['message'] = 'Prepare MID agent release from PR #948'
         self.manifest['commits/' + STABLE] = {

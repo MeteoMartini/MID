@@ -71,7 +71,7 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
     # attested Stable deployment from Installer retries. Refuse unknown
     # successful sources and pending deployments; inspect bounded history.
     deployments = api('deployments?environment=github-pages&per_page=30')
-    require(isinstance(deployments, list) and 0 < len(deployments) < 30,
+    require(isinstance(deployments, list) and 0 < len(deployments) <= 30,
             'Pages deployment history missing or incomplete')
     deployment = None
     statuses = None
