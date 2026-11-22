@@ -1,3 +1,7 @@
+# MID v0.9.85.502
+
+- Die RUC-Fast-Lane kann die aktuelle Pages-Auslieferung auch bei einer vollen GitHub-Deploymentliste prüfen und für neue DWD-Daten verwenden.
+
 # MID v0.9.85.501
 
 - Die unabhängige DWD-ICON-D2-RUC-Fast-Lane wird für einen SHA-authentifizierten, R2-freien GitHub-Pages-Vertrauenspfad vorbereitet. Neue zusätzliche Cloudflare-R2-Kosten oder Abonnements sind dafür nicht vorgesehen.

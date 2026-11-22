@@ -1,3 +1,8 @@
+## MID v0.9.85.502 · 2026-11-22 · RUC-Fast-Lane: volle Deploymentliste zulassen
+
+- Basis c6e5aa75d18b810b066f685f30ff6b0b35e030df. Beleg für den Fehler: GitHub Actions 44993474635.
+- Der Resolver hat 24 Tests bestanden und das aktuelle Pages-Artefakt 14727993173 live identifiziert. Produktivabnahme nach Stable-Promotion.
+
 ## MID v0.9.85.502 · RUC Fast Pages-Deploymenthistorie
 
 - Basis `c6e5aa75d18b810b066f685f30ff6b0b35e030df`, Fehlernachweis Actions `44993474635`.
