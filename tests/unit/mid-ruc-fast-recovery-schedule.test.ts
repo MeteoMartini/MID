@@ -16,6 +16,21 @@ describe('MID .510 Fast-RUC catch-up scheduler integrity',()=>{
  it('rejects removal of the recovery slot without altering the ordinary Fast slots',()=>{
    expect(isCanonicalCatchupRucWorkflow(canonical.replace("    - cron: '28,58 * * * *'\n",''))).toBe(false);
  });
+ it('requires the Fast recovery check before pinned native dependency setup',()=>{
+   const install='      - name: Install pinned MID native RUC dependencies\n';
+   const next='      - name: Fail-closed offline fast producer';
+   const recovery='      - name: Fast-Nachholbedarf vor DWD-Downloads prüfen\n';
+   const start=canonical.indexOf(install);
+   const end=canonical.indexOf(next,start);
+   expect(start).toBeGreaterThan(0);
+   expect(end).toBeGreaterThan(start);
+   const moved=canonical.slice(start,end);
+   const without=canonical.slice(0,start)+canonical.slice(end);
+   const insertAt=without.indexOf(recovery);
+   expect(insertAt).toBeGreaterThan(0);
+   const reordered=without.slice(0,insertAt)+moved+without.slice(insertAt);
+   expect(isCanonicalCatchupRucWorkflow(reordered)).toBe(false);
+ });
  it('rejects an unbound GitHub run selector inside the recovery step, even if other SHA text survives',()=>{
    expect(isCanonicalCatchupRucWorkflow(canonical.replace(
      'select(.head_sha == $sha and (.id | tostring) != $self)',

@@ -46,7 +46,7 @@ export function isCanonicalCatchupRucWorkflow(workflow){
   const hasRecovery=schedules.includes(recoverySchedule);
   const recoveryStart=jobStart>=0?workflow.indexOf('\n      - name: Fast-Nachholbedarf vor DWD-Downloads prüfen',jobStart):-1;
   const recoveryEnd=recoveryStart>=0?workflow.indexOf('\n      - name: Set up native Python and ecCodes',recoveryStart):-1;
-  const recoveryBlock=recoveryStart>jobStart && recoveryEnd>recoveryStart && recoveryEnd<jobEnd
+  const recoveryBlock=recoveryStart>jobStart && recoveryEnd>recoveryStart && recoveryEnd<fast && fast<jobEnd
     ?workflow.slice(recoveryStart,recoveryEnd):'';
   const exactShaBoundNewestSelector='.workflow_runs | sort_by(.created_at) | reverse | .[] | select(.head_sha == $sha and (.id | tostring) != $self) | .id';
   const hasSafeRecovery=recoveryBlock.includes('id: fast_recovery')
