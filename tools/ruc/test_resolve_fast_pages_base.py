@@ -1,8 +1,12 @@
+import json
 import os
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 import install_fast_pages
+from verify_fast_pages_publish import verify_delivery
 
 from resolve_fast_pages_base import REPOSITORY, resolve_installer_pages
 
@@ -93,6 +97,16 @@ class InstallerPagesResolverTest(unittest.TestCase):
                 'stdout': install_fast_pages.json.dumps(self.manifest[args[-1].split(REPOSITORY + '/', 1)[1]])
             })()
             self.assertEqual(install_fast_pages.active_pages(STABLE)['artifact_id'], 4)
+
+    def test_fast_seal_verifier_resolves_baseline_in_publisher_environment(self):
+        env = self.running_job_fixture('publish_fast', '.github/workflows/mid-ruc-preprocess.yml',
+                                       'Unabhängige Fast Lane geschützt auf Pages veröffentlichen')
+        baseline = resolve_installer_pages(STABLE, self.manifest.__getitem__, environment=env)
+        with TemporaryDirectory() as temp, patch.dict(os.environ, env, clear=True):
+            bundle = Path(temp)
+            (bundle / 'pages-base.json').write_text(json.dumps(baseline), encoding='utf-8')
+            with self.assertRaisesRegex(FileNotFoundError, 'fast-delivery-proof.json'):
+                verify_delivery(bundle, bundle, STABLE, api=self.manifest.__getitem__)
 
     def test_running_publisher_does_not_ignore_foreign_or_ambiguous_deployment(self):
         for url in ('runs/6', 'runs/6/job/8', 'runs/9/job/7'):

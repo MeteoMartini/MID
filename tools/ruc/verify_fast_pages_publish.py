@@ -4,19 +4,19 @@
 import argparse
 from datetime import datetime, timedelta, timezone
 import json
+import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from resolve_fast_pages_base import resolve_installer_pages
+from resolve_fast_pages_base import gh_api, resolve_installer_pages
 from ruc_fast_pages_preserve import preserve_fast_pages
 from ruc_fast_pointer_staging import count_files, sha_file, strict_budget
 
 
-def verify_delivery(candidate_bundle, rollback_site, stable_sha, *, api=None, now=None):
+def verify_delivery(candidate_bundle, rollback_site, stable_sha, *, api=gh_api, now=None):
     candidate = candidate_bundle / 'candidate-site'
     recorded_base = json.loads((candidate_bundle / 'pages-base.json').read_text(encoding='utf-8'))
-    active_base = (resolve_installer_pages(stable_sha, api) if api is not None
-                   else resolve_installer_pages(stable_sha))
+    active_base = resolve_installer_pages(stable_sha, api, environment=os.environ)
     if active_base != recorded_base:
         raise ValueError('active Pages baseline changed since Fast assembly')
     proof = json.loads((candidate_bundle / 'fast-delivery-proof.json').read_text(encoding='utf-8'))
