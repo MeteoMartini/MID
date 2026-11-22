@@ -1,3 +1,7 @@
+# MID v0.9.85.505
+
+- Der Wetter-Worker erhält mehr Zeit für den Abruf signierter Fast-Lane-Daten. Der Produktionsnachweis steht aus.
+
 # MID v0.9.85.504
 
 - Das Niederschlagsphasenraster nutzt natives ICON-D2-RUC über Open-Meteo, wenn an einer Zelle geprüfte DWD-Originaldaten fehlen. Die Zellquelle bleibt sichtbar. Produktivabnahme nach Stable-Promotion.
