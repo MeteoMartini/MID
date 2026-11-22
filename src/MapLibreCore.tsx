@@ -1,7 +1,7 @@
 import {createContext,useContext,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {rasterTileRetryDelayMs} from './mapLayerRecovery';
 import {createMapLayerOrderScheduler} from './mapLayerOrderScheduler';
-import {createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from './mapCanvasCrossfadePolicy';
+import {createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback,restoreCanvasFromSnapshot} from './mapCanvasCrossfadePolicy';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './mapPopupTheme.css';
@@ -283,7 +283,11 @@ export function CanvasOverlay({id,opacity=1,zIndex=5,render,events=['moveend','z
    timer=window.setTimeout(finishFade,380);
    document.addEventListener('visibilitychange',onVisibility);
    if(document.visibilityState!=='visible')finishFade();
-  },finishFade);
+  },()=>{
+   // The failed renderer may have cleared/resized canvas: restore previous
+   // actual pixels before finishFade destroys the only snapshot.
+   try{restoreCanvasFromSnapshot(canvas,old)}finally{finishFade()}
+  });
   return finishFade
  },[map,render]);
  useEffect(()=>{if(canvasRef.current)canvasRef.current.style.opacity=String(Math.max(0,Math.min(1,opacity)))},[opacity]);return null;

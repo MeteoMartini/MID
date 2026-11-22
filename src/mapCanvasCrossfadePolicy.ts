@@ -53,6 +53,21 @@ export function withCanvasFadeRollback<T>(attempt:()=>T,rollback:()=>void):T{
  }
 }
 
+/** Restore the previous real bitmap when a new overlay render clears or resizes
+ * the destination before throwing. Keep the snapshot alive through rollback.
+ * Purely presentational, not an original weather-data transformation.
+ */
+export function restoreCanvasFromSnapshot(canvas:HTMLCanvasElement,snapshot:HTMLCanvasElement):boolean{
+ if(!Number.isSafeInteger(snapshot.width)||!Number.isSafeInteger(snapshot.height)||snapshot.width<=0||snapshot.height<=0)return false;
+ const ctx=canvas.getContext('2d');
+ if(!ctx)return false;
+ if(canvas.width!==snapshot.width)canvas.width=snapshot.width;
+ if(canvas.height!==snapshot.height)canvas.height=snapshot.height;
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ ctx.drawImage(snapshot,0,0);
+ return true;
+}
+
 /**
  * MID-Karten: map event redraws are presentation work, not source refreshes.
  * MapLibre can emit many 'render' events while the document is hidden.

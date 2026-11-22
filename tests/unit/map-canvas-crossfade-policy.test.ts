@@ -2,7 +2,7 @@ import {describe,expect,it} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {MAP_CANVAS_CROSSFADE_MAX_PIXELS,createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from '../../src/mapCanvasCrossfadePolicy';
+import {MAP_CANVAS_CROSSFADE_MAX_PIXELS,createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback,restoreCanvasFromSnapshot} from '../../src/mapCanvasCrossfadePolicy';
 
 const defaults={width:390,height:844,visible:true,reducedMotion:false,saveData:false};
 describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
@@ -49,7 +49,7 @@ describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
   expect(from).toBeGreaterThan(-1);
   expect(end).toBeGreaterThan(from);
   const overlay=source.slice(from,end);
-  expect(source).toContain("import {createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from './mapCanvasCrossfadePolicy'");
+  expect(source).toContain("import {createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback,restoreCanvasFromSnapshot} from './mapCanvasCrossfadePolicy'");
   const checked=overlay.indexOf('shouldCrossfadeMapCanvas({');
   const skipped=overlay.indexOf('if(!animate){');
   const duplicate=overlay.indexOf("const old=document.createElement('canvas')");
@@ -105,7 +105,7 @@ describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
   expect(admission).toBeGreaterThan(read);
   expect(copied).toBeGreaterThan(admission);
   expect(overlay).toContain('width:backing?.width??0,height:backing?.height??0');
-  expect(source).toContain("import {createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from './mapCanvasCrossfadePolicy'");
+  expect(source).toContain("import {createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback,restoreCanvasFromSnapshot} from './mapCanvasCrossfadePolicy'");
  });
 
  it('returns successful canvas draw values without unnecessary rollback',()=>{
@@ -165,7 +165,7 @@ describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
   expect(rollback).toBeGreaterThan(insideSchedule);
   expect(overlay.slice(finish,protectedPaint)).toContain("canvas.style.transition='none'");
   expect(overlay.slice(finish,protectedPaint)).toContain('canvas.style.opacity=String(Math.max(0,Math.min(1,opacityRef.current)))');
-  expect(source).toContain("import {createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from './mapCanvasCrossfadePolicy'");
+  expect(source).toContain("import {createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback,restoreCanvasFromSnapshot} from './mapCanvasCrossfadePolicy'");
  });
 
  it('settles a canvas fade on backgrounding before a throttled RAF can leave blank pixels',()=>{
@@ -300,7 +300,7 @@ describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
   const start=source.indexOf('export function CanvasOverlay');
   const end=source.indexOf('export function ImageQuadLayer',start);
   const overlay=source.slice(start,end);
-  expect(source).toContain("import {createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback} from './mapCanvasCrossfadePolicy'");
+  expect(source).toContain("import {createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback,restoreCanvasFromSnapshot} from './mapCanvasCrossfadePolicy'");
   const admission=overlay.indexOf('createMapCanvasRedrawScheduler(');
   const subscribe=overlay.indexOf("document.addEventListener('visibilitychange',onVisibility)");
   const cleanup=overlay.indexOf('scheduler.dispose()',subscribe);
@@ -347,5 +347,22 @@ describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
   // The separate map-owned scheduler always redraws the current callback on return.
   expect(overlay).toContain('()=>renderRef.current(map,canvas)');
   expect(overlay).toContain("scheduler.visibilityChange(document.visibilityState==='visible')");
+ });
+ it('restores the actual previous bitmap and dimensions before error cleanup',()=>{
+  const calls:string[]=[];
+  const prior={width:320,height:160} as HTMLCanvasElement;
+  const ctx={clearRect:(...args:number[])=>calls.push('clear:'+args.join(',')),
+   drawImage:(src:HTMLCanvasElement,x:number,y:number)=>calls.push('draw:'+(src===prior)+':'+x+':'+y)};
+  const canvas={width:1000,height:480,getContext:()=>ctx} as unknown as HTMLCanvasElement;
+  expect(restoreCanvasFromSnapshot(canvas,prior)).toBe(true);
+  expect([canvas.width,canvas.height]).toEqual([320,160]);
+  expect(calls).toEqual(['clear:0,0,320,160','draw:true:0:0']);
+  expect(restoreCanvasFromSnapshot({...canvas,getContext:()=>null} as unknown as HTMLCanvasElement,prior)).toBe(false);
+ });
+ it('executes six real Chromium Canvas cases in the required unified-map heavy gate',()=>{
+  const runner=readFileSync(new URL('../../scripts/test-unified-map-layers-0985167.mjs',import.meta.url),'utf8');
+  expect(runner).toContain('scripts/qa/verify-map-canvas-resume-browser.mjs');
+  const source=readFileSync(new URL('../../src/MapLibreCore.tsx',import.meta.url),'utf8');
+  expect(source).toContain("try{restoreCanvasFromSnapshot(canvas,old)}finally{finishFade()}");
  });
 });

@@ -1,7 +1,7 @@
 ## MID v0.9.85.509 · LC 1.30 · UV-Intervallsemantik und Canvas-Budget
 
 - Grundlage v0.9.85.508 auf `363815e328443805595f9adf8a978c7f609202bb`; originale SHA-verifizierte Pfade aus QA-Drafts #967 und #908, disjunkt zu laufendem RUC-Daten-/14d-Design-Handoff.
-- UVI: finite nichtnegative Provider-Number, Stundenendzeitpunkt ist Intervallende, Tagesmaximum und UTCI/Provider-Fallback nicht mit erfundener 0 füllen. Keine amtliche Warnlogik verändert.
+- UVI in Stunden-/Tagesprognosen: finite nichtnegative Provider-Number, Stundenendzeitpunkt ist Intervallende, Tagesmaximum und UTCI/Provider-Fallback nicht mit erfundener 0 füllen. Andere Aktuell- und Widget-Pfade sind nicht von diesem Fix erfasst. Keine amtliche Warnlogik verändert.
 - Canvas: sichtbarkeitsgerechter redraw scheduler, reduzierte Bewegung/Data Saver und tatsächliche Device-Pixel-Dimensionen für 1-Mi-Pixel-Crossfade-Gate; keine Vorhersagewerte geändert.
 - Original-QA: #967 und #908 jeweils gezielte Regression und Vitest bestanden. **Final-HEAD-Full-Gates, Geräte- und E2E-Abnahmen noch offen.** RUC-Freshness/Worker bleibt eigenständiges P0.
 

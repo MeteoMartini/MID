@@ -1,7 +1,7 @@
 # MID v0.9.85.509
 
-- UV-Index: Echte Stundenmittel bleiben auch an der Dämmerungsgrenze erhalten; fehlende UV-Werte werden nicht als 0 dargestellt. Fehlt UV, verwendet die gefühlte Temperatur den vorhandenen Anbieter-Fallback statt eines erfundenen UV-Werts.
-- Karten: Große Canvas-Überblendungen vermeiden unnötige Zusatzspeicher-Belegung; beim Rückkehr aus dem Hintergrund wird die aktuelle Ebene nur einmal gezeichnet. Original-Wetterdaten und Warnungen bleiben unverändert.
+- UV-Index in Stunden- und Tagesprognosen: Echte Stundenmittel bleiben an Dämmerungsgrenzen erhalten; fehlende Werte werden nicht als 0 ausgegeben. Fehlt UVI in der Stundenprognose, bleibt für die gefühlte Temperatur der vorhandene Anbieter-Fallback verfügbar.
+- Karten: Große Canvas-Überblendungen vermeiden unnötige Zusatzspeicher-Belegung; bei der Rückkehr aus dem Hintergrund wird die aktuelle Ebene nur einmal gezeichnet. Bei einem Renderfehler wird das vorherige Canvas-Bild wiederhergestellt. Original-Wetterdaten und Warnungen bleiben unverändert.
 
 # MID v0.9.85.508
 
