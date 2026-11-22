@@ -42,8 +42,11 @@ export function isCanonicalCatchupRucWorkflow(workflow){
   const fastRequirements=workflow.indexOf('python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt', fast);
   const pinnedFastDependencies=jobStart>=0 && fast>jobStart && fast<jobEnd &&
     fastRequirements>fast && fastRequirements<checks[2] && fastRequirements<jobEnd;
-  const expected=hasFast?[...full,fastSchedule]:full;
+  const recoverySchedule='28,58 * * * *';
+  const hasRecovery=schedules.includes(recoverySchedule);
+  const expected=hasFast?[...full,fastSchedule,...(hasRecovery?[recoverySchedule]:[])]:full;
   return includesAll(workflow,RUC_CATCHUP_TOKENS)
+    && (!hasRecovery || (hasFast && workflow.indexOf('id: fast_recovery',jobStart)>jobStart && workflow.indexOf('id: fast_recovery',jobStart)<fast && workflow.includes("if: steps.fast_recovery.outputs.skip != 'true'")))
     && JSON.stringify(schedules)===JSON.stringify(expected)
     && (workflow.match(/cron:/g)||[]).length===expected.length
     && workflow.indexOf('RUC-Schedulerlücke und Aktualität vorab prüfen')<calculate
