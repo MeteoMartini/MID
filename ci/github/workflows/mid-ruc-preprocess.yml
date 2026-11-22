@@ -881,6 +881,7 @@ jobs:
           fi
           # Cover the 45m native timeout and delayed concurrency, without unbounded API scans.
           since="$(date -u -d '90 minutes ago' +%FT%TZ)"
+          recently_published_since="$(date -u -d '25 minutes ago' +%FT%TZ)"
           runs="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/actions/workflows/mid-ruc-preprocess.yml/runs" -f branch=main -f "created=>=$since" -F per_page=100)"
           if ! jq -e '(.total_count <= 100) and ((.workflow_runs|type) == "array")' <<<"$runs" >/dev/null; then
             echo '::error::Fast recovery history incomplete; no DWD downloads.'
@@ -902,7 +903,7 @@ jobs:
             # Pending qualification/preparation/publication or an actually successful
             # newest publisher means no duplicate native Fast download is necessary.
             if jq -e '.jobs[] | select((.name == "Native Fast Lane unabhängig von EPS qualifizieren" or .name == "Aktuelle Stable-Site und geprüfte Fast Lane für Pages vorbereiten" or .name == "Unabhängige Fast Lane geschützt auf Pages veröffentlichen") and (.status == "queued" or .status == "pending" or .status == "in_progress"))' <<<"$jobs" >/dev/null ||
-               jq -e '.jobs[] | select(.name == "Unabhängige Fast Lane geschützt auf Pages veröffentlichen" and .conclusion == "success")' <<<"$jobs" >/dev/null; then
+               jq -e --arg after "$recently_published_since" '.jobs[] | select(.name == "Unabhängige Fast Lane geschützt auf Pages veröffentlichen" and .conclusion == "success" and .completed_at != null and .completed_at >= $after)' <<<"$jobs" >/dev/null; then
               echo "skip=true" >> "$GITHUB_OUTPUT"
               echo 'Newest same-SHA Fast publisher is active or successful. No redundant recovery.'
               exit 0

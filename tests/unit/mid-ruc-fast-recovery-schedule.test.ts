@@ -21,6 +21,8 @@ describe('MID .510 Fast-RUC catch-up scheduler integrity',()=>{
  });
  it('requires a bounded 90-minute window rather than 22-minute best-effort scanning',()=>{
    expect(isCanonicalCatchupRucWorkflow(canonical.replace('90 minutes ago','22 minutes ago'))).toBe(false);
+   expect(isCanonicalCatchupRucWorkflow(canonical.replace('25 minutes ago','90 minutes ago'))).toBe(false);
+   expect(isCanonicalCatchupRucWorkflow(canonical.replace('.completed_at >= $after','.created_at >= $after'))).toBe(false);
    expect(isCanonicalCatchupRucWorkflow(canonical.replaceAll('(.total_count <= 100)','(.total_count <= 1000)'))).toBe(false);
  });
  it('inspects newest real Fast run before older successes',()=>{
