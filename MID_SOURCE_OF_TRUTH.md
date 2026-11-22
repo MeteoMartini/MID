@@ -1,6 +1,6 @@
 # MID v0.9.85.505 · Fast-Lane-Workerabruf
 
-- Source-Kandidat auf Stable 0583ac77f61e94f27ae7ac3d28fd0b566b6ae5fb. Abrufgrenzen, Cloudflare-kompatible Schlüsselabfrage und opt-in Fast-Status unter ruc-health. Source-Gate, ZIP, Installer, Worker/Pages und Stable-Promotion ausstehend.
+- Source-Kandidat auf Stable 0583ac77f61e94f27ae7ac3d28fd0b566b6ae5fb. Abrufgrenzen, Cloudflare-kompatible Schlüsselabfrage und opt-in Fast-Status unter ruc-health. Source-Gate, ZIP, Installer, Worker/Pages und Stable-Promotion und der Nachweis der Nutzung im produktiven Worker stehen aus.
 
 # MID v0.9.85.504 · ICON-D2-RUC über Open-Meteo
 

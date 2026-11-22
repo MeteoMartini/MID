@@ -1,6 +1,6 @@
 ## MID v0.9.85.505 · Fast-Lane-Workerabruf
 
-- Pages-Produktion belegt durch Actions 45022455410. Der produktive Worker übernahm den Lauf bei der ersten Prüfung nicht. Lokal reproduzierter Manifest-Abruf oberhalb von 3,2 s. Der überarbeitete Abruf behält Größen-, Signatur- und Frischegrenzen. Produktionsabnahme steht aus.
+- Die Veröffentlichung des .504-Fast-Snapshots auf Pages ist in Actions 45022455410 protokolliert. Der produktive Worker übernahm den Lauf bei der ersten Prüfung nicht. Lokal reproduzierter Manifest-Abruf oberhalb von 3,2 s. Der überarbeitete Abruf behält Größen-, Signatur- und Frischegrenzen. Produktionsabnahme steht aus.
 
 ## MID v0.9.85.504 · Native Open-Meteo-Phasenzellen
 

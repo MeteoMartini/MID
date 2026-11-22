@@ -931,6 +931,23 @@ async function dwdRucNativeFastPagesPointPayload(lat,lon,env){
  }
 }
 
+// Share one opt-in Bonn readback per Worker isolate for two minutes.
+let rucFastHealthProbeCache;
+function rucFastHealthProbe(env){
+ const now=Date.now();
+ if(rucFastHealthProbeCache?.env===env&&now-rucFastHealthProbeCache.at<120000)
+  return rucFastHealthProbeCache.result;
+ const result=(async()=>{
+  const trust=await dwdRucTrustedFastManifestSha(env);
+  const point=trust?await dwdRucNativeFastPagesPointPayload(50.73,7.10,env):null;
+  return {configured:env?.MID_DWD_RUC_FAST_ENABLED!=='false',
+   signedPagesEnabled:env?.MID_DWD_RUC_FAST_OIDC_ENABLED!=='false',trusted:Boolean(trust),
+   run:trust?.run??point?.mid_ruc?.run??null,pointReady:Boolean(point)};
+ })();
+ rucFastHealthProbeCache={env,at:now,result};
+ return result;
+}
+
 async function fetchDwdRucPointAdapter(model,lat,lon,elevation,env){
  // Keep the last independently verified full 27h/EPS payload available as a
  // fallback; a newer, SHA-authenticated native 0–6h run may arrive first.
