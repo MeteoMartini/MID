@@ -41,9 +41,17 @@ async function fixture(){
 const env=sha=>({MID_DWD_RUC_FAST_ENABLED:'true',MID_DWD_RUC_FAST_MANIFEST_SHA256:sha});
 function mockPages(f,{manifest=f.raw,status=200,mutate=null,oidc=null}={}){
  const urls=[],old=globalThis.fetch;
- globalThis.fetch=async input=>{
+ const proofPath='/ruc/fast/publisher-proof.v2.json';
+ const canonicalProof='https://www.midwx.app'+proofPath;
+ globalThis.fetch=async function fetchPages(input,init){
   const u=String(input);urls.push(u);
-  if(u==='https://midwx.app/ruc/fast/publisher-proof.v2.json')return new Response(oidc?JSON.stringify(oidc.proof):'',{status:oidc?200:404});
+  if(u==='https://midwx.app'+proofPath){
+   const redirect=Response.redirect(canonicalProof,301);
+   if(init?.redirect==='error')throw new TypeError('Fetch redirect rejected');
+   if(init?.redirect==='manual')return redirect;
+   return fetchPages(redirect.headers.get('location'),init);
+  }
+  if(u===canonicalProof)return new Response(oidc?JSON.stringify(oidc.proof):'',{status:oidc?200:404});
   if(u==='https://token.actions.githubusercontent.com/.well-known/jwks')return new Response(JSON.stringify(oidc?.jwks||{keys:[]}),{status:200});
   if(u==='https://www.midwx.app/ruc/fast/paged-shadow.json')return new Response(status===200?manifest:'',{status});
   const key=u.replace('https://www.midwx.app/ruc/',''),bytes=f.pages[key];
@@ -161,6 +169,9 @@ test('GitHub-signed OIDC Pages proof enables native 7/73/25 Fast with no R2 bind
    assert.equal(payload.hourly.dew_point_2m[0],0);
    assert.equal(payload.rapid.precip5.time.length,73);
    assert.equal(payload.rapid.convection15.time.length,25);
+   const start=m.urls.indexOf('https://midwx.app/ruc/fast/publisher-proof.v2.json');
+   assert.ok(start>=0);
+   assert.equal(m.urls[start+1],'https://www.midwx.app/ruc/fast/publisher-proof.v2.json');
    assert.ok(m.urls.includes('https://token.actions.githubusercontent.com/.well-known/jwks'));
    assert.ok(m.urls.includes('https://www.midwx.app/ruc/fast/paged-shadow.json'));
    assert.equal(bucketReads,0);

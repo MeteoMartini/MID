@@ -807,7 +807,7 @@ async function midFastSignedPagesTrust(env,diagnostics){
   // the regular RUC index. The apex redirects to the canonical Pages host.
   const proofUrl=new URL('fast/publisher-proof.v2.json',DWD_RUC_STATIC_DEFAULT);
   const proofResponse=await fetchWithDeadline(proofUrl.toString(),
-   {headers:{Accept:'application/json','Cache-Control':'no-cache'},cf:{cacheEverything:false,cacheTtl:0}},8000);
+   {headers:{Accept:'application/json','Cache-Control':'no-cache'},cf:{cacheEverything:false,cacheTtl:0}},9000);
   if(proofResponse.status!==200){httpStatus=proofResponse.status;throw Error('No signed Fast Pages proof')}
   stage='proof-format';
   const decoder=new TextDecoder('utf-8',{fatal:true});
