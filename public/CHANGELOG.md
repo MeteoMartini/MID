@@ -1,3 +1,6 @@
+# MID v0.9.85.510
+
+- ICON-D2-RUC-Fast-Lane: Zusätzlich zu den bestehenden :13/:43-UTC-Terminen prüft ein geschützter Nachholpfad um :28/:58 UTC, ob die Fast-Veröffentlichung zuletzt bereits erfolgreich war oder noch läuft. Nur bei tatsächlichem Nachholbedarf setzt er die bisherigen DWD-Originaldaten-, Qualitäts- und Pages-Gates fort. Der reguläre DWD-RUC/EPS-Vollpfad bleibt unverändert; fehlende EPS-/Originaldaten werden nicht durch Ersatzwerte ersetzt.
 # MID v0.9.85.509
 
 - UV-Index in Stunden- und Tagesprognosen: Echte Stundenmittel bleiben an Dämmerungsgrenzen erhalten; fehlende Werte werden nicht als 0 ausgegeben. Fehlt UVI in der Stundenprognose, bleibt für die gefühlte Temperatur der vorhandene Anbieter-Fallback verfügbar.
