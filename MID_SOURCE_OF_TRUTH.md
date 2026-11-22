@@ -1,3 +1,17 @@
+# MID v0.9.85.510 · Leit-Integration – DWD-RUC-Fast-Nachholung
+
+- Source-Kandidat auf verifiziertem `main=mid-stable=73f64f833ecb0e48666834e9c44588e05cea1e31` / v0.9.85.509. Aus QA-Draft [#980](https://github.com/MeteoMartini/MID/pull/980) exakt geprüfte Workflow-/Sync-Quellblobs selektiv auf Stable übertragen. Keine alten .508-Snapshots als Produktionsbasis und keine parallele Kopie des RUC-Workflows.
+- Zusätzliche geschützte :28/:58-UTC-Slots prüfen jüngste Fast-Publisher-Erfolge bzw. aktive Publisher-Jobs, bevor native DWD-Downloads starten. Die existierenden :13/:43-Fast-Lane- und :11/:41-Vollpfade sowie die Originaldaten-/EPS-/NoData-/SHA-/Pages-Gates bleiben erhalten. Mehrmaliges Anstoßen ist kein Nachweis neuer DWD-Daten; keine frischen Originale und keine falschen Nullwerte erfinden.
+- Verpflichtende SHA-gebundene Source-, Review-, vollständige Core/Heavy-, Release-ZIP-, Installer-, Worker-/Pages- und Stable-Promotion-Gates bleiben ausstehend, bis ihre echten GitHub-Runs abgeschlossen sind. Keine neue kostenpflichtige Infrastruktur. RUC #541, Karten/14d-P0 #952/#975, Release-Katalog #901 und Katalog-Draft #956 separat weiterverfolgen.
+
+# MID v0.9.85.509 · LC 1.30 – UV-Datenlücken und Canvas-Überblendungen
+
+- **Source-Kandidat** auf verifiziertem `main=mid-stable=363815e328443805595f9adf8a978c7f609202bb`, veröffentlichte v0.9.85.508. Disjunkte Git-Originalblobs aus QA-Draft #967 (`ef3858790a5e48078cdbb42aef7311276cf601ba`, meteorologischer UVI/UTCI-Fallback) und #908 (`4ae6e928a56a85ee3120124b05ca587f72b4bf84`, Canvas-Pixelbudget/Background-Recovery). Die vier bereits produktiven Zielpfade sind seit den QA-Basen byteidentisch auf Stable; neue Quellen/Tests waren auf Stable nicht vorhanden.
+- Ziel: streng numerischer originaler UV-Stundenmittelwert (Missing != 0), Tagesmaximum ohne künstliche Null, vorhandener Apparent-Temperature-Fallback; begrenzte nur optische MapLibre-Canvas-Duplikation ohne Glättung von Wetterextremen und Hintergrund-Eventstau.
+- Die jeweils alten Draft-Tests ersetzen **keine** unabhängigen finalen .509 Source-/Core-/Heavy-/Vitest-/Browser-/iOS-/Review-/Installer-/Worker-/Pages-/Stable-Gates. RUC-P0 #541 ist unabhängig und bleibt bis frischer DWD→Pages→Worker→MID-Nutzung offen. Keine neue kostenpflichtige Infrastruktur, R2 oder AI-Provider.
+- Veröffentlichung ausschließlich über den bestehenden geschützten SHA-gebundenen Source-PR→Bot-Merge→serverseitiges ZIP→Installer→Worker/Pages→Stable-Promotion. Status zum Source-Cut: Kandidat, **noch keine Release-Freigabe**.
+
+
 # MID v0.9.85.508 · Worker-Abruf der Fast-Signaturschlüssel
 
 - Source-Kandidat auf Stable f798f1bedd230c0890200f65e53b1596ccfc3fb5. Der .507-Worker erreicht issuer-keys-request. Der Schlüsselabruf am festen GitHub-Endpunkt unterscheidet HTTP-Redirects von Transportfehlern. Source-Gate, ZIP, Installer, Worker/Pages, Stable-Promotion und Produktionsnachweis stehen aus.

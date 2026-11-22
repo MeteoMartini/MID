@@ -1,3 +1,17 @@
+## MID v0.9.85.510 · Leit-Integration – kontrollierter DWD-Fast-Nachholpfad
+
+- Basis: am 22.11.2026 auf `main=mid-stable=73f64f833ecb0e48666834e9c44588e05cea1e31` erfolgreich veröffentlichte v0.9.85.509. Originaler Spezialchat-QA-Draft PR #980, HEAD `226c03d3938b7e18848194b040eab97e65abc7af`; exakt drei unmodifizierte Workflow-/Sync-Vertragsblobs selektiv übernommen. Frühere .508-Draft-Basis ersetzt, ohne fremde Änderungen zu verlieren.
+- :28/:58-UTC-Nachholslots nach den bestehenden :13/:43-Fast-Lane-Slots; zuvor lesende GitHub-Runs-/Job-Klassifikation und nur bei tatsächlich fehlendem/noch nicht laufendem jüngstem Fast-Publisher erneute Qualifikation. Volle DWD-/EPS-Läufe, NoData, Warnungen, Originaltime und RUC-Integrität bleiben unangetastet. Keine neuen externen Dienste oder Abos.
+- Workflows gespiegelt; Release-/iOS-/Worker-/Cache-Versionen mit .510 synchronisiert. Source/Core/Heavy/GitHub-Review-/Installer-/Pages-/Worker-/Stable-Gates sind am Source-Cut noch **nicht ausgeführt**; dieser Commit ist nur ein Gate-Kandidat, keine Produktivfreigabe. Produktionsqualität und RUC-Full-E2E werden separat verifiziert. Offene P0-Design-Issues #952/#975 und GitHub-Katalog #901 nicht als erledigt behaupten.
+
+## MID v0.9.85.509 · LC 1.30 · UV-Intervallsemantik und Canvas-Budget
+
+- Grundlage v0.9.85.508 auf `363815e328443805595f9adf8a978c7f609202bb`; originale SHA-verifizierte Pfade aus QA-Drafts #967 und #908, disjunkt zu laufendem RUC-Daten-/14d-Design-Handoff.
+- UVI in Stunden-/Tagesprognosen: finite nichtnegative Provider-Number, Stundenendzeitpunkt ist Intervallende, Tagesmaximum und UTCI/Provider-Fallback nicht mit erfundener 0 füllen. Andere Aktuell- und Widget-Pfade sind nicht von diesem Fix erfasst. Keine amtliche Warnlogik verändert.
+- Canvas: sichtbarkeitsgerechter redraw scheduler, reduzierte Bewegung/Data Saver und tatsächliche Device-Pixel-Dimensionen für 1-Mi-Pixel-Crossfade-Gate; keine Vorhersagewerte geändert.
+- Original-QA: #967 und #908 jeweils gezielte Regression und Vitest bestanden. **Final-HEAD-Full-Gates, Geräte- und E2E-Abnahmen noch offen.** RUC-Freshness/Worker bleibt eigenständiges P0.
+
+
 ## MID v0.9.85.508 · Worker-Abruf der Fast-Signaturschlüssel
 
 - Live-Diagnose .507: Der Pages-Beleg wird gelesen. Der GitHub-Schlüsselabruf endet vor einem HTTP-Status. Der Worker behandelt einen Redirect als HTTP-Antwort und lehnt ihn vor der Verwendung von Schlüsseln ab. Produktionsnachweis ausstehend.
