@@ -1,3 +1,7 @@
+# MID v0.9.85.508
+
+- Der Wetter-Worker prüft die GitHub-Signaturschlüssel für die DWD-Fast-Lane über den festen Herausgeber-Endpunkt.
+
 # MID v0.9.85.507
 
 - Der signierte DWD-Fast-Lane-Beleg wird über den etablierten Pages-Einstieg für RUC abgerufen.
