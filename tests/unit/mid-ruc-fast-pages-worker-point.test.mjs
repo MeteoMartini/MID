@@ -43,7 +43,7 @@ function mockPages(f,{manifest=f.raw,status=200,mutate=null,oidc=null}={}){
  const urls=[],old=globalThis.fetch;
  globalThis.fetch=async input=>{
   const u=String(input);urls.push(u);
-  if(u==='https://www.midwx.app/ruc/fast/publisher-proof.v2.json')return new Response(oidc?JSON.stringify(oidc.proof):'',{status:oidc?200:404});
+  if(u==='https://midwx.app/ruc/fast/publisher-proof.v2.json')return new Response(oidc?JSON.stringify(oidc.proof):'',{status:oidc?200:404});
   if(u==='https://token.actions.githubusercontent.com/.well-known/jwks')return new Response(JSON.stringify(oidc?.jwks||{keys:[]}),{status:200});
   if(u==='https://www.midwx.app/ruc/fast/paged-shadow.json')return new Response(status===200?manifest:'',{status});
   const key=u.replace('https://www.midwx.app/ruc/',''),bytes=f.pages[key];
@@ -95,7 +95,7 @@ test('release-SHA-pinned Fast Pages point preserves 7/73/25 UTC, native zero vs 
   assert.equal(p.rapid.precip5.precipitation[1],1.23);
   assert.equal(p.rapid.convection15.precipitation[1],1.25);
   assert.equal(m.urls.length,5);
-  assert.ok(m.urls.every(u=>u.startsWith('https://www.midwx.app/ruc/fast/')));
+  assert.ok(m.urls.every(u=>u==='https://midwx.app/ruc/fast/publisher-proof.v2.json'||u.startsWith('https://www.midwx.app/ruc/fast/')));
  }finally{m.restore()}
 });
 test('wrong externally issued SHA rejects otherwise valid manifest before chunk reads',async()=>{

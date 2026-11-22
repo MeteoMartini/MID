@@ -1,3 +1,7 @@
+# MID v0.9.85.507
+
+- Der signierte DWD-Fast-Lane-Beleg wird über den etablierten Pages-Einstieg für RUC abgerufen.
+
 # MID v0.9.85.506
 
 - Die Fast-Lane-Diagnose zeigt, an welcher Stelle der produktive Worker den signierten Datenbeleg verwirft. Der Produktionsnachweis steht aus.
