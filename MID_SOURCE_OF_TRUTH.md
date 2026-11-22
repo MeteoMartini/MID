@@ -1,3 +1,7 @@
+# MID v0.9.85.504 · ICON-D2-RUC über Open-Meteo
+
+- Source-Kandidat auf Stable 44edbf5365763f98d68c2814c038d222728859d7. Originale DWD-Phasenzellen behalten Vorrang. Provider-Zellen werden getrennt attribuiert. Aus der Metadatenabfrage wird keine individuelle Feldlaufzeit abgeleitet. Produktionsabnahme ausstehend.
+
 # MID v0.9.85.503 · SHA-gebundene RUC-Pages-Reparatur
 
 - Stable .501: c6e5aa75d18b810b066f685f30ff6b0b35e030df. Bestätigter, fehlgeschlagener .502-Installerstand: 390421d54f6d0482e2007a488cb38ad4c68aef04 (PR #971; Actions 44995889909).
