@@ -1,4 +1,4 @@
-# MID v0.9.85.502 · RUC Fast Pages-Deploymenthistorie
+## MID v0.9.85.502 · RUC Fast Pages-Deploymenthistorie
 
 - Basis `c6e5aa75d18b810b066f685f30ff6b0b35e030df`, Fehlernachweis Actions `44993474635`.
 - Resolver akzeptiert die vollständige erste Seite mit 30 Einträgen. Ohne nachgewiesenes erfolgreiches Deployment bleibt die Veröffentlichung gesperrt. 24 Resolver-Tests bestanden. Der Live-Readback identifizierte das Stable-Artefakt `14727993173`.
