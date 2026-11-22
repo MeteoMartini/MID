@@ -1,3 +1,7 @@
+# MID v0.9.85.504
+
+- Das Niederschlagsphasenraster nutzt natives ICON-D2-RUC über Open-Meteo, wenn an einer Zelle geprüfte DWD-Originaldaten fehlen. Die Zellquelle bleibt sichtbar. Produktivabnahme nach Stable-Promotion.
+
 # MID v0.9.85.503
 
 - Behebt einen Abbruch beim Erhalt vorhandener RUC-Daten während der GitHub-Pages-Veröffentlichung. Die Prüfung erkennt den laufenden Job anhand seiner GitHub-Identität.
