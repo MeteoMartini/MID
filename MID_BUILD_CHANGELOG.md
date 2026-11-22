@@ -1,3 +1,7 @@
+## MID v0.9.85.505 · Fast-Lane-Workerabruf
+
+- Die Veröffentlichung des .504-Fast-Snapshots auf Pages ist in Actions 45022455410 protokolliert. Der produktive Worker übernahm den Lauf bei der ersten Prüfung nicht. Lokal reproduzierter Manifest-Abruf oberhalb von 3,2 s. Der überarbeitete Abruf behält Größen-, Signatur- und Frischegrenzen. Produktionsabnahme steht aus.
+
 ## MID v0.9.85.504 · Native Open-Meteo-Phasenzellen
 
 - Nachweis der neuen API-ID mit tatsächlichen Viertelstundenwerten für Bonn. Regressionen prüfen Reihenfolge, Zellherkunft, Feldzeit und Requestbudget. Basis: 44edbf5365763f98d68c2814c038d222728859d7. Initialer Prüfcommit: 2d55d2102813f0ad24fefe03840c01a75fbb3ce0. Fünf gezielte Radar-/Phasentests und 134 Fast-Tests lokal bestanden. Bonn-Produktionsprobe nach Stable-Promotion.
