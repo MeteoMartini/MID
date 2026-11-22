@@ -1,3 +1,7 @@
+# MID v0.9.85.503
+
+- Behebt einen Abbruch beim Erhalt vorhandener RUC-Daten während der GitHub-Pages-Veröffentlichung. Die Prüfung erkennt den laufenden Job anhand seiner GitHub-Identität.
+
 # MID v0.9.85.502
 
 - Die RUC-Fast-Lane kann die aktuelle Pages-Auslieferung auch bei einer vollen GitHub-Deploymentliste prüfen und für neue DWD-Daten verwenden.

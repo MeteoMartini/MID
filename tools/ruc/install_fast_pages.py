@@ -4,6 +4,7 @@
 import argparse
 from datetime import datetime, timedelta, timezone
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -28,7 +29,7 @@ def valid_archive_envelope(size):
 
 def active_pages(release):
     stable = gh_api('git/ref/heads/mid-stable')['object']['sha']
-    return resolve_installer_pages(stable, pending_release=release)
+    return resolve_installer_pages(stable, pending_release=release, environment=os.environ)
 
 
 def retain(release, dist, proof):
