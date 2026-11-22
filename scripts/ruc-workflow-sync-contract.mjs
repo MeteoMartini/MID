@@ -44,9 +44,23 @@ export function isCanonicalCatchupRucWorkflow(workflow){
     fastRequirements>fast && fastRequirements<checks[2] && fastRequirements<jobEnd;
   const recoverySchedule='28,58 * * * *';
   const hasRecovery=schedules.includes(recoverySchedule);
+  const recoveryStart=jobStart>=0?workflow.indexOf('\n      - name: Fast-Nachholbedarf vor DWD-Downloads prüfen',jobStart):-1;
+  const recoveryEnd=recoveryStart>=0?workflow.indexOf('\n      - name: Set up native Python and ecCodes',recoveryStart):-1;
+  const recoveryBlock=recoveryStart>jobStart && recoveryEnd>recoveryStart && recoveryEnd<jobEnd
+    ?workflow.slice(recoveryStart,recoveryEnd):'';
+  const exactShaBoundNewestSelector='.workflow_runs | sort_by(.created_at) | reverse | .[] | select(.head_sha == $sha and (.id | tostring) != $self) | .id';
+  const hasSafeRecovery=recoveryBlock.includes('id: fast_recovery')
+    && recoveryBlock.includes('EXPECTED_STABLE_SHA: ${{ steps.lineage.outputs.sha }}')
+    && recoveryBlock.includes(exactShaBoundNewestSelector)
+    && recoveryBlock.includes("90 minutes ago")
+    && recoveryBlock.includes("25 minutes ago")
+    && recoveryBlock.includes('.completed_at >= $after')
+    && recoveryBlock.includes('candidate_runs="$(jq -r')
+    && recoveryBlock.includes('(.total_count <= 100)')
+    && workflow.includes("if: steps.fast_recovery.outputs.skip != 'true'");
   const expected=hasFast?[...full,fastSchedule,recoverySchedule]:full;
   return includesAll(workflow,RUC_CATCHUP_TOKENS)
-    && (!hasFast || (hasRecovery && workflow.indexOf('id: fast_recovery',jobStart)>jobStart && workflow.indexOf('id: fast_recovery',jobStart)<fast && workflow.includes("if: steps.fast_recovery.outputs.skip != 'true'") && workflow.includes('EXPECTED_STABLE_SHA: ${{ steps.lineage.outputs.sha }}') && workflow.includes("90 minutes ago") && workflow.includes("25 minutes ago") && workflow.includes('.completed_at >= $after') && workflow.includes('sort_by(.created_at) | reverse') && workflow.includes('candidate_runs="$(jq -r') && workflow.includes('(.total_count <= 100)')))
+    && (!hasFast || (hasRecovery && hasSafeRecovery))
     && JSON.stringify(schedules)===JSON.stringify(expected)
     && (workflow.match(/cron:/g)||[]).length===expected.length
     && workflow.indexOf('RUC-Schedulerlücke und Aktualität vorab prüfen')<calculate

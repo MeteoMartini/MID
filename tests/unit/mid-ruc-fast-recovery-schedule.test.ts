@@ -16,6 +16,16 @@ describe('MID .510 Fast-RUC catch-up scheduler integrity',()=>{
  it('rejects removal of the recovery slot without altering the ordinary Fast slots',()=>{
    expect(isCanonicalCatchupRucWorkflow(canonical.replace("    - cron: '28,58 * * * *'\n",''))).toBe(false);
  });
+ it('rejects an unbound GitHub run selector inside the recovery step, even if other SHA text survives',()=>{
+   expect(isCanonicalCatchupRucWorkflow(canonical.replace(
+     'select(.head_sha == $sha and (.id | tostring) != $self)',
+     'select((.id | tostring) != $self)'
+   ))).toBe(false);
+   expect(isCanonicalCatchupRucWorkflow(canonical.replace(
+     'select(.head_sha == $sha and (.id | tostring) != $self)',
+     'select(.head_sha == "other" and (.id | tostring) != $self)'
+   ))).toBe(false);
+ });
  it('refuses Fast runs from a different source-lineage SHA',()=>{
    expect(isCanonicalCatchupRucWorkflow(canonical.replace('EXPECTED_STABLE_SHA: ${{ steps.lineage.outputs.sha }}','EXPECTED_STABLE_SHA: ${{ github.sha }}'))).toBe(false);
  });
