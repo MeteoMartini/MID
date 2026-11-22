@@ -2983,7 +2983,7 @@ async function orderedPhaseModels(lat,lon){
 // Preserve absent/invalid model values through JSON (NaN -> null); real zero remains zero.
 function phaseGridAmount(value){return typeof value==='number'&&Number.isFinite(value)&&value>=0?value:NaN}
 function phaseGridWeatherCode(value){return typeof value==='number'&&Number.isInteger(value)&&value>=0&&value<=99?value:NaN}
-// #683: per-cell original RUC first, then D2 -> EU -> ICON global.
+// #683: per-cell original RUC first, then Open-Meteo RUC, D2 -> EU -> ICON global.
 // A geographic model BBOX is a shortlist only, never a valid-cell bitmap.
 const MID_ICON_PHASE_FALLBACKS=[
  {id:'icon-d2-ruc-open-meteo',label:'DWD ICON-D2-RUC (Open-Meteo)',apiIds:['dwd_icon_d2_ruc_native'],metaIds:['dwd_icon_d2_ruc_native'],bbox:[-3.85,43.18,20.22,58.05],resolutionKm:2,maxHours:27,intervalMinutes:15},

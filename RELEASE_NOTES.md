@@ -1,6 +1,6 @@
 # MID v0.9.85.504
 
-- Das Niederschlagsphasenraster nutzt natives ICON-D2-RUC über Open-Meteo, wenn an einer Zelle geprüfte DWD-Originaldaten fehlen. Die Zellquelle bleibt sichtbar.
+- Das Niederschlagsphasenraster nutzt natives ICON-D2-RUC über Open-Meteo, wenn an einer Zelle geprüfte DWD-Originaldaten fehlen. Die Zellquelle bleibt sichtbar. Produktivabnahme nach Stable-Promotion.
 
 # MID v0.9.85.503
 

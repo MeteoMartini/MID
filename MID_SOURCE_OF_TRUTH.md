@@ -1,6 +1,6 @@
 # MID v0.9.85.504 · ICON-D2-RUC über Open-Meteo
 
-- Source-Kandidat auf Stable 44edbf5365763f98d68c2814c038d222728859d7. Originale DWD-Phasenzellen behalten Vorrang. Provider-Zellen werden getrennt attribuiert. Aus der Metadatenabfrage wird keine individuelle Feldlaufzeit abgeleitet. Produktionsabnahme ausstehend.
+- Source-Kandidat auf Stable 44edbf5365763f98d68c2814c038d222728859d7. Originale DWD-Phasenzellen behalten Vorrang. Provider-Zellen werden getrennt attribuiert. Aus der Metadatenabfrage wird keine individuelle Feldlaufzeit abgeleitet. Die Rückfallreihenfolge beginnt mit DWD-Originalen, danach folgen Open-Meteo-RUC und reguläres ICON-D2. Source-Gate, ZIP, Installer, Worker/Pages, Stable-Promotion und Produktionsabnahme stehen aus.
 
 # MID v0.9.85.503 · SHA-gebundene RUC-Pages-Reparatur
 

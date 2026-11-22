@@ -121,6 +121,7 @@ try{
    return new Response(JSON.stringify({last_run_initialisation_time:metaInitialMs/1000}),{status:200,headers:{'content-type':'application/json'}});
   if(url.hostname==='api.open-meteo.com'&&url.pathname.includes('/v1/forecast')){
    const model=url.searchParams.get('models'),lats=url.searchParams.get('latitude').split(',').map(Number),lons=url.searchParams.get('longitude').split(',').map(Number);
+   if(model==='dwd_icon_d2_ruc_native')return Response.json(lats.map(()=>({minutely_15:{time:[]}})));
    const d2=model==='dwd_icon_d2_15min',eu=model==='dwd_icon_eu';
    if(!d2&&!eu)throw new Error('Unexpected global phase request for covered D2/EU NoData fixture');
    if(eu)euCodeOnlyFallbackCalls+=lats.length;
@@ -173,6 +174,7 @@ try{
    return new Response(JSON.stringify({last_run_initialisation_time:metaInitialMs/1000}),{status:200,headers:{'content-type':'application/json'}});
   if(url.hostname==='api.open-meteo.com'&&url.pathname.includes('/v1/forecast')){
    const model=url.searchParams.get('models'),lats=url.searchParams.get('latitude').split(',').map(Number),lons=url.searchParams.get('longitude').split(',').map(Number);
+   if(model==='dwd_icon_d2_ruc_native')return Response.json(lats.map(()=>({minutely_15:{time:[]}})));
    if(lats.length>120||lats.length!==lons.length)throw new Error('HTTP400-isolation exceeded per-batch request limit');
    if(model==='dwd_icon_d2_15min'){
     allD2Calls++;
@@ -222,6 +224,7 @@ try{
   }
   if(url.hostname==='api.open-meteo.com'&&url.pathname.includes('/v1/forecast')){
    const model=url.searchParams.get('models'),lats=url.searchParams.get('latitude').split(',').map(Number),lons=url.searchParams.get('longitude').split(',').map(Number),d2=model==='dwd_icon_d2_15min';
+   if(model==='dwd_icon_d2_ruc_native')return Response.json(lats.map(()=>({minutely_15:{time:[]}})));
    if(d2){d2NorthSeen+=lats.filter(v=>v>58&&v<=58.08).length;d2OutsideProviderSeen+=lats.filter(v=>v>58.1).length;}
    if(!['dwd_icon_d2_15min','dwd_icon_eu','dwd_icon'].includes(model))throw new Error('Non-ICON provider');
    return new Response(JSON.stringify(lats.map((lat,i)=>({latitude:lat,longitude:lons[i],elevation:20,[d2?'minutely_15':'hourly']:{
