@@ -33,8 +33,9 @@ on:
     - cron: '11 * * * *'
     - cron: '41 * * * *'
     - cron: '13,43 * * * *'
+    - cron: '28,58 * * * *'
 concurrency:
-  group: mid-dwd-ruc-preprocess${{ (github.event.schedule == '13,43 * * * *' || (github.event_name == 'workflow_dispatch' && inputs.fast_only == true)) && '-fast' || '' }}
+  group: mid-dwd-ruc-preprocess${{ ((github.event.schedule == '13,43 * * * *' || github.event.schedule == '28,58 * * * *') || (github.event_name == 'workflow_dispatch' && inputs.fast_only == true)) && '-fast' || '' }}
   # Never cancel a nearly completed delayed RUC preparation. A queued duplicate
   # self-skips after the first run publishes the current DWD cycle.
   cancel-in-progress: false
@@ -44,7 +45,7 @@ jobs:
   calculate:
     # The expensive DWD download/decode deliberately runs without the Pages
     # lock. Only the short publish job below serializes against MID releases.
-    if: ${{ vars.MID_RUC_PIPELINE_ENABLED == 'true' && !inputs.reuse_run_id && !(github.event.schedule == '13,43 * * * *' || (github.event_name == 'workflow_dispatch' && inputs.fast_only == true)) }}
+    if: ${{ vars.MID_RUC_PIPELINE_ENABLED == 'true' && !inputs.reuse_run_id && !((github.event.schedule == '13,43 * * * *' || github.event.schedule == '28,58 * * * *') || (github.event_name == 'workflow_dispatch' && inputs.fast_only == true)) }}
     outputs:
       should_run: ${{ steps.freshness.outputs.should_run }}
       stable_sha: ${{ steps.stable_revision.outputs.sha }}
@@ -176,7 +177,7 @@ jobs:
 
   prepare:
     needs: calculate
-    if: ${{ always() && !(github.event.schedule == '13,43 * * * *' || (github.event_name == 'workflow_dispatch' && inputs.fast_only == true)) && vars.MID_RUC_PIPELINE_ENABLED == 'true' && ((needs.calculate.result == 'success' && needs.calculate.outputs.should_run == 'true') || inputs.reuse_run_id != '') }}
+    if: ${{ always() && !((github.event.schedule == '13,43 * * * *' || github.event.schedule == '28,58 * * * *') || (github.event_name == 'workflow_dispatch' && inputs.fast_only == true)) && vars.MID_RUC_PIPELINE_ENABLED == 'true' && ((needs.calculate.result == 'success' && needs.calculate.outputs.should_run == 'true') || inputs.reuse_run_id != '') }}
     outputs:
       should_run: ${{ steps.ready.outputs.ready }}
       stable_sha: ${{ steps.stable_revision.outputs.sha }}
@@ -832,8 +833,9 @@ jobs:
 
   qualify_fast:
     name: Native Fast Lane unabhängig von EPS qualifizieren
-    if: ${{ (github.event.schedule == '13,43 * * * *' || (github.event_name == 'workflow_dispatch' && inputs.fast_only == true)) && (github.event_name != 'schedule' || vars.MID_RUC_FAST_PAGES_ENABLED == 'true') && github.ref == 'refs/heads/main' && vars.MID_RUC_PIPELINE_ENABLED == 'true' && !inputs.reuse_run_id && !inputs.force && !inputs.native_d2_approval_run_id }}
+    if: ${{ ((github.event.schedule == '13,43 * * * *' || github.event.schedule == '28,58 * * * *') || (github.event_name == 'workflow_dispatch' && inputs.fast_only == true)) && (github.event_name != 'schedule' || vars.MID_RUC_FAST_PAGES_ENABLED == 'true') && github.ref == 'refs/heads/main' && vars.MID_RUC_PIPELINE_ENABLED == 'true' && !inputs.reuse_run_id && !inputs.force && !inputs.native_d2_approval_run_id }}
     permissions:
+      actions: read
       contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -864,16 +866,36 @@ jobs:
             exit 1
           fi
           echo "sha=$checked" >> "$GITHUB_OUTPUT"
+      - name: Fast-Nachholbedarf vor DWD-Downloads prüfen
+        id: fast_recovery
+        if: github.event.schedule == '28,58 * * * *'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          since="$(date -u -d '22 minutes ago' +%FT%TZ)"
+          runs="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/actions/workflows/mid-ruc-preprocess.yml/runs" -f branch=main -f "created=>=$since" -F per_page=20)"
+          for run in $(jq -r --arg self "$GITHUB_RUN_ID" '.workflow_runs[] | select((.id|tostring) != $self and .status != "queued" and .status != "pending") | .id' <<<"$runs"); do
+            jobs="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/$run/jobs")"
+            if jq -e '.jobs[] | select(.name == "Unabhängige Fast Lane geschützt auf Pages veröffentlichen" and (.conclusion == "success" or .status == "in_progress"))' <<<"$jobs" >/dev/null; then
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
       - name: Set up native Python and ecCodes
+        if: steps.fast_recovery.outputs.skip != 'true'
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
       - name: Install pinned MID native RUC dependencies
+        if: steps.fast_recovery.outputs.skip != 'true'
         run: |
           set -euo pipefail
           python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
           python -m eccodes selfcheck
       - name: Fail-closed offline fast producer, pointer and selector tests
+        if: steps.fast_recovery.outputs.skip != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -881,6 +903,7 @@ jobs:
           python tools/ruc/test_ruc_fast_lane_producer.py -v
           python tools/ruc/test_ruc_fast_pointer_staging.py -v
       - name: Select exact run independently of EPS availability
+        if: steps.fast_recovery.outputs.skip != 'true'
         id: choice
         shell: bash
         run: |
@@ -1034,7 +1057,7 @@ jobs:
   publish_fast:
     name: Unabhängige Fast Lane geschützt auf Pages veröffentlichen
     needs: [qualify_fast, prepare_fast]
-    if: ${{ (github.event.schedule == '13,43 * * * *' || (github.event_name == 'workflow_dispatch' && inputs.fast_only == true)) && github.ref == 'refs/heads/main' && vars.MID_RUC_FAST_PAGES_ENABLED == 'true' && needs.prepare_fast.result == 'success' && needs.prepare_fast.outputs.artifact_id != '' }}
+    if: ${{ ((github.event.schedule == '13,43 * * * *' || github.event.schedule == '28,58 * * * *') || (github.event_name == 'workflow_dispatch' && inputs.fast_only == true)) && github.ref == 'refs/heads/main' && vars.MID_RUC_FAST_PAGES_ENABLED == 'true' && needs.prepare_fast.result == 'success' && needs.prepare_fast.outputs.artifact_id != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     permissions:
