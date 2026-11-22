@@ -209,4 +209,8 @@ assert.ok(read('src/MapWorkspace.css').includes('min-height:min(420px,65svh)'),'
 if(process.env.GITHUB_ACTIONS==='true')for(const shard of mapBrowserRunPlan(process.env.MID_MAP_QA_SHARD))execFileSync(process.execPath,['scripts/verify-unified-map-browser-0985167.mjs'],{stdio:'inherit',timeout:900000,env:{...process.env,MID_MAP_QA_SHARD:shard}});
 // Check the real styled Suspense slot once; all existing map cases remain mandatory.
 if(process.env.GITHUB_ACTIONS==='true'&&(!process.env.MID_MAP_QA_SHARD||process.env.MID_MAP_QA_SHARD==='1/3'))execFileSync(process.execPath,['scripts/verify-map-loading-layout.mjs'],{stdio:'inherit',timeout:180000});
+// Also exercise real Chromium RAF, synthetic visibility resume and 2D pixel
+// readbacks at six viewport/DPR profiles in one existing required heavy shard.
+// This does not claim real iOS/WebKit/MapLibre device acceptance.
+if(process.env.GITHUB_ACTIONS==='true'&&(!process.env.MID_MAP_QA_SHARD||process.env.MID_MAP_QA_SHARD==='1/3'))execFileSync(process.execPath,['scripts/qa/verify-map-canvas-resume-browser.mjs'],{stdio:'inherit',timeout:180000});
 console.log('MID-C17 unified map: scientific model/parameter matrix, one lazy/memoized map, native field integrity, overlays/probes/exports, bounded caching, persistence and legacy-source exclusion verified.');

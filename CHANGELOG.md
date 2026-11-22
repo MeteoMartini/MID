@@ -1,3 +1,7 @@
+# MID v0.9.85.509
+
+- UV-Index in Stunden- und Tagesprognosen: Echte Stundenmittel bleiben an Dämmerungsgrenzen erhalten; fehlende Werte werden nicht als 0 ausgegeben. Fehlt UVI in der Stundenprognose, bleibt für die gefühlte Temperatur der vorhandene Anbieter-Fallback verfügbar.
+- Karten: Canvas-Überblendungen mit großem Backing-Store werden übersprungen, um zusätzlichen Speicherbedarf zu vermeiden; bei der Rückkehr aus dem Hintergrund wird die aktuelle Ebene nur einmal gezeichnet. Bei einem Fehler während einer Canvas-Überblendung wird das vorherige Canvas-Bild wiederhergestellt. Original-Wetterdaten und Warnungen bleiben unverändert.
 # MID v0.9.85.508
 
 - Der Wetter-Worker prüft die GitHub-Signaturschlüssel für die DWD-Fast-Lane über den festen Herausgeber-Endpunkt.
