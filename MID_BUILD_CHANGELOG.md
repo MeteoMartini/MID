@@ -2,6 +2,7 @@
 
 - Recovery des geprüften .502-Installationsstands 390421d54f6d0482e2007a488cb38ad4c68aef04 auf Basis von Stable c6e5aa75d18b810b066f685f30ff6b0b35e030df.
 - GitHub Actions 44995889909 belegt die Kollision zwischen Fast-Datenerhalt und dem automatisch erzeugten Pages-Deployment-Eintrag. Regressionen sichern Installer, Fast- und Vollpublisher sowie die Ablehnung fremder Jobs ab.
+- Produktivabnahme folgt nach Stable-Promotion.
 
 ## MID v0.9.85.502 · 2026-11-22 · RUC-Fast-Lane: volle Deploymentliste zulassen
 

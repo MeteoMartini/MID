@@ -1,4 +1,8 @@
+import os
 import unittest
+from unittest.mock import patch
+
+import install_fast_pages
 
 from resolve_fast_pages_base import REPOSITORY, resolve_installer_pages
 
@@ -79,6 +83,17 @@ class InstallerPagesResolverTest(unittest.TestCase):
                 proof = resolve_installer_pages(STABLE, self.manifest.__getitem__, environment=env)
                 self.assertEqual(proof['artifact_id'], 4)
 
+    def test_installer_entry_point_passes_running_job_context(self):
+        env = self.running_job_fixture('deploy_pages_2', '.github/workflows/install-mid.yml',
+                                       'MID auf GitHub Pages veröffentlichen · Versuch 2')
+        with (patch.dict(os.environ, env, clear=True),
+              patch.object(install_fast_pages, 'gh_api', self.manifest.__getitem__),
+              patch('resolve_fast_pages_base.subprocess.run') as gh):
+            gh.side_effect = lambda args, **kwargs: type('Result', (), {
+                'stdout': install_fast_pages.json.dumps(self.manifest[args[-1].split(REPOSITORY + '/', 1)[1]])
+            })()
+            self.assertEqual(install_fast_pages.active_pages(STABLE)['artifact_id'], 4)
+
     def test_running_publisher_does_not_ignore_foreign_or_ambiguous_deployment(self):
         for url in ('runs/6', 'runs/6/job/8', 'runs/9/job/7'):
             with self.subTest(url=url):
@@ -103,7 +118,8 @@ class InstallerPagesResolverTest(unittest.TestCase):
         inv['jobs'][0]['run_attempt'] = 1
         with self.assertRaisesRegex(ValueError, 'untrusted running Pages job'):
             resolve_installer_pages(STABLE, self.manifest.__getitem__, environment=env)
-        inv['jobs'].append({**inv['jobs'][0], 'id': 8, 'run_attempt': 2})
+        inv['jobs'][0]['run_attempt'] = 2
+        inv['jobs'].append({**inv['jobs'][0], 'id': 8})
         inv['total_count'] = 2
         with self.assertRaisesRegex(ValueError, 'missing or ambiguous running Pages job'):
             resolve_installer_pages(STABLE, self.manifest.__getitem__, environment=env)

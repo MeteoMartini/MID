@@ -3,6 +3,7 @@
 - Stable .501: c6e5aa75d18b810b066f685f30ff6b0b35e030df. Bestätigter, fehlgeschlagener .502-Installerstand: 390421d54f6d0482e2007a488cb38ad4c68aef04 (PR #971; Actions 44995889909).
 - Der Pages-Resolver erkennt unter der bestehenden Pages-Sperre genau den eigenen laufenden Job anhand von Workflow, Run, Versuch, Event-SHA und Job-URL. Fremde, unbekannte oder uneindeutige Deployments werden weiterhin abgelehnt. Signatur-, Artefakt-, Daten- und Stable-Prüfungen sind weiterhin verbindlich.
 - Produktionsnachweis nach Stable-Promotion: frische originale Fast- und Voll-RUC-Läufe sowie tatsächliche Nutzung in MID. Open-Meteo ICON-D2 und AROME werden nach ihrem jeweiligen Modellvertrag geprüft.
+- Status: Source-Kandidat. ZIP, Installer, Worker/Pages, Stable-Promotion und Produktivnachweis stehen aus.
 
 # MID v0.9.85.502 · RUC Fast Pages-Deploymenthistorie
 
