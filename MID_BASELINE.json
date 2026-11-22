@@ -3989,7 +3989,7 @@
     "scripts/test-current-moisture-0985462.mjs"
   ],
   "version": "0.9.85.506",
-  "updatedAt": "2026-11-12",
+  "updatedAt": "2026-11-22",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",
     "docs/implementation/MID_C42_PLUGIN_REACT_0.9.85.330.md",

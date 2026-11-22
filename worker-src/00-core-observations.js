@@ -745,15 +745,18 @@ function jwtPart(part){
 }
 function jsonJwtPart(part){return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(jwtPart(part)))}
 function safeEpoch(value){return Number.isSafeInteger(value)&&value>0?value*1000:NaN}
-async function verifyFastOidcProof(proof,jwks,{now=Date.now()}={}){
+async function verifyFastOidcProof(proof,jwks,{now=Date.now(),onStage}={}){
+ onStage?.('proof-envelope');
  if(!Number.isFinite(now)||!proof||proof.schema!=='mid.ruc.fast-oidc-proof.v1'||
     !SHA256_RE.test(proof.manifestSha256)||!SHA40_RE.test(proof.stableSha)||
     !RUN_RE.test(proof.run)||typeof proof.oidcToken!=='string'||proof.oidcToken.length>12000||
     !Number.isSafeInteger(proof.runId)||proof.runId<=0||
     !Number.isSafeInteger(proof.runAttempt)||proof.runAttempt<=0)return null;
+ onStage?.('proof-run-freshness');
  const runMs=Date.parse(proof.run+'Z');
  if(!Number.isFinite(runMs)||new Date(runMs).toISOString().slice(0,16)!==proof.run||
     now<runMs-5*60000||now-runMs>4*3600000)return null;
+ onStage?.('proof-claims');
  const parts=proof.oidcToken.split('.');if(parts.length!==3)return null;
  let header,claims,signature;
  try{header=jsonJwtPart(parts[0]);claims=jsonJwtPart(parts[1]);signature=jwtPart(parts[2])}catch{return null}
@@ -764,6 +767,7 @@ async function verifyFastOidcProof(proof,jwks,{now=Date.now()}={}){
     claims?.sha!==proof.stableSha||String(claims?.run_id)!==String(proof.runId)||
     String(claims?.run_attempt)!==String(proof.runAttempt)||
     !['schedule','workflow_dispatch'].includes(claims?.event_name))return null;
+ onStage?.('proof-issuance-window');
  const iat=safeEpoch(claims.iat),exp=safeEpoch(claims.exp),nbf=claims.nbf==null?iat:safeEpoch(claims.nbf);
  if(!Number.isFinite(iat)||!Number.isFinite(exp)||!Number.isFinite(nbf)||
     iat>now+60000||now-iat>4*3600000||exp<iat||exp-iat>15*60000||
@@ -771,10 +775,12 @@ async function verifyFastOidcProof(proof,jwks,{now=Date.now()}={}){
  // JWT exp is an issuance-credential lifetime, not the validity of an
  // immutable, signed historical assertion. Meteorological/run freshness above
  // separately limits acceptance to four hours.
+ onStage?.('issuer-key-match');
  const keys=Array.isArray(jwks?.keys)?jwks.keys:[];
  const match=keys.filter(k=>k.kid===header.kid&&k.kty==='RSA'&&k.alg==='RS256'&&k.use==='sig'&&
    typeof k.n==='string'&&typeof k.e==='string');
  if(match.length!==1)return null;
+ onStage?.('proof-signature');
  try{
   const key=await crypto.subtle.importKey('jwk',match[0],{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['verify']);
   const valid=await crypto.subtle.verify('RSASSA-PKCS1-v1_5',key,signature,new TextEncoder().encode(parts[0]+'.'+parts[1]));
@@ -786,12 +792,14 @@ async function verifyFastOidcProof(proof,jwks,{now=Date.now()}={}){
 // Verify the GitHub-issued Pages proof before consulting legacy R2 trust.
 const midFastOidcTrustCache=new WeakMap();
 let midFastOidcJwksCache=null;
-async function midFastSignedPagesTrust(env){
+async function midFastSignedPagesTrust(env,diagnostics){
  if(!env||typeof env!=='object'||env.MID_DWD_RUC_FAST_OIDC_ENABLED==='false')return null;
  const now=Date.now(),cached=midFastOidcTrustCache.get(env);
  if(cached&&now-cached.at<30000){
-  if(!cached.trust||rucWindowFresh({initialisationEpoch:Date.parse(cached.trust.run+'Z')},now))
+  if(!cached.trust||rucWindowFresh({initialisationEpoch:Date.parse(cached.trust.run+'Z')},now)){
+   if(diagnostics)Object.assign(diagnostics,{stage:cached.stage,httpStatus:cached.httpStatus});
    return cached.trust;
+  }
  }
  let trust=null,stage='proof-request',httpStatus=null;
  try{
@@ -820,21 +828,22 @@ async function midFastSignedPagesTrust(env){
    midFastOidcJwksCache={at:now,value:jwks};
   }
   stage='proof-verification';
-  const verified=await verifyFastOidcProof(proof,jwks,{now});
+  const verified=await verifyFastOidcProof(proof,jwks,{now,onStage:value=>{stage=value}});
   if(verified){trust={sha:verified.sha,run:verified.run};stage='verified'}
  }catch{
   // Untrusted Pages, missing GitHub keys and signature mismatch are NoData.
  }
  midFastOidcTrustCache.set(env,{at:now,trust,stage,httpStatus});
+ if(diagnostics)Object.assign(diagnostics,{stage,httpStatus});
  return trust;
 }
 
 const midRucFastTrustCache=new WeakMap();
-async function dwdRucTrustedFastManifestSha(env){
+async function dwdRucTrustedFastManifestSha(env,diagnostics){
  if(env?.MID_DWD_RUC_FAST_ENABLED==='false')return null;
  const explicit=String(env?.MID_DWD_RUC_FAST_MANIFEST_SHA256||'').trim();
  if(env?.MID_DWD_RUC_FAST_ENABLED==='true'&&MID_RUC_FAST_SHA256.test(explicit))return {sha:explicit,run:null};
- const signed=await midFastSignedPagesTrust(env);
+ const signed=await midFastSignedPagesTrust(env,diagnostics);
  if(signed)return signed;
  const bucket=env?.MID_DWD_RUC_DATA;
  if(!bucket||typeof bucket.get!=='function')return null;
@@ -942,9 +951,9 @@ function rucFastHealthProbe(env){
  if(rucFastHealthProbeCache&&rucFastHealthProbeCache.env===env&&now-rucFastHealthProbeCache.at<120000)
   return rucFastHealthProbeCache.result;
  const result=(async()=>{
-  const trust=await dwdRucTrustedFastManifestSha(env);
+  const verification={};
+  const trust=await dwdRucTrustedFastManifestSha(env,verification);
   const point=trust?await dwdRucNativeFastPagesPointPayload(50.73,7.10,env):null;
-  const verification=midFastOidcTrustCache.get(env);
   return {configured:env?.MID_DWD_RUC_FAST_ENABLED!=='false',
    signedPagesEnabled:env?.MID_DWD_RUC_FAST_OIDC_ENABLED!=='false',trusted:Boolean(trust),
    run:trust?.run??point?.mid_ruc?.run??null,pointReady:Boolean(point),

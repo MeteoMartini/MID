@@ -1,6 +1,6 @@
 # MID v0.9.85.506
 
-- Die Fast-Lane-Diagnose zeigt, an welcher Stelle der produktive Worker den signierten Datenbeleg verwirft.
+- Die Fast-Lane-Diagnose zeigt, an welcher Stelle der produktive Worker den signierten Datenbeleg verwirft. Der Produktionsnachweis steht aus.
 
 # MID v0.9.85.505
 

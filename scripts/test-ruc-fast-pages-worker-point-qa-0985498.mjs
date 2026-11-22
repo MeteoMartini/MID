@@ -39,8 +39,8 @@ const worker=readFileSync(new URL('../worker.js',import.meta.url),'utf8');
 const workerMirror=readFileSync(new URL('../worker/metar-proxy.js',import.meta.url),'utf8');
 const workerSrc=readFileSync(new URL('../worker-src/00-core-observations.js',import.meta.url),'utf8');
 assert.equal(worker,workerMirror,'Generated Worker mirror drift');
-assert.ok(worker.includes('async function midFastSignedPagesTrust(env)')&&
- workerSrc.includes('async function midFastSignedPagesTrust(env)'));
+assert.ok(worker.includes('async function midFastSignedPagesTrust(env,diagnostics)')&&
+ workerSrc.includes('async function midFastSignedPagesTrust(env,diagnostics)'));
 assert.match(worker,/verifyFastOidcProof\(proof,jwks,/);
 assert.match(worker,/MID_RUC_FAST_TRUST_KEY='ruc\/fast\/publisher-trust\.v1\.json'/,
  'Existing optional legacy private trust must not silently regress');
