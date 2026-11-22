@@ -354,9 +354,8 @@ async function weatherMapGridData(lat,lon,modelId){
 const precipitationPhaseGridCache=new Map();
 const precipitationPhaseModelMetaCache=new Map();
 const RAPID_PHASE_MODELS=[
- // Open-Meteo integriert derzeit kein ICON-D2-RUC. Für das räumliche Phasenraster
- // verwenden wir deshalb nur tatsächlich veröffentlichte Open-Meteo-Modelle. Der echte
- // DWD ICON-D2-RUC bleibt separat im MID-Punkt-/Rapidpfad (DWD→Pages/R2) aktiv.
+ // Open-Meteo-Modelle werden anhand ihrer eigenen Metadaten ausgewählt.
+ // Die authentifizierten DWD-Originalzellen bleiben im MID-Punkt-/Rapidpfad.
  {id:'arome-france-hd-ruc',label:'Météo-France AROME HD 15 min',apiIds:['meteofrance_arome_france_hd_15min'],metaIds:['meteofrance_arome_france_hd_15min','meteofrance_arome_france_hd'],endpoint:'https://api.open-meteo.com/v1/meteofrance',bbox:[-8,40,13,53],resolutionKm:1.5,rapidUpdate:true,native15:true,maxHours:6},
  {id:'arome-france-ruc',label:'Météo-France AROME 15 min',apiIds:['meteofrance_arome_france_15min'],metaIds:['meteofrance_arome_france_15min','meteofrance_arome_france'],endpoint:'https://api.open-meteo.com/v1/meteofrance',bbox:[-8,40,13,53],resolutionKm:2.5,rapidUpdate:true,native15:true,maxHours:6},
  {id:'hrrr-ruc',label:'NOAA HRRR Rapid Refresh 15 min',apiIds:['ncep_hrrr_conus_15min','ncep_hrrr_conus'],metaIds:['ncep_hrrr_conus_15min','ncep_hrrr_conus'],bbox:[-130,20,-60,55],resolutionKm:3,rapidUpdate:true,native15:true,maxHours:18},
@@ -424,9 +423,10 @@ async function orderedPhaseModels(lat,lon){
 // Preserve absent/invalid model values through JSON (NaN -> null); real zero remains zero.
 function phaseGridAmount(value){return typeof value==='number'&&Number.isFinite(value)&&value>=0?value:NaN}
 function phaseGridWeatherCode(value){return typeof value==='number'&&Number.isInteger(value)&&value>=0&&value<=99?value:NaN}
-// #683: per-cell original RUC first, then D2 -> EU -> ICON global.
+// #683: per-cell original RUC first, then Open-Meteo RUC, D2 -> EU -> ICON global.
 // A geographic model BBOX is a shortlist only, never a valid-cell bitmap.
 const MID_ICON_PHASE_FALLBACKS=[
+ {id:'icon-d2-ruc-open-meteo',label:'DWD ICON-D2-RUC (Open-Meteo)',apiIds:['dwd_icon_d2_ruc_native'],metaIds:['dwd_icon_d2_ruc_native'],bbox:[-3.85,43.18,20.22,58.05],resolutionKm:2,maxHours:27,intervalMinutes:15},
  {id:'icon-d2',label:'DWD ICON-D2',apiIds:['dwd_icon_d2_15min'],metaIds:['dwd_icon_d2_15min'],bbox:[-6,42.9,26,58.5],resolutionKm:2,maxHours:48,intervalMinutes:15},
  {id:'icon-eu',label:'DWD ICON-EU',apiIds:['dwd_icon_eu'],metaIds:['dwd_icon_eu'],bbox:[-25,30,45,75],resolutionKm:7,maxHours:120,intervalMinutes:60},
  {id:'icon-global',label:'DWD ICON Global',apiIds:['dwd_icon'],metaIds:['dwd_icon'],bbox:[-180,-90,180,90],resolutionKm:11,maxHours:180,intervalMinutes:60}
@@ -577,7 +577,7 @@ async function precipitationPhaseGridData(lat,lon,target,env){
    frame.relativeHumidity2m[i]=sameTime?midPhaseAmount(thermal?.relative_humidity_2m?.[thermalPick.index]):NaN;
    frame.weatherCode[i]=code;frame.precipitation[i]=precip;frame.rain[i]=rain;frame.snowfall[i]=snow;
    frame.snowfallHeight[i]=midPhaseNumber(get('snowfall_height'));frame.freezingLevelHeight[i]=midPhaseNumber(get('freezing_level_height'));frame.elevation[i]=midPhaseNumber(point?.elevation);
-   phaseSourceByCell[i]=model.id==='icon-d2'?'dwd-icon-d2':model.id==='icon-eu'?'dwd-icon-eu':'dwd-icon-global';
+   phaseSourceByCell[i]='dwd-'+model.id;
    phaseValidTimeByCell[i]=choice.time;phaseRunByCell[i]=null;phaseIntervalMinutesByCell[i]=interval;
   }
  }
@@ -587,13 +587,13 @@ async function precipitationPhaseGridData(lat,lon,target,env){
   if(rateLimited){const stale=precipitationPhaseStale(centerLat,centerLon,roundedMs);if(stale)return{...stale,stale:true,targetTime:new Date(roundedMs).toISOString(),fallbackReason:'Open-Meteo-Minutenlimit: gekennzeichnetes frueheres Phasenfeld'}}
   throw new Error('Keine mit Originalmaske / Modelllauf / Feldzeit gepruefte Phasenzelle: '+errors.slice(0,3).join('; '));
  }
- const sourceCounts=Object.fromEntries(['dwd-icon-d2-ruc','dwd-icon-d2','dwd-icon-eu','dwd-icon-global'].map(id=>[id,phaseSourceByCell.filter(s=>s===id).length]));
+ const sourceCounts=Object.fromEntries(['dwd-icon-d2-ruc',...MID_ICON_PHASE_FALLBACKS.map(model=>'dwd-'+model.id)].map(id=>[id,phaseSourceByCell.filter(s=>s===id).length]));
  const gridSpacingKm=Math.round(Math.max(Math.abs((north-south)/(rows-1))*111.2,Math.abs((east-west)/(cols-1))*111.2*Math.max(.3,Math.cos(centerLat*Math.PI/180)))*10)/10;
  // Only original RUC cells carry authenticated per-cell model runs. Provider
  // metadata never certifies an individual Forecast API response's run.
  const verifiedRunAges=phaseRunByCell.filter(Boolean).map(midPhaseMs).filter(Number.isFinite).map(ms=>Math.max(0,(Date.now()-ms)/3600000));
  const verifiedModelAgeHours=verifiedRunAges.length?Math.round(Math.max(...verifiedRunAges)*100)/100:null;
- const data={modelId:'icon-phase-priority',modelLabel:'ICON-D2-RUC → ICON-D2 → ICON-EU → ICON Global',targetTime:new Date(roundedMs).toISOString(),referenceTime:phaseRunByCell.find(Boolean),lats,lons,frame,phaseSourceByCell,phaseValidTimeByCell,phaseRunByCell,phaseIntervalMinutesByCell,sourceCounts,provider:'DWD-RUC Originalzellen via MID Pages; ICON-D2/EU/global via Open-Meteo (nicht native Originalzellen)',phaseSource:sourceCounts['dwd-icon-d2-ruc']?ruc?.source:undefined,checkedAt:new Date().toISOString(),gridSpacingKm,coverage:usable+'/'+count+' gueltige Zellen; Maskenluecken bleiben NoData',rapidUpdate:sourceCounts['dwd-icon-d2-ruc']>0,native15:sourceCounts['dwd-icon-d2-ruc']+sourceCounts['dwd-icon-d2']>0,updateIntervalSeconds:undefined,modelAgeHours:verifiedModelAgeHours,candidateModels,requestBudget:{locations:count,batches,variables:8,modelPointRequests},phaseFetchBudget:{limit:phaseFetchBudget.limit,used:phaseFetchBudget.used,native:phaseFetchBudget.nativeUsed,lookup:phaseFetchBudget.lookupUsed,provider:phaseFetchBudget.providerUsed,denied:phaseFetchBudget.denied},sourceErrors:errors.slice(0,7),modelLimitWarning:rateLimited};
+ const data={modelId:'icon-phase-priority',modelLabel:'ICON-D2-RUC (Originale → Open-Meteo) → ICON-D2 → ICON-EU → ICON Global',targetTime:new Date(roundedMs).toISOString(),referenceTime:phaseRunByCell.find(Boolean),lats,lons,frame,phaseSourceByCell,phaseValidTimeByCell,phaseRunByCell,phaseIntervalMinutesByCell,sourceCounts,provider:'DWD-RUC-Originalzellen via MID Pages; ICON-D2-RUC/D2/EU/Global via Open-Meteo',phaseSource:sourceCounts['dwd-icon-d2-ruc']?ruc?.source:undefined,checkedAt:new Date().toISOString(),gridSpacingKm,coverage:usable+'/'+count+' gueltige Zellen; Maskenluecken bleiben NoData',rapidUpdate:sourceCounts['dwd-icon-d2-ruc']>0,native15:phaseIntervalMinutesByCell.includes(15),updateIntervalSeconds:undefined,modelAgeHours:verifiedModelAgeHours,candidateModels,requestBudget:{locations:count,batches,variables:8,modelPointRequests},phaseFetchBudget:{limit:phaseFetchBudget.limit,used:phaseFetchBudget.used,native:phaseFetchBudget.nativeUsed,lookup:phaseFetchBudget.lookupUsed,provider:phaseFetchBudget.providerUsed,denied:phaseFetchBudget.denied},sourceErrors:errors.slice(0,7),modelLimitWarning:rateLimited};
  rememberPrecipitationPhase(key,data);return data;
 }
 

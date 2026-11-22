@@ -1,3 +1,7 @@
+## MID v0.9.85.504 · Native Open-Meteo-Phasenzellen
+
+- Nachweis der neuen API-ID mit tatsächlichen Viertelstundenwerten für Bonn. Regressionen prüfen Reihenfolge, Zellherkunft, Feldzeit und Requestbudget. Basis: 44edbf5365763f98d68c2814c038d222728859d7. Initialer Prüfcommit: 2d55d2102813f0ad24fefe03840c01a75fbb3ce0. Fünf gezielte Radar-/Phasentests und 134 Fast-Tests lokal bestanden. Bonn-Produktionsprobe nach Stable-Promotion.
+
 ## MID v0.9.85.503 · RUC-Pages-Deployment des eigenen Jobs erkennen
 
 - Recovery des geprüften .502-Installationsstands 390421d54f6d0482e2007a488cb38ad4c68aef04 auf Basis von Stable c6e5aa75d18b810b066f685f30ff6b0b35e030df.

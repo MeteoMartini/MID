@@ -67,7 +67,7 @@ try{
  // #683: The same visible 13x19 map MUST select phase source per cell.
  // D2 has source holes, EU only covers some of them, ICON Global the rest.
  metaInitialMs=targetMs-2*60*60*1000;
- const byModel={dwd_icon_d2_15min:0,dwd_icon_eu:0,dwd_icon:0};
+ const byModel={dwd_icon_d2_ruc_native:0,dwd_icon_d2_15min:0,dwd_icon_eu:0,dwd_icon:0};
  const iso=new Date(targetMs).toISOString(),hourIso=new Date((Math.floor(targetMs/3600000)+1)*3600000).toISOString(),triple=value=>[value,value,value];
  globalThis.fetch=async request=>{
   const url=new URL(typeof request==='string'?request:request.url);
@@ -79,7 +79,7 @@ try{
    const lats=url.searchParams.get('latitude').split(',').map(Number),lons=url.searchParams.get('longitude').split(',').map(Number);
    byModel[model]+=lats.length;
    return new Response(JSON.stringify(lats.map((lat,i)=>{
-    const nativeD2=model==='dwd_icon_d2_15min',available=nativeD2?lat>50.95:model==='dwd_icon_eu'?lat>50.35:true;
+    const providerRuc=model==='dwd_icon_d2_ruc_native',nativeD2=providerRuc||model==='dwd_icon_d2_15min',available=nativeD2?lat>(providerRuc?51.25:50.95):model==='dwd_icon_eu'?lat>50.35:true;
     const values={time:triple(nativeD2?iso:hourIso),temperature_2m:triple(1),relative_humidity_2m:triple(95),weather_code:triple(available?nativeD2?61:model==='dwd_icon_eu'?71:87:null),precipitation:triple(available?.5:null),rain:triple(available?.4:null),snowfall:triple(available?0:null),snowfall_height:triple(400),freezing_level_height:triple(500)};
     return {latitude:lat,longitude:lons[i],elevation:50,[nativeD2?'minutely_15':'hourly']:values};
    })),{status:200,headers:{'content-type':'application/json'}});
@@ -92,16 +92,17 @@ try{
  if(!priorityResponse.ok)throw new Error('Per-cell priority fixture failed: '+JSON.stringify(priority));
  const sourceCounts=priority.sourceCounts||{},sourceByCell=priority.phaseSourceByCell;
  if(!Array.isArray(sourceByCell)||sourceByCell.length!==247)throw new Error('Missing per-cell source map');
- for(const id of ['dwd-icon-d2','dwd-icon-eu','dwd-icon-global'])if(!(sourceCounts[id]>0))throw new Error('Missing true source tier '+id+': '+JSON.stringify(sourceCounts));
+ for(const id of ['dwd-icon-d2-ruc-open-meteo','dwd-icon-d2','dwd-icon-eu','dwd-icon-global'])if(!(sourceCounts[id]>0))throw new Error('Missing true source tier '+id+': '+JSON.stringify(sourceCounts));
  if(sourceCounts['dwd-icon-d2-ruc']!==0)throw new Error('No original RUC fixture available here');
  if(Object.values(sourceCounts).reduce((a,b)=>a+b,0)!==247)throw new Error('NoData source-selection gaps or duplicates');
- if(byModel.dwd_icon_d2_15min!==247||byModel.dwd_icon_eu<=0||byModel.dwd_icon<=0)throw new Error('Incorrect fallback request inventory '+JSON.stringify(byModel));
+ if(byModel.dwd_icon_d2_ruc_native<=0||byModel.dwd_icon_d2_15min<=0||byModel.dwd_icon_d2_15min>=247||byModel.dwd_icon_eu<=0||byModel.dwd_icon<=0)throw new Error('Incorrect fallback request inventory '+JSON.stringify(byModel));
  if(priority.requestBudget.modelPointRequests!==Object.values(byModel).reduce((a,b)=>a+b,0))throw new Error('Untruthful model request budget');
  for(let i=0;i<247;i++){
   const id=sourceByCell[i],interval=priority.phaseIntervalMinutesByCell[i],valid=priority.phaseValidTimeByCell[i],run=priority.phaseRunByCell[i];
-  if(run!==null||!valid||!(interval===(id==='dwd-icon-d2'?15:60)))throw new Error('Provider metadata must never impersonate a per-cell forecast run at '+i);
-  if(id==='dwd-icon-d2'&&Date.parse(valid)!==targetMs)throw new Error('Original D2 15-minute valid time drift');
-  if(id!=='dwd-icon-d2'&&!(Date.parse(valid)>targetMs&&Date.parse(valid)<=targetMs+3600000))throw new Error('ICON EU/global must use the end stamp of the 1h interval containing target, not an already elapsed hour');
+  const quarter=id==='dwd-icon-d2'||id==='dwd-icon-d2-ruc-open-meteo';
+  if(run!==null||!valid||!(interval===(quarter?15:60)))throw new Error('Provider metadata must never impersonate a per-cell forecast run at '+i);
+  if(quarter&&Date.parse(valid)!==targetMs)throw new Error('Original D2 15-minute valid time drift');
+  if(!quarter&&!(Date.parse(valid)>targetMs&&Date.parse(valid)<=targetMs+3600000))throw new Error('ICON EU/global must use the end stamp of the 1h interval containing target, not an already elapsed hour');
   if(priority.frame.rucRain[i]!==null||priority.frame.rucSnowfallWaterEquivalent[i]!==null)throw new Error('Open-Meteo fallback wrongly labeled as RUC');
  }
  if(priority.referenceTime!=null||priority.modelAgeHours!=null)throw new Error('Provider-only field falsely certified an original cell run or run age');
@@ -120,6 +121,7 @@ try{
    return new Response(JSON.stringify({last_run_initialisation_time:metaInitialMs/1000}),{status:200,headers:{'content-type':'application/json'}});
   if(url.hostname==='api.open-meteo.com'&&url.pathname.includes('/v1/forecast')){
    const model=url.searchParams.get('models'),lats=url.searchParams.get('latitude').split(',').map(Number),lons=url.searchParams.get('longitude').split(',').map(Number);
+   if(model==='dwd_icon_d2_ruc_native')return Response.json(lats.map(()=>({minutely_15:{time:[]}})));
    const d2=model==='dwd_icon_d2_15min',eu=model==='dwd_icon_eu';
    if(!d2&&!eu)throw new Error('Unexpected global phase request for covered D2/EU NoData fixture');
    if(eu)euCodeOnlyFallbackCalls+=lats.length;
@@ -172,6 +174,7 @@ try{
    return new Response(JSON.stringify({last_run_initialisation_time:metaInitialMs/1000}),{status:200,headers:{'content-type':'application/json'}});
   if(url.hostname==='api.open-meteo.com'&&url.pathname.includes('/v1/forecast')){
    const model=url.searchParams.get('models'),lats=url.searchParams.get('latitude').split(',').map(Number),lons=url.searchParams.get('longitude').split(',').map(Number);
+   if(model==='dwd_icon_d2_ruc_native')return Response.json(lats.map(()=>({minutely_15:{time:[]}})));
    if(lats.length>120||lats.length!==lons.length)throw new Error('HTTP400-isolation exceeded per-batch request limit');
    if(model==='dwd_icon_d2_15min'){
     allD2Calls++;
@@ -221,6 +224,7 @@ try{
   }
   if(url.hostname==='api.open-meteo.com'&&url.pathname.includes('/v1/forecast')){
    const model=url.searchParams.get('models'),lats=url.searchParams.get('latitude').split(',').map(Number),lons=url.searchParams.get('longitude').split(',').map(Number),d2=model==='dwd_icon_d2_15min';
+   if(model==='dwd_icon_d2_ruc_native')return Response.json(lats.map(()=>({minutely_15:{time:[]}})));
    if(d2){d2NorthSeen+=lats.filter(v=>v>58&&v<=58.08).length;d2OutsideProviderSeen+=lats.filter(v=>v>58.1).length;}
    if(!['dwd_icon_d2_15min','dwd_icon_eu','dwd_icon'].includes(model))throw new Error('Non-ICON provider');
    return new Response(JSON.stringify(lats.map((lat,i)=>({latitude:lat,longitude:lons[i],elevation:20,[d2?'minutely_15':'hourly']:{
