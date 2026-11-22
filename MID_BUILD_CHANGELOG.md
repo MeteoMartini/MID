@@ -1,3 +1,11 @@
+## MID v0.9.85.509 · LC 1.30 · UV-Intervallsemantik und Canvas-Budget
+
+- Grundlage v0.9.85.508 auf `363815e328443805595f9adf8a978c7f609202bb`; originale SHA-verifizierte Pfade aus QA-Drafts #967 und #908, disjunkt zu laufendem RUC-Daten-/14d-Design-Handoff.
+- UVI: finite nichtnegative Provider-Number, Stundenendzeitpunkt ist Intervallende, Tagesmaximum und UTCI/Provider-Fallback nicht mit erfundener 0 füllen. Keine amtliche Warnlogik verändert.
+- Canvas: sichtbarkeitsgerechter redraw scheduler, reduzierte Bewegung/Data Saver und tatsächliche Device-Pixel-Dimensionen für 1-Mi-Pixel-Crossfade-Gate; keine Vorhersagewerte geändert.
+- Original-QA: #967 und #908 jeweils gezielte Regression und Vitest bestanden. **Final-HEAD-Full-Gates, Geräte- und E2E-Abnahmen noch offen.** RUC-Freshness/Worker bleibt eigenständiges P0.
+
+
 ## MID v0.9.85.508 · Worker-Abruf der Fast-Signaturschlüssel
 
 - Live-Diagnose .507: Der Pages-Beleg wird gelesen. Der GitHub-Schlüsselabruf endet vor einem HTTP-Status. Der Worker behandelt einen Redirect als HTTP-Antwort und lehnt ihn vor der Verwendung von Schlüsseln ab. Produktionsnachweis ausstehend.

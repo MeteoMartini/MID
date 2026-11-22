@@ -1,3 +1,7 @@
+# MID v0.9.85.509
+
+- UV-Index: Echte Stundenmittel bleiben auch an der Dämmerungsgrenze erhalten; fehlende UV-Werte werden nicht als 0 dargestellt. Fehlt UV, verwendet die gefühlte Temperatur den vorhandenen Anbieter-Fallback statt eines erfundenen UV-Werts.
+- Karten: Große Canvas-Überblendungen vermeiden unnötige Zusatzspeicher-Belegung; beim Rückkehr aus dem Hintergrund wird die aktuelle Ebene nur einmal gezeichnet. Original-Wetterdaten und Warnungen bleiben unverändert.
 # MID v0.9.85.508
 
 - Der Wetter-Worker prüft die GitHub-Signaturschlüssel für die DWD-Fast-Lane über den festen Herausgeber-Endpunkt.
