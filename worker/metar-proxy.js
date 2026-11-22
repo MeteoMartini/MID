@@ -52,7 +52,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.85.505';
+const WORKER_VERSION='0.9.85.506';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
@@ -793,12 +793,13 @@ async function midFastSignedPagesTrust(env){
   if(!cached.trust||rucWindowFresh({initialisationEpoch:Date.parse(cached.trust.run+'Z')},now))
    return cached.trust;
  }
- let trust=null;
+ let trust=null,stage='proof-request',httpStatus=null;
  try{
   const proofUrl=new URL('fast/publisher-proof.v2.json',MID_RUC_FAST_PAGES_ROOT);
   const proofResponse=await fetchWithDeadline(proofUrl.toString(),
    {redirect:'error',headers:{Accept:'application/json'},cf:{cacheTtl:15,cacheEverything:true}},9000);
-  if(proofResponse.status!==200)throw Error('No signed Fast Pages proof');
+  if(proofResponse.status!==200){httpStatus=proofResponse.status;throw Error('No signed Fast Pages proof')}
+  stage='proof-format';
   const decoder=new TextDecoder('utf-8',{fatal:true});
   const proof=JSON.parse(decoder.decode(await midRucFastResponseBytes(proofResponse,16000)));
   const header=jsonJwtPart(String(proof?.oidcToken??'').split('.')[0]);
@@ -809,19 +810,22 @@ async function midFastSignedPagesTrust(env){
   const unknownKid=jwks&&!jwks.keys.some(key=>key?.kid===header.kid);
   // Rate-limit forced refreshes even if the public proof contains arbitrary key IDs.
   if(expired||(unknownKid&&now-midFastOidcJwksCache.at>=15000)){
+   stage='issuer-keys-request';
    const keysResponse=await fetchWithDeadline(FAST_OIDC_JWKS,
     {redirect:'error',headers:{Accept:'application/json','Cache-Control':'no-cache'},cf:{cacheTtl:0,cacheEverything:false}},9000);
-   if(keysResponse.status!==200)throw Error('GitHub OIDC issuer keys unavailable');
+   if(keysResponse.status!==200){httpStatus=keysResponse.status;throw Error('GitHub OIDC issuer keys unavailable')}
+   stage='issuer-keys-format';
    jwks=JSON.parse(decoder.decode(await midRucFastResponseBytes(keysResponse,64000)));
    if(!Array.isArray(jwks?.keys)||jwks.keys.length>30)throw Error('Issuer JWKS invalid');
    midFastOidcJwksCache={at:now,value:jwks};
   }
+  stage='proof-verification';
   const verified=await verifyFastOidcProof(proof,jwks,{now});
-  if(verified)trust={sha:verified.sha,run:verified.run};
+  if(verified){trust={sha:verified.sha,run:verified.run};stage='verified'}
  }catch{
   // Untrusted Pages, missing GitHub keys and signature mismatch are NoData.
  }
- midFastOidcTrustCache.set(env,{at:now,trust});
+ midFastOidcTrustCache.set(env,{at:now,trust,stage,httpStatus});
  return trust;
 }
 
@@ -940,9 +944,11 @@ function rucFastHealthProbe(env){
  const result=(async()=>{
   const trust=await dwdRucTrustedFastManifestSha(env);
   const point=trust?await dwdRucNativeFastPagesPointPayload(50.73,7.10,env):null;
+  const verification=midFastOidcTrustCache.get(env);
   return {configured:env?.MID_DWD_RUC_FAST_ENABLED!=='false',
    signedPagesEnabled:env?.MID_DWD_RUC_FAST_OIDC_ENABLED!=='false',trusted:Boolean(trust),
-   run:trust?.run??point?.mid_ruc?.run??null,pointReady:Boolean(point)};
+   run:trust?.run??point?.mid_ruc?.run??null,pointReady:Boolean(point),
+   verificationStage:verification?.stage??null,upstreamHttpStatus:verification?.httpStatus??null};
  })();
  rucFastHealthProbeCache={env,at:now,result};
  return result;
