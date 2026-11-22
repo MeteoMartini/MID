@@ -1,3 +1,8 @@
+# MID v0.9.85.502 · RUC Fast Pages-Deploymenthistorie
+
+- Basis `c6e5aa75d18b810b066f685f30ff6b0b35e030df`, Fehlernachweis Actions `44993474635`.
+- Resolver akzeptiert die vollständige erste Seite mit 30 Einträgen. Ohne nachgewiesenes erfolgreiches Deployment bleibt die Veröffentlichung gesperrt. 24 Resolver-Tests bestanden. Der Live-Readback identifizierte das Stable-Artefakt `14727993173`.
+
 # MID v0.9.85.501 · LC 1.29: Kostenneutrale DWD-RUC-Fast-Lane mit OIDC-Herkunft (Source-Kandidat)
 
 Basis `9756419d` → OIDC `1b791cbd` → Version `8e984426` → geprüfter Source-PR-Stand `f8fa9f2130031369481fe3640707e3bb00e0ca00` (signierter Pages-Beleg vor optionalem R2-Altpfad).
