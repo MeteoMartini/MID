@@ -935,7 +935,7 @@ async function dwdRucNativeFastPagesPointPayload(lat,lon,env){
 let rucFastHealthProbeCache;
 function rucFastHealthProbe(env){
  const now=Date.now();
- if(rucFastHealthProbeCache?.env===env&&now-rucFastHealthProbeCache.at<120000)
+ if(rucFastHealthProbeCache&&rucFastHealthProbeCache.env===env&&now-rucFastHealthProbeCache.at<120000)
   return rucFastHealthProbeCache.result;
  const result=(async()=>{
   const trust=await dwdRucTrustedFastManifestSha(env);
