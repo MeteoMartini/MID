@@ -1,3 +1,10 @@
+## MID v0.9.85.511 · Installer-Abbruchprovenienz und echte GDPS-Recovery-QA
+
+- Geprüfte Source-Basis: `main=mid-stable=35e904ec4e87ce725237e214141d9b640fd04692` / veröffentlichte v0.9.85.510, Issue #983 und #422. Der neue Integrationskandidat bleibt bis zu vollständigen Source-/Review-/Installer-/Worker-/Pages-/Stable-Gates **QA-Draft, kein Release**.
+- Self-Heal prüft vollständiges GitHub-Jobinventar vor dem `--log-failed`-Inhalt und identifiziert abgebrochene Pflichtjobs separat. Fehlende extern gesicherte Cancellation-Provenienz wird weiterhin strikt nicht als Auto-Retry freigegeben; die GitHub-Actions-Summary nennt Originalrun und erforderliche Operatorprüfung. Kein Permission-/Ruleset-/Secret-/Retry-Limit-Bypass.
+- Unified-Map-ECCC-GDPS-502-Browsertest akzeptiert bei vorzeitiger Entfernung des Retry-Buttons ausschließlich einen neuen tatsächlich beobachteten Original-GetMap und nachgewiesenen gültigen INIT-Zustand. Ohne diese Belege bleiben die bestehenden Assertions und reale Browserfälle blockierend. Keine `force:true`-Klicks, entfernten Testfälle oder künstlich erhöhten Budgets.
+- Negative Tests decken zweifach `cancelled`, fehlende und täuschende Logs, vollständige Jobinventare und Attempt 2 ab. Releaseversprechen gelten erst nach tatsächlichen Gate-Ergebnissen; RUC-Vollstand/EPS #541 sowie Karten-/14d-Design #975 bleiben getrennt offen.
+
 ## MID v0.9.85.510 · Leit-Integration – kontrollierter DWD-Fast-Nachholpfad
 
 - Basis: am 22.11.2026 auf `main=mid-stable=73f64f833ecb0e48666834e9c44588e05cea1e31` erfolgreich veröffentlichte v0.9.85.509. Originaler Spezialchat-QA-Draft PR #980, HEAD `226c03d3938b7e18848194b040eab97e65abc7af`; drei ursprüngliche Workflow-/Sync-Vertragsblobs selektiv übernommen und nach Cubic-Review hinsichtlich Stable-SHA, jüngstem Publisher, Nachholzeitfenster und verpflichtendem Recovery-Cron gezielt gehärtet. Frühere .508-Draft-Basis ersetzt, ohne fremde Änderungen zu verlieren.
