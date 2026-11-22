@@ -155,7 +155,7 @@ describe('MID Karten 1.16 · CanvasOverlay bounded cosmetic crossfade',()=>{
   const insideSchedule=overlay.indexOf("raf=requestAnimationFrame(",protectedPaint);
   const finish=overlay.indexOf('function finishFade(){');
   const restore=overlay.indexOf('cancelAnimationFrame(raf);window.clearTimeout(timer);old.remove();',finish);
-  const rollback=overlay.indexOf('},finishFade);',protectedPaint);
+  const rollback=overlay.indexOf('try{restoreCanvasFromSnapshot(canvas,old)}finally{finishFade()}',protectedPaint);
   expect(staged).toBeGreaterThan(-1);
   expect(finish).toBeGreaterThan(staged);
   expect(restore).toBeGreaterThan(finish);
