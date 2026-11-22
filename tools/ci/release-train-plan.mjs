@@ -134,9 +134,35 @@ export async function inspectStableVersion(repository,stableSha,token) {
   throw Error('Stable version mirrors disagree; block release proposal');
  return v;
 }
+export function prioritizeBacklog(items) {
+  function priority(item) {
+    const ranks = (item.labels ?? []).map(label => /^(?:priority[: /-]*)?p([0-3])$/i.exec(label.name ?? '')?.[1]);
+    return Math.min(4, ...ranks.filter(rank => rank !== undefined).map(Number));
+  }
+  return [...items].sort((a,b) => priority(a)-priority(b) || a.number-b.number).map(item => ({
+    number:item.number, priority:priority(item), kind:item.pull_request?'pull-request':'issue',
+  }));
+}
+
+async function discoverBacklog(repository,token) {
+  if (!validRepo(repository)) throw Error('Invalid repository');
+  const rows=[];
+  for (let page=1; page<=10; page++) {
+    const batch=await api(repository,'issues?state=open&sort=created&direction=asc&per_page=100&page='+page,token);
+    if (!Array.isArray(batch)) throw Error('Incomplete backlog inventory');
+    rows.push(...batch);
+    if (batch.length<100) return {releaseAuthorized:false, backlog:prioritizeBacklog(rows)};
+  }
+  throw Error('Incomplete backlog inventory');
+}
+
 async function main() {
   const [file,repository] = process.argv.slice(2);
   if (!file || !repository) throw Error('Usage: release-train-plan.mjs <manifest.json> <owner/repo>');
+  if (file==='--discover') {
+    console.log(JSON.stringify(await discoverBacklog(repository,process.env.GITHUB_TOKEN || ''),null,2));
+    return;
+  }
   const manifest=validateManifest(JSON.parse(await readFile(file,'utf8')));
   const token=process.env.GITHUB_TOKEN || '';
   const snapshot=await inspectRemoteSnapshot(manifest,repository,token);

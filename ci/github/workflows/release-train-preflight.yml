@@ -2,17 +2,20 @@ name: MID Release Train Preflight (read-only)
 run-name: SHA-geprüfte MID-Updatebündelung vorprüfen
 
 on:
+  schedule:
+    - cron: '37 */6 * * *'
   workflow_dispatch:
     inputs:
       manifest:
         description: 'Schema-1 JSON: stableSha, mainSha, changes:[{pr,headSha}]; optional candidateMode/versioning; impact needs review (NO RELEASE)'
-        required: true
+        required: false
         type: string
 
 # Planning only. No workflow can merge, build production or deploy.
 permissions:
   contents: read
   pull-requests: read
+  issues: read
 
 concurrency:
   group: mid-release-train-preflight
@@ -40,7 +43,9 @@ jobs:
           printf '%s' "$PLAN_MANIFEST" > "$RUNNER_TEMP/mid-release-train-plan.json"
           # Capture the result and publish its explanation EVEN when the advisory preflight blocks.
           set +e
-          node tools/ci/release-train-plan.mjs "$RUNNER_TEMP/mid-release-train-plan.json" "$GITHUB_REPOSITORY" > "$RUNNER_TEMP/mid-release-train-result.json" 2> "$RUNNER_TEMP/mid-release-train-error.log"
+          plan="$RUNNER_TEMP/mid-release-train-plan.json"
+          if [ -z "$PLAN_MANIFEST" ]; then plan=--discover; fi
+          node tools/ci/release-train-plan.mjs "$plan" "$GITHUB_REPOSITORY" > "$RUNNER_TEMP/mid-release-train-result.json" 2> "$RUNNER_TEMP/mid-release-train-error.log"
           preflight_status=$?
           set -e
           # Make pre-JSON failures visible, keeping the original failed exit.
