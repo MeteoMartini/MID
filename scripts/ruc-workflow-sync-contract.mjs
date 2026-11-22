@@ -44,9 +44,9 @@ export function isCanonicalCatchupRucWorkflow(workflow){
     fastRequirements>fast && fastRequirements<checks[2] && fastRequirements<jobEnd;
   const recoverySchedule='28,58 * * * *';
   const hasRecovery=schedules.includes(recoverySchedule);
-  const expected=hasFast?[...full,fastSchedule,...(hasRecovery?[recoverySchedule]:[])]:full;
+  const expected=hasFast?[...full,fastSchedule,recoverySchedule]:full;
   return includesAll(workflow,RUC_CATCHUP_TOKENS)
-    && (!hasRecovery || (hasFast && workflow.indexOf('id: fast_recovery',jobStart)>jobStart && workflow.indexOf('id: fast_recovery',jobStart)<fast && workflow.includes("if: steps.fast_recovery.outputs.skip != 'true'")))
+    && (!hasFast || (hasRecovery && workflow.indexOf('id: fast_recovery',jobStart)>jobStart && workflow.indexOf('id: fast_recovery',jobStart)<fast && workflow.includes("if: steps.fast_recovery.outputs.skip != 'true'") && workflow.includes('EXPECTED_STABLE_SHA: ${{ steps.lineage.outputs.sha }}') && workflow.includes("90 minutes ago") && workflow.includes('sort_by(.created_at) | reverse') && workflow.includes('candidate_runs="$(jq -r') && workflow.includes('(.total_count <= 100)')))
     && JSON.stringify(schedules)===JSON.stringify(expected)
     && (workflow.match(/cron:/g)||[]).length===expected.length
     && workflow.indexOf('RUC-Schedulerlücke und Aktualität vorab prüfen')<calculate

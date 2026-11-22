@@ -871,18 +871,45 @@ jobs:
         if: github.event.schedule == '28,58 * * * *'
         env:
           GH_TOKEN: ${{ github.token }}
+          EXPECTED_STABLE_SHA: ${{ steps.lineage.outputs.sha }}
         shell: bash
         run: |
           set -euo pipefail
-          since="$(date -u -d '22 minutes ago' +%FT%TZ)"
-          runs="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/actions/workflows/mid-ruc-preprocess.yml/runs" -f branch=main -f "created=>=$since" -F per_page=20)"
-          for run in $(jq -r --arg self "$GITHUB_RUN_ID" '.workflow_runs[] | select((.id|tostring) != $self and .status != "queued" and .status != "pending") | .id' <<<"$runs"); do
-            jobs="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/$run/jobs")"
-            if jq -e '.jobs[] | select(.name == "Unabhängige Fast Lane geschützt auf Pages veröffentlichen" and (.conclusion == "success" or .status == "in_progress"))' <<<"$jobs" >/dev/null; then
+          if [[ ! "$EXPECTED_STABLE_SHA" =~ ^[a-f0-9]{40}$ ]]; then
+            echo '::error::Missing verified Stable SHA for Fast recovery.'
+            exit 1
+          fi
+          # Cover the 45m native timeout and delayed concurrency, without unbounded API scans.
+          since="$(date -u -d '90 minutes ago' +%FT%TZ)"
+          runs="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/actions/workflows/mid-ruc-preprocess.yml/runs" -f branch=main -f "created=>=$since" -F per_page=100)"
+          if ! jq -e '(.total_count <= 100) and ((.workflow_runs|type) == "array")' <<<"$runs" >/dev/null; then
+            echo '::error::Fast recovery history incomplete; no DWD downloads.'
+            exit 1
+          fi
+          # Inspect only the most recent actual Fast attempt on this immutable Stable lineage.
+          # A newer failed Fast run must never be hidden by an older successful run.
+          candidate_runs="$(jq -r --arg sha "$EXPECTED_STABLE_SHA" --arg self "$GITHUB_RUN_ID" '.workflow_runs | sort_by(.created_at) | reverse | .[] | select(.head_sha == $sha and (.id | tostring) != $self) | .id' <<<"$runs")"
+          while IFS= read -r run; do
+            [ -n "$run" ] || continue
+            jobs="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/actions/runs/$run/jobs" -F per_page=100)"
+            if ! jq -e '(.total_count <= 100) and ((.jobs|type) == "array")' <<<"$jobs" >/dev/null; then
+              echo '::error::Fast recovery job history incomplete; no DWD downloads.'
+              exit 1
+            fi
+            if ! jq -e '.jobs[] | select(.name == "Native Fast Lane unabhängig von EPS qualifizieren" and .conclusion != "skipped")' <<<"$jobs" >/dev/null; then
+              continue
+            fi
+            # Pending qualification/preparation/publication or an actually successful
+            # newest publisher means no duplicate native Fast download is necessary.
+            if jq -e '.jobs[] | select((.name == "Native Fast Lane unabhängig von EPS qualifizieren" or .name == "Aktuelle Stable-Site und geprüfte Fast Lane für Pages vorbereiten" or .name == "Unabhängige Fast Lane geschützt auf Pages veröffentlichen") and (.status == "queued" or .status == "pending" or .status == "in_progress"))' <<<"$jobs" >/dev/null ||
+               jq -e '.jobs[] | select(.name == "Unabhängige Fast Lane geschützt auf Pages veröffentlichen" and .conclusion == "success")' <<<"$jobs" >/dev/null; then
               echo "skip=true" >> "$GITHUB_OUTPUT"
+              echo 'Newest same-SHA Fast publisher is active or successful. No redundant recovery.'
               exit 0
             fi
-          done
+            echo 'Newest same-SHA Fast publisher did not succeed; perform bounded recovery.'
+            break
+          done <<<"$candidate_runs"
       - name: Set up native Python and ecCodes
         if: steps.fast_recovery.outputs.skip != 'true'
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
