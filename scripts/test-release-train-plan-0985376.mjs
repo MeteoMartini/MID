@@ -522,6 +522,19 @@ test('release self-heal refuses multiple failed jobs, altered job identity or tr
  assert.equal(selfHealClassify({jobs:{total_count:3,jobs:selfHealBrowserJobs().jobs}}).retry,false);
  assert.equal(selfHealClassify({failedLog:''}).retry,false);
 });
+test('cancelled installer jobs remain fail-closed with absent or deceptive logs',()=>{
+ const cancelled={total_count:12,jobs:[
+  {name:'Release-Heavy · heavy-unified-map · 1/3',conclusion:'cancelled'},
+  {name:'Release-Heavy · heavy-unified-map · 2/3',conclusion:'cancelled'},
+  ...Array.from({length:10},(_,i)=>({name:'Gate '+i,conclusion:'success'})),
+ ]};
+ for(const failedLog of ['', 'The runner has received a shutdown signal.', 'HTTP 503 upstream'])
+  assert.deepEqual(selfHealClassify({jobs:cancelled,failedLog}),
+   {retry:false,reason:'cancelled-jobs-require-operator-provenance'});
+ assert.deepEqual(selfHealClassify({jobs:{...cancelled,total_count:13},failedLog:''}),
+  {retry:false,reason:'incomplete-job-inventory'});
+ assert.equal(selfHealClassify({jobs:cancelled,attempt:2,failedLog:'HTTP 503'}).retry,false);
+});
 test('browser attempt two never retries via a stray HTTP status',()=>{
  assert.equal(selfHealClassify({attempt:2,failedLog:selfHealTimeoutLog+'\nHTTP 503 upstream'}).retry,false);
 });

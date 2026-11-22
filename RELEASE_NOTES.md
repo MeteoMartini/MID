@@ -1,3 +1,9 @@
+# MID v0.9.85.511
+
+- Release-Selbstheilung: Abgebrochene GitHub-Installerjobs werden mit Original-Run-Link ausdrücklich als nicht automatisch retry-fähig diagnostiziert. Unbekannte Abbruchursachen und manuell abgebrochene Workflows werden weiterhin nicht blind wiederholt.
+- Karten-QA: Nach simuliertem ECCC-GDPS-502 erkennt die Browserprüfung eine bereits erfolgte automatische Wiederherstellung nur bei belegtem neuen Original-GetMap und gültigem INIT; ein ausgebliebener Recovery-Nachweis bleibt Releaseblocker.
+- DWD-/WMO-Datenverträge, amtliche Warnungen, NoData, Modelllaufzeiten und sämtliche Source-/Core-/Heavy-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates bleiben unverändert geschützt.
+
 # MID v0.9.85.510
 
 - ICON-D2-RUC-Fast-Lane: Zusätzlich zu den bestehenden :13/:43-UTC-Terminen prüft ein geschützter Nachholpfad um :28/:58 UTC, ob die Fast-Veröffentlichung zuletzt bereits erfolgreich war oder noch läuft. Nur bei tatsächlichem Nachholbedarf setzt er die bisherigen DWD-Originaldaten-, Qualitäts- und Pages-Gates fort. Der reguläre DWD-RUC/EPS-Vollpfad bleibt unverändert; fehlende EPS-/Originaldaten werden nicht durch Ersatzwerte ersetzt.

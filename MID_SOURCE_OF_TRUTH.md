@@ -1,3 +1,10 @@
+# MID v0.9.85.511 · LC 1.32 – Installer-/GDPS-Recovery-Qualifikation
+
+- Basis `main=mid-stable=35e904ec4e87ce725237e214141d9b640fd04692`, veröffentlichte v0.9.85.510; betroffene [#983](https://github.com/MeteoMartini/MID/issues/983) und [#422](https://github.com/MeteoMartini/MID/issues/422).
+- Abgebrochene Runner-Jobs bleiben ohne unabhängig verifizierbare externe Abbruchprovenienz nicht auto-retryfähig; der Original-Run und die nötige Operatorprüfung werden sichtbar.
+- Die echte GDPS-Wiederherstellung nach injiziertem HTTP 502 erfordert nachweislich neue Originaldatenanfrage und gültige INIT-Zeit. Kein erzwungener Klick, keine gelöschte Regression und keine Fake-Wetterdaten.
+- Andere Issue-/PR-Kandidaten (#541, #975, #981, #956, #937) sind dadurch nicht als erledigt anzusehen. Vollständiger Protected Release Train bleibt bindend.
+
 # MID v0.9.85.510 · Leit-Integration – DWD-RUC-Fast-Nachholung
 
 - Source-Kandidat auf verifiziertem `main=mid-stable=73f64f833ecb0e48666834e9c44588e05cea1e31` / v0.9.85.509. Aus QA-Draft [#980](https://github.com/MeteoMartini/MID/pull/980) exakt geprüfte Workflow-/Sync-Quellblobs selektiv auf Stable übertragen. Keine alten .508-Snapshots als Produktionsbasis und keine parallele Kopie des RUC-Workflows.
