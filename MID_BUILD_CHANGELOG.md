@@ -1,3 +1,7 @@
+## MID v0.9.85.506 · Fast-Lane-Vertrauensprüfung im Worker
+
+- Basis c710c691a5b56ef79c26325d1b167c0af073d550. Der produktive .505-Worker meldet für den vorhandenen signierten Fast-Snapshot trusted=false. Die Diagnose unterscheidet Dokument-, Schlüssel- und Verifikationsfehler. Produktionsnachweis ausstehend.
+
 ## MID v0.9.85.505 · Fast-Lane-Workerabruf
 
 - Die Veröffentlichung des .504-Fast-Snapshots auf Pages ist in Actions 45022455410 protokolliert. Der produktive Worker übernahm den Lauf bei der ersten Prüfung nicht. Lokal reproduzierter Manifest-Abruf oberhalb von 3,2 s. Der überarbeitete Abruf behält Größen-, Signatur- und Frischegrenzen. Produktionsabnahme steht aus.

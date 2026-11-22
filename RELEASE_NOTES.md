@@ -1,3 +1,7 @@
+# MID v0.9.85.506
+
+- Die Fast-Lane-Diagnose zeigt, an welcher Stelle der produktive Worker den signierten Datenbeleg verwirft. Der Produktionsnachweis steht aus.
+
 # MID v0.9.85.505
 
 - Der Wetter-Worker erhält mehr Zeit für den Abruf signierter Fast-Lane-Daten. Der Produktionsnachweis steht aus.

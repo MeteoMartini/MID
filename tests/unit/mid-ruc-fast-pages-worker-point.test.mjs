@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {dwdRucNativeFastPagesPointPayload} from '../../worker.js';
+import worker,{dwdRucNativeFastPagesPointPayload} from '../../worker.js';
 import {sha256hex} from '../../tools/ruc/ruc_fast_paged_point_shadow.mjs';
 import {generateKeyPairSync,sign} from 'node:crypto';
 const run=new Date(Math.floor(Date.now()/3600000)*3600000).toISOString().slice(0,16),start=Date.parse(run+'Z'),source='a'.repeat(64);
@@ -52,6 +52,20 @@ function mockPages(f,{manifest=f.raw,status=200,mutate=null,oidc=null}={}){
  };
  return {urls,restore:()=>{globalThis.fetch=old}};
 }
+test('opt-in health reports the failed proof HTTP stage without exposing the proof',async()=>{
+ const f=await fixture(),m=mockPages(f);
+ try{
+  const response=await worker.fetch(new Request('https://mid.test/?mode=ruc-health&fast=1'),{});
+  const {fast}=await response.json();
+  assert.equal(fast.trusted,false);
+  assert.equal(fast.pointReady,false);
+  assert.equal(fast.verificationStage,'proof-request');
+  assert.equal(fast.upstreamHttpStatus,404);
+  assert.deepEqual(Object.keys(fast).sort(),[
+   'configured','pointReady','run','signedPagesEnabled','trusted','upstreamHttpStatus','verificationStage',
+  ]);
+ }finally{m.restore()}
+});
 test('Fast consumer without a trusted release SHA is inert, no fetch',async()=>{
  const old=globalThis.fetch;let calls=0;
  globalThis.fetch=async()=>{calls++;throw Error('unexpected network')};
