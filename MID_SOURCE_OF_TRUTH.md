@@ -1,3 +1,7 @@
+# MID v0.9.85.508 · Worker-Abruf der Fast-Signaturschlüssel
+
+- Source-Kandidat auf Stable f798f1bedd230c0890200f65e53b1596ccfc3fb5. Der .507-Worker erreicht issuer-keys-request. Der Schlüsselabruf am festen GitHub-Endpunkt unterscheidet HTTP-Redirects von Transportfehlern. Source-Gate, ZIP, Installer, Worker/Pages, Stable-Promotion und Produktionsnachweis stehen aus.
+
 # MID v0.9.85.507 · Abruf des Fast-Lane-Belegs
 
 - Source-Kandidat auf Stable c13fbd57afcd30d8fce92b6b574c10d7e78debc4. Der Live-Worker .506 scheitert vor dem HTTP-Status beim signierten Fast-Beleg. Der Beleg wird über den regulären Pages-Einstieg per Abruf ohne Cache angefragt. Source-Gate, ZIP, Installer, Worker/Pages, Stable-Promotion und Produktionsnachweis stehen aus.

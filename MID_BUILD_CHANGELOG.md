@@ -1,3 +1,7 @@
+## MID v0.9.85.508 · Worker-Abruf der Fast-Signaturschlüssel
+
+- Live-Diagnose .507: Der Pages-Beleg wird gelesen. Der GitHub-Schlüsselabruf endet vor einem HTTP-Status. Der Worker behandelt einen Redirect als HTTP-Antwort und lehnt ihn vor der Verwendung von Schlüsseln ab. Produktionsnachweis ausstehend.
+
 ## MID v0.9.85.507 · Abruf des Fast-Lane-Belegs
 
 - Live-Diagnose von .506: proof-request ohne HTTP-Status. Der signierte Beleg nutzt jetzt den erfolgreichen Pages-Einstieg des regulären RUC-Index mit abweichender Cache-Behandlung für den veränderlichen Beleg. Produktionsnachweis ausstehend.

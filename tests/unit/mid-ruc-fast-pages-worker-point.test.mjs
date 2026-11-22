@@ -52,7 +52,11 @@ function mockPages(f,{manifest=f.raw,status=200,mutate=null,oidc=null}={}){
    return fetchPages(redirect.headers.get('location'),init);
   }
   if(u===canonicalProof)return new Response(oidc?JSON.stringify(oidc.proof):'',{status:oidc?200:404});
-  if(u==='https://token.actions.githubusercontent.com/.well-known/jwks')return new Response(JSON.stringify(oidc?.jwks||{keys:[]}),{status:200});
+  if(u==='https://token.actions.githubusercontent.com/.well-known/jwks'){
+   assert.equal(init?.redirect,'manual','The keys request must never follow redirects');
+   return oidc?.keysRedirect?Response.redirect(oidc.keysRedirect):
+    new Response(JSON.stringify(oidc?.jwks||{keys:[]}),{status:200});
+  }
   if(u==='https://www.midwx.app/ruc/fast/paged-shadow.json')return new Response(status===200?manifest:'',{status});
   const key=u.replace('https://www.midwx.app/ruc/',''),bytes=f.pages[key];
   if(!bytes)throw Error('Unmatched Fast Pages read: '+key);
@@ -155,6 +159,19 @@ function oidcFixture(manifestSha,claimsOverride={},proofOverride={}){
  return {schema:'mid.ruc.fast-oidc-proof.v1',run,manifestSha256:manifestSha,
   stableSha:'b'.repeat(40),runId:123456,runAttempt:1,oidcToken:token,...proofOverride};
 }
+test('GitHub OIDC keys redirects fail closed and report the issuer response status',async()=>{
+ const f=await fixture();
+ const isolated=await import('../../worker.js?fast-oidc-redirect');
+ const m=mockPages(f,{oidc:{proof:oidcFixture(f.sha),keysRedirect:'https://elsewhere.example/jwks'}});
+ try{
+  const response=await isolated.default.fetch(new Request('https://mid.test/?mode=ruc-health&fast=1'),{});
+  const {fast}=await response.json();
+  assert.equal(fast.trusted,false);
+  assert.equal(fast.verificationStage,'issuer-keys-request');
+  assert.equal(fast.upstreamHttpStatus,302);
+  assert.ok(!m.urls.includes('https://elsewhere.example/jwks'));
+ }finally{m.restore()}
+});
 test('GitHub-signed OIDC Pages proof enables native 7/73/25 Fast with no R2 binding or manually pinned SHA',async()=>{
  const f=await fixture(),m=mockPages(f,{oidc:{proof:oidcFixture(f.sha),jwks:{keys:[fastOidcJwk]}}});
  try{
