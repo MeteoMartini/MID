@@ -37,7 +37,7 @@ jobs:
           test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" = "$GITHUB_SHA"
           cmp ci/github/workflows/mid-d2-original-release-approval.yml .github/workflows/mid-d2-original-release-approval.yml
           test -s AGENTS.md && test -s MID_BASELINE.json && test -s MID_SOURCE_OF_TRUTH.md
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
           cache: pip
