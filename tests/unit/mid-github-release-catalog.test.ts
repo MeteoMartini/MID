@@ -1,4 +1,5 @@
 import {describe,it,expect} from 'vitest';
+import {readFileSync} from 'node:fs';
 import {assessMidCatalogEvidence,renderMidCatalogBody,verifyMidCatalogReadback,verifyMidExistingCatalogLatest,verifyMidTagReservation,verifyMidNoopCatalog} from '../../tools/release/publish-verified-release-catalog.mjs';
 const sha='a'.repeat(40),packageSha='b'.repeat(40),mergeSha='c'.repeat(40),
  version='0.9.85.497',runId=44121560818;
@@ -81,6 +82,43 @@ describe('MID post-Stable GitHub Releases catalog eligibility (not recovery auth
    {versions:{...baseline().versions,registry:'0.9.85.488'}},
    {notes:baseline().notes},
   ])expect(verifyMidNoopCatalog({...valid,...patch})).toBe(false);
+ });
+ it('refreshes mutable tag and release after original no-op reads, rejecting intervening edits',()=>{
+  const publisher=readFileSync(new URL('../../tools/release/publish-verified-release-catalog.mjs',import.meta.url),'utf8');
+  const begin=publisher.indexOf("if(releaseNoop==='true'){");
+  const end=publisher.indexOf('const evidence=assessMidCatalogEvidence(',begin);
+  expect(begin).toBeGreaterThanOrEqual(0);
+  expect(end).toBeGreaterThan(begin);
+  const branch=publisher.slice(begin,end);
+  const previous=branch.indexOf('const previousRun=');
+  const tagRead=branch.indexOf('const freshTagRef=githubApi(');
+  const releaseRead=branch.indexOf('const freshRelease=githubApi(');
+  const receipt=branch.indexOf('!verifyMidNoopCatalog(');
+  expect(previous).toBeGreaterThanOrEqual(0);
+  expect(tagRead).toBeGreaterThan(previous);
+  expect(releaseRead).toBeGreaterThan(tagRead);
+  expect(receipt).toBeGreaterThan(releaseRead);
+  expect(branch).toContain('tagRef:freshTagRef,existingRelease:freshRelease,latestRelease,previousRun');
+  const tag='v'+version;
+  const tagRef={ref:'refs/tags/'+tag,object:{type:'commit',sha}};
+  const release={id:33,tag_name:tag,name:'MID '+tag,draft:false,prerelease:false,
+   assets:[],body:renderMidCatalogBody({tag,notes:baseline().notes,sha,runId})};
+  const previousRun={id:runId,status:'completed',conclusion:'success',
+   event:'workflow_dispatch',path:'.github/workflows/install-mid.yml',
+   head_sha:packageSha,repository:{full_name:'MeteoMartini/MID'}};
+  const currentRun={id:runId+1,status:'in_progress',conclusion:null,
+   event:'workflow_dispatch',path:'.github/workflows/install-mid.yml',
+   head_sha:sha,repository:{full_name:'MeteoMartini/MID'}};
+  const valid={sha,versions:baseline().versions,
+   notes:{...baseline().notes,internal:['Tech']},
+   currentRun,currentRunId:runId+1,tagRef,existingRelease:release,
+   latestRelease:{id:33,tag_name:tag},previousRun,packageSha};
+  expect(verifyMidNoopCatalog(valid)).toBe(true);
+  // The first reads were valid; simulate GitHub metadata changed before refresh.
+  expect(verifyMidNoopCatalog({...valid,tagRef:{...tagRef,object:{type:'commit',sha:mergeSha}}})).toBe(false);
+  expect(verifyMidNoopCatalog({...valid,existingRelease:{...release,body:release.body+'\nEdited after first GET'}})).toBe(false);
+  expect(verifyMidNoopCatalog({...valid,tagRef:null})).toBe(false);
+  expect(verifyMidNoopCatalog({...valid,existingRelease:null})).toBe(false);
  });
  it('requires original installer id, attempt, workflow and event',()=>{
   reject({runId:5});reject({attempt:2});
