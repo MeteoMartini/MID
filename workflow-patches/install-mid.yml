@@ -1811,6 +1811,7 @@ jobs:
         with:
           client-id: ${{ vars.MID_RELEASE_APP_CLIENT_ID }}
           private-key: ${{ secrets.MID_RELEASE_APP_PRIVATE_KEY }}
+          permission-actions: read
           permission-contents: write
 
       - name: SHA-/Job-/Pages-/Worker-/Tag-Provenienz verifizieren und GitHub Release erzeugen

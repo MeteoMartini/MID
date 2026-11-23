@@ -599,7 +599,9 @@ test('post-Stable GitHub catalog keeps the original Installer protected and mirr
  assert.ok(catalog.includes("needs.finalize_release.result == 'success'"));
  assert.ok(catalog.includes('ref: ${{ needs.install_build.outputs.commit_sha }}'));
  assert.ok(catalog.includes('STABLE_SHA: ${{ needs.install_build.outputs.commit_sha }}'));
+ assert.ok(catalog.includes('permission-actions: read'));
  assert.ok(catalog.includes('permission-contents: write'));
+ assert.doesNotMatch(catalog,/permission-actions: write/);
  assert.ok(catalog.includes('node tools/release/publish-verified-release-catalog.mjs'));
  assert.ok(catalog.includes('persist-credentials: false'));
  assert.doesNotMatch(catalog,/continue-on-error|pull_request_target|force: true|--force/);
