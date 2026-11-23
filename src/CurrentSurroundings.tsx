@@ -178,8 +178,12 @@ export default function CurrentSurroundings(props:Props){
  const satellite=catalog?.satelliteRgbProduct??catalog?.satelliteIrProduct;
  const satelliteTime=radarStep>0?undefined:nearestVerifiedOriginal(satellite?.times,radarTarget,now);
  const clouds=mode==='radar'&&satellite&&satelliteTime!==undefined?imageUrl(satellite.provider,satellite.layer,satelliteTime,geographicWmsPlan):'';
- const clock=(time:number)=>new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:timezone}).format(time);
- const datedClock=(time:number)=>new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:timezone}).format(time);
+ // Reuse the same IANA-zone formatters while the surroundings map rerenders.
+ // Original timestamps and DST behavior remain unchanged; formatting is presentation only.
+ const clockFormat=useMemo(()=>new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:timezone}),[timezone]);
+ const datedClockFormat=useMemo(()=>new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:timezone}),[timezone]);
+ const clock=(time:number)=>clockFormat.format(time);
+ const datedClock=(time:number)=>datedClockFormat.format(time);
  useEffect(()=>{
   if(mode!=='radar'||!radar||target===undefined)return;
   // WMS alpha is presentation, not a weather validity mask. Verify only
