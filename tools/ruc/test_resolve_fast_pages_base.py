@@ -285,8 +285,23 @@ class InstallerPagesResolverTest(unittest.TestCase):
             {'id': 19, 'sha': 'f' * 40, 'environment': 'github-pages'}, older]
         self.manifest['deployments/19/statuses?per_page=1'] = [
             {'state': 'success', 'log_url': f'https://github.com/{REPOSITORY}/actions/runs/19'}]
-        with self.assertRaisesRegex(ValueError, 'not on Stable source'):
+        with self.assertRaisesRegex(
+                ValueError,
+                r'not on Stable source \\(deployment_id=19, deployment_sha=f{40}\\)'):
             self.resolve()
+
+    def test_foreign_pages_diagnostic_never_echoes_untrusted_fields(self):
+        older = self.manifest['deployments?environment=github-pages&per_page=30'][0]
+        self.manifest['deployments?environment=github-pages&per_page=30'] = [
+            {'id': 'malicious\\nSECRET=do-not-log', 'sha': 'bad\\nSECRET=do-not-log',
+             'environment': 'github-pages'}, older]
+        self.manifest['deployments/malicious\\nSECRET=do-not-log/statuses?per_page=1'] = [
+            {'state': 'success', 'log_url': 'https://evil.invalid/?token=do-not-log'}]
+        with self.assertRaisesRegex(ValueError, 'not on Stable source') as caught:
+            self.resolve()
+        self.assertNotIn('do-not-log', str(caught.exception))
+        self.assertIn('deployment_id=INVALID', str(caught.exception))
+        self.assertIn('deployment_sha=INVALID', str(caught.exception))
 
     def test_superseded_deployment_is_rejected(self):
         self.manifest['deployments/1/statuses?per_page=1'][0]['state'] = 'inactive'
