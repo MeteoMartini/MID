@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {assessMidCatalogEvidence,renderMidCatalogBody,verifyMidCatalogReadback,verifyMidExistingCatalogLatest,verifyMidTagReservation} from '../../tools/release/publish-verified-release-catalog.mjs';
+import {assessMidCatalogEvidence,renderMidCatalogBody,verifyMidCatalogReadback,verifyMidExistingCatalogLatest,verifyMidTagReservation,verifyMidNoopCatalog} from '../../tools/release/publish-verified-release-catalog.mjs';
 const sha='a'.repeat(40),packageSha='b'.repeat(40),mergeSha='c'.repeat(40),
  version='0.9.85.497',runId=44121560818;
 const green=name=>({name,status:'completed',conclusion:'success'});
@@ -22,7 +22,7 @@ const baseline=()=>({
  notes:{schema:1,version,title:'Release',date:'2026-11-17',external:['User change']},
  runId,attempt:1,
  run:{id:runId,run_attempt:1,repository:{full_name:'MeteoMartini/MID'},
-  path:'MeteoMartini/MID/.github/workflows/install-mid.yml@refs/heads/main',
+  path:'.github/workflows/install-mid.yml',
   event:'workflow_dispatch',status:'in_progress',conclusion:null,head_sha:packageSha},
  stableCommit:{sha,parents:[{sha:packageSha}]},
  packageCommit:{sha:packageSha,parents:[{sha:mergeSha}]},
@@ -56,10 +56,37 @@ describe('MID post-Stable GitHub Releases catalog eligibility (not recovery auth
   const {source: _missingSource,...withoutSource}=baseline().versions;
   reject({versions:{...withoutSource,sourceTypo:version}});
  });
+ it('identical no-op may only read back a previously confirmed successful Catalog',()=>{
+  const tag='v'+version,body=renderMidCatalogBody({tag,notes:baseline().notes,sha,runId});
+  const tagRef={ref:'refs/tags/'+tag,object:{type:'commit',sha}};
+  const existingRelease={id:33,tag_name:tag,name:'MID '+tag,
+   draft:false,prerelease:false,assets:[],body};
+  const previousRun={id:runId,status:'completed',conclusion:'success',
+   event:'workflow_dispatch',path:'.github/workflows/install-mid.yml',
+   head_sha:packageSha,repository:{full_name:'MeteoMartini/MID'}};
+  const currentRun={id:runId+1,status:'in_progress',conclusion:null,
+   event:'workflow_dispatch',path:'.github/workflows/install-mid.yml',
+   head_sha:sha,repository:{full_name:'MeteoMartini/MID'}};
+  const valid={sha,versions:baseline().versions,notes:{...baseline().notes,internal:['Tech']},
+   currentRun,currentRunId:runId+1,tagRef,existingRelease,
+   latestRelease:{id:33,tag_name:tag},previousRun,packageSha};
+  expect(verifyMidNoopCatalog(valid)).toBe(true);
+  for(const patch of [
+   {latestRelease:{id:44,tag_name:tag}},
+   {existingRelease:{...existingRelease,body:body.replace('actions/runs/'+runId,'actions/runs/999')}},
+   {tagRef:{...tagRef,object:{type:'commit',sha:'d'.repeat(40)}}},
+   {previousRun:{...previousRun,conclusion:'failure'}},
+   {previousRun:{...previousRun,head_sha:'d'.repeat(40)}},
+   {currentRun:{...currentRun,head_sha:packageSha}},
+   {versions:{...baseline().versions,registry:'0.9.85.488'}},
+   {notes:baseline().notes},
+  ])expect(verifyMidNoopCatalog({...valid,...patch})).toBe(false);
+ });
  it('requires original installer id, attempt, workflow and event',()=>{
   reject({runId:5});reject({attempt:2});
   reject({run:{...baseline().run,event:'push'}});
   reject({run:{...baseline().run,path:'other.yml'}});
+  reject({run:{...baseline().run,path:'MeteoMartini/MID/.github/workflows/install-mid.yml@refs/heads/main'}});
   reject({run:{...baseline().run,repository:{full_name:'other/repo'}}});
   reject({run:{...baseline().run,status:'completed',conclusion:'success'}});
  });
@@ -67,6 +94,8 @@ describe('MID post-Stable GitHub Releases catalog eligibility (not recovery auth
   for(const name of names){
    reject({jobs:baseline().jobs.filter(x=>x.name!==name)});
    reject({jobs:baseline().jobs.map(x=>x.name===name?{...x,conclusion:'failure'}:x)});
+   reject({jobs:baseline().jobs.map(x=>x.name===name?{...x,conclusion:'cancelled'}:x)});
+   reject({jobs:baseline().jobs.map(x=>x.name===name?{...x,conclusion:'timed_out'}:x)});
   }
   reject({jobs:[...baseline().jobs,green(names[0])]});
  });

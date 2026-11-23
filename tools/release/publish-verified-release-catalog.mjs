@@ -55,6 +55,38 @@ export function verifyMidTagReservation({createdTag,readback,tag,sha}={}){
    readback.object.sha===sha;
 }
 
+// A duplicate/no-op Installer may confirm an already-issued catalog receipt,
+ // but must NEVER generate or backfill a new tag on its own event SHA.
+export function verifyMidNoopCatalog({sha,versions,notes,currentRun,currentRunId,
+ tagRef,existingRelease,latestRelease,previousRun,packageSha}={}){
+ const version=versions?.package,tag='v'+version;
+ const keys=['baseline','notes','package','public','registry','source'];
+ if(!SHA.test(sha||'')||!SHA.test(packageSha||'')||!VERSION.test(version||'')||
+   !versions||Object.keys(versions).sort().join('|')!==keys.join('|')||
+   keys.some(k=>versions[k]!==version)||notes?.version!==version||
+   notes?.schema!==1||!Array.isArray(notes.external)||notes.external.length===0||
+   !Array.isArray(notes.internal)||notes.internal.length===0)
+  return false;
+ if(!Number.isSafeInteger(currentRunId)||currentRunId<=0||
+   currentRun?.id!==currentRunId||currentRun.event!=='workflow_dispatch'||
+   currentRun.path!=='.github/workflows/install-mid.yml'||
+   currentRun.status!=='in_progress'||currentRun.conclusion!==null||
+   currentRun.head_sha!==sha||currentRun.repository?.full_name!==REPO)
+  return false;
+ const lines=[...(existingRelease?.body||'').matchAll(
+  /^- Vollständiger Installer\/Worker\/Pages-Nachweis: https:\/\/github\.com\/MeteoMartini\/MID\/actions\/runs\/([1-9]\d+)$/gm)];
+ if(lines.length!==1)return false;
+ const oldId=Number(lines[0][1]);
+ if(!Number.isSafeInteger(oldId)||oldId===currentRunId||
+    previousRun?.id!==oldId||previousRun.status!=='completed'||
+    previousRun.conclusion!=='success'||previousRun.event!=='workflow_dispatch'||
+    previousRun.path!=='.github/workflows/install-mid.yml'||
+    previousRun.head_sha!==packageSha||previousRun.repository?.full_name!==REPO)
+  return false;
+ const body=renderMidCatalogBody({tag,notes,sha,runId:oldId});
+ return verifyMidExistingCatalogLatest({existingRelease,tagRef,latestRelease,tag,sha,body});
+}
+
 // An idempotent entry is only complete if GitHub still lists it as latest.
 export function verifyMidExistingCatalogLatest({existingRelease,tagRef,latestRelease,tag,sha,body}){
  return verifyMidCatalogReadback({created:existingRelease,postTag:tagRef,
@@ -82,7 +114,7 @@ export function assessMidCatalogEvidence(data={}){
   return block('RELEASE_NOTES_INVALID');
  if(!Number.isSafeInteger(runId)||runId<=0||!Number.isSafeInteger(attempt)||attempt<=0||
    run?.id!==runId||run.run_attempt!==attempt||run?.repository?.full_name!==REPO||
-   typeof run.path!=='string'||!run.path.includes('/.github/workflows/install-mid.yml')||
+   run.path!=='.github/workflows/install-mid.yml'||
    run.event!=='workflow_dispatch'||run.status!=='in_progress'||run.conclusion!==null)
   return block('INVALID_INSTALLER_RUN');
  const zipSha=packageCommit?.sha;
@@ -178,7 +210,9 @@ export function publishMidCatalogFromInstaller(){
  const sha=process.env.STABLE_SHA||'';
  const runId=positiveInt(process.env.GITHUB_RUN_ID);
  const attempt=positiveInt(process.env.GITHUB_RUN_ATTEMPT);
- if(!process.env.GH_TOKEN||process.env.GITHUB_REPOSITORY!==REPO||!SHA.test(sha)||
+ const releaseNoop=process.env.MID_CATALOG_RELEASE_NOOP;
+ if(!['true','false'].includes(releaseNoop)||!process.env.GH_TOKEN||
+    process.env.GITHUB_REPOSITORY!==REPO||!SHA.test(sha)||
     !Number.isSafeInteger(runId)||!Number.isSafeInteger(attempt))
   throw Error('No authentic MID Installer publishing context');
  const git=spawnSync('git',['rev-parse','HEAD'],{encoding:'utf8',timeout:5000});
@@ -206,6 +240,24 @@ export function publishMidCatalogFromInstaller(){
  const tag='v'+version;
  const tagRef=githubApi('repos/'+REPO+'/git/ref/tags/'+tag,'GET',undefined,true);
  const existingRelease=githubApi('repos/'+REPO+'/releases/tags/'+tag,'GET',undefined,true);
+ if(releaseNoop==='true'){
+  // An original successful no-op has github.sha == existing Stable SHA;
+  // a verified *older* catalog entry is the only admissible outcome.
+  // No orphan recovery, tag creation, retroactive release or metadata write.
+  const match=[...(existingRelease?.body||'').matchAll(
+   /^- Vollständiger Installer\/Worker\/Pages-Nachweis: https:\/\/github\.com\/MeteoMartini\/MID\/actions\/runs\/([1-9]\d+)$/gm)];
+  const oldId=match.length===1?Number(match[0][1]):0;
+  const previousRun=Number.isSafeInteger(oldId)&&oldId>0?
+   githubApi('repos/'+REPO+'/actions/runs/'+oldId):null;
+  const latestRelease=githubApi('repos/'+REPO+'/releases/latest');
+  if(refSha('main')!==sha||refSha('mid-stable')!==sha||
+     git.stdout.trim()!==sha||
+     !verifyMidNoopCatalog({sha,versions,notes,currentRun:run,currentRunId:runId,
+       tagRef,existingRelease,latestRelease,previousRun,packageSha}))
+   throw Error('No-op requires existing exact verified latest Catalog; no new publication');
+  console.log('MID_GITHUB_CATALOG_NOOP_VERIFIED='+JSON.stringify({sha,tag,runId,catalogOnly:true}));
+  return;
+ }
  const evidence=assessMidCatalogEvidence({
   repo:REPO,releaseSha:sha,localSha:git.stdout.trim(),
   mainSha:refSha('main'),stableSha:refSha('mid-stable'),
