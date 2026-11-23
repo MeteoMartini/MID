@@ -1,3 +1,11 @@
+# MID v0.9.85.514 · LC 1.34 – Reiseprognose-Originalzeit, lesender WMS-Audit und dynamische Plugin-Governance
+
+- **Live verifizierte Ausgangsbasis:** `main=mid-stable=331fffff081303e1c597badddfa4ae41c4b4e0f0`, veröffentlicht v0.9.85.513; vor Merge und Release die SHAs/Version/Rulesets/Parallel-PRs erneut abgleichen.
+- **Selektive Quelle:** #995 @ 6f07e1b4ec13f0fd51e39b7deb4567c423083656 (docs-only Governance, vorher bewusst auf Draft zurückgesetzt), #992 @ 580245ec5afd53181fa60c327c96b5b8c791c6e8 (wissenschaftliche GEFS/EC46-Reisekorrektur), #988 @ ed0eeb8ab8569ff886366bc0ea0160d7e8c71445 (read-only WMS-Originalzeit-/PNG-Audit). Alle drei sind ungemergte Spezialisten-Drafts; Git-Blobs nur auf gesicherter Stable-Basis selektiv übernehmen.
+- **Fachgrenzen:** Open-Meteo-Stundenregen zählt zum endgestempelten vorhergehenden Intervall, UTC-Momentantemperatur nicht. Unvollständige Tage und 7/7 Wochen nicht als vollständig ausgeben. Kein Wochenregen als Tageswahrscheinlichkeit, kein NoData als 0, keine künstliche Extreme-Glättung. PNG-Wire-Prüfung kein Karten-Wetterbeweis.
+- **Ausgeschlossen:** RUC-27h-Publisher/Shadow #541/#993/#991, Umfeldkarte #937, Änderungen an amtlichen Warnungen, neuen Endpunkten/Abos, GitHub Rulesets/Secrets sowie unkontrollierten Replit-/Agenten-Releases. Keine automatischen Watcher-Selbstbeauftragungen.
+- **Status:** ausschließlich korrekt versionierter, SHA-gebundener Integrationskandidat, bis zum realen Source-PR-Gate, Bot-Merge, serverseitigen ZIP, installer, Worker-/Pages-Gates, Stable-Promotion und v0.9.85.514-GitHub-Katalogreadback ausdrücklich **kein Release**.
+
 # MID v0.9.85.513 · LC 1.34 – 14-Tage-Ensemble als Hauptgrafik und Katalog-Job-Skip korrigieren
 
 - Releasefähige Ausgangsbasis `main=mid-stable=3195012b1b72b4cc3bbd762c2fbd859a924aadc7`, Version .512; vor jedem Merge und Installer erneut gegen SHA/Version/Rulesets/PRs prüfen.
