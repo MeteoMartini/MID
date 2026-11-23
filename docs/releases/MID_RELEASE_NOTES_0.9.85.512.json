@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "version": "0.9.85.512",
+  "title": "SHA-geprüfter GitHub-Release-Katalog nach Stable-Promotion",
+  "date": "2026-11-23",
+  "external": [
+    "Nach erfolgreich bestätigter Stable-Promotion werden neue MID-Versionen mit nachprüfbarem GitHub-Tag, Installer-Beleg und aktuellen Release-Notes im öffentlichen Versionskatalog geführt.",
+    "Keine Rückdatierung oder fingierten ZIP-Assets; Wetterdaten, amtliche Warnungen und bestehende DWD-/EPS-Freigaben bleiben unverändert."
+  ]
+}
