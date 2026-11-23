@@ -2,8 +2,14 @@
 
 - Quelle: historischer QA-Draft #956 `cb80824ca54967903a4d7885b6380b8ea02c599e` gegenüber `main=mid-stable=c5faca33885f8df4cc645be89ecc6befe93c55c0` / v0.9.85.511. Nur die drei Original-Code-/Test-/Dokumentationspfade sind ausgewählt worden; kein Blindmerge des alten .497-Baums.
 - Echter .511-Installer [#45117904421](https://github.com/MeteoMartini/MID/actions/runs/45117904421): completed/success, originaler Pages-Versuch 2 success, optionaler Pages-Artefaktvorbereiter skipped. Das Katalog-Gate muss trotzdem vier Core-Shards, sechs Heavy-Shards, originalen ZIP-only-Commit, Worker, einen echten Pages-Deploy und finalen Stable-SHA nachweisen.
-- Catalog-Job innerhalb des bestehenden Installers **nach** erfolgreichem `finalize_release`, mit vorhandener Release App und minimaler `contents:write`-Berechtigung nur in diesem Job. Kein neues Secret, kein neues kostenpflichtiges System oder eigenständiger privilegierter Workflow.
-- Status: Quelle ist ein SHA-gebundener **QA-Integrationskandidat**, keine .512-Veröffentlichung, kein aktueller .512-Tag und kein behauptetes GitHub-`latest`-Readback. Alle vollständigen Live-Gates und Reviews bleiben erforderlich.
+- Katalogjob ausschließlich nach erfolgreichem `finalize_release` bei `workflow_dispatch`; mit dem bestehenden Source-Bot serialisiert. Derselbe vorhandene GitHub-Release-App-Token wird **in diesem Schritt** mit `Actions:read` und `Contents:write` angefordert, ohne andere App-/Installer-Berechtigungen zu ändern. Kein neues Secret, kein kostenpflichtiges System oder eigenständiger privilegierter Workflow.
+- Status: Quelle ist ein SHA-gebundener **QA-Integrationskandidat**, keine .512-Veröffentlichung, kein aktueller .512-Tag und kein behauptetes GitHub-`latest`-Readback. Alle vollständigen Live-Gates und Reviews bleiben erforderlich. Der neue Publisher reserviert einen exakt SHA-gebundenen Git-Tag atomar **vor** dem Release-POST; fehlerhafte/mehrdeutige POST-Antwort oder ein verwaister Tag wird niemals durch Auto-Retags/Deletes korrigiert, sondern erfordert getrennten Originalbeleg und Operatorentscheidung. Ein früherer fehlgeschlagener Pages-Versuch ist nur bei nachfolgendem echt erfolgreichem Pages-Deploy und ansonsten vollständig grünem Installer toleriert.
+
+---
+
+## Archiv – historische QA-Konzeption v0.9.85.497 (19.–20.11.2026, **keine aktuelle Integrations- oder Freigabebasis**)
+
+**Die folgenden Originalabschnitte dokumentieren ausschließlich die Provenienz des alten Drafts #956.** Aussagen wie „Workflow unverändert“, „kein Katalogjob aktiv“, die .497-SHA oder die damaligen Berechtigungen sind historisch und gelten **nicht** für den darüber dokumentierten aktuellen .512-Kandidaten. Maßgeblich sind ausschließlich die am Dokumentanfang aufgeführten Live-Basis-/Kandidaten-SHAs sowie das vollständige finale Source- und Installer-Gate.
 
 # MID Release Konzept 1.9 · SHA-verifizierter GitHub Release-Katalog — Post-Stable-QA
 
