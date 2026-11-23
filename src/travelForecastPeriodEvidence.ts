@@ -5,7 +5,7 @@
  * Pure O(n), no network, timers or UI dependency.
  */
 export type GefsDayEvidence={
- date:string;min:number;max:number;precipitation:number|null;
+ date:string;min:number;max:number;mean:number;precipitation:number|null;
  temperatureComplete:boolean;precipitationComplete:boolean;
  temperatureHours:number;precipitationHours:number;precipitationExtreme:boolean;
 };
@@ -60,7 +60,7 @@ export function aggregateGefsUtcDays(hourly:RawHourly|undefined,units:RawUnits|u
   const temperatureComplete=tempUnitOk&&b.temps.size===24&&temps.length===24;
   const precipitationComplete=precipUnitOk&&b.rain.size===24&&rain.length===24;
   const precipitationExtreme=rain.some(value=>value>=200); // source-quality review, not clipping
-  return{date,min:temperatureComplete?Math.min(...temps):NaN,max:temperatureComplete?Math.max(...temps):NaN,
+  return{date,min:temperatureComplete?Math.min(...temps):NaN,max:temperatureComplete?Math.max(...temps):NaN,mean:temperatureComplete?temps.reduce((a,b)=>a+b,0)/24:NaN,
    precipitation:precipitationComplete?rain.reduce((sum,value)=>sum+value,0):null,
    temperatureComplete,precipitationComplete,temperatureHours:temps.length,precipitationHours:rain.length,precipitationExtreme};
  });
