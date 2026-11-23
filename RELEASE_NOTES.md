@@ -1,3 +1,9 @@
+# MID v0.9.85.512
+
+- GitHub-Release-Katalog: Nach einem vollständig geprüften Installer-/Worker-/Pages-Release und der erfolgreichen Stable-Promotion wird die aktuelle MID-Version zusätzlich als SHA-gebundener GitHub-Release-Eintrag mit Tag und Änderungsnotizen aufgeführt.
+- Bestehender Release-Bot mit minimalem Schreibumfang und Original-Installer-Gates; keine automatische Nachdatierung älterer Versionen, keine erfundenen ZIP- oder Recovery-Assets.
+- DWD-/WMO-Verträge, amtliche Warnungen, RUC-/EPS-Frische-/NoData-Prüfungen sowie alle bestehenden Source-/Core-/Heavy-/Installer-/Worker-/Pages-/Stable-Gates bleiben unverändert.
+
 # MID v0.9.85.511
 
 - Release-Selbstheilung: Abgebrochene GitHub-Installerjobs werden mit Original-Run-Link ausdrücklich als nicht automatisch retry-fähig diagnostiziert. Unbekannte Abbruchursachen und manuell abgebrochene Workflows werden weiterhin nicht blind wiederholt.
