@@ -85,7 +85,10 @@ jobs:
                   js = job.get("head_sha")
                   js = js if isinstance(js, str) and SHA.fullmatch(js) else "INVALID"
                   print(f"PAGES_ORIGIN_JOB={jid} JOB_SHA={js} JOB_ATTEMPT={job.get('run_attempt') if type(job.get('run_attempt')) is int else 'INVALID'}")
-              print("PAGES_LATEST_SUCCESS_PROVENANCE_IDENTIFIED")
+              if sha not in (STABLE, "acd7fb23ce44e7445c51ce5ccf816c1512fa61f6"):
+                  print("PAGES_FOREIGN_SUCCESS_WITHOUT_STABLE_SOURCE_CONTINUE_PROBING")
+                  continue
+              print("PAGES_OLDER_STABLE_SOURCE_IDENTIFIED")
               break
           else:
               raise SystemExit("NO_SUCCESS_IN_FIRST_30_DEPLOYMENTS")
