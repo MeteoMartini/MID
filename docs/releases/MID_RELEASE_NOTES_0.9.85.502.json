@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "version": "0.9.85.502",
+  "date": "2026-11-22",
+  "title": "RUC-Fast-Lane: volle Deploymentliste zulassen",
+  "external": [
+    "Die RUC-Fast-Lane kann die aktuelle Pages-Auslieferung auch bei einer vollen GitHub-Deploymentliste prüfen und für neue DWD-Daten verwenden."
+  ],
+  "internal": [
+    "Basis c6e5aa75d18b810b066f685f30ff6b0b35e030df. Beleg für den Fehler: GitHub Actions 44993474635.",
+    "Der Resolver hat 24 Tests bestanden und das aktuelle Pages-Artefakt 14727993173 live identifiziert. Produktivabnahme nach Stable-Promotion."
+  ]
+}

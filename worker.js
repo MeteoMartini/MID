@@ -52,7 +52,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.85.497';
+const WORKER_VERSION='0.9.85.512';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
@@ -529,15 +529,484 @@ function parseDwdRucPointPayload(payload,model,apiId='dwd_icon_d2_ruc'){
  const axis=rucSourceWindow({hours:times.map(time=>({epoch:rucHourlyEpoch(time,offsetSeconds)})),midRuc:data?.mid_ruc}),window=axis&&rucSourceWindow({hours,midRuc:data?.mid_ruc}),successful=hours.length>=6&&Boolean(window);
  return{...model,apiId,successful,maxHours:window?.maxHours,weatherBundleReady:false,reason:successful?undefined:'RUC-Punktadapter ohne gültige Laufzeitachse und mindestens sechs verwertbare Stunden',timezone:String(data?.timezone||'UTC'),days:[],hours,rapid:data?.rapid&&typeof data.rapid==='object'?data.rapid:{},midRuc:data?.mid_ruc,initialisationTime:window?.initialisationTime,availabilityTime:safeDate(data?.mid_ruc?.generatedAt)};
 }
+const midNativeFastPagedReader=(()=>{
+/* Pages-only original-DWD Fast 0-6h immutable read-only point consumer.
+ * SHADOW ONLY. Fetches four <=86kB immutable chunks; checks every fetched
+ * SHA-256. Requires the SHA of the full paged manifest from a trusted release,
+ * never from a URL parameter or another untrusted HTTP response.
+ * No activation, R2 writing, probability fabrication or client SLO claim.
+ */
+const SCHEMA='mid.ruc.fast-paged-shadow.v1';
+const PARTS={'lookup.bin':[4,1], 'deterministic.bin':[168,7], 'rapid-5m.bin':[146,73], 'rapid-15m.bin':[150,25]};
+const FIELDS=[
+ ['temperature_2m','°C',.01,0],['dew_point_2m','°C',.01,0],['relative_humidity_2m','%',.1,0],
+ ['pressure_msl','hPa',.1,0],['wind_speed_10m','kn',.01,0],['wind_direction_10m','°',.1,0],
+ ['wind_gusts_10m','kn',.01,0],['precipitation','mm',.01,0],['cloud_cover','%',.1,0],
+ ['cloud_cover_low','%',.1,0],['cape','J/kg',.1,0],['convective_inhibition','J/kg',.1,0]
+];
+const SHA=/^[a-f0-9]{64}$/;
+const fail=(condition,reason)=>{if(condition)throw Error(reason)};
+function utcRun(value) {
+ fail(typeof value!=='string'||!/^20\d{2}-\d\d-\d\dT\d\d:00$/.test(value),'not a canonical DWD UTC run');
+ const d=new Date(value+'Z');
+ fail(!Number.isFinite(d.getTime())||d.toISOString().slice(0,16)!==value,'invalid native calendar');
+ return d.getTime();
+}
+const isoMinute=(n)=>new Date(n).toISOString().slice(0,16);
+async function sha256hex(bytes) {
+ fail(!(bytes instanceof Uint8Array)||bytes.byteLength>4_000_000,'unbounded SHA input');
+ fail(!globalThis.crypto?.subtle,'SHA-256 runtime unavailable');
+ const hash=await globalThis.crypto.subtle.digest('SHA-256',bytes);
+ return Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,'0')).join('');
+}
+function inspect(manifest) {
+ fail(!manifest||manifest.schema!==SCHEMA,'unknown paged Fast schema');
+ fail(manifest.storageCodec!==undefined&&manifest.storageCodec!=='gzip-or-raw-v1','unknown Fast storage codec');
+ for(const flag of ['productionEnabled','publicationAuthorized','realtimeConsumerEnabled'])
+  fail(manifest[flag]!==false,'unapproved Fast activation');
+ fail(manifest.epsAvailable!==false||manifest.nativePoints!==542040||manifest.chunkCells!==512,'invalid original Fast/EPS geometry');
+ const start=utcRun(manifest.run);
+ fail(!SHA.test(manifest.sourceManifestSha256||'')||!SHA.test(manifest.sourceGribSha256||''),'untrusted DWD SHA');
+ const expectedAxis=(step,length)=>Array.from({length},(_,i)=>isoMinute(start+step*60_000*i));
+ for(const [name,step,length] of [['hourly',60,7],['rapid5',5,73],['rapid15',15,25]])
+  fail(JSON.stringify(manifest.timeAxes?.[name])!==JSON.stringify(expectedAxis(step,length)),'invalid model validity or accumulation axis: '+name);
+ fail(manifest.fields?.length!==12||FIELDS.some((spec,i)=>spec.some((x,k)=>manifest.fields[i][['name','unit','scale','offset'][k]]!==x)),
+  'native field units or scale mismatch');
+ const {nx,ny,nativePointCount}=manifest.grid||{};
+ fail(!Number.isInteger(nx)||!Number.isInteger(ny)||nx!==964||ny!==596||nativePointCount!==542040,'native projection geometry mismatch');
+ fail(Object.keys(manifest.objects||{}).sort().join(',')!==Object.keys(PARTS).sort().join(','),'original Fast object inventory incomplete');
+ let total=0;
+ const prefix='fast/pages/'+manifest.run.replaceAll('-','').replaceAll(':','')+'/';
+ for(const [name,[bytesPerCell]] of Object.entries(PARTS)) {
+  const obj=manifest.objects[name],count=name==='lookup.bin'?nx*ny:542040;
+  fail(!obj||obj.cellCount!==count||obj.bytesPerCell!==bytesPerCell||!SHA.test(obj.sourceSha256||''),'native part provenance mismatch');
+  const all=obj.parts;
+  fail(!Array.isArray(all)||all.length!==Math.ceil(count/512)||all.length>2000,'unbounded/incomplete native chunks');
+  let next=0;
+  for(let i=0;i<all.length;i++){
+   const part=all[i],cells=Math.min(512,count-next);
+   const compressed=part.encoding==='gzip';
+   const key=prefix+name.slice(0,-4)+'/'+String(i).padStart(4,'0')+(compressed?'.gzip.bin':'.bin');
+   if(compressed){
+    fail(manifest.storageCodec!=='gzip-or-raw-v1'||!Number.isInteger(part.storedBytes)||
+      part.storedBytes<=0||part.storedBytes>=part.bytes||!SHA.test(part.storedSha256||''),'invalid compressed chunk metadata');
+   } else {
+    fail(part.encoding!==undefined||part.storedBytes!==undefined||part.storedSha256!==undefined,'unexpected native chunk encoding');
+   }
+   fail(part.firstCell!==next||part.cells!==cells||part.bytes!==cells*bytesPerCell||part.key!==key||!SHA.test(part.sha256||''),'tampered chunk index/path/hash');
+   next+=cells;
+  }
+  fail(next!==count,'missing native source cells');total+=count*bytesPerCell;
+ }
+ fail(total!==manifest.sourceNativeBytes||total!==253804736,'original native binary physical length drift');
+ return {start,nx,ny};
+}
+function asUint8Array(value){
+ fail(!(value instanceof Uint8Array),'invalid fetched native chunk');
+ return value;
+}
+async function inflateFastChunk(stored,part) {
+ fail(stored.length!==part.storedBytes||await sha256hex(stored)!==part.storedSha256,'stored Fast chunk SHA mismatch');
+ const reader=new Blob([stored]).stream().pipeThrough(new DecompressionStream('gzip')).getReader();
+ const result=new Uint8Array(part.bytes);
+ let offset=0;
+ try {
+  for(;;){
+   const {done,value}=await reader.read();
+   if(done)break;
+   if(offset+value.byteLength>result.byteLength){
+    await reader.cancel();
+    throw Error('expanded Fast chunk exceeds its original byte count');
+   }
+   result.set(value,offset);
+   offset+=value.byteLength;
+  }
+ } finally {
+  reader.releaseLock();
+ }
+ fail(offset!==result.byteLength,'expanded Fast chunk is truncated');
+ return result;
+}
+async function fetchNative(manifest,objectName,index,read) {
+ const obj=manifest.objects[objectName],n=Math.floor(index/512),part=obj.parts[n];
+ fail(!part||index<part.firstCell||index>=part.firstCell+part.cells,'point index beyond native chunk');
+ const stored=asUint8Array(await read(part.key));
+ fail(stored.byteLength>512*168,'oversized Fast chunk');
+ const bytes=part.encoding==='gzip'?await inflateFastChunk(stored,part):stored;
+ fail(bytes.length!==part.bytes,'missing/oversized original chunk');
+ fail(await sha256hex(bytes)!==part.sha256,'native chunk SHA mismatch');
+ return {view:new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),offset:(index-part.firstCell)*obj.bytesPerCell};
+}
+function numberOrMissing(view,position,field){
+ const x=view.getInt16(position,true);
+ if(x===-32768)return null;
+ const result=x*field[2]+field[3];
+ // The GRIB producer, not the consumer, must distinguish true dry hours from
+ // negative quantization error. Never silently clamp negative rainfall to zero.
+ fail(field[0]==='precipitation'&&result<0,'negative original Fast precipitation is untrusted, not dry');
+ return result;
+}
+async function readPagedFastPointShadow(manifestBytes,verifiedManifestSha256,read,lookupGridIndex) {
+ const original=asUint8Array(manifestBytes);
+ fail(original.byteLength>3_000_000||!SHA.test(verifiedManifestSha256||''),'manifest not release SHA pinned');
+ fail(await sha256hex(original)!==verifiedManifestSha256,'paged manifest not SHA admitted');
+ const manifest=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(original));
+ const {start,nx,ny}=inspect(manifest);
+ fail(typeof read!=='function'||!Number.isSafeInteger(lookupGridIndex)||lookupGridIndex<0||lookupGridIndex>=nx*ny,'unverified native lookup request');
+ const found=await fetchNative(manifest,'lookup.bin',lookupGridIndex,read);
+ const nativeIndex=found.view.getUint32(found.offset,true);
+ if(nativeIndex===0xffffffff)return {available:false,reason:'outside-native-grid',productionAuthorized:false};
+ fail(nativeIndex>=542040,'invalid native lookup index');
+ const data={};
+ for(const [name,[length,count]] of Object.entries(PARTS)){
+  if(name==='lookup.bin')continue;
+  const {view,offset}=await fetchNative(manifest,name,nativeIndex,read);
+  const fields=name==='deterministic.bin'?FIELDS:name==='rapid-5m.bin'?[FIELDS[7]]:[FIELDS[7],FIELDS[10],FIELDS[11]];
+  const recordBytes=length/count;
+  data[name]=Array.from({length:count},(_,time)=>fields.map((field,index)=>numberOrMissing(view,offset+time*recordBytes+2*index,field)));
+ }
+ const hours=data['deterministic.bin'].map((values,i)=>({
+  validTimeUtc:new Date(start+i*3600000).toISOString(),
+  intervalStartUtc:i===0?null:new Date(start+(i-1)*3600000).toISOString(),
+  fields:Object.fromEntries(FIELDS.map((f,k)=>[f[0],k===7&&i===0?null:values[k]]))
+ }));
+ const intervals=(name,step)=>data[name].map((values,i)=>({
+  validTimeUtc:new Date(start+i*step*60000).toISOString(),
+  intervalStartUtc:i===0?null:new Date(start+(i-1)*step*60000).toISOString(),
+  intervalEndUtc:i===0?null:new Date(start+i*step*60000).toISOString(),
+  precipitationMm:i===0?null:values[0],...(step===15?{capeJkg:values[1],cinJkg:values[2]}:{})
+ }));
+ return {schema:'mid.ruc.fast-paged-cell-shadow.v1',available:true,modelRunUtc:new Date(start).toISOString(),
+  source:'DWD ICON-D2 RUC original native deterministic',nativeIndex,hours,rapid5Minutes:intervals('rapid-5m.bin',5),
+  rapid15Minutes:intervals('rapid-15m.bin',15),epsAvailable:false,productionAuthorized:false,consumerAdoptionVerified:false};
+}
+
+return {sha256hex,readPagedFastPointShadow};
+})();
+
+
+// Independent SHA-pinned 0–6h DWD fast Pages point adapter.
+// Deliberately disabled until a trusted MID release updates both Worker bindings.
+// A digest advertised by Pages, query parameters or the manifest itself is NEVER a proof.
+const MID_RUC_FAST_PAGES_ROOT='https://www.midwx.app/ruc/';
+const MID_RUC_FAST_SHA256=/^[a-f0-9]{64}$/;
+async function midRucFastResponseBytes(response,maxBytes){
+ if(!response?.ok)throw Error('Fast Pages HTTP unavailable');
+ const advertised=Number(response.headers.get('content-length'));
+ if(advertised>maxBytes)throw Error('Fast Pages response size exceeds limit');
+ const stream=response.body;
+ if(!stream?.getReader){
+  const raw=new Uint8Array(await response.arrayBuffer());
+  if(raw.byteLength>maxBytes)throw Error('Fast Pages body exceeds limit');
+  return raw;
+ }
+ const reader=stream.getReader(),parts=[];
+ let total=0;
+ try{
+  while(true){
+   const {done,value}=await reader.read();
+   if(done)break;
+   total+=value.byteLength;
+   if(total>maxBytes){
+    await reader.cancel();
+    throw Error('Fast Pages response streamed beyond limit');
+   }
+   parts.push(value);
+  }
+ }finally{reader.releaseLock()}
+ const result=new Uint8Array(total);
+ let offset=0;
+ for(const part of parts){result.set(part,offset);offset+=part.byteLength}
+ return result;
+}
+// A protected Publisher writes this receipt to the existing RUC R2 bucket
+// only after a successful public Pages SHA readback. Pages JSON cannot set
+// or override the independent trust anchor.
+const MID_RUC_FAST_TRUST_KEY='ruc/fast/publisher-trust.v1.json';
+
+// Signed, R2-free MID Fast publisher provenance from GitHub Actions OIDC.
+// The JWT audience cryptographically binds the immutable native manifest SHA.
+const FAST_OIDC_ISSUER='https://token.actions.githubusercontent.com';
+const FAST_OIDC_JWKS=FAST_OIDC_ISSUER+'/.well-known/jwks';
+const FAST_OIDC_WORKFLOW='MeteoMartini/MID/.github/workflows/mid-ruc-preprocess.yml@refs/heads/main';
+const FAST_OIDC_REPOSITORY_ID='1305110795';
+const SHA256_RE=/^[0-9a-f]{64}$/;
+const SHA40_RE=/^[0-9a-f]{40}$/;
+const RUN_RE=/^20\d{2}-\d{2}-\d{2}T\d{2}:00$/;
+const JWT_PART=/^[A-Za-z0-9_-]+$/;
+function fastOidcAudience(sha){
+ if(!SHA256_RE.test(String(sha)))throw new Error('invalid SHA for Fast OIDC audience');
+ return 'mid-ruc-fast-manifest:v1:'+sha;
+}
+function jwtPart(part){
+ if(typeof part!=='string'||part.length>10000||!JWT_PART.test(part))throw new Error('noncanonical Fast OIDC JWT part');
+ const padded=part.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-part.length%4)%4);
+ return Uint8Array.from(atob(padded),ch=>ch.charCodeAt(0));
+}
+function jsonJwtPart(part){return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(jwtPart(part)))}
+function safeEpoch(value){return Number.isSafeInteger(value)&&value>0?value*1000:NaN}
+async function verifyFastOidcProof(proof,jwks,{now=Date.now(),onStage}={}){
+ onStage?.('proof-envelope');
+ if(!Number.isFinite(now)||!proof||proof.schema!=='mid.ruc.fast-oidc-proof.v1'||
+    !SHA256_RE.test(proof.manifestSha256)||!SHA40_RE.test(proof.stableSha)||
+    !RUN_RE.test(proof.run)||typeof proof.oidcToken!=='string'||proof.oidcToken.length>12000||
+    !Number.isSafeInteger(proof.runId)||proof.runId<=0||
+    !Number.isSafeInteger(proof.runAttempt)||proof.runAttempt<=0)return null;
+ onStage?.('proof-run-freshness');
+ const runMs=Date.parse(proof.run+'Z');
+ if(!Number.isFinite(runMs)||new Date(runMs).toISOString().slice(0,16)!==proof.run||
+    now<runMs-5*60000||now-runMs>4*3600000)return null;
+ onStage?.('proof-claims');
+ const parts=proof.oidcToken.split('.');if(parts.length!==3)return null;
+ let header,claims,signature;
+ try{header=jsonJwtPart(parts[0]);claims=jsonJwtPart(parts[1]);signature=jwtPart(parts[2])}catch{return null}
+ if(header?.alg!=='RS256'||typeof header.kid!=='string'||header.kid.length>128||
+    claims?.iss!==FAST_OIDC_ISSUER||claims?.aud!==fastOidcAudience(proof.manifestSha256)||
+    claims?.repository!=='MeteoMartini/MID'||String(claims?.repository_id)!==FAST_OIDC_REPOSITORY_ID||
+    claims?.ref!=='refs/heads/main'||claims?.workflow_ref!==FAST_OIDC_WORKFLOW||
+    claims?.sha!==proof.stableSha||String(claims?.run_id)!==String(proof.runId)||
+    String(claims?.run_attempt)!==String(proof.runAttempt)||
+    !['schedule','workflow_dispatch'].includes(claims?.event_name))return null;
+ onStage?.('proof-issuance-window');
+ const iat=safeEpoch(claims.iat),exp=safeEpoch(claims.exp),nbf=claims.nbf==null?iat:safeEpoch(claims.nbf);
+ if(!Number.isFinite(iat)||!Number.isFinite(exp)||!Number.isFinite(nbf)||
+    iat>now+60000||now-iat>4*3600000||exp<iat||exp-iat>15*60000||
+    nbf>iat+60000||nbf>now+60000||iat<runMs-5*60000)return null;
+ // JWT exp is an issuance-credential lifetime, not the validity of an
+ // immutable, signed historical assertion. Meteorological/run freshness above
+ // separately limits acceptance to four hours.
+ onStage?.('issuer-key-match');
+ const keys=Array.isArray(jwks?.keys)?jwks.keys:[];
+ const match=keys.filter(k=>k.kid===header.kid&&k.kty==='RSA'&&k.alg==='RS256'&&k.use==='sig'&&
+   typeof k.n==='string'&&typeof k.e==='string');
+ if(match.length!==1)return null;
+ onStage?.('proof-signature');
+ try{
+  const key=await crypto.subtle.importKey('jwk',match[0],{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['verify']);
+  const valid=await crypto.subtle.verify('RSASSA-PKCS1-v1_5',key,signature,new TextEncoder().encode(parts[0]+'.'+parts[1]));
+  if(!valid)return null;
+ }catch{return null}
+ return {sha:proof.manifestSha256,run:proof.run,stableSha:proof.stableSha,runId:proof.runId};
+}
+
+// Verify the GitHub-issued Pages proof before consulting legacy R2 trust.
+const midFastOidcTrustCache=new WeakMap();
+let midFastOidcJwksCache=null;
+async function midFastSignedPagesTrust(env,diagnostics){
+ if(!env||typeof env!=='object'||env.MID_DWD_RUC_FAST_OIDC_ENABLED==='false')return null;
+ const now=Date.now(),cached=midFastOidcTrustCache.get(env);
+ if(cached&&now-cached.at<30000){
+  if(!cached.trust||rucWindowFresh({initialisationEpoch:Date.parse(cached.trust.run+'Z')},now)){
+   if(diagnostics)Object.assign(diagnostics,{stage:cached.stage,httpStatus:cached.httpStatus});
+   return cached.trust;
+  }
+ }
+ let trust=null,stage='proof-request',httpStatus=null;
+ try{
+  // Use the same public Pages entry point and uncached pointer transport as
+  // the regular RUC index. The apex redirects to the canonical Pages host.
+  const proofUrl=new URL('fast/publisher-proof.v2.json',DWD_RUC_STATIC_DEFAULT);
+  const proofResponse=await fetchWithDeadline(proofUrl.toString(),
+   {headers:{Accept:'application/json','Cache-Control':'no-cache'},cf:{cacheEverything:false,cacheTtl:0}},9000);
+  if(proofResponse.status!==200){httpStatus=proofResponse.status;throw Error('No signed Fast Pages proof')}
+  stage='proof-format';
+  const decoder=new TextDecoder('utf-8',{fatal:true});
+  const proof=JSON.parse(decoder.decode(await midRucFastResponseBytes(proofResponse,16000)));
+  const header=jsonJwtPart(String(proof?.oidcToken??'').split('.')[0]);
+  if(header?.alg!=='RS256'||typeof header.kid!=='string'||!header.kid||header.kid.length>128)
+   throw Error('GitHub OIDC key ID invalid');
+  let jwks=midFastOidcJwksCache?.value;
+  const expired=!jwks||now-midFastOidcJwksCache.at>3600000;
+  const unknownKid=jwks&&!jwks.keys.some(key=>key?.kid===header.kid);
+  // Rate-limit forced refreshes even if the public proof contains arbitrary key IDs.
+  if(expired||(unknownKid&&now-midFastOidcJwksCache.at>=15000)){
+   stage='issuer-keys-request';
+   // Only the configured GitHub issuer can provide verification keys.
+   // Keep redirects as HTTP responses so the existing 200 check rejects them.
+   const keysResponse=await fetchWithDeadline(FAST_OIDC_JWKS,
+    {redirect:'manual',headers:{Accept:'application/json','Cache-Control':'no-cache'},cf:{cacheTtl:0,cacheEverything:false}},9000);
+   if(keysResponse.status!==200){httpStatus=keysResponse.status;throw Error('GitHub OIDC issuer keys unavailable')}
+   stage='issuer-keys-format';
+   jwks=JSON.parse(decoder.decode(await midRucFastResponseBytes(keysResponse,64000)));
+   if(!Array.isArray(jwks?.keys)||jwks.keys.length>30)throw Error('Issuer JWKS invalid');
+   midFastOidcJwksCache={at:now,value:jwks};
+  }
+  stage='proof-verification';
+  const verified=await verifyFastOidcProof(proof,jwks,{now,onStage:value=>{stage=value}});
+  if(verified){trust={sha:verified.sha,run:verified.run};stage='verified'}
+ }catch{
+  // Untrusted Pages, missing GitHub keys and signature mismatch are NoData.
+ }
+ midFastOidcTrustCache.set(env,{at:now,trust,stage,httpStatus});
+ if(diagnostics)Object.assign(diagnostics,{stage,httpStatus});
+ return trust;
+}
+
+const midRucFastTrustCache=new WeakMap();
+async function dwdRucTrustedFastManifestSha(env,diagnostics){
+ if(env?.MID_DWD_RUC_FAST_ENABLED==='false')return null;
+ const explicit=String(env?.MID_DWD_RUC_FAST_MANIFEST_SHA256||'').trim();
+ if(env?.MID_DWD_RUC_FAST_ENABLED==='true'&&MID_RUC_FAST_SHA256.test(explicit))return {sha:explicit,run:null};
+ const signed=await midFastSignedPagesTrust(env,diagnostics);
+ if(signed)return signed;
+ const bucket=env?.MID_DWD_RUC_DATA;
+ if(!bucket||typeof bucket.get!=='function')return null;
+ try{
+  const cached=midRucFastTrustCache.get(bucket);
+  if(cached&&Date.now()-cached.at<30000){
+   if(cached.absent===true)return null;
+   if(rucWindowFresh({initialisationEpoch:cached.run},Date.now()))
+    return {sha:cached.sha,run:new Date(cached.run).toISOString().slice(0,16)};
+  }
+  const object=await bucket.get(MID_RUC_FAST_TRUST_KEY);
+  if(!object){
+   // Only a genuinely absent object gets a negative 30s cache; auth failures
+   // and malformed/expired receipts remain fail-closed and are never invented.
+   midRucFastTrustCache.set(bucket,{at:Date.now(),absent:true});
+   return null;
+  }
+  if(typeof object.text!=='function')return null;
+  const proof=JSON.parse(await object.text());
+  if(proof?.schema!=='mid.ruc.fast-publisher-trust.v1'||proof.version!==WORKER_VERSION||
+     proof.repository!=='MeteoMartini/MID'||!MID_RUC_FAST_SHA256.test(proof.fastManifestSha256)||
+     !/^[a-f0-9]{40}$/.test(proof.stableSha||'')||
+     !/^20\d{2}-\d\d-\d\dT\d\d:00$/.test(proof.run||''))return null;
+  const run=Date.parse(proof.run+'Z');
+  if(!Number.isFinite(run)||!rucWindowFresh({initialisationEpoch:run},Date.now()))return null;
+  midRucFastTrustCache.set(bucket,{at:Date.now(),run,sha:proof.fastManifestSha256});
+  return {sha:proof.fastManifestSha256,run:proof.run};
+ }catch{return null}
+}
+async function dwdRucNativeFastPagesPointPayload(lat,lon,env){
+ const trustedFast=await dwdRucTrustedFastManifestSha(env);
+ if(!trustedFast)return null;
+ if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat<40||lat>61||lon<(-7)||lon>24)return null;
+ try{
+  const manifestUrl=new URL('fast/paged-shadow.json',MID_RUC_FAST_PAGES_ROOT);
+  const response=await fetchWithDeadline(manifestUrl.toString(),{
+   headers:{Accept:'application/json'},cf:{cacheTtlByStatus:{'200':30,'201-599':-1},cacheEverything:true}
+  },6500);
+  const bytes=await midRucFastResponseBytes(response,3_000_000);
+  if(await midNativeFastPagedReader.sha256hex(bytes)!==trustedFast.sha)return null;
+  const meta=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
+  if(trustedFast.run!==null&&meta?.run!==trustedFast.run)return null;
+  // Match original DWD run UTC, not response retrieval time or an untrusted cache timestamp.
+  const init=typeof meta?.run==='string'&&/^20\d{2}-\d\d-\d\dT\d\d:00$/.test(meta.run)?
+   Date.parse(meta.run+'Z'):NaN;
+  if(!rucWindowFresh({initialisationEpoch:init},Date.now()))return null;
+  const offset=dwdRucLookupOffset(meta,lat,lon);
+  if(offset===null)return null;
+  const read=async key=>{
+   if(!/^fast\/pages\/20\d{6}T\d{4}\/(?:lookup|deterministic|rapid-5m|rapid-15m)\/\d{4}(?:\.gzip)?\.bin$/.test(key)){
+    throw Error('Untrusted Fast Pages chunk URL');
+   }
+   const url=new URL(key,MID_RUC_FAST_PAGES_ROOT);
+   if(url.origin!==manifestUrl.origin||!url.pathname.startsWith('/ruc/fast/pages/')){
+    throw Error('Fast Pages origin/path mismatch');
+   }
+   const resource=await fetchWithDeadline(url.toString(),{
+    headers:{Accept:'application/octet-stream'},cf:{cacheTtl:600,cacheEverything:true}
+   },5000);
+   return midRucFastResponseBytes(resource,512*168);
+  };
+  const native=await midNativeFastPagedReader.readPagedFastPointShadow(
+   bytes,trustedFast.sha,read,offset/4
+  );
+  if(!native.available||native.epsAvailable!==false||native.hours.length!==7||
+     native.rapid5Minutes.length!==73||native.rapid15Minutes.length!==25||
+     !rucWindowFresh({initialisationEpoch:Date.parse(native.modelRunUtc)},Date.now())){
+   return null;
+  }
+  const hourly={time:native.hours.map(hour=>hour.validTimeUtc)};
+  const names=[
+   'temperature_2m','dew_point_2m','relative_humidity_2m','pressure_msl',
+   'wind_speed_10m','wind_direction_10m','wind_gusts_10m','precipitation',
+   'cloud_cover','cloud_cover_low','cape','convective_inhibition'
+  ];
+  for(const name of names)hourly[name]=native.hours.map(hour=>hour.fields[name]??null);
+  const rapid={
+   precip5:{
+    time:native.rapid5Minutes.map(row=>row.validTimeUtc.slice(0,16)),
+    precipitation:native.rapid5Minutes.map(row=>row.precipitationMm)
+   },
+   convection15:{
+    time:native.rapid15Minutes.map(row=>row.validTimeUtc.slice(0,16)),
+    precipitation:native.rapid15Minutes.map(row=>row.precipitationMm),
+    cape:native.rapid15Minutes.map(row=>row.capeJkg),
+    convective_inhibition:native.rapid15Minutes.map(row=>row.cinJkg)
+   }
+  };
+  // EPS20 was not ingested and must never be represented as zero probability.
+  return {latitude:lat,longitude:lon,timezone:'GMT',utc_offset_seconds:0,
+   hourly,rapid,mid_ruc:{run:meta.run,generatedAt:native.modelRunUtc,
+    source:'DWD ICON-D2-RUC original native deterministic',
+    storage:'SHA-pinned GitHub Pages Fast',epsAvailability:'unavailable',
+    fastManifestSha256:trustedFast.sha}};
+ }catch{
+  // A corrupt, expired or unreachable immutable source is NoData, never dry.
+  return null;
+ }
+}
+
+// Share one opt-in Bonn readback per Worker isolate for two minutes.
+let rucFastHealthProbeCache;
+function rucFastHealthProbe(env){
+ const now=Date.now();
+ if(rucFastHealthProbeCache&&rucFastHealthProbeCache.env===env&&now-rucFastHealthProbeCache.at<120000)
+  return rucFastHealthProbeCache.result;
+ const result=(async()=>{
+  const verification={};
+  const trust=await dwdRucTrustedFastManifestSha(env,verification);
+  const point=trust?await dwdRucNativeFastPagesPointPayload(50.73,7.10,env):null;
+  return {configured:env?.MID_DWD_RUC_FAST_ENABLED!=='false',
+   signedPagesEnabled:env?.MID_DWD_RUC_FAST_OIDC_ENABLED!=='false',trusted:Boolean(trust),
+   run:trust?.run??point?.mid_ruc?.run??null,pointReady:Boolean(point),
+   verificationStage:verification?.stage??null,upstreamHttpStatus:verification?.httpStatus??null};
+ })();
+ rucFastHealthProbeCache={env,at:now,result};
+ return result;
+}
+
 async function fetchDwdRucPointAdapter(model,lat,lon,elevation,env){
- const r2Payload=await dwdRucR2PointPayload(lat,lon,env);if(r2Payload){const parsed=parseDwdRucPointPayload(r2Payload,model,'dwd_icon_d2_ruc_r2');if(parsed.successful)return{...parsed,adapter:'MID_DWD_RUC_DATA',provider:'DWD ICON-D2-RUC · R2-Punktadapter'}}
- const staticPayload=await dwdRucStaticPointPayload(lat,lon,env);if(staticPayload){const parsed=parseDwdRucPointPayload(staticPayload,model,'dwd_icon_d2_ruc_pages');if(parsed.successful)return{...parsed,rapid:staticPayload.rapid||{},adapter:'MID_DWD_RUC_STATIC_BASE_URL',provider:'DWD ICON-D2-RUC · GitHub-Pages-Punktadapter'}}
+ // Keep the last independently verified full 27h/EPS payload available as a
+ // fallback; a newer, SHA-authenticated native 0–6h run may arrive first.
+ let full=null;
+ const r2Payload=await dwdRucR2PointPayload(lat,lon,env);
+ if(r2Payload){
+  const parsed=parseDwdRucPointPayload(r2Payload,model,'dwd_icon_d2_ruc_r2');
+  if(parsed.successful)full={...parsed,adapter:'MID_DWD_RUC_DATA',provider:'DWD ICON-D2-RUC · R2-Punktadapter'};
+ }
+ if(!full){
+  const staticPayload=await dwdRucStaticPointPayload(lat,lon,env);
+  if(staticPayload){
+   const parsed=parseDwdRucPointPayload(staticPayload,model,'dwd_icon_d2_ruc_pages');
+   if(parsed.successful)full={...parsed,rapid:staticPayload.rapid||{},adapter:'MID_DWD_RUC_STATIC_BASE_URL',provider:'DWD ICON-D2-RUC · GitHub-Pages-Punktadapter'};
+  }
+ }
+ // Cheap independent R2 trust proof may avoid fetching any Fast binary chunks
+ // when the full source is already from the same or a newer UTC model run.
+ // A manually configured SHA has no run until the pinned manifest is checked.
+ const trust=await dwdRucTrustedFastManifestSha(env);
+ const fullEpoch=Date.parse(full?.initialisationTime||'');
+ const provenFastEpoch=Date.parse(trust?.run?trust.run+'Z':'');
+ if(trust&&(!full||!Number.isFinite(fullEpoch)||!Number.isFinite(provenFastEpoch)||provenFastEpoch>fullEpoch)){
+  const fastPayload=await dwdRucNativeFastPagesPointPayload(lat,lon,env);
+  if(fastPayload){
+   const parsed=parseDwdRucPointPayload(fastPayload,model,'dwd_icon_d2_ruc_fast_pages');
+   const nativeEpoch=Date.parse(parsed.initialisationTime||'');
+   if(parsed.successful&&(!full||(Number.isFinite(nativeEpoch)&&nativeEpoch>fullEpoch))){
+    return {...parsed,rapid:fastPayload.rapid,adapter:'MID_DWD_RUC_FAST_PAGES',provider:'DWD ICON-D2-RUC · geprüfte native 0–6h-Fast-Lane'};
+   }
+  }
+ }
+ if(full)return full;
  const endpoint=adapterEndpoint(env,'MID_DWD_RUC_POINT_ENDPOINT');if(!endpoint)return null;
  endpoint.searchParams.set('lat',String(lat));endpoint.searchParams.set('lon',String(lon));endpoint.searchParams.set('forecast_hours',String(Math.min(27,Number(model.maxHours)||27)));if(Number.isFinite(elevation))endpoint.searchParams.set('elevation',String(clamp(elevation,-500,9000)));
  const headers={Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},token=String(env?.MID_DWD_RUC_POINT_TOKEN||'').trim();if(token)headers.Authorization=`Bearer ${token}`;
  const response=await fetchWithDeadline(endpoint.toString(),{headers,cf:{cacheTtl:300,cacheEverything:true}},14500),body=await response.text();let payload={};try{payload=JSON.parse(body)}catch{}
  if(!response.ok)throw new Error(`DWD ICON-D2-RUC Point-Adapter HTTP ${response.status}`);if(payload?.error)throw new Error(String(payload.reason||payload.error));const parsed=parseDwdRucPointPayload(payload,model);return{...parsed,adapter:'MID_DWD_RUC_POINT_ENDPOINT',provider:'DWD ICON-D2-RUC · Punktadapter',reason:parsed.successful?undefined:parsed.reason||'Point-Adapter ohne verwertbare Reihen'};
 }
+
 function rucEpsProbabilityRows(payload){const data=payload?.data&&typeof payload.data==='object'?payload.data:payload,hourly=data?.hourly??{},times=Array.isArray(hourly.time)?hourly.time:[],offsetSeconds=number(data?.utc_offset_seconds)||0,native=Array.isArray(hourly.precipitation_probability)?hourly.precipitation_probability:null,significant=Array.isArray(hourly.precipitation_probability_significant)?hourly.precipitation_probability_significant:null,q75=Array.isArray(hourly.precipitation_q75)?hourly.precipitation_q75:null,mean=Array.isArray(hourly.precipitation_mean)?hourly.precipitation_mean:null,memberKeys=Object.keys(hourly).filter(key=>/^precipitation(?:_sum)?_member\d+$/i.test(key)&&Array.isArray(hourly[key])),declaredMembers=Math.max(0,number(data?.mid_ruc?.member_count)||0);return times.map((time,index)=>{const epoch=rucHourlyEpoch(time,offsetSeconds);if(!Number.isFinite(epoch))return null;let probability=number(native?.[index]),significantProbability=number(significant?.[index]),q75Mm=number(q75?.[index]),meanMm=number(mean?.[index]),memberCount=Number.isFinite(probability)?declaredMembers:0;if(memberKeys.length&&(!Number.isFinite(probability)||!Number.isFinite(significantProbability)||!Number.isFinite(q75Mm))){const values=memberKeys.map(key=>number(hourly[key][index])).filter(Number.isFinite).sort((a,b)=>a-b);memberCount=values.length;if(values.length){if(!Number.isFinite(probability))probability=100*values.filter(value=>value>.2).length/values.length;if(!Number.isFinite(significantProbability))significantProbability=100*values.filter(value=>value>5).length/values.length;if(!Number.isFinite(q75Mm)){const pos=.75*(values.length-1),lo=Math.floor(pos),hi=Math.ceil(pos),mix=pos-lo;q75Mm=values[lo]*(1-mix)+values[hi]*mix}if(!Number.isFinite(meanMm))meanMm=values.reduce((sum,value)=>sum+value,0)/values.length}}return Number.isFinite(probability)?{time:String(time),epoch,probability:clamp(probability,0,100),significantProbability:Number.isFinite(significantProbability)?clamp(significantProbability,0,100):undefined,q75Mm:Number.isFinite(q75Mm)?Math.max(0,q75Mm):undefined,meanMm:Number.isFinite(meanMm)?Math.max(0,meanMm):undefined,memberCount}:null}).filter(Boolean)}
 async function fetchDwdRucEpsProbabilityAdapter(lat,lon,elevation,env){
  const result=(payload,adapter,aggregation)=>{const data=payload?.data&&typeof payload.data==='object'?payload.data:payload,hours=rucEpsProbabilityRows(payload),run=String(data?.mid_ruc?.run||''),axis=rucSourceWindow({hours:(data?.hourly?.time||[]).map(time=>({epoch:rucHourlyEpoch(time,number(data?.utc_offset_seconds)||0)})),run}),window=axis&&rucSourceWindow({hours,run}),successful=hours.length>=4&&Boolean(window);return{successful,configured:true,hours,maxHours:window?.maxHours,memberCount:Number(payload?.mid_ruc?.member_count||Math.max(0,...hours.map(row=>row.memberCount||0)))||0,adapter,aggregation,run,initialisationTime:window?.initialisationTime,availabilityTime:safeDate(data?.mid_ruc?.generatedAt),reason:successful?undefined:'RUC-EPS-Punktadapter ohne gültige Laufzeitachse und verwertbare Wahrscheinlichkeitsreihen'}};
@@ -2481,9 +2950,8 @@ async function weatherMapGridData(lat,lon,modelId){
 const precipitationPhaseGridCache=new Map();
 const precipitationPhaseModelMetaCache=new Map();
 const RAPID_PHASE_MODELS=[
- // Open-Meteo integriert derzeit kein ICON-D2-RUC. Für das räumliche Phasenraster
- // verwenden wir deshalb nur tatsächlich veröffentlichte Open-Meteo-Modelle. Der echte
- // DWD ICON-D2-RUC bleibt separat im MID-Punkt-/Rapidpfad (DWD→Pages/R2) aktiv.
+ // Open-Meteo-Modelle werden anhand ihrer eigenen Metadaten ausgewählt.
+ // Die authentifizierten DWD-Originalzellen bleiben im MID-Punkt-/Rapidpfad.
  {id:'arome-france-hd-ruc',label:'Météo-France AROME HD 15 min',apiIds:['meteofrance_arome_france_hd_15min'],metaIds:['meteofrance_arome_france_hd_15min','meteofrance_arome_france_hd'],endpoint:'https://api.open-meteo.com/v1/meteofrance',bbox:[-8,40,13,53],resolutionKm:1.5,rapidUpdate:true,native15:true,maxHours:6},
  {id:'arome-france-ruc',label:'Météo-France AROME 15 min',apiIds:['meteofrance_arome_france_15min'],metaIds:['meteofrance_arome_france_15min','meteofrance_arome_france'],endpoint:'https://api.open-meteo.com/v1/meteofrance',bbox:[-8,40,13,53],resolutionKm:2.5,rapidUpdate:true,native15:true,maxHours:6},
  {id:'hrrr-ruc',label:'NOAA HRRR Rapid Refresh 15 min',apiIds:['ncep_hrrr_conus_15min','ncep_hrrr_conus'],metaIds:['ncep_hrrr_conus_15min','ncep_hrrr_conus'],bbox:[-130,20,-60,55],resolutionKm:3,rapidUpdate:true,native15:true,maxHours:18},
@@ -2551,9 +3019,10 @@ async function orderedPhaseModels(lat,lon){
 // Preserve absent/invalid model values through JSON (NaN -> null); real zero remains zero.
 function phaseGridAmount(value){return typeof value==='number'&&Number.isFinite(value)&&value>=0?value:NaN}
 function phaseGridWeatherCode(value){return typeof value==='number'&&Number.isInteger(value)&&value>=0&&value<=99?value:NaN}
-// #683: per-cell original RUC first, then D2 -> EU -> ICON global.
+// #683: per-cell original RUC first, then Open-Meteo RUC, D2 -> EU -> ICON global.
 // A geographic model BBOX is a shortlist only, never a valid-cell bitmap.
 const MID_ICON_PHASE_FALLBACKS=[
+ {id:'icon-d2-ruc-open-meteo',label:'DWD ICON-D2-RUC (Open-Meteo)',apiIds:['dwd_icon_d2_ruc_native'],metaIds:['dwd_icon_d2_ruc_native'],bbox:[-3.85,43.18,20.22,58.05],resolutionKm:2,maxHours:27,intervalMinutes:15},
  {id:'icon-d2',label:'DWD ICON-D2',apiIds:['dwd_icon_d2_15min'],metaIds:['dwd_icon_d2_15min'],bbox:[-6,42.9,26,58.5],resolutionKm:2,maxHours:48,intervalMinutes:15},
  {id:'icon-eu',label:'DWD ICON-EU',apiIds:['dwd_icon_eu'],metaIds:['dwd_icon_eu'],bbox:[-25,30,45,75],resolutionKm:7,maxHours:120,intervalMinutes:60},
  {id:'icon-global',label:'DWD ICON Global',apiIds:['dwd_icon'],metaIds:['dwd_icon'],bbox:[-180,-90,180,90],resolutionKm:11,maxHours:180,intervalMinutes:60}
@@ -2704,7 +3173,7 @@ async function precipitationPhaseGridData(lat,lon,target,env){
    frame.relativeHumidity2m[i]=sameTime?midPhaseAmount(thermal?.relative_humidity_2m?.[thermalPick.index]):NaN;
    frame.weatherCode[i]=code;frame.precipitation[i]=precip;frame.rain[i]=rain;frame.snowfall[i]=snow;
    frame.snowfallHeight[i]=midPhaseNumber(get('snowfall_height'));frame.freezingLevelHeight[i]=midPhaseNumber(get('freezing_level_height'));frame.elevation[i]=midPhaseNumber(point?.elevation);
-   phaseSourceByCell[i]=model.id==='icon-d2'?'dwd-icon-d2':model.id==='icon-eu'?'dwd-icon-eu':'dwd-icon-global';
+   phaseSourceByCell[i]='dwd-'+model.id;
    phaseValidTimeByCell[i]=choice.time;phaseRunByCell[i]=null;phaseIntervalMinutesByCell[i]=interval;
   }
  }
@@ -2714,13 +3183,13 @@ async function precipitationPhaseGridData(lat,lon,target,env){
   if(rateLimited){const stale=precipitationPhaseStale(centerLat,centerLon,roundedMs);if(stale)return{...stale,stale:true,targetTime:new Date(roundedMs).toISOString(),fallbackReason:'Open-Meteo-Minutenlimit: gekennzeichnetes frueheres Phasenfeld'}}
   throw new Error('Keine mit Originalmaske / Modelllauf / Feldzeit gepruefte Phasenzelle: '+errors.slice(0,3).join('; '));
  }
- const sourceCounts=Object.fromEntries(['dwd-icon-d2-ruc','dwd-icon-d2','dwd-icon-eu','dwd-icon-global'].map(id=>[id,phaseSourceByCell.filter(s=>s===id).length]));
+ const sourceCounts=Object.fromEntries(['dwd-icon-d2-ruc',...MID_ICON_PHASE_FALLBACKS.map(model=>'dwd-'+model.id)].map(id=>[id,phaseSourceByCell.filter(s=>s===id).length]));
  const gridSpacingKm=Math.round(Math.max(Math.abs((north-south)/(rows-1))*111.2,Math.abs((east-west)/(cols-1))*111.2*Math.max(.3,Math.cos(centerLat*Math.PI/180)))*10)/10;
  // Only original RUC cells carry authenticated per-cell model runs. Provider
  // metadata never certifies an individual Forecast API response's run.
  const verifiedRunAges=phaseRunByCell.filter(Boolean).map(midPhaseMs).filter(Number.isFinite).map(ms=>Math.max(0,(Date.now()-ms)/3600000));
  const verifiedModelAgeHours=verifiedRunAges.length?Math.round(Math.max(...verifiedRunAges)*100)/100:null;
- const data={modelId:'icon-phase-priority',modelLabel:'ICON-D2-RUC → ICON-D2 → ICON-EU → ICON Global',targetTime:new Date(roundedMs).toISOString(),referenceTime:phaseRunByCell.find(Boolean),lats,lons,frame,phaseSourceByCell,phaseValidTimeByCell,phaseRunByCell,phaseIntervalMinutesByCell,sourceCounts,provider:'DWD-RUC Originalzellen via MID Pages; ICON-D2/EU/global via Open-Meteo (nicht native Originalzellen)',phaseSource:sourceCounts['dwd-icon-d2-ruc']?ruc?.source:undefined,checkedAt:new Date().toISOString(),gridSpacingKm,coverage:usable+'/'+count+' gueltige Zellen; Maskenluecken bleiben NoData',rapidUpdate:sourceCounts['dwd-icon-d2-ruc']>0,native15:sourceCounts['dwd-icon-d2-ruc']+sourceCounts['dwd-icon-d2']>0,updateIntervalSeconds:undefined,modelAgeHours:verifiedModelAgeHours,candidateModels,requestBudget:{locations:count,batches,variables:8,modelPointRequests},phaseFetchBudget:{limit:phaseFetchBudget.limit,used:phaseFetchBudget.used,native:phaseFetchBudget.nativeUsed,lookup:phaseFetchBudget.lookupUsed,provider:phaseFetchBudget.providerUsed,denied:phaseFetchBudget.denied},sourceErrors:errors.slice(0,7),modelLimitWarning:rateLimited};
+ const data={modelId:'icon-phase-priority',modelLabel:'ICON-D2-RUC (Originale → Open-Meteo) → ICON-D2 → ICON-EU → ICON Global',targetTime:new Date(roundedMs).toISOString(),referenceTime:phaseRunByCell.find(Boolean),lats,lons,frame,phaseSourceByCell,phaseValidTimeByCell,phaseRunByCell,phaseIntervalMinutesByCell,sourceCounts,provider:'DWD-RUC-Originalzellen via MID Pages; ICON-D2-RUC/D2/EU/Global via Open-Meteo',phaseSource:sourceCounts['dwd-icon-d2-ruc']?ruc?.source:undefined,checkedAt:new Date().toISOString(),gridSpacingKm,coverage:usable+'/'+count+' gueltige Zellen; Maskenluecken bleiben NoData',rapidUpdate:sourceCounts['dwd-icon-d2-ruc']>0,native15:phaseIntervalMinutesByCell.includes(15),updateIntervalSeconds:undefined,modelAgeHours:verifiedModelAgeHours,candidateModels,requestBudget:{locations:count,batches,variables:8,modelPointRequests},phaseFetchBudget:{limit:phaseFetchBudget.limit,used:phaseFetchBudget.used,native:phaseFetchBudget.nativeUsed,lookup:phaseFetchBudget.lookupUsed,provider:phaseFetchBudget.providerUsed,denied:phaseFetchBudget.denied},sourceErrors:errors.slice(0,7),modelLimitWarning:rateLimited};
  rememberPrecipitationPhase(key,data);return data;
 }
 
@@ -2947,14 +3416,46 @@ async function weatherMapWmsResponse(request){
  const attempt=async base=>{const upstream=new URL(base);for(const[key,value]of url.searchParams){const normalized=key.toLowerCase();if(!allowed.has(normalized))continue;const outgoing=normalized==='layers'?String(value).split(',').map(layer=>dwdLayerForEndpoint(layer,base)).join(','):provider==='geomet'&&['time','dim_reference_time'].includes(normalized)?new Date(Date.parse(value)).toISOString().replace(/\.000Z$/,'Z'):value;upstream.searchParams.set(normalized,outgoing)}if(provider==='geomet')upstream.searchParams.set('interpolation',layers.some(layer=>WEATHER_MAP_LAYER_CONFIG.get(layer)?.categorical)?'false':'true');if(!upstream.searchParams.has('service'))upstream.searchParams.set('service','WMS');if(!upstream.searchParams.has('request'))upstream.searchParams.set('request','GetMap');if(String(upstream.searchParams.get('request')).toLowerCase()==='getlegendgraphic'){upstream.searchParams.set('layer',dwdLayerForEndpoint(layers[0],base));upstream.searchParams.set('style',url.searchParams.get('styles')||'');upstream.searchParams.delete('layers');upstream.searchParams.delete('styles')}const response=await fetchWithDeadline(upstream.toString(),{headers:{Accept:'image/png,image/webp,image/jpeg,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`,'Cache-Control':'no-cache'},cache:'no-store'},9000),type=String(response.headers.get('content-type')||'').toLowerCase();if(!response.ok)throw new Error(`${new URL(base).hostname}${new URL(base).pathname} HTTP ${response.status}`);if(!type.startsWith('image/')){await response.body?.cancel().catch(()=>undefined);throw new Error(`WMS_UPSTREAM_CONTENT_TYPE_${response.status}`)}return{response,type,base}};
  try{const{response,type,base}=await Promise.any((provider==='geomet'?[GEOMET_WEATHER_WMS]:DWD_RADAR_WMS_BASES).map(attempt));return new Response(response.body,{status:200,headers:{'content-type':type,'access-control-allow-origin':'*','cache-control':'public, max-age=120, stale-while-revalidate=300','x-mid-wms-provider':provider,'x-mid-wms-layer':layers[0],'x-mid-wms-endpoint':new URL(base).pathname,'x-mid-worker-version':WORKER_VERSION}})}catch{return new Response('Wetterkarte derzeit nicht verfügbar.',{status:502,headers:{'content-type':'text/plain; charset=utf-8','access-control-allow-origin':'*','cache-control':'no-store','x-mid-worker-version':WORKER_VERSION}})}
 }
+
+/** Validate bounded OGC WMS GetMap syntax before any upstream fetch.
+ * This only admits request geometry; it never proves weather/source coverage. */
+function compositeWmsRequestGeometryError(url){
+ const protectedKeys=new Set(['service','request','version','provider','layers','styles','format','transparent','crs','srs','bbox','width','height','time','elevation','dim_reference_time','exceptions','bgcolor','tiled']);
+ const values=new Map();
+ for(const [name,value]of url.searchParams){
+  const key=name.toLowerCase();
+  if(!protectedKeys.has(key))continue;
+  if(values.has(key))return'DUPLICATE_WMS_PARAMETER';
+  values.set(key,value);
+ }
+ if(values.has('service')&&String(values.get('service')).toUpperCase()!=='WMS')return'INVALID_WMS_SERVICE';
+ if(values.has('request')&&String(values.get('request')).toLowerCase()!=='getmap')return'INVALID_WMS_OPERATION';
+ const version=values.get('version');
+ if(version&&version!=='1.1.1'&&version!=='1.3.0')return'INVALID_WMS_VERSION';
+ const rawWidth=values.get('width'),rawHeight=values.get('height');
+ if(!/^\d{1,4}$/.test(rawWidth||'')||!/^\d{1,4}$/.test(rawHeight||''))return'INVALID_WMS_PIXELS';
+ const width=Number(rawWidth),height=Number(rawHeight);
+ if(!Number.isSafeInteger(width)||!Number.isSafeInteger(height)||width<1||height<1||
+    width>4096||height>4096||width*height>8388608)return'WMS_PIXEL_BUDGET';
+ const rawBbox=values.get('bbox');
+ if(typeof rawBbox!=='string'||rawBbox.length>160)return'INVALID_WMS_BBOX';
+ const parts=rawBbox.split(',');
+ if(parts.length!==4||parts.some(value=>!/^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?$/.test(value.trim())))return'INVALID_WMS_BBOX';
+ const [west,south,east,north]=parts.map(Number);
+ if(![west,south,east,north].every(Number.isFinite)||west>=east||south>=north||
+    [west,south,east,north].some(value=>Math.abs(value)>100000000))return'INVALID_WMS_BBOX';
+ return'';
+}
 async function compositeWmsResponse(request){
- const url=new URL(request.url),provider=String(url.searchParams.get('provider')||'').toLowerCase(),bases=provider==='dwd'?DWD_RADAR_WMS_BASES:provider==='eumetsat'?[EUMETSAT_WMS]:[];
+ const url=new URL(request.url),paramsByKey=new Map([...url.searchParams].map(([name,value])=>[name.toLowerCase(),value])),provider=String(paramsByKey.get('provider')||'').toLowerCase(),bases=provider==='dwd'?DWD_RADAR_WMS_BASES:provider==='eumetsat'?[EUMETSAT_WMS]:[];
  if(!bases.length)return json({error:'Ungültiger WMS-Provider',version:WORKER_VERSION},400,{'cache-control':'no-store'});
- const layers=String(url.searchParams.get('layers')||'').split(',').map(value=>value.trim()).filter(Boolean),allowedLayers=WMS_ALLOWED_LAYERS[provider];
+ const layers=String(paramsByKey.get('layers')||'').split(',').map(value=>value.trim()).filter(Boolean),allowedLayers=WMS_ALLOWED_LAYERS[provider];
  if(!layers.length||layers.some(layer=>!allowedLayers?.has(layer)))return json({error:'Nicht freigegebener WMS-Layer',version:WORKER_VERSION},400,{'cache-control':'no-store'});
- const requestedTime=url.searchParams.get('time'),requestedMs=requestedTime?Date.parse(requestedTime):NaN;if(requestedTime&&!Number.isFinite(requestedMs))return json({error:'Ungültiger WMS-Zeitpunkt',version:WORKER_VERSION},400,{'cache-control':'no-store'});
+ const requestedTime=paramsByKey.get('time'),requestedMs=requestedTime?Date.parse(requestedTime):NaN;if(requestedTime&&!Number.isFinite(requestedMs))return json({error:'Ungültiger WMS-Zeitpunkt',version:WORKER_VERSION},400,{'cache-control':'no-store'});
  if(Number.isFinite(requestedMs)){const now=Date.now(),isRadar=layers.some(layer=>DWD_RADAR_LAYERS.includes(layer)),isSynoptic=layers.every(layer=>Object.values(SYNOPTIC_WMS_PRODUCTS).some(product=>product.layer===layer)),isLightning=layers.some(layer=>layer==='dwd:Blitzdichte'||layer==='mtg_fd:li_afa'),isSatellitePrecip=layers.some(layer=>SATELLITE_PRECIP_CANDIDATES.some(item=>item.layer===layer)),isDwdSatellite=provider==='dwd'&&layers.some(layer=>SATELLITE_DAY_CANDIDATES.concat(SATELLITE_IR_CANDIDATES).some(item=>item.layer===layer)),minimum=now-(isRadar?70:isLightning?135:isSatellitePrecip?195:isDwdSatellite?240:195)*60000,maximum=now+(isRadar?125:isSynoptic?180:15)*60000;if(requestedMs<minimum||requestedMs>maximum)return json({error:'Der angeforderte WMS-Zeitpunkt liegt außerhalb des zulässigen Live-/Nowcast-Fensters.',version:WORKER_VERSION,serverTime:new Date(now).toISOString()},409,{'cache-control':'no-store'})}
  const allowed=new Set(['service','request','version','layers','styles','format','transparent','crs','srs','bbox','width','height','time','elevation','dim_reference_time','exceptions','bgcolor','tiled']);
+ const requestGeometryError=compositeWmsRequestGeometryError(url);
+ if(requestGeometryError)return json({error:requestGeometryError,version:WORKER_VERSION},400,{'cache-control':'no-store'});
  const attempt=async base=>{const upstream=new URL(base);for(const[key,value]of url.searchParams){const normalized=key.toLowerCase();if(!allowed.has(normalized))continue;const outgoing=provider==='dwd'&&normalized==='layers'?String(value).split(',').map(layer=>dwdLayerForEndpoint(layer,base)).join(','):value;upstream.searchParams.set(normalized,outgoing)}if(!upstream.searchParams.has('service'))upstream.searchParams.set('service','WMS');if(!upstream.searchParams.has('request'))upstream.searchParams.set('request','GetMap');const response=await fetchWithDeadline(upstream.toString(),{headers:{Accept:'image/png,image/webp,image/jpeg,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`,'Cache-Control':'no-cache'},cache:'no-store'},7000),type=String(response.headers.get('content-type')||'').toLowerCase();if(!response.ok)throw new Error(`${new URL(base).hostname}${new URL(base).pathname} HTTP ${response.status}`);if(!type.startsWith('image/')){await response.body?.cancel().catch(()=>undefined);throw new Error(`WMS_UPSTREAM_CONTENT_TYPE_${response.status}`)}return{response,type,base}};
  try{const{response,type,base}=await Promise.any(bases.map(attempt));return new Response(response.body,{status:200,headers:{'content-type':type,'access-control-allow-origin':'*','cache-control':'no-store, no-cache, must-revalidate','pragma':'no-cache','expires':'0','x-mid-wms-provider':provider,'x-mid-wms-layer':layers.join(','),'x-mid-wms-endpoint':new URL(base).pathname,'x-mid-worker-version':WORKER_VERSION}})}catch{return new Response('WMS-Karte derzeit nicht verfügbar.',{status:502,headers:{'content-type':'text/plain; charset=utf-8','access-control-allow-origin':'*','cache-control':'no-store','x-mid-worker-version':WORKER_VERSION}})};
 }
@@ -3870,6 +4371,10 @@ export default{async fetch(request,env){
  if(mode==='composite-diagnostics')return json(await compositeDiagnostics(),200,{'cache-control':'no-store'});
  if(mode==='site-context'){try{return json({...await localSurfaceContext(lat,lon,env),version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'public, max-age=21600, stale-while-revalidate=86400'})}catch(error){return json({available:false,error:error instanceof Error?error.message:String(error),version:WORKER_VERSION},502,{'cache-control':'public, max-age=600'})}}
  if(mode==='ruc-codec-canary'){try{return json({...await runRucTransportCanary(),version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'no-store'})}catch(error){return json({schema:CANARY_MANIFEST.schema,synthetic:true,productionEnabled:false,verified:false,error:error instanceof Error?error.message:String(error),version:WORKER_VERSION},503,{'cache-control':'no-store'})}}
+ if(mode==='ruc-health'&&new URL(request.url).searchParams.get('fast')==='1'){
+  const health=await dwdRucStorageHealth(env),fast=await rucFastHealthProbe(env);
+  return json({...health,fast,version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'no-store'});
+ }
  if(mode==='ruc-health')return json({...await dwdRucStorageHealth(env),version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'no-store'});
  if(mode==='health')return json({ok:true,version:WORKER_VERSION,services:['stations','country-aware-official-observations','dwd-cdc-10min','dwd-synop-poi','road-weather-adapter','regional-ensemble-adapters','knmi-harmonie-eps-productive-cache','ruc-storage-health','alerts','hyperlocal-networks','model-assisted-local-analysis','terrain-surface-context','copernicus-clms-lcm10','radar-nowcast','px250-proxy','opera-cirrus-raster','dwd-konrad3d-nowcast','radolan-yw-accumulations','dwd-rs-nowcast-anchors','radolan-rw-sf-history','dwd-rv-accumulations','kostra-dwd-2020','dwd-rain-station',...(rainViewerUseApproved(env)?['rainviewer-metadata','rainviewer-tile-proxy']:[]),'openfreemap-basemap-proxy','best-location-lightning','dwd-nowcastmix-lightning','composite-product-times','model-contours','official-dwd-surface-analysis','dwd-precipitation-type-image','dwd-precipitation-type-meta','dwd-precipitation-type-info','dwd-pollen','objective-front-candidates','upstream-observation-corridor','front-timing-assimilation','pressure-level-meteogram','flight-route-hazard-briefing','official-aviation-hazards','wafs-sigwx','icao-location','geosphere-snow-depth','uba-air-quality-v4-adapter','eea-air-quality-stations','pegelonline-rest-v2','bafu-hydrology-graphql','meteoalarm-ogc-edr-cap-adapter','noaa-mrms-regional-adapter','wis2-normalized-observation-ingest','copernicus-marine-subset-adapter','glofas-discharge-outlook','open-meteo-core-forecast-proxy','met-norway-locationforecast-adapter','open-meteo-ensemble-proxy','open-meteo-model-meta','dwd-rapid-model-meta','adaptive-priority-forecast-fusion','dwd-mosmix-postprocessing','web-push-rules','push-kv-operations-audit','device-sync','device-sync-archive','connected-weather-stations','netatmo-oauth','ventilation-assistant','native-widget-feed','model-run-change-alerts','cors-safe-composite-wms','dwd-weather-map-wms','dwd-weather-map-point','dach-extreme-outlook','travel-water-climate','weather-map-grid','precipitation-phase-grid','weather-map-metadata','composite-diagnostics','noaa-cfsv2-seasonal-point','c3s-cds-seasonal-point','dwd-gcfs2.2-episodes-point'],providers:{'C3S CDS seasonal adapter':seasonalAdapterConfigured(env,'MID_C3S_SEASONAL_POINT_ENDPOINT'),'DWD GCFS2.2 / EPISODES adapter':seasonalAdapterConfigured(env,'MID_DWD_GCFS_EPISODES_POINT_ENDPOINT'),'NOAA AviationWeather':true,'WAFS SIGWX / WIFS':Boolean(wifsKey(env)),'KNMI Aviation Open Data':Boolean(knmiAviationKey(env)),'DWD CDC 10-Minuten':true,'GIS surface-context adapter':Boolean(adapterEndpoint(env,'MID_SURFACE_CONTEXT_POINT_ENDPOINT')),'Copernicus CLMS / CDSE':clmsConfigured(env),'DWD ICON-D2-RUC point adapter':dwdRucStorageConfigured(env)||Boolean(adapterEndpoint(env,'MID_DWD_RUC_POINT_ENDPOINT')),'DWD ICON-D2-RUC-EPS point adapter':dwdRucStorageConfigured(env)||Boolean(adapterEndpoint(env,'MID_DWD_RUC_EPS_POINT_ENDPOINT')),'DWD SYNOP / OpenData POI':true,'DWD Open Data / Bright Sky fallback':true,'DWD Straßenwetter / GMA adapter':Boolean(adapterEndpoint(env,'MID_DWD_ROAD_WEATHER_POINT_ENDPOINT')),'GeoSphere Austria':true,'MeteoSwiss SwissMetNet STAC adapter':Boolean(adapterEndpoint(env,'MID_METEOSWISS_OBSERVATION_POINT_ENDPOINT')),'KNMI current 10-min EDR adapter':Boolean(adapterEndpoint(env,'MID_KNMI_OBSERVATION_POINT_ENDPOINT')),'UBA Luftdaten API v4 adapter':Boolean(adapterEndpoint(env,'MID_UBA_AIR_QUALITY_POINT_ENDPOINT')),'MeteoAlarm OGC EDR adapter':Boolean(adapterEndpoint(env,'MID_METEOALARM_EDR_POINT_ENDPOINT')),'NOAA MRMS adapter':Boolean(adapterEndpoint(env,'MID_NOAA_MRMS_POINT_ENDPOINT')),'WMO WIS2 normalizer':Boolean(adapterEndpoint(env,'MID_WIS2_OBSERVATION_POINT_ENDPOINT')),'Copernicus Marine subset adapter':Boolean(adapterEndpoint(env,'MID_COPERNICUS_MARINE_POINT_ENDPOINT')),'GloFAS discharge adapter':Boolean(adapterEndpoint(env,'MID_GLOFAS_POINT_ENDPOINT')),'BAFU Hydrologische Beobachtungen':true,'SMHI MetObs':true,'FMI Open Data':true,'US NWS / MADIS':true,'ECCC SWOB / GeoMet':true,'DWD Pollenflug':true,'AEMET OpenData':Boolean(env?.MID_AEMET_API_KEY||env?.AEMET_API_KEY),'Météo-France observation adapter':Boolean(adapterEndpoint(env,'MID_METEOFRANCE_OBSERVATION_POINT_ENDPOINT')),'KNMI HARMONIE EPS point adapter':Boolean(adapterEndpoint(env,'MID_KNMI_HARMONIE_EPS_POINT_ENDPOINT')),'KNMI HARMONIE EPS productive cache':Boolean(knmiEpsCacheBinding(env)),'ECCC REPS point adapter':Boolean(adapterEndpoint(env,'MID_ECCC_REPS_POINT_ENDPOINT')),'MET Norway Locationforecast':true,'openSenseMap / senseBox':env?.ENABLE_OPENSENSEMAP!=='false','Weather Underground':Boolean(env?.WEATHER_COM_API_KEY||env?.WU_API_KEY),Netatmo:Boolean(env?.NETATMO_ACCESS_TOKEN),NetatmoPersonal:netatmoConfigured(env),'Synoptic Data':Boolean(env?.SYNOPTIC_TOKEN),Xweather:Boolean(env?.XWEATHER_CLIENT_ID&&env?.XWEATHER_CLIENT_SECRET),WebPush:pushConfigured(env),DeviceSync:deviceSyncConfigured(env)},timestamp:new Date().toISOString()});
  if(mode==='knmi-eps-cache-health')return json({...knmiEpsTarCacheHealth(env),version:WORKER_VERSION},200,{'cache-control':'no-store'});
@@ -4039,3 +4544,5 @@ export default{async fetch(request,env){
 };
 export {pushThunderState,thunderPushBody};
 export {synopticUpstreamBearing};
+
+export {dwdRucNativeFastPagesPointPayload};

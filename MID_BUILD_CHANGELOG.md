@@ -1,3 +1,125 @@
+## MID v0.9.85.512 · 2026-11-23 · SHA-geprüfter GitHub-Release-Katalog nach Stable-Promotion
+
+- **Basis:** `main=mid-stable=c5faca33885f8df4cc645be89ecc6befe93c55c0` / veröffentlichte .511. Aus historischem QA-Draft [#956](https://github.com/MeteoMartini/MID/pull/956) @ `cb80824ca54967903a4d7885b6380b8ea02c599e` ausschließlich Original-Katalog-Prüfkern, negative Unit-Tests und QA-Dokumentation selektiv integriert, nicht den alten .497-Branch gemergt.
+- Der bestehende Installer erhält ausschließlich einen nachgelagerten Katalog-Job nach erfolgreichem `finalize_release` für `workflow_dispatch`, serialisiert mit dem bestehenden Source-Bot. **Nur der Katalog-Token** der vorhandenen Release App fordert `Actions:read` und `Contents:write` an; andere vorhandene Release-App-Nutzungen bleiben unverändert. Keine neuen Secrets, bezahlten Dienste oder Änderungen an Repository-Permissions/Rulesets.
+- Realer Installer der v0.9.85.511 [#45117904421](https://github.com/MeteoMartini/MID/actions/runs/45117904421): ZIP, Core, Heavy, Worker, Pages-Versuch 2 und Stable-Promotion SUCCESS; optionaler Pages-Artefakt-Prep-Jobs SKIPPED. Das Katalog-Gate berücksichtigt einen solchen Skip **nur** mit genau einem tatsächlich erfolgreichen Pages-Deployment und vollständigen Core/Heavy-/Stable-/Run-/SHA-Belegen. Nicht abgeschlossene oder fehlgeschlagene Pfade bleiben gesperrt.
+- Veröffentlicht werden ausschließlich neue, nachprüfbar zugeordnete GitHub-Tag-/Metadaten samt Original-Run-ID; der exakte Tag wird per atomarem GitHub-Ref-POST vor dem Release-POST reserviert. Tag-/Release-Races, fremde Tags, unverified Assets, fehlender `latest`-/Branch-Readback und mehrdeutige API-Antworten bleiben fail-closed; ein dabei verwaister Tag bedarf einer gesonderten Operatorprüfung, niemals eines automatischen Retags/Deletes. Supersedierte **frühere** fehlgeschlagene Pages-Versuche sind nur bei eindeutig erfolgreichem späteren Deployment und grünem Finalizer zulässig.
+- GitHub-Run-Pfad exakt `.github/workflows/install-mid.yml` geprüft. Der bestehende Installer kennzeichnet unveränderte Wiederholung explizit mit `release_noop=true`; dann ist **ausschließlich** der erfolgreiche Readback eines bereits bestehenden aktuellen Tag-/Releases inklusive Original-Installerbeleg zulässig, keinerlei nachträgliche Tag-/Metadaten-Neuerstellung.
+- P0 RUC/EPS #541, 14-Tage-Design #975, Umfeldkarte #937, Queue #981 und fehlende historische Releaseeinträge bleiben eigenständig.
+- **Status am Source-Cut:** QA-Kandidat, **kein .512-Release**. Vollständige Source-/Review-/Core-/Heavy-/Installer-/Worker-/Pages-/Stable- und echte GitHub-`releases/latest`-Gates stehen aus.
+
+## MID v0.9.85.511 · Installer-Abbruchprovenienz und echte GDPS-Recovery-QA
+
+- Geprüfte Source-Basis: `main=mid-stable=35e904ec4e87ce725237e214141d9b640fd04692` / veröffentlichte v0.9.85.510, Issue #983 und #422. Der neue Integrationskandidat bleibt bis zu vollständigen Source-/Review-/Installer-/Worker-/Pages-/Stable-Gates **QA-Draft, kein Release**.
+- Self-Heal prüft das vollständige GitHub-Jobinventar **fehlgeschlagener Installerläufe** vor dem `--log-failed`-Inhalt und identifiziert darin abgebrochene Pflichtjobs separat. Fehlende extern gesicherte Cancellation-Provenienz wird weiterhin strikt nicht als Auto-Retry freigegeben; die GitHub-Actions-Summary nennt **in diesem Pfad** Originalrun und erforderliche Operatorprüfung. Ein insgesamt als `cancelled` abgeschlossener Workflow löst den bestehenden Self-Heal-Job nicht aus. Kein Permission-/Ruleset-/Secret-/Retry-Limit-Bypass.
+- Unified-Map-ECCC-GDPS-502-Browsertest akzeptiert bei vorzeitiger Entfernung des Retry-Buttons ausschließlich einen neuen tatsächlich beobachteten Original-GetMap und nachgewiesenen gültigen INIT-Zustand. Ohne diese Belege bleiben die bestehenden Assertions und reale Browserfälle blockierend. Keine `force:true`-Klicks, entfernten Testfälle oder künstlich erhöhten Budgets.
+- Negative Tests decken zweifach `cancelled`, fehlende und täuschende Logs, vollständige Jobinventare und Attempt 2 ab. Releaseversprechen gelten erst nach tatsächlichen Gate-Ergebnissen; RUC-Vollstand/EPS #541 sowie Karten-/14d-Design #975 bleiben getrennt offen.
+
+## MID v0.9.85.510 · Leit-Integration – kontrollierter DWD-Fast-Nachholpfad
+
+- Basis: am 22.11.2026 auf `main=mid-stable=73f64f833ecb0e48666834e9c44588e05cea1e31` erfolgreich veröffentlichte v0.9.85.509. Originaler Spezialchat-QA-Draft PR #980, HEAD `226c03d3938b7e18848194b040eab97e65abc7af`; drei ursprüngliche Workflow-/Sync-Vertragsblobs selektiv übernommen und nach Cubic-Review hinsichtlich Stable-SHA, jüngstem Publisher, Nachholzeitfenster und verpflichtendem Recovery-Cron gezielt gehärtet. Frühere .508-Draft-Basis ersetzt, ohne fremde Änderungen zu verlieren.
+- :28/:58-UTC-Nachholslots nach den bestehenden :13/:43-Fast-Lane-Slots; zuvor lesende SHA-gebundene GitHub-Runs-/Job-Klassifikation im 90-Minuten-Fenster; nur der jüngste tatsächlich qualifizierende Fast-Lauf zählt: bei laufender Verarbeitung oder bei erfolgreich innerhalb der letzten 25 Minuten abgeschlossenem Publisher kein Duplikat, bei neuestem Fehlschlag oder nur altem Erfolg gezielte Nachholung. Der 90-Minuten-Zeitraum dient ausschließlich der Abdeckung länger laufender Jobs. API-Verlaufslücken führen vor DWD-Downloads zum Abbruch. Volle DWD-/EPS-Läufe, NoData, Warnungen, Originaltime und RUC-Integrität bleiben unangetastet. Keine neuen externen Dienste oder Abos.
+- Workflows gespiegelt und sechs Regressionstests für Cron-/SHA-/Zeitfenster-/Reihenfolge-Gates ergänzt; MID-Release-/Worker-/Cache-Stand .510 synchronisiert. iOS: `CURRENT_PROJECT_VERSION=511` für alle Targets, `MARKETING_VERSION=0.9.85` unverändert; die MID-Release-Zuordnung `0.9.85.510` und der zugehörige Statuszeitstempel sind separat in `MID_IOS_STATUS.json` gespeichert. Source/Core/Heavy/GitHub-Review-/Installer-/Pages-/Worker-/Stable-Gates sind am Source-Cut noch **nicht ausgeführt**; dieser Commit ist nur ein Gate-Kandidat, keine Produktivfreigabe. Produktionsqualität und RUC-Full-E2E werden separat verifiziert. Offene P0-Design-Issues #952/#975 und GitHub-Katalog #901 nicht als erledigt behaupten.
+
+## MID v0.9.85.509 · LC 1.30 · UV-Intervallsemantik und Canvas-Budget
+
+- Grundlage v0.9.85.508 auf `363815e328443805595f9adf8a978c7f609202bb`; originale SHA-verifizierte Pfade aus QA-Drafts #967 und #908, disjunkt zu laufendem RUC-Daten-/14d-Design-Handoff.
+- UVI in Stunden-/Tagesprognosen: finite nichtnegative Provider-Number, Stundenendzeitpunkt ist Intervallende, Tagesmaximum und UTCI/Provider-Fallback nicht mit erfundener 0 füllen. Andere Aktuell- und Widget-Pfade sind nicht von diesem Fix erfasst. Keine amtliche Warnlogik verändert.
+- Canvas: sichtbarkeitsgerechter redraw scheduler, reduzierte Bewegung/Data Saver und tatsächliche Device-Pixel-Dimensionen für 1-Mi-Pixel-Crossfade-Gate; keine Vorhersagewerte geändert.
+- Original-QA: #967 und #908 jeweils gezielte Regression und Vitest bestanden. **Final-HEAD-Full-Gates, Geräte- und E2E-Abnahmen noch offen.** RUC-Freshness/Worker bleibt eigenständiges P0.
+
+
+## MID v0.9.85.508 · Worker-Abruf der Fast-Signaturschlüssel
+
+- Live-Diagnose .507: Der Pages-Beleg wird gelesen. Der GitHub-Schlüsselabruf endet vor einem HTTP-Status. Der Worker behandelt einen Redirect als HTTP-Antwort und lehnt ihn vor der Verwendung von Schlüsseln ab. Produktionsnachweis ausstehend.
+
+## MID v0.9.85.507 · Abruf des Fast-Lane-Belegs
+
+- Live-Diagnose von .506: proof-request ohne HTTP-Status. Der signierte Beleg nutzt jetzt den erfolgreichen Pages-Einstieg des regulären RUC-Index mit abweichender Cache-Behandlung für den veränderlichen Beleg. Produktionsnachweis ausstehend.
+
+## MID v0.9.85.506 · Fast-Lane-Vertrauensprüfung im Worker
+
+- Basis c710c691a5b56ef79c26325d1b167c0af073d550. Der produktive .505-Worker meldet für den vorhandenen signierten Fast-Snapshot trusted=false. Die Diagnose unterscheidet Dokument-, Schlüssel- und Verifikationsfehler. Produktionsnachweis ausstehend.
+
+## MID v0.9.85.505 · Fast-Lane-Workerabruf
+
+- Die Veröffentlichung des .504-Fast-Snapshots auf Pages ist in Actions 45022455410 protokolliert. Der produktive Worker übernahm den Lauf bei der ersten Prüfung nicht. Lokal reproduzierter Manifest-Abruf oberhalb von 3,2 s. Der überarbeitete Abruf behält Größen-, Signatur- und Frischegrenzen. Produktionsabnahme steht aus.
+
+## MID v0.9.85.504 · Native Open-Meteo-Phasenzellen
+
+- Nachweis der neuen API-ID mit tatsächlichen Viertelstundenwerten für Bonn. Regressionen prüfen Reihenfolge, Zellherkunft, Feldzeit und Requestbudget. Basis: 44edbf5365763f98d68c2814c038d222728859d7. Initialer Prüfcommit: 2d55d2102813f0ad24fefe03840c01a75fbb3ce0. Fünf gezielte Radar-/Phasentests und 134 Fast-Tests lokal bestanden. Bonn-Produktionsprobe nach Stable-Promotion.
+
+## MID v0.9.85.503 · RUC-Pages-Deployment des eigenen Jobs erkennen
+
+- Recovery des geprüften .502-Installationsstands 390421d54f6d0482e2007a488cb38ad4c68aef04 auf Basis von Stable c6e5aa75d18b810b066f685f30ff6b0b35e030df.
+- GitHub Actions 44995889909 belegt die Kollision zwischen Fast-Datenerhalt und dem automatisch erzeugten Pages-Deployment-Eintrag. Regressionen sichern Installer, Fast- und Vollpublisher sowie die Ablehnung fremder Jobs ab.
+- Produktivabnahme folgt nach Stable-Promotion.
+
+## MID v0.9.85.502 · 2026-11-22 · RUC-Fast-Lane: volle Deploymentliste zulassen
+
+- Basis c6e5aa75d18b810b066f685f30ff6b0b35e030df. Beleg für den Fehler: GitHub Actions 44993474635.
+- Der Resolver hat 24 Tests bestanden und das aktuelle Pages-Artefakt 14727993173 live identifiziert. Produktivabnahme nach Stable-Promotion.
+
+## MID v0.9.85.502 · RUC Fast Pages-Deploymenthistorie
+
+- Basis `c6e5aa75d18b810b066f685f30ff6b0b35e030df`, Fehlernachweis Actions `44993474635`.
+- Resolver akzeptiert die vollständige erste Seite mit 30 Einträgen. Ohne nachgewiesenes erfolgreiches Deployment bleibt die Veröffentlichung gesperrt. 24 Resolver-Tests bestanden. Der Live-Readback identifizierte das Stable-Artefakt `14727993173`.
+
+## MID v0.9.85.501 · 2026-11-21 · Kostenfreie RUC-Fast-Lane: GitHub-signierter Originaldatenbeleg
+
+- Source-Basis main=mid-stable=9756419d5af4933e9ff023aed568e42de500e97b, Version 0.9.85.500; ref-freier Originalcode 1b791cbd4f46e6fb95109fda8b6081cf3da65325 (14 geänderte Pfade, Parent identisch mit Stable).
+- Github OIDC SHA-audience issuer JWKS, protected workflow/ref/repo/run/run-attempt, HTTPS-Readback und native Chunk-Prüfungen ohne R2; bestehende Pages-Rollback-Gates bleiben.
+- Neues Versionspaket und Verträge/Versionsspiegel nach vorhandener Sync-Semantik. Kein Source-PR, keine CI, keine Build-, DWD-Original-, Worker-/Pages- oder iOS-Abnahme dieses Version-HEADs.
+- Basis 9756419d → OIDC 1b791cbd → Version 8e984426 → geprüfter Source-PR-Stand f8fa9f2130031369481fe3640707e3bb00e0ca00 (signierter Pages-Beleg vor optionalem R2-Altpfad).
+- Exakte Freigabe ausschließlich über den bestehenden MID Source-PR-Gate, Bot-Merge, ZIP, install-mid.yml, Worker/Pages und mid-stable; für den Betriebsabschluss von #541 stehen zwei verschiedene DWD-Fast-E2E-Runs noch aus.
+
+## MID v0.9.85.501 · 2026-11-21 · GitHub-OIDC-Fast-Provenienz ohne R2 (Source-Kandidat)
+
+Basis `9756419d` → OIDC `1b791cbd` → Version `8e984426` → geprüfter Source-PR-Stand `f8fa9f2130031369481fe3640707e3bb00e0ca00` (signierter Pages-Beleg vor optionalem R2-Altpfad).
+
+- Basis v0.9.85.500, `main=mid-stable=9756419d5af4933e9ff023aed568e42de500e97b`; Originalcommithandoff `1b791cbd4f46e6fb95109fda8b6081cf3da65325` (ein Commit voraus, 14 Pfade, keine veröffentlichten Writes).
+- Original RUC-Preprocessing-Workflowpaare, GitHub-OIDC-SHA/JWKS-Nachweise, Pages-Preserve/Readback, native Worker-Spiegel und fachspezifische Tests aus diesem Kandidaten übernommen; frühere #946-Sourceänderungen sind bereits ab v0.9.85.498 enthalten und werden nicht erneut dupliziert.
+- Versionsspiegel/Lock/Service Worker/iOS/Vertragsregister und Nutzer-/Technik-Changelog für v0.9.85.501 vorbereitet. Keine R2-Aktivierung, keine Paid-Fallbacks, keine Ruleset-/Review-/Secret-Änderung.
+- Reviewer-, CI-, Source-Core/Heavy, echte DWD-GRIB2, signierte OIDC-Token, Worker-/Pages-Live- und MID-Fusion-E2E-Nachweise sowie erfolgreicher ZIP/Installer/Stable-Release sind weiterhin ausdrücklich offen. Kein Release oder Nullkosten-Echtbetriebsnachweis wird behauptet.
+
+## MID v0.9.85.500 · 2026-11-21 · Bedarfsgesteuerte Einstellungen und zugängliche Dashboard-Reihenfolge
+
+- Ausgangspunkt: veröffentlichte v0.9.85.499, main=mid-stable 43759c68d001e5c8e6409f6ef2916a6610bbbad4.
+- Originale QA-Spezial-Drafts: #959 HEAD deee1e570b90b1a31d87039d3a2337187dfc9e81 und #963 HEAD f5ec03a6f39207b9887f3e645cfe2a08d78d0f7c.
+- SettingsManager ist zwischen früherer #959-Basis und .499 Stable byte-identisch; ausschließlich das geprüfte 301-Zeichen-Settings-Hunk wurde in den neueren App-Blob eingetragen; .499 Spatial-Cache-Hinweis unverändert erhalten.
+- DashboardModuleSettings.tsx und zugehörige Regressionen auf der jeweils unveränderten Stable-Basis, ohne App-/RUC-/Worker-Fachlogikänderungen.
+- Vor einer tatsächlichen Veröffentlichung sind Review, vollständiger aktueller Source-PR-Gate, Core/Heavy, Browser/iOS-Build, Installer, Worker/Pages (soweit betroffen) und Stable-Promotion weiterhin nachzuweisen.
+
+## MID v0.9.85.499 · 2026-11-20 · Ortsrichtiger Cache, Ensemble-Geometrie und WMS-Kartenschutz
+
+- Stable-Basis 1592963e12688af4b2f8c74f933033235849dcb7 / v0.9.85.498.
+- Verifizierte Originalheads: #953 62f3c7554daeb1fe3b823353fc9e93b835a24c15, #957 a4d558a5e729dceb2308c4d0f483a44e418ca67e, #955 cbb159525f6ae0edd8994437a49f17a396fbb07d, #958 bad89812662a45487638604e3b46e9345c733332.
+- Quellcode allein ist noch kein erfolgreicher Build, kein Release und keine produktive RUC-Datenfrische-Freigabe.
+
+## MID v0.9.85.499 · 20.11.2026 · Leit-Integrationskandidat (Source, noch kein Release)
+
+- Verifizierter Stable-Ausgangspunkt `1592963e12688af4b2f8c74f933033235849dcb7` / v0.9.85.498, vier geprüfte Originalquellen #953, #957, #955 und #958.
+- Originalblob-konsistente Quellintegration; Worker-Bundles nach genau einer WMS-Originalhunk-Übernahme aus aktuell veröffentlichter RUC-Fast-Lane erzeugt; Version/Lockfile/Verträge/Web-/iOS-Mirrors synchronisiert.
+- Erst die vollständigen Source-, Build-, Regression-, Review-, Installer-, Worker-/Pages- und Stable-Nachweise dürfen einen tatsächlichen Release bestätigen. Dieser Kandidaten-Commit behauptet keinen dieser Erfolge.
+
+## MID v0.9.85.498 · 2026-11-20 · DWD-RUC 0–6h-Fast-Lane – geprüfte unabhängige Veröffentlichung und Punkt-Consumer
+
+- Quellbasis main=mid-stable v0.9.85.497 @ 9fd872a789f4b158bc691d085589616c2c04f776.
+- Die getrennte, ref-freie Ausgangsvorlage 089cb6a34d3837620d5a3ecd5ad1b93a61730e7e integriert RUC-#946-Code und den SHA-/NoData-sicheren Fast-Worker-Adapter.
+- Original-DWD-Test 19.11. 21Z: 188/188 GRIB-Dateien ecCodes-Dekodierung, 542040 native Punkte, sieben stündliche/73 fünfminütige/25 fünfzehnminütige Termine, SHA-gebundener Pages-Punkt-Readback offline.
+- Ref-freier Versionskandidat: KEIN produzierter Release, KEIN echter Pages-/Worker-Deploy oder produktiver Fast-Schalter, keine aktuelle Live-Frischebehauptung.
+- Vor realem Release: vorhandener Source-Gate/Review, signierter Merge via MID-Bot, Installer, betroffene Worker-/Pages-Prüfungen, Stable-Promotion und unabhängiger Manifest-Digest-Transport zum Worker.
+
+## MID v0.9.85.498 · 2026-11-20 · DWD ICON-D2-RUC eigenständige 0–6h-Fast-Lane (Source-Kandidat, kein Release)
+
+- Geprüfte Ausgangsbasis: Stable .497 = `9fd872a789f4b158bc691d085589616c2c04f776`, fünf aktive Rulesets. Verifizierter ref-freier 0–6h-Quellstand `089cb6a34d3837620d5a3ecd5ad1b93a61730e7e`, parent exakt Stable.
+- Release-Version und gemeinsame Mirror-Pfade werden für .498 synchronisiert; neue Node-Worker-Fast-Regression in bestehenden Baseline-/Pflichtregressionen registriert. Keine alten Komponenten vollständig überschrieben.
+- Reale Original-GRIB-Daten/Offline-Producer vom 19.11. 21Z mit 188 dekodierten Einzeldateien, 7/73/25 nativen Terminen und SHA-gesiegelten Pages-Chunks auf #946 dokumentiert. Kein Vergleich mit einem angeblich aktuell frischen EPS20-Lauf und keine fiktiven Ensemble-Werte.
+- Aktueller Worker-Fast-Pfad bleibt bis zum authentisierten externen Digest-Transport deaktiviert; #955 verändert Worker-Bundles parallel und ist **nicht** ohne generierten Shard-Rebuild integrierbar. #947 ist ausschließlich Restore-only-Source-Optimierung, keine Fast-Freigabe.
+- Status: ref-frei; neue Vitest-/Core-/Heavy-/Browser-/Review-/Source-/ZIP-/Installer-/Worker-/Pages-/Stable-Ergebnisse noch nicht ausgeführt. Release erst über vorhandenen MID-Releasebot und alle wirklich anwendbaren Prüfungen.
+
+- Der zusätzlich vorbereitete geschützte Fast-Publisher→Worker-Digest-Transport speichert nach positivem Pages-Readback einen unabhängigen SHA-/Run-Beleg im bereits vorhandenen RUC-R2-Bucket; der Worker kann entweder den von einem geschützten Publisher gesicherten R2-Beleg oder eine ausdrücklich administrativ gesetzte SHA-Bindung verwenden; niemals den öffentlichen Pages-Manifest-SHA als eigenen Vertrauensanker. Bei Schreib-/Readback-Fehlern greift der Pages-Rollback. Details und zehn Worker-/zwei Receipt-Tests in `docs/implementation/MID_RUC_FAST_TRUST_RELAY_2026_11_20.md`. Diese neue Schicht ist noch **ref-frei und nicht produktiv geprüft**.
+
 ## MID v0.9.85.497 · 2026-11-19 · Responsive Lade- und Ensemble-Anzeigen mit Tageslicht-Kontrast
 
 - Ausgangs-Stable v0.9.85.496 SHA 256aabe286f7daa00dc0e320815dd8dacb7b4706; #948 QA-HEAD 5aa3a2cf768311fbd71977365b1bc92bcfc3baf7.

@@ -8,7 +8,9 @@ The publisher needs independent producer, SHA, release and consumer gates.
 """
 from __future__ import annotations
 import argparse
+import gzip
 import hashlib
+import io
 import json
 import os
 from pathlib import Path
@@ -34,7 +36,7 @@ def safe_root(path):
     return path
 
 
-def partition_native_fast(source, target, *, chunk_cells=512, expected_points=542040):
+def partition_native_fast(source, target, *, chunk_cells=512, expected_points=542040, compress=False):
     """The only non-production smaller-grid exception is explicit in unit tests."""
     src=safe_root(source)
     dst=Path(target)
@@ -85,7 +87,10 @@ def partition_native_fast(source, target, *, chunk_cells=512, expected_points=54
                   'fields':fields,'grid':pointer.get('grid'),
                   'productionEnabled':False,'publicationAuthorized':False,
                   'realtimeConsumerEnabled':False,'objects':{}}
+        if compress:
+            manifest['storageCodec']='gzip-or-raw-v1'
         total=0
+        stored_total=0
         for name,bytes_per_point in SIZES.items():
             obj=objs[name]
             key=obj.get('key')
@@ -108,9 +113,16 @@ def partition_native_fast(source, target, *, chunk_cells=512, expected_points=54
                     if len(data)!=cells*bytes_per_point:raise ValueError('truncated native source')
                     complete.update(data)
                     part_path=chunk_dir/f'{first//chunk_cells:04d}.bin'
-                    with part_path.open('xb') as out:out.write(data)
-                    part={'key':part_path.relative_to(stage/'ruc').as_posix(),
-                          'firstCell':first,'cells':cells,'bytes':len(data),'sha256':hexdigest(data)}
+                    stored=gzip.compress(data,compresslevel=1,mtime=0) if compress else data
+                    part={'firstCell':first,'cells':cells,'bytes':len(data),'sha256':hexdigest(data)}
+                    if len(stored)<len(data):
+                        part_path=part_path.with_suffix('.gzip.bin')
+                        part.update(encoding='gzip',storedBytes=len(stored),storedSha256=hexdigest(stored))
+                    else:
+                        stored=data
+                    with part_path.open('xb') as out:out.write(stored)
+                    part['key']=part_path.relative_to(stage/'ruc').as_posix()
+                    stored_total+=len(stored)
                     parts.append(part)
                     total+=len(data)
                     first+=cells
@@ -130,12 +142,17 @@ def partition_native_fast(source, target, *, chunk_cells=512, expected_points=54
             for part in spec['parts']:
                 p=stage/'ruc'/part['key']
                 b=p.read_bytes()
+                if part.get('encoding')=='gzip':
+                    if len(b)!=part['storedBytes'] or hexdigest(b)!=part['storedSha256']:
+                        raise ValueError('compressed chunk corruption')
+                    with gzip.GzipFile(fileobj=io.BytesIO(b)) as stream:
+                        b=stream.read(part['bytes']+1)
                 if len(b)!=part['bytes'] or hexdigest(b)!=part['sha256']:raise ValueError('chunk corruption')
                 recomposed.update(b);sum_bytes+=len(b)
             if sum_bytes!=spec['bytesPerCell']*spec['cellCount'] or recomposed.hexdigest()!=spec['sourceSha256']:
                 raise ValueError('lossless native recomposition failed')
         os.rename(stage,dst)
-    return {'run':run,'sourceNativeBytes':original,'actualPartitionBytes':total,
+    return {'run':run,'sourceNativeBytes':original,'actualPartitionBytes':stored_total,
             'chunkFiles':sum(len(x['parts']) for x in manifest['objects'].values()),
             'publicationAuthorized':False,'schema':manifest['schema']}
 
@@ -145,7 +162,8 @@ def main():
     parser.add_argument('--shadow',required=True,type=Path)
     parser.add_argument('--output',required=True,type=Path)
     parser.add_argument('--chunk-cells',type=int,default=512)
+    parser.add_argument('--gzip',action='store_true')
     args=parser.parse_args()
-    print(json.dumps(partition_native_fast(args.shadow,args.output,chunk_cells=args.chunk_cells),sort_keys=True))
+    print(json.dumps(partition_native_fast(args.shadow,args.output,chunk_cells=args.chunk_cells,compress=args.gzip),sort_keys=True))
 
 if __name__=='__main__':main()

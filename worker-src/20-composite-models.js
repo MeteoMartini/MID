@@ -354,9 +354,8 @@ async function weatherMapGridData(lat,lon,modelId){
 const precipitationPhaseGridCache=new Map();
 const precipitationPhaseModelMetaCache=new Map();
 const RAPID_PHASE_MODELS=[
- // Open-Meteo integriert derzeit kein ICON-D2-RUC. Für das räumliche Phasenraster
- // verwenden wir deshalb nur tatsächlich veröffentlichte Open-Meteo-Modelle. Der echte
- // DWD ICON-D2-RUC bleibt separat im MID-Punkt-/Rapidpfad (DWD→Pages/R2) aktiv.
+ // Open-Meteo-Modelle werden anhand ihrer eigenen Metadaten ausgewählt.
+ // Die authentifizierten DWD-Originalzellen bleiben im MID-Punkt-/Rapidpfad.
  {id:'arome-france-hd-ruc',label:'Météo-France AROME HD 15 min',apiIds:['meteofrance_arome_france_hd_15min'],metaIds:['meteofrance_arome_france_hd_15min','meteofrance_arome_france_hd'],endpoint:'https://api.open-meteo.com/v1/meteofrance',bbox:[-8,40,13,53],resolutionKm:1.5,rapidUpdate:true,native15:true,maxHours:6},
  {id:'arome-france-ruc',label:'Météo-France AROME 15 min',apiIds:['meteofrance_arome_france_15min'],metaIds:['meteofrance_arome_france_15min','meteofrance_arome_france'],endpoint:'https://api.open-meteo.com/v1/meteofrance',bbox:[-8,40,13,53],resolutionKm:2.5,rapidUpdate:true,native15:true,maxHours:6},
  {id:'hrrr-ruc',label:'NOAA HRRR Rapid Refresh 15 min',apiIds:['ncep_hrrr_conus_15min','ncep_hrrr_conus'],metaIds:['ncep_hrrr_conus_15min','ncep_hrrr_conus'],bbox:[-130,20,-60,55],resolutionKm:3,rapidUpdate:true,native15:true,maxHours:18},
@@ -424,9 +423,10 @@ async function orderedPhaseModels(lat,lon){
 // Preserve absent/invalid model values through JSON (NaN -> null); real zero remains zero.
 function phaseGridAmount(value){return typeof value==='number'&&Number.isFinite(value)&&value>=0?value:NaN}
 function phaseGridWeatherCode(value){return typeof value==='number'&&Number.isInteger(value)&&value>=0&&value<=99?value:NaN}
-// #683: per-cell original RUC first, then D2 -> EU -> ICON global.
+// #683: per-cell original RUC first, then Open-Meteo RUC, D2 -> EU -> ICON global.
 // A geographic model BBOX is a shortlist only, never a valid-cell bitmap.
 const MID_ICON_PHASE_FALLBACKS=[
+ {id:'icon-d2-ruc-open-meteo',label:'DWD ICON-D2-RUC (Open-Meteo)',apiIds:['dwd_icon_d2_ruc_native'],metaIds:['dwd_icon_d2_ruc_native'],bbox:[-3.85,43.18,20.22,58.05],resolutionKm:2,maxHours:27,intervalMinutes:15},
  {id:'icon-d2',label:'DWD ICON-D2',apiIds:['dwd_icon_d2_15min'],metaIds:['dwd_icon_d2_15min'],bbox:[-6,42.9,26,58.5],resolutionKm:2,maxHours:48,intervalMinutes:15},
  {id:'icon-eu',label:'DWD ICON-EU',apiIds:['dwd_icon_eu'],metaIds:['dwd_icon_eu'],bbox:[-25,30,45,75],resolutionKm:7,maxHours:120,intervalMinutes:60},
  {id:'icon-global',label:'DWD ICON Global',apiIds:['dwd_icon'],metaIds:['dwd_icon'],bbox:[-180,-90,180,90],resolutionKm:11,maxHours:180,intervalMinutes:60}
@@ -577,7 +577,7 @@ async function precipitationPhaseGridData(lat,lon,target,env){
    frame.relativeHumidity2m[i]=sameTime?midPhaseAmount(thermal?.relative_humidity_2m?.[thermalPick.index]):NaN;
    frame.weatherCode[i]=code;frame.precipitation[i]=precip;frame.rain[i]=rain;frame.snowfall[i]=snow;
    frame.snowfallHeight[i]=midPhaseNumber(get('snowfall_height'));frame.freezingLevelHeight[i]=midPhaseNumber(get('freezing_level_height'));frame.elevation[i]=midPhaseNumber(point?.elevation);
-   phaseSourceByCell[i]=model.id==='icon-d2'?'dwd-icon-d2':model.id==='icon-eu'?'dwd-icon-eu':'dwd-icon-global';
+   phaseSourceByCell[i]='dwd-'+model.id;
    phaseValidTimeByCell[i]=choice.time;phaseRunByCell[i]=null;phaseIntervalMinutesByCell[i]=interval;
   }
  }
@@ -587,13 +587,13 @@ async function precipitationPhaseGridData(lat,lon,target,env){
   if(rateLimited){const stale=precipitationPhaseStale(centerLat,centerLon,roundedMs);if(stale)return{...stale,stale:true,targetTime:new Date(roundedMs).toISOString(),fallbackReason:'Open-Meteo-Minutenlimit: gekennzeichnetes frueheres Phasenfeld'}}
   throw new Error('Keine mit Originalmaske / Modelllauf / Feldzeit gepruefte Phasenzelle: '+errors.slice(0,3).join('; '));
  }
- const sourceCounts=Object.fromEntries(['dwd-icon-d2-ruc','dwd-icon-d2','dwd-icon-eu','dwd-icon-global'].map(id=>[id,phaseSourceByCell.filter(s=>s===id).length]));
+ const sourceCounts=Object.fromEntries(['dwd-icon-d2-ruc',...MID_ICON_PHASE_FALLBACKS.map(model=>'dwd-'+model.id)].map(id=>[id,phaseSourceByCell.filter(s=>s===id).length]));
  const gridSpacingKm=Math.round(Math.max(Math.abs((north-south)/(rows-1))*111.2,Math.abs((east-west)/(cols-1))*111.2*Math.max(.3,Math.cos(centerLat*Math.PI/180)))*10)/10;
  // Only original RUC cells carry authenticated per-cell model runs. Provider
  // metadata never certifies an individual Forecast API response's run.
  const verifiedRunAges=phaseRunByCell.filter(Boolean).map(midPhaseMs).filter(Number.isFinite).map(ms=>Math.max(0,(Date.now()-ms)/3600000));
  const verifiedModelAgeHours=verifiedRunAges.length?Math.round(Math.max(...verifiedRunAges)*100)/100:null;
- const data={modelId:'icon-phase-priority',modelLabel:'ICON-D2-RUC → ICON-D2 → ICON-EU → ICON Global',targetTime:new Date(roundedMs).toISOString(),referenceTime:phaseRunByCell.find(Boolean),lats,lons,frame,phaseSourceByCell,phaseValidTimeByCell,phaseRunByCell,phaseIntervalMinutesByCell,sourceCounts,provider:'DWD-RUC Originalzellen via MID Pages; ICON-D2/EU/global via Open-Meteo (nicht native Originalzellen)',phaseSource:sourceCounts['dwd-icon-d2-ruc']?ruc?.source:undefined,checkedAt:new Date().toISOString(),gridSpacingKm,coverage:usable+'/'+count+' gueltige Zellen; Maskenluecken bleiben NoData',rapidUpdate:sourceCounts['dwd-icon-d2-ruc']>0,native15:sourceCounts['dwd-icon-d2-ruc']+sourceCounts['dwd-icon-d2']>0,updateIntervalSeconds:undefined,modelAgeHours:verifiedModelAgeHours,candidateModels,requestBudget:{locations:count,batches,variables:8,modelPointRequests},phaseFetchBudget:{limit:phaseFetchBudget.limit,used:phaseFetchBudget.used,native:phaseFetchBudget.nativeUsed,lookup:phaseFetchBudget.lookupUsed,provider:phaseFetchBudget.providerUsed,denied:phaseFetchBudget.denied},sourceErrors:errors.slice(0,7),modelLimitWarning:rateLimited};
+ const data={modelId:'icon-phase-priority',modelLabel:'ICON-D2-RUC (Originale → Open-Meteo) → ICON-D2 → ICON-EU → ICON Global',targetTime:new Date(roundedMs).toISOString(),referenceTime:phaseRunByCell.find(Boolean),lats,lons,frame,phaseSourceByCell,phaseValidTimeByCell,phaseRunByCell,phaseIntervalMinutesByCell,sourceCounts,provider:'DWD-RUC-Originalzellen via MID Pages; ICON-D2-RUC/D2/EU/Global via Open-Meteo',phaseSource:sourceCounts['dwd-icon-d2-ruc']?ruc?.source:undefined,checkedAt:new Date().toISOString(),gridSpacingKm,coverage:usable+'/'+count+' gueltige Zellen; Maskenluecken bleiben NoData',rapidUpdate:sourceCounts['dwd-icon-d2-ruc']>0,native15:phaseIntervalMinutesByCell.includes(15),updateIntervalSeconds:undefined,modelAgeHours:verifiedModelAgeHours,candidateModels,requestBudget:{locations:count,batches,variables:8,modelPointRequests},phaseFetchBudget:{limit:phaseFetchBudget.limit,used:phaseFetchBudget.used,native:phaseFetchBudget.nativeUsed,lookup:phaseFetchBudget.lookupUsed,provider:phaseFetchBudget.providerUsed,denied:phaseFetchBudget.denied},sourceErrors:errors.slice(0,7),modelLimitWarning:rateLimited};
  rememberPrecipitationPhase(key,data);return data;
 }
 
@@ -820,14 +820,46 @@ async function weatherMapWmsResponse(request){
  const attempt=async base=>{const upstream=new URL(base);for(const[key,value]of url.searchParams){const normalized=key.toLowerCase();if(!allowed.has(normalized))continue;const outgoing=normalized==='layers'?String(value).split(',').map(layer=>dwdLayerForEndpoint(layer,base)).join(','):provider==='geomet'&&['time','dim_reference_time'].includes(normalized)?new Date(Date.parse(value)).toISOString().replace(/\.000Z$/,'Z'):value;upstream.searchParams.set(normalized,outgoing)}if(provider==='geomet')upstream.searchParams.set('interpolation',layers.some(layer=>WEATHER_MAP_LAYER_CONFIG.get(layer)?.categorical)?'false':'true');if(!upstream.searchParams.has('service'))upstream.searchParams.set('service','WMS');if(!upstream.searchParams.has('request'))upstream.searchParams.set('request','GetMap');if(String(upstream.searchParams.get('request')).toLowerCase()==='getlegendgraphic'){upstream.searchParams.set('layer',dwdLayerForEndpoint(layers[0],base));upstream.searchParams.set('style',url.searchParams.get('styles')||'');upstream.searchParams.delete('layers');upstream.searchParams.delete('styles')}const response=await fetchWithDeadline(upstream.toString(),{headers:{Accept:'image/png,image/webp,image/jpeg,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`,'Cache-Control':'no-cache'},cache:'no-store'},9000),type=String(response.headers.get('content-type')||'').toLowerCase();if(!response.ok)throw new Error(`${new URL(base).hostname}${new URL(base).pathname} HTTP ${response.status}`);if(!type.startsWith('image/')){await response.body?.cancel().catch(()=>undefined);throw new Error(`WMS_UPSTREAM_CONTENT_TYPE_${response.status}`)}return{response,type,base}};
  try{const{response,type,base}=await Promise.any((provider==='geomet'?[GEOMET_WEATHER_WMS]:DWD_RADAR_WMS_BASES).map(attempt));return new Response(response.body,{status:200,headers:{'content-type':type,'access-control-allow-origin':'*','cache-control':'public, max-age=120, stale-while-revalidate=300','x-mid-wms-provider':provider,'x-mid-wms-layer':layers[0],'x-mid-wms-endpoint':new URL(base).pathname,'x-mid-worker-version':WORKER_VERSION}})}catch{return new Response('Wetterkarte derzeit nicht verfügbar.',{status:502,headers:{'content-type':'text/plain; charset=utf-8','access-control-allow-origin':'*','cache-control':'no-store','x-mid-worker-version':WORKER_VERSION}})}
 }
+
+/** Validate bounded OGC WMS GetMap syntax before any upstream fetch.
+ * This only admits request geometry; it never proves weather/source coverage. */
+function compositeWmsRequestGeometryError(url){
+ const protectedKeys=new Set(['service','request','version','provider','layers','styles','format','transparent','crs','srs','bbox','width','height','time','elevation','dim_reference_time','exceptions','bgcolor','tiled']);
+ const values=new Map();
+ for(const [name,value]of url.searchParams){
+  const key=name.toLowerCase();
+  if(!protectedKeys.has(key))continue;
+  if(values.has(key))return'DUPLICATE_WMS_PARAMETER';
+  values.set(key,value);
+ }
+ if(values.has('service')&&String(values.get('service')).toUpperCase()!=='WMS')return'INVALID_WMS_SERVICE';
+ if(values.has('request')&&String(values.get('request')).toLowerCase()!=='getmap')return'INVALID_WMS_OPERATION';
+ const version=values.get('version');
+ if(version&&version!=='1.1.1'&&version!=='1.3.0')return'INVALID_WMS_VERSION';
+ const rawWidth=values.get('width'),rawHeight=values.get('height');
+ if(!/^\d{1,4}$/.test(rawWidth||'')||!/^\d{1,4}$/.test(rawHeight||''))return'INVALID_WMS_PIXELS';
+ const width=Number(rawWidth),height=Number(rawHeight);
+ if(!Number.isSafeInteger(width)||!Number.isSafeInteger(height)||width<1||height<1||
+    width>4096||height>4096||width*height>8388608)return'WMS_PIXEL_BUDGET';
+ const rawBbox=values.get('bbox');
+ if(typeof rawBbox!=='string'||rawBbox.length>160)return'INVALID_WMS_BBOX';
+ const parts=rawBbox.split(',');
+ if(parts.length!==4||parts.some(value=>!/^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?$/.test(value.trim())))return'INVALID_WMS_BBOX';
+ const [west,south,east,north]=parts.map(Number);
+ if(![west,south,east,north].every(Number.isFinite)||west>=east||south>=north||
+    [west,south,east,north].some(value=>Math.abs(value)>100000000))return'INVALID_WMS_BBOX';
+ return'';
+}
 async function compositeWmsResponse(request){
- const url=new URL(request.url),provider=String(url.searchParams.get('provider')||'').toLowerCase(),bases=provider==='dwd'?DWD_RADAR_WMS_BASES:provider==='eumetsat'?[EUMETSAT_WMS]:[];
+ const url=new URL(request.url),paramsByKey=new Map([...url.searchParams].map(([name,value])=>[name.toLowerCase(),value])),provider=String(paramsByKey.get('provider')||'').toLowerCase(),bases=provider==='dwd'?DWD_RADAR_WMS_BASES:provider==='eumetsat'?[EUMETSAT_WMS]:[];
  if(!bases.length)return json({error:'Ungültiger WMS-Provider',version:WORKER_VERSION},400,{'cache-control':'no-store'});
- const layers=String(url.searchParams.get('layers')||'').split(',').map(value=>value.trim()).filter(Boolean),allowedLayers=WMS_ALLOWED_LAYERS[provider];
+ const layers=String(paramsByKey.get('layers')||'').split(',').map(value=>value.trim()).filter(Boolean),allowedLayers=WMS_ALLOWED_LAYERS[provider];
  if(!layers.length||layers.some(layer=>!allowedLayers?.has(layer)))return json({error:'Nicht freigegebener WMS-Layer',version:WORKER_VERSION},400,{'cache-control':'no-store'});
- const requestedTime=url.searchParams.get('time'),requestedMs=requestedTime?Date.parse(requestedTime):NaN;if(requestedTime&&!Number.isFinite(requestedMs))return json({error:'Ungültiger WMS-Zeitpunkt',version:WORKER_VERSION},400,{'cache-control':'no-store'});
+ const requestedTime=paramsByKey.get('time'),requestedMs=requestedTime?Date.parse(requestedTime):NaN;if(requestedTime&&!Number.isFinite(requestedMs))return json({error:'Ungültiger WMS-Zeitpunkt',version:WORKER_VERSION},400,{'cache-control':'no-store'});
  if(Number.isFinite(requestedMs)){const now=Date.now(),isRadar=layers.some(layer=>DWD_RADAR_LAYERS.includes(layer)),isSynoptic=layers.every(layer=>Object.values(SYNOPTIC_WMS_PRODUCTS).some(product=>product.layer===layer)),isLightning=layers.some(layer=>layer==='dwd:Blitzdichte'||layer==='mtg_fd:li_afa'),isSatellitePrecip=layers.some(layer=>SATELLITE_PRECIP_CANDIDATES.some(item=>item.layer===layer)),isDwdSatellite=provider==='dwd'&&layers.some(layer=>SATELLITE_DAY_CANDIDATES.concat(SATELLITE_IR_CANDIDATES).some(item=>item.layer===layer)),minimum=now-(isRadar?70:isLightning?135:isSatellitePrecip?195:isDwdSatellite?240:195)*60000,maximum=now+(isRadar?125:isSynoptic?180:15)*60000;if(requestedMs<minimum||requestedMs>maximum)return json({error:'Der angeforderte WMS-Zeitpunkt liegt außerhalb des zulässigen Live-/Nowcast-Fensters.',version:WORKER_VERSION,serverTime:new Date(now).toISOString()},409,{'cache-control':'no-store'})}
  const allowed=new Set(['service','request','version','layers','styles','format','transparent','crs','srs','bbox','width','height','time','elevation','dim_reference_time','exceptions','bgcolor','tiled']);
+ const requestGeometryError=compositeWmsRequestGeometryError(url);
+ if(requestGeometryError)return json({error:requestGeometryError,version:WORKER_VERSION},400,{'cache-control':'no-store'});
  const attempt=async base=>{const upstream=new URL(base);for(const[key,value]of url.searchParams){const normalized=key.toLowerCase();if(!allowed.has(normalized))continue;const outgoing=provider==='dwd'&&normalized==='layers'?String(value).split(',').map(layer=>dwdLayerForEndpoint(layer,base)).join(','):value;upstream.searchParams.set(normalized,outgoing)}if(!upstream.searchParams.has('service'))upstream.searchParams.set('service','WMS');if(!upstream.searchParams.has('request'))upstream.searchParams.set('request','GetMap');const response=await fetchWithDeadline(upstream.toString(),{headers:{Accept:'image/png,image/webp,image/jpeg,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`,'Cache-Control':'no-cache'},cache:'no-store'},7000),type=String(response.headers.get('content-type')||'').toLowerCase();if(!response.ok)throw new Error(`${new URL(base).hostname}${new URL(base).pathname} HTTP ${response.status}`);if(!type.startsWith('image/')){await response.body?.cancel().catch(()=>undefined);throw new Error(`WMS_UPSTREAM_CONTENT_TYPE_${response.status}`)}return{response,type,base}};
  try{const{response,type,base}=await Promise.any(bases.map(attempt));return new Response(response.body,{status:200,headers:{'content-type':type,'access-control-allow-origin':'*','cache-control':'no-store, no-cache, must-revalidate','pragma':'no-cache','expires':'0','x-mid-wms-provider':provider,'x-mid-wms-layer':layers.join(','),'x-mid-wms-endpoint':new URL(base).pathname,'x-mid-worker-version':WORKER_VERSION}})}catch{return new Response('WMS-Karte derzeit nicht verfügbar.',{status:502,headers:{'content-type':'text/plain; charset=utf-8','access-control-allow-origin':'*','cache-control':'no-store','x-mid-worker-version':WORKER_VERSION}})};
 }

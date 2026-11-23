@@ -32,7 +32,7 @@ const movedCase={width:1024,theme:'light',design:'next'};
 assert.ok(mapBrowserCases('1/3').some(row=>mapKey(row)===mapKey(movedCase)),'Full 1024px light next must remain in qualified 1/3');
 assert.ok(!mapBrowserCases('2/3').some(row=>mapKey(row)===mapKey(movedCase)),'Donor 2/3 may not repeat transferred case');
 
-assert.deepEqual(REGRESSION_HEAVY_SHARDS['heavy-browser-state'],['test-favorite-selection-browser-0985189.mjs','test-forecast-display-persistence-0985166.mjs','test-fourteen-css-lazy-0985339.mjs']);
+assert.deepEqual(REGRESSION_HEAVY_SHARDS['heavy-browser-state'],['test-favorite-selection-browser-0985189.mjs','test-forecast-display-persistence-0985166.mjs','test-fourteen-css-lazy-0985339.mjs','test-ensemble-plot-browser-0952.mjs'],'Real Recharts layout QA must run exactly once in existing mandatory browser-state shard, never bypassed or duplicated');
 assert.deepEqual(REGRESSION_HEAVY_SHARDS['heavy-native-map'],['test-adaptive-native-maps-0985141.mjs']);
 assert.deepEqual(REGRESSION_HEAVY_SHARDS['heavy-unified-map'],['test-unified-map-layers-0985167.mjs','test-geosphere-inca-nowcast.mjs']);
 assert.deepEqual(REGRESSION_HEAVY_SHARDS['heavy-mountain-visual'],['test-mountain-visual-acceptance-18213.mjs']);

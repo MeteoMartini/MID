@@ -692,6 +692,7 @@ jobs:
       contents: read
     outputs:
       commit_sha: ${{ steps.commit.outputs.commit_sha }}
+      release_noop: ${{ steps.commit.outputs.release_noop }}
       version: ${{ steps.release_meta.outputs.version }}
       worker_changed: ${{ steps.worker_diff.outputs.changed }}
     steps:
@@ -780,6 +781,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "::notice::Das Release-ZIP ist fachlich identisch zum bereits installierten Stand; der Workflow endet erfolgreich als No-op."
             echo "commit_sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+            echo "release_noop=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -828,6 +830,7 @@ jobs:
           fi
 
           echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "release_noop=false" >> "$GITHUB_OUTPUT"
 
 
   deploy_worker:
@@ -1099,7 +1102,7 @@ jobs:
       ruc_run: ${{ steps.ruc_snapshot.outputs.run }}
     name: GitHub-Pages-Artefakt parallel vorbereiten
     needs: install_build
-    if: needs.install_build.result == 'success'
+    if: needs.install_build.result == 'success' && vars.MID_RUC_FAST_PAGES_ENABLED != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     permissions:
@@ -1173,7 +1176,7 @@ jobs:
       - install_build
       - deploy_worker
       - prepare_pages_artifact
-    if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success'
+    if: always() && vars.MID_RUC_FAST_PAGES_ENABLED != 'true' && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -1245,7 +1248,15 @@ jobs:
     steps:
       - name: Backoff vor zweitem Pages-Versuch
         shell: bash
+        env:
+          FAST_ENABLED: ${{ vars.MID_RUC_FAST_PAGES_ENABLED }}
+          FIRST_RESULT: ${{ needs.deploy_pages_1.result }}
         run: |
+          set -euo pipefail
+          if [ "$FAST_ENABLED" = "true" ] && [ "$FIRST_RESULT" = "skipped" ]; then
+            echo "Fast Pages: erster regulärer Pages-Deploy absichtlich übersprungen; keine künstliche Retry-Verzögerung."
+            exit 0
+          fi
           echo "Erster Pages-Versuch scheiterte. 75 s Backoff; ein bereits hochgeladenes Artefakt wird wiederverwendet."
           sleep 75
 
@@ -1267,6 +1278,8 @@ jobs:
     timeout-minutes: 18
     permissions:
       contents: read
+      actions: read
+      deployments: read
       pages: write
       id-token: write
     concurrency:
@@ -1282,11 +1295,12 @@ jobs:
         id: artifact_plan
         shell: bash
         env:
+          FAST_ENABLED: ${{ vars.MID_RUC_FAST_PAGES_ENABLED }}
           PREVIOUS_READY: ${{ needs.deploy_pages_1.outputs.artifact_ready }}
           PREVIOUS_NAME: ${{ needs.deploy_pages_1.outputs.artifact_name }}
         run: |
           set -euo pipefail
-          if [ "$PREVIOUS_READY" = "true" ] && [ -n "$PREVIOUS_NAME" ]; then
+          if [ "$FAST_ENABLED" != "true" ] && [ "$PREVIOUS_READY" = "true" ] && [ -n "$PREVIOUS_NAME" ]; then
             echo 'needs_upload=false' >> "$GITHUB_OUTPUT"
             echo "name=$PREVIOUS_NAME" >> "$GITHUB_OUTPUT"
           else
@@ -1321,6 +1335,13 @@ jobs:
           args=(--base "$base" --target dist/ruc --workers 16)
           if [ "$MID_RUC_PIPELINE_ENABLED" = "true" ]; then args+=(--required); fi
           python tools/ruc/restore_ruc_pages_snapshot.py "${args[@]}"
+
+      - name: Frischen Fast-Snapshot aus dem aktiven Pages-Artefakt erhalten
+        if: vars.MID_RUC_FAST_PAGES_ENABLED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: python3 tools/ruc/install_fast_pages.py retain --release-sha "$RELEASE_SHA" --dist dist --proof installer-fast-proof.json
 
       - name: Pages-Artefakt nur bei Bedarf hochladen · Versuch 2
         id: upload_artifact
@@ -1362,6 +1383,14 @@ jobs:
           fi
           python3 tools/ruc/check_ruc_snapshot_current.py --base "$RUC_BASE" --enabled "$RUC_ENABLED" --expected "$RUC_EXPECTED"
 
+      - name: Aktiven Fast-Stand unmittelbar vor Installer-Deploy bestätigen
+        id: installer_fast_guard
+        if: vars.MID_RUC_FAST_PAGES_ENABLED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: python3 tools/ruc/install_fast_pages.py verify --release-sha "$RELEASE_SHA" --dist dist --proof installer-fast-proof.json
+
       - name: Unverändertes main unmittelbar vor Pages-Versuch 2 prüfen
         id: main_fence_pages
         shell: bash
@@ -1383,7 +1412,7 @@ jobs:
 
       - name: GitHub-Pages-Deployment · Versuch 2
         id: deployment
-        if: always() && steps.artifact_state.outputs.ready == 'true' && steps.ruc_guard.outputs.current == 'true' && steps.main_fence_pages.outputs.valid == 'true'
+        if: always() && steps.artifact_state.outputs.ready == 'true' && steps.ruc_guard.outputs.current == 'true' && steps.main_fence_pages.outputs.valid == 'true' && (vars.MID_RUC_FAST_PAGES_ENABLED != 'true' || steps.installer_fast_guard.outcome == 'success')
         continue-on-error: true
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
@@ -1427,6 +1456,8 @@ jobs:
     timeout-minutes: 18
     permissions:
       contents: read
+      actions: read
+      deployments: read
       pages: write
       id-token: write
     concurrency:
@@ -1442,11 +1473,12 @@ jobs:
         id: artifact_plan
         shell: bash
         env:
+          FAST_ENABLED: ${{ vars.MID_RUC_FAST_PAGES_ENABLED }}
           PREVIOUS_READY: ${{ needs.deploy_pages_2.outputs.artifact_ready }}
           PREVIOUS_NAME: ${{ needs.deploy_pages_2.outputs.artifact_name }}
         run: |
           set -euo pipefail
-          if [ "$PREVIOUS_READY" = "true" ] && [ -n "$PREVIOUS_NAME" ]; then
+          if [ "$FAST_ENABLED" != "true" ] && [ "$PREVIOUS_READY" = "true" ] && [ -n "$PREVIOUS_NAME" ]; then
             echo 'needs_upload=false' >> "$GITHUB_OUTPUT"
             echo "name=$PREVIOUS_NAME" >> "$GITHUB_OUTPUT"
           else
@@ -1482,6 +1514,13 @@ jobs:
           if [ "$MID_RUC_PIPELINE_ENABLED" = "true" ]; then args+=(--required); fi
           python tools/ruc/restore_ruc_pages_snapshot.py "${args[@]}"
 
+      - name: Frischen Fast-Snapshot aus dem aktiven Pages-Artefakt erhalten
+        if: vars.MID_RUC_FAST_PAGES_ENABLED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: python3 tools/ruc/install_fast_pages.py retain --release-sha "$RELEASE_SHA" --dist dist --proof installer-fast-proof.json
+
       - name: Pages-Artefakt nur bei Bedarf hochladen · Versuch 3
         if: steps.artifact_plan.outputs.needs_upload == 'true'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
@@ -1503,6 +1542,14 @@ jobs:
           fi
           python3 tools/ruc/check_ruc_snapshot_current.py --base "$RUC_BASE" --enabled "$RUC_ENABLED" --expected "$RUC_EXPECTED"
 
+      - name: Aktiven Fast-Stand unmittelbar vor Installer-Deploy bestätigen
+        id: installer_fast_guard
+        if: vars.MID_RUC_FAST_PAGES_ENABLED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: python3 tools/ruc/install_fast_pages.py verify --release-sha "$RELEASE_SHA" --dist dist --proof installer-fast-proof.json
+
       - name: Unverändertes main unmittelbar vor Pages-Versuch 3 prüfen
         id: main_fence_pages
         shell: bash
@@ -1523,7 +1570,7 @@ jobs:
           echo 'valid=true' >> "$GITHUB_OUTPUT"
 
       - name: GitHub-Pages-Deployment · Versuch 3
-        if: steps.ruc_guard.outputs.current == 'true' && steps.main_fence_pages.outputs.valid == 'true'
+        if: steps.ruc_guard.outputs.current == 'true' && steps.main_fence_pages.outputs.valid == 'true' && (vars.MID_RUC_FAST_PAGES_ENABLED != 'true' || steps.installer_fast_guard.outcome == 'success')
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
@@ -1737,3 +1784,51 @@ jobs:
           if [ "$status_written" != true ]; then
             echo "::warning::GitHub Status API blieb nach fünf Versuchen temporär nicht verfügbar. Build, Regressionen, Pages-Deployment und finaler mid-stable-SHA sind dennoch erfolgreich verifiziert; der Release bleibt gültig."
           fi
+
+  catalog_release:
+    name: SHA-verifizierten GitHub Release-Katalog nach Stable aktualisieren
+    needs:
+      - install_build
+      - finalize_release
+    if: ${{ github.event_name == 'workflow_dispatch' && needs.install_build.result == 'success' && needs.finalize_release.result == 'success' }}
+    concurrency:
+      # Source release bot uses the same bounded group. No Source merge/main
+      # ZIP update may race this metadata publication after Stable promotion.
+      group: mid-agent-source-release
+      queue: max
+      cancel-in-progress: false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - name: Genau den erfolgreich promotierten Installer-Release-Commit laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.install_build.outputs.commit_sha }}
+          persist-credentials: false
+
+      - name: Node.js 22 für den isolierten Katalog-Prüfkern
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          package-manager-cache: false
+
+      - name: Bestehenden MID Release Bot auf Release-Metadaten begrenzen
+        id: catalog_token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+        with:
+          client-id: ${{ vars.MID_RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.MID_RELEASE_APP_PRIVATE_KEY }}
+          permission-actions: read
+          permission-contents: write
+
+      - name: SHA-/Job-/Pages-/Worker-/Tag-Provenienz verifizieren und GitHub Release erzeugen
+        shell: bash
+        env:
+          GH_TOKEN: ${{ steps.catalog_token.outputs.token }}
+          STABLE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+          MID_CATALOG_RELEASE_NOOP: ${{ needs.install_build.outputs.release_noop }}
+        run: |
+          set -euo pipefail
+          node tools/release/publish-verified-release-catalog.mjs

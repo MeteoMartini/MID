@@ -522,6 +522,26 @@ test('release self-heal refuses multiple failed jobs, altered job identity or tr
  assert.equal(selfHealClassify({jobs:{total_count:3,jobs:selfHealBrowserJobs().jobs}}).retry,false);
  assert.equal(selfHealClassify({failedLog:''}).retry,false);
 });
+test('cancelled installer jobs remain fail-closed with absent or deceptive logs',()=>{
+ const cancelled={total_count:12,jobs:[
+  {name:'Release-Heavy · heavy-unified-map · 1/3',conclusion:'cancelled'},
+  {name:'Release-Heavy · heavy-unified-map · 2/3',conclusion:'cancelled'},
+  ...Array.from({length:10},(_,i)=>({name:'Gate '+i,conclusion:'success'})),
+ ]};
+ for(const failedLog of ['', 'The runner has received a shutdown signal.', 'HTTP 503 upstream'])
+  assert.deepEqual(selfHealClassify({jobs:cancelled,failedLog}),
+   {retry:false,reason:'cancelled-jobs-require-operator-provenance'});
+ assert.deepEqual(selfHealClassify({jobs:{...cancelled,jobs:[
+  {name:'Release-Heavy · heavy-unified-map · 1/3',conclusion:'cancelled'},
+  {name:'Release-Heavy · heavy-unified-map · 2/3',conclusion:'failure'},
+  ...cancelled.jobs.slice(2),
+ ]},failedLog:selfHealTimeoutLog}),
+  {retry:false,reason:'cancelled-jobs-require-operator-provenance'},
+  'Cancelled required job blocks auto-retry even when a parallel browser shard has the exact allowlisted timeout log');
+ assert.deepEqual(selfHealClassify({jobs:{...cancelled,total_count:13},failedLog:''}),
+  {retry:false,reason:'incomplete-job-inventory'});
+ assert.equal(selfHealClassify({jobs:cancelled,attempt:2,failedLog:'HTTP 503'}).retry,false);
+});
 test('browser attempt two never retries via a stray HTTP status',()=>{
  assert.equal(selfHealClassify({attempt:2,failedLog:selfHealTimeoutLog+'\nHTTP 503 upstream'}).retry,false);
 });
@@ -566,4 +586,47 @@ test('release self-heal continues through its existing workflow only and retains
  assert.match(canonical,/release-self-heal-classify\.mjs/);
  assert.match(canonical,/rerun-failed-jobs/);
  assert.doesNotMatch(canonical,/force-push|pull_request_target|--force/);
+});
+
+test('post-Stable GitHub catalog keeps the original Installer protected and mirrors byte-identical',async()=>{
+ const source=await readRepositoryFile(new URL('../ci/github/workflows/install-mid.yml',import.meta.url),'utf8');
+ const active=await readRepositoryFile(new URL('../.github/workflows/install-mid.yml',import.meta.url),'utf8');
+ assert.equal(source,active,'Canonical and active Installer workflows must match exactly');
+ const n=source.indexOf('\n  catalog_release:');
+ assert.ok(n>source.indexOf('\n  finalize_release:'));
+ const catalog=source.slice(n);
+ assert.match(catalog,/needs:\s*\n\s+- install_build\s*\n\s+- finalize_release/);
+ assert.ok(catalog.includes("needs.finalize_release.result == 'success'"));
+ assert.ok(catalog.includes("github.event_name == 'workflow_dispatch'"));
+ assert.ok(catalog.includes('group: mid-agent-source-release'));
+ assert.ok(catalog.includes('queue: max'));
+ assert.ok(catalog.includes('cancel-in-progress: false'));
+ assert.ok(catalog.includes('ref: ${{ needs.install_build.outputs.commit_sha }}'));
+ assert.ok(catalog.includes('STABLE_SHA: ${{ needs.install_build.outputs.commit_sha }}'));
+ assert.ok(catalog.includes('MID_CATALOG_RELEASE_NOOP: ${{ needs.install_build.outputs.release_noop }}'));
+ assert.ok(source.includes('release_noop: ${{ steps.commit.outputs.release_noop }}'));
+ assert.ok(source.includes('echo "release_noop=true" >> "$GITHUB_OUTPUT"'));
+ assert.ok(source.includes('echo "release_noop=false" >> "$GITHUB_OUTPUT"'));
+ assert.ok(catalog.includes('permission-actions: read'));
+ assert.ok(catalog.includes('permission-contents: write'));
+ assert.doesNotMatch(catalog,/permission-actions: write/);
+ assert.ok(catalog.includes('node tools/release/publish-verified-release-catalog.mjs'));
+ const publisher=await readRepositoryFile(new URL('../tools/release/publish-verified-release-catalog.mjs',import.meta.url),'utf8');
+ assert.ok(publisher.includes("githubApi('repos/'+REPO+'/git/refs','POST'"));
+ assert.ok(publisher.includes('Atomic tag reservation/readback mismatch'));
+ assert.ok(publisher.includes("run.path!=='.github/workflows/install-mid.yml'"));
+ assert.ok(publisher.includes('No-op requires existing exact verified latest Catalog'));
+ assert.ok(publisher.includes("refSha('main')!==sha||refSha('mid-stable')!==sha"));
+ assert.ok(catalog.includes('persist-credentials: false'));
+ assert.doesNotMatch(catalog,/continue-on-error|pull_request_target|force: true|--force/);
+ const prior=source.slice(source.indexOf('\n  finalize_release:'),n);
+ assert.ok(prior.includes('mid-stable'),'Original Stable promotion must remain');
+ assert.ok(prior.includes("needs.deploy_worker.result == 'success'"),'Finalizer must depend on successful Worker deployment');
+ for(const i of [1,2,3])assert.ok(prior.includes("needs.deploy_pages_"+i+".outputs.deployed == 'true'"),'At least one verified Pages deployment remains required');
+ assert.ok(prior.includes('group: mid-pages'),'Serialized Stable/Pages finalizer must remain');
+ assert.ok(prior.includes('id: stable_guard'),'Original Stable SHA/provenance guard must remain');
+ assert.ok(prior.includes('git/refs/heads/mid-stable'),'Stable promotion must use exact ref');
+ assert.ok(prior.includes('force=false'),'Stable promotion must not be forceful');
+ assert.ok(prior.includes('Finalen Stable-SHA verifizieren und Qualitätsstatus setzen'),'Post-promotion Stable SHA readback must remain');
+ assert.ok(!prior.includes('publish-verified-release-catalog.mjs'),'No catalog write before Stable');
 });

@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "version": "0.9.85.499",
+  "date": "2026-11-20",
+  "title": "Ortsrichtiger Cache, Ensemble-Geometrie und WMS-Kartenschutz",
+  "external": [
+    "Der Prognose-Cache unterscheidet jetzt exakt passende Ortsdaten von Daten aus nahegelegenen Orten. Ein räumlich abweichender Cache-Eintrag wird nicht länger als ortsgenaue frische Vorhersage dargestellt.",
+    "Das Ensemble-Temperaturdiagramm trennt Wetter- und Gefahrenstreifen vom eigentlichen Datenplot und schützt Beschriftungen sowie Best-Match-Werte vor Überlagerung auf schmalen Displays.",
+    "Der WMS-Kartenproxy begrenzt große Rasteranfragen und prüft Bounding-Boxen, Bildabmessungen und doppelte Parameter, bevor externe Kartendienste angesprochen werden.",
+    "Die Taupunkt-Legende verwendet wieder das gleiche gestrichelte Linienmuster wie die zugehörige Kurve.",
+    "Die vorhandenen DWD-RUC-Fast-Lane-Funktionen, amtlichen Warnungen und meteorologischen Originalwerte bleiben erhalten. Fehlende Daten werden nicht als gemessene Nullwerte ausgegeben."
+  ],
+  "internal": [
+    "Stable-Basis 1592963e12688af4b2f8c74f933033235849dcb7 / v0.9.85.498.",
+    "Verifizierte Originalheads: #953 62f3c7554daeb1fe3b823353fc9e93b835a24c15, #957 a4d558a5e729dceb2308c4d0f483a44e418ca67e, #955 cbb159525f6ae0edd8994437a49f17a396fbb07d, #958 bad89812662a45487638604e3b46e9345c733332.",
+    "Quellcode allein ist noch kein erfolgreicher Build, kein Release und keine produktive RUC-Datenfrische-Freigabe."
+  ]
+}

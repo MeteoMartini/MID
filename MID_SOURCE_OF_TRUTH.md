@@ -1,3 +1,103 @@
+# MID v0.9.85.512 · Leit-Integration – GitHub-Release-Katalog nach Stable-Promotion
+
+- **Verifizierter Startpunkt:** `main=mid-stable=c5faca33885f8df4cc645be89ecc6befe93c55c0`, veröffentlichte v0.9.85.511, [Installer #45117904421](https://github.com/MeteoMartini/MID/actions/runs/45117904421) completed/success. Selektiver Original-Intake aus QA-Draft [#956](https://github.com/MeteoMartini/MID/pull/956) @ `cb80824ca54967903a4d7885b6380b8ea02c599e` statt unsicherem Merge des historischen .497-Baums.
+- Ausschließlich nach vollständigen Source-/Review-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates erzeugt ein nachgelagerter **`workflow_dispatch`-Job des bestehenden Installers**, mit dem Source-Bot über dessen bestehende Concurrency-Gruppe serialisiert, den GitHub-Release-Katalogeintrag. Exakter lightweight Tag wird zuvor atomar und SHA-gebunden reserviert; vor/nach dem Release-POST müssen die unveränderten Branch-Refs und echte GitHub-Readbacks stimmen. Ein verwaister oder fremder Tag darf niemals automatisch neu geschrieben oder gelöscht werden. Keine zweite privilegierte Release-Automation oder neuen Secrets/Abos.
+- Original-Run-/Attempt-/SHA-/ZIP-only-Commit-/Stable-Parent-/vollständige Job-/Versionsspiegel-/Notes-/Tag-/Latest-Evidenz bleibt bindend. Ein vorheriger optionaler Pages-Artefakt-Prep-Job darf bei einem real erfolgreichen Deploy `skipped` sein; auch eine **frühere** fehlgeschlagene Pages-Deployment-Stufe ist nur dann als überholt anerkannt, wenn exakt ein **späterer** echter Pages-Deploy erfolgreich und der geschützte Finalizer grün ist. Jeder andere unbekannte, abgebrochene oder fehlgeschlagene Pflichtjob blockiert. Fremde/fehlerhafte Releaseketten erhalten keinen Metadatentag.
+- GitHub-Actions-Original-Run-Pfad muss exakt `.github/workflows/install-mid.yml` sein. Ein `release_noop=true`-Installer kann nur den schon vorhandenen Tag-/Release-/Latest-Body samt erfolgreichen vorherigen Original-Run und exakt gleichem Stable-/ZIP-Parent **lesend** bestätigen; bei fehlendem/metadatenfremdem Katalogeintrag fail-closed, ohne Nachpublikation oder falschen Green-Status.
+- **Status:** SHA-gebundener **Source-Kandidat**, bis zum vollständigen GitHub-Gate und echtem `releases/latest`-Readback **kein Release**. DWD-RUC/EPS #541, 14d-Design #975, Karten #937, Queue #981 und historische Kataloglücken werden nicht als erledigt gekennzeichnet.
+
+# MID v0.9.85.511 · LC 1.32 – Installer-/GDPS-Recovery-Qualifikation
+
+- Basis `main=mid-stable=35e904ec4e87ce725237e214141d9b640fd04692`, veröffentlichte v0.9.85.510; betroffene [#983](https://github.com/MeteoMartini/MID/issues/983) und [#422](https://github.com/MeteoMartini/MID/issues/422).
+- Abgebrochene Runner-Jobs bleiben ohne unabhängig verifizierbare externe Abbruchprovenienz nicht auto-retryfähig; der Original-Run und die nötige Operatorprüfung werden sichtbar.
+- Die echte GDPS-Wiederherstellung nach injiziertem HTTP 502 erfordert nachweislich neue Originaldatenanfrage und gültige INIT-Zeit. Kein erzwungener Klick, keine gelöschte Regression und keine Fake-Wetterdaten.
+- Andere Issue-/PR-Kandidaten (#541, #975, #981, #956, #937) sind dadurch nicht als erledigt anzusehen. Vollständiger Protected Release Train bleibt bindend.
+- **Status:** QA-Integrationskandidat, kein Release. Das Source-Gate des früheren Heads `3e929f8633dfcfc5452811480ec23b99efb72e34` war erfolgreich; nach den Reviewkorrekturen sind erneute SHA-genaue Source- und Review-Gates für den finalen Head erforderlich. Bot-Merge, Installer, Worker-/Pages-Gates und Stable-Promotion sind noch nicht nachgewiesen.
+
+# MID v0.9.85.510 · Leit-Integration – DWD-RUC-Fast-Nachholung
+
+- Source-Kandidat auf verifiziertem `main=mid-stable=73f64f833ecb0e48666834e9c44588e05cea1e31` / v0.9.85.509. Aus QA-Draft [#980](https://github.com/MeteoMartini/MID/pull/980) exakt geprüfte Workflow-/Sync-Quellblobs selektiv auf Stable übertragen. Keine alten .508-Snapshots als Produktionsbasis und keine parallele Kopie des RUC-Workflows.
+- Zusätzliche geschützte :28/:58-UTC-Slots prüfen jüngste Fast-Publisher-Erfolge bzw. aktive Publisher-Jobs, bevor native DWD-Downloads starten. Die existierenden :13/:43-Fast-Lane- und :11/:41-Vollpfade sowie die Originaldaten-/EPS-/NoData-/SHA-/Pages-Gates bleiben erhalten. Mehrmaliges Anstoßen ist kein Nachweis neuer DWD-Daten; keine frischen Originale und keine falschen Nullwerte erfinden.
+- Verpflichtende SHA-gebundene Source-, Review-, vollständige Core/Heavy-, Release-ZIP-, Installer-, Worker-/Pages- und Stable-Promotion-Gates bleiben ausstehend, bis ihre echten GitHub-Runs abgeschlossen sind. Keine neue kostenpflichtige Infrastruktur. RUC #541, Karten/14d-P0 #952/#975, Release-Katalog #901 und Katalog-Draft #956 separat weiterverfolgen.
+
+# MID v0.9.85.509 · LC 1.30 – UV-Datenlücken und Canvas-Überblendungen
+
+- **Source-Kandidat** auf verifiziertem `main=mid-stable=363815e328443805595f9adf8a978c7f609202bb`, veröffentlichte v0.9.85.508. Disjunkte Git-Originalblobs aus QA-Draft #967 (`ef3858790a5e48078cdbb42aef7311276cf601ba`, meteorologischer UVI/UTCI-Fallback) und #908 (`4ae6e928a56a85ee3120124b05ca587f72b4bf84`, Canvas-Pixelbudget/Background-Recovery). Die vier bereits produktiven Zielpfade sind seit den QA-Basen byteidentisch auf Stable; neue Quellen/Tests waren auf Stable nicht vorhanden.
+- Ziel: streng numerischer originaler UV-Stundenmittelwert (Missing != 0), Tagesmaximum ohne künstliche Null, vorhandener Apparent-Temperature-Fallback; begrenzte nur optische MapLibre-Canvas-Duplikation ohne Glättung von Wetterextremen und Hintergrund-Eventstau.
+- Die jeweils alten Draft-Tests ersetzen **keine** unabhängigen finalen .509 Source-/Core-/Heavy-/Vitest-/Browser-/iOS-/Review-/Installer-/Worker-/Pages-/Stable-Gates. RUC-P0 #541 ist unabhängig und bleibt bis frischer DWD→Pages→Worker→MID-Nutzung offen. Keine neue kostenpflichtige Infrastruktur, R2 oder AI-Provider.
+- Veröffentlichung ausschließlich über den bestehenden geschützten SHA-gebundenen Source-PR→Bot-Merge→serverseitiges ZIP→Installer→Worker/Pages→Stable-Promotion. Status zum Source-Cut: Kandidat, **noch keine Release-Freigabe**.
+
+
+# MID v0.9.85.508 · Worker-Abruf der Fast-Signaturschlüssel
+
+- Source-Kandidat auf Stable f798f1bedd230c0890200f65e53b1596ccfc3fb5. Der .507-Worker erreicht issuer-keys-request. Der Schlüsselabruf am festen GitHub-Endpunkt unterscheidet HTTP-Redirects von Transportfehlern. Source-Gate, ZIP, Installer, Worker/Pages, Stable-Promotion und Produktionsnachweis stehen aus.
+
+# MID v0.9.85.507 · Abruf des Fast-Lane-Belegs
+
+- Source-Kandidat auf Stable c13fbd57afcd30d8fce92b6b574c10d7e78debc4. Der Live-Worker .506 scheitert vor dem HTTP-Status beim signierten Fast-Beleg. Der Beleg wird über den regulären Pages-Einstieg per Abruf ohne Cache angefragt. Source-Gate, ZIP, Installer, Worker/Pages, Stable-Promotion und Produktionsnachweis stehen aus.
+
+# MID v0.9.85.506 · Fast-Lane-Vertrauensprüfung im Worker
+
+- Source-Kandidat auf Stable c710c691a5b56ef79c26325d1b167c0af073d550. Der bestehende opt-in Fast-Healthcheck erhält einen festen Prüfstatus und bei HTTP-Fehlern den Statuscode. Es werden keine Belege oder Schlüssel ausgegeben. Source-Gate, ZIP, Installer, Worker/Pages, Stable-Promotion und Produktionsnachweis stehen aus.
+
+# MID v0.9.85.505 · Fast-Lane-Workerabruf
+
+- Source-Kandidat auf Stable 0583ac77f61e94f27ae7ac3d28fd0b566b6ae5fb. Abrufgrenzen, Cloudflare-kompatible Schlüsselabfrage und opt-in Fast-Status unter ruc-health. Source-Gate, ZIP, Installer, Worker/Pages und Stable-Promotion und der Nachweis der Nutzung im produktiven Worker stehen aus.
+
+# MID v0.9.85.504 · ICON-D2-RUC über Open-Meteo
+
+- Source-Kandidat auf Stable 44edbf5365763f98d68c2814c038d222728859d7. Originale DWD-Phasenzellen behalten Vorrang. Provider-Zellen werden getrennt attribuiert. Aus der Metadatenabfrage wird keine individuelle Feldlaufzeit abgeleitet. Die Rückfallreihenfolge beginnt mit DWD-Originalen, danach folgen Open-Meteo-RUC und reguläres ICON-D2. Source-Gate, ZIP, Installer, Worker/Pages, Stable-Promotion und Produktionsabnahme stehen aus.
+
+# MID v0.9.85.503 · SHA-gebundene RUC-Pages-Reparatur
+
+- Stable .501: c6e5aa75d18b810b066f685f30ff6b0b35e030df. Bestätigter, fehlgeschlagener .502-Installerstand: 390421d54f6d0482e2007a488cb38ad4c68aef04 (PR #971; Actions 44995889909).
+- Der Pages-Resolver erkennt unter der bestehenden Pages-Sperre genau den eigenen laufenden Job anhand von Workflow, Run, Versuch, Event-SHA und Job-URL. Fremde, unbekannte oder uneindeutige Deployments werden weiterhin abgelehnt. Signatur-, Artefakt-, Daten- und Stable-Prüfungen sind weiterhin verbindlich.
+- Produktionsnachweis nach Stable-Promotion: frische originale Fast- und Voll-RUC-Läufe sowie tatsächliche Nutzung in MID. Open-Meteo ICON-D2 und AROME werden nach ihrem jeweiligen Modellvertrag geprüft.
+- Status: Source-Kandidat. ZIP, Installer, Worker/Pages, Stable-Promotion und Produktivnachweis stehen aus.
+
+# MID v0.9.85.502 · RUC Fast Pages-Deploymenthistorie
+
+- Basis `c6e5aa75d18b810b066f685f30ff6b0b35e030df`, Fehlernachweis Actions `44993474635`.
+- Resolver akzeptiert die vollständige erste Seite mit 30 Einträgen. Ohne nachgewiesenes erfolgreiches Deployment bleibt die Veröffentlichung gesperrt. 24 Resolver-Tests bestanden. Der Live-Readback identifizierte das Stable-Artefakt `14727993173`.
+
+# MID v0.9.85.501 · LC 1.29: Kostenneutrale DWD-RUC-Fast-Lane mit OIDC-Herkunft (Source-Kandidat)
+
+Basis `9756419d` → OIDC `1b791cbd` → Version `8e984426` → geprüfter Source-PR-Stand `f8fa9f2130031369481fe3640707e3bb00e0ca00` (signierter Pages-Beleg vor optionalem R2-Altpfad).
+
+**Ausgangsbasis:** veröffentlichtes `v0.9.85.500`, `main=mid-stable=9756419d5af4933e9ff023aed568e42de500e97b` (21.11.2026). **Original-Kandidat:** unveränderlicher Git-Commit `1b791cbd4f46e6fb95109fda8b6081cf3da65325` mit exakt einem Parent auf Stable und 14 geprüften geänderten Pfaden; kein historischer #946-Draft ungeprüft übernommen.
+
+**Inhalt:** SHA-spezifische GitHub-Actions-OIDC-Herkunft ohne R2-Binding oder R2-Abonnement, streng geprüfte native 0–6h-DWD-Run-/Punkt-/Chunk-Provenienz, Pages-Namespace/Readback/Rollback und Worker-Fast-Punktverwendung. Original-27h/EPS20- und `ruc/latest.json`-Vollpfad unverändert, EPS-Missing != 0. Bestehende Pfade für amtliche Warnungen bleiben unverändert.
+
+**Status:** Nur vorbereiteter Git-Objekt-/Source-Kandidat auf Basis des ursprünglichen QA-Commits. Noch keine eigenständige Build-/Core-/Heavy-/Security-/Original-GRIB-/Cloudflare-/Pages-/Worker-/Client-/iOS-Abnahme, kein gemergter PR, kein install-mid.yml und keine Stable-Promotion. Der bewährte Source-PR-Gate→geschützter Bot-Merge→serverseitiges ZIP→Installer→Worker/Pages→Stable-Pfad bleibt unverändert. Fast-Pages-Betrieb darf erst nach tatsächlicher Freigabe und zwei verschiedenen frischen DWD→MID-End-to-End-Readbacks als vollständig funktionieren gemeldet werden.
+
+# MID v0.9.85.500 · LC 1.27: fokussierter Settings-Mount und bedienbare Dashboard-Reihenfolge (Source-Kandidat)
+
+**Verifizierte Ausgangsbasis:** `main=mid-stable=43759c68d001e5c8e6409f6ef2916a6610bbbad4` / v0.9.85.499. Original-Intakes: #959 `deee1e570b90b1a31d87039d3a2337187dfc9e81`, #963 `f5ec03a6f39207b9887f3e645cfe2a08d78d0f7c`. Innerhalb `SettingsManager` war der originale Eingangscode bis Stable .499 byte-identisch; nur die 301-Zeichen-Änderung wurde aus #959 übernommen, ohne die zuvor veröffentlichte räumliche Cache-Provenienz-Anzeige zu ersetzen. Dashboard-Reihenfolge/Ansage disjunkt aus #963. Kein neuer RUC-/WMS-/Warn-/Einheiten- oder Release-Autorisierungspfad; 27h-RUC, native Fast-Lane und NoData bleiben unverändert.
+
+**Status:** Nur SHA-gebundener Source-Kandidat. Original-Draft-Tests ersetzen keine unabhängigen v0.9.85.500 Source-/Core-/Heavy-/Browser-/iOS-/Review-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates. Insbesondere kein Beleg einer gemessenen Performance-Ersparnis oder einer physischen VoiceOver-Abnahme. #541 bleibt eigenständiger P0-Datenvorfall; #901 GitHub Release-Katalog bleibt bis autorisierter Installer-Verdrahtung offen.
+
+# MID v0.9.85.499 · Leit-Integrationskandidat: ortsrichtige Forecast-Provenienz, Ensemble-Geometrie und WMS-Schutz
+
+**Verifizierte Basis:** main=mid-stable=`1592963e12688af4b2f8c74f933033235849dcb7` / v0.9.85.498. Originalquellen: [#953](https://github.com/MeteoMartini/MID/pull/953) `62f3c7554daeb1fe3b823353fc9e93b835a24c15`, [#957](https://github.com/MeteoMartini/MID/pull/957) `a4d558a5e729dceb2308c4d0f483a44e418ca67e`, [#955](https://github.com/MeteoMartini/MID/pull/955) `cbb159525f6ae0edd8994437a49f17a396fbb07d` und [#958](https://github.com/MeteoMartini/MID/pull/958) `bad89812662a45487638604e3b46e9345c733332`.
+
+**Integration:** originale SHA-gebundene Daten-/Diagramm-/CSS-/WMS-Blobs, ergänzte Pflichtregressionen, synchrones Worker-Doppelbundle aus neuester RUC-Fast-Lane plus WMS-Guard, vierteilige v0.9.85.499-Versionsspiegel inklusive Web/iOS/Service-Worker. Räumlich unbekannte Cache-Provenienz ist nicht als exakter Fresh-Hit zu behandeln, Missing Data nie als 0. NoData, Originaldaten, amtliche Warnungen, das 27h-Full-RUC und eigenständige 0–6h-Fast-Lane bleiben getrennt.
+
+**Status:** Source-Kandidat – keine erfolgte .499-Veröffentlichung, keine autonome QA-Freigabe. GitHub Source/Core/Heavy/Reviews, serverseitiges ZIP, install-mid.yml, betroffene Worker/Pages und Stable-Promotion bleiben unverändert verpflichtend; kein neues Gate oder Admin-/Force-Push-Bypass.
+
+# MID v0.9.85.498 · LC 1.23: unabhängige DWD-RUC-Fast-Lane, Pages-Rollback und geprüfter Worker-Punktpfad (SHA-gebundener Source-Kandidat)
+
+**Kanonische Quellbasis:** main=mid-stable=`9fd872a789f4b158bc691d085589616c2c04f776`, veröffentlichtes v0.9.85.497. Quell-Intake: ref-freier Git-Commit `089cb6a34d3837620d5a3ecd5ad1b93a61730e7e` mit exakt dieser Stable-SHA als Parent. Das ursprüngliche #946-Draft liegt noch auf .496 und darf nicht ungeprüft anstelle des aktuellen Stands gemergt werden.
+
+**Fachumfang:** unabhängiger originaler DWD ICON-D2-RUC +0…+6h-Pages-Stream, native Quellen (7 Stunden, 73 echte 5-Minuten-Termine, 25 echte 15-Minuten-Termine), SHA-geprüfte gzip/raw-Chunks, eigenständiger Publisher unter bestehendem `mid-pages`-Lock, separat verifizierbarer Pages-Rückfallversuch (nicht atomar garantiert) und Worker-Punktadapter nur bei extern authentisiertem Manifest-Digest. Fehlendes EPS ist `unavailable` und niemals 0%-PoP; Missing Data ist `null`, echte Nullen bleiben 0. Regulärer +27h/EPS20-Pfad und `ruc/latest.json` bleiben unangetastet.
+
+**Bisherige Originaldaten-Evidenz, nicht aktuelle Produktion:** 19.11.2026 21Z, 188/188 DWD-Original-GRIB2 mit ecCodes erfolgreich dekodiert, 542040 native Rasterpunkte, 253804736 Byte Original-FAST-Daten, 4300 komprimierte Chunks mit insgesamt 100867012 Byte und echter Offline-Punktdecoder. Siehe PR #946 Kommentare 7024465544 / 7024894315. Die produktive Worker-Aktivierung bleibt ohne einen der beiden zulässigen externen Vertrauensanker gesperrt: entweder eine administrativ gesetzte `MID_DWD_RUC_FAST_MANIFEST_SHA256`-Bindung mit Freigabeflag oder ein unabhängig nach Pages-Readback abgelegter R2-Publisher-Beleg. Der öffentliche Pages-SHA allein ist niemals ein Vertrauensanker.
+
+**Release-Grenzen:** Dieser Text dokumentiert ausschließlich einen vorbereiteten Quellkandidaten. Kein neues Release, kein install-mid.yml, keine produktive Worker-/Pages-Promotion, kein echter iOS-/VoiceOver-Beleg. Der vorhandene Source-PR-Gate → kontrollierter Bot-Merge → serverseitiges ZIP → Installer → einschlägige Worker-/Pages-Gates → Stable-Promotion ist vollständig nachzuweisen. Reviewerbefunde und unveröffentlichte, überlappende Worker-Arbeit (#955) vor gemeinsamer Übernahme sorgfältig behandeln.
+
+**Neuer ref-freier Fast-Trust-Integrationsstand:** Der geschützte Pages-Publisher erstellt einen SHA-/Run-/Stable-gebundenen Beleg und schreibt ihn nach erfolgreichem öffentlichen Readback in den bestehenden MID-RUC-R2-Bucket. Der Worker kann diesen vom öffentlichen Pages-Manifest unabhängigen Beleg ohne erneutes Worker-Deployment übernehmen; eine ausdrücklich deaktivierte Funktion bleibt aus. Fehlgeschlagene Trust-Übertragung führt zum bereits vorgesehenen Pages-Rollback. Source-/CI-/Cloudflare-/Live-Abnahme **noch offen**. Siehe `docs/implementation/MID_RUC_FAST_TRUST_RELAY_2026_11_20.md`.
+
+
+---
 # MID v0.9.85.497 · LC 1.21: responsive Lade- und Ensemble-Anzeige, Tag-/Nacht-Kontrast (Source-Kandidat)
 
 Verifizierte Ausgangsbasis: `main=mid-stable=256aabe286f7daa00dc0e320815dd8dacb7b4706` / v0.9.85.496. Aus dem isolierten QA-Sammel-Intake #948 wurden 13 exakt quellengebundene Original-Git-Blobs aus den Spezial-Drafts #934 (11) und #942 (2) auf Stable übernommen. Die auf #948 erkannte Widget-SVG-Exportregression wurde ohne Testabschwächung durch einen ausdrücklich exportfähigen Fallback beseitigt. Datenwerte, Wettermodelle, NoData, WMO/DWD-Warnungen und RUC-Produktionswege bleiben unverändert. Die bisherige QA zum kombinierten Draft ersetzt **nicht** die unabhängigen Source-/Review-/Core-/Heavy-/Web-/iOS-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates dieses versionierten Integrations-HEADs. Keine automatische Merge-/Releasefreigabe aus Dokumentation.

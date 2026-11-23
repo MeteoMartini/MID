@@ -1,3 +1,79 @@
+# MID v0.9.85.512
+
+- GitHub-Release-Katalog: Nach einem vollständig geprüften Installer-/Worker-/Pages-Release und der erfolgreichen Stable-Promotion wird die aktuelle MID-Version zusätzlich als SHA-gebundener GitHub-Release-Eintrag mit Tag und Änderungsnotizen aufgeführt.
+- Bestehender Release-Bot mit minimalem Schreibumfang und Original-Installer-Gates; keine automatische Nachdatierung älterer Versionen, keine erfundenen ZIP- oder Recovery-Assets.
+- DWD-/WMO-Verträge, amtliche Warnungen, RUC-/EPS-Frische-/NoData-Prüfungen sowie alle bestehenden Source-/Core-/Heavy-/Installer-/Worker-/Pages-/Stable-Gates bleiben unverändert.
+
+# MID v0.9.85.511
+
+- Release-Selbstheilung: Abgebrochene GitHub-Installerjobs werden mit Original-Run-Link ausdrücklich als nicht automatisch retry-fähig diagnostiziert. Unbekannte Abbruchursachen und manuell abgebrochene Workflows werden weiterhin nicht blind wiederholt.
+- Karten-QA: Nach simuliertem ECCC-GDPS-502 erkennt die Browserprüfung eine bereits erfolgte automatische Wiederherstellung nur bei belegtem neuen Original-GetMap und gültigem INIT; ein ausgebliebener Recovery-Nachweis bleibt Releaseblocker.
+- DWD-/WMO-Datenverträge, amtliche Warnungen, NoData, Modelllaufzeiten und sämtliche Source-/Core-/Heavy-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates bleiben unverändert geschützt.
+
+# MID v0.9.85.510
+
+- ICON-D2-RUC-Fast-Lane: Zusätzlich zu den bestehenden :13/:43-UTC-Terminen prüft ein geschützter Nachholpfad um :28/:58 UTC, ob die Fast-Veröffentlichung zuletzt bereits erfolgreich war oder noch läuft. Nur bei tatsächlichem Nachholbedarf setzt er die bisherigen DWD-Originaldaten-, Qualitäts- und Pages-Gates fort. Der reguläre DWD-RUC/EPS-Vollpfad bleibt unverändert; fehlende EPS-/Originaldaten werden nicht durch Ersatzwerte ersetzt.
+# MID v0.9.85.509
+
+- UV-Index in Stunden- und Tagesprognosen: Echte Stundenmittel bleiben an Dämmerungsgrenzen erhalten; fehlende Werte werden nicht als 0 ausgegeben. Fehlt UVI in der Stundenprognose, bleibt für die gefühlte Temperatur der vorhandene Anbieter-Fallback verfügbar.
+- Karten: Canvas-Überblendungen mit großem Backing-Store werden übersprungen, um zusätzlichen Speicherbedarf zu vermeiden; bei der Rückkehr aus dem Hintergrund wird die aktuelle Ebene nur einmal gezeichnet. Bei einem Fehler während einer Canvas-Überblendung wird das vorherige Canvas-Bild wiederhergestellt. Original-Wetterdaten und Warnungen bleiben unverändert.
+# MID v0.9.85.508
+
+- Der Wetter-Worker prüft die GitHub-Signaturschlüssel für die DWD-Fast-Lane über den festen Herausgeber-Endpunkt.
+
+# MID v0.9.85.507
+
+- Der signierte DWD-Fast-Lane-Beleg wird über den etablierten Pages-Einstieg für RUC abgerufen.
+
+# MID v0.9.85.506
+
+- Die Fast-Lane-Diagnose zeigt, an welcher Stelle der produktive Worker den signierten Datenbeleg verwirft. Der Produktionsnachweis steht aus.
+
+# MID v0.9.85.505
+
+- Der Wetter-Worker erhält mehr Zeit für den Abruf signierter Fast-Lane-Daten. Der Produktionsnachweis steht aus.
+
+# MID v0.9.85.504
+
+- Das Niederschlagsphasenraster nutzt natives ICON-D2-RUC über Open-Meteo, wenn an einer Zelle geprüfte DWD-Originaldaten fehlen. Die Zellquelle bleibt sichtbar. Produktivabnahme nach Stable-Promotion.
+
+# MID v0.9.85.503
+
+- Behebt einen Abbruch beim Erhalt vorhandener RUC-Daten während der GitHub-Pages-Veröffentlichung. Die Prüfung erkennt den laufenden Job anhand seiner GitHub-Identität.
+
+# MID v0.9.85.502
+
+- Die RUC-Fast-Lane kann die aktuelle Pages-Auslieferung auch bei einer vollen GitHub-Deploymentliste prüfen und für neue DWD-Daten verwenden.
+
+# MID v0.9.85.501
+
+- Die unabhängige DWD-ICON-D2-RUC-Fast-Lane wird für einen SHA-authentifizierten, R2-freien GitHub-Pages-Vertrauenspfad vorbereitet. Neue zusätzliche Cloudflare-R2-Kosten oder Abonnements sind dafür nicht vorgesehen.
+- Die geplante Fast-Versorgung prüft originale 0–6-Stunden-DWD-Daten, veröffentlicht einen kryptografisch gebundenen Herkunftsbeleg und verwendet nur nach erfolgreicher Worker-Prüfung gültige Wetterwerte; fehlende EPS-Daten bleiben nicht verfügbar.
+- Das bisherige 27-Stunden-RUC/EPS-Produkt, amtliche Warnungen und die Unterscheidung zwischen fehlenden und tatsächlichen Nullwerten bleiben geschützt. Die produktive Fast-Lane gilt erst nach den vorgeschriebenen Release- und echten End-to-End-Prüfungen als aktiv.
+
+# MID v0.9.85.500
+
+- Die Einstellungen laden die Bedienbereiche Ansicht, Wetter, Navigation und Einheiten erst beim Öffnen des jeweiligen Bereichs. Alle neun Einstellungsregister und gespeicherten Präferenzen bleiben erhalten.
+- Beim Umordnen der Dashboard-Module werden Status und Änderungen für Tastatur, Maus und Touch einheitlicher zugänglich angesagt. Die bestehende Modulreihenfolge bleibt gespeichert.
+- Wetterprognosen, Originalwerte, amtliche Warnungen sowie die getrennten RUC-Voll- und Fast-Lane-Produktionswege bleiben unverändert; fehlende Werte werden nicht zu Null umgedeutet.
+
+# MID v0.9.85.499
+
+- Der Prognose-Cache unterscheidet jetzt exakt passende Ortsdaten von Daten aus nahegelegenen Orten. Ein räumlich abweichender Cache-Eintrag wird nicht länger als ortsgenaue frische Vorhersage dargestellt.
+- Das Ensemble-Temperaturdiagramm trennt Wetter- und Gefahrenstreifen vom eigentlichen Datenplot und schützt Beschriftungen sowie Best-Match-Werte vor Überlagerung auf schmalen Displays.
+- Der WMS-Kartenproxy begrenzt große Rasteranfragen und prüft Bounding-Boxen, Bildabmessungen und doppelte Parameter, bevor externe Kartendienste angesprochen werden.
+- Die Taupunkt-Legende verwendet wieder das gleiche gestrichelte Linienmuster wie die zugehörige Kurve.
+- Die vorhandenen DWD-RUC-Fast-Lane-Funktionen, amtlichen Warnungen und meteorologischen Originalwerte bleiben erhalten. Fehlende Daten werden nicht als gemessene Nullwerte ausgegeben.
+
+# MID v0.9.85.498
+
+- Die DWD-ICON-D2-RUC-Fast-Lane kann qualifizierte, eigenständige Prognosen für die nächsten sechs Stunden bereitstellen, ohne auf einen vollständigen 27h-Ensemble-Lauf zu warten.
+- Originale Temperatur-, Wind-, Wolken- und Niederschlagswerte bleiben mit Laufzeit und Herkunft erkennbar; schnelle Niederschlagsdaten verwenden echte 5-Minuten-Schritte, Konvektionsdaten echte 15-Minuten-Schritte.
+- Fehlende EPS-Ensemblewerte bleiben ausdrücklich nicht verfügbar und werden nicht als null Prozent Regenwahrscheinlichkeit oder Trockenheit ausgegeben.
+- Die Fast-Pages-Veröffentlichung erhält den bisherigen Voll-RUC-Stand und kann bei fehlgeschlagener Prüfung zurückrollen.
+- Bei einem neueren authentifizierten Modelllauf nutzt MID die eigenständige 0–6h-Fast-Lane; ein gleich aktueller oder neuerer Voll-RUC-Lauf behält seinen 27h-Horizont. Unbestätigte Fast-Daten verdrängen nie einen geprüften Voll-Lauf.
+- Der Worker akzeptiert Fast-Daten ausschließlich mit einem extern gesetzten, SHA-geprüften Manifest-Digest: entweder über die ausdrücklich konfigurierte administrative Bindung oder über den nach erfolgreicher Pages-Prüfung gesicherten R2-Publisher-Beleg. Der unveränderte Datenpfad bleibt als Rückfall erhalten.
+
 # MID v0.9.85.497
 
 - Lange Ladehinweise bleiben auch auf schmalen Displays und bei vergrößerter Schrift vollständig lesbar.
