@@ -1,4 +1,4 @@
-## MID v0.9.85.512 · GitHub-Versionstags nach tatsächlich verifizierter Stable-Promotion
+## MID v0.9.85.512 · 2026-11-23 · SHA-geprüfter GitHub-Release-Katalog nach Stable-Promotion
 
 - **Basis:** `main=mid-stable=c5faca33885f8df4cc645be89ecc6befe93c55c0` / veröffentlichte .511. Aus historischem QA-Draft [#956](https://github.com/MeteoMartini/MID/pull/956) @ `cb80824ca54967903a4d7885b6380b8ea02c599e` ausschließlich Original-Katalog-Prüfkern, negative Unit-Tests und QA-Dokumentation selektiv integriert, nicht den alten .497-Branch gemergt.
 - Der bestehende Installer erhält ausschließlich einen nachgelagerten Katalog-Job nach erfolgreichem `finalize_release`; vorhandene Release App, allein dort auf `contents:write` begrenzt, keine neuen Secrets, bezahlten Dienste oder Permissions/Ruleset-Änderungen.
