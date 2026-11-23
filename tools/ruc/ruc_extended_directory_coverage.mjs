@@ -2,11 +2,21 @@
 // Not GRIB admission, does not publish, does not query EPS, does not amend Fast 0..6h.
 // This QA tool is intentionally disjoint from the signed live Pages/Worker publisher.
 export const FIELDS=["T_2M","TD_2M","RELHUM_2M","PMSL","U_10M","V_10M","VMAX_10M","TOT_PREC","CLCT","CLCL","CAPE_ML","CIN_ML"];
-export function parseHourlyIndex(html){
+export function parseHourlyIndex(html,directoryUrl){
   if(typeof html!=='string'||html.length>2_000_000)throw Error('untrusted DWD index');
+  let base;
+  try{base=new URL(directoryUrl)}catch{throw Error('invalid DWD original directory URL')}
+  const pathPattern=new RegExp('^/weather/nwp/v1/m/icon-d2-ruc/p/(?:'+FIELDS.join('|')+')/r/20\\d\\d-\\d\\d-\\d\\dT\\d\\d:00/s/$');
+  if(base.origin!=='https://opendata.dwd.de'||base.search||base.hash||!pathPattern.test(base.pathname))
+    throw Error('noncanonical DWD original directory URL');
   const leads=[];
-  for(const hit of html.matchAll(/<a\b[^>]*\bhref\s*=\s*["']PT(\d{3})H00M\.grib2["']/gi)){
-    const hour=Number(hit[1]);
+  for(const hit of html.matchAll(/<a\b[^>]*\bhref\s*=\s*["']([^"']+)["']/gi)){
+    let href;
+    try{href=new URL(hit[1],base)}catch{continue}
+    if(href.origin!==base.origin||href.search||href.hash||!href.pathname.startsWith(base.pathname))continue;
+    const candidate=/^PT(\d{3})H00M\.grib2$/.exec(href.pathname.slice(base.pathname.length));
+    if(!candidate)continue;
+    const hour=Number(candidate[1]);
     if(hour>27)continue;
     if(leads.includes(hour))throw Error('duplicate DWD original lead');
     leads.push(hour);
@@ -52,9 +62,10 @@ if(process.argv[1]?.endsWith('/ruc_extended_directory_coverage.mjs')){
  const base='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/';
  for(let start=0;start<FIELDS.length;start+=3){
   await Promise.all(FIELDS.slice(start,start+3).map(async field=>{
-   const response=await fetch(base+field+'/r/'+run+'/s/',{signal:AbortSignal.timeout(12000),headers:{Accept:'text/html','User-Agent':'MID-data-RUC-deterministic-directory-probe/1.0'}});
+   const directoryUrl=base+field+'/r/'+run+'/s/';
+   const response=await fetch(directoryUrl,{signal:AbortSignal.timeout(12000),headers:{Accept:'text/html','User-Agent':'MID-data-RUC-deterministic-directory-probe/1.0'}});
    if(!response.ok)throw Error(field+' original DWD index HTTP '+response.status);
-   fieldHours[field]=parseHourlyIndex(await response.text());
+   fieldHours[field]=parseHourlyIndex(await response.text(),directoryUrl);
   }));
  }
  const siteBytes=siteText===undefined?null:Number(siteText);

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {FIELDS,parseHourlyIndex,qualifyHorizon} from './ruc_extended_directory_coverage.mjs';
 const run='2026-11-23T08:00',observedAt='2026-11-23T09:30:00Z';
+const directory='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/T_2M/r/2026-11-23T08:00/s/';
 function full(){return Object.fromEntries(FIELDS.map(f=>[f,Array.from({length:28},(_,i)=>i)]));}
 test('28 advertised leads for all 12 DWD fields; 273188160 extra raw bytes; no unauthorized publication',()=>{
  const r=qualifyHorizon({run,observedAt,fieldHours:full(),siteBytes:805025405});
@@ -26,12 +27,22 @@ test('stale, future, malformed timestamps are rejected',()=>{
 });
 test('HTML listing reader accepts only hourly signed DWD-style filenames',()=>{
  const html='<a href="PT000H00M.grib2">0</a><a href="PT001H00M.grib2">1</a><a href="PT002H15M.grib2">15m</a>';
- assert.deepEqual(parseHourlyIndex(html),[0,1]);
- assert.throws(()=>parseHourlyIndex('<a href="PT000H00M.grib2"></a><a href="PT000H00M.grib2"></a>'));
- assert.throws(()=>parseHourlyIndex('no hourly GRIB files'));
+ assert.deepEqual(parseHourlyIndex(html,directory),[0,1]);
+ assert.throws(()=>parseHourlyIndex('<a href="PT000H00M.grib2"></a><a href="PT000H00M.grib2"></a>',directory));
+ assert.throws(()=>parseHourlyIndex('no hourly GRIB files',directory));
 });
 test('untrusted site bytes never authorizes extending beyond 900MB',()=>{
  assert.throws(()=>qualifyHorizon({run,observedAt,fieldHours:full(),siteBytes:900000001}));
  const v=qualifyHorizon({run,observedAt,fieldHours:full(),siteBytes:10000000});
  assert.equal(v.rawAppendWouldFit,true);assert.equal(v.siteBytesVerified,false);assert.equal(v.publicationAuthorized,false);
+});
+test('actual DWD absolute original URLs qualify; foreign, query and other-run hrefs are ignored',()=>{
+ const html='<a href="'+directory+'PT000H00M.grib2">0</a><a href="'+directory+'PT027H00M.grib2">27</a>';
+ assert.deepEqual(parseHourlyIndex(html,directory),[0,27]);
+ const forged='<a href="https://elsewhere.example/'+directory+'PT000H00M.grib2">fake</a>';
+ assert.throws(()=>parseHourlyIndex(forged,directory));
+ const previous='<a href="'+directory.replace('T08:00','T07:00')+'PT000H00M.grib2">wrong run</a>';
+ assert.throws(()=>parseHourlyIndex(previous,directory));
+ assert.throws(()=>parseHourlyIndex(html,directory.replace('https://opendata.dwd.de','https://example.org')));
+ assert.throws(()=>parseHourlyIndex('<a href="PT000H00M.grib2?redirect=yes">bad</a>',directory));
 });
