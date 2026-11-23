@@ -25,7 +25,7 @@ async function fixture(project,name,baseline){
  if(baseline&&!css.includes('[data-fourteen-development]'))css+='\n'+await readFile(join(project,'src/midC28MapPhase.css'),'utf8');
  await writeFile(join(dir,'base.css'),css);
  await writeFile(join(dir,'index.html'),'<!doctype html><html lang="de"><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><div id="root"></div><script type="module" src="/entry.jsx"></script></body></html>');
- await writeFile(join(dir,'entry.jsx'),`import React,{lazy,Suspense,useState} from 'react';import{createRoot}from'react-dom/client';import './base.css';import '${project}/src/horizonInstruments.css';const Panel=lazy(()=>import('${project}/src/FourteenDayDevelopment.tsx').then(m=>({default:m.FourteenDayDevelopment})));const theme=new URLSearchParams(location.search).get('theme');document.documentElement.dataset.theme=theme;document.documentElement.dataset.midDesign='next';function QA(){const[open,setOpen]=useState(false);return <main className="app"><button id="open" onClick={()=>setOpen(v=>!v)}>Entwicklung öffnen</button>{open&&<Suspense fallback={<p role="status">Laden</p>}><Panel series={${JSON.stringify(rows)}}/></Suspense>}</main>}createRoot(document.getElementById('root')).render(<QA/>);`);
+ await writeFile(join(dir,'entry.jsx'),`import React,{lazy,Suspense,useState} from 'react';import{createRoot}from'react-dom/client';import './base.css';import '${project}/src/horizonInstruments.css';const Panel=lazy(()=>import('${project}/src/FourteenDayDevelopment.tsx').then(m=>({default:m.FourteenDayDevelopment})));const theme=new URLSearchParams(location.search).get('theme');document.documentElement.dataset.theme=theme;document.documentElement.dataset.midDesign='next';function QA(){const[open,setOpen]=useState(false);return <main className="app"><button id="open" onClick={()=>setOpen(v=>!v)}>Entwicklung öffnen</button>{open&&<Suspense fallback={<p role="status">Laden</p>}><Panel series={new URLSearchParams(location.search).get('qa')==='mixed'?${JSON.stringify(rows.map((row,i)=>({...row,ensembleAvailable:i!==4})))}:${JSON.stringify(rows)}}/></Suspense>}</main>}createRoot(document.getElementById('root')).render(<QA/>);`);
  await build({root:dir,configFile:false,plugins:[baseline&&{name:'stable-development-css-reference',enforce:'pre',transform(code,id){if(id===join(project,'src/FourteenDayDevelopment.tsx'))return code.replace("import './midC28MapPhase.css';\n",'');}},react()],logLevel:'error',build:{outDir:'dist',target:'es2020',cssMinify:'lightningcss',minify:'oxc',reportCompressedSize:false}});
  let cssRequests=0;const server=createServer(async(req,res)=>{try{const path=resolve(dir,'dist','.'+(new URL(req.url,'http://localhost').pathname==='/'?'/index.html':new URL(req.url,'http://localhost').pathname));assert.ok(path.startsWith(join(dir,'dist')+'/'));const file=path.endsWith('/')?join(path,'index.html'):path;if(/FourteenDayDevelopment-.*\.css$/.test(file))cssRequests++;res.setHeader('Cache-Control',file.endsWith('.html')?'no-store':'public, max-age=31536000, immutable');res.setHeader('Content-Type',file.endsWith('.js')?'application/javascript':file.endsWith('.css')?'text/css':'text/html');res.end(await readFile(file));}catch{res.statusCode=404;res.end();}});
  await new Promise(r=>server.listen(0,'127.0.0.1',r));return {server,cssRequests:()=>cssRequests,url:`http://127.0.0.1:${server.address().port}/`};
@@ -152,6 +152,33 @@ try{
    cases++;console.log(`${name} ${width}/${theme}/${cache}: parity passed`);
   }}finally{await Promise.all(contexts.map(({context})=>context.close()));}
  }
+  // Keep the previous partially available genuine-ensemble surface alongside the Best-Match-only fallback.
+ for(const [width,height]of [[320,568],[834,1194],[1440,900]])for(const theme of ['light','dark']){
+  const contexts=await Promise.all([active,stable].map(async target=>{
+   const context=await browser.newContext({viewport:{width,height},reducedMotion:'reduce'}),page=await context.newPage(),errors=[];
+   page.setDefaultTimeout(30000);page.on('pageerror',e=>errors.push(e.message));
+   await page.goto(target.url+'?theme='+theme+'&qa=mixed');
+   await page.locator('#open').click();
+   await page.locator('[data-fourteen-development] .mid-we-fourteen-daytile').first().waitFor();
+   return {context,page,errors};
+  }));
+  try{
+   for(const {page,errors}of contexts){
+    assert.equal(await page.locator('.mid-we-fourteen-daytile').count(),14,'Mixed-coverage A must retain all 14 days');
+    assert.equal(await page.locator('[data-mid-fourteen-fallback="best-match"]').count(),0,'Partial actual ensemble coverage must suppress duplicate compact chart');
+    assert.equal(await page.locator('.mid-we-fourteen-range').filter({hasText:'Tmax P10–P90'}).count(),13,'Thirteen present ensemble days retain genuine bounds');
+    assert.equal(await page.locator('.mid-we-fourteen-range').filter({hasText:'Ensemble-Spanne nicht verfügbar'}).count(),1,'The unavailable ensemble day stays missing, not a fabricated interval');
+    assert.deepEqual(errors,[]);
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Mixed-coverage module must not overflow');
+   }
+   const label=name+'/'+width+'/'+theme+'/mixed';
+   assert.deepEqual(await settledSnapshot(contexts[0].page,label+'/deferred'),await settledSnapshot(contexts[1].page,label+'/reference'),label+': exact mixed computed/layout parity');
+   const images=await Promise.all(contexts.map(({page})=>stableScreenshot(page,label)));
+   if(!images[0].equals(images[1]))await printPixelMismatch(contexts[0].page,label,images);
+   assert.ok(images[0].equals(images[1]),label+': exact mixed pixel parity');
+   cases++;console.log(label+': partial-original-ensemble parity passed');
+  }finally{await Promise.all(contexts.map(({context})=>context.close()));}
+ }
  }finally{await browser.close();}}
- console.log(`Production CSS parity: ${cases} engine/viewport/theme/cache Best-Match fallback cases; exact pixels, computed layout, keyboard without fabricated ensemble bounds, overflow and SVG passed. Browser engines only, no physical iOS/VoiceOver approval.`);
+ console.log(`Production CSS parity: ${cases} engine/viewport/theme/cache Best-Match and partial-original-ensemble cases; exact pixels, computed layout, keyboard without fabricated bounds, overflow and SVG passed. Browser engines only, no physical iOS/VoiceOver approval.`);
 }finally{for(const target of [active,stable])if(target)await new Promise(r=>target.server.close(r));await rm(temp,{recursive:true,force:true});}
