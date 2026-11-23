@@ -476,7 +476,7 @@ jobs:
   publish:
     name: MID + RUC kostenfrei auf GitHub Pages veröffentlichen
     needs: prepare
-    if: ${{ always() && needs.prepare.result == 'success' && needs.prepare.outputs.should_run == 'true' }}
+    if: ${{ always() && needs.prepare.result == 'success' && needs.prepare.outputs.should_run == 'true' && github.sha == needs.prepare.outputs.stable_sha }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -516,12 +516,12 @@ jobs:
           if [ "${main_sha}" != "${actual_sha}" ]; then
             echo "allowed=false" >> "$GITHUB_OUTPUT"
             echo "::notice::MID main/mid-stable SHA drift (${main_sha} != ${actual_sha}); RUC-Publish übersprungen, um einen parallelen Release nicht zu überschreiben."
-            exit 0
+            exit 1
           fi
           if [ -z "${stable_version}" ] || [ -z "${main_version}" ]; then
             echo "allowed=false" >> "$GITHUB_OUTPUT"
             echo "::warning::MID-Releaseversion konnte für den RUC-Publish nicht eindeutig bestimmt werden; Publish wird fail-closed übersprungen."
-            exit 0
+            exit 1
           fi
           if [ "${main_version}" != "${stable_version}" ]; then
             echo "allowed=false" >> "$GITHUB_OUTPUT"
@@ -535,7 +535,7 @@ jobs:
               echo
               echo "Der nächste RUC-Lauf baut nach Stable-Promotion automatisch auf der neuen App-Version auf."
             } >> "$GITHUB_STEP_SUMMARY"
-            exit 0
+            exit 1
           fi
           echo "allowed=true" >> "$GITHUB_OUTPUT"
           echo "Aktuelle Stable-App-Shell: ${actual_sha} · MID v${stable_version}; Snapshot-Zulassung folgt separat"
@@ -1085,7 +1085,7 @@ jobs:
   publish_fast:
     name: Unabhängige Fast Lane geschützt auf Pages veröffentlichen
     needs: [qualify_fast, prepare_fast]
-    if: ${{ ((github.event.schedule == '13,43 * * * *' || github.event.schedule == '28,58 * * * *') || (github.event_name == 'workflow_dispatch' && inputs.fast_only == true)) && github.ref == 'refs/heads/main' && vars.MID_RUC_FAST_PAGES_ENABLED == 'true' && needs.prepare_fast.result == 'success' && needs.prepare_fast.outputs.artifact_id != '' }}
+    if: ${{ ((github.event.schedule == '13,43 * * * *' || github.event.schedule == '28,58 * * * *') || (github.event_name == 'workflow_dispatch' && inputs.fast_only == true)) && github.ref == 'refs/heads/main' && vars.MID_RUC_FAST_PAGES_ENABLED == 'true' && needs.prepare_fast.result == 'success' && needs.prepare_fast.outputs.artifact_id != '' && github.sha == needs.qualify_fast.outputs.stable_sha }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     permissions:
