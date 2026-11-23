@@ -20,3 +20,24 @@ test('partial core field retains hole and tracks contiguous horizon',()=>{const 
 test('missing core first six hours or missing required schema rejects',()=>{const x=fixture();x.payload.hourly.pressure_msl[5]=null;assert.throws(()=>qualifyRunPinnedRuc(x));const y=fixture();delete y.payload.hourly.wind_speed_10m;assert.throws(()=>qualifyRunPinnedRuc(y))});
 test('provider snapped coordinate must remain near requested point',()=>{const x=fixture();x.payload.latitude=49.7;assert.throws(()=>qualifyRunPinnedRuc(x))});
 test('fixed Open-Meteo run-pinned URL, no uncontrolled model ID',()=>{const url=buildSingleRunUrl({run:'2026-11-23T09:00',lat:50.78,lon:7.02});assert.match(url,/single-runs-api\.open-meteo\.com/);assert.match(url,/models=dwd_icon_d2_ruc_native/);assert.match(url,/forecast_hours=28/);assert.match(url,/wind_speed_unit=kn/);assert.match(url,/run=2026-11-23T09%3A00/);assert.equal(url.split('hourly=')[1].split('&')[0].split(',').length,12);assert.throws(()=>buildSingleRunUrl({run:'invalid',lat:50.78,lon:7.02}))});
+
+import {runSingleRunCanary,META_URL} from './openmeteo_ruc_single_run_canary.mjs';
+test('read-only canary fetches metadata then exactly one pinned original provider run',async()=>{
+ const x=fixture(),requests=[],fetchJson=async url=>{requests.push(url);return url===META_URL?x.metadata:x.payload};
+ const r=await runSingleRunCanary({lat:x.lat,lon:x.lon,nowMs:x.nowMs,fetchJson});
+ assert.equal(requests.length,2);assert.equal(requests[0],META_URL);
+ assert.match(requests[1],/run=2026-11-23T09%3A00/);
+ assert.equal(r.expectedHours,28);assert.equal(r.maxCoreLeadHours,27);
+ assert.equal(r.fieldMissingCounts.precipitation,1);assert.equal(r.nativeDwdGribVerified,false);
+ assert.equal(r.publicationAuthorized,false);assert.equal(r.commercialUseAuthorized,false);
+});
+test('canary rejects provider run metadata inconsistent with response time axis',async()=>{
+ const x=fixture();x.metadata.last_run_initialisation_time+=3600;
+ const fetchJson=async url=>url===META_URL?x.metadata:x.payload;
+ await assert.rejects(runSingleRunCanary({lat:x.lat,lon:x.lon,nowMs:x.nowMs,fetchJson}));
+});
+test('canary rejects invalid location before any network calls',async()=>{
+ let requests=0;
+ await assert.rejects(runSingleRunCanary({lat:101,lon:7,nowMs:Date.now(),fetchJson:async()=>{requests++;return {}}}));
+ assert.equal(requests,0);
+});
