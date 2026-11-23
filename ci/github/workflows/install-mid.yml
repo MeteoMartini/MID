@@ -1790,7 +1790,7 @@ jobs:
     needs:
       - install_build
       - finalize_release
-    if: ${{ github.event_name == 'workflow_dispatch' && needs.install_build.result == 'success' && needs.finalize_release.result == 'success' }}
+    if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && needs.install_build.result == 'success' && needs.finalize_release.result == 'success' }}
     concurrency:
       # Source release bot uses the same bounded group. No Source merge/main
       # ZIP update may race this metadata publication after Stable promotion.

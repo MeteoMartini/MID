@@ -1,3 +1,11 @@
+# MID v0.9.85.513 · LC 1.34 – 14-Tage-Ensemble als Hauptgrafik und Katalog-Job-Skip korrigieren
+
+- Releasefähige Ausgangsbasis `main=mid-stable=3195012b1b72b4cc3bbd762c2fbd859a924aadc7`, Version .512; vor jedem Merge und Installer erneut gegen SHA/Version/Rulesets/PRs prüfen.
+- Selektiver, Git-Blob-gebundener Design-QA-Intake aus #990 auf dieselbe funktionale Ausgangsbasis: genau eine sofort sichtbare kanonische 14-Tage-Ensemble-Hauptgrafik; bestehende Modell-/Quantil-/Tageswert-/Fallback-/A11y-Verträge wahren.
+- In drei identischen Installer-Workflowspiegeln nur für `catalog_release` die implizite GitHub-Actions-Erfolgsvererbung durch `!cancelled()` ersetzen, **zusätzlich** die originalen expliziten Build- und Finalizer-Erfolgsbedingungen beibehalten. Niemals frühzeitige Tag-Erstellung, historische Rückdatierung, Verschlechterung von Reviews oder Umgehung des vollständigen Publishers.
+- GEFS/EC46-#989-Nachfolger, RUC #541/#991 und Karten #988/#937 bleiben getrennte QA-Kandidaten; nicht als integriert/gelöst ansehen.
+- **Status:** SHA-gebundener Source-Kandidat, keine Veröffentlichung. Original Source-PR, Bot, Installer, Worker/Pages, Stable-Promotion und reale GitHub-`releases/latest`-Bestätigung sind eigenständig nachzuweisen.
+
 # MID v0.9.85.512 · Leit-Integration – GitHub-Release-Katalog nach Stable-Promotion
 
 - **Verifizierter Startpunkt:** `main=mid-stable=c5faca33885f8df4cc645be89ecc6befe93c55c0`, veröffentlichte v0.9.85.511, [Installer #45117904421](https://github.com/MeteoMartini/MID/actions/runs/45117904421) completed/success. Selektiver Original-Intake aus QA-Draft [#956](https://github.com/MeteoMartini/MID/pull/956) @ `cb80824ca54967903a4d7885b6380b8ea02c599e` statt unsicherem Merge des historischen .497-Baums.

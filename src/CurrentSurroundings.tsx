@@ -162,9 +162,12 @@ export default function CurrentSurroundings(props:Props){
   return ()=>{active=false};
  },[]);
  // Coordinates come from actual named settlements, not screen-grid reference points.
- const nearbyCities=useMemo(()=>mapViewport?chooseSurroundingsCities([
+ // Derive label eligibility from the *actual* post-fit/resize camera, not
+ // the narrower initial focus bounds (especially wrong after maxZoom on tablets).
+ // No camera or invalid geometry => no claimed visible settlements/extra requests.
+ const nearbyCities=useMemo(()=>mapViewport&&rasterPlan?chooseSurroundingsCities([
   ...mapCities,...(geography?.places??[]).map(place=>({name:place.name,lat:place.lat,lon:place.lon,population:place.population,rank:place.minZoom,origin:'natural-earth' as const}))
- ],{lat,lon},{west,south,east,north},4,mapViewport):[],[mapCities,geography,lat,lon,west,south,east,north,mapViewport]);
+ ],{lat,lon},rasterPlan.bounds,4,mapViewport):[],[mapCities,geography,lat,lon,rasterPlan,mapViewport]);
  const mapBounds=useMemo(()=>rasterPlan?[[rasterPlan.bounds.south,rasterPlan.bounds.west],[rasterPlan.bounds.north,rasterPlan.bounds.east]] as [[number,number],[number,number]]:undefined,[rasterPlan]);
  const mapReferences=useMemo(()=>compositeReferenceLayers(.93,surroundingReference),[darkMap]);
  const directVectorAllowed=browserExternalWeatherFallbackAllowed();

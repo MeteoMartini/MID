@@ -1,6 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {describe,expect,it} from 'vitest';
 import {planSurroundingsViewportRaster} from '../../src/surroundingsViewportRaster';
+import {chooseSurroundingsCities} from '../../src/surroundingsCitySelection';
 import {summarizeSurroundingsOperaCoverage} from '../../src/surroundingsOperaCoverage';
 
 const ui=readFileSync('src/CurrentSurroundings.tsx','utf8');
@@ -68,5 +69,18 @@ describe('MID Karten 1.17 #853: current Stable-bound viewport wiring',()=>{
   expect(ui).toContain("imageUrl('dwd',rvLayer,target,radarWmsPlan)");
   expect(ui).toContain('imageUrl(satellite.provider,satellite.layer,satelliteTime,geographicWmsPlan)');
   expect(ui).not.toContain("version:'1.1.1',srs:'EPSG:4326'");
+ });
+ it('keeps tablet city labels on the actual visible camera after maxZoom/resize',()=>{
+  const center={lat:50.78,lon:7.1},viewport={width:1440,height:900};
+  const cities=[{name:'Paderborn',lat:51.7189,lon:8.7575,kind:'city' as const,population:153000}];
+  const initialFocus={west:5.7,south:50.13,east:8.5,north:51.43};
+  const actualCamera={west:3.15,south:49.2,east:11.05,north:52.35};
+  // The original narrow focus falsely excludes a real city visible at zoom cap.
+  expect(chooseSurroundingsCities(cities,center,initialFocus,4,viewport)).toHaveLength(0);
+  expect(chooseSurroundingsCities(cities,center,actualCamera,4,viewport).map(city=>city.name)).toEqual(['Paderborn']);
+  expect(ui).toContain('mapViewport&&rasterPlan?chooseSurroundingsCities([');
+  expect(ui).toContain('],{lat,lon},rasterPlan.bounds,4,mapViewport):[]');
+  expect(ui).toContain('[mapCities,geography,lat,lon,rasterPlan,mapViewport]');
+  expect(ui).not.toContain('],{lat,lon},{west,south,east,north},4,mapViewport):[]');
  });
 });

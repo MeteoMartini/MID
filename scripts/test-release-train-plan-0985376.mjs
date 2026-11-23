@@ -598,6 +598,8 @@ test('post-Stable GitHub catalog keeps the original Installer protected and mirr
  assert.match(catalog,/needs:\s*\n\s+- install_build\s*\n\s+- finalize_release/);
  assert.ok(catalog.includes("needs.finalize_release.result == 'success'"));
  assert.ok(catalog.includes("github.event_name == 'workflow_dispatch'"));
+ assert.ok(catalog.includes("if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && needs.install_build.result == 'success' && needs.finalize_release.result == 'success' }}"),'Catalog skip guard must preserve exact Installer/Finalizer success checks');
+ assert.doesNotMatch(catalog,/if:\s*\$\{\{\s*always\(\)/,'Catalog must not run through cancellation');
  assert.ok(catalog.includes('group: mid-agent-source-release'));
  assert.ok(catalog.includes('queue: max'));
  assert.ok(catalog.includes('cancel-in-progress: false'));
