@@ -30,3 +30,20 @@ Die Vergleichsdateien werden bereits von `scripts/check-build-budget.mjs` als `a
 
 ## Integration und Zuständigkeit
 QA-only branch; Leit-Chat und #344 übernehmen die Prüfung und entscheiden über selektiven Source-Intake. Erst nach aktueller Stable-/Main-Neuzuordnung, registriertem Test, verifiziertem Buildvergleich und vollständigen Release-Gates kann daraus eine Integration werden. Kosten: nur vorhandene Node-Bordmittel, keine neue Runtime-Dependency, kein neuer externer Dienst.
+
+## Zusätzlicher P0-Nachweis: echte CSS-Dateien gegen Build-Bericht (17:09 MEZ, 23.11.2026)
+Der bisherige reine JSON-Größenvergleich ist weiterhin ein **Budget-Comparator**, aber **kein** Beleg echter `dist`-Artefakte. Neu sind deshalb `scripts/verify-design-css-artifacts-0985515.mjs` und `scripts/test-design-css-artifacts-0985515.mjs`, auf demselben isolierten Branch.
+
+**Verbindliche qualifizierte Eingangsprüfung für Leit-Integration:**
+```sh
+node --test scripts/test-design-css-netzero-0985515.mjs scripts/test-design-css-artifacts-0985515.mjs
+node scripts/verify-design-css-artifacts-0985515.mjs \
+  /separate/stable/build-budget.json /separate/stable/dist \
+  /separate/candidate/build-budget.json /separate/candidate/dist
+```
+
+Der Verifier liest für Stable und Kandidat die **physischen** CSS-Dateien in zwei gesonderten `dist`-Verzeichnissen, verwirft ungemeldete/fehlende CSS-Dateien sowie Symlinks und unsichere Pfade, und prüft jedes vorhandene CSS-Asset gegen den im bekannten `scripts/check-build-budget.mjs` erzeugten Originalbericht: rohe Bytes, SHA-256, Node `gzipSync(level=9)`, `brotliCompressSync(quality=6)`. Zusätzlich liest er `dist/index.html` mit dem bereits bestehenden `scripts/lib/initialCssBudget.mjs` und gleicht **tatsächlich eager referenziertes CSS** mit den Berichtseinträgen ab. Erst nach erfolgreicher Vollprüfung beider Builds wird `compareCssNetZero` ausgeführt. Jeder Fehler oder unerklärtes Wachstum beendet das Kommando mit Code 1.
+
+**Lokaler, reproduzierbarer Testlauf:** Der Originalvergleich wurde bytegenau aus GitHub anhand der Original-Blob-SHAs `194bdccf65443adeb99ff9325f96498b9833006b` (Werkzeug) und `01f9317236945a99a33a9200ce5c04733515f834` (12 Tests) rekonstruiert, zusammen mit der unveränderten Stable-Hilfsfunktion `scripts/lib/initialCssBudget.mjs` (Blob `f7477bf697735ed1474f0529ce7ac31eec045851`). **23/23 lokale Node-Tests PASS** (12 bestehende plus 11 neue Echtdaten-Datei-/Negativtests); die neu erstellten Verifier- und Testdateien wurden GitHub-Blob-genau zurückgelesen (`ea06a32ed0b8a6df6f46dfd42d81172e84faf484`, `5cb61229191cea4390a64f3e370a5b6162b69b0e`).
+
+**Nicht als grün interpretieren:** Dies sind lokale Node-Tests mit generierten echten Test-`dist`-Dateien, **keine** zwei aktuellen MID-Produktionsbuilds. SHA-Pinning der MID-Quellen/Buildumgebung, CI-Registrierung, Vollregression, bestehende CSS-Kaskadenparität, reale Browser-Interaktionen, Netzwerk-/Renderzeiten und native iOS-/VoiceOver-Tests bleiben extern notwendig. Keine Änderung an den bestehenden Release- oder CSS-Budgets, keine automatische Release-Freigabe. Der Leit-Chat darf diesen Code nur nach aktueller Stable/Version/PR-/Ruleset-Evidenz selektiv integrieren.
