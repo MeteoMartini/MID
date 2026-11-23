@@ -397,6 +397,22 @@ class InstallerPagesResolverTest(unittest.TestCase):
         self.manifest['actions/jobs/3']['status'] = 'completed'
         self.assertEqual(self.resolve()['artifact_id'], 4)
 
+    def test_ruc_pages_environment_sha_admission_and_fail_closed_race(self):
+        repo = Path(__file__).resolve().parents[2]
+        a = (repo / '.github/workflows/mid-ruc-preprocess.yml').read_text(encoding='utf-8')
+        b = (repo / 'ci/github/workflows/mid-ruc-preprocess.yml').read_text(encoding='utf-8')
+        self.assertEqual(a, b, 'protected workflow and source mirror must remain identical')
+        publish = a.split('\n  publish:\n', 1)[1].split('\n  diagnostics:\n', 1)[0]
+        publish_fast = a.split('\n  publish_fast:\n', 1)[1]
+        self.assertIn('needs.prepare.outputs.should_run == \'true\' && github.sha == needs.prepare.outputs.stable_sha', publish)
+        self.assertIn('needs.prepare_fast.outputs.artifact_id != \'\' && github.sha == needs.qualify_fast.outputs.stable_sha', publish_fast)
+        guard = publish.split('      - name: RUC-Basis und laufendes Release gegen aktuellen MID-Stable-Stand prüfen', 1)[1].split(
+            '      - name: Exakte Producer-Artefakt-ID prüfen', 1)[0]
+        self.assertEqual(guard.count('            exit 1'), 3)
+        self.assertNotIn('            exit 0', guard)
+        self.assertIn('    environment:\n      name: github-pages', publish)
+        self.assertIn('    environment:\n      name: github-pages', publish_fast)
+
     def test_superseded_deployment_is_rejected(self):
         self.manifest['deployments/1/statuses?per_page=1'][0]['state'] = 'inactive'
         with self.assertRaisesRegex(ValueError, 'not in a safe terminal state'):
