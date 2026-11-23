@@ -74,3 +74,9 @@ test('selection reads immutable candidate blobs and follows removed file referen
   assert.throws(()=>inspectDraftRegression(repo,'HEAD',head),/full base and head/);
  }finally{rmSync(repo,{force:true,recursive:true})}
 });
+
+test('the mountain preview requires a fresh candidate build only when selected',()=>{
+ const browser='scripts/test-mountain-visual-acceptance-18213.mjs';
+ assert.equal(planDraftRegression(['src/MountainWeather.tsx'],[browser]).requiresMountainBrowserBuild,true);
+ assert.equal(planDraftRegression(['src/MountainWeather.tsx']).requiresMountainBrowserBuild,false);
+});

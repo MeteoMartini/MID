@@ -31,6 +31,7 @@ export function planDraftRegression(paths, directMatches=[]){
   file==='scripts/test-ruc-map-pipeline-0985305.mjs');
  return {
   schema:1,selected,requiresScientificPython,releaseAuthorized:false,
+  requiresMountainBrowserBuild:selected.includes('scripts/test-mountain-visual-acceptance-18213.mjs'),
   browserPilot:map?{
    file:'scripts/verify-unified-map-browser-0985167.mjs',
    native:'scripts/verify-native-model-browser-0985141.mjs',
@@ -98,9 +99,12 @@ function runPlan(repo,plan){
  if(plan.pythonFiles.length)run('python3',['-c',
   'import ast, pathlib, sys; [ast.parse(pathlib.Path(p).read_bytes(), filename=p) for p in sys.argv[1:]]',
   ...plan.pythonFiles]);
+ // The mountain acceptance test serves dist using vite.preview. Rebuild from this
+ // checkout so tracked or previously generated assets cannot mask source changes.
+ if(plan.requiresMountainBrowserBuild)run('npm',['run','verify:vite']);
  for(const file of plan.selected)run(process.execPath,[file]);
  if(plan.browserPilot){
-  run('npm',['run','verify:vite']);
+  if(!plan.requiresMountainBrowserBuild)run('npm',['run','verify:vite']);
   run(process.execPath,[plan.browserPilot.native]);
   run(process.execPath,[plan.browserPilot.file],{MID_MAP_QA_PILOT_CASE:plan.browserPilot.cases});
  }
