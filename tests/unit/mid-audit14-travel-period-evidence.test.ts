@@ -40,6 +40,17 @@ describe('MID Audit 1.4 · native GEFS daily coverage and full EC46 weeks',()=>{
   const d=findDay(f);
   expect(d?.temperatureComplete).toBe(false);expect(d?.precipitation).toBe(0);
  });
+ it('computes GEFS native 24-hour daily mean rather than (Tmax+Tmin)/2 proxy',()=>{
+  const f=fixture();f.temperature_2m.fill(0);f.temperature_2m[12]=24;
+  const d=findDay(f);
+  expect(d?.temperatureComplete).toBe(true);
+  expect(d?.mean).toBe(1);
+  expect((Number(d?.max)+Number(d?.min))/2).toBe(12);
+  expect(d?.mean).not.toBe((Number(d?.max)+Number(d?.min))/2);
+  const source=readFileSync(new URL('../../src/travelForecastFusion.ts',import.meta.url),'utf8');
+  expect(source).toContain('const gefsTemp=modelMean-climateMean;');
+  expect(source).not.toContain('const gefsTemp=((modelMax-climateMax)');
+ });
  it('does not clip a high original amount and marks a source review',()=>{
   const f=fixture();f.precipitation[20]=450;
   const d=findDay(f);expect(d?.precipitation).toBe(450);expect(d?.precipitationExtreme).toBe(true);
