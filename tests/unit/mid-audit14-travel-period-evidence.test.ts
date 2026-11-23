@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
-import {aggregateGefsUtcDays,consecutiveUtcWeek,ec46DailyApplicability,nativeFinite,seasonalTemperatureScenario} from '../../src/travelForecastPeriodEvidence';
+import {aggregateGefsUtcDays,consecutiveUtcWeek,ec46DailyApplicability,nativeFinite,seasonalTemperatureScenario,ec46DailyTemperatureScenario,isNativeDailyForecastSource} from '../../src/travelForecastPeriodEvidence';
 
 const HOUR=3600000;
 const first=Date.parse('2026-11-01T00:00:00Z');
@@ -13,7 +13,7 @@ function fixture(n=49){
  };
 }
 function findDay(data:ReturnType<typeof fixture>,date='2026-11-01'){
- return aggregateGefsUtcDays(data,units).find(row=>row.date===date);
+ return aggregateGefsUtcDays(data,units,0).find(row=>row.date===date);
 }
 describe('MID Audit 1.4 · native GEFS daily coverage and full EC46 weeks',()=>{
  it('does not interpret untyped or Boolean source values as actual meteorological zero',()=>{
@@ -72,32 +72,33 @@ describe('MID Audit 1.4 · native GEFS daily coverage and full EC46 weeks',()=>{
   const f=fixture();f.precipitation[20]=-999;expect(findDay(f)?.precipitation).toBeNull();
  });
  it('requires native precip unit mm independent of temperature unit',()=>{
-  const d=aggregateGefsUtcDays(fixture(),{...units,precipitation:'inch'}).find(x=>x.date==='2026-11-01');
+  const d=aggregateGefsUtcDays(fixture(),{...units,precipitation:'inch'},0).find(x=>x.date==='2026-11-01');
   expect(d?.precipitation).toBeNull();expect(d?.temperatureComplete).toBe(true);
  });
  it('does not claim complete temperature without native celsius units',()=>{
-  const d=aggregateGefsUtcDays(fixture(),{precipitation:'mm'}).find(x=>x.date==='2026-11-01');
+  const d=aggregateGefsUtcDays(fixture(),{precipitation:'mm'},0).find(x=>x.date==='2026-11-01');
   expect(d?.temperatureComplete).toBe(false);expect(d?.precipitation).toBe(0);
  });
  it('fails closed if an upstream timezone offset differs from UTC',()=>expect(aggregateGefsUtcDays(fixture(),units,3600)).toEqual([]));
+ it('fails closed when the UTC offset is missing, not silently defaulted to zero',()=>expect(aggregateGefsUtcDays(fixture(),units,undefined)).toEqual([]));
  it('fails closed on duplicate source timestamps',()=>{
   const f=fixture();f.time[18]=f.time[17];
-  expect(aggregateGefsUtcDays(f,units)).toEqual([]);
+  expect(aggregateGefsUtcDays(f,units,0)).toEqual([]);
  });
  it('fails closed on out-of-order source timestamps',()=>{
   const f=fixture();[f.time[17],f.time[18]]=[f.time[18],f.time[17]];
-  expect(aggregateGefsUtcDays(f,units)).toEqual([]);
+  expect(aggregateGefsUtcDays(f,units,0)).toEqual([]);
  });
  it('fails closed on non-existent Gregorian calendar dates',()=>{
   const f=fixture();
   const feb27=Date.parse('2026-02-27T00:00:00Z');
   f.time=Array.from({length:48},(_,i)=>new Date(feb27+i*HOUR).toISOString().slice(0,16)).concat('2026-02-29T00:00');
   // Invalid final token is later than all previous valid tokens: ordering alone cannot reject it.
-  expect(aggregateGefsUtcDays(f,units)).toEqual([]);
+  expect(aggregateGefsUtcDays(f,units,0)).toEqual([]);
  });
  it('fails closed when source arrays have differing lengths',()=>{
   const f=fixture();f.precipitation.pop();
-  expect(aggregateGefsUtcDays(f,units)).toEqual([]);
+  expect(aggregateGefsUtcDays(f,units,0)).toEqual([]);
  });
  it('accepts seven authentic consecutive UTC calendar dates over New Year',()=>{
   const days=Array.from({length:7},(_,i)=>new Date(Date.parse('2026-12-29T00:00:00Z')+i*24*HOUR).toISOString().slice(0,10));
@@ -110,7 +111,8 @@ describe('MID Audit 1.4 · native GEFS daily coverage and full EC46 weeks',()=>{
  it('rejects calendar gaps and duplicates',()=>expect(consecutiveUtcWeek(['2026-11-01','2026-11-02','2026-11-03','2026-11-03','2026-11-05','2026-11-06','2026-11-07'])).toBe(false));
  it('wires the new native validator and forbids old window-scaled wet probabilities',()=>{
   const source=readFileSync(new URL('../../src/travelForecastFusion.ts',import.meta.url),'utf8');
-  expect(source).toContain('aggregateGefsUtcDays(payload.hourly,payload.hourly_units,payload.utc_offset_seconds??0)');
+  expect(source).toContain('aggregateGefsUtcDays(payload.hourly,payload.hourly_units,payload.utc_offset_seconds)');
+  expect(source).not.toContain('utc_offset_seconds??0');
   expect(source).toContain('consecutiveUtcWeek(dates)');
   expect(source).toContain('const lead=mean(dates.map(date=>daysBetween(today,date)))');
   expect(source).not.toContain('scalePositiveRows(');
@@ -125,7 +127,18 @@ describe('MID Audit 1.4 · native GEFS daily coverage and full EC46 weeks',()=>{
   expect(ec46DailyApplicability({},day)).toEqual({temperature:false,wind:false,cloud:false,snowDepth:false});
  });
  it('never maps the native EC46 six-hour Tmax/Tmin anomaly to daily extrema',()=>{
+  const base={maxMean:12,minMean:3,meanMean:7,maxP25:10,maxP75:14,minP25:1,minP75:5,precipitationMean:9,wetProbability:60};
+  const extremesOnly={tempMaxAnomaly:30,tempMinAnomaly:-40};
+  expect(ec46DailyTemperatureScenario(base,extremesOnly,.5)).toBeUndefined();
+  expect(ec46DailyTemperatureScenario(base,{...extremesOnly,tempMeanAnomaly:0},.5)).toEqual(base);
+  const shifted=ec46DailyTemperatureScenario(base,{...extremesOnly,tempMeanAnomaly:2},.5);
+  expect(shifted?.maxMean).toBe(13);
+  expect(shifted?.minMean).toBe(4);
+  expect(shifted?.precipitationMean).toBe(9);
+  expect(shifted?.wetProbability).toBe(60);
+  expect(base.maxMean).toBe(12,'source climate must remain immutable');
   const source=readFileSync(new URL('../../src/travelForecastFusion.ts',import.meta.url),'utf8');
+  expect(source).toContain('ec46DailyTemperatureScenario(day,week,share)');
   expect(source).not.toContain('maxDelta=week.tempMaxAnomaly');
   expect(source).toContain('const ecTemp=week.tempMeanAnomaly;');
   expect(source).not.toContain('mean([week.tempMeanAnomaly,week.tempMaxAnomaly,week.tempMinAnomaly])');
@@ -179,7 +192,12 @@ describe('MID Audit 1.4 · native GEFS daily coverage and full EC46 weeks',()=>{
  it('labels every long-range travel card as climatological context, not daily weather',()=>{
   const panel=readFileSync(new URL('../../src/TravelPlannerPanel.tsx',import.meta.url),'utf8');
   expect(panel).toContain("const renderToday=localToday(),initialStart=addDays(renderToday,30)");
-  expect(panel).toContain("const longRange=daysBetween(renderToday,point.date)>=14");
+  expect(panel).toContain("const longRange=!isNativeDailyForecastSource(point.forecastSource)");
+  expect(isNativeDailyForecastSource('Operationelle Tagesprognose + Klimareferenz')).toBe(true);
+  expect(isNativeDailyForecastSource('EC46-Wochenanomalie + ERA5-Tagesklima')).toBe(false);
+  expect(isNativeDailyForecastSource('Saisonales Monatsmittel + ERA5-Tagesklima')).toBe(false);
+  expect(isNativeDailyForecastSource(undefined)).toBe(false);
+  expect(panel).not.toContain("const longRange=daysBetween(renderToday,point.date)>=14");
   expect(panel).not.toContain('daysBetween(localToday(),point.date)');
   expect(panel).toContain("point.forecastSource?'Trend + Klima':'Nur Klima'");
   expect(panel).toContain("'PROGNOSE UND KLIMA'");

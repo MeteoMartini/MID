@@ -1,5 +1,5 @@
 import {guardedOpenMeteoFetch} from './openMeteoGuard';
-import {aggregateGefsUtcDays,consecutiveUtcWeek,ec46DailyApplicability,nativeFinite,seasonalTemperatureScenario,type GefsDayEvidence} from './travelForecastPeriodEvidence';
+import {aggregateGefsUtcDays,consecutiveUtcWeek,ec46DailyApplicability,nativeFinite,seasonalTemperatureScenario,ec46DailyTemperatureScenario,type GefsDayEvidence} from './travelForecastPeriodEvidence';
 import {ensembles,forecast,mapDays,type Day,type EnsembleDay,type Location} from './weather';
 import {loadSeasonalForecast,type DwdQualityMetric,type SeasonalForecastBundle,type SeasonalPointModel} from './seasonalForecast';
 import {addDays,dateRange,daysBetween,travelClimateForDate,type TravelClimateDataset,type TravelClimateDay} from './travelPlanner';
@@ -71,7 +71,7 @@ async function fetchEc46Weeks(location:Location,signal:AbortSignal):Promise<Week
 async function fetchGefsDaily(location:Location,signal:AbortSignal):Promise<GefsDaily[]>{
  const params=new URLSearchParams({latitude:String(location.latitude),longitude:String(location.longitude),models:'ncep_gefs05_ensemble_mean',forecast_days:'35',timezone:'GMT',temperature_unit:'celsius',precipitation_unit:'mm',wind_speed_unit:'kn',hourly:'temperature_2m,precipitation'});
  const payload=await fetchJson<GefsPayload>(ENSEMBLE_ENDPOINT+'?'+params.toString(),signal);
- return aggregateGefsUtcDays(payload.hourly,payload.hourly_units,payload.utc_offset_seconds??0);
+ return aggregateGefsUtcDays(payload.hourly,payload.hourly_units,payload.utc_offset_seconds);
 }
 
 function weekDates(week:WeekSignal){return dateRange(week.start,week.end)}
@@ -113,8 +113,8 @@ function applyEc46Week(days:Record<string,TravelClimateDay>,dataset:TravelClimat
   // climate DAILY temperature distribution. This is NOT the 6h max/min anomaly
   // and does not provide weather for a specific date.
   if(eligibility.temperature){
-   const delta=week.tempMeanAnomaly!*share;
-   for(const parameter of ['maxMean','minMean','meanMean','maxP25','maxP75','minP25','minP75'] as const)day[parameter]+=delta;
+   const shifted=ec46DailyTemperatureScenario(day,week,share);
+   if(shifted)Object.assign(day,shifted);
   }
   // Wind-only weeks do not count as applied daily travel evidence: the UI and
   // rankings use daily maximum wind, not this separately tracked mean.

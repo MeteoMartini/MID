@@ -2,7 +2,7 @@
  * MID Audit 1.4: native UTC and completeness evidence for travel GEFS.
  * Open-Meteo hourly precipitation is the sum of the PRECEDING hour.
  * A missing hour is never interpreted as dry (0 mm); extremes remain intact.
- * Pure O(n), no network, timers or UI dependency.
+ * Pure O(n log n) worst case (sorted UTC day buckets), no network, timers or UI dependency.
  */
 export type GefsDayEvidence={
  date:string;min:number;max:number;mean:number;precipitation:number|null;
@@ -35,7 +35,7 @@ export function consecutiveUtcWeek(days:readonly string[]):boolean{
  return start!==null&&days.every((day,i)=>parseDay(day)===start+i*24*HOUR);
 }
 /** Original UTC samples must be complete and strictly ordered. Unit mismatch fails closed per parameter. */
-export function aggregateGefsUtcDays(hourly:RawHourly|undefined,units:RawUnits|undefined,utcOffsetSeconds:unknown=0):GefsDayEvidence[]{
+export function aggregateGefsUtcDays(hourly:RawHourly|undefined,units:RawUnits|undefined,utcOffsetSeconds:unknown):GefsDayEvidence[]{
  const times=hourly?.time,temperatures=hourly?.temperature_2m,precip=hourly?.precipitation;
  if(!Array.isArray(times)||!Array.isArray(temperatures)||!Array.isArray(precip)||times.length!==temperatures.length||times.length!==precip.length||utcOffsetSeconds!==0)return[];
  const tempUnit=units?.temperature_2m,precipUnit=units?.precipitation;
@@ -90,4 +90,22 @@ export function seasonalTemperatureScenario<T extends SeasonalTempBase>(base:T,a
  if(keys.some(key=>!finiteNumber(base[key])))return undefined;
  const delta=anomaly*share;if(!Number.isFinite(delta))return undefined;
  return {...base,maxMean:base.maxMean+delta,minMean:base.minMean+delta,meanMean:base.meanMean+delta,maxP25:base.maxP25+delta,maxP75:base.maxP75+delta,minP25:base.minP25+delta,minP75:base.minP75+delta} as T;
+}
+
+/** A stored travel day is a true daily forecast only when its original fusion
+ * provenance says so. Calendar lead must not reinterpret pinned EC46/climate
+ * scenarios as a fresh operationelle forecast on a later visit. */
+export function isNativeDailyForecastSource(source:unknown):boolean{
+ return source==='Operationelle Tagesprognose + Klimareferenz';
+}
+
+/** Source-native EC46 WEEKLY 2m MEAN anomaly shifts the daily climate
+ * temperature distribution. Native 6h extrema have no daily Tmax/Tmin meaning.
+ * Missing mean -> no shift and no invented source use. */
+export function ec46DailyTemperatureScenario<T extends SeasonalTempBase>(
+ base:T,
+ signal:Ec46DailySignal&{tempMaxAnomaly?:unknown;tempMinAnomaly?:unknown},
+ share:unknown
+):T|undefined{
+ return seasonalTemperatureScenario(base,signal.tempMeanAnomaly,share);
 }

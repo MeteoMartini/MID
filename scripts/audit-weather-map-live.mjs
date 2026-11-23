@@ -22,7 +22,7 @@ async function get(url){
 }
 async function boundedBytes(response){
  const length=Number(response.headers.get('content-length'));
- if(Number.isFinite(length)&&length>MAP_AUDIT_MAX_IMAGE_BYTES)throw Error('PNG response exceeds image byte budget');
+ if(Number.isFinite(length)&&length>MAP_AUDIT_MAX_IMAGE_BYTES){await response.body?.cancel().catch(()=>{});throw Error('PNG response exceeds image byte budget')}
  const reader=response.body?.getReader();if(!reader)throw Error('Image response body missing');
  const chunks=[];let size=0;
  let timedOut=false;const timer=setTimeout(()=>{timedOut=true;void reader.cancel().catch(()=>{})},12000);
@@ -80,6 +80,6 @@ const tested=results.filter(x=>x.probe==='valid-png-response').length;
 const summary={schema:'mid.weather-map-live-audit.v2',version:cap.version,checkedAt:new Date().toISOString(),source:{origin:base.origin,path:base.pathname},providers:providerStates,scanned:results.length,totalAdvertised:Object.keys(cap.layers).length,
  complete:results.length===Object.keys(cap.layers).length&&Object.values(providerStates).every(x=>x==='verified')&&results.every(x=>['valid-png-response','not-in-current-capabilities'].includes(x.probe)),
  verifiedPng:tested,invalidImage:results.filter(x=>x.probe==='invalid-image-or-http').length,unknown:results.filter(x=>['provider-unchecked','provider-or-transport-error','unverified-time-or-run'].includes(x.probe)).length,
- evidenceScope:'WMS PNG wire only, NOT an original field / pixel / coverage / model quality / browser GPU proof',
+ evidenceScope:'WMS PNG decoded structure only, NOT an original field / pixel / coverage / model quality / browser GPU proof',
  note:'Bounded sequential 256px WMS transport probe; missing weather must not be treated as zero. Full native DWD/RUC/IFS/GFS, MapLibre and iOS QA require distinct tests.',results};
 console.log(JSON.stringify(summary,null,2));

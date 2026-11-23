@@ -24,7 +24,7 @@ export function validateMapAuditPng(raw,{width=256,height=256,maxBytes=MAP_AUDIT
  const bytes=raw instanceof Uint8Array?raw:new Uint8Array(raw);
  if(bytes.length<57||bytes.length>maxBytes)return{ok:false,reason:'png-byte-budget-or-truncation'};
  if(!PNG_SIGNATURE.every((value,index)=>bytes[index]===value))return{ok:false,reason:'not-png'};
- let offset=8,seenHeader=false,seenIdat=false,seenEnd=false,chunks=0,dimensions,depthBits=0,colorType=0,interlace=0,seenPalette=false;
+ let offset=8,seenHeader=false,seenIdat=false,seenEnd=false,chunks=0,dimensions,depthBits=0,colorType=0,interlace=0,seenPalette=false,idatClosed=false;
  const compressed=[];
  while(offset+12<=bytes.length&&++chunks<=1000){
   const size=int32(bytes,offset),typeAt=offset+4,start=offset+8,end=start+size;
@@ -39,8 +39,16 @@ export function validateMapAuditPng(raw,{width=256,height=256,maxBytes=MAP_AUDIT
    if(![0,2,3,4,6].includes(color)||!({0:[1,2,4,8,16],2:[8,16],3:[1,2,4,8],4:[8,16],6:[8,16]}[color]).includes(depth)||bytes[start+10]!==0||bytes[start+11]!==0||bytes[start+12]>1)return{ok:false,reason:'png-invalid-header-encoding'};
    dimensions={width:w,height:h};depthBits=depth;colorType=color;interlace=bytes[start+12];seenHeader=true;
   }else if(type==='IHDR')return{ok:false,reason:'png-duplicate-header'};
-  if(type==='PLTE')seenPalette=true;
- if(type==='IDAT'){seenIdat=true;compressed.push(Buffer.from(bytes.subarray(start,end)))}
+  if(type==='PLTE'){
+   const entries=size/3;
+   if(seenPalette||seenIdat||size===0||size%3!==0||size>768||
+      colorType===0||colorType===4||(colorType===3&&entries>2**depthBits))return{ok:false,reason:'png-invalid-palette'};
+   seenPalette=true;
+  }
+  if(type==='IDAT'){
+   if(idatClosed)return{ok:false,reason:'png-noncontiguous-idat'};
+   seenIdat=true;compressed.push(Buffer.from(bytes.subarray(start,end)));
+  }else if(seenIdat)idatClosed=true;
   if(type==='IEND'){
    if(size!==0||!seenIdat||end+4!==bytes.length)return{ok:false,reason:'png-invalid-end'};
    seenEnd=true;break;
@@ -91,5 +99,9 @@ export function selectMapAuditFrame({layer,metadata,entry,now=Date.now()}){
  }
  const levels=Array.isArray(metadata.elevations)?metadata.elevations.filter(Number.isFinite):[];
  const elevation=levels.length?levels[0]:undefined;
+ // Use the original catalog count plus source allowlist layer semantics;
+ // an elevation-backed field must never fall through to an unspecified default.
+ const levelRequired=Number(entry?.elevationCount)>0||/_fd_(?:pl|gl|ml)_/i.test(layer);
+ if(levelRequired&&elevation===undefined)return{ok:false,reason:'unverified-elevation'};
  return{ok:true,time,run:nowcast?undefined:run,elevation,windowHours,phase:nowcast?'observation-or-nowcast':'forecast-or-static'};
 }
