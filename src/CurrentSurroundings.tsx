@@ -21,6 +21,7 @@ import {admitSurroundingsWmsDecodedImage} from './surroundingsWmsImageAdmission'
 import {planSurroundingsMercatorWmsRaster} from './surroundingsMercatorWmsRaster';
 import {mercatorLatitudeAtImageFraction,type SurroundingsRasterPlan} from './surroundingsViewportRaster';
 import {summarizeSurroundingsOperaCoverage,type SurroundingsOperaCoverage} from './surroundingsOperaCoverage';
+import {interpretSurroundingsMap} from './surroundingsMapInterpretation';
 import {observeSurroundingsVisibleClock} from './surroundingsVisibleClock';
 import './CurrentSurroundings.css';
 
@@ -299,6 +300,13 @@ export default function CurrentSurroundings(props:Props){
  const forecastSiteTemperature=mode==='cloud'&&cloudStep>0?temperatures?.[siteId]:undefined;
  const displaySiteTemperature=mode==='cloud'&&cloudStep>0?forecastSiteTemperature:(mode==='cloud'||radarAtNow)&&Number.isFinite(temperature)?temperature:undefined;
  const visibleClouds=Boolean(clouds&&cloudError!==clouds);
+ // O(1), only already-admitted sources; no meteorological pixel inference.
+ const mapInterpretation=interpretSurroundingsMap(mode==='cloud'
+  ?{mode:'cloud',cloudOriginalAvailable:Boolean(cloudForecast.image)}
+  :{mode:'radar',radar:displayedOpera
+    ?{source:'opera',kind:'Beobachtung',time:displayedOpera.time,coverage:displayedOpera.coverage.kind==='partial'?'partial':displayedOpera.coverage.kind==='complete'?'complete':'unknown'}
+    :displayedRadar?{source:'dwd',kind:displayedRadar.kind,time:displayedRadar.time,coverage:'unknown'}:undefined,
+   satelliteTime:visibleClouds?satelliteTime:undefined,phaseAvailable:Boolean(displayedPhase?.url)});
  return <section className="card current-surroundings" aria-labelledby={heading}>
   <header><h2 id={heading}>Wetter im Umfeld</h2><button type="button" onClick={()=>onOpen(mode==='cloud'?cloudTarget:mode==='radar'?displayTime:undefined,{west,south,east,north})}>Karte öffnen</button></header>
   <div className="current-surroundings-display-modes" role="group" aria-label="Kartendarstellung wählen">
@@ -362,6 +370,7 @@ export default function CurrentSurroundings(props:Props){
     </>
     :<span>{cloudForecast.loading?'Verifiziertes PseudoSat-/SigWx-Modellbild wird geladen …':'Kein gültiges Wolken-/SigWx-Modellbild für Ort und Termin; keine Satellitenbeobachtung oder Entwarnung.'}</span>
     :<span>{!rasterPlan?(rasterPending?'Kartenausschnitt wird vorbereitet …':'Radar-/Satellitenausschnitt geometrisch nicht verfügbar; keine Wetterdaten als 0 interpretiert.'):displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr{displayedOpera.coverage.kind==='partial'?` · Teilabdeckung ${displayedOpera.coverage.percentageLabel} gültige Rasterzellen`:''}</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr · WMS-Bild geladen, Quellabdeckung nicht bestätigt{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:radarStep!==0&&(!radar||target===undefined)?'Kein originales Radar-/Nowcast-Bild für diesen 15-Minuten-Termin':failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</span>}</div>
+  {mapInterpretation&&<p role="note" aria-label="Einordnung des Wetterbilds" className="current-surroundings-interpretation"><strong>Einordnung:</strong> {mapInterpretation}</p>}
   <details className="current-surroundings-sources">
    <summary>Quellen und Datenstand</summary>
    <p>Kartengrundlage · MID-Kartenbereich, OpenFreeMap / OpenStreetMap; Orte Natural Earth und Kartenkacheln</p>
