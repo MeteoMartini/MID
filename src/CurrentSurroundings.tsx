@@ -79,7 +79,7 @@ export default function CurrentSurroundings(props:Props){
  const [cloudStep,setCloudStep]=useState(0); // Step 0 = last UTC quarter-hour; step 9 guarantees >=+120 min
  const [catalog,setCatalog]=useState<CompositeProductTimes>();
  const [failed,setFailed]=useState(false);
- const [loaded,setLoaded]=useState<{url:string;time:number;kind:'Beobachtung'|'Nowcast'}>();
+ const [loaded,setLoaded]=useState<{url:string;time:number;kind:'Beobachtung'|'Nowcast';image:HTMLImageElement}>();
  const [now,setNow]=useState(Date.now);
  const cloudTarget=surroundingsQuarterHourTarget(now,cloudStep);
  const cloudRelativeMinutes=Math.max(0,Math.ceil((cloudTarget-now)/60000));
@@ -201,7 +201,9 @@ export default function CurrentSurroundings(props:Props){
    if(!active)return;
    if(admitSurroundingsWmsDecodedImage(admittedRasterPlan,img.naturalWidth,img.naturalHeight)&&
       radarOriginal?.time===target){
-    setLoaded({url:radar,time:target,kind:radarOriginal.kind});
+    // Keep the *same* decoded, dimension-admitted image for GPU staging.
+    // It remains bound to the complete WMS URL, original term and phase.
+    setLoaded({url:radar,time:target,kind:radarOriginal.kind,image:img});
    }else{
     setImageError(radar);
    }
@@ -271,6 +273,8 @@ export default function CurrentSurroundings(props:Props){
  },[needsOpera,showPhase,lat,lon,rasterPlan,operaRequestKey,catalog?.checkedAt]);
  const displayedOpera=needsOpera?selectVerifiedSurroundingsOperaFrame(opera,operaRequestKey,now):undefined;
  const displayedRadar=mode==='radar'?selectVerifiedSurroundingsRadarFrame(loaded,radar,radarOriginal):undefined;
+ const admittedRadarImage=displayedRadar&&loaded?.url===displayedRadar.url&&
+  loaded.time===displayedRadar.time&&loaded.kind===displayedRadar.kind?loaded.image:undefined;
  const displayedPhase=showPhase&&displayedOpera&&phaseImage?.requestKey===operaRequestKey&&phaseImage?.time===displayedOpera.time?phaseImage:undefined;
  const displayTime=displayedOpera?.time??displayedRadar?.time;
  const temperatureTarget=mode==='cloud'?cloudTarget:radarTarget;
@@ -345,7 +349,8 @@ export default function CurrentSurroundings(props:Props){
     {mode==='cloud'&&cloudForecast.image&&<ImageQuadLayer id="surroundings-model-cloud-weather" url={cloudForecast.image.url}
      bounds={cloudForecast.image.bounds} resampling="nearest" zIndex={270} frameKey={`${cloudForecast.image.run}:${cloudForecast.image.validTime}:pseudo`}/>}
     {mode==='radar'&&visibleClouds&&mapBounds&&<ImageQuadLayer id="surroundings-clouds" key={`surroundings-clouds:${operaRequestKey}`} url={clouds} bounds={mapBounds} zIndex={220} onError={()=>setCloudError(clouds)}/>}
-    {mode==='radar'&&mapBounds&&(displayedOpera??displayedRadar)&&<ImageQuadLayer id="surroundings-radar" key={`surroundings-radar:${operaRequestKey}`} url={displayedPhase?.url??(displayedOpera??displayedRadar)!.url} bounds={mapBounds} zIndex={360}/>}
+    {mode==='radar'&&mapBounds&&(displayedOpera??displayedRadar)&&<ImageQuadLayer id="surroundings-radar" key={`surroundings-radar:${operaRequestKey}`} url={displayedPhase?.url??(displayedOpera??displayedRadar)!.url} bounds={mapBounds} zIndex={360}
+     decodedImage={!displayedOpera&&!displayedPhase?.url?admittedRadarImage:undefined}/>}
     <VectorReferenceLayer url={referenceTileUrl} glyphsUrl={referenceGlyphsUrl} layers={mapReferences} zIndex={790}/>
     <MapCityInventory onChange={updateMapCities}/>
     {nearbyCities.map((place,index)=>{
