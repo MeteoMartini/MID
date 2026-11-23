@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import worker from '../worker/metar-proxy.js';
 
-const start=Math.floor(Date.now()/900_000)*900_000;
+const originalNow=Date.now;
+const start=Math.floor(originalNow()/900_000)*900_000;
+// Freeze only this isolated test process: a real 15-minute boundary must not
+// silently expire the first fixture interval between setup and assertions.
+let testNow=start+5*60_000;
+Date.now=()=>testNow;
 const stamp=lead=>new Date(start+lead*900_000).toISOString();
 const source={
  type:'FeatureCollection',reference_time:stamp(0),timestamps:[stamp(1),stamp(2),stamp(3)],
@@ -30,6 +35,20 @@ try{
  assert.equal(result.kind,'forecast');
  assert.equal(result.license,'CC BY 4.0');
  assert.deepEqual(result.forecast.map(row=>row.amountMm),[0.05,0,null]);
+ // Preserve, rather than weaken, the production contract: an interval ending
+ // exactly at now is no longer future; a zero amount remains valid, and
+ // missing data remain null. Probe both sides of the strict UTC boundary.
+ const firstValid=Date.parse(stamp(1));
+ testNow=firstValid-1;
+ assert.deepEqual((await read()).forecast.map(row=>row.amountMm),[0.05,0,null],
+  'A still-future accumulation stays visible one millisecond before validity');
+ testNow=firstValid;
+ assert.deepEqual((await read()).forecast.map(row=>row.amountMm),[0,null],
+  'At validity, the elapsed accumulation is excluded without losing zero/NoData');
+ testNow=firstValid+1;
+ assert.deepEqual((await read()).forecast.map(row=>row.amountMm),[0,null],
+  'A past interval cannot re-enter an INCA future forecast');
+ testNow=start+5*60_000;
  for(const mutate of [
   data=>{data.features[0].properties.parameters.rr.unit='mm/h'},
   data=>{data.features[0].geometry.coordinates=[12,47]},
@@ -41,5 +60,5 @@ try{
   mutate(upstream);
   assert.equal((await read()).available,false);
  }
-}finally{globalThis.fetch=originalFetch}
+}finally{Date.now=originalNow;globalThis.fetch=originalFetch}
 console.log('GeoSphere INCA: source point, UTC axis, units, NoData, zero and scope verified.');
