@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "version": "0.9.85.513",
-  "title": "14-Tage-Ensemble als Hauptgrafik und sicherer GitHub-Release-Katalog",
+  "title": "LC 1.34 – Release-Katalog-Skip und kanonische 14-Tage-Ensemble-Grafik",
   "date": "2026-11-23",
   "external": [
     "Die vorhandene 14-Tage-Ensemble-Grafik mit Modell- und Unsicherheitsinformationen wird direkt angezeigt; die redundante Temperaturgrafik und der doppelte Analyse-Aufklapper entfallen.",

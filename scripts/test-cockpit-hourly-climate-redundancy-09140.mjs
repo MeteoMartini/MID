@@ -46,7 +46,7 @@ for(const token of [
 forbid('Cockpit',cockpit,"activeHorizon==='fourteen-day'?cockpitDetails?.fourteenDay:undefined");
 forbid('Cockpit',cockpit,'<AnalysisReveal');
 forbid('Cockpit',cockpit,'setAnalysisOpen');
-need('Cockpit single Ensemble owner',cockpit,'data-mid-fourteen-ensemble-primary="true"');
+if(cockpit.split('data-mid-fourteen-ensemble-primary="true"').length!==2)failures.push('Cockpit single Ensemble owner: genau eine Ensemble-Primärfläche erwartet');
 forbid('Cockpit',cockpit,"dailyTemperatureTone(day.max,climateDay?.maxMean,'max')");
 forbid('Cockpit',cockpit,"dailyTemperatureTone(day.min,climateDay?.minMean,'min')");
 forbid('Cockpit',cockpit,'details:{shortTerm?:ReactNode;sevenDay?:ReactNode;fourteenDay?:ReactNode}');

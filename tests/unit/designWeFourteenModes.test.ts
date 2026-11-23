@@ -49,6 +49,17 @@ describe('MID Design-WE 14d real A/B/C rendering',()=>{
   expect(html).toContain('P10–P90');
   expect(html).not.toContain('daily-accumulation-bar');
  });
+ it('A keeps the readable Best Match temperature curve when no original ensemble is available',()=>{
+  preference.mode='compact';
+  const withoutEnsemble=days.map(row=>({...row,ensembleAvailable:false}));
+  const html=renderToStaticMarkup(createElement(FourteenDayDevelopment,{series:withoutEnsemble,unit:'kmh'}));
+  expect(html).toContain('data-mid-fourteen-view="compact"');
+  expect(html).toContain('data-mid-fourteen-fallback="best-match"');
+  expect(html).toContain('Temperatur · Best Match');
+  expect(html).toContain('ohne verfügbare Ensemble-Spannen');
+  expect(html).not.toContain('NaN');
+  expect((html.match(/class="mid-we-fourteen-daytile/g)||[]).length).toBe(14);
+ });
  it('B displays independent temperature, daily amount, probability, wind/gust diagrams',()=>{
   const html=render('charts');
   expect(html).toContain('data-mid-fourteen-view="charts"');

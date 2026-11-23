@@ -39,7 +39,8 @@ const detailed= fourteenBand.indexOf('<LazyFourteenDayDevelopment');
 const compass=fourteenBand.indexOf('<CockpitForecastGuide');
 assert.ok(primary>0&&primary<detailed&&compass>detailed,'The canonical ensemble must be mounted once above 14d day views and the provenance compass');
 assert.ok(fourteenBand.includes('hasEnsemble&&ensembleAnalysis')&&fourteenBand.includes('aria-label="14-Tage-Ensemble-Übersicht"'),'Only real ensembles activate the immediate canonical chart');
-assert.ok(cockpit.includes('ensembleAnalysis={cockpitDetails?.fourteenDay}')&&!cockpit.includes('<AnalysisReveal')&&!cockpit.includes('setAnalysisOpen'),'The original lazy EnsemblePanel owner is reused once without any orphaned reveal-state lifecycle');
+assert.equal(cockpit.split('ensembleAnalysis={cockpitDetails?.fourteenDay}').length-1,1,'The original lazy EnsemblePanel owner must be mounted exactly once');
+assert.ok(!cockpit.includes('<AnalysisReveal')&&!cockpit.includes('setAnalysisOpen'),'No orphaned reveal-state lifecycle remains');
 assert.ok(fourteenBand.includes('<LazyFourteenDayDevelopment series={series} unit={unit} onOpenDay='),'The selected 14d wind unit and interactive full-detail handoff must be retained');
 assert.ok(fourteenBand.includes('<ForecastRangeLegend')&&fourteenBand.includes('data-fourteen-daily-details'),'Legacy uncertainty legend and complete day cards must remain');
 assert.ok(fourteen.includes("mode==='compact'")&&fourteen.includes("mode==='charts'")&&fourteen.includes("mode==='days'"),'14-day A/B/C remain fully functional');
@@ -49,7 +50,7 @@ for(const [name,css] of [['7d',sevenCss],['14d',fourteenCss]]){
 assert.ok(sevenCss.includes('.mid-we-seven-switch-primary'),'Top A/B/C selector must have styling');
 assert.ok(seven.includes('mid-we-seven-daycard')&&seven.includes('aria-controls={open?')&&seven.includes('mode===\'standard\''),'A has seven accessible visual daycards, not only a legacy hint');
 assert.ok(sevenBand.includes('visible.filter(day=>day.date===expandedSevenDate)')&&sevenBand.includes('expandedSevenDate!==null'),'Only an explicitly selected complete original day detail is mounted');
-assert.ok(fourteen.includes('mid-we-fourteen-weeks')&&fourteen.includes('mid-we-fourteen-daytile')&&!fourteen.includes('mid-we-fourteen-chart-feature'),'A keeps both original week tracks while removing the redundant compact temperature chart');
+assert.ok(fourteen.includes('mid-we-fourteen-weeks')&&fourteen.includes('mid-we-fourteen-daytile')&&fourteen.includes('data-mid-fourteen-fallback="best-match"')&&fourteen.includes('const chartTemperature=hasEnsemble?null:fourteenTemperatureSeries(series);'),'A retains both real week tracks and conditional Best-Match temperature fallback without a duplicated ensemble chart');
 assert.ok(fourteenBand.includes('id="mid-fourteen-full-details"')&&fourteenBand.includes('setShowFourteenDayDetails(true)'),'Original fourteen daily detail cards remain reachable by A');
 assert.ok(sevenCss.includes('.mid-we-seven-daycard')&&fourteenCss.includes('.mid-we-fourteen-weekscroll'),'New visual cards and responsive week scroll must be styled');
 assert.ok(fourteen.includes('const chartTemperature=hasEnsemble?null:fourteenTemperatureSeries(series);'),'The technical comparison retains a Best Match fallback only when no ensemble exists');

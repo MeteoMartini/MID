@@ -66,7 +66,8 @@ export function FourteenDayDevelopment({series,unit='kn',onOpenDay}:{series:Row[
   </div>
   {mode==='compact'?<div className="mid-we-fourteen-primary">
    <div className="mid-we-fourteen-mode-head"><span><strong>Woche für Woche</strong></span><small>Wetterphasen, Tageswerte und tatsächliche Unsicherheit</small></div>
-   <div className="mid-we-fourteen-weeks">{weeks.map(week=><section key={week.label} className="mid-we-fourteen-week">
+   {chartTemperature?<div className="mid-we-fourteen-chart-feature" data-mid-fourteen-fallback="best-match"><div className="mid-we-fourteen-mode-head"><span><strong>Temperatur · Best Match</strong></span><small>Ensemble wird ergänzt · keine Quantil-Spannen verfügbar</small></div><HorizonSignalChart label="14 Tage: Best-Match-Höchst- und Tiefsttemperatur ohne verfügbare Ensemble-Spannen" unit="°C" zero={false} connectDaily compact series={chartTemperature}/></div>:null}
+  <div className="mid-we-fourteen-weeks">{weeks.map(week=><section key={week.label} className="mid-we-fourteen-week">
     <header><strong>{week.label}</strong><small>Seitlich scrollbare Tageskarten · Details per Tipp</small></header>
     <div className="mid-we-fourteen-weekscroll" role="region" tabIndex={0} aria-label={week.label+' im Tagesvergleich'}>
      <div className="mid-we-fourteen-weekrow">{week.rows.map(row=><button type="button" className="mid-we-fourteen-daytile" key={row.date}
