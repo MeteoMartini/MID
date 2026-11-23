@@ -1,3 +1,9 @@
+# MID v0.9.85.513
+
+- 14-Tage-Prognose: Die bestehende Ensemble-Hauptgrafik ist in der 14-Tage-Ansicht unmittelbar sichtbar. Die redundante obere Temperaturgrafik und der doppelte Analyse-Aufklapper entfallen; originale Tageswerte, Modellinfos, Unsicherheitsbereiche und Detailmodi bleiben verfügbar.
+- GitHub-Release-Katalog: Der nach erfolgreicher Stable-Promotion vorgesehene Katalogjob wird nicht länger durch regulär übersprungene, optionale Installer-Vorgänger unterdrückt. Release-Core und Stable-Finalizer müssen weiterhin ausdrücklich erfolgreich sein; abgebrochene Workflows bleiben gesperrt.
+- Keine Änderung der amtlichen Warnungen, RUC-/EPS-Frischeprüfung, Datenherkunft, WMO-/DWD-Zeitsemantik oder produktiven Worker-/Pages-Freigabegates.
+
 # MID v0.9.85.512
 
 - GitHub-Release-Katalog: Nach einem vollständig geprüften Installer-/Worker-/Pages-Release und der erfolgreichen Stable-Promotion wird die aktuelle MID-Version zusätzlich als SHA-gebundener GitHub-Release-Eintrag mit Tag und Änderungsnotizen aufgeführt.

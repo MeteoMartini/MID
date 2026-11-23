@@ -52,7 +52,8 @@ export function FourteenDayDevelopment({series,unit='kn',onOpenDay}:{series:Row[
  const [mode,setMode]=useDisplayPreference<FourteenView>('ForecastCockpit.fourteenDevelopment.mode','compact',displayChoice<FourteenView>('compact','charts','days'));
  const weeks=[{label:'Woche 1 · Tage 1–7',rows:series.slice(0,7)},{label:'Woche 2 · Tage 8–14',rows:series.slice(7,14)}].filter(week=>week.rows.length);
  const phases=[{label:'Tag 1–4',rows:series.slice(0,4)},{label:'Tag 5–9',rows:series.slice(4,9)},{label:'Tag 10–14',rows:series.slice(9,14)}].filter(phase=>phase.rows.length);
- const chartTemperature=fourteenTemperatureSeries(series);
+ const hasEnsemble=series.some(row=>row.ensembleAvailable);
+ const chartTemperature=hasEnsemble?null:fourteenTemperatureSeries(series);
  const options:readonly {key:FourteenView;label:string;description:string}[]=[
   {key:'compact',label:'Übersicht',description:'Kompakte Standardansicht'},
   {key:'charts',label:'Diagramme',description:'Erweiterte Diagrammansicht'},
@@ -65,9 +66,6 @@ export function FourteenDayDevelopment({series,unit='kn',onOpenDay}:{series:Row[
   </div>
   {mode==='compact'?<div className="mid-we-fourteen-primary">
    <div className="mid-we-fourteen-mode-head"><span><strong>Woche für Woche</strong></span><small>Wetterphasen, Tageswerte und tatsächliche Unsicherheit</small></div>
-   <div className="mid-we-fourteen-chart-feature"><div className="mid-we-fourteen-mode-head"><span><strong>Temperatur und Unsicherheit</strong></span><small>Best Match und originale Ensemble-Spannen</small></div>
-    <HorizonSignalChart label="14 Tage: Höchst- und Tiefsttemperatur. Best Match mit P10–P90 und P25–P75 der verfügbaren Ensembles" unit="°C" zero={false} connectDaily compact series={chartTemperature}/>
-   </div>
    <div className="mid-we-fourteen-weeks">{weeks.map(week=><section key={week.label} className="mid-we-fourteen-week">
     <header><strong>{week.label}</strong><small>Seitlich scrollbare Tageskarten · Details per Tipp</small></header>
     <div className="mid-we-fourteen-weekscroll" role="region" tabIndex={0} aria-label={week.label+' im Tagesvergleich'}>
@@ -101,7 +99,7 @@ export function FourteenDayDevelopment({series,unit='kn',onOpenDay}:{series:Row[
    })}
   </div>:null}
   {mode==='charts'?<div className="mid-we-fourteen-charts" aria-label="Erweiterte, gemeinsam datierte 14-Tage-Diagramme"><div className="mid-we-fourteen-mode-head"><span><strong>Wetter im Detail</strong></span><small>Gleiche Datumsachse, echte Datenlücken</small></div>
-   <article><h3>Temperatur · Tmax und Tmin</h3><HorizonSignalChart label="14 Tage Temperatur mit Ensemblequantilen" unit="°C" zero={false} connectDaily series={chartTemperature}/></article>
+   {chartTemperature?<article><h3>Temperatur · Tmax und Tmin (Best Match, Ensemble noch ausstehend)</h3><HorizonSignalChart label="14 Tage Best-Match-Temperatur ohne verfügbare Ensemble-Spannen" unit="°C" zero={false} connectDaily series={chartTemperature}/></article>:null}
    <article><h3>Niederschlagsmenge · Tagesakkumulation</h3><HorizonSignalChart label="14 Tage Tagesniederschlag in Millimetern mit Ensemble-Spannen bei verfügbaren Daten" unit="mm/Tag" bars formatValue={compactPrecipitationAmount} series={fourteenPrecipitationSeries(series)}/></article>
    <article><h3>Niederschlagswahrscheinlichkeit · Best Match</h3><HorizonSignalChart label="14 Tage tägliche Best-Match-Niederschlagswahrscheinlichkeit in Prozent, nicht Ensembleübereinstimmung" unit="%" bars formatValue={v=>formatDecimalFixed(v,0)} series={fourteenProbabilitySeries(series)}/></article>
    <article><h3>Wind und Böen · {windUnitLabel[unit]}</h3><HorizonSignalChart label={'14 Tage Wind und Böen in '+windUnitLabel[unit]+' mit echten Ensemble-Spannen bei verfügbaren Daten'} unit={windUnitLabel[unit]} connectDaily formatValue={v=>formatDecimalFixed(v,0)} series={fourteenWindSeries(series,unit)}/></article>
