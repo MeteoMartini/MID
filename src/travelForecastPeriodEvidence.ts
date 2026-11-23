@@ -27,6 +27,8 @@ function parseDay(value:unknown):number|null{
  return Number.isFinite(epoch)&&utcDay(epoch)===value?epoch:null;
 }
 function finiteNumber(value:unknown):value is number{return typeof value==='number'&&Number.isFinite(value)}
+/** Source JSON must supply an actual numeric value: null, false and string '0' are NOT zero. */
+export function nativeFinite(value:unknown):number|undefined{return finiteNumber(value)?value:undefined}
 export function consecutiveUtcWeek(days:readonly string[]):boolean{
  if(days.length!==7)return false;
  const start=parseDay(days[0]);
