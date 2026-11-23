@@ -15,6 +15,7 @@ t(cover(JSON.parse(JSON.stringify([Number.NaN,0])),'nonnegative').valid===1,'JSO
 t(cover([101,99],'probability').status==='partial','PoP range');
 t(cover([null,null],'wmo-code').status==='missing','no default overcast code');
 t(cover([99,0],'wmo-code').status==='complete','genuine WMO codes');
+t(cover([0,3],'wmo-code').completeMean===null && cover([0,3],'wmo-code').completeSum===null,'WMO categories are not arithmetic quantities');
 const twenty=years(Array.from({length:20},(_,i)=>({year:1991+i,value:0})),'nonnegative');
 t(twenty.status==='sufficient'&&!twenty.complete&&twenty.validYears===20,'20/30 explicit coverage');
 const duplicate=years([...Array.from({length:20},(_,i)=>({year:1991+i,value:1})),{year:1991,value:1}],'nonnegative');

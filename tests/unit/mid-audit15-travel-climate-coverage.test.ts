@@ -24,6 +24,7 @@ describe('MID Audit 1.5 · climate field coverage, never missing-as-zero',()=>{
   expect(assessTravelFieldCoverage([101,99],'probability').status).toBe('partial');
   expect(assessTravelFieldCoverage([null,null],'wmo-code')).toMatchObject({status:'missing',completeMean:null});
   expect(assessTravelFieldCoverage([99,0],'wmo-code').status).toBe('complete');
+  expect(assessTravelFieldCoverage([0,3],'wmo-code')).toMatchObject({status:'complete',completeSum:null,completeMean:null,observedMean:null});
  });
  it('does not count duplicate years or pretend 20 valid years are complete 30-year coverage',()=>{
   const rows=Array.from({length:20},(_,index)=>({year:1991+index,value:0}));

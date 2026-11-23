@@ -38,9 +38,9 @@ export function assessTravelFieldCoverage(values: readonly unknown[], field: Tra
     valid,
     total,
     missing: total - valid,
-    completeSum: complete ? sum : null,
-    completeMean: complete ? sum / total : null,
-    observedMean: valid ? sum / valid : null,
+    completeSum: complete && field !== 'wmo-code' ? sum : null,
+    completeMean: complete && field !== 'wmo-code' ? sum / total : null,
+    observedMean: valid && field !== 'wmo-code' ? sum / valid : null,
   };
 }
 
@@ -85,6 +85,6 @@ export function assessTravelClimateYears(samples: readonly ClimateYearSample[], 
     expectedYears: 30,
     minimumYears: 20,
     conflictingYears,
-    referenceMean: validYears >= 20 ? sum / validYears : null,
+    referenceMean: field !== 'wmo-code' && validYears >= 20 ? sum / validYears : null,
   };
 }
