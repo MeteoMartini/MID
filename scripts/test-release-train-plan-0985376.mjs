@@ -621,5 +621,12 @@ test('post-Stable GitHub catalog keeps the original Installer protected and mirr
  assert.doesNotMatch(catalog,/continue-on-error|pull_request_target|force: true|--force/);
  const prior=source.slice(source.indexOf('\n  finalize_release:'),n);
  assert.ok(prior.includes('mid-stable'),'Original Stable promotion must remain');
+ assert.ok(prior.includes("needs.deploy_worker.result == 'success'"),'Finalizer must depend on successful Worker deployment');
+ for(const i of [1,2,3])assert.ok(prior.includes("needs.deploy_pages_"+i+".outputs.deployed == 'true'"),'At least one verified Pages deployment remains required');
+ assert.ok(prior.includes('group: mid-pages'),'Serialized Stable/Pages finalizer must remain');
+ assert.ok(prior.includes('id: stable_guard'),'Original Stable SHA/provenance guard must remain');
+ assert.ok(prior.includes('git/refs/heads/mid-stable'),'Stable promotion must use exact ref');
+ assert.ok(prior.includes('force=false'),'Stable promotion must not be forceful');
+ assert.ok(prior.includes('Finalen Stable-SHA verifizieren und Qualitätsstatus setzen'),'Post-promotion Stable SHA readback must remain');
  assert.ok(!prior.includes('publish-verified-release-catalog.mjs'),'No catalog write before Stable');
 });
