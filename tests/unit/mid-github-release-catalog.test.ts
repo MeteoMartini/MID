@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {assessMidCatalogEvidence,renderMidCatalogBody,verifyMidCatalogReadback,verifyMidExistingCatalogLatest} from '../../tools/release/publish-verified-release-catalog.mjs';
+import {assessMidCatalogEvidence,renderMidCatalogBody,verifyMidCatalogReadback,verifyMidExistingCatalogLatest,verifyMidTagReservation} from '../../tools/release/publish-verified-release-catalog.mjs';
 const sha='a'.repeat(40),packageSha='b'.repeat(40),mergeSha='c'.repeat(40),
  version='0.9.85.497',runId=44121560818;
 const green=name=>({name,status:'completed',conclusion:'success'});
@@ -70,6 +70,13 @@ describe('MID post-Stable GitHub Releases catalog eligibility (not recovery auth
   }
   reject({jobs:[...baseline().jobs,green(names[0])]});
  });
+ it('atomically reserved tag must match both created and independently reread ref',()=>{
+  const tag='v'+version,ref={ref:'refs/tags/'+tag,object:{type:'commit',sha}};
+  expect(verifyMidTagReservation({createdTag:ref,readback:ref,tag,sha})).toBe(true);
+  expect(verifyMidTagReservation({createdTag:ref,readback:{...ref,object:{type:'commit',sha:mergeSha}},tag,sha})).toBe(false);
+  expect(verifyMidTagReservation({createdTag:{...ref,object:{type:'tag',sha}},readback:ref,tag,sha})).toBe(false);
+  expect(verifyMidTagReservation({createdTag:ref,readback:ref,tag:'v0.9.85.488',sha})).toBe(false);
+ });
  it('rejects installer/Stable commits not belonging to exact ZIP-only lineage',()=>{
   reject({run:{...baseline().run,head_sha:'d'.repeat(40)}});
   reject({stableCommit:{...baseline().stableCommit,parents:[{sha:'d'.repeat(40)}]}});
@@ -102,6 +109,19 @@ describe('MID post-Stable GitHub Releases catalog eligibility (not recovery auth
   reject({jobs:jobs.map(j=>j.name===name?{...j,status:'completed',conclusion:'success'}:j)});
   reject({jobs:[...jobs,{name,conclusion:null,status:'in_progress'}]});
   reject({jobs:[...jobs,{name:'Unrelated failed gate',status:'completed',conclusion:'failure'}]});
+ });
+ it('permits only superseded failed Pages attempts before a later real successful deploy',()=>{
+  const jobs=baseline().jobs.map(j=>j.name==='MID auf GitHub Pages veröffentlichen · Versuch 1'
+    ?{...j,conclusion:'failure'}:j);
+  jobs.push(green('MID auf GitHub Pages veröffentlichen · Versuch 2'));
+  expect(evalWith({jobs})).toMatchObject({state:'ELIGIBLE_METADATA_ONLY',createAllowed:true});
+  reject({jobs:[...jobs,{name:'MID auf GitHub Pages veröffentlichen · Versuch 3',
+    status:'completed',conclusion:'failure'}]});
+  reject({jobs:[...jobs,{name:'MID auf GitHub Pages veröffentlichen · Versuch 3',
+    status:'completed',conclusion:'cancelled'}]});
+  reject({jobs:jobs.map(j=>j.name==='MID auf GitHub Pages veröffentlichen · Versuch 2'
+    ?{...j,conclusion:'skipped'}:j)});
+  reject({jobs:[...jobs,{name:'Unrelated mandatory job',status:'completed',conclusion:'failure'}]});
  });
  it('refuses ambiguous multi-success or failing Pages attempts',()=>{
   reject({jobs:[...baseline().jobs,green('MID auf GitHub Pages veröffentlichen · Versuch 2')]});

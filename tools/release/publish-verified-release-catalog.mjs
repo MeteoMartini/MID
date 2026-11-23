@@ -45,6 +45,16 @@ export function verifyMidCatalogReadback({created,postTag,postRelease,latestRele
 }
 
 
+// A tag is reserved through a single atomic create-ref API call BEFORE its
+// release is published. Any mismatch or orphaned tag requires operator review.
+export function verifyMidTagReservation({createdTag,readback,tag,sha}={}){
+ return SHA.test(sha||'')&&typeof tag==='string'&&
+   createdTag?.ref==='refs/tags/'+tag&&createdTag.object?.type==='commit'&&
+   createdTag.object.sha===sha&&
+   readback?.ref==='refs/tags/'+tag&&readback.object?.type==='commit'&&
+   readback.object.sha===sha;
+}
+
 // An idempotent entry is only complete if GitHub still lists it as latest.
 export function verifyMidExistingCatalogLatest({existingRelease,tagRef,latestRelease,tag,sha,body}){
  return verifyMidCatalogReadback({created:existingRelease,postTag:tagRef,
@@ -93,7 +103,24 @@ export function assessMidCatalogEvidence(data={}){
  const catalogJobs=jobs.filter(j=>j?.name==='SHA-verifizierten GitHub Release-Katalog nach Stable aktualisieren');
  if(catalogJobs.length!==1||catalogJobs[0].status!=='in_progress'||catalogJobs[0].conclusion!==null)
   return block('CATALOG_JOB_PROVENANCE_INVALID');
+ // Only genuine earlier Pages retry failures may be superseded by an
+ // independently successful later deployment. Every other failed/cancelled
+ // Installer job remains a hard blocker (including cancelled Heavy shards).
+ const pagesName=/^MID auf GitHub Pages veröffentlichen · Versuch ([123])$/;
+ const pageJobs=jobs.filter(j=>pagesName.test(j?.name||''));
+ const pageAttempts=pageJobs.map(j=>Number(pagesName.exec(j.name)[1]));
+ const successes=pageJobs.filter(succeeded);
+ if(pageJobs.length<1||pageJobs.length>3||
+    new Set(pageAttempts).size!==pageAttempts.length||successes.length!==1)
+  return block('PAGES_DEPLOYMENT_NOT_GREEN');
+ const successfulAttempt=Number(pagesName.exec(successes[0].name)[1]);
+ const supersededPages=new Set(pageJobs.filter(j=>j.conclusion==='failure'&&
+   Number(pagesName.exec(j.name)[1])<successfulAttempt));
+ if(pageJobs.some(j=>j.status!=='completed'||
+    !['success','skipped'].includes(j.conclusion)&&!supersededPages.has(j)))
+  return block('PAGES_DEPLOYMENT_NOT_GREEN');
  if(jobs.some(j=>j?.name!=='SHA-verifizierten GitHub Release-Katalog nach Stable aktualisieren'&&
+    !supersededPages.has(j)&&
     (j?.status!=='completed'||!['success','skipped'].includes(j.conclusion))))
   return block('OTHER_INSTALLER_JOB_UNVERIFIED');
  const exactlyOneSuccess=name=>jobs.filter(j=>j?.name===name).length===1&&
@@ -107,11 +134,8 @@ export function assessMidCatalogEvidence(data={}){
  if(optionalPrep.length!==1||optionalPrep[0].status!=='completed'||
     !['success','skipped'].includes(optionalPrep[0].conclusion))
   return block('PAGES_ARTIFACT_PREPARATION_INVALID');
- // A skipped staging job is permissible only when a genuine Pages deploy succeeded.
- const pageJobs=jobs.filter(j=>/^MID auf GitHub Pages veröffentlichen · Versuch [1-9]\d*$/.test(j?.name||''));
- if(!pageJobs.length||pageJobs.filter(succeeded).length!==1||
-    pageJobs.some(j=>j.status!=='completed'||!['success','skipped'].includes(j.conclusion)))
-  return block('PAGES_DEPLOYMENT_NOT_GREEN');
+ // A skipped staging job is permissible only when the verified real
+ // deployment above succeeded and no later failed/cancelled attempt exists.
  const tag='v'+version;
  if(tagRef!=null&&(tagRef.ref!=='refs/tags/'+tag||
     tagRef.object?.type!=='commit'||tagRef.object.sha!==releaseSha))
@@ -201,10 +225,20 @@ export function publishMidCatalogFromInstaller(){
  if(!evidence.createAllowed)throw Error('Catalog blocked: '+evidence.reason);
  if(refSha('main')!==sha||refSha('mid-stable')!==sha)
   throw Error('Branch SHA drift immediately before catalog create');
- // GitHub's release POST is the only write. Detect late competing tags/releases first.
+ // The check alone is not atomic: reserve exactly this lightweight tag
+ // with a single GitHub create-ref operation, which rejects duplicate refs.
+ // On an ambiguous failure NEVER retry or overwrite the tag automatically.
  if(githubApi('repos/'+REPO+'/git/ref/tags/'+tag,'GET',undefined,true)!=null||
     githubApi('repos/'+REPO+'/releases/tags/'+tag,'GET',undefined,true)!=null)
   throw Error('Late tag or release race: refuse metadata publication');
+ const createdTag=githubApi('repos/'+REPO+'/git/refs','POST',{
+  ref:'refs/tags/'+tag,sha
+ });
+ const reservedTag=githubApi('repos/'+REPO+'/git/ref/tags/'+tag);
+ if(!verifyMidTagReservation({createdTag,readback:reservedTag,tag,sha}))
+  throw Error('Atomic tag reservation/readback mismatch; manual review required');
+ if(refSha('main')!==sha||refSha('mid-stable')!==sha)
+  throw Error('Branch drift after tag reservation; orphaned tag requires operator review');
  const body=renderMidCatalogBody({tag,notes,sha,runId});
  const created=githubApi('repos/'+REPO+'/releases','POST',{
   tag_name:tag,target_commitish:sha,name:'MID '+tag,
@@ -213,8 +247,9 @@ export function publishMidCatalogFromInstaller(){
  const postTag=githubApi('repos/'+REPO+'/git/ref/tags/'+tag);
  const postRelease=githubApi('repos/'+REPO+'/releases/tags/'+tag);
  const latestRelease=githubApi('repos/'+REPO+'/releases/latest');
- if(!verifyMidCatalogReadback({created,postTag,postRelease,latestRelease,tag,sha,body}))
-  throw Error('New release tag/SHA/content/latest readback mismatch');
+ if(!verifyMidCatalogReadback({created,postTag,postRelease,latestRelease,tag,sha,body})||
+    refSha('main')!==sha||refSha('mid-stable')!==sha)
+  throw Error('New release tag/SHA/content/latest/branch readback mismatch');
  console.log('MID_GITHUB_CATALOG_ENTRY='+JSON.stringify({
   version,tag,sha,runId,releaseId:created.id,catalogOnly:true,recoveryAuthorized:false
  }));
