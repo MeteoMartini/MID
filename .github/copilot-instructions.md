@@ -8,6 +8,8 @@ MID is a German-language, scientifically grounded, accessible and responsive wea
 
 ## Efficient task routing and authority
 
+ChatGPT checks the complete **currently installed** plugin/skill/app set for each user-authorized MID task, without requiring explicit `@` mentions. It invokes only task-relevant, connected, permitted, cost-safe tools, optionally combining them when this adds verifiable value. The routing examples are not an exhaustive allowlist. This selection belongs to ChatGPT, not to Copilot; it does not authorize Copilot to activate other agents or bypass scope, review, source and release gates.
+
 ChatGPT chooses the least costly sufficient available agent/plugin **for a concrete user-authorized MID task**, as documented in [MID agent/plugin routing](../docs/implementation/MID_AGENT_PLUGIN_ROUTING_2026_11_07.md) and binding [AGENTS.md](../AGENTS.md). You are **not** the automatic default for every task: if a direct GitHub readback or existing deterministic test suffices, no Copilot cloud task is needed. When assigned through a GitHub Issue, report results and any candidate only in the linked Issue/untrusted Draft, using exact verified SHAs, file inventory, reproducible tests and missing-gate statuses. Do not trigger a second agent, Kilo, Replit or a paid provider independently; no duplicate tasks, follow-ups, tokens, permission escalations or extra paid calls. Routine source reading/testing within the user's authorized scope needs no re-asking, but runtime permissions and privileged human approvals still apply. Copilot may never process the MID release/merge gates autonomously.
 
 ## Mandatory read-only preflight for every task

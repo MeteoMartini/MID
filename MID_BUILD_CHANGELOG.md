@@ -1,3 +1,12 @@
+## MID v0.9.85.514 · 2026-11-23 · LC 1.34 – Originalzeitintervalle im Reiseplaner, WMS-Kartenaudit und dynamisches Plugin-Routing
+
+- **Verifizierte Ausgangsbasis:** `main=mid-stable=331fffff081303e1c597badddfa4ae41c4b4e0f0` / v0.9.85.513, Release [v0.9.85.513](https://github.com/MeteoMartini/MID/releases/tag/v0.9.85.513) nach erfolgreichem Installer #45169135490; fünf aktive Rulesets.
+- **Präziser Original-Intake:** Die voneinander unabhängigen QA-Branches #995 (6 Governance-Pfade), #992 (5 EC46-/GEFS-Reise-Pfade), #988 (4 read-only WMS-Audit-Pfade inkl. zweifacher MID_BASELINE-Testregistrierung) werden SHA-/Blob-gebunden selektiv übernommen; kein historischer Branch-Merge, kein Überschreiben von Spezialistenarbeiten.
+- **Meteorologische Korrekturen:** GEFS UTC-Temperatur-Momentanwerte und endgestempelte 1h-Niederschlagsintervalle werden getrennt auf vollständige 24-Stunden-Tage geprüft; Missing bleibt Missing, echte 0 mm bleibt 0, unplausible Originalextreme werden nicht automatisch geglättet. EC46-Wochensignal nur bei echter 7/7-Wochenabdeckung und feldgerechter Tagesanwendbarkeit.
+- **Sicheres Kartenaudit:** WMS-Modelllauf, Valid Time, Akkumulationsintervall und komplette PNG-Transportintegrität werden lesend geprüft, ohne aus gültigen Bytes fiktive meteorologische Deckung oder echte WebGL-Pixelqualität zu folgern.
+- **Governance/Scope:** Dynamisches Plugin-Routing ohne neue Agentenrechte, Abos, Watcher-Aktivierungen, Secrets oder Regelausnahmen. #937 Umfeldkarte, #993 27h-RUC-Shadow und #991 natives 27h-Inventar bleiben separate QA-Drafts; P0-RUC/EPS-Quellenlücke #541 bleibt offen.
+- **Status als Source-Draft:** Erst die tatsächlich auf dem kombinierten HEAD durchlaufenden vollständigen Source-/Review-/Core-/Heavy-/ZIP-/Installer-/Worker-/Pages-/Stable-/GitHub-Katalog-Nachweise autorisieren Veröffentlichung. Keine echten iOS-Gerätetests behauptet.
+
 ## MID v0.9.85.513 · 2026-11-23 · LC 1.34 – Release-Katalog-Skip und kanonische 14-Tage-Ensemble-Grafik
 
 - **Verifizierte Basis:** `main=mid-stable=3195012b1b72b4cc3bbd762c2fbd859a924aadc7` / v0.9.85.512; Installer #45150996794 vollständig erfolgreich, Worker/Pages/Stable grün. Die nachgelagerte Katalogstufe war im Originalrun `skipped`, `releases/latest` zeigte weiterhin v0.9.85.119 (#901).

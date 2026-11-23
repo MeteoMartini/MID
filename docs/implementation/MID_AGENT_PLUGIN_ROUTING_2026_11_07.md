@@ -1,10 +1,12 @@
 # MID – bedarfsgerechte Agenten- und Plugin-Nutzung (07.11.2026)
 
-**Verbindlicher ergänzender Arbeitsvertrag zu `AGENTS.md`.** Dieser Text begründet keine zusätzlichen Zugriffsrechte und gilt erst nach dem regulären MID-Source-/Release-Gate auf Stable. Historische Vorbereitungsbasis: `main=mid-stable=b6526e7c5c24035bd1a75b87b77e7bb8e821c334`, v0.9.85.445; **vor jedem Auftrag live neu verifizieren**. Nutzerentscheidungen und die versionierten Verträge bleiben vorrangig.
+**Verbindlicher ergänzender Arbeitsvertrag zu `AGENTS.md`, nach erfolgter regulärer Stable-Promotion maßgeblich.** Der Stand vom 07.11.2026 ist Entstehungshistorie, keine gegenwärtige SHA-, Versions- oder Aktivitätsbehauptung. Vor jedem Auftrag die aktuellen Refs/Verträge und Berechtigungen neu verifizieren. Dieser Vertrag erweitert keine Rechte und ersetzt weder Nutzerentscheidungen noch strengere MID-Sicherheits- und Release-Gates.
 
 ## 1. Grundsatz: ChatGPT wählt die kleinste sichere, belegbar wirksame Unterstützung
 
 **Automatisch nach Bedarf** bedeutet: Innerhalb eines **konkret vom Nutzer autorisierten MID-Auftrags** darf ChatGPT selbstständig geeignete bereits verbundene Plugins/Agenten als Werkzeuge auswählen, lesende Abfragen und freigegebene begrenzte Handoffs initiieren, Ergebnisse selbst in GitHub abholen, unabhängig prüfen und den nächsten sicheren Teilschritt ausführen. Der Nutzer muss weder Prompts noch Patches zwischen GitHub/Copilot/Kilo/ChatGPT kopieren noch reine technische Routineentscheidungen erneut bestätigen.
+
+**Dynamische Vollständigkeitsprüfung, selektive Ausführung:** Vor der Werkzeugwahl alle **aktuell installierten** Plugins einschließlich enthaltener Skills und Apps als potenzielle Kandidaten berücksichtigen – ohne dass der Nutzer `@` angeben muss. Fachlich geeignete Werkzeuge nur nach Prüfung der aktuellen Verbindung, Aktivierung, Berechtigung, Datenfreigabe, Kosten-/Creditlage und vorhandenen parallelen Arbeiten wirklich verwenden. Die untenstehende Zuordnung enthält Beispiele und Rollen-Grenzen, **keine abschließende Allowlist**. Bereits installierte, aber hier nicht namentlich aufgeführte Plugins sind nicht pauschal ausgeschlossen. Unpassende Plugins nicht aufrufen, redundante Abfragen vermeiden, unabhängige sinnvolle Quellen nur bei Mehrwert kombinieren. Nicht installierte oder nicht verbundene Plugins werden nicht als verfügbar behauptet. Tatsächlich benutzte Tools und ausstehende Prüfungen knapp dokumentieren.
 
 Das ist **keine** Ermächtigung zu autonomen neuen Produktentscheidungen, unbestellten Folgeaufträgen, unspezifischem Creditverbrauch, neuen Abonnements/Anbietern/Schlüsseln, Rechteausweitungen, Sicherheits- und Branchschutzänderungen, Releases oder Gateumgehungen. Benutzerpflichtige Anmeldung/OAuth- und privilegierte Zustimmung verbleiben beim Nutzer; vorhandene Runtime-Freigaben sind zu beachten.
 
@@ -31,6 +33,9 @@ Das ist **keine** Ermächtigung zu autonomen neuen Produktentscheidungen, unbest
 | Nutzungs-, Performance- und Fehlerdaten | **PostHog** nur wenn datenschutzkonform und freigegeben/verbunden | Nur notwendige aggregierte Telemetrie; Einwilligung/Opt-in und Qualität der Instrumentierung prüfen; Rohereignisse ≠ wissenschaftliche Nachweise |
 | PR Review, CI-Konflikttriage, Regressionsevidenz | **PR Completion**, sofern verfügbar/autorisiert | Hilfsprüfung; **niemals** dessen generisches Mergeverfahren statt des MID-SHA-Release-Bots |
 | Editierbare Designs / Design-System-Layer | **Figma**, wenn angefordert und Zugriffsrechte passen | Nur Designartefakte, keine ungesicherte Code-/Releaseintegration |
+| Cloudflare Workers, Pages, R2 und produktive Laufzeitdiagnose | **Cloudflare**, falls verbunden und erforderlich | GitHub bleibt Code-/Release-Source-of-Truth; keine eigenständigen Deploys oder Secrets-Änderungen |
+| Zusätzliche eng begrenzte PR-/QA-Triage | **PR Readiness** oder andere installierte Prüftools, sofern nachweisbar verfügbar | Beratung/Prüfung, niemals Umgehung des MID-Source-/Review-/Release-Gates |
+| Sonstige installierte Plugins und neue fachlich passende Werkzeuge | Dynamische Eignungsprüfung statt fester Positivliste | Fachlicher Nutzen, aktuelle Verbindung/Rechte, Datenschutz, Kosten, Nichtüberschneidung und Nutzerauftrag zwingend |
 
 **Weitere Apps:** Nur wenn die konkrete Aufgabe einen fachlichen Mehrwert verspricht und Verfügbarkeit, Rechte, Datenschutz und Kosten geprüft sind. Nicht benötigte Plugins **nicht** nur der Vollständigkeit halber aufrufen; Firecrawl/Context7 nicht für statische Repo-Fakten, PostHog nicht für Bugfix-Tests ohne verwertbare Telemetrie.
 
@@ -50,21 +55,9 @@ Das ist **keine** Ermächtigung zu autonomen neuen Produktentscheidungen, unbest
 - Nie Secrets ausgeben, breit berechtigte PATs erstellen, Authentifizierung umgehen, Regeln lockern, signierte Verträge manipulieren, Tests „grün“ behaupten ohne Lauf, Phantom-Release melden oder Produktionswarnungen aus eigenen Heuristiken erzeugen.
 - **Release ausschließlich:** unabhängige vollständige SHA-/Diff-/Test-/Vertragsprüfung → autorisierter Source-PR → Source-PR-Gate → kontrollierter SHA-gebundener Merge → serverseitiges ZIP → `install-mid.yml` → betroffene Worker/Pages/Browser/iOS-Abnahmen → Stable-Promotion. Von Agenten erstellte Drafts dürfen nicht selbst diesen Prozess auslösen.
 
-## 5. Monitoring / Automations – geprüft am 07.11.2026
+## 5. Monitoring / Automations – Live-Bestand ist maßgeblich
 
-Ein einmaliger Agentenaufruf ersetzt **keine periodische Fremddaten-/Betriebs-/Freigabeüberwachung**. Prüfen, nicht einfach alle Wachen deaktivieren.
-
-| Aktive Aufgabe | Bisheriger Rhythmus | Aufgabe, weshalb weiterhin nötig |
-|---|---|---|
-| MID Kilo-Handoff-Integration | stündlich | Entdeckung/Identitäts-/Tree-/Blob-/Replay-Prüfung neuer ref-freier Kilo-Code-Issues; der neue Kilo-GitHub-Bot deckt **nur lesende Audits** ab |
-| MID RUC & Karten – Freigabewache | alle 4 Stunden | Echte Produktionsdaten-/RUC-Frische, EPS20, native FullDomain, PR-/CI-/Installer-Gates |
-| Open-Meteo MID Watch | alle 3 Tage | Breaking Changes/Quoten/Parameter/Modell-Endpunkte; nicht identisch mit allgemeiner Wetterdatenquellen-Recherche |
-| MID – Vollständiger Qualitätsaudit | alle 10 Tage | Systemweite, versions-/ansichtsübergreifende QA; nicht durch einen Einzel-Copilot-/Kilo-Auftrag ersetzt |
-| MID – neue Wetterdatenquellen | wöchentlich | Neu verfügbare Modelle/amtliche Quellen/Lizenzen außerhalb etablierter Quellen, nicht nur API-Breaking-Changes |
-
-**Entscheidung: 5/5 vorerst beibehalten; 0 sicher ersetzbare Wachen.** Wiederholungen bei unverändertem SHA/Runs sollten keine Benachrichtigungen erzeugen. Nur neue belegte Ereignisse/Blocker melden; nicht pro Tool eine weitere parallele Wache hinzufügen. Einen Watch erst deaktivieren, wenn die funktional äquivalente Alternative incl. Zeitplan, Latenz, Rechte/Verfügbarkeit, Fehlersignalen, End-to-End-Readback und Verantwortlichkeit geprüft und dokumentiert ist. Alte bereits pausierte historische Release-Wachen bleiben pausiert.
-
-**Automationsbereinigung am 07.11.2026 durchgeführt:** Der Open-Meteo-Watcher hatte noch eine ältere Formulierung zur automatischen Codeübernahme; dieser Prompt wurde auf lesende SHA-/Quellenevidenz und Umsetzungsreife ohne eigene Commits/Agenten-/Releaseaktionen geändert. Im 10-tägigen Qualitätsaudit wurde die widersprüchliche eigenständige P0/P1-Reparaturanweisung präzisiert: vollständige lesende Diagnose/Abnahmekriterien, aber keine autonomen Quelländerungen. Die Aufgabenverwaltung bestätigte **beide Prompt-Updates** mit erhaltenem **aktivem Status und unveränderten Zeitplänen**. Die anderen drei Wachen blieben unverändert. Kein Watch deaktiviert, keine neue Automation erstellt.
+Monitoring und konkrete Agentenaufträge sind verschiedene Vorgänge. **Keine historische Liste mit einer festen Zahl aktiver Wachen oder früheren Zeitplänen als aktuellen Betriebszustand ausgeben.** Vor einer Aussage über aktive Automationen deren aktuellen Status und Konfiguration im zuständigen Task-System prüfen. Die beim ersten Entwurf vom 07.11.2026 beobachteten Wachen sind eine historische Momentaufnahme; einzelne davon können inzwischen deaktiviert oder ersetzt sein. Alte Beschreibungen oder frühere Erfolge berechtigen weder zur Reaktivierung noch zu einem neuen Monitoringauftrag. Bereits aktive Aufgaben nicht doppeln; Pausierungen respektieren. Ersetzung ausschließlich nach nachgewiesener gleichwertiger Ereignis-/Zeitplanabdeckung und sicherem Readback.
 
 ## 6. Handoff-Dokumentation / historische Tests
 
@@ -73,4 +66,4 @@ Ein einmaliger Agentenaufruf ersetzt **keine periodische Fremddaten-/Betriebs-/F
 - [Kilo ref-free Coding Handoff](MID_KILO_DEFAULT_HANDOFF_CONTRACT_2026_11_05.md): separater früherer Pilot [#662](https://github.com/MeteoMartini/MID/issues/662) → [Draft #663](https://github.com/MeteoMartini/MID/pull/663).
 - Etwaige technische Änderungen an Freigaben, GitHub-Rulesets, CI, OAuth oder Cloud-Abrechnung sind **nicht** Bestandteil dieses Dokuments.
 
-**Dieser Governance-Kandidat ist erst mit regulärem MID-Release auf `mid-stable` maßgeblich; ein Draft-Pilot ist nicht veröffentlicht.**
+**Status:** Dieser auf `mid-stable` bereits enthaltene Governance-Vertrag ist verbindliche Arbeitsanweisung; seine historischen Pilot-/Commit-Beispiele bleiben ausdrücklich **keine** aktuellen Release-, Automations- oder Verbindungsnachweise. Zukünftige Änderungen gelten erst nach dem vollständigen MID-Releasepfad.

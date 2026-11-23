@@ -5,6 +5,8 @@ description: Mandatory safe handoff workflow whenever a Kilo cloud coding agent 
 
 # MID Kilo work and handoff
 
+**Dynamic plugin governance:** ChatGPT considers all currently installed plugins/skills/apps automatically for a concrete authorized task without an `@` requirement, but invokes only relevant, connected, permitted, cost-safe tools. The routing examples in `AGENTS.md` are not a closed list. Kilo is **not** automatically selected and may not delegate to, install, or pay for other agents; its existing ref-free handoff and read-only GitHub bot boundaries remain unchanged.
+
 **Task-router gate:** ChatGPT selects Kilo only when a **specific user-authorized, bounded** MID task benefits from Kilo and existing connection/credits/scope are verified. See [MID agent/plugin routing](../../../docs/implementation/MID_AGENT_PLUGIN_ROUTING_2026_11_07.md) and `AGENTS.md`. For read-only GitHub audits use the independent `@kilocode-bot` Issue route only; for user-directed Kilo **code** work preserve the existing ref-free SHA-verified handoff steps below. Do not self-originate, duplicate or escalate tasks, make paid/credential changes, or use the GitHub bot's autonomous branch/PR creation for MID coding. Use connected GitHub evidence for response so no patch copying is needed; no source/release privileges are added.
 
 
