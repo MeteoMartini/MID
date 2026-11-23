@@ -1,3 +1,12 @@
+## MID v0.9.85.515 · 2026-11-23 · P0 Mountain-Visual-Recovery und .514-Reise-/WMS-Originalquellen
+
+- Recovery-Parent: Stable .513 331fffff081303e1c597badddfa4ae41c4b4e0f0, .514 Source Merge 294bf1b4181d25f9c8868de175e1ecb4cf2bb3b8, fehlgeschlagener Main-ZIP-only f6b4856ed1e2de8d659aa15383a2e06aac526bc0. Keine Ref-Mutation auf main/stable.
+- Original-Installer #45195086142 Attempt 1 fehlgeschlagen an heavy-mountain-visual; 11 success/1 failure/10 skipped. Alte ZIP-Bytes bleiben im geschützten Main erhalten.
+- Bestehender offizieller audit-failed-release / Source-PR-Reviewguard prüft die ursprüngliche GitHub-Installer-Historie; kein Blind-Retry oder Review-/Source-Gate-Bypass.
+- Lokal neuer Node22 RED→GREEN-Fall: 3 identische Core-GETs vor Fix, 1 danach. Weitere 12 Mountain-Nodechecks PASS; zwei Pakete offline fehlend, vollständiger TS-Typecheck/Browsertest/Ios/Source/Installer noch offen.
+- Komplette Quelle aus unveröffentlichtem .514 Source Merge einschließlich #988/#992/#995 bleibt erhalten; keine Aufnahme anderer parallel entwickelter QA-Drafts.
+- Full original Source/Core4/Heavy6, Review/Cubic, Bot server ZIP, Installer/Core4/Heavy6, Worker/Pages, Stable-Promotion und GitHub-Releases/latest noch als NOT VERIFIED zu führen.
+
 ## MID v0.9.85.515 · P0 Recovery: Bergwetter Saisonprofil und .514-Source-Erhalt (Kandidat)
 
 - .513 Stable SHA 331fffff081303e1c597badddfa4ae41c4b4e0f0 → unveröffentlichter .514 Source-Merge 294bf1b4181d25f9c8868de175e1ecb4cf2bb3b8 → .514 Installer #45195086142 fehlgeschlagen; originaler ZIP-only-Commit f6b4856ed1e2de8d659aa15383a2e06aac526bc0 auf main bleibt unverändert.
