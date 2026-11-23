@@ -249,11 +249,15 @@ export function publishMidCatalogFromInstaller(){
   const oldId=match.length===1?Number(match[0][1]):0;
   const previousRun=Number.isSafeInteger(oldId)&&oldId>0?
    githubApi('repos/'+REPO+'/actions/runs/'+oldId):null;
+  // Re-read mutable tag/release metadata after the previous-run lookup.
+  // Never attest an idempotent receipt from stale initial metadata.
+  const freshTagRef=githubApi('repos/'+REPO+'/git/ref/tags/'+tag,'GET',undefined,true);
+  const freshRelease=githubApi('repos/'+REPO+'/releases/tags/'+tag,'GET',undefined,true);
   const latestRelease=githubApi('repos/'+REPO+'/releases/latest');
   if(refSha('main')!==sha||refSha('mid-stable')!==sha||
      git.stdout.trim()!==sha||
      !verifyMidNoopCatalog({sha,versions,notes,currentRun:run,currentRunId:runId,
-       tagRef,existingRelease,latestRelease,previousRun,packageSha}))
+       tagRef:freshTagRef,existingRelease:freshRelease,latestRelease,previousRun,packageSha}))
    throw Error('No-op requires existing exact verified latest Catalog; no new publication');
   console.log('MID_GITHUB_CATALOG_NOOP_VERIFIED='+JSON.stringify({sha,tag,runId,catalogOnly:true}));
   return;
