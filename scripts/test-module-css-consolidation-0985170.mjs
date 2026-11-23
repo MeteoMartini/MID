@@ -189,7 +189,7 @@ assert.ok(!app.includes('function storedWidgetSettings('),'Widget implementation
 for(const file of files.keys())assert.ok(!/from ['"]\.\/App['"]|import\(['"]\.\/App['"]\)/.test(read(file)),`${file}: forbidden reverse dependency into App`);
 assert.match(read('src/WidgetGenerator.tsx'),/SevenDayCurveOverview/,'Widget must retain the common curve renderer');
 assert.match(read('src/WidgetGenerator.tsx'),/freezeWidgetSvgPaintsForExport/,'PNG export must retain resolved SVG paints');
-assert.match(read('src/MountainWeather.tsx'),/mountainSportsForecast\(loc,config,controller.signal/,'Mountain data acquisition must retain cancellation');
+assert.match(read('src/MountainWeather.tsx'),/mountainSportsForecast\(loc,\{\.\.\.config,season:'auto'\},controller\.signal/,'Mountain data acquisition must retain cancellation');
 assert.deepEqual(activeCssSources(root),[...baseline.cssSources.filter(file=>file!=='src/midPollen.css'&&file!=='src/midC18MountainResponsiveFix.css'),'src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css','src/midC48TabletTimeline.css'],'Only reviewed Pollen and Mountain CSS may leave the original eager cascade; remaining order stays immutable');
 const originalEntries=loadCssCascade(root).filter(entry=>!['src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css','src/midC28MapPhase.css','src/midC48TabletTimeline.css'].includes(entry.file));
 // QA-only reconstruction of the *immutable* .169 stylesheet fingerprint.
