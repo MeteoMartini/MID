@@ -129,8 +129,18 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
         recent = api(f"deployments/{item['id']}/statuses?per_page=1")
         require(len(recent) == 1, 'Pages deployment status missing')
         if recent[0]['state'] == 'success':
-            require(item.get('sha') in {source, expected_stable},
-                    'latest successful Pages deployment not on Stable source')
+            if item.get('sha') not in {source, expected_stable}:
+                # Rejection stays fail-closed. A bounded, sanitized identity lets
+                # the original installer logs identify the exact foreign record,
+                # without disclosing status URLs, tokens or untrusted API fields.
+                foreign_id = item.get('id')
+                foreign_sha = item.get('sha')
+                diagnostic_id = foreign_id if type(foreign_id) is int and foreign_id > 0 else 'INVALID'
+                diagnostic_sha = foreign_sha if isinstance(foreign_sha, str) and SHA.fullmatch(foreign_sha) else 'INVALID'
+                raise ValueError(
+                    'latest successful Pages deployment not on Stable source'
+                    f' (deployment_id={diagnostic_id}, deployment_sha={diagnostic_sha})'
+                )
             deployment, statuses = item, recent
             break
         # The environment creates this record before the job executes any step.
