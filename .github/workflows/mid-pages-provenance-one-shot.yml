@@ -111,3 +111,15 @@ jobs:
           else:
               raise SystemExit("NO_SUCCESS_IN_FIRST_30_DEPLOYMENTS")
           PY
+      - name: Load exact reviewed QA source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Validate Python and run actual registered resolver negative tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 -m py_compile tools/ruc/resolve_fast_pages_base.py tools/ruc/test_resolve_fast_pages_base.py
+          PYTHONPATH=tools/ruc python3 -m unittest discover -s tools/ruc -p 'test_resolve_fast_pages_base.py' -v
