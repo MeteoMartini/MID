@@ -157,7 +157,9 @@ describe('MID Audit 1.4 · native GEFS daily coverage and full EC46 weeks',()=>{
  });
  it('labels every long-range travel card as climatological context, not daily weather',()=>{
   const panel=readFileSync(new URL('../../src/TravelPlannerPanel.tsx',import.meta.url),'utf8');
-  expect(panel).toContain("const longRange=daysBetween(localToday(),point.date)>=14");
+  expect(panel).toContain("const renderToday=localToday(),initialStart=addDays(renderToday,30)");
+  expect(panel).toContain("const longRange=daysBetween(renderToday,point.date)>=14");
+  expect(panel).not.toContain('daysBetween(localToday(),point.date)');
   expect(panel).toContain("point.forecastSource?'Trend + Klima':'Nur Klima'");
   expect(panel).toContain('<CalendarRange size={18}');
  });
