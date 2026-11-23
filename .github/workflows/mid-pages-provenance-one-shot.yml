@@ -85,10 +85,28 @@ jobs:
                   js = job.get("head_sha")
                   js = js if isinstance(js, str) and SHA.fullmatch(js) else "INVALID"
                   print(f"PAGES_ORIGIN_JOB={jid} JOB_SHA={js} JOB_ATTEMPT={job.get('run_attempt') if type(job.get('run_attempt')) is int else 'INVALID'}")
-              if sha not in (STABLE, "acd7fb23ce44e7445c51ce5ccf816c1512fa61f6"):
-                  print("PAGES_FOREIGN_SUCCESS_WITHOUT_STABLE_SOURCE_CONTINUE_PROBING")
+              if jid is None:
+                  print("PAGES_RUN_LEVEL_NEEDS_INDEPENDENT_JOB_PROOF")
+                  break
+              steps = job.get("steps") or []
+              allowed_deploy_steps = {
+                  "MID + RUC kostenfrei auf GitHub Pages veröffentlichen",
+                  "Nach fehlgeschlagenem Codec-Healthcheck RUC-Rohsnapshot zurückveröffentlichen",
+                  "Fast-Pages-Kandidat veröffentlichen",
+                  "Fast-Pages-Rückfall veröffentlichen",
+                  "GitHub-Pages-Deployment · Versuch 1",
+                  "GitHub-Pages-Deployment · Versuch 2",
+                  "GitHub-Pages-Deployment · Versuch 3",
+              }
+              actual = [step["name"] for step in steps if step.get("name") in allowed_deploy_steps and step.get("conclusion") == "success"]
+              print(f"PAGES_REAL_DEPLOY_STEPS={len(actual)}")
+              if not actual:
+                  print("PAGES_ENVIRONMENT_SUCCESS_BUT_NO_ACTUAL_DEPLOY_CONTINUE")
                   continue
-              print("PAGES_OLDER_STABLE_SOURCE_IDENTIFIED")
+              if sha not in (STABLE, "acd7fb23ce44e7445c51ce5ccf816c1512fa61f6"):
+                  print("PAGES_FOREIGN_REAL_DEPLOY_BLOCK")
+                  break
+              print("PAGES_REAL_STABLE_PUBLISH_IDENTIFIED")
               break
           else:
               raise SystemExit("NO_SUCCESS_IN_FIRST_30_DEPLOYMENTS")
