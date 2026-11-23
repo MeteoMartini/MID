@@ -75,7 +75,6 @@ async function fetchGefsDaily(location:Location,signal:AbortSignal):Promise<Gefs
 }
 
 function weekDates(week:WeekSignal){return dateRange(week.start,week.end)}
-function climateRows(dataset:TravelClimateDataset,dates:string[]){return dates.map(date=>travelClimateForDate(dataset,date)).filter((row):row is NonNullable<typeof row>=>Boolean(row))}
 function sign(value:number|undefined,threshold:number){return value===undefined||Math.abs(value)<threshold?0:value>0?1:-1}
 function gefsCorroboration(week:WeekSignal,gefs:GefsDaily[],dataset:TravelClimateDataset){
  const dates=weekDates(week);
