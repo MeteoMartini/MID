@@ -287,15 +287,15 @@ class InstallerPagesResolverTest(unittest.TestCase):
             {'state': 'success', 'log_url': f'https://github.com/{REPOSITORY}/actions/runs/19'}]
         with self.assertRaisesRegex(
                 ValueError,
-                r'not on Stable source \\(deployment_id=19, deployment_sha=f{40}\\)'):
+                r'not on Stable source \(deployment_id=19, deployment_sha=f{40}\)'):
             self.resolve()
 
     def test_foreign_pages_diagnostic_never_echoes_untrusted_fields(self):
         older = self.manifest['deployments?environment=github-pages&per_page=30'][0]
         self.manifest['deployments?environment=github-pages&per_page=30'] = [
-            {'id': 'malicious\\nSECRET=do-not-log', 'sha': 'bad\\nSECRET=do-not-log',
+            {'id': 'malicious\nSECRET=do-not-log', 'sha': 'bad\nSECRET=do-not-log',
              'environment': 'github-pages'}, older]
-        self.manifest['deployments/malicious\\nSECRET=do-not-log/statuses?per_page=1'] = [
+        self.manifest['deployments/malicious\nSECRET=do-not-log/statuses?per_page=1'] = [
             {'state': 'success', 'log_url': 'https://evil.invalid/?token=do-not-log'}]
         with self.assertRaisesRegex(ValueError, 'not on Stable source') as caught:
             self.resolve()
