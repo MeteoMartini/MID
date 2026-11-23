@@ -126,6 +126,14 @@ describe('MID Audit 1.4 · native GEFS daily coverage and full EC46 weeks',()=>{
   expect(source).not.toContain('day.precipitationMean*factor');
   expect(source).toContain('if(signalRow.temperatureAnomaly===undefined)continue;');
  });
+ it('counts only actually numeric seasonal temperature model families',()=>{
+  const source=readFileSync(new URL('../../src/travelForecastFusion.ts',import.meta.url),'utf8');
+  expect(source).toContain('tempRows=modelRows.filter(row=>finite(row.month?.temperatureAnomaly)!==undefined)');
+  expect(source).toContain('familyIds:tempRows.map(row=>row.model.independenceKey||row.model.family)');
+  expect(source).toContain('actualSeasonalFamilies.forEach(id=>families.add(id))');
+  expect(source).toContain('dwdUsed:Boolean(dwdTemp?.value!==undefined)');
+  expect(source).not.toContain('seasonal.pointModels.forEach(model=>families.add');
+ });
  it('does not label a season-only rain amount as a daily model day',()=>{
   const source=readFileSync(new URL('../../src/travelForecastFusion.ts',import.meta.url),'utf8');
   expect(source).toContain("const day={...base}");
