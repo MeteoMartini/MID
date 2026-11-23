@@ -41,8 +41,11 @@ for(const token of [
  "minTone=parameterTemperatureTone(day.min,'min'),maxTone=parameterTemperatureTone(day.max,'max')",
  'Tmin blau · Tmax rot',
  'minTone=ecmwfTemperatureTone(item.bestMin),maxTone=ecmwfTemperatureTone(item.bestMax)',
- "activeHorizon==='fourteen-day'?cockpitDetails?.fourteenDay:undefined"
+ "ensembleAnalysis={cockpitDetails?.fourteenDay}"
 ])need('Cockpit',cockpit,token);
+forbid('Cockpit',cockpit,"activeHorizon==='fourteen-day'?cockpitDetails?.fourteenDay:undefined");
+forbid('Cockpit',cockpit,'<AnalysisReveal');
+need('Cockpit single Ensemble owner',cockpit,'data-mid-fourteen-ensemble-primary="true"');
 forbid('Cockpit',cockpit,"dailyTemperatureTone(day.max,climateDay?.maxMean,'max')");
 forbid('Cockpit',cockpit,"dailyTemperatureTone(day.min,climateDay?.minMean,'min')");
 forbid('Cockpit',cockpit,'details:{shortTerm?:ReactNode;sevenDay?:ReactNode;fourteenDay?:ReactNode}');
