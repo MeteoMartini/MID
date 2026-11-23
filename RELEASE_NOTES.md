@@ -3,7 +3,6 @@
 - Reiseplaner: GEFS-Niederschlagsstunden werden dem korrekten UTC-Tag zugeordnet und nur bei vollständigen 24-Stunden-Belegen aggregiert. Fehlende Mess- oder Modellwerte gelten nie als 0 mm; extreme Originalwerte werden nicht ungeprüft verworfen.
 - Reiseplaner: EC46-Wochenanomalien werden nur auf fachlich vollständige Kalenderwochen und belegbare Tagesparameter angewandt. Unzulässige Tages-Niederschlagswahrscheinlichkeiten werden nicht aus Wochenwerten abgeleitet.
 - Kartenaudit: Der lesende WMS-Prüfpfad prüft Modelllauf, Gültigkeitszeit, Akkumulationsfenster und die Integrität vollständiger PNG-Transporte; ein gültiges PNG gilt nicht automatisch als meteorologischer Datenbeleg.
-- Projektregeln: ChatGPT wählt aus den tatsächlich installierten Plugins weiterhin gezielt die passenden, verfügbaren und kostenkonformen Werkzeuge. Veraltete feste Automationslisten werden nicht als aktueller Zustand ausgegeben.
 - Amtliche DWD-/WMO-Warnungen, bestehende RUC-/EPS-Schranken sowie alle Source-/Release-/Worker-/Pages-/Stable-Gates bleiben unverändert.
 
 # MID v0.9.85.513
