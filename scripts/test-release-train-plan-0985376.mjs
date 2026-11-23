@@ -587,3 +587,23 @@ test('release self-heal continues through its existing workflow only and retains
  assert.match(canonical,/rerun-failed-jobs/);
  assert.doesNotMatch(canonical,/force-push|pull_request_target|--force/);
 });
+
+test('post-Stable GitHub catalog keeps the original Installer protected and mirrors byte-identical',async()=>{
+ const source=await readRepositoryFile(new URL('../ci/github/workflows/install-mid.yml',import.meta.url),'utf8');
+ const active=await readRepositoryFile(new URL('../.github/workflows/install-mid.yml',import.meta.url),'utf8');
+ assert.equal(source,active,'Canonical and active Installer workflows must match exactly');
+ const n=source.indexOf('\n  catalog_release:');
+ assert.ok(n>source.indexOf('\n  finalize_release:'));
+ const catalog=source.slice(n);
+ assert.match(catalog,/needs:\s*\n\s+- install_build\s*\n\s+- finalize_release/);
+ assert.ok(catalog.includes("needs.finalize_release.result == 'success'"));
+ assert.ok(catalog.includes('ref: ${{ needs.install_build.outputs.commit_sha }}'));
+ assert.ok(catalog.includes('STABLE_SHA: ${{ needs.install_build.outputs.commit_sha }}'));
+ assert.ok(catalog.includes('permission-contents: write'));
+ assert.ok(catalog.includes('node tools/release/publish-verified-release-catalog.mjs'));
+ assert.ok(catalog.includes('persist-credentials: false'));
+ assert.doesNotMatch(catalog,/continue-on-error|pull_request_target|force: true|--force/);
+ const prior=source.slice(source.indexOf('\n  finalize_release:'),n);
+ assert.ok(prior.includes('mid-stable'),'Original Stable promotion must remain');
+ assert.ok(!prior.includes('publish-verified-release-catalog.mjs'),'No catalog write before Stable');
+});
