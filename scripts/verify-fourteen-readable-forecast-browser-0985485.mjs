@@ -140,7 +140,10 @@ async function oneIntegrated(width,height,theme){
  try{
   await page.goto(url+'?full=1',{waitUntil:'domcontentloaded',timeout:30000});
   const shell=page.locator('section.forecast-cockpit');
-  await shell.waitFor({timeout:30000});
+  try{await shell.waitFor({timeout:30000})}catch(error){
+   const body=await page.locator('body').innerText().catch(()=>'<unavailable>');
+   throw new Error('Full ForecastCockpit never became visible: '+String(error)+'; page errors='+JSON.stringify(errors)+'; document body='+body.slice(0,1600));
+  }
   assert.equal(await shell.count(),1,'Exactly one full ForecastCockpit section must render');
   await page.locator('summary').filter({hasText:'Alle 14 Tageswerte'}).waitFor({timeout:30000});
   assert.equal(await page.locator('.cockpit-fourteen-card').count(),14,'Full cockpit must render all fourteen daily cards');
