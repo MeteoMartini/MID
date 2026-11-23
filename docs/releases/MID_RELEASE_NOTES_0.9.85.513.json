@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "version": "0.9.85.513",
+  "title": "LC 1.34 – Release-Katalog-Skip und kanonische 14-Tage-Ensemble-Grafik",
+  "date": "2026-11-23",
+  "external": [
+    "Die vorhandene 14-Tage-Ensemble-Grafik mit Modell- und Unsicherheitsinformationen wird direkt angezeigt; die redundante Temperaturgrafik und der doppelte Analyse-Aufklapper entfallen.",
+    "Nach erfolgreich geprüfter Stable-Promotion kann der GitHub-Release-Katalogjob trotz regulär übersprungener optionaler Installer-Stufen starten, jedoch nur bei nachweislich erfolgreichem Build und Stable-Finalizer.",
+    "Wetterdaten, Warnungen, Zeit-/Akkumulationsverträge und bestehende Freigabeschranken bleiben erhalten."
+  ],
+  "internal": [
+    "Quellen: Design-QA #990 auf HEAD bc10fa3104808d9e00635f67a56685a4690c6ffa, veröffentlichte .512-Stable-Basis 3195012b1b72b4cc3bbd762c2fbd859a924aadc7.",
+    "Drei Installer-Workflowspiegel exakt gleich; !cancelled() umgeht ausschließlich implizite Success-Vererbung und verlangt weiterhin Release-Core- und Stable-Finalizer-Success.",
+    "Keine zusätzlichen Dienste, Berechtigungen, Secrets oder historischen Releases; Katalogbeleg und alle Release-Gates erst nach realer Ausführung."
+  ]
+}
