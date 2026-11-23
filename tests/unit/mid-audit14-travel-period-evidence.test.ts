@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
-import {aggregateGefsUtcDays,consecutiveUtcWeek,ec46DailyApplicability} from '../../src/travelForecastPeriodEvidence';
+import {aggregateGefsUtcDays,consecutiveUtcWeek,ec46DailyApplicability,nativeFinite} from '../../src/travelForecastPeriodEvidence';
 
 const HOUR=3600000;
 const first=Date.parse('2026-11-01T00:00:00Z');
@@ -16,6 +16,16 @@ function findDay(data:ReturnType<typeof fixture>,date='2026-11-01'){
  return aggregateGefsUtcDays(data,units).find(row=>row.date===date);
 }
 describe('MID Audit 1.4 · native GEFS daily coverage and full EC46 weeks',()=>{
+ it('does not interpret untyped or Boolean source values as actual meteorological zero',()=>{
+  expect(nativeFinite(0)).toBe(0);
+  expect(nativeFinite(-2.5)).toBe(-2.5);
+  expect(nativeFinite('0')).toBeUndefined();
+  expect(nativeFinite(false)).toBeUndefined();
+  expect(nativeFinite(null)).toBeUndefined();
+  expect(nativeFinite(undefined)).toBeUndefined();
+  expect(nativeFinite(NaN)).toBeUndefined();
+  expect(nativeFinite(Infinity)).toBeUndefined();
+ });
  it('keeps a genuine 24-hour zero amount distinct from missing',()=>{
   const d=findDay(fixture());
   expect(d?.precipitation).toBe(0);expect(d?.precipitationComplete).toBe(true);
