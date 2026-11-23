@@ -17,7 +17,7 @@ assert.equal(require(join(dirname(cli),'package.json')).version,'1.56.1','Pinned
 const browserNames=(process.env.GITHUB_ACTIONS==='true'?'chromium,webkit':process.env.MID_CSS_BROWSER_ENGINES||'chromium,webkit').split(',');
 console.log('[css-parity] browser preparation is a separate CI step; actual Chromium/WebKit launch is mandatory');
 const temp=await mkdtemp(join(tmpdir(),'mid-css-production-'));
-const rows=Array.from({length:14},(_,i)=>({date:`2026-10-${String(i+7).padStart(2,'0')}`,meanDayTemperature:12,regimeText:i<4?'Ruhig':'Regen',bestMax:18+i/3,bestMin:6+i/4,maxLow:14,maxQ25:15,maxQ75:19,maxHigh:23,minLow:2,minQ25:4,minQ75:7,minHigh:9,ensembleAvailable:i!==4,assessment:{agreement:'high',confidenceScore:90,dataQuality:'good',limiting:[]}}));
+const rows=Array.from({length:14},(_,i)=>({date:`2026-10-${String(i+7).padStart(2,'0')}`,meanDayTemperature:12,regimeText:i<4?'Ruhig':'Regen',bestMax:18+i/3,bestMin:6+i/4,maxLow:14,maxQ25:15,maxQ75:19,maxHigh:23,minLow:2,minQ25:4,minQ75:7,minHigh:9,ensembleAvailable:false,assessment:{agreement:'high',confidenceScore:90,dataQuality:'good',limiting:[]}}));
 async function fixture(project,name,baseline){
  const dir=join(temp,name);await mkdir(dir);await symlink(join(root,'node_modules'),join(dir,'node_modules'));
  // Reconstruct Stable's last eager stylesheet without requiring an old checkout in CI.
@@ -128,7 +128,7 @@ try{
   console.log(`[css-parity] ${name} ${width}x${height} ${theme} starting`);
   const contexts=await Promise.all([active,stable].map(async(target)=>{const context=await browser.newContext({viewport:{width,height},reducedMotion:'reduce'}),page=await context.newPage(),errors=[];page.setDefaultTimeout(30000);page.setDefaultNavigationTimeout(30000);page.on('pageerror',e=>errors.push(e.message));await page.goto(target.url+'?theme='+theme);await page.locator('#open').waitFor();return {context,page,errors};}));
   try{for(const cache of ['cold','warm']){const requestsBefore=active.cssRequests();
-   for(const {page}of contexts){if(cache==='warm'){await page.reload();await page.locator('#open').waitFor();}assert.equal(await page.locator('[data-fourteen-development]').count(),0);assert.equal(await page.evaluate(()=>performance.getEntriesByType('resource').some(e=>/FourteenDayDevelopment-.*\.css/.test(e.name))),false,'Closed component must not fetch its CSS');await page.locator('#open').click();await page.locator('[data-signal-series="tmin"] circle').first().waitFor();await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(60);}
+   for(const {page}of contexts){if(cache==='warm'){await page.reload();await page.locator('#open').waitFor();}assert.equal(await page.locator('[data-fourteen-development]').count(),0);assert.equal(await page.evaluate(()=>performance.getEntriesByType('resource').some(e=>/FourteenDayDevelopment-.*\.css/.test(e.name))),false,'Closed component must not fetch its CSS');await page.locator('#open').click();await page.locator('[data-mid-fourteen-fallback="best-match"]').waitFor();assert.equal(await page.locator('.mid-we-fourteen-daytile').count(),14,'Best-Match-only A must retain all 14 readable original day tiles');await page.locator('[data-signal-series="tmin"] circle').first().waitFor();await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(60);}
    const cssResources=await contexts[0].page.evaluate(()=>performance.getEntriesByType('resource').filter(e=>/FourteenDayDevelopment-.*\.css/.test(e.name)).map(e=>({transfer:e.transferSize,size:e.decodedBodySize})));assert.equal(cssResources.length,1,'One exclusive CSS chunk loaded');if(cache==='cold')assert.ok(cssResources[0].size>0);assert.equal(active.cssRequests()-requestsBefore,cache==='cold'?1:0,'Cold CSS fetched exactly once, warm CSS reused without HTTP');assert.ok(await contexts[0].page.evaluate(()=>[...document.styleSheets].some(s=>/FourteenDayDevelopment-.*\.css/.test(s.href||'')&&s.cssRules.length>0)),'Deferred stylesheet has actual CSS rules');if(cache==='warm')assert.equal(cssResources[0].transfer,0,'Warm run must use cached CSS');
    const label=`${name}/${width}/${theme}/${cache}`;
    const actual=await settledSnapshot(contexts[0].page,label+'/deferred'),expected=await settledSnapshot(contexts[1].page,label+'/reference');
@@ -141,7 +141,7 @@ try{
     console.error('[css-parity] first computed/layout mismatch: '+JSON.stringify({label,index:first,actual:actual[first],expected:expected[first],selectors}));
    }
    assert.deepEqual(actual,expected,`${label}: computed/layout parity`);
-   for(const {page,errors}of contexts){assert.deepEqual(errors,[]);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);await page.locator('[data-signal-series="tmin"] g[role="button"]').first().focus();await page.keyboard.press('Enter');assert.match(await page.getByRole('status').innerText(),/P10–P90/);}
+   for(const {page,errors}of contexts){assert.deepEqual(errors,[]);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);await page.locator('[data-signal-series="tmin"] g[role="button"]').first().focus();await page.keyboard.press('Enter');const status=await page.getByRole('status').innerText();assert.match(status,/Tmin/,'Genuine Best Match fallback must remain keyboard-interactive');assert.doesNotMatch(status,/P10–P90|P25–P75/,'No ensemble quantiles may be invented in a Best-Match-only fallback');}
    assert.equal(await contexts[0].page.locator('[data-fourteen-development] svg').first().evaluate(n=>n.outerHTML),await contexts[1].page.locator('[data-fourteen-development] svg').first().evaluate(n=>n.outerHTML),'Shared SVG geometry and accessible data');
    // Wait for actual fonts and stable WebKit/Chromium raster, not just stable CSS geometry.
    // Exact byte-for-byte screenshot equality across both renderers remains mandatory.
@@ -153,5 +153,5 @@ try{
   }}finally{await Promise.all(contexts.map(({context})=>context.close()));}
  }
  }finally{await browser.close();}}
- console.log(`Production CSS parity: ${cases} engine/viewport/theme/cache cases; exact pixels, computed layout, keyboard, overflow and SVG passed. Browser engines only, no physical iOS/VoiceOver approval.`);
+ console.log(`Production CSS parity: ${cases} engine/viewport/theme/cache Best-Match fallback cases; exact pixels, computed layout, keyboard without fabricated ensemble bounds, overflow and SVG passed. Browser engines only, no physical iOS/VoiceOver approval.`);
 }finally{for(const target of [active,stable])if(target)await new Promise(r=>target.server.close(r));await rm(temp,{recursive:true,force:true});}

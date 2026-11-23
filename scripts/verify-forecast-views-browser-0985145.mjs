@@ -35,6 +35,7 @@ try {
    await page.waitForSelector('[data-mid-forecast-detail="seven"] .forecast-range-guide');
   }else{
    assert.equal(await page.locator('.mid-we-fourteen-daytile').count(),14,'Fourteen-day A must show 14 real day tiles in two weekly tracks');
+    assert.equal(await page.locator('[data-mid-fourteen-fallback="best-match"]').count(),0,'Real 14d ensemble prevents a duplicated Best Match compact temperature chart');
    assert.equal(await page.locator('.cockpit-fourteen-card:visible').count(),0,'Old full-detail cards must stay collapsed initially');
    await page.locator('.mid-we-fourteen-daytile').first().click();
    await page.waitForSelector('#mid-fourteen-full-details[open] .cockpit-fourteen-card');
@@ -88,7 +89,8 @@ try {
    }else{
     await page.locator('.mid-we-fourteen-switch button').nth(1).click();
     await page.waitForSelector('.mid-we-fourteen-charts article');
-    assert.equal(await page.locator('.mid-we-fourteen-charts article').count(),4,'14d B: four distinct parameter charts');
+    assert.equal(await page.locator('.mid-we-fourteen-charts article').count(),3,'14d B: three complementary rain/probability/wind charts; temperature is in the canonical ensemble owner');
+     for(const label of ['Niederschlagsmenge · Tagesakkumulation','Niederschlagswahrscheinlichkeit · Best Match','Wind und Böen'])assert.ok((await page.locator('.mid-we-fourteen-charts h3').allTextContents()).some(title=>title.includes(label)),'14d B complementary chart missing: '+label);
     await page.locator('.mid-we-fourteen-switch button').nth(2).click();
     await page.waitForSelector('.mid-we-fourteen-table-scroll tbody tr');
     assert.equal(await page.locator('.mid-we-fourteen-table-scroll tbody tr').count(),14,'14d C: fourteen comparable days');
