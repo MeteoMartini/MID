@@ -106,7 +106,7 @@ async function clickButtonContaining(selector,text){
 async function mountainSeasonDiagnostic(){
  return JSON.parse(await evaluate(`JSON.stringify((()=>{
   const buttons=[...document.querySelectorAll('.mountain-season-control button')].map(button=>({label:button.textContent?.trim()||'',pressed:button.getAttribute('aria-pressed'),visible:button.getClientRects().length>0}));
-  const requests=(window.__mountainFixtureRequests||[]).slice(-16).map(raw=>{try{const url=new URL(raw);return{host:url.hostname,path:url.pathname,core:url.pathname==='/v1/forecast'&&url.searchParams.get('past_hours')==='24'}}catch{return{invalidUrl:true}}});
+  const requests=(window.__mountainFixtureRequests||[]).slice(-20).map(raw=>{try{const url=new URL(raw),query=url.searchParams,core=url.pathname==='/v1/forecast'&&query.get('past_hours')==='24';return{host:url.hostname,path:url.pathname,core,...(core?{model:query.get('models'),latitude:query.get('latitude'),longitude:query.get('longitude'),elevation:query.get('elevation'),forecastHours:query.get('forecast_hours'),currentFields:query.get('current')?.split(',').length||0,hourlyFields:query.get('hourly')?.split(',').length||0}:{}),diagnostics:(query.get('hourly')||'').includes('lifted_index')}}catch{return{invalidUrl:true}}});
   return{buttons,summary:document.querySelector('.mountain-profile-summary')?.textContent?.trim().slice(0,200)||'',season:document.querySelector('.mountain-peak-indicators')?.getAttribute('data-season')||'',hasHourly:Boolean(document.querySelector('.mountain-hourly-grid')),hasSnow:Boolean(document.querySelector('.mountain-hourly-snow-summary')),loading:Boolean(document.querySelector('.mountain-loading')),error:document.querySelector('.mountain-ski .error')?.textContent?.trim().slice(0,240)||'',recentRequests:requests};
  })())`));
 }
@@ -362,7 +362,8 @@ try{
    }
    const summerState=await mountainSeasonDiagnostic();
    assert.equal(summerState.buttons.find(button=>button.label==='Sommer')?.pressed,'true','Sommer-Profil muss als aktiv ausgezeichnet sein.');
-   assert.equal(await mountainFixtureCoreCount(),beforeSummerCore,'Nur der Saisonmodus darf keinen zweiten identischen Original-BestMatch-Core-Abruf auslösen.');
+   const afterSummerCore=await mountainFixtureCoreCount();
+   assert.equal(afterSummerCore,beforeSummerCore,`Nur der Saisonmodus darf keinen zweiten identischen Original-BestMatch-Core-Abruf auslösen. Anfrage-Provenienz: ${JSON.stringify({beforeSummerCore,afterSummerCore,beforeSummer,immediatelyAfterSummer,summerState})}`);
    await clickButtonContaining('.mountain-season-control button','Winter');
    await waitForValue('Winterprofil für weitere Prüfungen wiederhergestellt',`Boolean(document.querySelector('.mountain-hourly-snow-summary'))`,Boolean,60000);
 
