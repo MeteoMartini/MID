@@ -100,6 +100,8 @@ describe('MID Audit 1.4 · native GEFS daily coverage and full EC46 weeks',()=>{
  it('never maps the native EC46 six-hour Tmax/Tmin anomaly to daily extrema',()=>{
   const source=readFileSync(new URL('../../src/travelForecastFusion.ts',import.meta.url),'utf8');
   expect(source).not.toContain('maxDelta=week.tempMaxAnomaly');
+  expect(source).toContain('const ecTemp=week.tempMeanAnomaly;');
+  expect(source).not.toContain('mean([week.tempMeanAnomaly,week.tempMaxAnomaly,week.tempMinAnomaly])');
   expect(source).not.toContain('minDelta=week.tempMinAnomaly');
   expect(source).toContain("day.forecastSource='EC46-Wochenanomalie + ERA5-Tagesklima'");
  });
