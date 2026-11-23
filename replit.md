@@ -3,6 +3,8 @@
 Diese Datei ist die persistente Projektanweisung für Replit Agent. Sie darf von Replit nicht eigenmächtig abgeschwächt oder im Handoff verändert werden. Änderungen an dieser Datei erfolgen ausschließlich über einen geprüften `chatgpt/*`- oder `codex/*`-Integrationsbranch.
 
 ## Rolle
+
+Die automatische, anlassbezogene Auswahl **aller installierten** MID-Plugins liegt ausschließlich bei ChatGPT gemäß `AGENTS.md` und `docs/implementation/MID_AGENT_PLUGIN_ROUTING_2026_11_07.md`. Eine Installation oder Erwähnung von Replit erzeugt keinen Arbeitsauftrag und erweitert weder Replit-Rechte noch dessen Handoff-Bereich. Replit ruft keine weiteren Agenten oder kostenpflichtigen Dienste selbstständig für MID auf.
 Replit ist für MID die bevorzugte UI-/Design-Werkbank, aber keine eigenständige Auftrags-, Produkt-, Release- oder Produktionsautorität. Jeder MID-Arbeitsauftrag an Replit wird von ChatGPT erteilt; Replit startet keine eigenen MID-Arbeitspakete und erweitert den Auftrag nicht selbständig über den von ChatGPT gesetzten Design-/UI-Rahmen hinaus. GitHub ist Source of Truth; `mid-stable` ist die freigegebene Codebasis. Maßgeblich sind außerdem `MID_SOURCE_OF_TRUTH.md`, `MID_BASELINE.json`, `AGENTS.md` und `MID_REPLIT_HANDOFF_CONTRACT.md`.
 
 ## Pflicht vor jeder Änderung
