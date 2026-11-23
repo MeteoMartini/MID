@@ -33,7 +33,7 @@ const dependencyAuditCanonical=readFileSync(new URL('../ci/github/workflows/depe
 const dependencyAuditMirror=readFileSync(new URL('../.github/workflows/dependency-audit.yml',import.meta.url),'utf8');
 function requireCompatibleDependencyAuditRunner(document){
  const section=jobSection(document,'audit');
- assert.match(section,/^    runs-on: ubuntu-24\\.04$/m,'Ungeprüfter Dependency-Audit-Browser-Runner');
+ assert.match(section,/^    runs-on: ubuntu-24\.04$/m,'Ungeprüfter Dependency-Audit-Browser-Runner');
  assert.doesNotMatch(section,/^    runs-on: ubuntu-latest$/m,'Ungeprüfter Dependency-Audit-Browser-Runner');
  for(const originalCheck of ['npm run audit:all','npm run test:maintenance-08260','npm run test:regressions']){
   assert.ok(section.includes(originalCheck),`Pflichtprüfung im Dependency-Audit fehlt: ${originalCheck}`);
@@ -41,9 +41,9 @@ function requireCompatibleDependencyAuditRunner(document){
 }
 assert.equal(dependencyAuditMirror,dependencyAuditCanonical,'Dependency-Audit: beide Workflowspiegel müssen byteidentisch sein');
 requireCompatibleDependencyAuditRunner(dependencyAuditCanonical);
-assert.equal((dependencyAuditCanonical.match(/^    runs-on: ubuntu-24\\.04$/gm)||[]).length,1,'Dependency-Audit: genau ein expliziter kompatibler Browser-Runner');
-const dependencyAuditBroken=dependencyAuditCanonical.replace(/^    runs-on: ubuntu-24\\.04$/m,'    runs-on: ubuntu-latest');
+assert.equal((dependencyAuditCanonical.match(/^    runs-on: ubuntu-24\.04$/gm)||[]).length,1,'Dependency-Audit: genau ein expliziter kompatibler Browser-Runner');
+const dependencyAuditBroken=dependencyAuditCanonical.replace(/^    runs-on: ubuntu-24\.04$/m,'    runs-on: ubuntu-latest');
 assert.notEqual(dependencyAuditBroken,dependencyAuditCanonical,'Dependency-Audit-Negativfixture muss Runner verändern');
 assert.throws(()=>requireCompatibleDependencyAuditRunner(dependencyAuditBroken),/Ungeprüfter Dependency-Audit-Browser-Runner/,'Dependency-Audit darf nicht auf ubuntu-latest zurückfallen');
 
-console.log('MID-Revision: vier Browserjobs auf Ubuntu 24.04, Mirror, Testmatrix und negative Runner-Probe geprüft. sowie Dependency-Audit geprüft.');
+console.log('MID-Revision: vier Revisions-Browserjobs und Dependency-Audit auf Ubuntu 24.04, Spiegel, Pflichtregressionen und Negativproben geprüft.');
