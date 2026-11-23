@@ -45,6 +45,7 @@ for(const token of [
 ])need('Cockpit',cockpit,token);
 forbid('Cockpit',cockpit,"activeHorizon==='fourteen-day'?cockpitDetails?.fourteenDay:undefined");
 forbid('Cockpit',cockpit,'<AnalysisReveal');
+forbid('Cockpit',cockpit,'setAnalysisOpen');
 need('Cockpit single Ensemble owner',cockpit,'data-mid-fourteen-ensemble-primary="true"');
 forbid('Cockpit',cockpit,"dailyTemperatureTone(day.max,climateDay?.maxMean,'max')");
 forbid('Cockpit',cockpit,"dailyTemperatureTone(day.min,climateDay?.minMean,'min')");

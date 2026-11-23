@@ -39,7 +39,7 @@ const detailed= fourteenBand.indexOf('<LazyFourteenDayDevelopment');
 const compass=fourteenBand.indexOf('<CockpitForecastGuide');
 assert.ok(primary>0&&primary<detailed&&compass>detailed,'The canonical ensemble must be mounted once above 14d day views and the provenance compass');
 assert.ok(fourteenBand.includes('hasEnsemble&&ensembleAnalysis')&&fourteenBand.includes('aria-label="14-Tage-Ensemble-Übersicht"'),'Only real ensembles activate the immediate canonical chart');
-assert.ok(cockpit.includes('ensembleAnalysis={cockpitDetails?.fourteenDay}')&&!cockpit.includes('<AnalysisReveal'),'The existing lazy EnsemblePanel owner must be reused exactly once without another reveal mount');
+assert.ok(cockpit.includes('ensembleAnalysis={cockpitDetails?.fourteenDay}')&&!cockpit.includes('<AnalysisReveal')&&!cockpit.includes('setAnalysisOpen'),'The original lazy EnsemblePanel owner is reused once without any orphaned reveal-state lifecycle');
 assert.ok(fourteenBand.includes('<LazyFourteenDayDevelopment series={series} unit={unit} onOpenDay='),'The selected 14d wind unit and interactive full-detail handoff must be retained');
 assert.ok(fourteenBand.includes('<ForecastRangeLegend')&&fourteenBand.includes('data-fourteen-daily-details'),'Legacy uncertainty legend and complete day cards must remain');
 assert.ok(fourteen.includes("mode==='compact'")&&fourteen.includes("mode==='charts'")&&fourteen.includes("mode==='days'"),'14-day A/B/C remain fully functional');
