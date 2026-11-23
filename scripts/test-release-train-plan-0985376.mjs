@@ -603,6 +603,10 @@ test('post-Stable GitHub catalog keeps the original Installer protected and mirr
  assert.ok(catalog.includes('cancel-in-progress: false'));
  assert.ok(catalog.includes('ref: ${{ needs.install_build.outputs.commit_sha }}'));
  assert.ok(catalog.includes('STABLE_SHA: ${{ needs.install_build.outputs.commit_sha }}'));
+ assert.ok(catalog.includes('MID_CATALOG_RELEASE_NOOP: ${{ needs.install_build.outputs.release_noop }}'));
+ assert.ok(source.includes('release_noop: ${{ steps.commit.outputs.release_noop }}'));
+ assert.ok(source.includes('echo "release_noop=true" >> "$GITHUB_OUTPUT"'));
+ assert.ok(source.includes('echo "release_noop=false" >> "$GITHUB_OUTPUT"'));
  assert.ok(catalog.includes('permission-actions: read'));
  assert.ok(catalog.includes('permission-contents: write'));
  assert.doesNotMatch(catalog,/permission-actions: write/);
@@ -610,6 +614,8 @@ test('post-Stable GitHub catalog keeps the original Installer protected and mirr
  const publisher=await readRepositoryFile(new URL('../tools/release/publish-verified-release-catalog.mjs',import.meta.url),'utf8');
  assert.ok(publisher.includes("githubApi('repos/'+REPO+'/git/refs','POST'"));
  assert.ok(publisher.includes('Atomic tag reservation/readback mismatch'));
+ assert.ok(publisher.includes("run.path!=='.github/workflows/install-mid.yml'"));
+ assert.ok(publisher.includes('No-op requires existing exact verified latest Catalog'));
  assert.ok(publisher.includes("refSha('main')!==sha||refSha('mid-stable')!==sha"));
  assert.ok(catalog.includes('persist-credentials: false'));
  assert.doesNotMatch(catalog,/continue-on-error|pull_request_target|force: true|--force/);

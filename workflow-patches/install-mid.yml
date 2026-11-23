@@ -692,6 +692,7 @@ jobs:
       contents: read
     outputs:
       commit_sha: ${{ steps.commit.outputs.commit_sha }}
+      release_noop: ${{ steps.commit.outputs.release_noop }}
       version: ${{ steps.release_meta.outputs.version }}
       worker_changed: ${{ steps.worker_diff.outputs.changed }}
     steps:
@@ -780,6 +781,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "::notice::Das Release-ZIP ist fachlich identisch zum bereits installierten Stand; der Workflow endet erfolgreich als No-op."
             echo "commit_sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+            echo "release_noop=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -828,6 +830,7 @@ jobs:
           fi
 
           echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "release_noop=false" >> "$GITHUB_OUTPUT"
 
 
   deploy_worker:
@@ -1825,6 +1828,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.catalog_token.outputs.token }}
           STABLE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+          MID_CATALOG_RELEASE_NOOP: ${{ needs.install_build.outputs.release_noop }}
         run: |
           set -euo pipefail
           node tools/release/publish-verified-release-catalog.mjs
