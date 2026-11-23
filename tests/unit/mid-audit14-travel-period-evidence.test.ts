@@ -59,6 +59,9 @@ describe('MID Audit 1.4 · native GEFS daily coverage and full EC46 weeks',()=>{
   expect(d?.mean).not.toBe((Number(d?.max)+Number(d?.min))/2);
   const source=readFileSync(new URL('../../src/travelForecastFusion.ts',import.meta.url),'utf8');
   expect(source).toContain('const gefsTemp=modelMean-climateMean;');
+  expect(source).toContain('climate.map(row=>row?.nativeMean2mClimatology)');
+  expect(source).toContain('!Number.isFinite(row.nativeMean2mClimatology)');
+  expect(source).not.toContain('climate.map(row=>row?.meanMean)');
   expect(source).not.toContain('const gefsTemp=((modelMax-climateMax)');
  });
  it('does not clip a high original amount and marks a source review',()=>{

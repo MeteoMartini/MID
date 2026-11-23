@@ -82,13 +82,14 @@ function gefsCorroboration(week:WeekSignal,gefs:GefsDaily[],dataset:TravelClimat
  const byDate=new Map(gefs.map(row=>[row.date,row]));
  const model=dates.map(date=>byDate.get(date));
  const climate=dates.map(date=>travelClimateForDate(dataset,date));
- if(model.some(row=>!row?.temperatureComplete)||climate.some(row=>!row||!Number.isFinite(row.meanMean)))return{factor:1,familyCount:1};
- const modelMean=mean(model.map(row=>row?.mean)),climateMean=mean(climate.map(row=>row?.meanMean));
+ if(model.some(row=>!row?.temperatureComplete)||climate.some(row=>!row||!Number.isFinite(row.nativeMean2mClimatology)))return{factor:1,familyCount:1};
+ const modelMean=mean(model.map(row=>row?.mean)),climateMean=mean(climate.map(row=>row?.nativeMean2mClimatology));
  const ecTemp=week.tempMeanAnomaly;
  if(ecTemp===undefined||modelMean===undefined||climateMean===undefined)return{factor:1,familyCount:1};
  const gefsTemp=modelMean-climateMean;
  const agreement=sign(ecTemp,.35)*sign(gefsTemp,.35);
- // Hourly GEFS 2m temperature MEAN is compared only with EC46 native weekly 2m MEAN.
+ // Compare GEFS 2m MEAN with a source-native ERA5 daily 2m MEAN only.
+ // Missing provenance -> neutral factor and one family; Tmax/Tmin midpoint is NOT a mean.
  // No precipitation corroboration until EC46 weekly amount semantics are proven.
  return{factor:agreement>0?1.08:agreement<0?.78:1,familyCount:2};
 }

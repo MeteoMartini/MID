@@ -14,10 +14,13 @@ p=selectMapAuditFrame({layer:accumulation,metadata:{...product,layer:accumulatio
 assert.equal(p.time,at(5),'6-hour total must start only after 6-hour accumulated window from model run');
 assert.equal(p.windowHours,6);
 assert.deepEqual(selectMapAuditFrame({layer,metadata:{...product,referenceTimes:[]},entry:{timeCount:1},now}),{ok:false,reason:'unverified-model-run'});
+assert.deepEqual(selectMapAuditFrame({layer,metadata:{layer,times:[],referenceTimes:[]},entry:{timeCount:0,referenceCount:0,status:'listed'},now}),{ok:false,reason:'unverified-model-run'},'a listed model product without dimensions must fail closed');
+assert.equal(selectMapAuditFrame({layer,metadata:{...product,times:[]},entry:{timeCount:0,referenceCount:1,status:'listed'},now}).reason,'no-admissible-valid-time','run alone is insufficient without a forecast validity time');
 assert.equal(selectMapAuditFrame({layer,metadata:{...product,layer:'wrong'},entry:{timeCount:1},now}).reason,'metadata-layer-mismatch');
 const obs='dwd:Gewitterzellen';
 p=selectMapAuditFrame({layer:obs,metadata:{layer:obs,times:[at(-.1)],referenceTimes:[],elevations:[]},entry:{timeCount:1},now});
 assert.equal(p.ok,true);assert.equal(p.run,undefined,'NowCastMIX does not invent a deterministic reference time');
+assert.equal(selectMapAuditFrame({layer:obs,metadata:{layer:obs,times:[],referenceTimes:[]},entry:{timeCount:0,status:'listed'},now}).reason,'no-admissible-valid-time','a time-free nowcast is not an observed frame');
 assert.equal(selectMapAuditFrame({layer,metadata:{...product,times:[at(250)]},entry:{timeCount:1},now}).reason,'no-admissible-valid-time');
 
 const crcTable=Uint32Array.from({length:256},(_,n)=>{let c=n;for(let i=0;i<8;i++)c=c&1?0xedb88320^(c>>>1):c>>>1;return c>>>0});
@@ -33,7 +36,7 @@ assert.equal(validateMapAuditPng(good.subarray(0,-12)).reason,'png-missing-end-o
 const damaged=Buffer.from(good);damaged[29]^=1;assert.equal(validateMapAuditPng(damaged).reason,'png-crc-mismatch');
 assert.equal(validateMapAuditPng(Buffer.alloc(MAP_AUDIT_MAX_IMAGE_BYTES+1)).reason,'png-byte-budget-or-truncation');
 assert.equal(validateMapAuditPng(Buffer.alloc(67)).reason,'not-png');
-console.log('Map audit QA: run/time/accumulation/PNG/NoData-provenance assertions passed.');
+console.log('Map audit QA: run/time/accumulation/PNG wire-structure assertions passed; no meteorological NoData claim.');
 
 // Run the real audit entrypoint through a fully mocked MID Worker, confirming
 // zero external HTTP requests, exact run/time forwarding and JSON statuses.

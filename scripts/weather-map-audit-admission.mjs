@@ -58,16 +58,15 @@ export function selectMapAuditFrame({layer,metadata,entry,now=Date.now()}){
  if(!metadata||metadata.layer!==layer)return{ok:false,reason:'metadata-layer-mismatch'};
  if(!Number.isFinite(now))return{ok:false,reason:'invalid-reference-clock'};
  const nowcast=/^dwd:(?:Autowarn_|Gewitterzellen$|Gewittercluster$|NCEW_)/.test(layer);
- const timed=Number(entry?.timeCount)>0||Number(entry?.referenceCount)>0||validTimes(metadata.times).length>0;
  const runs=validTimes(metadata.referenceTimes),run=latestValidRun(runs,now);
- if(timed&&!nowcast&&!run)return{ok:false,reason:'unverified-model-run'};
+ if(!nowcast&&!run)return{ok:false,reason:'unverified-model-run'};
  const windowHours=Number(layer.match(/TOTPREC(\d\d)H$/)?.[1]||0);
  const lower=now-(nowcast?24:48)*HOUR,upper=now+(nowcast?4:204)*HOUR;
  const times=validTimes(metadata.times).filter(value=>{
   const t=Date.parse(value);
   return t>=lower&&t<=upper&&(!run||t>=Date.parse(run)+windowHours*HOUR);
  });
- if(timed&&!times.length)return{ok:false,reason:'no-admissible-valid-time'};
+ if(!times.length)return{ok:false,reason:'no-admissible-valid-time'};
  let time;
  if(times.length){
   const future=times.find(value=>Date.parse(value)>=now-15*MINUTE);

@@ -33,7 +33,7 @@ Das ist **keine** Ermächtigung zu autonomen neuen Produktentscheidungen, unbest
 | Nutzungs-, Performance- und Fehlerdaten | **PostHog** nur wenn datenschutzkonform und freigegeben/verbunden | Nur notwendige aggregierte Telemetrie; Einwilligung/Opt-in und Qualität der Instrumentierung prüfen; Rohereignisse ≠ wissenschaftliche Nachweise |
 | PR Review, CI-Konflikttriage, Regressionsevidenz | **PR Completion**, sofern verfügbar/autorisiert | Hilfsprüfung; **niemals** dessen generisches Mergeverfahren statt des MID-SHA-Release-Bots |
 | Editierbare Designs / Design-System-Layer | **Figma**, wenn angefordert und Zugriffsrechte passen | Nur Designartefakte, keine ungesicherte Code-/Releaseintegration |
-| Cloudflare Workers, Pages, R2 und produktive Laufzeitdiagnose | **Cloudflare**, falls verbunden und erforderlich | GitHub bleibt Code-/Release-Source-of-Truth; keine eigenständigen Deploys oder Secrets-Änderungen |
+| Cloudflare Workers, Pages, R2 und produktive Laufzeitdiagnose | **Cloudflare**, falls verbunden und erforderlich | Nur redigierte, lesende Laufzeitdiagnose mit Least Privilege; **keine** Daten-, Konfigurations-, Cache-, Deployment- oder Secrets-Mutationen. GitHub bleibt Code-/Release-Source-of-Truth |
 | Zusätzliche eng begrenzte PR-/QA-Triage | **PR Readiness** oder andere installierte Prüftools, sofern nachweisbar verfügbar | Beratung/Prüfung, niemals Umgehung des MID-Source-/Review-/Release-Gates |
 | Sonstige installierte Plugins und neue fachlich passende Werkzeuge | Dynamische Eignungsprüfung statt fester Positivliste | Fachlicher Nutzen, aktuelle Verbindung/Rechte, Datenschutz, Kosten, Nichtüberschneidung und Nutzerauftrag zwingend |
 
@@ -66,4 +66,4 @@ Monitoring und konkrete Agentenaufträge sind verschiedene Vorgänge. **Keine hi
 - [Kilo ref-free Coding Handoff](MID_KILO_DEFAULT_HANDOFF_CONTRACT_2026_11_05.md): separater früherer Pilot [#662](https://github.com/MeteoMartini/MID/issues/662) → [Draft #663](https://github.com/MeteoMartini/MID/pull/663).
 - Etwaige technische Änderungen an Freigaben, GitHub-Rulesets, CI, OAuth oder Cloud-Abrechnung sind **nicht** Bestandteil dieses Dokuments.
 
-**Status:** Dieser auf `mid-stable` bereits enthaltene Governance-Vertrag ist verbindliche Arbeitsanweisung; seine historischen Pilot-/Commit-Beispiele bleiben ausdrücklich **keine** aktuellen Release-, Automations- oder Verbindungsnachweise. Zukünftige Änderungen gelten erst nach dem vollständigen MID-Releasepfad.
+**Status:** Die auf `mid-stable` bereits freigegebene Vertragsfassung bleibt allein verbindlich. **Die Änderungen dieses PR sind ein noch nicht freigegebener Integrationskandidat** und werden erst nach vollständig erfolgreichem Source-/Installer-/Worker-/Pages-/Stable-Releasepfad verbindlich. Historische Pilot-/Commit-Beispiele sind ausdrücklich **keine** aktuellen Release-, Automations- oder Verbindungsnachweise.
