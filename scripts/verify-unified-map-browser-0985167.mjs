@@ -553,6 +553,8 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  let retryClickError=null;
  try{await page.getByRole('button',{name:'Wolken und Wetter erneut laden'}).click()}
  catch(error){retryClickError=error}
+ if(retryClickError)assert.equal(await page.getByRole('button',{name:'Wolken und Wetter erneut laden'}).count(),0,
+  'Only an actually removed GDPS retry button may enter verified original recovery after click failure');
  await page.waitForFunction(()=>{const text=document.querySelector('.unified-layer-status')?.textContent||'';return text.includes('INIT')&&!text.includes('wird geprüft')&&!text.includes('laden')}).catch(error=>{throw retryClickError||error});
  assert.ok(gdpsWeatherGetMaps().length>beforeRetry,'Retry or verified original recovery must issue a fresh GDPS GetMap');
  if(retryClickError)console.log('Original GDPS auto recovery verified after retry button unmount');assert.equal(await page.getByRole('button',{name:'Linien',exact:true}).isDisabled(),true);assert.ok(requests.some(u=>u.includes('layers=GDPS_15km_PrecipType-Instant')&&u.includes('dim_reference_time=')),'Combined GDPS uses instant precipitation type with explicit init');await page.locator('.cloud-weather-legend summary').click();assert.match(await page.locator('.cloud-weather-legend').innerText(),/Keine vollständige Nebel/);

@@ -531,6 +531,13 @@ test('cancelled installer jobs remain fail-closed with absent or deceptive logs'
  for(const failedLog of ['', 'The runner has received a shutdown signal.', 'HTTP 503 upstream'])
   assert.deepEqual(selfHealClassify({jobs:cancelled,failedLog}),
    {retry:false,reason:'cancelled-jobs-require-operator-provenance'});
+ assert.deepEqual(selfHealClassify({jobs:{...cancelled,jobs:[
+  {name:'Release-Heavy · heavy-unified-map · 1/3',conclusion:'cancelled'},
+  {name:'Release-Heavy · heavy-unified-map · 2/3',conclusion:'failure'},
+  ...cancelled.jobs.slice(2),
+ ]},failedLog:selfHealTimeoutLog}),
+  {retry:false,reason:'cancelled-jobs-require-operator-provenance'},
+  'Cancelled required job blocks auto-retry even when a parallel browser shard has the exact allowlisted timeout log');
  assert.deepEqual(selfHealClassify({jobs:{...cancelled,total_count:13},failedLog:''}),
   {retry:false,reason:'incomplete-job-inventory'});
  assert.equal(selfHealClassify({jobs:cancelled,attempt:2,failedLog:'HTTP 503'}).retry,false);

@@ -4,6 +4,7 @@
 - Abgebrochene Runner-Jobs bleiben ohne unabhängig verifizierbare externe Abbruchprovenienz nicht auto-retryfähig; der Original-Run und die nötige Operatorprüfung werden sichtbar.
 - Die echte GDPS-Wiederherstellung nach injiziertem HTTP 502 erfordert nachweislich neue Originaldatenanfrage und gültige INIT-Zeit. Kein erzwungener Klick, keine gelöschte Regression und keine Fake-Wetterdaten.
 - Andere Issue-/PR-Kandidaten (#541, #975, #981, #956, #937) sind dadurch nicht als erledigt anzusehen. Vollständiger Protected Release Train bleibt bindend.
+- **Status:** QA-Integrationskandidat, kein Release. Das Source-Gate des früheren Heads `3e929f8633dfcfc5452811480ec23b99efb72e34` war erfolgreich; nach den Reviewkorrekturen sind erneute SHA-genaue Source- und Review-Gates für den finalen Head erforderlich. Bot-Merge, Installer, Worker-/Pages-Gates und Stable-Promotion sind noch nicht nachgewiesen.
 
 # MID v0.9.85.510 · Leit-Integration – DWD-RUC-Fast-Nachholung
 
