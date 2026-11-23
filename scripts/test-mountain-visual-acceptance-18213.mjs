@@ -103,6 +103,16 @@ async function clickButtonContaining(selector,text){
  await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:point.x,y:point.y,button:'left',buttons:1,clickCount:1});
  await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:point.x,y:point.y,button:'left',buttons:0,clickCount:1});
 }
+async function mountainSeasonDiagnostic(){
+ return JSON.parse(await evaluate(`JSON.stringify((()=>{
+  const buttons=[...document.querySelectorAll('.mountain-season-control button')].map(button=>({label:button.textContent?.trim()||'',pressed:button.getAttribute('aria-pressed'),visible:button.getClientRects().length>0}));
+  const requests=(window.__mountainFixtureRequests||[]).slice(-16).map(raw=>{try{const url=new URL(raw);return{host:url.hostname,path:url.pathname,core:url.pathname==='/v1/forecast'&&url.searchParams.get('past_hours')==='24'}}catch{return{invalidUrl:true}}});
+  return{buttons,summary:document.querySelector('.mountain-profile-summary')?.textContent?.trim().slice(0,200)||'',season:document.querySelector('.mountain-peak-indicators')?.getAttribute('data-season')||'',hasHourly:Boolean(document.querySelector('.mountain-hourly-grid')),hasSnow:Boolean(document.querySelector('.mountain-hourly-snow-summary')),loading:Boolean(document.querySelector('.mountain-loading')),error:document.querySelector('.mountain-ski .error')?.textContent?.trim().slice(0,240)||'',recentRequests:requests};
+ })())`));
+}
+async function mountainFixtureCoreCount(){
+ return evaluate(`(window.__mountainFixtureRequests||[]).filter(raw=>{try{const url=new URL(raw);return url.pathname==='/v1/forecast'&&url.searchParams.get('past_hours')==='24'}catch{return false}}).length`);
+}
 async function windUnitDiagnostic(){
  return callPageFunction(`function(){const selector='.settings-dialog .settings-units-section .settings-unit-grid button';return JSON.stringify({stored:localStorage.getItem('windUnit'),dialog:!!document.querySelector('.settings-dialog'),buttons:[...document.querySelectorAll(selector)].map(b=>({text:b.textContent.trim().slice(0,80),pressed:b.getAttribute('aria-pressed'),visible:b.getClientRects().length>0})),visibleMountain:!!document.querySelector('.mountain-ski')})}`);
 }
@@ -341,8 +351,18 @@ try{
    const winterStructure=JSON.parse(await evaluate(`JSON.stringify({hourly:Boolean(document.querySelector('.mountain-hourly-grid')),snow:Boolean(document.querySelector('.mountain-hourly-snow-summary')),extra:document.querySelectorAll('.mountain-peak-indicators>article').length})`));
    assert.ok(winterStructure.hourly&&winterStructure.snow,'Winterprofil muss Stundenraster und Schnee-Zusammenfassung zeigen.');
    assert.ok(winterStructure.extra>0,'Weitere Bergstations-Kennwerte müssen im Winterprofil erhalten bleiben.');
+   const beforeSummer=await mountainSeasonDiagnostic(),beforeSummerCore=await mountainFixtureCoreCount();
    await clickButtonContaining('.mountain-season-control button','Sommer');
-   await waitForValue('Sommerprofil aktiviert',`!document.querySelector('.mountain-hourly-snow-summary')&&Boolean(document.querySelector('.mountain-hourly-grid'))`,Boolean,60000);
+   const immediatelyAfterSummer=await mountainSeasonDiagnostic();
+   try{
+    await waitForValue('Sommerprofil aktiviert',`!document.querySelector('.mountain-hourly-snow-summary')&&Boolean(document.querySelector('.mountain-hourly-grid'))`,Boolean,60000);
+   }catch(error){
+    const finalState=await mountainSeasonDiagnostic();
+    throw new Error(`${error.message} Saison-Diagnose: ${JSON.stringify({beforeSummer,immediatelyAfterSummer,finalState,browserErrors:browserErrors.slice(-8)})}`);
+   }
+   const summerState=await mountainSeasonDiagnostic();
+   assert.equal(summerState.buttons.find(button=>button.label==='Sommer')?.pressed,'true','Sommer-Profil muss als aktiv ausgezeichnet sein.');
+   assert.equal(await mountainFixtureCoreCount(),beforeSummerCore,'Nur der Saisonmodus darf keinen zweiten identischen Original-BestMatch-Core-Abruf auslösen.');
    await clickButtonContaining('.mountain-season-control button','Winter');
    await waitForValue('Winterprofil für weitere Prüfungen wiederhergestellt',`Boolean(document.querySelector('.mountain-hourly-snow-summary'))`,Boolean,60000);
 

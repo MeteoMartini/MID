@@ -1,3 +1,9 @@
+## MID v0.9.85.515 · P0 Recovery: Bergwetter Saisonprofil und .514-Source-Erhalt (Kandidat)
+
+- .513 Stable SHA 331fffff081303e1c597badddfa4ae41c4b4e0f0 → unveröffentlichter .514 Source-Merge 294bf1b4181d25f9c8868de175e1ecb4cf2bb3b8 → .514 Installer #45195086142 fehlgeschlagen; originaler ZIP-only-Commit f6b4856ed1e2de8d659aa15383a2e06aac526bc0 auf main bleibt unverändert.
+- Meteorologischer Core-Cache jetzt saisonunabhängig; nichtmutierende Saisonprojektionen für Cached-/Fresh-/Enrichment-Pfade; Node22 Negativ-/Positivtest und 12 domänenspezifische Regressionen. Original-CDP-Wait 60 s, ARIA-/Core-Negativprobe hinzugefügt, Browser/Installer noch ausstehend.
+- Vollständiger Release ausschließlich nach audit-failed-release, Source-PR-/Review-Guard, Core4+Heavy6, autorisiertem ZIP-Bot, Installer Core4+Heavy6, Worker/Pages, Stable-Promotion. Keine QA-Bypässe.
+
 ## MID v0.9.85.514 · 2026-11-23 · LC 1.34 – Originalzeitintervalle im Reiseplaner, WMS-Kartenaudit und dynamisches Plugin-Routing
 
 - **Verifizierte Ausgangsbasis:** `main=mid-stable=331fffff081303e1c597badddfa4ae41c4b4e0f0` / v0.9.85.513, Release [v0.9.85.513](https://github.com/MeteoMartini/MID/releases/tag/v0.9.85.513) nach erfolgreichem Installer #45169135490; fünf aktive Rulesets.
