@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
-import {aggregateGefsUtcDays,consecutiveUtcWeek,ec46DailyApplicability,nativeFinite} from '../../src/travelForecastPeriodEvidence';
+import {aggregateGefsUtcDays,consecutiveUtcWeek,ec46DailyApplicability,nativeFinite,seasonalTemperatureScenario} from '../../src/travelForecastPeriodEvidence';
 
 const HOUR=3600000;
 const first=Date.parse('2026-11-01T00:00:00Z');
@@ -149,6 +149,21 @@ describe('MID Audit 1.4 · native GEFS daily coverage and full EC46 weeks',()=>{
   expect(source).toContain('actualSeasonalFamilies.forEach(id=>families.add(id))');
   expect(source).toContain('dwdUsed:Boolean(dwdTemp?.value!==undefined)');
   expect(source).not.toContain('seasonal.pointModels.forEach(model=>families.add');
+ });
+ it('keeps daily precipitation and probability untouched by original monthly temperature anomalies',()=>{
+  const base={maxMean:20,minMean:10,meanMean:14,maxP25:18,maxP75:22,minP25:8,minP75:12,precipitationMean:14.5,wetProbability:62,sunshineMeanHours:6,forecastSource:'Nur Klimatologie'};
+  const changed=seasonalTemperatureScenario(base,4,0.25);
+  expect(changed?.maxMean).toBe(21);
+  expect(changed?.minMean).toBe(11);
+  expect(changed?.precipitationMean).toBe(14.5);
+  expect(changed?.wetProbability).toBe(62);
+  expect(changed?.sunshineMeanHours).toBe(6);
+  expect(changed?.forecastSource).toBe('Nur Klimatologie','provenance is assigned only after a verified temperature signal is applied by the caller');
+  expect(seasonalTemperatureScenario(base,null,0.25)).toBeUndefined();
+  expect(seasonalTemperatureScenario(base,4,NaN)).toBeUndefined();
+  expect(base.maxMean).toBe(20,'the original climate reference remains unchanged');
+  const source=readFileSync(new URL('../../src/travelForecastFusion.ts',import.meta.url),'utf8');
+  expect(source).toContain('day=seasonalTemperatureScenario(base,signalRow.temperatureAnomaly,share);if(!day)continue;');
  });
  it('does not label a season-only rain amount as a daily model day',()=>{
   const source=readFileSync(new URL('../../src/travelForecastFusion.ts',import.meta.url),'utf8');

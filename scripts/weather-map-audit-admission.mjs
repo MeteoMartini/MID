@@ -1,3 +1,4 @@
+import {inflateSync} from 'node:zlib';
 /**
  * Pure and read-only transport admission for the existing MID weather map audit.
  * A structurally correct PNG is NOT proof of nonempty meteorological data, valid
@@ -23,7 +24,8 @@ export function validateMapAuditPng(raw,{width=256,height=256,maxBytes=MAP_AUDIT
  const bytes=raw instanceof Uint8Array?raw:new Uint8Array(raw);
  if(bytes.length<57||bytes.length>maxBytes)return{ok:false,reason:'png-byte-budget-or-truncation'};
  if(!PNG_SIGNATURE.every((value,index)=>bytes[index]===value))return{ok:false,reason:'not-png'};
- let offset=8,seenHeader=false,seenIdat=false,seenEnd=false,chunks=0,dimensions;
+ let offset=8,seenHeader=false,seenIdat=false,seenEnd=false,chunks=0,dimensions,depthBits=0,colorType=0,interlace=0,seenPalette=false;
+ const compressed=[];
  while(offset+12<=bytes.length&&++chunks<=1000){
   const size=int32(bytes,offset),typeAt=offset+4,start=offset+8,end=start+size;
   if(size>maxBytes||!Number.isSafeInteger(end)||end+4>bytes.length)return{ok:false,reason:'png-truncated-chunk'};
@@ -35,16 +37,31 @@ export function validateMapAuditPng(raw,{width=256,height=256,maxBytes=MAP_AUDIT
    const w=int32(bytes,start),h=int32(bytes,start+4),depth=bytes[start+8],color=bytes[start+9];
    if(w!==width||h!==height)return{ok:false,reason:'png-unexpected-dimensions',width:w,height:h};
    if(![0,2,3,4,6].includes(color)||!({0:[1,2,4,8,16],2:[8,16],3:[1,2,4,8],4:[8,16],6:[8,16]}[color]).includes(depth)||bytes[start+10]!==0||bytes[start+11]!==0||bytes[start+12]>1)return{ok:false,reason:'png-invalid-header-encoding'};
-   dimensions={width:w,height:h};seenHeader=true;
+   dimensions={width:w,height:h};depthBits=depth;colorType=color;interlace=bytes[start+12];seenHeader=true;
   }else if(type==='IHDR')return{ok:false,reason:'png-duplicate-header'};
-  if(type==='IDAT')seenIdat=true;
+  if(type==='PLTE')seenPalette=true;
+ if(type==='IDAT'){seenIdat=true;compressed.push(Buffer.from(bytes.subarray(start,end)))}
   if(type==='IEND'){
    if(size!==0||!seenIdat||end+4!==bytes.length)return{ok:false,reason:'png-invalid-end'};
    seenEnd=true;break;
   }
   offset=end+4;
  }
- return seenHeader&&seenIdat&&seenEnd?{ok:true,...dimensions,bytes:bytes.length,proof:'png-wire-only'}:{ok:false,reason:'png-missing-end-or-pixels'};
+ if(!seenHeader||!seenIdat||!seenEnd)return{ok:false,reason:'png-missing-end-or-pixels'};
+ // A CRC-valid IDAT is not necessarily a decodable PNG. Check the complete
+ // bounded zlib stream and all scanline filter bytes; not meteorological pixels.
+ if(interlace!==0)return{ok:false,reason:'png-interlace-not-qualified'};
+ if(colorType===3&&!seenPalette)return{ok:false,reason:'png-missing-palette'};
+ const channels={0:1,2:3,3:1,4:2,6:4}[colorType];
+ const scanlineBytes=Math.ceil(dimensions.width*channels*depthBits/8)+1;
+ const decodedBytes=scanlineBytes*dimensions.height;
+ if(!Number.isSafeInteger(decodedBytes)||decodedBytes>MAP_AUDIT_MAX_IMAGE_BYTES)return{ok:false,reason:'png-decoded-byte-budget'};
+ let scanlines;
+ try{scanlines=inflateSync(Buffer.concat(compressed),{maxOutputLength:decodedBytes})}
+ catch{return{ok:false,reason:'png-invalid-idat-stream'}}
+ if(scanlines.length!==decodedBytes)return{ok:false,reason:'png-invalid-scanline-length'};
+ for(let row=0;row<dimensions.height;row++)if(scanlines[row*scanlineBytes]>4)return{ok:false,reason:'png-invalid-scanline-filter'};
+ return{ok:true,...dimensions,bytes:bytes.length,proof:'png-decoded-structure-only'};
 }
 
 function validTimes(items){return(Array.isArray(items)?items:[]).filter(value=>typeof value==='string'&&Number.isFinite(Date.parse(value))).sort((a,b)=>Date.parse(a)-Date.parse(b));}

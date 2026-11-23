@@ -29,11 +29,17 @@ function be(n){const b=Buffer.alloc(4);b.writeUInt32BE(n);return b}
 function chunk(type,data=Buffer.alloc(0)){const s=Buffer.concat([Buffer.from(type),data]);return Buffer.concat([be(data.length),s,be(crc(s))])}
 function png(width=256,height=256){const hdr=Buffer.alloc(13);hdr.writeUInt32BE(width);hdr.writeUInt32BE(height,4);hdr[8]=8;hdr[9]=6;const row=Buffer.alloc(width*4+1);const pixels=Buffer.concat(Array.from({length:height},()=>row));return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk('IHDR',hdr),chunk('IDAT',deflateSync(pixels)),chunk('IEND')])}
 const good=png();assert.equal(validateMapAuditPng(good).ok,true);
-assert.equal(validateMapAuditPng(good).proof,'png-wire-only','a valid transport is not a meteorological observation');
+assert.equal(validateMapAuditPng(good).proof,'png-decoded-structure-only','a decoded transport is not a meteorological observation');
 assert.equal(validateMapAuditPng(png(512,256)).reason,'png-unexpected-dimensions');
 assert.equal(validateMapAuditPng(good.subarray(0,20)).ok,false);
 assert.equal(validateMapAuditPng(good.subarray(0,-12)).reason,'png-missing-end-or-pixels');
 const damaged=Buffer.from(good);damaged[29]^=1;assert.equal(validateMapAuditPng(damaged).reason,'png-crc-mismatch');
+const signature=Buffer.from([137,80,78,71,13,10,26,10]),header=good.subarray(16,29);
+const invalidZlib=Buffer.concat([signature,chunk('IHDR',header),chunk('IDAT',Buffer.from('not-zlib')),chunk('IEND')]);
+assert.equal(validateMapAuditPng(invalidZlib).reason,'png-invalid-idat-stream','a CRC-valid body with invalid compressed data is rejected');
+const invalidFilterPixels=Buffer.alloc(256*(256*4+1));invalidFilterPixels[0]=5;
+const invalidFilter=Buffer.concat([signature,chunk('IHDR',header),chunk('IDAT',deflateSync(invalidFilterPixels)),chunk('IEND')]);
+assert.equal(validateMapAuditPng(invalidFilter).reason,'png-invalid-scanline-filter','a decompressible but invalid scanline is rejected');
 assert.equal(validateMapAuditPng(Buffer.alloc(MAP_AUDIT_MAX_IMAGE_BYTES+1)).reason,'png-byte-budget-or-truncation');
 assert.equal(validateMapAuditPng(Buffer.alloc(67)).reason,'not-png');
 console.log('Map audit QA: run/time/accumulation/PNG wire-structure assertions passed; no meteorological NoData claim.');

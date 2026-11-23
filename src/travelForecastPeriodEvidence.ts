@@ -80,3 +80,14 @@ export function ec46DailyApplicability(signal:Ec46DailySignal,day:Ec46DailyBase)
  const snowDepth=finiteNumber(signal.snowDepthAnomalyCm)&&finiteNumber(day.snowDepthMean);
  return{temperature,wind,cloud,snowDepth};
 }
+
+/** Apply only a source-native seasonal temperature anomaly; do not alter rain,
+ * wet-day frequency, sunshine or snow fields from monthly anomalies. */
+type SeasonalTempBase={maxMean:number;minMean:number;meanMean:number;maxP25:number;maxP75:number;minP25:number;minP75:number};
+export function seasonalTemperatureScenario<T extends SeasonalTempBase>(base:T,anomaly:unknown,share:unknown):T|undefined{
+ if(!finiteNumber(anomaly)||!finiteNumber(share)||share<0||share>1)return undefined;
+ const keys=['maxMean','minMean','meanMean','maxP25','maxP75','minP25','minP75'] as const;
+ if(keys.some(key=>!finiteNumber(base[key])))return undefined;
+ const delta=anomaly*share;if(!Number.isFinite(delta))return undefined;
+ return {...base,maxMean:base.maxMean+delta,minMean:base.minMean+delta,meanMean:base.meanMean+delta,maxP25:base.maxP25+delta,maxP75:base.maxP75+delta,minP25:base.minP25+delta,minP75:base.minP75+delta} as T;
+}
