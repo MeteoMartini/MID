@@ -107,7 +107,7 @@ function applyEc46Week(days:Record<string,TravelClimateDay>,dataset:TravelClimat
  let applied=0;
  for(const date of selected){
   const key=dateKey(date),base=days[key],eligibility=ec46DailyApplicability(week,base);
-  if(!eligibility.temperature&&!eligibility.wind&&!eligibility.cloud&&!eligibility.snowDepth)continue;
+  if(!eligibility.temperature&&!eligibility.cloud&&!eligibility.snowDepth)continue;
   const day={...base};
   // Weekly 2m mean-temperature anomaly is a scenario location shift of the
   // climate DAILY temperature distribution. This is NOT the 6h max/min anomaly
@@ -116,7 +116,8 @@ function applyEc46Week(days:Record<string,TravelClimateDay>,dataset:TravelClimat
    const delta=week.tempMeanAnomaly!*share;
    for(const parameter of ['maxMean','minMean','meanMean','maxP25','maxP75','minP25','minP75'] as const)day[parameter]+=delta;
   }
-  // Mean wind speed cannot be substituted for the mean of DAILY wind maxima.
+  // Wind-only weeks do not count as applied daily travel evidence: the UI and
+  // rankings use daily maximum wind, not this separately tracked mean.
   if(eligibility.wind)day.windMean=Math.max(0,Number(day.windMean)+week.windAnomalyKn!*share);
   if(eligibility.cloud)day.cloudMean=clamp(day.cloudMean+week.cloudAnomalyPct!*share,0,100);
   if(eligibility.snowDepth)day.snowDepthMean=Math.max(0,Number(day.snowDepthMean)+week.snowDepthAnomalyCm!*share);

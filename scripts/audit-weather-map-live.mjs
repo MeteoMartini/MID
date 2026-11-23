@@ -25,7 +25,7 @@ async function boundedBytes(response){
  if(Number.isFinite(length)&&length>MAP_AUDIT_MAX_IMAGE_BYTES)throw Error('PNG response exceeds image byte budget');
  const reader=response.body?.getReader();if(!reader)throw Error('Image response body missing');
  const chunks=[];let size=0;
- const timer=setTimeout(()=>{void reader.cancel().catch(()=>{})},12000);
+ let timedOut=false;const timer=setTimeout(()=>{timedOut=true;void reader.cancel().catch(()=>{})},12000);
  try{
   for(;;){const{done,value}=await reader.read();if(done)break;
    size+=value.length;
@@ -33,6 +33,7 @@ async function boundedBytes(response){
    chunks.push(value);
   }
  }finally{clearTimeout(timer);reader.releaseLock()}
+ if(timedOut)throw Error('PNG body read timeout');
  const bytes=new Uint8Array(size);let at=0;for(const chunk of chunks){bytes.set(chunk,at);at+=chunk.length}return bytes;
 }
 function bbox(){
@@ -63,8 +64,8 @@ for(const [layer,entry] of Object.entries(cap.layers)){
   const params={service:'WMS',request:'GetMap',version:'1.1.1',layers:layer,styles:'',format:'image/png',transparent:'true',srs:'EPSG:3857',bbox:bbox(),width:256,height:256,...(picked.time?{time:picked.time}:{}),...(picked.run?{dim_reference_time:picked.run}:{}),...(picked.elevation!==undefined?{elevation:picked.elevation}:{})};
   const response=await get(endpoint('weather-map-wms',{provider:row.provider,...params}));
   row.http=response.status;row.workerVersion=response.headers.get('x-mid-worker-version')||null;row.contentType=(response.headers.get('content-type')||'').split(';')[0].trim().toLowerCase();
-  if(!response.ok){row.probe='invalid-image-or-http';row.reason='GetMap HTTP '+response.status;await response.body?.cancel();results.push(row);continue}
-  if(row.contentType!=='image/png'){row.probe='invalid-image-or-http';row.reason='non-PNG response';await response.body?.cancel();results.push(row);continue}
+  if(!response.ok){row.probe='invalid-image-or-http';row.reason='GetMap HTTP '+response.status;await response.body?.cancel();results.push(row);await sleep(200);continue}
+  if(row.contentType!=='image/png'){row.probe='invalid-image-or-http';row.reason='non-PNG response';await response.body?.cancel();results.push(row);await sleep(200);continue}
   const admitted=validateMapAuditPng(await boundedBytes(response));
   row.bytes=admitted.bytes??null;row.dimensions=admitted.ok?[admitted.width,admitted.height]:null;
   row.probe=admitted.ok?'valid-png-response':'invalid-image-or-http';

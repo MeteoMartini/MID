@@ -35,9 +35,9 @@
 - **P1 parallel, nicht duplizieren:** Verifikationsdrafts #911/#922/#923/#964, vollständige Feld-/Akkumulationsmetadaten #914 und Radar-NoData #929; UV aus früherem #967 bereits in Stable v0.9.85.509 selektiv integriert.
 - **P2:** Nutzerseitige Wochen-/Tercile-Szenariodarstellung mit regionalem Skill-Nachweis; nur wenn originale Memberverteilungen und robuste unabhängige Verifikation verfügbar sind.
 
-**Release-Gates:** Source-PR → SHA-bound controlled merge → original serverseitiges ZIP → `install-mid.yml` → betroffene Worker/Pages → Stable-Promotion. Kein Direkt-Merge, keine Schutzregeländerung, keine zusätzlichen kostenpflichtigen Dienste. **Versionsspiegel bewusst noch .511, weil dies ein ungepromoteter QA-Draft und kein eigenständiger Build ist.**
+**Release-Gates:** Source-PR → SHA-bound controlled merge → original serverseitiges ZIP → `install-mid.yml` → betroffene Worker/Pages → Stable-Promotion. Kein Direkt-Merge, keine Schutzregeländerung, keine zusätzlichen kostenpflichtigen Dienste. **Der verifizierte Integrationskandidat führt die Versionsspiegel .514, ist aber noch kein Stable-Release; die ursprüngliche Audit-QA lag auf .511.**
 
-## Neue Audit-1.4-Nachschärfung auf Stable .512 (ersetzt Draft #989)
+## Historische Audit-1.4-Nachschärfung auf Stable .512 (ersetzt Draft #989; in .514 als QA-Integrationskandidat übernommen)
 
 - EC46-`temperature_max6h_2m_anomaly`/`temperature_min6h_2m_anomaly` werden **nicht** auf tägliche Tmax/Tmin übertragen: 6h-Extreme sind keine Tagesextreme (Open-Meteo Seasonal API). Nur passende Wochenmittel dürfen einen konservativen gemeinsamen Versatz der täglichen Klimatemperaturverteilung bilden; keine neue tagesgenaue Ereignisprognose.
 - Für `wind_speed_10m_anomaly` wird, falls vorhanden, **mittlere** Windgeschwindigkeit verschoben, niemals Tageswindmaximum. Nur echte vorliegende Null-/Zahlenwerte gelten als Signal. Modellabdeckung zählt ausschließlich Tage, an denen mindestens ein vergleichbares, disponibles Feld genutzt wurde, nicht automatisch sieben generierte Daten. Native Wochenfelder sind ein Originalaggregat, keine sieben unabhängigen Quelldaten.

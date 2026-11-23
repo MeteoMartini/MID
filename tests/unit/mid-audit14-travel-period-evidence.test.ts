@@ -89,7 +89,10 @@ describe('MID Audit 1.4 · native GEFS daily coverage and full EC46 weeks',()=>{
   expect(aggregateGefsUtcDays(f,units)).toEqual([]);
  });
  it('fails closed on non-existent Gregorian calendar dates',()=>{
-  const f=fixture();f.time[20]='2026-02-30T20:00';
+  const f=fixture();
+  const feb27=Date.parse('2026-02-27T00:00:00Z');
+  f.time=Array.from({length:48},(_,i)=>new Date(feb27+i*HOUR).toISOString().slice(0,16)).concat('2026-02-29T00:00');
+  // Invalid final token is later than all previous valid tokens: ordering alone cannot reject it.
   expect(aggregateGefsUtcDays(f,units)).toEqual([]);
  });
  it('fails closed when source arrays have differing lengths',()=>{
@@ -155,7 +158,7 @@ describe('MID Audit 1.4 · native GEFS daily coverage and full EC46 weeks',()=>{
  it('honors field-level original provenance and never counts a phantom EC46 week',()=>{
   const source=readFileSync(new URL('../../src/travelForecastFusion.ts',import.meta.url),'utf8');
   expect(source).toContain('ec46DailyApplicability(week,base)');
-  expect(source).toContain('if(!eligibility.temperature&&!eligibility.wind&&!eligibility.cloud&&!eligibility.snowDepth)continue;');
+  expect(source).toContain('if(!eligibility.temperature&&!eligibility.cloud&&!eligibility.snowDepth)continue;');
   expect(source).toContain('return{covered:applied,shareTotal:share*applied');
  });
  it('labels every long-range travel card as climatological context, not daily weather',()=>{
@@ -164,6 +167,7 @@ describe('MID Audit 1.4 · native GEFS daily coverage and full EC46 weeks',()=>{
   expect(panel).toContain("const longRange=daysBetween(renderToday,point.date)>=14");
   expect(panel).not.toContain('daysBetween(localToday(),point.date)');
   expect(panel).toContain("point.forecastSource?'Trend + Klima':'Nur Klima'");
+  expect(panel).toContain("'PROGNOSE UND KLIMA'");
   expect(panel).toContain('<CalendarRange size={18}');
  });
 
