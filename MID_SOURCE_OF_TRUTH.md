@@ -1,3 +1,10 @@
+# MID v0.9.85.512 · Leit-Integration – GitHub-Release-Katalog nach Stable-Promotion
+
+- **Verifizierter Startpunkt:** `main=mid-stable=c5faca33885f8df4cc645be89ecc6befe93c55c0`, veröffentlichte v0.9.85.511, [Installer #45117904421](https://github.com/MeteoMartini/MID/actions/runs/45117904421) completed/success. Selektiver Original-Intake aus QA-Draft [#956](https://github.com/MeteoMartini/MID/pull/956) @ `cb80824ca54967903a4d7885b6380b8ea02c599e` statt unsicherem Merge des historischen .497-Baums.
+- Ausschließlich nach vollständigen Source-/Review-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates erzeugt ein nachgelagerter **Job des bestehenden Installers** den GitHub-Release-Katalogeintrag samt lightweight Tag/aktuellen Notes. Keine zweite privilegierte Release-Automation oder neuen Secrets/Abos.
+- Original-Run-/Attempt-/SHA-/ZIP-only-Commit-/Stable-Parent-/vollständige Job-/Versionsspiegel-/Notes-/Tag-/Latest-Evidenz bleibt bindend. Beim erfolgreich verwendeten Pages-Artifact-Retry darf der vorherige optionale Artefakt-Prep-Job nur dann `skipped` sein, wenn genau ein tatsächlicher Pages-Deploy erfolgreich und alle übrigen erforderlichen Jobs nachvollziehbar abgeschlossen sind. Fremde/fehlerhafte Releaseketten erhalten keinen Metadatentag.
+- **Status:** SHA-gebundener **Source-Kandidat**, bis zum vollständigen GitHub-Gate und echtem `releases/latest`-Readback **kein Release**. DWD-RUC/EPS #541, 14d-Design #975, Karten #937, Queue #981 und historische Kataloglücken werden nicht als erledigt gekennzeichnet.
+
 # MID v0.9.85.511 · LC 1.32 – Installer-/GDPS-Recovery-Qualifikation
 
 - Basis `main=mid-stable=35e904ec4e87ce725237e214141d9b640fd04692`, veröffentlichte v0.9.85.510; betroffene [#983](https://github.com/MeteoMartini/MID/issues/983) und [#422](https://github.com/MeteoMartini/MID/issues/422).

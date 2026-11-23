@@ -1,3 +1,12 @@
+## MID v0.9.85.512 · GitHub-Versionstags nach tatsächlich verifizierter Stable-Promotion
+
+- **Basis:** `main=mid-stable=c5faca33885f8df4cc645be89ecc6befe93c55c0` / veröffentlichte .511. Aus historischem QA-Draft [#956](https://github.com/MeteoMartini/MID/pull/956) @ `cb80824ca54967903a4d7885b6380b8ea02c599e` ausschließlich Original-Katalog-Prüfkern, negative Unit-Tests und QA-Dokumentation selektiv integriert, nicht den alten .497-Branch gemergt.
+- Der bestehende Installer erhält ausschließlich einen nachgelagerten Katalog-Job nach erfolgreichem `finalize_release`; vorhandene Release App, allein dort auf `contents:write` begrenzt, keine neuen Secrets, bezahlten Dienste oder Permissions/Ruleset-Änderungen.
+- Realer Installer der v0.9.85.511 [#45117904421](https://github.com/MeteoMartini/MID/actions/runs/45117904421): ZIP, Core, Heavy, Worker, Pages-Versuch 2 und Stable-Promotion SUCCESS; optionaler Pages-Artefakt-Prep-Jobs SKIPPED. Das Katalog-Gate berücksichtigt einen solchen Skip **nur** mit genau einem tatsächlich erfolgreichen Pages-Deployment und vollständigen Core/Heavy-/Stable-/Run-/SHA-Belegen. Nicht abgeschlossene oder fehlgeschlagene Pfade bleiben gesperrt.
+- Veröffentlicht werden ausschließlich neue, nachprüfbar zugeordnete GitHub-Tag-/Metadaten samt Original-Run-ID; Tag-/Release-Races, fremde Tags, unverified Assets, fehlender `latest`-Readback, nicht-atomare oder fehlerhafte GitHub-API-Antworten werden fail-closed behandelt.
+- P0 RUC/EPS #541, 14-Tage-Design #975, Umfeldkarte #937, Queue #981 und fehlende historische Releaseeinträge bleiben eigenständig.
+- **Status am Source-Cut:** QA-Kandidat, **kein .512-Release**. Vollständige Source-/Review-/Core-/Heavy-/Installer-/Worker-/Pages-/Stable- und echte GitHub-`releases/latest`-Gates stehen aus.
+
 ## MID v0.9.85.511 · Installer-Abbruchprovenienz und echte GDPS-Recovery-QA
 
 - Geprüfte Source-Basis: `main=mid-stable=35e904ec4e87ce725237e214141d9b640fd04692` / veröffentlichte v0.9.85.510, Issue #983 und #422. Der neue Integrationskandidat bleibt bis zu vollständigen Source-/Review-/Installer-/Worker-/Pages-/Stable-Gates **QA-Draft, kein Release**.
