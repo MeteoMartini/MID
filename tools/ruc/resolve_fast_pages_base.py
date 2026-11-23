@@ -70,6 +70,86 @@ def own_pages_job(api, environment):
     return event_sha, f'https://github.com/{REPOSITORY}/actions/runs/{run_id}/job/{job["id"]}'
 
 
+# Immutable workflow blob shared by published Stable .513 and the original
+# .514/.515 RUC runs. This narrowly identifies historical non-publishing
+# jobs that produced a successful GitHub *environment* status anyway.
+RUC_FALSE_SUCCESS_WORKFLOW_SHA = 'f43d49a53a86bf41c3797a0c8c7e047a32f22863'
+
+
+def verified_ruc_nonpublication(api, deployment, status, expected_main):
+    """Skip only a signed-by-GitHub environment success with NO Pages action.
+
+    All unknown, changed, incomplete or actually publishing jobs remain
+    subject to the ordinary source and artifact checks.
+    """
+    link = status.get('log_url')
+    if not isinstance(link, str):
+        return False
+    matched = re.fullmatch(
+        rf'https://github\.com/{REPOSITORY}/actions/runs/([1-9]\d*)/job/([1-9]\d*)',
+        link,
+    )
+    if not matched:
+        return False
+    run_id, job_id = int(matched[1]), int(matched[2])
+    event_sha = deployment.get('sha')
+    if not isinstance(event_sha, str) or not SHA.fullmatch(event_sha):
+        return False
+
+    run = api(f'actions/runs/{run_id}')
+    if not (run.get('id') == run_id
+            and run.get('path') == RUC_WORKFLOW
+            and run.get('head_branch') == 'main'
+            and run.get('head_sha') == event_sha
+            and (run.get('head_repository') or {}).get('full_name') == REPOSITORY
+            and run.get('status') == 'completed'
+            and run.get('conclusion') == 'success'
+            and type(run.get('run_attempt')) is int
+            and run['run_attempt'] >= 1):
+        return False
+    job = api(f'actions/jobs/{job_id}')
+    if not (job.get('id') == job_id
+            and job.get('run_id') == run_id
+            and job.get('head_sha') == event_sha
+            and job.get('run_attempt') == run['run_attempt']
+            and job.get('status') == 'completed'
+            and job.get('conclusion') == 'success'
+            and job.get('name') == LOCKED_PUBLISHERS[(RUC_WORKFLOW, 'publish')]):
+        return False
+
+    steps = job.get('steps')
+    if not isinstance(steps, list):
+        return False
+    expected = {
+        'RUC-Basis und laufendes Release gegen aktuellen MID-Stable-Stand prüfen': 'success',
+        'Vor dem großen Snapshot-Download authentifizierten Contract-Hash prüfen': 'skipped',
+        'Vorbereiteten RUC-Snapshot laden': 'skipped',
+        'GitHub-Pages-Artefakt hochladen': 'skipped',
+        'MID + RUC kostenfrei auf GitHub Pages veröffentlichen': 'skipped',
+        'Nach fehlgeschlagenem Codec-Healthcheck RUC-Rohsnapshot zurückveröffentlichen': 'skipped',
+        'Rollback-Rohdaten als GitHub-Pages-Artefakt hochladen': 'skipped',
+        'RUC-Ergebnis eindeutig zusammenfassen': 'success',
+    }
+    for name, outcome in expected.items():
+        matching = [step for step in steps if isinstance(step, dict) and step.get('name') == name]
+        if len(matching) != 1 or matching[0].get('conclusion') != outcome:
+            return False
+
+    # An old source must be an ancestor of today's pending release; neither
+    # another PR nor an unrelated historic workflow may suppress a success.
+    if event_sha != expected_main:
+        ancestry = api(f'compare/{event_sha}...{expected_main}')
+        if not (ancestry.get('status') == 'ahead'
+                and (ancestry.get('merge_base_commit') or {}).get('sha') == event_sha
+                and (ancestry.get('base_commit') or {}).get('sha') == event_sha):
+            return False
+
+    # A later source edit could add an unrecognised deploy step. Verify the
+    # exact original reviewed workflow blob, not just display step names.
+    wf = api(f'contents/{RUC_WORKFLOW}?ref={event_sha}')
+    return wf.get('sha') == RUC_FALSE_SUCCESS_WORKFLOW_SHA
+
+
 def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None, environment=None):
     """Accept only the verified installer, Fast deployment, or verified Fast rollback."""
     require(SHA.fullmatch(expected_stable), 'invalid expected Stable SHA')
@@ -129,6 +209,8 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
         recent = api(f"deployments/{item['id']}/statuses?per_page=1")
         require(len(recent) == 1, 'Pages deployment status missing')
         if recent[0]['state'] == 'success':
+            if verified_ruc_nonpublication(api, item, recent[0], expected_main):
+                continue
             if item.get('sha') not in {source, expected_stable}:
                 # Rejection stays fail-closed. A bounded, sanitized identity lets
                 # the original installer logs identify the exact foreign record,
