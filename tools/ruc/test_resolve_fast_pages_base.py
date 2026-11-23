@@ -303,6 +303,100 @@ class InstallerPagesResolverTest(unittest.TestCase):
         self.assertIn('deployment_id=INVALID', str(caught.exception))
         self.assertIn('deployment_sha=INVALID', str(caught.exception))
 
+    def nonpublishing_fixture(self, *, event_sha=None):
+        pending = 'd' * 40
+        event_sha = event_sha or pending
+        self.manifest['git/ref/heads/main']['object']['sha'] = pending
+        self.manifest[f'compare/{STABLE}...{pending}'] = {
+            'status': 'ahead', 'merge_base_commit': {'sha': STABLE},
+            'base_commit': {'sha': STABLE},
+        }
+        if event_sha != pending:
+            self.manifest[f'compare/{event_sha}...{pending}'] = {
+                'status': 'ahead', 'merge_base_commit': {'sha': event_sha},
+                'base_commit': {'sha': event_sha},
+            }
+        original = self.manifest['deployments?environment=github-pages&per_page=30'][0]
+        self.manifest['deployments?environment=github-pages&per_page=30'] = [
+            {'id': 19, 'sha': event_sha, 'environment': 'github-pages'}, original]
+        self.manifest['deployments/19/statuses?per_page=1'] = [{
+            'state': 'success', 'log_url': f'https://github.com/{REPOSITORY}/actions/runs/19/job/20'}]
+        self.manifest['actions/runs/19'] = {
+            'id': 19, 'path': '.github/workflows/mid-ruc-preprocess.yml',
+            'head_sha': event_sha, 'head_branch': 'main',
+            'head_repository': {'full_name': REPOSITORY},
+            'run_attempt': 1, 'status': 'completed', 'conclusion': 'success',
+        }
+        required = [
+            ('RUC-Basis und laufendes Release gegen aktuellen MID-Stable-Stand prüfen', 'success'),
+            ('Vor dem großen Snapshot-Download authentifizierten Contract-Hash prüfen', 'skipped'),
+            ('Vorbereiteten RUC-Snapshot laden', 'skipped'),
+            ('GitHub-Pages-Artefakt hochladen', 'skipped'),
+            ('MID + RUC kostenfrei auf GitHub Pages veröffentlichen', 'skipped'),
+            ('Nach fehlgeschlagenem Codec-Healthcheck RUC-Rohsnapshot zurückveröffentlichen', 'skipped'),
+            ('Rollback-Rohdaten als GitHub-Pages-Artefakt hochladen', 'skipped'),
+            ('RUC-Ergebnis eindeutig zusammenfassen', 'success'),
+        ]
+        self.manifest['actions/jobs/20'] = {
+            'id': 20, 'run_id': 19, 'head_sha': event_sha,
+            'run_attempt': 1, 'status': 'completed', 'conclusion': 'success',
+            'name': 'MID + RUC kostenfrei auf GitHub Pages veröffentlichen',
+            'steps': [{'name': name, 'conclusion': outcome} for name, outcome in required],
+        }
+        self.manifest[f'contents/.github/workflows/mid-ruc-preprocess.yml?ref={event_sha}'] = {
+            'sha': 'f43d49a53a86bf41c3797a0c8c7e047a32f22863'}
+        return pending
+
+    def test_verified_nonpublishing_ruc_environment_never_hides_real_stable_artifact(self):
+        for event_sha in ('d' * 40, 'e' * 40, STABLE):
+            with self.subTest(event_sha=event_sha):
+                self.setUp()
+                pending = self.nonpublishing_fixture(event_sha=event_sha)
+                proof = resolve_installer_pages(STABLE, self.manifest.__getitem__,
+                                                pending_release=pending)
+                self.assertEqual(proof['deployment_id'], 1)
+                self.assertEqual(proof['artifact_id'], 4)
+                self.assertEqual(proof['artifact_digest'], DIGEST)
+
+    def test_nonpublication_rejects_changed_source_and_real_pages_deploy(self):
+        for mutation in ('wrong_workflow_blob', 'actual_pages_deployed',
+                         'bad_run_origin', 'bad_job_attempt', 'wrong_guard',
+                         'unrelated_ancestor', 'wrong_log_url', 'wrong_repo'):
+            with self.subTest(mutation=mutation):
+                self.setUp()
+                pending = self.nonpublishing_fixture()
+                job = self.manifest['actions/jobs/20']
+                run = self.manifest['actions/runs/19']
+                if mutation == 'wrong_workflow_blob':
+                    self.manifest['contents/.github/workflows/mid-ruc-preprocess.yml?ref=' + pending]['sha'] = '9' * 40
+                elif mutation == 'actual_pages_deployed':
+                    job['steps'][4]['conclusion'] = 'success'
+                elif mutation == 'bad_run_origin':
+                    run['path'] = '.github/workflows/surprise.yml'
+                elif mutation == 'bad_job_attempt':
+                    job['run_attempt'] = 2
+                elif mutation == 'wrong_guard':
+                    job['steps'][0]['conclusion'] = 'failure'
+                elif mutation == 'unrelated_ancestor':
+                    older = 'e' * 40
+                    self.setUp()
+                    pending = self.nonpublishing_fixture(event_sha=older)
+                    self.manifest[f'compare/{older}...{pending}']['merge_base_commit']['sha'] = SOURCE
+                elif mutation == 'wrong_log_url':
+                    self.manifest['deployments/19/statuses?per_page=1'][0]['log_url'] = (
+                        'https://github.com/MeteoMartini/MID/actions/runs/19')
+                else:
+                    run['head_repository']['full_name'] = 'Untrusted/MID'
+                with self.assertRaisesRegex(ValueError, 'not on Stable source'):
+                    resolve_installer_pages(STABLE, self.manifest.__getitem__,
+                                            pending_release=pending)
+
+    def test_nonpublication_does_not_skip_real_stable_ruc_publisher(self):
+        self.fast_fixture()
+        self.manifest['actions/runs/2']['status'] = 'completed'
+        self.manifest['actions/jobs/3']['status'] = 'completed'
+        self.assertEqual(self.resolve()['artifact_id'], 4)
+
     def test_superseded_deployment_is_rejected(self):
         self.manifest['deployments/1/statuses?per_page=1'][0]['state'] = 'inactive'
         with self.assertRaisesRegex(ValueError, 'not in a safe terminal state'):
