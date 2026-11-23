@@ -1,5 +1,5 @@
 import {guardedOpenMeteoFetch} from './openMeteoGuard';
-import {aggregateGefsUtcDays,consecutiveUtcWeek,ec46DailyApplicability,type GefsDayEvidence} from './travelForecastPeriodEvidence';
+import {aggregateGefsUtcDays,consecutiveUtcWeek,ec46DailyApplicability,nativeFinite,type GefsDayEvidence} from './travelForecastPeriodEvidence';
 import {ensembles,forecast,mapDays,type Day,type EnsembleDay,type Location} from './weather';
 import {loadSeasonalForecast,type DwdQualityMetric,type SeasonalForecastBundle,type SeasonalPointModel} from './seasonalForecast';
 import {addDays,dateRange,daysBetween,travelClimateForDate,type TravelClimateDataset,type TravelClimateDay} from './travelPlanner';
@@ -37,7 +37,7 @@ const SUBSEASONAL_LAST_LEAD=45;
 const MAX_SOURCE_WAIT_MS=18000;
 
 function localToday(){try{const parts=new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),get=(type:string)=>parts.find(part=>part.type===type)?.value;return`${get('year')}-${get('month')}-${get('day')}`}catch{return new Date().toISOString().slice(0,10)}}
-function finite(value:unknown){if(value===null||value===undefined||value==='')return undefined;const number=Number(value);return Number.isFinite(number)?number:undefined}
+function finite(value:unknown){return nativeFinite(value)}
 function clamp(value:number,min:number,max:number){return Math.max(min,Math.min(max,value))}
 function blend(base:number,target:number,share:number){return Number.isFinite(target)?base+(target-base)*share:base}
 function dateKey(value:string){return value.slice(5,10)}
