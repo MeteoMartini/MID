@@ -22,7 +22,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-import json, os, re, subprocess
+          import json, os, re, subprocess
           R = "MeteoMartini/MID"
           MAIN = "ab96ac712fd4f3ba9be5af2cb546febf9ee13329"
           STABLE = "331fffff081303e1c597badddfa4ae41c4b4e0f0"
