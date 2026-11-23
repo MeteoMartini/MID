@@ -1781,3 +1781,43 @@ jobs:
           if [ "$status_written" != true ]; then
             echo "::warning::GitHub Status API blieb nach fünf Versuchen temporär nicht verfügbar. Build, Regressionen, Pages-Deployment und finaler mid-stable-SHA sind dennoch erfolgreich verifiziert; der Release bleibt gültig."
           fi
+
+  catalog_release:
+    name: SHA-verifizierten GitHub Release-Katalog nach Stable aktualisieren
+    needs:
+      - install_build
+      - finalize_release
+    if: ${{ needs.install_build.result == 'success' && needs.finalize_release.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - name: Genau den erfolgreich promotierten Installer-Release-Commit laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.install_build.outputs.commit_sha }}
+          persist-credentials: false
+
+      - name: Node.js 22 für den isolierten Katalog-Prüfkern
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          package-manager-cache: false
+
+      - name: Bestehenden MID Release Bot auf Release-Metadaten begrenzen
+        id: catalog_token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+        with:
+          client-id: ${{ vars.MID_RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.MID_RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+
+      - name: SHA-/Job-/Pages-/Worker-/Tag-Provenienz verifizieren und GitHub Release erzeugen
+        shell: bash
+        env:
+          GH_TOKEN: ${{ steps.catalog_token.outputs.token }}
+          STABLE_SHA: ${{ needs.install_build.outputs.commit_sha }}
+        run: |
+          set -euo pipefail
+          node tools/release/publish-verified-release-catalog.mjs
