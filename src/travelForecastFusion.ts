@@ -85,7 +85,7 @@ function gefsCorroboration(week:WeekSignal,gefs:GefsDaily[],dataset:TravelClimat
  if(model.some(row=>!row?.temperatureComplete)||climate.some(row=>!row||!Number.isFinite(row.maxMean)||!Number.isFinite(row.minMean)))return{factor:1,familyCount:1};
  const modelMax=mean(model.map(row=>row?.max)),climateMax=mean(climate.map(row=>row?.maxMean));
  const modelMin=mean(model.map(row=>row?.min)),climateMin=mean(climate.map(row=>row?.minMean));
- const ecTemp=mean([week.tempMeanAnomaly,week.tempMaxAnomaly,week.tempMinAnomaly]);
+ const ecTemp=week.tempMeanAnomaly;
  if(ecTemp===undefined||modelMax===undefined||modelMin===undefined||climateMax===undefined||climateMin===undefined)return{factor:1,familyCount:1};
  const gefsTemp=((modelMax-climateMax)+(modelMin-climateMin))/2;
  const agreement=sign(ecTemp,.35)*sign(gefsTemp,.35);
