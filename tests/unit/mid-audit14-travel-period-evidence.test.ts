@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
-import {aggregateGefsUtcDays,consecutiveUtcWeek,ec46DailyApplicability,nativeFinite,seasonalTemperatureScenario,ec46DailyTemperatureScenario,isNativeDailyForecastSource} from '../../src/travelForecastPeriodEvidence';
+import {aggregateGefsUtcDays,consecutiveUtcWeek,ec46DailyApplicability,nativeFinite,seasonalTemperatureScenario,ec46DailyTemperatureScenario,isNativeDailyForecastSource,NATIVE_DAILY_FORECAST_SOURCE} from '../../src/travelForecastPeriodEvidence';
 
 const HOUR=3600000;
 const first=Date.parse('2026-11-01T00:00:00Z');
@@ -193,7 +193,10 @@ describe('MID Audit 1.4 · native GEFS daily coverage and full EC46 weeks',()=>{
   const panel=readFileSync(new URL('../../src/TravelPlannerPanel.tsx',import.meta.url),'utf8');
   expect(panel).toContain("const renderToday=localToday(),initialStart=addDays(renderToday,30)");
   expect(panel).toContain("const longRange=!isNativeDailyForecastSource(point.forecastSource)");
-  expect(isNativeDailyForecastSource('Operationelle Tagesprognose + Klimareferenz')).toBe(true);
+  expect(isNativeDailyForecastSource(NATIVE_DAILY_FORECAST_SOURCE)).toBe(true);
+  expect(NATIVE_DAILY_FORECAST_SOURCE).toBe('Operationelle Tagesprognose + Klimareferenz');
+  const fusionSource=readFileSync(new URL('../../src/travelForecastFusion.ts',import.meta.url),'utf8');
+  expect(fusionSource).toContain('result.forecastSource=NATIVE_DAILY_FORECAST_SOURCE;');
   expect(isNativeDailyForecastSource('EC46-Wochenanomalie + ERA5-Tagesklima')).toBe(false);
   expect(isNativeDailyForecastSource('Saisonales Monatsmittel + ERA5-Tagesklima')).toBe(false);
   expect(isNativeDailyForecastSource(undefined)).toBe(false);

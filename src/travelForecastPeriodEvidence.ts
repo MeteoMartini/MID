@@ -95,8 +95,9 @@ export function seasonalTemperatureScenario<T extends SeasonalTempBase>(base:T,a
 /** A stored travel day is a true daily forecast only when its original fusion
  * provenance says so. Calendar lead must not reinterpret pinned EC46/climate
  * scenarios as a fresh operationelle forecast on a later visit. */
+export const NATIVE_DAILY_FORECAST_SOURCE='Operationelle Tagesprognose + Klimareferenz' as const;
 export function isNativeDailyForecastSource(source:unknown):boolean{
- return source==='Operationelle Tagesprognose + Klimareferenz';
+ return source===NATIVE_DAILY_FORECAST_SOURCE;
 }
 
 /** Source-native EC46 WEEKLY 2m MEAN anomaly shifts the daily climate
