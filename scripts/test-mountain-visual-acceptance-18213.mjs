@@ -366,6 +366,7 @@ try{
    assert.equal(afterSummerCore,beforeSummerCore,`Nur der Saisonmodus darf keinen zweiten identischen Original-BestMatch-Core-Abruf auslösen. Anfrage-Provenienz: ${JSON.stringify({beforeSummerCore,afterSummerCore,beforeSummer,immediatelyAfterSummer,summerState})}`);
    await clickButtonContaining('.mountain-season-control button','Winter');
    await waitForValue('Winterprofil für weitere Prüfungen wiederhergestellt',`Boolean(document.querySelector('.mountain-hourly-snow-summary'))`,Boolean,60000);
+   assert.equal(await mountainFixtureCoreCount(),beforeSummerCore,'Auch der Rückwechsel auf Winter muss die bereits geladene Kernprognose weiterverwenden.');
 
   const initialDays=JSON.parse(await evaluate(`JSON.stringify({rows:document.querySelectorAll('.mountain-day-toggle:not(:disabled)').length,expanded:[...document.querySelectorAll('.mountain-day-toggle')].filter(button=>button.getAttribute('aria-expanded')==='true').length,periodCards:document.querySelectorAll('.mountain-period-card').length})`));
   assert.ok(initialDays.rows>=7,`Sieben-Tage-Übersicht hat nur ${initialDays.rows} bedienbare Tageszeilen.`);
