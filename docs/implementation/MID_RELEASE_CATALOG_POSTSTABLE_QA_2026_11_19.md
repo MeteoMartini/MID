@@ -1,0 +1,44 @@
+# Leit-Integration v0.9.85.512 – verifizierter selektiver Source-Intake (23.11.2026)
+
+- Quelle: historischer QA-Draft #956 `cb80824ca54967903a4d7885b6380b8ea02c599e` gegenüber `main=mid-stable=c5faca33885f8df4cc645be89ecc6befe93c55c0` / v0.9.85.511. Nur die drei Original-Code-/Test-/Dokumentationspfade sind ausgewählt worden; kein Blindmerge des alten .497-Baums.
+- Echter .511-Installer [#45117904421](https://github.com/MeteoMartini/MID/actions/runs/45117904421): completed/success, originaler Pages-Versuch 2 success, optionaler Pages-Artefaktvorbereiter skipped. Das Katalog-Gate muss trotzdem vier Core-Shards, sechs Heavy-Shards, originalen ZIP-only-Commit, Worker, einen echten Pages-Deploy und finalen Stable-SHA nachweisen.
+- Katalogjob ausschließlich nach erfolgreichem `finalize_release` bei `workflow_dispatch`; mit dem bestehenden Source-Bot serialisiert. Derselbe vorhandene GitHub-Release-App-Token wird **in diesem Schritt** mit `Actions:read` und `Contents:write` angefordert, ohne andere App-/Installer-Berechtigungen zu ändern. Kein neues Secret, kein kostenpflichtiges System oder eigenständiger privilegierter Workflow.
+- Live-API-Präzisierung: GitHub Actions gibt `run.path` als **`.github/workflows/install-mid.yml`** ohne führenden Slash zurück; der Katalog muss diesen genauen Pfad prüfen. Ein bereits identisch installiertes Release meldet `release_noop=true` und darf **nur lesend** einen schon vorhandenen passenden Tag-/Latest-Katalogeintrag mit nachweislich erfolgreichem vorherigen Original-Installer verifizieren. Fehlt er, kein neues Tag und kein grüner fingierter Katalog-Nachtrag.
+- Status: Quelle ist ein SHA-gebundener **QA-Integrationskandidat**, keine .512-Veröffentlichung, kein aktueller .512-Tag und kein behauptetes GitHub-`latest`-Readback. Alle vollständigen Live-Gates und Reviews bleiben erforderlich. Der neue Publisher reserviert einen exakt SHA-gebundenen Git-Tag atomar **vor** dem Release-POST; fehlerhafte/mehrdeutige POST-Antwort oder ein verwaister Tag wird niemals durch Auto-Retags/Deletes korrigiert, sondern erfordert getrennten Originalbeleg und Operatorentscheidung. Ein früherer fehlgeschlagener Pages-Versuch ist nur bei nachfolgendem echt erfolgreichem Pages-Deploy und ansonsten vollständig grünem Installer toleriert.
+
+---
+
+## Archiv – historische QA-Konzeption v0.9.85.497 (19.–20.11.2026, **keine aktuelle Integrations- oder Freigabebasis**)
+
+**Die folgenden Originalabschnitte dokumentieren ausschließlich die Provenienz des alten Drafts #956.** Aussagen wie „Workflow unverändert“, „kein Katalogjob aktiv“, die .497-SHA oder die damaligen Berechtigungen sind historisch und gelten **nicht** für den darüber dokumentierten aktuellen .512-Kandidaten. Maßgeblich sind ausschließlich die am Dokumentanfang aufgeführten Live-Basis-/Kandidaten-SHAs sowie das vollständige finale Source- und Installer-Gate.
+
+# MID Release Konzept 1.9 · SHA-verifizierter GitHub Release-Katalog — Post-Stable-QA
+
+**Status:** Nur QA-Draft. Weder Installer-Workflow noch Bot-Rechte noch GitHub-Tags/Releases geändert. GitHub `releases/latest` zeigt noch `v0.9.85.119` trotz erfolgreicher Stable-Promotion v0.9.85.497. Dies ist eine echte Nutzer-/Release-Transparenzlücke, keine fehlende Wetterdatenveröffentlichung.
+
+**Verifizierte Baseline:** `main=mid-stable=9fd872a789f4b158bc691d085589616c2c04f776`, `v0.9.85.497`, fünf Rulesets aktiv.
+
+**Provenienz:** selektiver Code-/Test-Port aus historischem, ausschließlich QA-Commit `2972377e040f4d1f51d0170987dfb9ac394887e5`: ursprüngliche Blob-SHAs `bd0e69bb06429040a6a39b15bc84a952ed33d2d4`, `4674fcb3b97b0f286d50a51c9be4b87b98891ccf`, `23b30114e96244197e6f4b987a6b0fd501677f56`. Keine Übernahme des alten vollständigen PR-Baums. Originaltest wurde um ZIP-only-/Installer-/Stable-Lineage-Negativfälle und die Pflicht zur Pages-Artefaktvorbereitung erweitert.
+
+**Sicherheitsvertrag:** Der Release-Catalog-Publisher prüft sechs Versionsspiegel, versionierte Release Notes, das originale `workflow_dispatch`-/Run-Attempt-Ereignis, Core 4/4, alle sechs Heavy-Jobs, Worker, Pages-Artefakt, mindestens einen echten erfolgreichen Pages-Deploy und finalen Stable-Job. Zusätzlich bindet er **Installer-Run HEAD -> exakt ein ZIP-only-Commit -> exakt dessen Stable-Fast-Forward-Nachfolger**, kontrolliert durch GitHub Commit-Eltern und vollständigen Compare-Diff (nur `MID-professional-replacement.zip`, added). Abweichungen blockieren.
+
+**Safe execution (NICHT aktiviert):** Bestehendes `install-mid.yml` bleibt der einzige Release-/Deploypfad. Nach erfolgreichem `finalize_release` wäre ein direkt abhängiger, nachgelagerter Metadaten-Job im **gleichen** Installer-Workflow erforderlich, der `workflow_dispatch` / `in_progress` bei vollständig erfolgreichem Finalizer sieht und den **aktuellen echten Stable-SHA** read-only auscheckt. Nur dieser eng begrenzte Job dürfte einen bereits autorisierten GitHub-App-Token mit minimalem `contents:write` erhalten. Kein Repository- oder Branch-Admin-Bypass. Die beiden Installer-Workflowspiegel, sicherheitsrelevante Vertragstests und alle Release-Notizen müssen erst im nächsten kontrollierten Leitchat-Train unabhängig abgenommen werden.
+
+**Keine Rückdatierung:** Veröffentlichung nur für neu abgeschlossene reale Releases nach tatsächlicher Stable-Promotion; keine historischen Tags, gefälschten Assets, ZIP-Recovery-Autorität oder Immutable-Signaturbehauptungen. Bestehender fremder Tag/Release => fail-closed; identischer gültiger Eintrag => idempotent. `make_latest` erst nach Original-SHA-/Job-/Notes-Nachweisen. Aktive RUC #541 und QA #947 bleiben unabhängig.
+
+**Restchecks:** Wiederholung der Unit-/Security-Negativtests auf aktuellem Commit; unabhängige Shell/YAML-/Token-Provenienz- und Job-Abhängigkeitsprüfung, exakter GitHub-Review, vollständiges Source-/Core-/Heavy-/Installer-/Pages-/Stable-Gate. Erst produktives neues GitHub Release mit verifiziertem `/releases/latest` ist Erfolg, dieser QA-Draft nicht. Die tatsächliche GitHub-Rolle für den Katalog-Publisher ist vor Integration nach Least Privilege freizugeben.
+
+## Sicherheitsnachschärfung: Tag-Races, Idempotenz und Latest-Readback
+
+- Existiert bereits ein Tag ohne exakt identischen, autorisierten Katalogeintrag, wird keine Veröffentlichung daran angehängt; der Zustand bleibt BLOCKED. Direkt vor dem einzelnen GitHub-POST werden Tag und Release nochmals auf eine zwischenzeitliche Kollision gelesen.
+- Ein bereits bestehender Katalogeintrag ist nur dann idempotent, wenn ID/Tag/Name/Status, null Assets sowie der gesamte normalisierte Original-Release-Body (Stable-SHA, aktueller vollständiger Installer-Run-Link, Changelog, Hinweise ohne Recovery-Rechte) exakt übereinstimmen. Ein im freien Markdown zufällig enthaltener SHA genügt nicht.
+- Erfolgreiches Pages muss eindeutig sein: genau ein erfolgreicher Pages-Versuch; weitere Versuche dürfen ausschließlich übersprungen sein. Damit werden widersprüchliche Deploy-Belege abgewiesen.
+- Nach dem schreibenden POST wird zusätzlich `/releases/latest` gegen die neue Release-ID und das exakte Tag verglichen; eine unerwartete andere `latest`-Antwort wird als Abnahmefehler gemeldet. Die Prüfung bleibt im QA-Draft inaktiv, bis der Leitchat die vollständige Installer-/Source-/Review-/GitHub-App-Berechtigungskette geprüft hat.
+- Amtliche Wetter-, RUC-, Karten-, Worker- und Pages-Inhalte sowie vorhandene Deployment-/Rollback-Gates bleiben vollständig unverändert.
+
+## MID Release Konzept 1.10 · Idempotenz ohne falschen Latest-Erfolg (20.11.2026)
+
+- Ein bereits vorhandener, exakt zum aktuellen Stable passender GitHub-Release-Katalogeintrag darf **nur dann** als erfolgreich idempotent gelten, wenn auch `GET /releases/latest` dieselbe Release-ID und denselben Tag zurückliefert. Sonst **fail-closed**, kein erneuter POST, kein Überschreiben oder automatisches `make_latest`.
+- Vor diesem Erfolg werden `main` und `mid-stable` auf dieselbe echte Release-SHA zurückgelesen; der unveränderte Katalog-Body und der auf den Commit zeigende Tag bleiben Pflicht.
+- Der reine Entscheidungs-/Readback-Helper ist mit erfolgreichen und negativen Latest-/Tag-/SHA-Fällen testbar, ohne einen echten Release zu erzeugen.
+- QA-Änderung nur in diesem bestehenden Draft; keine Installer-Verdrahtung, keine Produktionsfreigabe. Der Leit-Chat benötigt nach erfolgreichem `finalize_release` weiterhin einen gesondert geprüften minimal berechtigten Katalog-Aufruf, volle Source/Core/Heavy/Review/Installer/Worker/Pages/Stable-Gates und echtes Release-/Latest-Readback.
