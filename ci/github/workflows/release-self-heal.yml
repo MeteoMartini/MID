@@ -119,11 +119,17 @@ jobs:
       - name: Deterministische oder unbekannte Fehler sicher blockieren
         if: steps.classify.outputs.retry != 'true'
         shell: bash
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          CLASSIFICATION: ${{ steps.classify.outputs.reason }}
         run: |
           {
             echo "### Kein automatisches Code-Umschreiben"
             echo
-            echo "Fehlerklasse: ${{ steps.classify.outputs.reason }}."
-            echo
+            echo "Fehlerklasse: ${CLASSIFICATION}."
+            echo "Installer-Originalrun: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}"
             echo "MID veröffentlicht diesen Stand nicht. Echte Build-, Test-, Typ-, Sicherheits- oder unbekannte Fehler werden absichtlich nicht blind durch CI verändert."
+            if [ "$CLASSIFICATION" = 'cancelled-jobs-require-operator-provenance' ]; then
+              echo "Abgebrochene Pflichtjobs sind kein PASS. Runner-Shutdown beweist keine externe Abbruchursache; keine automatische Wiederholung ohne Prüfung von SHA, Jobinventar und Operatoraktionen."
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
