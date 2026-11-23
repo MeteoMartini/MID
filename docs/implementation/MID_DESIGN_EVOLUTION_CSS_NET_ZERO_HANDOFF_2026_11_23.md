@@ -47,3 +47,29 @@ Der Verifier liest für Stable und Kandidat die **physischen** CSS-Dateien in zw
 **Lokaler, reproduzierbarer Testlauf:** Der Originalvergleich wurde bytegenau aus GitHub anhand der Original-Blob-SHAs `194bdccf65443adeb99ff9325f96498b9833006b` (Werkzeug) und `01f9317236945a99a33a9200ce5c04733515f834` (12 Tests) rekonstruiert, zusammen mit der unveränderten Stable-Hilfsfunktion `scripts/lib/initialCssBudget.mjs` (Blob `f7477bf697735ed1474f0529ce7ac31eec045851`). **23/23 lokale Node-Tests PASS** (12 bestehende plus 11 neue Echtdaten-Datei-/Negativtests); die neu erstellten Verifier- und Testdateien wurden GitHub-Blob-genau zurückgelesen (`ea06a32ed0b8a6df6f46dfd42d81172e84faf484`, `5cb61229191cea4390a64f3e370a5b6162b69b0e`).
 
 **Nicht als grün interpretieren:** Dies sind lokale Node-Tests mit generierten echten Test-`dist`-Dateien, **keine** zwei aktuellen MID-Produktionsbuilds. SHA-Pinning der MID-Quellen/Buildumgebung, CI-Registrierung, Vollregression, bestehende CSS-Kaskadenparität, reale Browser-Interaktionen, Netzwerk-/Renderzeiten und native iOS-/VoiceOver-Tests bleiben extern notwendig. Keine Änderung an den bestehenden Release- oder CSS-Budgets, keine automatische Release-Freigabe. Der Leit-Chat darf diesen Code nur nach aktueller Stable/Version/PR-/Ruleset-Evidenz selektiv integrieren.
+
+
+## P0c – Kaskaden-Delta und konkrete Aktuell-CSS-Rückbaukandidaten (23.11.2026)
+**Neuer read-only QA-Baustein:** `scripts/compare-design-css-ownership-0985515.mjs` und `scripts/test-design-css-ownership-0985515.mjs`. Verwendet ausschließlich die **bestehende** `scripts/audit-css-ownership-0985484.mjs`-Ausgabe (`mid.css.ownership.diagnostic.v1`), führt keine CSS-Modifikation aus und akzeptiert keine Missing-/Null-Berichte als Nullwachstum.
+
+**Ausführung auf zwei echten, vollständigen, SHA-gepinnten MID-Checkouts:**
+```sh
+node scripts/audit-css-ownership-0985484.mjs /absolute/stable-checkout > /evidence/stable-ownership.json
+node scripts/audit-css-ownership-0985484.mjs /absolute/candidate-checkout > /evidence/candidate-ownership.json
+node scripts/compare-design-css-ownership-0985515.mjs \
+  /evidence/stable-ownership.json /evidence/candidate-ownership.json
+node --test scripts/test-design-css-netzero-0985515.mjs \
+  scripts/test-design-css-artifacts-0985515.mjs scripts/test-design-css-ownership-0985515.mjs
+```
+
+**Gemessene Source-Delta-Signale (candidate ≤ stable):** Eager-CSS-Quellenanzahl, CSS-Quellbytes, CSS-Regelanzahl, `!important`-Deklarationen, exakte `selector/property/at-rule-context`-Überschneidungen über Quellgrenzen, abweichende Werte und Wichtigkeits-Unterschiede. Jeder wachsende Wert erzeugt ein non-zero Exit-Signal zur **manuellen Klärung** vor Designfreigabe. Eine solche Überschneidung kann fachlich und responsiv legitim sein; diese Signale stellen **keine errechnete CSS-Spezifität, DOM-Owner-Beweiskraft oder Löschfreigabe** dar. Reale Browser-Parität und differenzierte Ausnahmeprüfung sind weiter Pflicht.
+
+**Konkrete Priorisierung aus lesender Quelltext-Heuristik**, keine sichere Kollisionsauflösung (Quelle: Stable .513, mehrere CSS-Dateien, gleiche Selektorstrings; media/state-Kontext noch nicht verglichen):
+- `html[data-mid-design='next'] .hero.current-compact .current-weather-facts` findet sich in **5** voneinander getrennten Quellen: `src/styles-src/30-modern.css`, `src/midDesign201Current.css`, `src/midC18B2CurrentAtmosphere.css`, `src/midDesign201MobilePolish.css`, `src/midDesign201MobileQa.css`.
+- `html[data-mid-design='next'] .hero.current-compact .current-weather-icon` in **4** Quellen (`midDesign201Current`, `midC18B2CurrentAtmosphere`, `midDesign201MobilePolish`, `midDesign201MobileQa`).
+- `html[data-mid-design='next'] .hero.current-compact` in **3** Quellen (`midDesign201Current`, `midC18B2CurrentAtmosphere`, `midDesign201MobilePolish`).
+- `src/midDesign201Current.css` 24.181 Zeichen mit 414 textuellen `!important`-Vorkommen, `src/midDesign201CurrentCritical.css` 15.374 Zeichen mit 234, `src/midDesign201MobilePolish.css` 20.450 Zeichen mit 330; dies sind **Dateitextzählungen, keine bereits geprüften redundanten Deklarationen**.
+
+**Optimierter Pilot:** Für obige drei Selektorfamilien `ComputedStyle`-/CSSOM-Owner und Kaskadenreihenfolge in allen echten Zuständen (mobiles Hoch-/Querformat, Dark/Light, 200% Text, High-Contrast, Keyboards, Safe Area) feststellen; dann nur sachlich belegte spätere Overrides im selben PR wie die entsprechende vorhandene Ownerregel entfernen. Zahlen/Fachfarben/Warnings/NoData unverändert. Ziel nach dem Pilot: weniger überschneidende Deklarationen, nicht bloß weniger erzeugte CSS-Chunks. Erst nach selektiver Browser- und Build-Regression auf andere Bereiche ausrollen.
+
+**Verifizierte Tests:** 34/34 lokale Node-Tests erfolgreich (12 originaler Budget-Comparator, 11 physische Dateiverifikation, 11 Ownership-Delta) mit unveränderten originalen Git-Blob-SHAs der Altmodule und byteidentischem GitHub-Readback der vier neuen Dateien. **Keine** realen MID-Stable-/Kandidaten-Buildberichte, keine browserseitige Sicht-/A11y-/Performanceabnahme und keine vollständigen CI-Gates in diesem Handoff. Der neue Status `PASS_NO_CASCADE_SIGNAL_GROWTH` ist **keine** Produkt-/Release-Freigabe.
