@@ -150,6 +150,28 @@ function historicalDisplaySource(name,source){
  }
  const reviewed=reviewedNoDataMountains.get(name);
  if(reviewed){assert.equal(source,reviewed[0],name+': changed v.408 NoData declaration differs from explicitly reviewed source');source=reviewed[1]}
+ // Preserve the approved CSS baseline while checking the exact season/data separation.
+ if(name==='MountainSki')for(const [current,historical] of [
+  [
+    " const[forecastData,setData]",
+    " const[data,setData]"
+  ],
+  [
+    "  // Season is a display choice. Resolve automatic season with the weather data once.\n  mountainSportsForecast(loc,{...config,season:'auto'},controller.signal,update=>{",
+    "  mountainSportsForecast(loc,config,controller.signal,update=>{"
+  ],
+  [
+    "config.enabled,config.middleEnabled,config.valleyElevation,config.valleyName",
+    "config.enabled,config.season,config.middleEnabled,config.valleyElevation,config.valleyName"
+  ],
+  [
+    " const data=forecastData&&config.season!=='auto'&&forecastData.season!==config.season\n  ?{...forecastData,season:config.season}\n  :forecastData;\n",
+    ""
+  ]
+]){
+  assert.equal(source.split(current).length-1,1,'MountainSki .515 reviewed season projection differs: '+current.slice(0,60));
+  source=source.replace(current,historical);
+ }
  if(name==='Widget')for(const [current,historical] of approvedWidgetStorageWiring){
   assert.equal(source.split(current).length-1,1,'Widget v.396 reviewed storage expression must occur exactly once: '+current.slice(0,60));
   source=source.replace(current,historical);
@@ -167,7 +189,7 @@ assert.ok(!app.includes('function storedWidgetSettings('),'Widget implementation
 for(const file of files.keys())assert.ok(!/from ['"]\.\/App['"]|import\(['"]\.\/App['"]\)/.test(read(file)),`${file}: forbidden reverse dependency into App`);
 assert.match(read('src/WidgetGenerator.tsx'),/SevenDayCurveOverview/,'Widget must retain the common curve renderer');
 assert.match(read('src/WidgetGenerator.tsx'),/freezeWidgetSvgPaintsForExport/,'PNG export must retain resolved SVG paints');
-assert.match(read('src/MountainWeather.tsx'),/mountainSportsForecast\(loc,config,controller.signal/,'Mountain data acquisition must retain cancellation');
+assert.match(read('src/MountainWeather.tsx'),/mountainSportsForecast\(loc,\{\.\.\.config,season:'auto'\},controller\.signal/,'Mountain data acquisition must retain cancellation');
 assert.deepEqual(activeCssSources(root),[...baseline.cssSources.filter(file=>file!=='src/midPollen.css'&&file!=='src/midC18MountainResponsiveFix.css'),'src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css','src/midC48TabletTimeline.css'],'Only reviewed Pollen and Mountain CSS may leave the original eager cascade; remaining order stays immutable');
 const originalEntries=loadCssCascade(root).filter(entry=>!['src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css','src/midC28MapPhase.css','src/midC48TabletTimeline.css'].includes(entry.file));
 // QA-only reconstruction of the *immutable* .169 stylesheet fingerprint.

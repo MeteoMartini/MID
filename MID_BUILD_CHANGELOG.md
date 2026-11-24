@@ -1,3 +1,27 @@
+## MID v0.9.85.515 · 2026-11-23 · P0 Mountain-Visual-Recovery und .514-Reise-/WMS-Originalquellen
+
+- Recovery-Parent: Stable .513 331fffff081303e1c597badddfa4ae41c4b4e0f0, .514 Source Merge 294bf1b4181d25f9c8868de175e1ecb4cf2bb3b8, fehlgeschlagener Main-ZIP-only f6b4856ed1e2de8d659aa15383a2e06aac526bc0. Keine Ref-Mutation auf main/stable.
+- Original-Installer #45195086142 Attempt 1 fehlgeschlagen an heavy-mountain-visual; 11 success/1 failure/10 skipped. Alte ZIP-Bytes bleiben im geschützten Main erhalten.
+- Bestehender offizieller audit-failed-release / Source-PR-Reviewguard prüft die ursprüngliche GitHub-Installer-Historie; kein Blind-Retry oder Review-/Source-Gate-Bypass.
+- Lokal neuer Node22 RED→GREEN-Fall: 3 identische Core-GETs vor Fix, 1 danach. Weitere 12 Mountain-Nodechecks PASS; zwei Pakete offline fehlend, vollständiger TS-Typecheck/Browsertest/Ios/Source/Installer noch offen.
+- Komplette Quelle aus unveröffentlichtem .514 Source Merge einschließlich #988/#992/#995 bleibt erhalten; keine Aufnahme anderer parallel entwickelter QA-Drafts.
+- Full original Source/Core4/Heavy6, Review/Cubic, Bot server ZIP, Installer/Core4/Heavy6, Worker/Pages, Stable-Promotion und GitHub-Releases/latest noch als NOT VERIFIED zu führen.
+
+## MID v0.9.85.515 · P0 Recovery: Bergwetter Saisonprofil und .514-Source-Erhalt (Kandidat)
+
+- .513 Stable SHA 331fffff081303e1c597badddfa4ae41c4b4e0f0 → unveröffentlichter .514 Source-Merge 294bf1b4181d25f9c8868de175e1ecb4cf2bb3b8 → .514 Installer #45195086142 fehlgeschlagen; originaler ZIP-only-Commit f6b4856ed1e2de8d659aa15383a2e06aac526bc0 auf main bleibt unverändert.
+- Meteorologischer Core-Cache jetzt saisonunabhängig; nichtmutierende Saisonprojektionen für Cached-/Fresh-/Enrichment-Pfade; Node22 Negativ-/Positivtest und 12 domänenspezifische Regressionen. Original-CDP-Wait 60 s, ARIA-/Core-Negativprobe hinzugefügt, Browser/Installer noch ausstehend.
+- Vollständiger Release ausschließlich nach audit-failed-release, Source-PR-/Review-Guard, Core4+Heavy6, autorisiertem ZIP-Bot, Installer Core4+Heavy6, Worker/Pages, Stable-Promotion. Keine QA-Bypässe.
+
+## MID v0.9.85.514 · 2026-11-23 · LC 1.34 – Originalzeitintervalle im Reiseplaner, WMS-Kartenaudit und dynamisches Plugin-Routing
+
+- **Verifizierte Ausgangsbasis:** `main=mid-stable=331fffff081303e1c597badddfa4ae41c4b4e0f0` / v0.9.85.513, Release [v0.9.85.513](https://github.com/MeteoMartini/MID/releases/tag/v0.9.85.513) nach erfolgreichem Installer #45169135490; fünf aktive Rulesets.
+- **Präziser Original-Intake:** Die voneinander unabhängigen QA-Branches #995 (6 Governance-Pfade), #992 (5 EC46-/GEFS-Reise-Pfade), #988 (4 read-only WMS-Audit-Pfade inkl. zweifacher MID_BASELINE-Testregistrierung) werden SHA-/Blob-gebunden selektiv übernommen; kein historischer Branch-Merge, kein Überschreiben von Spezialistenarbeiten.
+- **Meteorologische Korrekturen:** GEFS UTC-Temperatur-Momentanwerte und endgestempelte 1h-Niederschlagsintervalle werden getrennt auf vollständige 24-Stunden-Tage geprüft; Missing bleibt Missing, echte 0 mm bleibt 0, unplausible Originalextreme werden nicht automatisch geglättet. EC46-Wochensignal nur bei echter 7/7-Wochenabdeckung und feldgerechter Tagesanwendbarkeit.
+- **Sicheres Kartenaudit:** WMS-Modelllauf, Valid Time, Akkumulationsintervall und komplette PNG-Transportintegrität werden lesend geprüft, ohne aus gültigen Bytes fiktive meteorologische Deckung oder echte WebGL-Pixelqualität zu folgern.
+- **Governance/Scope:** Dynamisches Plugin-Routing ohne neue Agentenrechte, Abos, Watcher-Aktivierungen, Secrets oder Regelausnahmen. #937 Umfeldkarte, #993 27h-RUC-Shadow und #991 natives 27h-Inventar bleiben separate QA-Drafts; P0-RUC/EPS-Quellenlücke #541 bleibt offen.
+- **Status als Source-Draft:** Erst die tatsächlich auf dem kombinierten HEAD durchlaufenden vollständigen Source-/Review-/Core-/Heavy-/ZIP-/Installer-/Worker-/Pages-/Stable-/GitHub-Katalog-Nachweise autorisieren Veröffentlichung. Keine echten iOS-Gerätetests behauptet.
+
 ## MID v0.9.85.513 · 2026-11-23 · LC 1.34 – Release-Katalog-Skip und kanonische 14-Tage-Ensemble-Grafik
 
 - **Verifizierte Basis:** `main=mid-stable=3195012b1b72b4cc3bbd762c2fbd859a924aadc7` / v0.9.85.512; Installer #45150996794 vollständig erfolgreich, Worker/Pages/Stable grün. Die nachgelagerte Katalogstufe war im Originalrun `skipped`, `releases/latest` zeigte weiterhin v0.9.85.119 (#901).

@@ -38,7 +38,7 @@ for(const token of [
  'Schneehöhe ist das Optimierungskriterium',
  'Für Küstenorte bleibt NOAA OISST v2.1 die klimatologische Wassertemperatur-Referenz',
  'operationelle Multi-Modell-Ensembles bis etwa Tag 14',
- 'gedämpfte EC46-Wochenanomalien mit GEFS-Bestätigung',
+ 'gedämpfte EC46-Wochenanomalien mit GEFS-Gegenprüfung nur bei belegter nativer Klimavergleichbarkeit',
  'searchLocations(value,controller.signal)',
  "useState<Location>(initialLocation)",
  "useState<'current'|'custom'>('current')",
@@ -52,6 +52,8 @@ for(const token of [
  'Math.abs(daysBetween(existing.start,candidate.start))<alternativeGapDays',
  'Ø modellierte Schneehöhe'
 ])need('Reiseplaner-Oberfläche',panel,token);
+// A native GEFS confirmation must not be promised when the comparable climate mean is missing.
+if(panel.includes('gedämpfte EC46-Wochenanomalien mit GEFS-Bestätigung'))failures.push('Unbelegte pauschale GEFS-Bestätigung darf nicht im Reiseplaner stehen.');
 
 for(const token of [
  "type TravelPreference='balanced'|'dry'|'warm'|'cold'|'sunny'|'snow'|'calm'",

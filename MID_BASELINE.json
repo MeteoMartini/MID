@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.513",
+  "releaseVersion": "0.9.85.515",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -1052,6 +1052,7 @@
     "scripts/test-water-tides-full-calendar-day-08254.mjs",
     "scripts/test-water-unused-callback-buildfix-08266.mjs",
     "scripts/test-weather-aggregate-type-contract-09602.mjs",
+    "scripts/test-weather-map-audit-admission.mjs",
     "scripts/test-weather-maps-module-09210.mjs",
     "scripts/test-weather-pictogram-appwide-contract-098441.mjs",
     "scripts/test-weather-pictogram-cloud-forms-09143.mjs",
@@ -2155,6 +2156,7 @@
     "scripts/test-water-tides-full-calendar-day-08254.mjs",
     "scripts/test-water-unused-callback-buildfix-08266.mjs",
     "scripts/test-weather-aggregate-type-contract-09602.mjs",
+    "scripts/test-weather-map-audit-admission.mjs",
     "scripts/test-weather-maps-module-09210.mjs",
     "scripts/test-weather-pictogram-appwide-contract-098441.mjs",
     "scripts/test-weather-pictogram-cloud-forms-09143.mjs",
@@ -3988,7 +3990,7 @@
     "scripts/test-skybar-solid-colors-0985358.mjs",
     "scripts/test-current-moisture-0985462.mjs"
   ],
-  "version": "0.9.85.513",
+  "version": "0.9.85.515",
   "updatedAt": "2026-11-23",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",

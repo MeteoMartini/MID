@@ -8,6 +8,8 @@ export type TravelClimateDay={
  maxMean:number;
  minMean:number;
  meanMean:number;
+ /** Original ERA5 24-hour 2m temperature mean; never derived from daily Tmax/Tmin. Unset until provider evidence is available. */
+ nativeMean2mClimatology?:number;
  maxP25:number;
  maxP75:number;
  minP25:number;

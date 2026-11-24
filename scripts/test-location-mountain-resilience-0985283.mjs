@@ -35,7 +35,11 @@ assert.match(mountain,/async function fetchMountainCoreRows\(/);
 assert.match(mountain,/\{rows:baseRows,splitRequest\}=await fetchMountainCoreRows\(points,params,signal\)/);
 assert.doesNotMatch(mountain,/await Promise\.all\(\[basePromise,regionalPromise\]\)/);
 assert.match(mountain,/regionalPlan&&entry\.regionalStatus==='loading'\)void fetchMountainRegionalForecast/);
-assert.match(mountain,/enrichment:'regional-forecast',status:'ready',forecast:target\.forecast/);
+// Cached weather is the common meteorological source; regional enrichment must
+// preserve the requesting summer/winter projection, never leak the raw cache season.
+assert.match(mountain,/enrichment:'regional-forecast',status:'ready',forecast:forSeason\(target\.forecast\)/);
+assert.match(mountain,/const forSeason=\(forecast:MountainSportsForecast\):MountainSportsForecast=>/);
+assert.doesNotMatch(mountain,/enrichment:'regional-forecast',status:'ready',forecast:target\.forecast/);
 assert.match(mountain,/mergeMountainRegionalForecast\(row,regionalRows!\[index\]\)/);
 assert.match(mountain,/mountainWeatherWithUtci\(mergedWeather\[index\]\)/);
 assert.match(mountain,/modelSnowDepthCm:Number\.isFinite\(depth\)/);
