@@ -43,11 +43,11 @@ export function verifyModule(version, id, sha, bytes) {
     typeof module.content_base64 === 'string' && module.content_base64 === bytes.toString('base64') &&
     hash(bytes) === expectedHash, 'Uploaded version readback does not match the approved artifact.');
 }
-async function upload() {
-  const account = process.env.LOGICC_CF_ACCOUNT_ID;
-  const token = process.env.LOGICC_CF_VERSION_TOKEN;
-  const ghToken = process.env.GH_TOKEN;
-  const sha = process.env.GITHUB_SHA;
+export async function upload({env = process.env, fetcher = globalThis.fetch} = {}) {
+  const account = env.LOGICC_CF_ACCOUNT_ID;
+  const token = env.LOGICC_CF_VERSION_TOKEN;
+  const ghToken = env.GH_TOKEN;
+  const sha = env.GITHUB_SHA;
   requireCondition(ghToken && /^[0-9a-f]{40}$/.test(sha ?? ''), 'Missing released SHA context.');
   requireCondition(/^[a-f0-9]{32}$/i.test(account ?? '') && token,
     'Protected environment credentials are missing or invalid.');
@@ -59,7 +59,7 @@ async function upload() {
 
   async function request(path, body) {
     const method = body ? 'POST' : 'GET';
-    const response = await fetch(base + path, {
+    const response = await fetcher(base + path, {
       method,
       body: body ? JSON.stringify(body) : undefined,
       headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
@@ -84,7 +84,7 @@ async function upload() {
 
   async function verifyRefs() {
     for (const branch of ['main', 'mid-stable']) {
-      const response = await fetch('https://api.github.com/repos/MeteoMartini/MID/git/ref/heads/' + branch, {
+      const response = await fetcher('https://api.github.com/repos/MeteoMartini/MID/git/ref/heads/' + branch, {
         headers: { Authorization: 'Bearer ' + ghToken, Accept: 'application/vnd.github+json' },
         redirect: 'error', signal: AbortSignal.timeout(15_000),
       });
@@ -111,7 +111,7 @@ async function upload() {
   await verifyAllocation();
   await verifyRefs();
   const created = await request(versions + '?deploy=false', {
-    annotations: { 'workers/tag': versionTag, 'workers/message': 'MID SHA ' + process.env.GITHUB_SHA },
+    annotations: { 'workers/tag': versionTag, 'workers/message': 'MID SHA ' + sha },
     compatibility_date: compatibilityDate,
     compatibility_flags: [],
     bindings: secretNames.map(name => ({ type: 'inherit', name, version_id: baselineVersion })),
