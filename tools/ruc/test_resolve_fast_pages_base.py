@@ -426,6 +426,15 @@ class InstallerPagesResolverTest(unittest.TestCase):
                 self.assertEqual(proof['artifact_id'], 4)
                 self.assertEqual(proof['artifact_digest'], DIGEST)
 
+    def test_only_verified_inactive_nonpublication_is_skipped(self):
+        pending = self.nonpublishing_fixture()
+        self.manifest['deployments/19/statuses?per_page=1'][0]['state'] = 'inactive'
+        proof = resolve_installer_pages(STABLE, self.manifest.__getitem__, pending_release=pending)
+        self.assertEqual(proof['deployment_id'], 1)
+        self.manifest['actions/jobs/20']['steps'][4]['conclusion'] = 'success'
+        with self.assertRaisesRegex(ValueError, 'not in a safe terminal state'):
+            resolve_installer_pages(STABLE, self.manifest.__getitem__, pending_release=pending)
+
     def test_nonpublication_rejects_changed_source_and_real_pages_deploy(self):
         for mutation in ('wrong_workflow_blob', 'actual_pages_deployed',
                          'bad_run_origin', 'bad_job_attempt', 'wrong_guard',

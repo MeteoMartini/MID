@@ -231,9 +231,10 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
         require(isinstance(recent, list) and len(recent) == 1
                 and isinstance(recent[0], dict), 'Pages deployment status missing')
         observed_statuses.append((status_path, recent))
+        if (recent[0]['state'] in {'success', 'inactive'}
+                and verified_ruc_nonpublication(api, item, recent[0], expected_main)):
+            continue
         if recent[0]['state'] == 'success':
-            if verified_ruc_nonpublication(api, item, recent[0], expected_main):
-                continue
             if item.get('sha') not in {source, expected_stable}:
                 # Rejection stays fail-closed. A bounded, sanitized identity lets
                 # the original installer logs identify the exact foreign record,

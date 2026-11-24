@@ -2,7 +2,7 @@ name: MID Pages Recovery Probe (read-only)
 on:
   push:
     branches: [chatgpt/v0.9.85.516-pages-provenance-diagnostics]
-    paths: ['.github/workflows/mid-pages-recovery-probe.yml']
+    paths: ['.github/workflows/mid-pages-recovery-probe.yml', 'tools/ruc/resolve_fast_pages_base.py', 'tools/ruc/test_resolve_fast_pages_base.py']
 permissions:
   contents: read
   actions: read
@@ -62,6 +62,7 @@ jobs:
               gh api "repos/MeteoMartini/MID/deployments/$id/statuses?per_page=1" |
                 jq -c --arg id "$id" --arg sha "$sha" '[.[] | {id:$id,sha:$sha,state,created_at,run:(.log_url|capture("/runs/(?<id>[0-9]+)").id // "")}]'
             done
+          PYTHONPATH=tools/ruc python3 -B -m unittest discover -s tools/ruc -p test_resolve_fast_pages_base.py -q
           PYTHONPATH=tools/ruc python3 -B - <<'PY'
           import json
           from resolve_fast_pages_base import resolve_installer_pages
