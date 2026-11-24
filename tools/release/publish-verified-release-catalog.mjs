@@ -5,6 +5,7 @@
 import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {githubApi} from './github-catalog-api.mjs';
 
 const REPO='MeteoMartini/MID';
 const SHA=/^[a-f0-9]{40}$/;
@@ -188,20 +189,6 @@ export function assessMidCatalogEvidence(data={}){
  return Object.freeze({state:'ELIGIBLE_METADATA_ONLY',tag,version,releaseSha,createAllowed:true,recoveryAuthorized:false});
 }
 
-function githubApi(path,method='GET',payload,optional404=false){
- const args=['api','-H','X-GitHub-Api-Version: 2022-11-28'];
- if(method!=='GET')args.push('--method',method);
- args.push(path);
- if(payload!==undefined)args.push('--input','-');
- const x=spawnSync('gh',args,{input:payload===undefined?undefined:JSON.stringify(payload),
-  encoding:'utf8',timeout:35000,maxBuffer:20*1024*1024});
- if(x.error)throw Error('GitHub API transport error');
- if(x.status!==0){
-  if(optional404&&x.status===1&&/\bHTTP 404\b/.test(x.stderr||''))return null;
-  throw Error('GitHub API rejected '+method+' '+path+' (exit '+x.status+')');
- }
- try{return JSON.parse(x.stdout)}catch{throw Error('Invalid GitHub response '+path)}
-}
 const localJson=path=>JSON.parse(readFileSync(path,'utf8'));
 const refSha=name=>githubApi('repos/'+REPO+'/git/ref/heads/'+name)?.object?.sha;
 const positiveInt=s=>/^[1-9]\d*$/.test(s||'')?Number(s):NaN;
