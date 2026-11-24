@@ -475,7 +475,7 @@ class InstallerPagesResolverTest(unittest.TestCase):
                     tar.addfile(member, io.BytesIO(expected))
 
             def response(command, **kwargs):
-                name = command[-1].removeprefix('https://www.midwx.app/')
+                name = command[-1].removeprefix('https://www.midwx.app/').split('?', 1)[0]
                 if name in install_fast_pages.REQUIRED_PUBLIC_FILES:
                     data = b'mismatch' if name == mismatch else expected
                     Path(command[command.index('--output') + 1]).write_bytes(data)

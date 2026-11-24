@@ -391,11 +391,10 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
     if inactive_candidate:
         require(verify_inactive(identity) is True,
                 'inactive Pages archive does not match the public site')
-    if inactive_candidate or len(history_pages) > 1:
-        for path, expected in reversed(observed_statuses):
-            require(api(path) == expected, 'Pages deployment status changed during scan')
-        for path, expected in reversed(history_pages):
-            require(api(path) == expected, 'Pages deployment history changed during scan')
+    for path, expected in reversed(observed_statuses):
+        require(api(path) == expected, 'Pages deployment status changed during scan')
+    for path, expected in reversed(history_pages):
+        require(api(path) == expected, 'Pages deployment history changed during scan')
     if inactive_candidate:
         require(api('git/ref/heads/mid-stable')['object']['sha'] == expected_stable
                 and api('git/ref/heads/main')['object']['sha'] == expected_main,

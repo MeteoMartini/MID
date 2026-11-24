@@ -10,12 +10,13 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
+from uuid import uuid4
 from zipfile import ZipFile
 
 from prepare_fast_pages_delivery import carry_fresh_fast_archive
 from ruc_fast_pages_preserve import preserve_fast_pages
 from resolve_fast_pages_base import gh_api, resolve_installer_pages
-from ruc_fast_pointer_staging import sha_file
+from ruc_fast_pointer_staging import sha_file, strict_budget
 
 # ZIP/TAR envelope bytes include metadata; the existing 900 MB Pages budget
 # is separately enforced on extracted regular-file bytes.
@@ -57,8 +58,11 @@ OPTIONAL_PUBLIC_FILES = ('ruc/fast/paged-shadow.json', 'ruc/fast/publisher-proof
 def public_pages_match(archive, scratch):
     paths = REQUIRED_PUBLIC_FILES + OPTIONAL_PUBLIC_FILES
     expected = {}
+    archive_bytes = 0
     with tarfile.open(archive, mode='r:') as tar:
         for member in tar:
+            archive_bytes += member.size
+            strict_budget(archive_bytes, 0)
             name = member.name.removeprefix('./')
             if name not in paths:
                 continue
@@ -75,7 +79,7 @@ def public_pages_match(archive, scratch):
             'curl', '--silent', '--show-error', '--max-time', '10',
             '--proto', '=https', '--max-filesize', str(PUBLIC_MAX_BYTES),
             '--header', 'Cache-Control: no-cache', '--output', str(body),
-            '--write-out', '%{http_code}', f'https://www.midwx.app/{name}',
+            '--write-out', '%{http_code}', f'https://www.midwx.app/{name}?mid-pages-proof={uuid4().hex}',
         ], check=True, capture_output=True, text=True, timeout=12)
         if name in expected:
             if response.stdout != '200' or body.read_bytes() != expected[name]:
