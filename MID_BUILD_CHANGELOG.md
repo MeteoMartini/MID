@@ -1,3 +1,9 @@
+## MID v0.9.85.516 · 2026-11-24 · Wiederaufnahme der Pages-Veröffentlichung
+
+- Ausgangspunkt ist das installierte main ab96ac712fd4f3ba9be5af2cb546febf9ee13329 bei produktivem Stable 331fffff081303e1c597badddfa4ae41c4b4e0f0.
+- GitHub-Installer 45256731707, Versuch 1, brach vor der Pages-Veröffentlichung ab. Der getrennte Runner-Nachweis 45362112280 bestätigte den Abgleich mit dem Originalarchiv.
+- Versionsziel für den vorhandenen Prebuild-Schritt. Veröffentlichung setzt erfolgreiche Source-, Installer-, Worker-, Pages- und Stable-Gates voraus.
+
 ## MID v0.9.85.515 · 2026-11-23 · P0 Mountain-Visual-Recovery und .514-Reise-/WMS-Originalquellen
 
 - Recovery-Parent: Stable .513 331fffff081303e1c597badddfa4ae41c4b4e0f0, .514 Source Merge 294bf1b4181d25f9c8868de175e1ecb4cf2bb3b8, fehlgeschlagener Main-ZIP-only f6b4856ed1e2de8d659aa15383a2e06aac526bc0. Keine Ref-Mutation auf main/stable.

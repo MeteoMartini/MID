@@ -1,3 +1,8 @@
+# MID v0.9.85.516
+
+- Die bereits geprüften Änderungen für Reiseplaner, Karten und Bergwetter aus den unveröffentlichten Ständen .514 und .515 sind im Release-Kandidaten enthalten.
+- Bei aktiviertem Fast-Pages-Modus prüft der Installer ausgewählte Dateien des bisherigen Pages-Stands, bevor er verfügbare Fast-Daten übernimmt.
+
 # MID v0.9.85.515
 
 - **Reiseplaner (mitgeführter, bislang unveröffentlichter .514-Quellstand):** GEFS-24h-Originalintervalle und EC46-Wochenanomalien erhalten korrekte UTC-Gültigkeit und vollständige Belegschwellen. Missing Data werden nicht zu 0 und Wochenregen nicht zu Tageswahrscheinlichkeiten umgerechnet.
