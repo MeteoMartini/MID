@@ -43,3 +43,9 @@ test('unverified reservation cannot send', async () => {
     reserve: async () => undefined, publish: async () => assert.fail('Unexpected send'),
   }), /reservation is unverified/);
 });
+
+test('invalid input never claims or publishes a receipt', async () => {
+  await assert.rejects(deliverLogiccResult({...result, checks:Array(1)}, assignment, {
+    reserve: async()=>assert.fail('Unexpected claim'), publish: async()=>assert.fail('Unexpected send'),
+  }), TypeError);
+});

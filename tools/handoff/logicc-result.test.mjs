@@ -25,3 +25,20 @@ test('rejects caller-selected targets, stale SHAs, unknown tasks and oversized o
   }
   assert.throws(() => prepareLogiccResult(result, null), TypeError);
 });
+
+test('rejects non-JSON record shapes, sparse checks and unsafe text before transport', () => {
+  const sparse = Array(2); sparse[1] = 'OK';
+  const extra = ['OK']; extra.custom = true;
+  const accessor = {...result};
+  Object.defineProperty(accessor, 'summary', {enumerable:true, get(){throw Error('must not invoke getter');}});
+  const symbol = {...result, [Symbol('hidden')]: true};
+  for (const value of [
+    {...result, checks:sparse}, {...result, checks:extra}, accessor, symbol,
+    {...result, summary:'hello @everyone'}, {...result, summary:'https://example.test'},
+    {...result, summary:'Bearer abc'}, {...result, summary:'token: abc'},
+    {...result, summary:'a\u202eb'}, {...result, summary:'<details>payload</details>'},
+    {...result, summary:'-----BEGIN PRIVATE KEY-----'}, {...result, summary:'github_pat_fake'},
+  ]) assert.throws(()=>prepareLogiccResult(value,assignment),TypeError);
+  assert.throws(()=>prepareLogiccResult(result,{...assignment,extra:true}),TypeError);
+  assert.doesNotThrow(()=>prepareLogiccResult({...result,summary:'Originale geprüft; 20/20 Fälle erfolgreich.'},assignment));
+});
