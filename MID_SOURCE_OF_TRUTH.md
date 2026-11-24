@@ -1,9 +1,3 @@
-# MID v0.9.85.516 · Wiederaufnahme der Pages-Veröffentlichung
-
-- Der Release-Kandidat baut auf dem installierten Stand `.515` (`ab96ac712fd4f3ba9be5af2cb546febf9ee13329`) auf. Der zuletzt veröffentlichte Stand ist `.513` (`331fffff081303e1c597badddfa4ae41c4b4e0f0`).
-- Installer `45256731707`, Versuch 1, scheiterte vor dem Pages-Deployment. GitHub-Runner `45362112280` hat das ursprüngliche Pages-Archiv gegen die öffentliche Auslieferung geprüft.
-- Veröffentlichung und Stable-Promotion setzen die vollständigen Release-Gates voraus.
-
 # MID v0.9.85.515 · LC 1.36 – P0 Mountain-Recovery nach rot gebliebenem .514-Installer
 
 - **Veröffentlichter stabiler Ausgangspunkt:** `mid-stable=331fffff081303e1c597badddfa4ae41c4b4e0f0` (v0.9.85.513). Der gesicherte Source-Merge für die unveröffentlichte .514 ist `294bf1b4181d25f9c8868de175e1ecb4cf2bb3b8`, dessen einziger Parent unverändert Stable .513 ist. Ein ausschließlich vom MID Release-Bot erzeugter nachfolgender ZIP-Commit `f6b4856ed1e2de8d659aa15383a2e06aac526bc0` auf `main` ist **kein** veröffentlichtes Release und darf nicht mitgeführt, gelöscht oder umgeschrieben werden.

@@ -11,5 +11,10 @@
     "Ausgangspunkt ist das installierte main ab96ac712fd4f3ba9be5af2cb546febf9ee13329 bei produktivem Stable 331fffff081303e1c597badddfa4ae41c4b4e0f0.",
     "GitHub-Installer 45256731707, Versuch 1, brach vor der Pages-Veröffentlichung ab. Der getrennte Runner-Nachweis 45362112280 bestätigte den Abgleich mit dem Originalarchiv.",
     "Versionsziel für den vorhandenen Prebuild-Schritt. Veröffentlichung setzt erfolgreiche Source-, Installer-, Worker-, Pages- und Stable-Gates voraus."
+  ],
+  "sourceOfTruth": [
+    "Der Release-Kandidat baut auf dem installierten Stand `.515` (`ab96ac712fd4f3ba9be5af2cb546febf9ee13329`) auf. Der zuletzt veröffentlichte Stand ist `.513` (`331fffff081303e1c597badddfa4ae41c4b4e0f0`).",
+    "Installer `45256731707`, Versuch 1, scheiterte vor dem Pages-Deployment. GitHub-Runner `45362112280` hat das ursprüngliche Pages-Archiv gegen die öffentliche Auslieferung geprüft.",
+    "Veröffentlichung und Stable-Promotion setzen die vollständigen Release-Gates voraus."
   ]
 }
