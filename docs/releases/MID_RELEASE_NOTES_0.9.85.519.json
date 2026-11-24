@@ -4,10 +4,10 @@
   "title": "RUC-Pages-Provenienz nach isoliertem Katalogfehler",
   "date": "2026-11-24",
   "external": [
-    "Korrigiert eine Blockade der Wetterdaten-Aktualisierung nach einem bereits erfolgreich installierten App-Update. Die tatsächliche Wiederherstellung der Datenversorgung wird separat nach Veröffentlichung geprüft."
+    "Technisches Wartungsupdate zur Prüfung des Release-Katalogs und der veröffentlichten Pages-Ausgangsbasis. Die tatsächliche Aktualität der Wetterdaten wird separat geprüft."
   ],
   "internal": [
-    "Konsolidierung des gezielten #1012-Katalogfixes für ein SHA-verifiziertes Ersatz-ZIP und der #541-Pages-Baseline-Reparatur; unveränderte fachliche Release-, Worker-, Pages- und Stable-Gates.",
+    "Konsolidierung des gezielten #1012-Katalogfixes für ein SHA-verifiziertes Ersatz-ZIP und der Pages-Baseline-Reparatur; unveränderte fachliche Release-, Worker-, Pages- und Stable-Gates.",
     "Nur für den exakt bekannten Installer-Workflow darf ein ausschließlich nach Stable-Promotion fehlgeschlagener Katalogjob bei vollständiger Original-Job-, Commit-, Akteur-, Artefakt- und Deployment-Provenienz als gültige Pages-Baseline qualifiziert werden. Kein allgemeiner Erfolg eines fehlgeschlagenen Installers und keine rückwirkende Tag-Autorisierung.",
     "Zusätzliche Python-Regressionen für die eng begrenzte Baseline-Ausnahme. Kein eigenständiger Logicc-Upload, kein geänderter Wetter-Worker und keine zusätzlichen Kosten oder Rechte."
   ],
