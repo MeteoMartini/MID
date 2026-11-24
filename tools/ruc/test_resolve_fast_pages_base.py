@@ -569,6 +569,25 @@ class InstallerPagesResolverTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'not in a safe terminal state'):
             self.resolve()
 
+    def test_historical_installer_job_requires_original_inventory_and_public_proof(self):
+        self.manifest['actions/runs/2'].update(run_attempt=2, status='completed')
+        job = self.manifest['actions/jobs/3']
+        inventory = {'total_count': 1, 'jobs': [dict(job)]}
+        self.manifest['actions/runs/2/attempts/1/jobs?per_page=100'] = inventory
+
+        def resolve_with(proof):
+            return resolve_installer_pages(STABLE, self.manifest.__getitem__,
+                                            verify_inactive=proof)
+
+        with self.assertRaisesRegex(ValueError, 'historical Pages attempt'):
+            self.resolve()
+        with self.assertRaisesRegex(ValueError, 'archive does not match'):
+            resolve_with(lambda _: False)
+        self.assertEqual(resolve_with(lambda proof: proof['artifact_digest'] == DIGEST)['artifact_id'], 4)
+        inventory['jobs'] = [dict(job, id=99)]
+        with self.assertRaisesRegex(ValueError, 'historical Pages job missing'):
+            resolve_with(lambda _: True)
+
     def test_retried_action_cannot_supply_another_attempt(self):
         self.manifest['actions/jobs/3']['run_attempt'] = 2
         with self.assertRaisesRegex(ValueError, 'attempt'):
