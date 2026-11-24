@@ -45,6 +45,8 @@ export function assessFailedReleaseEvidence({main, stable, finalRefs, source, pa
   if (!Array.isArray(inventories) || inventories.length !== run.run_attempt) {
     return result(false, 'INCOMPLETE_ATTEMPT_HISTORY');
   }
+  // These are attempt-specific inventories, not the run-wide job listing.
+  // Every job must belong to that exact attempt; repeated IDs are inconsistent.
   const seenJobs = new Set();
   for (const [index, inventory] of inventories.entries()) {
     const attempt = index + 1;

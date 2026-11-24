@@ -584,9 +584,11 @@ class InstallerPagesResolverTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'archive does not match'):
             resolve_with(lambda _: False)
         self.assertEqual(resolve_with(lambda proof: proof['artifact_digest'] == DIGEST)['artifact_id'], 4)
-        inventory['jobs'] = [dict(job, id=99)]
-        with self.assertRaisesRegex(ValueError, 'historical Pages job missing'):
-            resolve_with(lambda _: True)
+        for jobs in ([dict(job, id=99)], [dict(job), dict(job, conclusion='failure')]):
+            with self.subTest(jobs=jobs):
+                inventory.update(jobs=jobs, total_count=len(jobs))
+                with self.assertRaisesRegex(ValueError, 'historical Pages job missing or ambiguous'):
+                    resolve_with(lambda _: True)
 
     def test_retried_action_cannot_supply_another_attempt(self):
         self.manifest['actions/jobs/3']['run_attempt'] = 2

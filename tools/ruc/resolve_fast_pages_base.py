@@ -331,7 +331,7 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
     historical_job = job.get('run_attempt') != run.get('run_attempt')
     require(job.get('id') == job_id and job.get('run_id') == run_id
             and job.get('head_sha') == run['head_sha'],
-            'untrusted Pages job identity')
+            'untrusted Pages workflow job identity')
     if historical_job:
         attempt = job.get('run_attempt')
         require(run_link[2] and run['path'] == '.github/workflows/install-mid.yml'
@@ -342,7 +342,14 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
         historic = api(f'actions/runs/{run_id}/attempts/{attempt}/jobs?per_page=100')
         entries = historic.get('jobs')
         require(isinstance(entries, list) and len(entries) == historic.get('total_count')
-                and len(entries) <= 100 and entries.count(job) == 1,
+                and len(entries) <= 100
+                and all(isinstance(entry, dict)
+                        and type(entry.get('id')) is int and entry['id'] > 0
+                        and entry.get('run_id') == run_id
+                        and entry.get('run_attempt') == attempt
+                        for entry in entries)
+                and len({entry['id'] for entry in entries}) == len(entries)
+                and entries.count(job) == 1,
                 'historical Pages job missing or ambiguous')
 
     passed = {step['name'] for step in job['steps'] if step['conclusion'] == 'success'}

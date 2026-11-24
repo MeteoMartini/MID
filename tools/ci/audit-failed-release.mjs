@@ -36,7 +36,12 @@ export async function auditFailedRelease({expectedMain, expectedStable, installe
     ...Array.from({length: run.run_attempt}, (_, index) =>
       get('actions/runs/' + installerId + '/attempts/' + (index + 1) + '/jobs?per_page=100')),
   ]);
+  const finalRun = await get('actions/runs/' + installerId);
   const finalRefs = await refs();
+  if (['id', 'run_attempt', 'status', 'conclusion', 'head_sha', 'path', 'event', 'head_branch']
+    .some(key => finalRun[key] !== run[key])) {
+    throw new Error('Installer run changed during audit');
+  }
   return assessFailedReleaseEvidence({...before, finalRefs, packet, source, run, attempts, installerRuns});
 }
 
