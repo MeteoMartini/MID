@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {FIELDS,parseHourlyIndex,qualifyHorizon} from './ruc_extended_directory_coverage.mjs';
+import {FIELDS,parseHourlyIndex,qualifyHorizon,readOriginalIndex} from './ruc_extended_directory_coverage.mjs';
 const run='2026-11-23T08:00',observedAt='2026-11-23T09:30:00Z';
 const directory='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/T_2M/r/2026-11-23T08:00/s/';
 function full(){return Object.fromEntries(FIELDS.map(f=>[f,Array.from({length:28},(_,i)=>i)]));}
@@ -45,4 +45,31 @@ test('actual DWD absolute original URLs qualify; foreign, query and other-run hr
  assert.throws(()=>parseHourlyIndex(previous,directory));
  assert.throws(()=>parseHourlyIndex(html,directory.replace('https://opendata.dwd.de','https://example.org')));
  assert.throws(()=>parseHourlyIndex('<a href="PT000H00M.grib2?redirect=yes">bad</a>',directory));
+});
+
+const url='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/T_2M/r/2026-11-23T08:00/s/';
+const bytes=new TextEncoder().encode('ä test');
+function fixture({headers={'content-length':String(bytes.length)},chunks=[bytes],status=200,redirected=false,target=url,fail=false}={}){
+  let index=0;
+  return {status,redirected,url:target,headers:new Headers(headers),body:new ReadableStream({pull(c){
+    if(index<chunks.length)c.enqueue(chunks[index++]);else if(fail)c.error(Error('truncated'));else c.close();
+  }})};
+}
+test('bounded original DWD reader accepts complete exact-length and chunked UTF-8',async()=>{
+  assert.equal(await readOriginalIndex(fixture(),url),'ä test');
+  assert.equal(await readOriginalIndex(fixture({headers:{'transfer-encoding':'chunked'},chunks:[bytes.slice(0,1),bytes.slice(1)]}),url),'ä test');
+});
+test('rejects untrusted status, URL, redirect, framing, encoding and truncation',async()=>{
+  for(const options of [
+    {status:206},{redirected:true},{target:url+'?other=1'},
+    {headers:{}},{headers:{'content-length':'4, 4'}},{headers:{'content-length':'-1'}},
+    {headers:{'content-length':'2000001'}},{headers:{'content-length':'1'}},
+    {headers:{'content-length':String(bytes.length+1)}},
+    {headers:{'content-length':String(bytes.length),'transfer-encoding':'chunked'}},
+    {headers:{'content-length':String(bytes.length),'content-encoding':'gzip'}},
+    {headers:{'transfer-encoding':'gzip, chunked'}},
+    {headers:{'transfer-encoding':'chunked'},fail:true},
+    {headers:{'transfer-encoding':'chunked'},chunks:[new Uint8Array(2_000_001)]},
+    {headers:{'content-length':'1'},chunks:[Uint8Array.of(255)]},
+  ])await assert.rejects(readOriginalIndex(fixture(options),url));
 });

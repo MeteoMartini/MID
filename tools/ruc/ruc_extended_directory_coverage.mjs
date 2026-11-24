@@ -2,8 +2,40 @@
 // Not GRIB admission, does not publish, does not query EPS, does not amend Fast 0..6h.
 // This QA tool is intentionally disjoint from the signed live Pages/Worker publisher.
 export const FIELDS=["T_2M","TD_2M","RELHUM_2M","PMSL","U_10M","V_10M","VMAX_10M","TOT_PREC","CLCT","CLCL","CAPE_ML","CIN_ML"];
+const MAX_INDEX_BYTES=2_000_000;
+export async function readOriginalIndex(response,directoryUrl){
+  if(response.status!==200||response.redirected||response.url!==directoryUrl||!response.body)
+    throw Error('noncanonical DWD index response');
+  const encoding=response.headers.get('content-encoding');
+  const length=response.headers.get('content-length');
+  const transfer=response.headers.get('transfer-encoding');
+  if(encoding!==null&&encoding!=='identity')throw Error('unexpected DWD content encoding');
+  if(length!==null&&(!/^[0-9]{1,10}$/.test(length)||Number(length)>MAX_INDEX_BYTES||transfer!==null))
+    throw Error('untrusted DWD Content-Length');
+  if(length===null&&transfer!=='chunked')throw Error('unverified DWD framing');
+  const expected=length===null?null:Number(length);
+  const reader=response.body.getReader();
+  const decoder=new TextDecoder('utf-8',{fatal:true});
+  let total=0,html='';
+  try{
+    for(;;){
+      const {done,value}=await reader.read();
+      if(done)break;
+      if(!(value instanceof Uint8Array))throw Error('invalid DWD body chunk');
+      total+=value.byteLength;
+      if(total>MAX_INDEX_BYTES||(expected!==null&&total>expected))throw Error('DWD index byte limit exceeded');
+      html+=decoder.decode(value,{stream:true});
+    }
+    if(expected!==null&&total!==expected)throw Error('incomplete DWD Content-Length');
+    return html+decoder.decode();
+  }catch(error){
+    try{await reader.cancel();}catch{}
+    throw error;
+  }finally{reader.releaseLock();}
+}
+
 export function parseHourlyIndex(html,directoryUrl){
-  if(typeof html!=='string'||html.length>2_000_000)throw Error('untrusted DWD index');
+  if(typeof html!=='string'||Buffer.byteLength(html,'utf8')>MAX_INDEX_BYTES)throw Error('untrusted DWD index');
   let base;
   try{base=new URL(directoryUrl)}catch{throw Error('invalid DWD original directory URL')}
   const pathPattern=new RegExp('^/weather/nwp/v1/m/icon-d2-ruc/p/(?:'+FIELDS.join('|')+')/r/20\\d\\d-\\d\\d-\\d\\dT\\d\\d:00/s/$');
@@ -63,9 +95,9 @@ if(process.argv[1]?.endsWith('/ruc_extended_directory_coverage.mjs')){
  for(let start=0;start<FIELDS.length;start+=3){
   await Promise.all(FIELDS.slice(start,start+3).map(async field=>{
    const directoryUrl=base+field+'/r/'+run+'/s/';
-   const response=await fetch(directoryUrl,{signal:AbortSignal.timeout(12000),headers:{Accept:'text/html','User-Agent':'MID-data-RUC-deterministic-directory-probe/1.0'}});
+   const response=await fetch(directoryUrl,{signal:AbortSignal.timeout(12000),redirect:'error',headers:{Accept:'text/html','Accept-Encoding':'identity','User-Agent':'MID-data-RUC-deterministic-directory-probe/1.0'}});
    if(!response.ok)throw Error(field+' original DWD index HTTP '+response.status);
-   fieldHours[field]=parseHourlyIndex(await response.text(),directoryUrl);
+   fieldHours[field]=parseHourlyIndex(await readOriginalIndex(response,directoryUrl),directoryUrl);
   }));
  }
  const siteBytes=siteText===undefined?null:Number(siteText);
