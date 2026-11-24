@@ -1,3 +1,8 @@
+# MID v0.9.85.518 · Isolierte Logicc-Governance und zuverlässiger Dependency-Audit
+
+- Basis: veröffentlichte v0.9.85.517 @ 114d7d700bb627189943b5a840ca88085995bac3; Installer 45421269080 Versuch 2 erfolgreich.
+- Die isolierte Owner-Gateway-Operation bleibt bis zur Governance-Stable-Promotion und unabhängigen Live-Abnahme gesperrt. Keine zusätzlichen Rechte, Kosten oder Deploymentfreigaben.
+
 # MID v0.9.85.517 · Robusterer Pages-Archivabgleich
 
 - Ausgangsbasis ist der verifizierte GitHub-Release v0.9.85.516 @ 5f496372ff02b1b6f5bd5696a08c6f6245496802 (https://github.com/MeteoMartini/MID/releases/tag/v0.9.85.516; erfolgreicher Installer https://github.com/MeteoMartini/MID/actions/runs/45394002243).

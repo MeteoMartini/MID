@@ -1,3 +1,9 @@
+## MID v0.9.85.518 · 2026-11-24 · Isolierte Logicc-Governance und zuverlässiger Dependency-Audit
+
+- Selektive Übernahme #1007 @ b77d801eabf6bcae03178a3385b3a6c1f4a480ad und #998 @ e7491a7b7c240df04d563cbce659630783658901. Produktions-Wetter-Worker unverändert; isolierter Logicc-Qualifikationsworker und seine Originaldiagnostik byteidentisch aus #1007 übernommen.
+- Dependency-Audit: ubuntu-24.04 in .github/workflows/dependency-audit.yml und ci/github/workflows/dependency-audit.yml; bestehende Audit- und Regressionspflichten unverändert.
+- Ergänzte Pages-Timeout-Assertion und Einbindung der unveränderten Logicc-Diagnostik in vorhandenen verpflichtenden Runner-Regressionstest. Normative Owner-/Plugin-Trennung; keine Gateway-Aktivierung. #1000 bleibt separat.
+
 ## MID v0.9.85.517 · 2026-11-24 · Robusterer Pages-Archivabgleich
 
 - Selektive Übernahme aus #1006 @ fc644eab9b8b0dd2a792abc585b09f572d748bf8.

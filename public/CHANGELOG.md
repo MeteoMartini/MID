@@ -1,3 +1,7 @@
+# MID v0.9.85.518
+
+- Technisches Wartungs- und Sicherheitsupdate ohne sichtbare Funktionsänderungen der Wetter-App.
+
 # MID v0.9.85.517
 
 - Bei vorübergehenden HTTP-Fehlern wiederholt der Installer den Abgleich mit dem bestehenden Pages-Archiv begrenzt. Die Prüfung auf identische Inhalte bleibt verpflichtend.
