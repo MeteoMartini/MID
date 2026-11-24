@@ -1,6 +1,6 @@
 # MID Logicc qualification gateway — QA proposal 2026-11-24
 
-**DRAFT ONLY. Not a binding contract; no release or deployment authority.** Stable .516: 5f496372ff02b1b6f5bd5696a08c6f6245496802. Scope: independently deployed, non-weather-data worker `mid-logicc-write` only. Existing MID routing contract remains binding: Cloudflare plugin is read-only; no direct deployment, config, secret or cache mutations via that plugin. Do not weaken any ruleset, trust zone, review, signing or source/release gate.
+**Governance candidate. The delivery controls below become binding only after the protected MID release and Stable promotion.** Stable .516: 5f496372ff02b1b6f5bd5696a08c6f6245496802. Scope: independently deployed, non-weather-data worker `mid-logicc-write` only. Existing MID routing contract remains binding: Cloudflare plugin is read-only; no direct deployment, config, secret or cache mutations via that plugin. Do not weaken any ruleset, trust zone, review, signing or source/release gate.
 
 ## Evidence and scope
 - Logicc client reported OK on mid_pilot_ping, mid_preflight and mid_write_info; mid_app_qualify returned APP_IDENTITY_OR_CONFIG_MISMATCH at app stage after one authenticated upstream call. User-reported tool results, not independently observed authenticated runtime. The specific failed predicate is unknown.
@@ -17,3 +17,10 @@
 
 ## Handoff
 Priority P1 (blocks Logicc onboarding, not current MID weather production). Lead: check overlap and decide integration order. No MID version bump in this Draft; independent gateway version v0.1.1 only, no MID build performed. No changes to AGENTS.md, routing contract, rulesets, CI, release workflows or secrets. No deployment performed.
+
+## Isolated delivery controls for owner operation
+
+1. Use only the existing authorized Cloudflare owner path for `mid-logicc-write`, after the governance revision is on `mid-stable`. Cloudflare plugin access remains read-only. Verify account, worker, active 100% baseline version, exact binding names and compatibility settings, current plan and zero incremental cost. Stop on drift or inability to keep configuration and permissions unchanged.
+2. Read the candidate from the promoted repository commit and verify the exact SHA-256 above. Save the current deployment and rollback version IDs with an authenticated baseline readback. Upload/save a version without deploying it. Check the returned version ID, uploaded bytes and unchanged deployment allocation. Use an already available version URL only, with the existing gateway authentication. If a version URL is unavailable or requires configuration or access changes, stop.
+3. Against that version ID, verify missing/incorrect Bearer and foreign Origin rejection, tool allowlist, `mid_write_info` reporting `0.1.1` and `write_enabled=false`, and authenticated `mid_app_qualify` from Logicc. Store sanitized evidence only. An identity, privacy, repository, actor or permission mismatch blocks promotion. Recheck the regular endpoint still serves the original version throughout staging.
+4. After successful acceptance and fresh baseline readback, the owner promotes only the verified version. Confirm allocation, authenticated results and no configuration drift. On regression restore the recorded baseline version and verify its allocation and authenticated health. Weather delivery, read gateway, existing secrets, permissions and billing stay outside the operation.
