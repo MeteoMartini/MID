@@ -1,0 +1,29 @@
+name: Pages proof HTTP diagnosis (read-only)
+on:
+  push:
+    branches: [chatgpt/pages-proof-http-recovery]
+    paths: ['.github/workflows/pages-proof-http-diagnosis.yml']
+permissions:
+  actions: read
+  contents: read
+  deployments: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 417fde567072c3614b35b61772a8623a66abb212
+          persist-credentials: false
+      - name: Authenticate current Pages artifact and compare exact public bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL }}
+        run: |
+          set -euo pipefail
+          PYTHONPATH=tools/ruc python3 -B - <<'PY'
+          import json
+          from install_fast_pages import active_pages
+          print(json.dumps(active_pages('5f496372ff02b1b6f5bd5696a08c6f6245496802'), sort_keys=True))
+          PY
