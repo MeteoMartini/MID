@@ -196,18 +196,41 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
     # Failed newer Pages deployments must not hide the last successfully
     # attested Stable deployment from Installer retries. Refuse unknown
     # successful sources and pending deployments; inspect bounded history.
-    deployments = api('deployments?environment=github-pages&per_page=30')
-    require(isinstance(deployments, list) and 0 < len(deployments) <= 30,
-            'Pages deployment history missing or incomplete')
+    history_path = 'deployments?environment=github-pages&per_page=30'
+    history_pages = []
+    observed_statuses = []
+    seen_ids = set()
+
+    def bounded_history():
+        for page in range(1, 5):
+            path = history_path if page == 1 else f'{history_path}&page={page}'
+            batch = api(path)
+            require(isinstance(batch, list) and len(batch) <= 30,
+                    'Pages deployment history missing or incomplete')
+            require(page > 1 or batch, 'Pages deployment history missing or incomplete')
+            for item in batch:
+                ident = item.get('id') if isinstance(item, dict) else None
+                require(type(ident) is int and ident > 0, 'invalid Pages deployment ID')
+                require(ident not in seen_ids, 'duplicate ID in Pages deployment history')
+                seen_ids.add(ident)
+            history_pages.append((path, batch))
+            yield from batch
+            if len(batch) < 30:
+                return
+        raise ValueError('Pages deployment history scan limit reached')
+
     own_job = own_pages_job(api, environment if environment is not None else {})
     own_seen = False
     deployment = None
     statuses = None
-    for item in deployments:
+    for item in bounded_history():
         require(item.get('environment') == 'github-pages',
                 'Pages deployment environment differs')
-        recent = api(f"deployments/{item['id']}/statuses?per_page=1")
-        require(len(recent) == 1, 'Pages deployment status missing')
+        status_path = f"deployments/{item['id']}/statuses?per_page=1"
+        recent = api(status_path)
+        require(isinstance(recent, list) and len(recent) == 1
+                and isinstance(recent[0], dict), 'Pages deployment status missing')
+        observed_statuses.append((status_path, recent))
         if recent[0]['state'] == 'success':
             if verified_ruc_nonpublication(api, item, recent[0], expected_main):
                 continue
@@ -337,6 +360,11 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
     archive = archives[0]
     require(not archive['expired'] and DIGEST.fullmatch(archive.get('digest') or ''),
             'Stable Pages artifact is expired or has no immutable digest')
+    if len(history_pages) > 1:
+        for path, expected in reversed(observed_statuses):
+            require(api(path) == expected, 'Pages deployment status changed during scan')
+        for path, expected in reversed(history_pages):
+            require(api(path) == expected, 'Pages deployment history changed during scan')
     return {
         'deployment_id': deployment['id'],
         'run_id': run_id,

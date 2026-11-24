@@ -42,6 +42,75 @@ class InstallerPagesResolverTest(unittest.TestCase):
     def resolve(self):
         return resolve_installer_pages(STABLE, self.manifest.__getitem__)
 
+    def paginated_history(self):
+        path = 'deployments?environment=github-pages&per_page=30'
+        self.manifest[path + '&page=2'] = self.manifest[path]
+        self.manifest[path] = [
+            {'id': ident, 'environment': 'github-pages', 'sha': STABLE}
+            for ident in range(61, 31, -1)
+        ]
+        for item in self.manifest[path]:
+            self.manifest[f"deployments/{item['id']}/statuses?per_page=1"] = [
+                {'state': 'failure'},
+            ]
+        return path
+
+    def test_finds_actual_stable_site_on_second_page(self):
+        self.paginated_history()
+        self.assertEqual(self.resolve()['artifact_id'], 4)
+
+    def test_authenticated_nonpublication_cannot_hide_second_page(self):
+        pending = self.nonpublishing_fixture()
+        path = self.paginated_history()
+        self.manifest[path][0] = self.manifest[path + '&page=2'].pop(0)
+        proof = resolve_installer_pages(STABLE, self.manifest.__getitem__,
+                                        pending_release=pending)
+        self.assertEqual(proof['deployment_id'], 1)
+
+    def test_bounded_history_stops_after_four_full_pages(self):
+        path = self.paginated_history()
+        for page in range(2, 5):
+            batch = [
+                {'id': page * 100 + i, 'environment': 'github-pages', 'sha': STABLE}
+                for i in range(30)
+            ]
+            self.manifest[f'{path}&page={page}'] = batch
+            for item in batch:
+                self.manifest[f"deployments/{item['id']}/statuses?per_page=1"] = [
+                    {'state': 'failure'},
+                ]
+        with self.assertRaisesRegex(ValueError, 'history scan limit reached'):
+            self.resolve()
+
+    def test_duplicate_deployments_fail_closed(self):
+        path = self.paginated_history()
+        self.manifest[path + '&page=2'].insert(0, self.manifest[path][-1])
+        with self.assertRaisesRegex(ValueError, 'duplicate ID'):
+            self.resolve()
+
+    def test_foreign_success_on_second_page_is_not_bypassed(self):
+        path = self.paginated_history()
+        self.manifest[path + '&page=2'].insert(
+            0, {'id': 9, 'environment': 'github-pages', 'sha': 'e' * 40})
+        self.manifest['deployments/9/statuses?per_page=1'] = [{'state': 'success'}]
+        with self.assertRaisesRegex(ValueError, 'not on Stable source'):
+            self.resolve()
+
+    def test_history_drift_during_paginated_read_fails_closed(self):
+        path = self.paginated_history()
+        reads = 0
+
+        def api(key):
+            nonlocal reads
+            if key == path:
+                reads += 1
+                if reads > 1:
+                    return self.manifest[key][1:]
+            return self.manifest[key]
+
+        with self.assertRaisesRegex(ValueError, 'history changed during scan'):
+            resolve_installer_pages(STABLE, api)
+
     def test_selects_only_the_deployed_archive(self):
         proof = self.resolve()
         self.assertEqual(proof['artifact_id'], 4)
@@ -145,6 +214,7 @@ class InstallerPagesResolverTest(unittest.TestCase):
         self.assertEqual(self.resolve()['artifact_id'], 4)
 
     def test_full_history_page_without_success_fails_closed(self):
+        self.manifest['deployments?environment=github-pages&per_page=30&page=2'] = []
         history = self.manifest['deployments?environment=github-pages&per_page=30']
         history.extend({'id': i, 'environment': 'github-pages', 'sha': SOURCE}
                        for i in range(2, 31))
@@ -297,11 +367,9 @@ class InstallerPagesResolverTest(unittest.TestCase):
              'environment': 'github-pages'}, older]
         self.manifest['deployments/malicious\nSECRET=do-not-log/statuses?per_page=1'] = [
             {'state': 'success', 'log_url': 'https://evil.invalid/?token=do-not-log'}]
-        with self.assertRaisesRegex(ValueError, 'not on Stable source') as caught:
+        with self.assertRaisesRegex(ValueError, 'invalid Pages deployment ID') as caught:
             self.resolve()
         self.assertNotIn('do-not-log', str(caught.exception))
-        self.assertIn('deployment_id=INVALID', str(caught.exception))
-        self.assertIn('deployment_sha=INVALID', str(caught.exception))
 
     def nonpublishing_fixture(self, *, event_sha=None):
         pending = 'd' * 40
