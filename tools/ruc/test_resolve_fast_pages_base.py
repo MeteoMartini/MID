@@ -474,9 +474,173 @@ class InstallerPagesResolverTest(unittest.TestCase):
                     member.size = len(expected)
                     tar.addfile(member, io.BytesIO(expected))
 
+            proof_tokens = set()
+
             def response(command, **kwargs):
                 self.assertEqual(command[command.index('--retry') + 1], '2')
-                self.assertIn('?mid-pages-proof=', command[-1])
+                self.assertRegex(command[-1], r'\?mid-pages-proof=[0-9a-f]{32}
+                name = command[-1].removeprefix('https://www.midwx.app/').split('?', 1)[0]
+                if name in install_fast_pages.REQUIRED_PUBLIC_FILES:
+                    data = b'mismatch' if name == mismatch else expected
+                    Path(command[command.index('--output') + 1]).write_bytes(data)
+                    status = '200'
+                else:
+                    status = missing_status
+                return type('Response', (), {'stdout': status})()
+
+            with patch.object(install_fast_pages.subprocess, 'run', side_effect=response):
+                mismatch, missing_status = None, '404'
+                self.assertTrue(install_fast_pages.public_pages_match(archive, scratch))
+                mismatch = 'ruc/latest.json'
+                self.assertFalse(install_fast_pages.public_pages_match(archive, scratch))
+                mismatch, missing_status = None, '403'
+                self.assertFalse(install_fast_pages.public_pages_match(archive, scratch))
+
+    def test_nonpublication_rejects_changed_source_and_real_pages_deploy(self):
+        for mutation in ('wrong_workflow_blob', 'actual_pages_deployed',
+                         'bad_run_origin', 'bad_job_attempt', 'wrong_guard',
+                         'unrelated_ancestor', 'wrong_log_url', 'wrong_repo'):
+            with self.subTest(mutation=mutation):
+                self.setUp()
+                pending = self.nonpublishing_fixture()
+                job = self.manifest['actions/jobs/20']
+                run = self.manifest['actions/runs/19']
+                if mutation == 'wrong_workflow_blob':
+                    self.manifest['contents/.github/workflows/mid-ruc-preprocess.yml?ref=' + pending]['sha'] = '9' * 40
+                elif mutation == 'actual_pages_deployed':
+                    job['steps'][4]['conclusion'] = 'success'
+                elif mutation == 'bad_run_origin':
+                    run['path'] = '.github/workflows/surprise.yml'
+                elif mutation == 'bad_job_attempt':
+                    job['run_attempt'] = 2
+                elif mutation == 'wrong_guard':
+                    job['steps'][0]['conclusion'] = 'failure'
+                elif mutation == 'unrelated_ancestor':
+                    older = 'e' * 40
+                    self.setUp()
+                    pending = self.nonpublishing_fixture(event_sha=older)
+                    self.manifest[f'compare/{older}...{pending}']['merge_base_commit']['sha'] = SOURCE
+                elif mutation == 'wrong_log_url':
+                    self.manifest['deployments/19/statuses?per_page=1'][0]['log_url'] = (
+                        'https://github.com/MeteoMartini/MID/actions/runs/19')
+                else:
+                    run['head_repository']['full_name'] = 'Untrusted/MID'
+                with self.assertRaisesRegex(ValueError, 'not on Stable source'):
+                    resolve_installer_pages(STABLE, self.manifest.__getitem__,
+                                            pending_release=pending)
+
+    def test_nonpublication_does_not_skip_real_stable_ruc_publisher(self):
+        self.fast_fixture()
+        self.manifest['actions/runs/2']['status'] = 'completed'
+        self.manifest['actions/jobs/3']['status'] = 'completed'
+        self.assertEqual(self.resolve()['artifact_id'], 4)
+
+    def test_ruc_pages_environment_sha_admission_and_fail_closed_race(self):
+        repo = Path(__file__).resolve().parents[2]
+        a = (repo / '.github/workflows/mid-ruc-preprocess.yml').read_text(encoding='utf-8')
+        b = (repo / 'ci/github/workflows/mid-ruc-preprocess.yml').read_text(encoding='utf-8')
+        self.assertEqual(a, b, 'protected workflow and source mirror must remain identical')
+        publish = a.split('\n  publish:\n', 1)[1].split('\n  diagnostics:\n', 1)[0]
+        publish_fast = a.split('\n  publish_fast:\n', 1)[1]
+        for name, publisher in (('publish', publish), ('publish_fast', publish_fast)):
+            admission = name + '_admission'
+            admission_job = a.split(f'\n  {admission}:\n', 1)[1].split(f'\n  {name}:\n', 1)[0]
+            admission_if = next(line for line in admission_job.splitlines() if line.startswith('    if: '))
+            publish_if = next(line for line in publisher.splitlines() if line.startswith('    if: '))
+            self.assertEqual(publish_if, admission_if[:-3] + f" && needs.{admission}.result == 'success' }}}}")
+            expected_sha = 'needs.prepare.outputs.stable_sha' if name == 'publish' else 'needs.qualify_fast.outputs.stable_sha'
+            self.assertIn('github.sha == ' + expected_sha, admission_if)
+        self.assertIn('ref: ${{ needs.prepare.outputs.stable_sha }}', publish)
+        guard = publish.split('      - name: RUC-Basis und laufendes Release gegen aktuellen MID-Stable-Stand prüfen', 1)[1].split(
+            '      - name: Exakte Producer-Artefakt-ID prüfen', 1)[0]
+        self.assertEqual(guard.count('            exit 1'), 3)
+        self.assertNotIn('            exit 0', guard)
+        self.assertIn('    environment:\n      name: github-pages', publish)
+        self.assertIn('    environment:\n      name: github-pages', publish_fast)
+
+    def test_superseded_deployment_is_rejected(self):
+        original = self.manifest['deployments/1/statuses?per_page=1'][0]
+        inactive = {'state': 'inactive'}
+        self.manifest['deployments/1/statuses?per_page=1'] = [inactive]
+        self.manifest['deployments/1/statuses?per_page=30'] = [inactive, original]
+        with self.assertRaisesRegex(ValueError, 'not in a safe terminal state'):
+            self.resolve()
+
+    def test_retried_action_cannot_supply_another_attempt(self):
+        self.manifest['actions/jobs/3']['run_attempt'] = 2
+        with self.assertRaisesRegex(ValueError, 'attempt'):
+            self.resolve()
+
+    def test_duplicate_artifacts_fail_closed(self):
+        listing = self.manifest['actions/runs/2/artifacts?per_page=100']
+        listing['total_count'] += 1
+        listing['artifacts'].append({**listing['artifacts'][0], 'id': 5})
+        with self.assertRaisesRegex(ValueError, 'ambiguous'):
+            self.resolve()
+
+    def fast_fixture(self, *, rollback=False):
+        self.manifest['deployments?environment=github-pages&per_page=30'][0]['sha'] = STABLE
+        run = self.manifest['actions/runs/2']
+        job = self.manifest['actions/jobs/3']
+        run.update(path='.github/workflows/mid-ruc-preprocess.yml', head_sha=STABLE)
+        job.update(name='Unabhängige Fast Lane geschützt auf Pages veröffentlichen', head_sha=STABLE)
+        names = ('Fast-Pages-Rückfall veröffentlichen', 'Rückkehr des originalen Vollpointers prüfen') if rollback else (
+            'Fast-Pages-Kandidat veröffentlichen', 'Exakten Fast-Punkt und unveränderten Vollpointer öffentlich abfragen')
+        job['steps'] = [{'name': name, 'conclusion': 'success'} for name in names]
+        run['conclusion'] = job['conclusion'] = 'failure' if rollback else 'success'
+        artifact = self.manifest['actions/runs/2/artifacts?per_page=100']['artifacts'][0]
+        artifact['name'] = 'mid-fast-rollback-2-1' if rollback else 'mid-fast-pages-2-1'
+
+    def test_repeated_fast_uses_exact_verified_archive(self):
+        self.fast_fixture()
+        proof = self.resolve()
+        self.assertEqual(proof['source_sha'], STABLE)
+        self.assertEqual(proof['artifact_id'], 4)
+        self.assertEqual(proof['artifact_digest'], DIGEST)
+
+    def test_verified_rollback_can_be_the_next_baseline(self):
+        self.fast_fixture(rollback=True)
+        self.assertEqual(self.resolve()['artifact_id'], 4)
+        self.manifest['actions/jobs/3']['steps'][1]['conclusion'] = 'failure'
+        with self.assertRaisesRegex(ValueError, 'readback'):
+            self.resolve()
+
+    def test_fast_attempt_without_public_readback_rejected(self):
+        self.fast_fixture()
+        self.manifest['actions/jobs/3']['steps'].pop()
+        with self.assertRaisesRegex(ValueError, 'readback'):
+            self.resolve()
+
+    def test_pending_installer_must_descend_from_actual_stable(self):
+        pending = 'f' * 40
+        self.manifest['git/ref/heads/main']['object']['sha'] = pending
+        lineage = {'status': 'ahead', 'merge_base_commit': {'sha': STABLE},
+                   'base_commit': {'sha': STABLE}}
+        self.manifest[f'compare/{STABLE}...{pending}'] = lineage
+        proof = resolve_installer_pages(STABLE, self.manifest.__getitem__, pending_release=pending)
+        self.assertEqual(proof['artifact_id'], 4)
+        lineage['merge_base_commit']['sha'] = SOURCE
+        with self.assertRaisesRegex(ValueError, 'descend'):
+            resolve_installer_pages(STABLE, self.manifest.__getitem__, pending_release=pending)
+
+    def test_installer_second_slot_requires_its_own_successful_upload(self):
+        job = self.manifest['actions/jobs/3']
+        job['name'] = 'MID auf GitHub Pages veröffentlichen · Versuch 2'
+        job['steps'] = [{'name': 'GitHub-Pages-Deployment · Versuch 2', 'conclusion': 'success'}]
+        with self.assertRaisesRegex(ValueError, 'ambiguous'):
+            self.resolve()
+        job['steps'].append({'name': 'Pages-Artefakt nur bei Bedarf hochladen · Versuch 2',
+                             'conclusion': 'success'})
+        self.manifest['actions/runs/2/artifacts?per_page=100']['artifacts'][0]['name'] = 'github-pages-2-2'
+        self.assertEqual(self.resolve()['artifact_id'], 4)
+
+
+if __name__ == '__main__':
+    unittest.main()
+)
+                token = command[-1].rsplit('=', 1)[-1]
+                self.assertNotIn(token, proof_tokens)
+                proof_tokens.add(token)
                 name = command[-1].removeprefix('https://www.midwx.app/').split('?', 1)[0]
                 if name in install_fast_pages.REQUIRED_PUBLIC_FILES:
                     data = b'mismatch' if name == mismatch else expected

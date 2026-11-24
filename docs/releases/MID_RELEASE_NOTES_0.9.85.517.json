@@ -11,7 +11,7 @@
     "Anhaltende HTTP- und Inhaltsabweichungen melden den betroffenen Prüfpfad. Version und Changelogs werden über den bestehenden Prebuild synchronisiert."
   ],
   "sourceOfTruth": [
-    "Ausgangsbasis ist veröffentlichte v0.9.85.516 @ 5f496372ff02b1b6f5bd5696a08c6f6245496802.",
+    "Ausgangsbasis ist der verifizierte GitHub-Release v0.9.85.516 @ 5f496372ff02b1b6f5bd5696a08c6f6245496802 (https://github.com/MeteoMartini/MID/releases/tag/v0.9.85.516; erfolgreicher Installer https://github.com/MeteoMartini/MID/actions/runs/45394002243).",
     "Archividentität, Cache-Busting und Bytevergleich bleiben verpflichtend. Veröffentlichung und Stable-Promotion setzen sämtliche bestehenden Release-Gates voraus."
   ]
 }
