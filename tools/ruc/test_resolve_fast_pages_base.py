@@ -478,6 +478,7 @@ class InstallerPagesResolverTest(unittest.TestCase):
 
             def response(command, **kwargs):
                 self.assertEqual(command[command.index('--retry') + 1], '2')
+                self.assertEqual(kwargs.get('timeout'), 25)
                 self.assertRegex(command[-1], r'\?mid-pages-proof=[0-9a-f]{32}$')
                 token = command[-1].rsplit('=', 1)[-1]
                 self.assertNotIn(token, proof_tokens)
