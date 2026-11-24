@@ -24,7 +24,7 @@ export function assessPostInstallEvidence({installed, packet, stable, lineage, r
       packet.parents?.length !== 1 ||
       packet.files?.length !== 1 || packet.files[0].filename !== 'MID-professional-replacement.zip' ||
       !['added', 'modified'].includes(packet.files[0].status)) return result('UNEXPECTED_INSTALL_CHAIN');
-  if (run?.path !== '.github/workflows/install-mid.yml' ||
+  if ((!Number.isSafeInteger(run?.id) || run.id <= 0) || run?.path !== '.github/workflows/install-mid.yml' ||
       run.head_repository?.full_name !== 'MeteoMartini/MID' ||
       run.head_sha !== packet.sha || run.head_branch !== 'main' ||
       run.event !== 'workflow_dispatch' || run.run_attempt !== 1 ||
@@ -32,7 +32,8 @@ export function assessPostInstallEvidence({installed, packet, stable, lineage, r
   const jobs = inventory?.jobs;
   if (!Array.isArray(jobs) || jobs.length !== inventory.total_count ||
       new Set(jobs.map(j => j.id)).size !== jobs.length ||
-      jobs.some(j => j.run_id !== run.id || j.status !== 'completed' ||
+      jobs.some(j => !Number.isSafeInteger(j.id) || j.id <= 0 || j.run_id !== run.id ||
+        j.run_attempt !== run.run_attempt || j.head_sha !== packet.sha || j.status !== 'completed' ||
         !['success','failure','skipped'].includes(j.conclusion))) return result('INCOMPLETE_JOBS');
   const exact = name => {
     const matches = jobs.filter(j => j.name === name);
