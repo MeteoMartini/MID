@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { verifySettings, verifyModule, upload } from './upload-version.mjs';
-const valid = () => ({compatibility_date:'2026-11-24',bindings:[
+const valid = () => ({compatibility_date:'2026-11-24',usage_model:'standard',bindings:[
   {type:'secret_text',name:'MID_GITHUB_APP_PRIVATE_KEY'},
   {type:'secret_text',name:'MID_WRITE_GATEWAY_KEY'}
 ]});
@@ -13,6 +13,8 @@ test('only documented version omission means zero explicit flags',()=>{
   for (const value of [null,undefined,{},'', ['nodejs_compat']])
     assert.throws(()=>verifySettings({...valid(),compatibility_flags:value},{versionResponse:true}));
   assert.throws(()=>verifySettings({...valid(),compatibility_date:'2026-11-25'},{versionResponse:true}));
+  for(const model of [undefined,null,'bundled','unbound'])
+    assert.throws(()=>verifySettings({...valid(),usage_model:model},{versionResponse:true}));
   assert.throws(()=>verifySettings({...valid(),bindings:[...valid().bindings,{type:'plain_text',name:'extra'}]},{versionResponse:true}));
 });
 test('readback must equal frozen bytes, exact SHA annotation and module identity',async()=>{
@@ -30,7 +32,7 @@ const newId='11111111-2222-4333-8444-555555555555';
 const env={LOGICC_CF_ACCOUNT_ID:'a'.repeat(32),LOGICC_CF_VERSION_TOKEN:'mock-only',GH_TOKEN:'mock-only',GITHUB_SHA:'b'.repeat(40)};
 function fixture(mode='ok') {
   const posts=[];
-  let refReads=0, allocationReads=0, uploaded;
+  let refReads=0, allocationReads=0, settingsReads=0, uploaded;
   const wrap=result=>Response.json({success:true,result});
   const fetcher=async (url,init={})=>{
     const u=new URL(url);
@@ -56,8 +58,8 @@ function fixture(mode='ok') {
       allocationReads++;
       return wrap({deployments:[{id:deploymentId,versions:[{version_id:baselineId,percentage:mode==='traffic'&&allocationReads===2?90:100}]}]});
     }
-    if(u.pathname.endsWith('/subdomain'))return wrap({previews_enabled:false});
-    if(u.pathname.endsWith('/settings'))return wrap({...valid(),compatibility_flags:[]});
+    if(u.pathname.endsWith('/subdomain'))return wrap({enabled:mode!=='subdomain',previews_enabled:false});
+    if(u.pathname.endsWith('/settings')){settingsReads++;return wrap({...valid(),compatibility_flags:[],usage_model:mode==='settings-drift'&&settingsReads===2?'unbound':'standard'});}
     if(u.pathname.endsWith('/versions'))return wrap([{id:mode==='newest'?'other':baselineId}]);
     if(u.pathname.endsWith('/'+baselineId)){
       assert.equal(u.search,'?include=modules');
@@ -80,9 +82,10 @@ test('entire upload protocol: exactly one staged POST, verified immutable readba
     {type:'inherit',name:'MID_WRITE_GATEWAY_KEY',version_id:baselineId},
   ]);
   assert.equal(posts[0].body.annotations['workers/message'],'MID SHA '+env.GITHUB_SHA);
+  assert.equal(posts[0].body.usage_model,'standard');
 });
 test('preflight drift, traffic drift, or a newer upload prevents every POST',async()=>{
-  for(const mode of ['drift','traffic','newest']){
+  for(const mode of ['drift','traffic','newest','subdomain','settings-drift']){
     const {posts,fetcher}=fixture(mode);
     await assert.rejects(upload({env,fetcher}));
     assert.equal(posts.length,0);

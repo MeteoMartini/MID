@@ -28,6 +28,7 @@ export function verifySettings(version, {versionResponse = false} = {}) {
   requireCondition(version?.compatibility_date === compatibilityDate &&
     ((versionResponse && !Object.hasOwn(version, 'compatibility_flags')) ||
       (Array.isArray(flags) && flags.length === 0)), 'Compatibility settings drift.');
+  requireCondition(version.usage_model === 'standard', 'Usage model drift or missing evidence.');
   const names = Array.isArray(version.bindings) ? version.bindings.filter(binding => binding?.type === 'secret_text')
     .map(binding => binding.name).sort() : null;
   requireCondition(version.bindings?.length === secretNames.length &&
@@ -79,7 +80,8 @@ export async function upload({env = process.env, fetcher = globalThis.fetch} = {
       active.versions[0].version_id === baselineVersion && active.versions[0].percentage === 100,
       'Active deployment differs from the recorded 100% baseline.');
     const subdomain = await request(script + '/subdomain');
-    requireCondition(subdomain.previews_enabled === false, 'Worker previews are enabled or unknown.');
+    requireCondition(subdomain.enabled === true && subdomain.previews_enabled === false,
+      'Worker subdomain or preview configuration drift.');
   }
 
   async function verifyRefs() {
@@ -109,11 +111,13 @@ export async function upload({env = process.env, fetcher = globalThis.fetch} = {
   requireCondition(Array.isArray(recent) && recent[0]?.id === baselineVersion,
     'Newest upload differs from the baseline. Reconcile Cloudflare history before running.');
   await verifyAllocation();
+  verifySettings(await request(script + '/settings'));
   await verifyRefs();
   const created = await request(versions + '?deploy=false', {
     annotations: { 'workers/tag': versionTag, 'workers/message': 'MID SHA ' + sha },
     compatibility_date: compatibilityDate,
     compatibility_flags: [],
+    usage_model: 'standard',
     bindings: secretNames.map(name => ({ type: 'inherit', name, version_id: baselineVersion })),
     main_module: 'worker.mjs',
     modules: [{ name: 'worker.mjs', content_type: 'application/javascript+module',
