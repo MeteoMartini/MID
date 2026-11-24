@@ -150,6 +150,89 @@ def verified_ruc_nonpublication(api, deployment, status, expected_main):
     return wf.get('sha') == RUC_FALSE_SUCCESS_WORKFLOW_SHA
 
 
+# Exact reviewed installer workflow which introduced the post-Stable catalog.
+# This exception is strictly for Pages baseline identity, never release authority.
+CATALOG_ONLY_INSTALLER_WORKFLOW_SHA = 'f524bb0b7eaa9b86c350194472ae56e16b10eac1'
+CATALOG_JOB = 'SHA-verifizierten GitHub Release-Katalog nach Stable aktualisieren'
+
+
+def verified_catalog_only_installer(api, run, job, stable_sha, source_sha, installed):
+    """Return a complete immutable job-inventory receipt, or None; no writes."""
+    actor = 'mid-release-bot-meteomartini[bot]'
+    if not (installed and run.get('path') == INSTALLER_WORKFLOW
+            and run.get('event') == 'workflow_dispatch'
+            and run.get('status') == 'completed' and run.get('conclusion') == 'failure'
+            and type(run.get('run_attempt')) is int and run['run_attempt'] == 1
+            and type(run.get('id')) is int and run['id'] > 0
+            and run.get('head_sha') == source_sha and run.get('head_branch') == 'main'
+            and (run.get('repository') or {}).get('full_name') == REPOSITORY
+            and (run.get('head_repository') or {}).get('full_name') == REPOSITORY
+            and (run.get('actor') or {}).get('login') == actor
+            and (run.get('triggering_actor') or {}).get('login') == actor):
+        return None
+    commit = api('commits/' + stable_sha)
+    if not (commit.get('sha') == stable_sha
+            and (commit.get('author') or {}).get('login') == actor
+            and (commit.get('committer') or {}).get('login') == actor
+            and len(commit.get('parents') or []) == 1
+            and commit['parents'][0].get('sha') == source_sha
+            and re.fullmatch(r'Install MID v\d+(?:\.\d+){3}',
+                             (commit.get('commit') or {}).get('message', '').strip())
+            and api(f'contents/{INSTALLER_WORKFLOW}?ref={source_sha}').get('sha')
+            == CATALOG_ONLY_INSTALLER_WORKFLOW_SHA):
+        return None
+    path = f"actions/runs/{run['id']}/attempts/1/jobs?per_page=100"
+    inventory = api(path)
+    jobs = inventory.get('jobs')
+    if not (isinstance(jobs, list) and len(jobs) == inventory.get('total_count') == 22
+            and all(isinstance(j, dict) and type(j.get('id')) is int and j['id'] > 0
+                    and j.get('run_id') == run['id'] and j.get('run_attempt') == 1
+                    and j.get('head_sha') == source_sha and j.get('status') == 'completed'
+                    and isinstance(j.get('name'), str) for j in jobs)
+            and len({j['id'] for j in jobs}) == len({j['name'] for j in jobs}) == len(jobs)):
+        return None
+    by_name = {j['name']: j for j in jobs}
+    required = {
+        'Release-ZIP prüfen und immutable Snapshot vorbereiten',
+        'Release-Core, Build, Audit und iOS prüfen',
+        'Vollständig geprüften Release sammeln und committen',
+        'Geprüften MID-Worker sicher automatisch veröffentlichen',
+        'Erfolgreichen Pages-/Worker-Release finalisieren',
+        *(f'Release-Core-Regression · core-{n}/4' for n in range(1, 5)),
+        *(f'Release-Heavy · {name}' for name in (
+            'heavy-mountain-visual ·', 'heavy-native-map ·', 'heavy-browser-state ·',
+            'heavy-unified-map · 1/3', 'heavy-unified-map · 2/3', 'heavy-unified-map · 3/3')),
+    }
+    pages = {f'MID auf GitHub Pages veröffentlichen · Versuch {n}' for n in range(1, 4)}
+    optional = {'GitHub-Pages-Artefakt parallel vorbereiten',
+                'Pages-Retry abkühlen · 1', 'Pages-Retry abkühlen · 2'}
+    if not (set(by_name) == required | pages | optional | {CATALOG_JOB}
+            and all(by_name[n].get('conclusion') == 'success' for n in required)
+            and all(by_name[n].get('conclusion') in ('success', 'skipped') for n in optional)
+            and all(by_name[n].get('conclusion') in ('success', 'skipped') for n in pages)
+            and by_name[CATALOG_JOB].get('conclusion') == 'failure'):
+        return None
+    selected = [by_name[n] for n in pages if by_name[n]['conclusion'] == 'success']
+    if not (len(selected) == 1 and selected[0]['id'] == job.get('id')
+            and selected[0].get('steps') == job.get('steps')
+            and selected[0].get('name') == job.get('name')
+            and job.get('run_attempt') == 1 and job.get('conclusion') == 'success'):
+        return None
+    final = by_name['Erfolgreichen Pages-/Worker-Release finalisieren']
+
+    def step_is(entry, name, outcome):
+        matches = [s for s in (entry.get('steps') or []) if isinstance(s, dict)
+                   and s.get('name') == name]
+        return len(matches) == 1 and matches[0].get('conclusion') == outcome
+
+    if not (step_is(final, 'Geprüften Release ausschließlich per API-Fast-Forward nach mid-stable promoten', 'success')
+            and step_is(final, 'Finalen Stable-SHA verifizieren und Qualitätsstatus setzen', 'success')
+            and step_is(by_name[CATALOG_JOB],
+                        'SHA-/Job-/Pages-/Worker-/Tag-Provenienz verifizieren und GitHub Release erzeugen', 'failure')):
+        return None
+    return path, inventory
+
+
 def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None, environment=None,
                             verify_inactive=None):
     """Accept only the verified installer, Fast deployment, or verified Fast rollback."""
@@ -353,8 +436,11 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
                 'historical Pages job missing or ambiguous')
 
     passed = {step['name'] for step in job['steps'] if step['conclusion'] == 'success'}
+    catalog_receipt = None
     if run['path'] == '.github/workflows/install-mid.yml':
-        require(run['head_sha'] == source and run['conclusion'] == 'success'
+        if run['conclusion'] == 'failure':
+            catalog_receipt = verified_catalog_only_installer(api, run, job, expected_stable, source, installed)
+        require(run['head_sha'] == source and (run['conclusion'] == 'success' or catalog_receipt is not None)
                 and job['conclusion'] == 'success'
                 and any(re.fullmatch(r'GitHub-Pages-Deployment · Versuch [1-3]', step) for step in passed),
                 'Pages deployment job or installer attempt does not match')
@@ -418,6 +504,14 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
         require(api('git/ref/heads/mid-stable')['object']['sha'] == expected_stable
                 and api('git/ref/heads/main')['object']['sha'] == expected_main,
                 'main/Stable lineage changed during public proof')
+    if catalog_receipt is not None:
+        receipt_path, receipt_inventory = catalog_receipt
+        require(api(f'actions/runs/{run_id}') == run and api(receipt_path) == receipt_inventory
+                and api(f'actions/runs/{run_id}/artifacts?per_page=100') == inventory,
+                'catalog-only installer evidence changed during scan')
+        require(api('git/ref/heads/mid-stable')['object']['sha'] == expected_stable
+                and api('git/ref/heads/main')['object']['sha'] == expected_main,
+                'main/Stable lineage changed during catalog-only proof')
     return identity
 
 

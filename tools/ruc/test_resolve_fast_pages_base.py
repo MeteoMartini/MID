@@ -591,6 +591,110 @@ class InstallerPagesResolverTest(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'historical Pages job missing or ambiguous'):
                     resolve_with(lambda _: True)
 
+    def catalog_only_fixture(self):
+        run = self.manifest['actions/runs/2']
+        actor = 'mid-release-bot-meteomartini[bot]'
+        run.update(status='completed', conclusion='failure', event='workflow_dispatch',
+                   repository={'full_name': REPOSITORY}, actor={'login': actor},
+                   triggering_actor={'login': actor})
+        self.manifest['commits/' + STABLE] = {
+            'sha': STABLE, 'author': {'login': actor}, 'committer': {'login': actor},
+            'parents': [{'sha': SOURCE}], 'commit': {'message': 'Install MID v0.9.85.518'},
+        }
+        self.manifest['contents/.github/workflows/install-mid.yml?ref=' + SOURCE] = {
+            'sha': 'f524bb0b7eaa9b86c350194472ae56e16b10eac1',
+        }
+        job = self.manifest['actions/jobs/3']
+        job.update(status='completed')
+        final = 'Erfolgreichen Pages-/Worker-Release finalisieren'
+        catalog = 'SHA-verifizierten GitHub Release-Katalog nach Stable aktualisieren'
+        names = [
+            'Release-ZIP prüfen und immutable Snapshot vorbereiten',
+            'Release-Core, Build, Audit und iOS prüfen',
+            'Vollständig geprüften Release sammeln und committen',
+            'Geprüften MID-Worker sicher automatisch veröffentlichen', final,
+            *(f'Release-Core-Regression · core-{n}/4' for n in range(1, 5)),
+            *(f'Release-Heavy · {name}' for name in (
+                'heavy-mountain-visual ·', 'heavy-native-map ·', 'heavy-browser-state ·',
+                'heavy-unified-map · 1/3', 'heavy-unified-map · 2/3', 'heavy-unified-map · 3/3')),
+            'GitHub-Pages-Artefakt parallel vorbereiten',
+            'MID auf GitHub Pages veröffentlichen · Versuch 2',
+            'MID auf GitHub Pages veröffentlichen · Versuch 3',
+            'Pages-Retry abkühlen · 1', 'Pages-Retry abkühlen · 2', catalog,
+        ]
+        def make_job(i, name):
+            return {'id': 100 + i, 'name': name, 'run_id': 2, 'run_attempt': 1,
+                    'head_sha': SOURCE, 'status': 'completed',
+                    'conclusion': 'success' if i < 15 else 'failure' if name == catalog else 'skipped',
+                    'steps': []}
+        by_name = {name: make_job(i, name) for i, name in enumerate(names)}
+        by_name[job['name']] = dict(job)
+        by_name[final]['steps'] = [
+            {'name': 'Geprüften Release ausschließlich per API-Fast-Forward nach mid-stable promoten', 'conclusion': 'success'},
+            {'name': 'Finalen Stable-SHA verifizieren und Qualitätsstatus setzen', 'conclusion': 'success'},
+        ]
+        by_name[catalog]['steps'] = [{
+            'name': 'SHA-/Job-/Pages-/Worker-/Tag-Provenienz verifizieren und GitHub Release erzeugen',
+            'conclusion': 'failure',
+        }]
+        key = 'actions/runs/2/attempts/1/jobs?per_page=100'
+        self.manifest[key] = {'total_count': 22, 'jobs': list(by_name.values())}
+        return key, by_name
+
+    def test_catalog_only_failure_can_underpin_exact_promoted_pages(self):
+        self.catalog_only_fixture()
+        self.assertEqual(self.resolve()['artifact_id'], 4)
+
+    def test_catalog_only_never_accepts_a_missing_or_failed_production_gate(self):
+        for case in ('worker', 'core', 'heavy', 'final', 'final_step', 'catalog_step',
+                     'other_pages', 'workflow', 'actor', 'attempt', 'inventory', 'duplicate'):
+            with self.subTest(case=case):
+                self.setUp()
+                key, jobs = self.catalog_only_fixture()
+                final = jobs['Erfolgreichen Pages-/Worker-Release finalisieren']
+                catalog = jobs['SHA-verifizierten GitHub Release-Katalog nach Stable aktualisieren']
+                if case == 'worker':
+                    jobs['Geprüften MID-Worker sicher automatisch veröffentlichen']['conclusion'] = 'failure'
+                elif case == 'core':
+                    jobs['Release-Core-Regression · core-1/4']['conclusion'] = 'cancelled'
+                elif case == 'heavy':
+                    jobs['Release-Heavy · heavy-native-map ·']['conclusion'] = 'failure'
+                elif case == 'final':
+                    final['conclusion'] = 'failure'
+                elif case == 'final_step':
+                    final['steps'].pop()
+                elif case == 'catalog_step':
+                    catalog['steps'][0]['conclusion'] = 'success'
+                elif case == 'other_pages':
+                    jobs['MID auf GitHub Pages veröffentlichen · Versuch 2']['conclusion'] = 'success'
+                elif case == 'workflow':
+                    self.manifest['contents/.github/workflows/install-mid.yml?ref=' + SOURCE]['sha'] = 'f' * 40
+                elif case == 'actor':
+                    self.manifest['actions/runs/2']['actor']['login'] = 'foreign'
+                elif case == 'attempt':
+                    final['run_attempt'] = 2
+                elif case == 'inventory':
+                    self.manifest[key]['jobs'].pop()
+                else:
+                    final['id'] = catalog['id']
+                with self.assertRaisesRegex(ValueError, 'installer attempt does not match'):
+                    self.resolve()
+
+    def test_catalog_only_evidence_is_reread_before_return(self):
+        key, _ = self.catalog_only_fixture()
+        reads = 0
+
+        def api(path):
+            nonlocal reads
+            if path == key:
+                reads += 1
+                if reads > 1:
+                    return {'total_count': 0, 'jobs': []}
+            return self.manifest[path]
+
+        with self.assertRaisesRegex(ValueError, 'catalog-only installer evidence changed'):
+            resolve_installer_pages(STABLE, api)
+
     def test_retried_action_cannot_supply_another_attempt(self):
         self.manifest['actions/jobs/3']['run_attempt'] = 2
         with self.assertRaisesRegex(ValueError, 'attempt'):
