@@ -5,6 +5,8 @@ import { pathToFileURL } from 'node:url';
 const worker = 'mid-logicc-write';
 const baselineVersion = 'c92c57f2-e52e-48b0-a790-0a47a8e43566';
 const baselineDeployment = '39d373f2-f1c5-4e53-b64d-31e8c05dbe4c';
+const baselineHash = 'd08678abe4f70531080db2065e966916279098543c9a2dc7668cb886599c3135';
+const baselineBytes = 9119;
 const compatibilityDate = '2026-11-24';
 const expectedHash = '2d8544bc4298f3445884e46151f41176b87e80348c9ff9ce439e215bf1cdacd4';
 const secretNames = ['MID_GITHUB_APP_PRIVATE_KEY', 'MID_WRITE_GATEWAY_KEY'];
@@ -105,8 +107,14 @@ export async function upload({env = process.env, fetcher = globalThis.fetch} = {
   requireCondition(baseline.main_module === 'worker.mjs' && Array.isArray(baseline.modules) &&
     baseline.modules.length === 1 && baseline.modules[0]?.name === 'worker.mjs' &&
     baseline.modules[0]?.content_type === 'application/javascript+module' &&
-    typeof baseline.modules[0]?.content_base64 === 'string' && baseline.modules[0].content_base64.length > 0,
+    typeof baseline.modules[0]?.content_base64 === 'string',
     'Baseline module readback missing.');
+  const encodedBaseline = baseline.modules[0].content_base64;
+  requireCondition(encodedBaseline.length === Math.ceil(baselineBytes / 3) * 4,
+    'Baseline module digest or byte length mismatch.');
+  const rollbackBytes = Buffer.from(encodedBaseline, 'base64');
+  requireCondition(rollbackBytes.length === baselineBytes && rollbackBytes.toString('base64') === encodedBaseline &&
+    hash(rollbackBytes) === baselineHash, 'Baseline module digest or byte length mismatch.');
   const recent = await request(versions + '?per_page=10');
   requireCondition(Array.isArray(recent) && recent[0]?.id === baselineVersion,
     'Newest upload differs from the baseline. Reconcile Cloudflare history before running.');

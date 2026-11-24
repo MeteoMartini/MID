@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import crypto from 'node:crypto';
+import { syncBuiltinESMExports } from 'node:module';
 import { verifySettings, verifyModule, upload } from './upload-version.mjs';
 const valid = () => ({compatibility_date:'2026-11-24',usage_model:'standard',bindings:[
   {type:'secret_text',name:'MID_GITHUB_APP_PRIVATE_KEY'},
@@ -26,6 +28,21 @@ test('readback must equal frozen bytes, exact SHA annotation and module identity
     assert.throws(()=>verifyModule({...good,...change},id,sha,bytes));
 });
 
+// Protocol-only fixture: the actual deployed rollback bytes are not copied into tests.
+const fixtureBytes=Buffer.alloc(9119,0x61);
+const fixtureHash=crypto.createHash('sha256').update(fixtureBytes).digest('hex');
+const rollbackDigest='d08678abe4f70531080db2065e966916279098543c9a2dc7668cb886599c3135';
+function mockFixtureDigest(t){
+  const original=crypto.createHash;
+  t.mock.method(crypto,'createHash',function(...args){
+    const h=original(...args);
+    const digest=h.digest.bind(h);
+    h.digest=(encoding)=>{const result=digest(encoding);return encoding==='hex'&&result===fixtureHash?rollbackDigest:result;};
+    return h;
+  });
+  syncBuiltinESMExports();
+  t.after(()=>{t.mock.restoreAll();syncBuiltinESMExports();});
+}
 const baselineId='c92c57f2-e52e-48b0-a790-0a47a8e43566';
 const deploymentId='39d373f2-f1c5-4e53-b64d-31e8c05dbe4c';
 const newId='11111111-2222-4333-8444-555555555555';
@@ -63,7 +80,7 @@ function fixture(mode='ok') {
     if(u.pathname.endsWith('/versions'))return wrap([{id:mode==='newest'?'other':baselineId}]);
     if(u.pathname.endsWith('/'+baselineId)){
       assert.equal(u.search,'?include=modules');
-      return wrap({id:baselineId,...valid(),main_module:'worker.mjs',modules:[{name:'worker.mjs',content_type:'application/javascript+module',content_base64:'YQ=='}]});
+      return wrap({id:baselineId,...valid(),main_module:'worker.mjs',modules:[{name:'worker.mjs',content_type:'application/javascript+module',content_base64:mode==='bad-rollback'?Buffer.alloc(9119,0x62).toString('base64'):mode==='noncanonical-rollback'?fixtureBytes.toString('base64')+'\n':fixtureBytes.toString('base64')}]});
     }
     if(u.pathname.endsWith('/'+newId)){
       assert.equal(u.search,'?include=modules');
@@ -73,7 +90,8 @@ function fixture(mode='ok') {
   };
   return {posts,fetcher};
 }
-test('entire upload protocol: exactly one staged POST, verified immutable readback',async()=>{
+test('entire upload protocol: exactly one staged POST, verified immutable readback',async t=>{
+  mockFixtureDigest(t);
   const {posts,fetcher}=fixture();
   await upload({env,fetcher});
   assert.equal(posts.length,1);
@@ -84,17 +102,34 @@ test('entire upload protocol: exactly one staged POST, verified immutable readba
   assert.equal(posts[0].body.annotations['workers/message'],'MID SHA '+env.GITHUB_SHA);
   assert.equal(posts[0].body.usage_model,'standard');
 });
-test('preflight drift, traffic drift, or a newer upload prevents every POST',async()=>{
+test('preflight drift, traffic drift, or a newer upload prevents every POST',async t=>{
+  mockFixtureDigest(t);
   for(const mode of ['drift','traffic','newest','subdomain','settings-drift']){
     const {posts,fetcher}=fixture(mode);
     await assert.rejects(upload({env,fetcher}));
     assert.equal(posts.length,0);
   }
 });
-test('ambiguous POST or wrong readback stops with no second POST',async()=>{
+test('ambiguous POST or wrong readback stops with no second POST',async t=>{
+  mockFixtureDigest(t);
   for(const mode of ['ambiguous','wrong-bytes']){
     const {posts,fetcher}=fixture(mode);
     await assert.rejects(upload({env,fetcher}));
     assert.equal(posts.length,1);
   }
+});
+
+test('wrong rollback digest or noncanonical bytes stop before any POST',async()=>{
+  for(const mode of ['ok','bad-rollback','noncanonical-rollback']){
+    const {posts,fetcher}=fixture(mode);
+    await assert.rejects(upload({env,fetcher}),/Baseline module digest/);
+    assert.equal(posts.length,0);
+  }
+});
+
+test('noncanonical rollback encoding fails even with protocol fixture digest',async t=>{
+  mockFixtureDigest(t);
+  const {posts,fetcher}=fixture('noncanonical-rollback');
+  await assert.rejects(upload({env,fetcher}),/Baseline module digest/);
+  assert.equal(posts.length,0);
 });
