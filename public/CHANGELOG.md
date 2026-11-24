@@ -1,3 +1,7 @@
+# MID v0.9.85.517
+
+- Bei vorübergehenden HTTP-Fehlern wiederholt der Installer den Abgleich mit dem bestehenden Pages-Archiv begrenzt. Die Prüfung auf identische Inhalte bleibt verpflichtend.
+
 # MID v0.9.85.516
 
 - Die bereits geprüften Änderungen für Reiseplaner, Karten und Bergwetter aus den unveröffentlichten Ständen .514 und .515 sind im Release-Kandidaten enthalten.

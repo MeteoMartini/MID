@@ -1,3 +1,8 @@
+## MID v0.9.85.517 · 2026-11-24 · Robusterer Pages-Archivabgleich
+
+- Selektive Übernahme aus #1006 @ fc644eab9b8b0dd2a792abc585b09f572d748bf8.
+- Anhaltende HTTP- und Inhaltsabweichungen melden den betroffenen Prüfpfad. Version und Changelogs werden über den bestehenden Prebuild synchronisiert.
+
 ## MID v0.9.85.516 · 2026-11-24 · Wiederaufnahme der Pages-Veröffentlichung
 
 - Ausgangspunkt ist das installierte main ab96ac712fd4f3ba9be5af2cb546febf9ee13329 bei produktivem Stable 331fffff081303e1c597badddfa4ae41c4b4e0f0.

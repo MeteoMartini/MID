@@ -1,3 +1,8 @@
+# MID v0.9.85.517 · Robusterer Pages-Archivabgleich
+
+- Ausgangsbasis ist der verifizierte GitHub-Release v0.9.85.516 @ 5f496372ff02b1b6f5bd5696a08c6f6245496802 (https://github.com/MeteoMartini/MID/releases/tag/v0.9.85.516; erfolgreicher Installer https://github.com/MeteoMartini/MID/actions/runs/45394002243).
+- Archividentität, Cache-Busting und Bytevergleich bleiben verpflichtend. Veröffentlichung und Stable-Promotion setzen sämtliche bestehenden Release-Gates voraus.
+
 # MID v0.9.85.516 · Wiederaufnahme der Pages-Veröffentlichung
 
 - Der Release-Kandidat baut auf dem installierten Stand `.515` (`ab96ac712fd4f3ba9be5af2cb546febf9ee13329`) auf. Der zuletzt veröffentlichte Stand ist `.513` (`331fffff081303e1c597badddfa4ae41c4b4e0f0`).
