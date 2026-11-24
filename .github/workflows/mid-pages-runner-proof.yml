@@ -1,0 +1,33 @@
+name: MID Pages runner proof (read-only)
+on:
+  push:
+    branches: [chatgpt/v0.9.85.516-pages-provenance-diagnostics]
+    paths: ['.github/workflows/mid-pages-runner-proof.yml']
+permissions:
+  contents: read
+  actions: read
+  deployments: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Check out the exact proof implementation
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: 22803c5f6fbaeee1b2b09942625ead260b19f9c1
+          persist-credentials: false
+      - name: Resolve current production Pages without publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for target in mid-build-identity.json version.json index.html ruc/latest.json ruc/fast/paged-shadow.json ruc/fast/publisher-proof.v2.json; do
+            printf '%s ' "$target"
+            curl --silent --show-error --max-time 10 --proto '=https' --header 'Cache-Control: no-cache' --output /dev/null --write-out '%{http_code}\n' "https://www.midwx.app/$target"
+          done
+          PYTHONPATH=tools/ruc python3 -B - <<'PY'
+          import json
+          from install_fast_pages import active_pages
+          print(json.dumps(active_pages('ab96ac712fd4f3ba9be5af2cb546febf9ee13329'), sort_keys=True))
+          PY
