@@ -84,14 +84,19 @@ def public_pages_match(archive, scratch):
     for name in paths:
         response = subprocess.run([
             'curl', '--silent', '--show-error', '--max-time', '10',
+            '--retry', '2', '--retry-max-time', '13',
             '--proto', '=https', '--max-filesize', str(PUBLIC_MAX_BYTES),
             '--header', 'Cache-Control: no-cache', '--output', str(body),
             '--write-out', '%{http_code}', f'{origin}/{name}?mid-pages-proof={uuid4().hex}',
-        ], check=True, capture_output=True, text=True, timeout=12)
-        if name in expected:
-            if response.stdout != '200' or body.read_bytes() != expected[name]:
-                return False
-        elif response.stdout != '404':
+        ], check=True, capture_output=True, text=True, timeout=25)
+        expected_status = '200' if name in expected else '404'
+        status = response.stdout
+        if status != expected_status:
+            safe_status = status if len(status) == 3 and status.isascii() and status.isdecimal() else 'invalid'
+            print(f'Pages proof HTTP {safe_status} for {name}; expected {expected_status}', flush=True)
+            return False
+        if name in expected and body.read_bytes() != expected[name]:
+            print(f'Pages proof content mismatch for {name}', flush=True)
             return False
     return True
 
@@ -158,3 +163,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
