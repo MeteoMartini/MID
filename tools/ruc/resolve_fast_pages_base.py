@@ -231,7 +231,19 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
         require(isinstance(recent, list) and len(recent) == 1
                 and isinstance(recent[0], dict), 'Pages deployment status missing')
         observed_statuses.append((status_path, recent))
-        if (recent[0]['state'] in {'success', 'inactive'}
+        if recent[0]['state'] == 'inactive':
+            history_path = f"deployments/{item['id']}/statuses?per_page=30"
+            history = api(history_path)
+            require(isinstance(history, list) and 1 < len(history) < 30
+                    and history[0] == recent[0]
+                    and all(isinstance(status, dict) for status in history),
+                    'inactive Pages status history missing, changed or incomplete')
+            observed_statuses.append((history_path, history))
+            prior_success = [status for status in history[1:] if status.get('state') == 'success']
+            if len(prior_success) == 1 and verified_ruc_nonpublication(
+                    api, item, prior_success[0], expected_main):
+                continue
+        if (recent[0]['state'] == 'success'
                 and verified_ruc_nonpublication(api, item, recent[0], expected_main)):
             continue
         if recent[0]['state'] == 'success':

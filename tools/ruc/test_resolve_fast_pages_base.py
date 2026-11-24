@@ -428,7 +428,10 @@ class InstallerPagesResolverTest(unittest.TestCase):
 
     def test_only_verified_inactive_nonpublication_is_skipped(self):
         pending = self.nonpublishing_fixture()
-        self.manifest['deployments/19/statuses?per_page=1'][0]['state'] = 'inactive'
+        original = self.manifest['deployments/19/statuses?per_page=1'][0]
+        inactive = {'state': 'inactive'}
+        self.manifest['deployments/19/statuses?per_page=1'] = [inactive]
+        self.manifest['deployments/19/statuses?per_page=30'] = [inactive, original]
         proof = resolve_installer_pages(STABLE, self.manifest.__getitem__, pending_release=pending)
         self.assertEqual(proof['deployment_id'], 1)
         self.manifest['actions/jobs/20']['steps'][4]['conclusion'] = 'success'
@@ -491,7 +494,10 @@ class InstallerPagesResolverTest(unittest.TestCase):
         self.assertIn('    environment:\n      name: github-pages', publish_fast)
 
     def test_superseded_deployment_is_rejected(self):
-        self.manifest['deployments/1/statuses?per_page=1'][0]['state'] = 'inactive'
+        original = self.manifest['deployments/1/statuses?per_page=1'][0]
+        inactive = {'state': 'inactive'}
+        self.manifest['deployments/1/statuses?per_page=1'] = [inactive]
+        self.manifest['deployments/1/statuses?per_page=30'] = [inactive, original]
         with self.assertRaisesRegex(ValueError, 'not in a safe terminal state'):
             self.resolve()
 
