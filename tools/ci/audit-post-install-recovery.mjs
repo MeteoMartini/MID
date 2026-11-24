@@ -22,7 +22,7 @@ export async function auditPostInstallRecovery({main, stable, installerId}, get 
   if (start.main !== main || start.stable !== stable) throw new Error('Branch heads changed');
   const [installed, run, inventory, lineage] = await Promise.all([
     get('commits/' + main),
-    get('actions/runs/' + installerId + '/attempts/1'),
+    get('actions/runs/' + installerId),
     get('actions/runs/' + installerId + '/attempts/1/jobs?per_page=100'),
     get('compare/' + stable + '...' + main),
   ]);
@@ -31,6 +31,11 @@ export async function auditPostInstallRecovery({main, stable, installerId}, get 
     throw new Error('Original installer or package identity does not match');
   }
   const packet = await get('commits/' + packetSha);
+  const latest = await get('actions/runs/' + installerId);
+  if (latest.id !== run.id || latest.run_attempt !== run.run_attempt ||
+      latest.status !== run.status || latest.conclusion !== run.conclusion) {
+    throw new Error('Installer attempt changed during audit');
+  }
   return assessPostInstallEvidence({installed, packet, stable, lineage, run, inventory, finalRefs: await refs()});
 }
 

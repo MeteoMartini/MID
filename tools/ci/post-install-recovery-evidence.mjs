@@ -55,7 +55,7 @@ export function assessPostInstallEvidence({installed, packet, stable, lineage, r
       exact(workerJob)?.conclusion !== 'success') return result('RELEASE_VERIFICATION_INCOMPLETE');
   for (const attempt of [1, 2, 3]) {
     const job = exact('MID auf GitHub Pages veröffentlichen · Versuch ' + attempt);
-    if (attempt === 1 ? job?.conclusion !== 'skipped' || job.steps?.length :
+    if (attempt === 1 ? job?.conclusion !== 'skipped' || !Array.isArray(job.steps) || job.steps.length !== 0 :
       job?.conclusion !== 'failure' ||
       !isStep(job, 'Frischen Fast-Snapshot aus dem aktiven Pages-Artefakt erhalten', 'failure') ||
       !isStep(job, 'GitHub-Pages-Deployment · Versuch ' + attempt, 'skipped')) {
