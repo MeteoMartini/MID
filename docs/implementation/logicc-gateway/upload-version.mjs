@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
 
 const worker = 'mid-logicc-write';
 const baselineVersion = 'c92c57f2-e52e-48b0-a790-0a47a8e43566';
@@ -20,18 +21,34 @@ function hash(bytes) {
   return createHash('sha256').update(bytes).digest('hex');
 }
 
-function verifySettings(version) {
-  requireCondition(version.compatibility_date?.split('T')[0] === compatibilityDate &&
-    version.compatibility_flags?.length === 0, 'Compatibility settings drift.');
-  const names = version.bindings?.filter(binding => binding.type === 'secret_text')
-    .map(binding => binding.name).sort();
+// The exact Workers Version GET schema documents omitted compatibility_flags
+// as zero explicitly configured flags. This is NOT a default for other APIs.
+export function verifySettings(version, {versionResponse = false} = {}) {
+  const flags = version?.compatibility_flags;
+  requireCondition(version?.compatibility_date === compatibilityDate &&
+    ((versionResponse && !Object.hasOwn(version, 'compatibility_flags')) ||
+      (Array.isArray(flags) && flags.length === 0)), 'Compatibility settings drift.');
+  const names = Array.isArray(version.bindings) ? version.bindings.filter(binding => binding?.type === 'secret_text')
+    .map(binding => binding.name).sort() : null;
   requireCondition(version.bindings?.length === secretNames.length &&
     JSON.stringify(names) === JSON.stringify(secretNames), 'Bindings drift.');
 }
 
+export function verifyModule(version, id, sha, bytes) {
+  const module = version?.modules?.[0];
+  requireCondition(version?.id === id && version.annotations?.['workers/tag'] === versionTag &&
+    version.annotations?.['workers/message'] === 'MID SHA ' + sha &&
+    version.main_module === 'worker.mjs' && Array.isArray(version.modules) && version.modules.length === 1 &&
+    module?.name === 'worker.mjs' && module.content_type === 'application/javascript+module' &&
+    typeof module.content_base64 === 'string' && module.content_base64 === bytes.toString('base64') &&
+    hash(bytes) === expectedHash, 'Uploaded version readback does not match the approved artifact.');
+}
 async function upload() {
   const account = process.env.LOGICC_CF_ACCOUNT_ID;
   const token = process.env.LOGICC_CF_VERSION_TOKEN;
+  const ghToken = process.env.GH_TOKEN;
+  const sha = process.env.GITHUB_SHA;
+  requireCondition(ghToken && /^[0-9a-f]{40}$/.test(sha ?? ''), 'Missing released SHA context.');
   requireCondition(/^[a-f0-9]{32}$/i.test(account ?? '') && token,
     'Protected environment credentials are missing or invalid.');
   const bytes = await readFile(new URL('./worker.mjs', import.meta.url));
@@ -65,11 +82,34 @@ async function upload() {
     requireCondition(subdomain.previews_enabled === false, 'Worker previews are enabled or unknown.');
   }
 
+  async function verifyRefs() {
+    for (const branch of ['main', 'mid-stable']) {
+      const response = await fetch('https://api.github.com/repos/MeteoMartini/MID/git/ref/heads/' + branch, {
+        headers: { Authorization: 'Bearer ' + ghToken, Accept: 'application/vnd.github+json' },
+        redirect: 'error', signal: AbortSignal.timeout(15_000),
+      });
+      requireCondition(response.ok, 'GitHub ref read failed.');
+      const ref = await response.json();
+      requireCondition(ref.ref === 'refs/heads/' + branch && ref.object?.type === 'commit' &&
+        ref.object.sha === sha, 'Released SHA drift.');
+    }
+  }
+  await verifyRefs();
   await verifyAllocation();
-  verifySettings(await request(versions + '/' + baselineVersion));
+  const baseline = await request(versions + '/' + baselineVersion + '?include=modules');
+  requireCondition(baseline.id === baselineVersion, 'Baseline version identity drift.');
+  verifySettings(baseline, {versionResponse: true});
+  verifySettings(await request(script + '/settings'));
+  requireCondition(baseline.main_module === 'worker.mjs' && Array.isArray(baseline.modules) &&
+    baseline.modules.length === 1 && baseline.modules[0]?.name === 'worker.mjs' &&
+    baseline.modules[0]?.content_type === 'application/javascript+module' &&
+    typeof baseline.modules[0]?.content_base64 === 'string' && baseline.modules[0].content_base64.length > 0,
+    'Baseline module readback missing.');
   const recent = await request(versions + '?per_page=10');
   requireCondition(Array.isArray(recent) && recent[0]?.id === baselineVersion,
     'Newest upload differs from the baseline. Reconcile Cloudflare history before running.');
+  await verifyAllocation();
+  await verifyRefs();
   const created = await request(versions + '?deploy=false', {
     annotations: { 'workers/tag': versionTag, 'workers/message': 'MID SHA ' + process.env.GITHUB_SHA },
     compatibility_date: compatibilityDate,
@@ -82,19 +122,17 @@ async function upload() {
   requireCondition(uuid.test(created.id ?? '') && created.id !== baselineVersion,
     'Upload response has no new version ID. Reconcile Cloudflare history.');
   console.log('Cloudflare upload returned version ' + created.id);
-  const readback = await request(versions + '/' + created.id);
-  verifySettings(readback);
-  requireCondition(readback.id === created.id && readback.annotations?.['workers/tag'] === versionTag &&
-    readback.main_module === 'worker.mjs' && readback.modules?.length === 1 &&
-    readback.modules[0].name === 'worker.mjs' &&
-    hash(Buffer.from(readback.modules[0].content_base64 ?? '', 'base64')) === expectedHash,
-    'Uploaded version readback does not match the approved artifact.');
+  const readback = await request(versions + '/' + created.id + '?include=modules');
+  verifySettings(readback, {versionResponse: true});
+  verifyModule(readback, created.id, sha, bytes);
   await verifyAllocation();
+  verifySettings(await request(script + '/settings'));
+  await verifyRefs();
   console.log('Verified upload ' + created.id + ' SHA-256 ' + expectedHash +
     ' with baseline deployment ' + baselineDeployment + ' still at 100%.');
 }
 
-upload().catch(error => {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) upload().catch(error => {
   if (error instanceof UploadCheckError) console.error(error.message);
   console.error('Logicc upload stopped. Check prior sanitized evidence and Cloudflare version history before any rerun.');
   process.exitCode = 1;

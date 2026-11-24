@@ -27,8 +27,11 @@ jobs:
             tip=$(gh api "repos/MeteoMartini/MID/git/ref/heads/$branch" --jq .object.sha)
             test "$tip" = "$GITHUB_SHA"
           done
+      - name: Offline upload contract tests
+        run: node --test docs/implementation/logicc-gateway/upload-version.test.mjs
       - name: Upload immutable version and verify readback
         env:
+          GH_TOKEN: ${{ github.token }}
           LOGICC_CF_ACCOUNT_ID: ${{ vars.LOGICC_CF_ACCOUNT_ID }}
           LOGICC_CF_VERSION_TOKEN: ${{ secrets.LOGICC_CF_VERSION_TOKEN }}
         run: node docs/implementation/logicc-gateway/upload-version.mjs
