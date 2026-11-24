@@ -1,3 +1,5 @@
+import io
+import tarfile
 import json
 import os
 import unittest
@@ -437,6 +439,58 @@ class InstallerPagesResolverTest(unittest.TestCase):
         self.manifest['actions/jobs/20']['steps'][4]['conclusion'] = 'success'
         with self.assertRaisesRegex(ValueError, 'not in a safe terminal state'):
             resolve_installer_pages(STABLE, self.manifest.__getitem__, pending_release=pending)
+
+    def test_inactive_stable_requires_authenticated_archive_and_live_match(self):
+        original = self.manifest['deployments/1/statuses?per_page=1'][0]
+        inactive = {'state': 'inactive'}
+        self.manifest['deployments/1/statuses?per_page=1'] = [inactive]
+        self.manifest['deployments/1/statuses?per_page=30'] = [inactive, original]
+        verified = []
+
+        def attest(identity):
+            verified.append(identity)
+            return True
+
+        with self.assertRaisesRegex(ValueError, 'does not match the public site'):
+            resolve_installer_pages(
+                STABLE, self.manifest.__getitem__, verify_inactive=lambda _: False,
+            )
+        proof = resolve_installer_pages(STABLE, self.manifest.__getitem__, verify_inactive=attest)
+        self.assertEqual(verified, [proof])
+        self.assertEqual(proof['deployment_id'], 1)
+        original['log_url'] = 'https://example.invalid/actions/runs/1'
+        with self.assertRaisesRegex(ValueError, 'untrusted Pages deployment run link'):
+            resolve_installer_pages(STABLE, self.manifest.__getitem__, verify_inactive=attest)
+        self.assertEqual(verified, [proof])
+
+    def test_inactive_public_proof_checks_bytes_and_optional_absence(self):
+        with TemporaryDirectory() as directory:
+            scratch = Path(directory)
+            archive = scratch / 'artifact.tar'
+            expected = b'published'
+            with tarfile.open(archive, 'w') as tar:
+                for name in install_fast_pages.REQUIRED_PUBLIC_FILES:
+                    member = tarfile.TarInfo('./' + name)
+                    member.size = len(expected)
+                    tar.addfile(member, io.BytesIO(expected))
+
+            def response(command, **kwargs):
+                name = command[-1].removeprefix('https://www.midwx.app/')
+                if name in install_fast_pages.REQUIRED_PUBLIC_FILES:
+                    data = b'mismatch' if name == mismatch else expected
+                    Path(command[command.index('--output') + 1]).write_bytes(data)
+                    status = '200'
+                else:
+                    status = missing_status
+                return type('Response', (), {'stdout': status})()
+
+            with patch.object(install_fast_pages.subprocess, 'run', side_effect=response):
+                mismatch, missing_status = None, '404'
+                self.assertTrue(install_fast_pages.public_pages_match(archive, scratch))
+                mismatch = 'ruc/latest.json'
+                self.assertFalse(install_fast_pages.public_pages_match(archive, scratch))
+                mismatch, missing_status = None, '403'
+                self.assertFalse(install_fast_pages.public_pages_match(archive, scratch))
 
     def test_nonpublication_rejects_changed_source_and_real_pages_deploy(self):
         for mutation in ('wrong_workflow_blob', 'actual_pages_deployed',

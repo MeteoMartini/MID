@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import tarfile
 import tempfile
 from zipfile import ZipFile
 
@@ -27,32 +28,85 @@ def valid_archive_envelope(size):
     return size
 
 
-def active_pages(release):
+def download_pages(identity, scratch):
+    archive = scratch / 'pages.zip'
+    with archive.open('xb') as output:
+        subprocess.run([
+            'gh', 'api', '--method', 'GET',
+            f"repos/MeteoMartini/MID/actions/artifacts/{identity['artifact_id']}/zip",
+        ], check=True, stdout=output, timeout=180)
+    valid_archive_envelope(archive.stat().st_size)
+    if 'sha256:' + sha_file(archive) != identity['artifact_digest']:
+        raise ValueError('active Pages archive changed in transit')
+    with ZipFile(archive) as zipped:
+        entries = zipped.infolist()
+        if len(entries) != 1 or entries[0].filename != 'artifact.tar':
+            raise ValueError('active Pages zip has an unexpected layout')
+        valid_archive_envelope(entries[0].file_size)
+        tar = scratch / 'artifact.tar'
+        with zipped.open(entries[0]) as source, tar.open('xb') as dest:
+            shutil.copyfileobj(source, dest)
+    return tar
+
+
+PUBLIC_MAX_BYTES = 8 * 1024 * 1024
+REQUIRED_PUBLIC_FILES = ('mid-build-identity.json', 'version.json', 'index.html', 'ruc/latest.json')
+OPTIONAL_PUBLIC_FILES = ('ruc/fast/paged-shadow.json', 'ruc/fast/publisher-proof.v2.json')
+
+
+def public_pages_match(archive, scratch):
+    paths = REQUIRED_PUBLIC_FILES + OPTIONAL_PUBLIC_FILES
+    expected = {}
+    with tarfile.open(archive, mode='r:') as tar:
+        for member in tar:
+            name = member.name.removeprefix('./')
+            if name not in paths:
+                continue
+            if name in expected or not member.isfile() or member.size > PUBLIC_MAX_BYTES:
+                raise ValueError('invalid public proof member in Pages archive')
+            with tar.extractfile(member) as stream:
+                expected[name] = stream.read()
+    if any(name not in expected for name in REQUIRED_PUBLIC_FILES):
+        raise ValueError('public proof files missing from Pages archive')
+
+    body = scratch / 'public-body'
+    for name in paths:
+        response = subprocess.run([
+            'curl', '--silent', '--show-error', '--max-time', '10',
+            '--proto', '=https', '--max-filesize', str(PUBLIC_MAX_BYTES),
+            '--header', 'Cache-Control: no-cache', '--output', str(body),
+            '--write-out', '%{http_code}', f'https://www.midwx.app/{name}',
+        ], check=True, capture_output=True, text=True, timeout=12)
+        if name in expected:
+            if response.stdout != '200' or body.read_bytes() != expected[name]:
+                return False
+        elif response.stdout != '404':
+            return False
+    return True
+
+
+def active_pages(release, scratch=None):
     stable = gh_api('git/ref/heads/mid-stable')['object']['sha']
-    return resolve_installer_pages(stable, pending_release=release, environment=os.environ)
+
+    def check_inactive(identity):
+        if scratch is not None:
+            return public_pages_match(download_pages(identity, scratch), scratch)
+        with tempfile.TemporaryDirectory(prefix='.mid-pages-proof-') as directory:
+            proof_dir = Path(directory)
+            return public_pages_match(download_pages(identity, proof_dir), proof_dir)
+
+    return resolve_installer_pages(
+        stable, pending_release=release, environment=os.environ, verify_inactive=check_inactive,
+    )
 
 
 def retain(release, dist, proof):
-    identity = active_pages(release)
     with tempfile.TemporaryDirectory(prefix='.mid-installer-fast-', dir=dist.parent) as scratch:
         scratch = Path(scratch)
-        archive = scratch / 'pages.zip'
-        with archive.open('xb') as output:
-            subprocess.run([
-                'gh', 'api', '--method', 'GET',
-                f"repos/MeteoMartini/MID/actions/artifacts/{identity['artifact_id']}/zip",
-            ], check=True, stdout=output, timeout=240)
-        valid_archive_envelope(archive.stat().st_size)
-        if 'sha256:' + sha_file(archive) != identity['artifact_digest']:
-            raise ValueError('active Pages archive changed in transit')
-        with ZipFile(archive) as zipped:
-            entries = zipped.infolist()
-            if len(entries) != 1 or entries[0].filename != 'artifact.tar':
-                raise ValueError('active Pages zip has an unexpected layout')
-            valid_archive_envelope(entries[0].file_size)
-            tar = scratch / 'artifact.tar'
-            with zipped.open(entries[0]) as source, tar.open('xb') as dest:
-                shutil.copyfileobj(source, dest)
+        identity = active_pages(release, scratch)
+        tar = scratch / 'artifact.tar'
+        if not tar.exists():
+            tar = download_pages(identity, scratch)
         result = carry_fresh_fast_archive(tar, dist)
     if identity != active_pages(release):
         raise ValueError('active Pages changed during Fast restore')

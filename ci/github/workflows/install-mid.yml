@@ -226,11 +226,10 @@ jobs:
           MID_EXPECTED_PACKAGE_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          stable="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/mid-stable" --jq .object.sha)"
-          PYTHONPATH=tools/ruc python3 -B - "$stable" "$MID_EXPECTED_PACKAGE_SHA" <<'PY'
+          PYTHONPATH=tools/ruc python3 -B - "$MID_EXPECTED_PACKAGE_SHA" <<'PY'
           import sys
-          from resolve_fast_pages_base import resolve_installer_pages
-          resolve_installer_pages(sys.argv[1], pending_release=sys.argv[2])
+          from install_fast_pages import active_pages
+          active_pages(sys.argv[1])
           PY
 
       - name: Node.js 22 mit npm-Cache einrichten

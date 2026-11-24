@@ -150,7 +150,8 @@ def verified_ruc_nonpublication(api, deployment, status, expected_main):
     return wf.get('sha') == RUC_FALSE_SUCCESS_WORKFLOW_SHA
 
 
-def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None, environment=None):
+def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None, environment=None,
+                            verify_inactive=None):
     """Accept only the verified installer, Fast deployment, or verified Fast rollback."""
     require(SHA.fullmatch(expected_stable), 'invalid expected Stable SHA')
     require(api('git/ref/heads/mid-stable')['object']['sha'] == expected_stable,
@@ -223,6 +224,7 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
     own_seen = False
     deployment = None
     statuses = None
+    inactive_candidate = False
     for item in bounded_history():
         require(item.get('environment') == 'github-pages',
                 'Pages deployment environment differs')
@@ -243,6 +245,11 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
             if len(prior_success) == 1 and verified_ruc_nonpublication(
                     api, item, prior_success[0], expected_main):
                 continue
+            if (verify_inactive is not None and len(prior_success) == 1
+                    and item.get('sha') in {source, expected_stable}):
+                deployment, statuses = item, prior_success
+                inactive_candidate = True
+                break
         if (recent[0]['state'] == 'success'
                 and verified_ruc_nonpublication(api, item, recent[0], expected_main)):
             continue
@@ -373,12 +380,7 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
     archive = archives[0]
     require(not archive['expired'] and DIGEST.fullmatch(archive.get('digest') or ''),
             'Stable Pages artifact is expired or has no immutable digest')
-    if len(history_pages) > 1:
-        for path, expected in reversed(observed_statuses):
-            require(api(path) == expected, 'Pages deployment status changed during scan')
-        for path, expected in reversed(history_pages):
-            require(api(path) == expected, 'Pages deployment history changed during scan')
-    return {
+    identity = {
         'deployment_id': deployment['id'],
         'run_id': run_id,
         'artifact_id': archive['id'],
@@ -386,6 +388,19 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
         'source_sha': run['head_sha'],
         'stable_sha': expected_stable,
     }
+    if inactive_candidate:
+        require(verify_inactive(identity) is True,
+                'inactive Pages archive does not match the public site')
+    if inactive_candidate or len(history_pages) > 1:
+        for path, expected in reversed(observed_statuses):
+            require(api(path) == expected, 'Pages deployment status changed during scan')
+        for path, expected in reversed(history_pages):
+            require(api(path) == expected, 'Pages deployment history changed during scan')
+    if inactive_candidate:
+        require(api('git/ref/heads/mid-stable')['object']['sha'] == expected_stable
+                and api('git/ref/heads/main')['object']['sha'] == expected_main,
+                'main/Stable lineage changed during public proof')
+    return identity
 
 
 def main():
