@@ -1,3 +1,9 @@
+## MID v0.9.85.519 · 2026-11-24 · RUC-Pages-Provenienz nach isoliertem Katalogfehler
+
+- Konsolidierung des gezielten #1012-Katalogfixes für ein SHA-verifiziertes Ersatz-ZIP und der Pages-Baseline-Reparatur; unveränderte fachliche Release-, Worker-, Pages- und Stable-Gates.
+- Nur für den exakt bekannten Installer-Workflow darf ein ausschließlich nach Stable-Promotion fehlgeschlagener Katalogjob bei vollständiger Original-Job-, Commit-, Akteur-, Artefakt- und Deployment-Provenienz als gültige Pages-Baseline qualifiziert werden. Kein allgemeiner Erfolg eines fehlgeschlagenen Installers und keine rückwirkende Tag-Autorisierung.
+- Zusätzliche Python-Regressionen für die eng begrenzte Baseline-Ausnahme. Kein eigenständiger Logicc-Upload, kein geänderter Wetter-Worker und keine zusätzlichen Kosten oder Rechte.
+
 ## MID v0.9.85.518 · 2026-11-24 · Isolierte Logicc-Governance und zuverlässiger Dependency-Audit
 
 - Selektive Übernahme #1007 @ b77d801eabf6bcae03178a3385b3a6c1f4a480ad und #998 @ e7491a7b7c240df04d563cbce659630783658901. Produktions-Wetter-Worker unverändert; isolierter Logicc-Qualifikationsworker und seine Originaldiagnostik byteidentisch aus #1007 übernommen.
