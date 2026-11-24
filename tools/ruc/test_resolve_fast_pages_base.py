@@ -474,7 +474,14 @@ class InstallerPagesResolverTest(unittest.TestCase):
                     member.size = len(expected)
                     tar.addfile(member, io.BytesIO(expected))
 
+            proof_tokens = set()
+
             def response(command, **kwargs):
+                self.assertEqual(command[command.index('--retry') + 1], '2')
+                self.assertRegex(command[-1], r'\?mid-pages-proof=[0-9a-f]{32}$')
+                token = command[-1].rsplit('=', 1)[-1]
+                self.assertNotIn(token, proof_tokens)
+                proof_tokens.add(token)
                 name = command[-1].removeprefix('https://www.midwx.app/').split('?', 1)[0]
                 if name in install_fast_pages.REQUIRED_PUBLIC_FILES:
                     data = b'mismatch' if name == mismatch else expected

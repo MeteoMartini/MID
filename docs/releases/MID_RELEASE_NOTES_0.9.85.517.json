@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "version": "0.9.85.517",
+  "title": "Robusterer Pages-Archivabgleich",
+  "date": "2026-11-24",
+  "external": [
+    "Bei vorübergehenden HTTP-Fehlern wiederholt der Installer den Abgleich mit dem bestehenden Pages-Archiv begrenzt. Die Prüfung auf identische Inhalte bleibt verpflichtend."
+  ],
+  "internal": [
+    "Selektive Übernahme aus #1006 @ fc644eab9b8b0dd2a792abc585b09f572d748bf8.",
+    "Anhaltende HTTP- und Inhaltsabweichungen melden den betroffenen Prüfpfad. Version und Changelogs werden über den bestehenden Prebuild synchronisiert."
+  ],
+  "sourceOfTruth": [
+    "Ausgangsbasis ist der verifizierte GitHub-Release v0.9.85.516 @ 5f496372ff02b1b6f5bd5696a08c6f6245496802 (https://github.com/MeteoMartini/MID/releases/tag/v0.9.85.516; erfolgreicher Installer https://github.com/MeteoMartini/MID/actions/runs/45394002243).",
+    "Archividentität, Cache-Busting und Bytevergleich bleiben verpflichtend. Veröffentlichung und Stable-Promotion setzen sämtliche bestehenden Release-Gates voraus."
+  ]
+}
