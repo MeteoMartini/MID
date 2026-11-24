@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFileSync,mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
-import {execFileSync,spawnSync} from 'node:child_process';
+import {spawnSync} from 'node:child_process';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 for(const pattern of ['test_prepared_snapshot.py','test_timed_command.py']){
@@ -13,23 +13,26 @@ function shell(name){return step(name).split('        run: |\n')[1].split('\n').
 const first=shell('RUC-Basis und laufendes Release gegen aktuellen MID-Stable-Stand prüfen');
 const second=shell('MID-Stable und Releasefenster unmittelbar vor dem Pages-Publish erneut prüfen');
 const root=mkdtempSync(join(tmpdir(),'mid-ruc-guards-'));
-function guard(script,{main='0.9.85.344',stable='0.9.85.344',head='b'.repeat(40),expected='a'.repeat(40)}={}){
+function guard(script,{main='0.9.85.344',stable='0.9.85.344',head='b'.repeat(40),expected='a'.repeat(40),mainSha=head,exitStatus=0}={}){
  const bin=join(root,'bin');mkdirSync(bin,{recursive:true});
  writeFileSync(join(root,'package.json'),JSON.stringify({version:stable}));
- writeFileSync(join(bin,'git'),`#!/bin/sh\ncase "$1" in\n fetch) exit 0;;\n rev-parse) printf '%s\\n' '${head}';;\n show) printf '%s\\n' '${JSON.stringify({version:main})}';;\n *) exit 99;;\nesac\n`,{mode:0o755});
+ writeFileSync(join(bin,'git'),`#!/bin/sh\ncase "$1" in\n fetch) exit 0;;\n rev-parse)\n  if [ "$2" = refs/remotes/origin/main ]; then printf '%s\\n' '${mainSha}';\n  else printf '%s\\n' '${head}'; fi;;\n show) printf '%s\\n' '${JSON.stringify({version:main})}';;\n *) exit 99;;\nesac\n`,{mode:0o755});
  const output=join(root,'output');writeFileSync(output,'');
- execFileSync('bash',['-c',script],{cwd:root,encoding:'utf8',env:{...process.env,PATH:bin+':'+process.env.PATH,GITHUB_OUTPUT:output,GITHUB_STEP_SUMMARY:join(root,'summary'),EXPECTED_STABLE_SHA:expected}});
+ const result=spawnSync('bash',['-c',script],{cwd:root,encoding:'utf8',env:{...process.env,PATH:bin+':'+process.env.PATH,GITHUB_OUTPUT:output,GITHUB_STEP_SUMMARY:join(root,'summary'),EXPECTED_STABLE_SHA:expected}});
+ assert.equal(result.status,exitStatus,result.error?.message||result.stdout+result.stderr);
  return readFileSync(output,'utf8');
 }
 try{
  // Compatible old producer/new consumer is admitted only with the subsequent
  // mandatory contract/byte/JS gates; current app version still controls the shell.
  assert.match(guard(first),/allowed=true/);assert.match(guard(first),new RegExp('consumer_sha='+'b'.repeat(40)));
- assert.match(guard(first,{main:'0.9.85.345'}),/allowed=false/);
- assert.match(guard(first,{main:''}),/allowed=false/);
+ assert.match(guard(first,{main:'0.9.85.345',exitStatus:1}),/allowed=false/);
+ assert.match(guard(first,{main:'',exitStatus:1}),/allowed=false/);
  assert.match(guard(second,{expected:'b'.repeat(40)}),/allowed=true/);
  assert.match(guard(second,{expected:'b'.repeat(40),head:'c'.repeat(40)}),/allowed=false/);
  assert.match(guard(second,{expected:'b'.repeat(40),main:'0.9.85.345'}),/allowed=false/);
+ assert.match(guard(first,{mainSha:'c'.repeat(40),exitStatus:1}),/allowed=false/);
+ assert.match(guard(second,{expected:'b'.repeat(40),mainSha:'c'.repeat(40)}),/allowed=false/);
  const admission=workflow.indexOf('name: Vollständige Snapshot-Wiederzulassung mit aktuellem Stable-Datenvertrag'),compose=workflow.indexOf('name: MID-Seite mit aktuellem Stable-Stand und RUC-Snapshot zusammensetzen');
  assert.ok(admission>0&&admission<compose,'Immutable bytes/contract must be checked before composing the current shell');
  assert.match(step('Vollständige Snapshot-Wiederzulassung mit aktuellem Stable-Datenvertrag'),/verify_prepared_snapshot\.mjs/);
