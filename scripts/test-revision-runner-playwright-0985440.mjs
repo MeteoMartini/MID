@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 const canonical=readFileSync(new URL('../ci/github/workflows/mid-code-revision.yml',import.meta.url),'utf8');
 const mirrored=readFileSync(new URL('../.github/workflows/mid-code-revision.yml',import.meta.url),'utf8');
 const browserJobs=['revision_regressions','ci','nightly','performance'];
@@ -47,3 +49,9 @@ assert.notEqual(dependencyAuditBroken,dependencyAuditCanonical,'Dependency-Audit
 assert.throws(()=>requireCompatibleDependencyAuditRunner(dependencyAuditBroken),/Ungeprüfter Dependency-Audit-Browser-Runner/,'Dependency-Audit darf nicht auf ubuntu-latest zurückfallen');
 
 console.log('MID-Revision: vier Revisions-Browserjobs und Dependency-Audit auf Ubuntu 24.04, Spiegel, Pflichtregressionen und Negativproben geprüft.');
+
+// Frozen Logicc candidate: exercise original offline diagnostics in the existing mandatory regression.
+const logiccWorker=fileURLToPath(new URL('../docs/implementation/logicc-gateway/worker.mjs',import.meta.url));
+const logiccDiagnostics=fileURLToPath(new URL('../docs/implementation/logicc-gateway/diagnostics.test.mjs',import.meta.url));
+execFileSync(process.execPath,['--check',logiccWorker],{stdio:'inherit',timeout:15000});
+execFileSync(process.execPath,['--test',logiccDiagnostics],{stdio:'inherit',timeout:30000});
