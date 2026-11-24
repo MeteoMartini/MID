@@ -20,10 +20,11 @@ export async function auditFailedRelease({expectedMain, expectedStable, installe
   };
   const before = await refs();
   if (before.main !== expectedMain || before.stable !== expectedStable) throw new Error('Live refs differ from expected SHAs');
+  const inventoryPath = 'actions/workflows/install-mid.yml/runs?per_page=100&head_sha=' + expectedMain;
   const [packet, run, installerRuns] = await Promise.all([
     get('commits/' + expectedMain),
     get('actions/runs/' + installerId),
-    get('actions/workflows/install-mid.yml/runs?per_page=100&head_sha=' + expectedMain),
+    get(inventoryPath),
   ]);
   if (String(run.id) !== installerId || !sha.test(packet.parents?.[0]?.sha ?? '')) {
     throw new Error('Installer or package identity mismatch');
@@ -36,7 +37,17 @@ export async function auditFailedRelease({expectedMain, expectedStable, installe
     ...Array.from({length: run.run_attempt}, (_, index) =>
       get('actions/runs/' + installerId + '/attempts/' + (index + 1) + '/jobs?per_page=100')),
   ]);
-  const finalRun = await get('actions/runs/' + installerId);
+  const [finalRun, finalInventory] = await Promise.all([
+    get('actions/runs/' + installerId), get(inventoryPath),
+  ]);
+  const inventoryIdentity = inventory => JSON.stringify([
+    inventory.total_count,
+    inventory.workflow_runs?.map(item =>
+      [item.id, item.run_attempt, item.status, item.conclusion, item.head_sha, item.event]),
+  ]);
+  if (inventoryIdentity(finalInventory) !== inventoryIdentity(installerRuns)) {
+    throw new Error('Installer run inventory changed during audit');
+  }
   const finalRefs = await refs();
   if (['id', 'run_attempt', 'status', 'conclusion', 'head_sha', 'path', 'event', 'head_branch']
     .some(key => finalRun[key] !== run[key])) {

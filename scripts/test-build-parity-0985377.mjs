@@ -179,21 +179,27 @@ test('failed-release reader checks each attempt and rejects a retry racing the a
   const runPath = 'actions/runs/42';
   const input = {expectedMain: main, expectedStable: stable, installerId: '42'};
   const jobPaths = [1, 2].map(i => runPath + '/attempts/' + i + '/jobs?per_page=100');
-  const request = async (attempt, race = false) => {
+  const request = async (attempt, race = '') => {
     const requested = [];
     let runReads = 0;
+    let inventoryReads = 0;
     const get = async path => {
       requested.push(path);
       if (path === 'git/ref/heads/main') return {object: {sha: main}};
       if (path === 'git/ref/heads/mid-stable') return {object: {sha: stable}};
       if (path === runPath) {
-        const run_attempt = ++runReads === 2 && race ? attempt + 1 : attempt;
+        const run_attempt = ++runReads === 2 && race === 'attempt' ? attempt + 1 : attempt;
         return {id: 42, run_attempt, status: 'completed', conclusion: 'failure'};
       }
       if (path === 'commits/' + main) return {sha: main, parents: [{sha: source}]};
+      if (path.startsWith('actions/workflows/install-mid.yml/runs?')) {
+        const total_count = ++inventoryReads === 2 && race === 'inventory' ? 2 : 1;
+        return {total_count};
+      }
       return {};
     };
-    if (race) await assert.rejects(auditFailedRelease(input, get), /run changed during audit/);
+    if (race === 'attempt') await assert.rejects(auditFailedRelease(input, get), /run changed during audit/);
+    else if (race === 'inventory') await assert.rejects(auditFailedRelease(input, get), /inventory changed during audit/);
     else if (attempt === 2) {
       assert.equal((await auditFailedRelease(input, get)).eligibleForReview, false);
       assert.equal(runReads, 2);
@@ -201,6 +207,7 @@ test('failed-release reader checks each attempt and rejects a retry racing the a
     return requested.filter(path => path.includes('/attempts/'));
   };
   assert.deepEqual(await request(2), jobPaths);
-  assert.deepEqual(await request(2, true), jobPaths);
+  assert.deepEqual(await request(2, 'attempt'), jobPaths);
+  assert.deepEqual(await request(2, 'inventory'), jobPaths);
   for (const attempt of [0, 11]) assert.deepEqual(await request(attempt), []);
 });
