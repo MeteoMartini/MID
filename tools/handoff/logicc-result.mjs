@@ -56,22 +56,55 @@ export function prepareLogiccResult(result, assignment) {
   }};
 }
 
+const ISSUE_URL = 'https://api.github.com/repos/MeteoMartini/MID/issues/1007';
+const COMMENT_URL = 'https://api.github.com/repos/MeteoMartini/MID/issues/comments/';
+
+// The actor is trusted host configuration, never accepted from the result.
+// The adapter must supply authenticated GitHub REST readback, not echo POST.
+function validActor(actor) {
+  return exactRecord(actor, 'id,login,type') && Number.isSafeInteger(actor.id) && actor.id > 0 &&
+    typeof actor.login === 'string' && /^[A-Za-z0-9-]+\[bot\]$/.test(actor.login) &&
+    actor.type === 'Bot';
+}
+
+export function renderLogiccComment(prepared) {
+  return '<!-- MID-LOGICC-RESULT:' + prepared.receipt + ' -->\n' +
+    'Logicc result (untrusted evidence; not release authority)\n\n' +
+    '\x60\x60\x60json\n' + JSON.stringify(prepared.result, null, 2) + '\n\x60\x60\x60\n';
+}
+
+export function verifyLogiccComment(comment, id, body, actor) {
+  return validActor(actor) && Number.isSafeInteger(id) && id > 0 &&
+    comment?.id === id && comment.url === COMMENT_URL + id &&
+    comment.issue_url === ISSUE_URL && comment.body === body &&
+    comment.user?.id === actor.id && comment.user.login === actor.login &&
+    comment.user.type === actor.type;
+}
+
 /**
  * reserve must atomically and durably claim the receipt before any send.
  * A failed or ambiguous send keeps the claim for manual reconciliation.
+ * Host transport and actor identity require independent qualification.
  */
-export async function deliverLogiccResult(result, assignment, {reserve, publish}) {
+export async function deliverLogiccResult(result, assignment, {reserve, publish, readback, expectedActor}) {
   const prepared = prepareLogiccResult(result, assignment);
+  if (!validActor(expectedActor) || typeof reserve !== 'function' ||
+      typeof publish !== 'function' || typeof readback !== 'function') {
+    throw new TypeError('Trusted Logicc transport is unverified');
+  }
+  const actor = Object.freeze({...expectedActor});
+  const body = renderLogiccComment(prepared);
   const claim = await reserve(prepared.receipt);
   if (claim === 'existing') return {status: 'already_claimed', receipt: prepared.receipt};
   if (claim !== 'claimed') throw new Error('Logicc receipt reservation is unverified');
 
   try {
-    const posted = await publish(prepared);
-    if (!Number.isSafeInteger(posted?.id) || posted.id <= 0) {
-      throw new Error('Missing comment ID');
-    }
-    return {status: 'posted', receipt: prepared.receipt, commentId: posted.id};
+    const posted = await publish({...prepared, body});
+    const id = posted?.id;
+    if (!Number.isSafeInteger(id) || id <= 0) throw new Error('Missing comment ID');
+    const observed = await readback({repository: prepared.repository, pullRequest: prepared.pullRequest, commentId: id});
+    if (!verifyLogiccComment(observed, id, body, actor)) throw new Error('Comment readback mismatch');
+    return {status: 'posted', receipt: prepared.receipt, commentId: id};
   } catch {
     return {status: 'reconciliation_required', receipt: prepared.receipt};
   }
