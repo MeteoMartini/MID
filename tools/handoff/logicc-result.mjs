@@ -31,3 +31,24 @@ export function prepareLogiccResult(result, assignment) {
     status: result.status, summary: result.summary, checks: [...result.checks],
   }};
 }
+
+/**
+ * reserve must atomically and durably claim the receipt before any send.
+ * A failed or ambiguous send keeps the claim for manual reconciliation.
+ */
+export async function deliverLogiccResult(result, assignment, {reserve, publish}) {
+  const prepared = prepareLogiccResult(result, assignment);
+  const claim = await reserve(prepared.receipt);
+  if (claim === 'existing') return {status: 'already_claimed', receipt: prepared.receipt};
+  if (claim !== 'claimed') throw new Error('Logicc receipt reservation is unverified');
+
+  try {
+    const posted = await publish(prepared);
+    if (!Number.isSafeInteger(posted?.id) || posted.id <= 0) {
+      throw new Error('Missing comment ID');
+    }
+    return {status: 'posted', receipt: prepared.receipt, commentId: posted.id};
+  } catch {
+    return {status: 'reconciliation_required', receipt: prepared.receipt};
+  }
+}
