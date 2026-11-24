@@ -1,3 +1,5 @@
+import io
+import tarfile
 import json
 import os
 import unittest
@@ -41,6 +43,75 @@ class InstallerPagesResolverTest(unittest.TestCase):
 
     def resolve(self):
         return resolve_installer_pages(STABLE, self.manifest.__getitem__)
+
+    def paginated_history(self):
+        path = 'deployments?environment=github-pages&per_page=30'
+        self.manifest[path + '&page=2'] = self.manifest[path]
+        self.manifest[path] = [
+            {'id': ident, 'environment': 'github-pages', 'sha': STABLE}
+            for ident in range(61, 31, -1)
+        ]
+        for item in self.manifest[path]:
+            self.manifest[f"deployments/{item['id']}/statuses?per_page=1"] = [
+                {'state': 'failure'},
+            ]
+        return path
+
+    def test_finds_actual_stable_site_on_second_page(self):
+        self.paginated_history()
+        self.assertEqual(self.resolve()['artifact_id'], 4)
+
+    def test_authenticated_nonpublication_cannot_hide_second_page(self):
+        pending = self.nonpublishing_fixture()
+        path = self.paginated_history()
+        self.manifest[path][0] = self.manifest[path + '&page=2'].pop(0)
+        proof = resolve_installer_pages(STABLE, self.manifest.__getitem__,
+                                        pending_release=pending)
+        self.assertEqual(proof['deployment_id'], 1)
+
+    def test_bounded_history_stops_after_four_full_pages(self):
+        path = self.paginated_history()
+        for page in range(2, 5):
+            batch = [
+                {'id': page * 100 + i, 'environment': 'github-pages', 'sha': STABLE}
+                for i in range(30)
+            ]
+            self.manifest[f'{path}&page={page}'] = batch
+            for item in batch:
+                self.manifest[f"deployments/{item['id']}/statuses?per_page=1"] = [
+                    {'state': 'failure'},
+                ]
+        with self.assertRaisesRegex(ValueError, 'history scan limit reached'):
+            self.resolve()
+
+    def test_duplicate_deployments_fail_closed(self):
+        path = self.paginated_history()
+        self.manifest[path + '&page=2'].insert(0, self.manifest[path][-1])
+        with self.assertRaisesRegex(ValueError, 'duplicate ID'):
+            self.resolve()
+
+    def test_foreign_success_on_second_page_is_not_bypassed(self):
+        path = self.paginated_history()
+        self.manifest[path + '&page=2'].insert(
+            0, {'id': 9, 'environment': 'github-pages', 'sha': 'e' * 40})
+        self.manifest['deployments/9/statuses?per_page=1'] = [{'state': 'success'}]
+        with self.assertRaisesRegex(ValueError, 'not on Stable source'):
+            self.resolve()
+
+    def test_history_drift_during_paginated_read_fails_closed(self):
+        path = self.paginated_history()
+        reads = 0
+
+        def api(key):
+            nonlocal reads
+            if key == path:
+                reads += 1
+                if reads > 1:
+                    return self.manifest[key][1:]
+            return self.manifest[key]
+
+        with self.assertRaisesRegex(ValueError, 'history changed during scan'):
+            resolve_installer_pages(STABLE, api)
 
     def test_selects_only_the_deployed_archive(self):
         proof = self.resolve()
@@ -145,6 +216,7 @@ class InstallerPagesResolverTest(unittest.TestCase):
         self.assertEqual(self.resolve()['artifact_id'], 4)
 
     def test_full_history_page_without_success_fails_closed(self):
+        self.manifest['deployments?environment=github-pages&per_page=30&page=2'] = []
         history = self.manifest['deployments?environment=github-pages&per_page=30']
         history.extend({'id': i, 'environment': 'github-pages', 'sha': SOURCE}
                        for i in range(2, 31))
@@ -285,11 +357,208 @@ class InstallerPagesResolverTest(unittest.TestCase):
             {'id': 19, 'sha': 'f' * 40, 'environment': 'github-pages'}, older]
         self.manifest['deployments/19/statuses?per_page=1'] = [
             {'state': 'success', 'log_url': f'https://github.com/{REPOSITORY}/actions/runs/19'}]
-        with self.assertRaisesRegex(ValueError, 'not on Stable source'):
+        with self.assertRaisesRegex(
+                ValueError,
+                r'not on Stable source \(deployment_id=19, deployment_sha=f{40}\)'):
             self.resolve()
 
+    def test_foreign_pages_diagnostic_never_echoes_untrusted_fields(self):
+        older = self.manifest['deployments?environment=github-pages&per_page=30'][0]
+        self.manifest['deployments?environment=github-pages&per_page=30'] = [
+            {'id': 'malicious\nSECRET=do-not-log', 'sha': 'bad\nSECRET=do-not-log',
+             'environment': 'github-pages'}, older]
+        self.manifest['deployments/malicious\nSECRET=do-not-log/statuses?per_page=1'] = [
+            {'state': 'success', 'log_url': 'https://evil.invalid/?token=do-not-log'}]
+        with self.assertRaisesRegex(ValueError, 'invalid Pages deployment ID') as caught:
+            self.resolve()
+        self.assertNotIn('do-not-log', str(caught.exception))
+
+    def nonpublishing_fixture(self, *, event_sha=None):
+        pending = 'd' * 40
+        event_sha = event_sha or pending
+        self.manifest['git/ref/heads/main']['object']['sha'] = pending
+        self.manifest[f'compare/{STABLE}...{pending}'] = {
+            'status': 'ahead', 'merge_base_commit': {'sha': STABLE},
+            'base_commit': {'sha': STABLE},
+        }
+        if event_sha != pending:
+            self.manifest[f'compare/{event_sha}...{pending}'] = {
+                'status': 'ahead', 'merge_base_commit': {'sha': event_sha},
+                'base_commit': {'sha': event_sha},
+            }
+        original = self.manifest['deployments?environment=github-pages&per_page=30'][0]
+        self.manifest['deployments?environment=github-pages&per_page=30'] = [
+            {'id': 19, 'sha': event_sha, 'environment': 'github-pages'}, original]
+        self.manifest['deployments/19/statuses?per_page=1'] = [{
+            'state': 'success', 'log_url': f'https://github.com/{REPOSITORY}/actions/runs/19/job/20'}]
+        self.manifest['actions/runs/19'] = {
+            'id': 19, 'path': '.github/workflows/mid-ruc-preprocess.yml',
+            'head_sha': event_sha, 'head_branch': 'main',
+            'head_repository': {'full_name': REPOSITORY},
+            'run_attempt': 1, 'status': 'completed', 'conclusion': 'success',
+        }
+        required = [
+            ('RUC-Basis und laufendes Release gegen aktuellen MID-Stable-Stand prüfen', 'success'),
+            ('Vor dem großen Snapshot-Download authentifizierten Contract-Hash prüfen', 'skipped'),
+            ('Vorbereiteten RUC-Snapshot laden', 'skipped'),
+            ('GitHub-Pages-Artefakt hochladen', 'skipped'),
+            ('MID + RUC kostenfrei auf GitHub Pages veröffentlichen', 'skipped'),
+            ('Nach fehlgeschlagenem Codec-Healthcheck RUC-Rohsnapshot zurückveröffentlichen', 'skipped'),
+            ('Rollback-Rohdaten als GitHub-Pages-Artefakt hochladen', 'skipped'),
+            ('RUC-Ergebnis eindeutig zusammenfassen', 'success'),
+        ]
+        self.manifest['actions/jobs/20'] = {
+            'id': 20, 'run_id': 19, 'head_sha': event_sha,
+            'run_attempt': 1, 'status': 'completed', 'conclusion': 'success',
+            'name': 'MID + RUC kostenfrei auf GitHub Pages veröffentlichen',
+            'steps': [{'name': name, 'conclusion': outcome} for name, outcome in required],
+        }
+        self.manifest[f'contents/.github/workflows/mid-ruc-preprocess.yml?ref={event_sha}'] = {
+            'sha': 'f43d49a53a86bf41c3797a0c8c7e047a32f22863'}
+        return pending
+
+    def test_verified_nonpublishing_ruc_environment_never_hides_real_stable_artifact(self):
+        for event_sha in ('d' * 40, 'e' * 40, STABLE):
+            with self.subTest(event_sha=event_sha):
+                self.setUp()
+                pending = self.nonpublishing_fixture(event_sha=event_sha)
+                proof = resolve_installer_pages(STABLE, self.manifest.__getitem__,
+                                                pending_release=pending)
+                self.assertEqual(proof['deployment_id'], 1)
+                self.assertEqual(proof['artifact_id'], 4)
+                self.assertEqual(proof['artifact_digest'], DIGEST)
+
+    def test_only_verified_inactive_nonpublication_is_skipped(self):
+        pending = self.nonpublishing_fixture()
+        original = self.manifest['deployments/19/statuses?per_page=1'][0]
+        inactive = {'state': 'inactive'}
+        self.manifest['deployments/19/statuses?per_page=1'] = [inactive]
+        self.manifest['deployments/19/statuses?per_page=30'] = [inactive, original]
+        proof = resolve_installer_pages(STABLE, self.manifest.__getitem__, pending_release=pending)
+        self.assertEqual(proof['deployment_id'], 1)
+        self.manifest['actions/jobs/20']['steps'][4]['conclusion'] = 'success'
+        with self.assertRaisesRegex(ValueError, 'not in a safe terminal state'):
+            resolve_installer_pages(STABLE, self.manifest.__getitem__, pending_release=pending)
+
+    def test_inactive_stable_requires_authenticated_archive_and_live_match(self):
+        original = self.manifest['deployments/1/statuses?per_page=1'][0]
+        inactive = {'state': 'inactive'}
+        self.manifest['deployments/1/statuses?per_page=1'] = [inactive]
+        self.manifest['deployments/1/statuses?per_page=30'] = [inactive, original]
+        verified = []
+
+        def attest(identity):
+            verified.append(identity)
+            return True
+
+        with self.assertRaisesRegex(ValueError, 'does not match the public site'):
+            resolve_installer_pages(
+                STABLE, self.manifest.__getitem__, verify_inactive=lambda _: False,
+            )
+        proof = resolve_installer_pages(STABLE, self.manifest.__getitem__, verify_inactive=attest)
+        self.assertEqual(verified, [proof])
+        self.assertEqual(proof['deployment_id'], 1)
+        original['log_url'] = 'https://example.invalid/actions/runs/1'
+        with self.assertRaisesRegex(ValueError, 'untrusted Pages deployment run link'):
+            resolve_installer_pages(STABLE, self.manifest.__getitem__, verify_inactive=attest)
+        self.assertEqual(verified, [proof])
+
+    def test_inactive_public_proof_checks_bytes_and_optional_absence(self):
+        with TemporaryDirectory() as directory:
+            scratch = Path(directory)
+            archive = scratch / 'artifact.tar'
+            expected = b'published'
+            with tarfile.open(archive, 'w') as tar:
+                for name in install_fast_pages.REQUIRED_PUBLIC_FILES:
+                    member = tarfile.TarInfo('./' + name)
+                    member.size = len(expected)
+                    tar.addfile(member, io.BytesIO(expected))
+
+            def response(command, **kwargs):
+                name = command[-1].removeprefix('https://www.midwx.app/').split('?', 1)[0]
+                if name in install_fast_pages.REQUIRED_PUBLIC_FILES:
+                    data = b'mismatch' if name == mismatch else expected
+                    Path(command[command.index('--output') + 1]).write_bytes(data)
+                    status = '200'
+                else:
+                    status = missing_status
+                return type('Response', (), {'stdout': status})()
+
+            with patch.object(install_fast_pages.subprocess, 'run', side_effect=response):
+                mismatch, missing_status = None, '404'
+                self.assertTrue(install_fast_pages.public_pages_match(archive, scratch))
+                mismatch = 'ruc/latest.json'
+                self.assertFalse(install_fast_pages.public_pages_match(archive, scratch))
+                mismatch, missing_status = None, '403'
+                self.assertFalse(install_fast_pages.public_pages_match(archive, scratch))
+
+    def test_nonpublication_rejects_changed_source_and_real_pages_deploy(self):
+        for mutation in ('wrong_workflow_blob', 'actual_pages_deployed',
+                         'bad_run_origin', 'bad_job_attempt', 'wrong_guard',
+                         'unrelated_ancestor', 'wrong_log_url', 'wrong_repo'):
+            with self.subTest(mutation=mutation):
+                self.setUp()
+                pending = self.nonpublishing_fixture()
+                job = self.manifest['actions/jobs/20']
+                run = self.manifest['actions/runs/19']
+                if mutation == 'wrong_workflow_blob':
+                    self.manifest['contents/.github/workflows/mid-ruc-preprocess.yml?ref=' + pending]['sha'] = '9' * 40
+                elif mutation == 'actual_pages_deployed':
+                    job['steps'][4]['conclusion'] = 'success'
+                elif mutation == 'bad_run_origin':
+                    run['path'] = '.github/workflows/surprise.yml'
+                elif mutation == 'bad_job_attempt':
+                    job['run_attempt'] = 2
+                elif mutation == 'wrong_guard':
+                    job['steps'][0]['conclusion'] = 'failure'
+                elif mutation == 'unrelated_ancestor':
+                    older = 'e' * 40
+                    self.setUp()
+                    pending = self.nonpublishing_fixture(event_sha=older)
+                    self.manifest[f'compare/{older}...{pending}']['merge_base_commit']['sha'] = SOURCE
+                elif mutation == 'wrong_log_url':
+                    self.manifest['deployments/19/statuses?per_page=1'][0]['log_url'] = (
+                        'https://github.com/MeteoMartini/MID/actions/runs/19')
+                else:
+                    run['head_repository']['full_name'] = 'Untrusted/MID'
+                with self.assertRaisesRegex(ValueError, 'not on Stable source'):
+                    resolve_installer_pages(STABLE, self.manifest.__getitem__,
+                                            pending_release=pending)
+
+    def test_nonpublication_does_not_skip_real_stable_ruc_publisher(self):
+        self.fast_fixture()
+        self.manifest['actions/runs/2']['status'] = 'completed'
+        self.manifest['actions/jobs/3']['status'] = 'completed'
+        self.assertEqual(self.resolve()['artifact_id'], 4)
+
+    def test_ruc_pages_environment_sha_admission_and_fail_closed_race(self):
+        repo = Path(__file__).resolve().parents[2]
+        a = (repo / '.github/workflows/mid-ruc-preprocess.yml').read_text(encoding='utf-8')
+        b = (repo / 'ci/github/workflows/mid-ruc-preprocess.yml').read_text(encoding='utf-8')
+        self.assertEqual(a, b, 'protected workflow and source mirror must remain identical')
+        publish = a.split('\n  publish:\n', 1)[1].split('\n  diagnostics:\n', 1)[0]
+        publish_fast = a.split('\n  publish_fast:\n', 1)[1]
+        for name, publisher in (('publish', publish), ('publish_fast', publish_fast)):
+            admission = name + '_admission'
+            admission_job = a.split(f'\n  {admission}:\n', 1)[1].split(f'\n  {name}:\n', 1)[0]
+            admission_if = next(line for line in admission_job.splitlines() if line.startswith('    if: '))
+            publish_if = next(line for line in publisher.splitlines() if line.startswith('    if: '))
+            self.assertEqual(publish_if, admission_if[:-3] + f" && needs.{admission}.result == 'success' }}}}")
+            expected_sha = 'needs.prepare.outputs.stable_sha' if name == 'publish' else 'needs.qualify_fast.outputs.stable_sha'
+            self.assertIn('github.sha == ' + expected_sha, admission_if)
+        self.assertIn('ref: ${{ needs.prepare.outputs.stable_sha }}', publish)
+        guard = publish.split('      - name: RUC-Basis und laufendes Release gegen aktuellen MID-Stable-Stand prüfen', 1)[1].split(
+            '      - name: Exakte Producer-Artefakt-ID prüfen', 1)[0]
+        self.assertEqual(guard.count('            exit 1'), 3)
+        self.assertNotIn('            exit 0', guard)
+        self.assertIn('    environment:\n      name: github-pages', publish)
+        self.assertIn('    environment:\n      name: github-pages', publish_fast)
+
     def test_superseded_deployment_is_rejected(self):
-        self.manifest['deployments/1/statuses?per_page=1'][0]['state'] = 'inactive'
+        original = self.manifest['deployments/1/statuses?per_page=1'][0]
+        inactive = {'state': 'inactive'}
+        self.manifest['deployments/1/statuses?per_page=1'] = [inactive]
+        self.manifest['deployments/1/statuses?per_page=30'] = [inactive, original]
         with self.assertRaisesRegex(ValueError, 'not in a safe terminal state'):
             self.resolve()
 

@@ -188,6 +188,8 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
+      actions: read
+      deployments: read
     outputs:
       snapshot_sha: ${{ steps.snapshot.outputs.snapshot_sha }}
       snapshot_id: ${{ steps.snapshot_upload.outputs.artifact-id }}
@@ -215,6 +217,22 @@ jobs:
         env:
           MID_SNAPSHOT_SHA: ${{ needs.prepare_release.outputs.snapshot_sha }}
         run: node tools/ci/release-snapshot.mjs restore /tmp/mid-snapshot
+      - name: Pages-Ausgangsstand vor Installationscommit verifizieren
+        if: vars.MID_RUC_FAST_PAGES_ENABLED == 'true'
+        shell: bash
+        timeout-minutes: 12
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL }}
+          MID_EXPECTED_PACKAGE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          PYTHONPATH=tools/ruc python3 -B - "$MID_EXPECTED_PACKAGE_SHA" <<'PY'
+          import sys
+          from install_fast_pages import active_pages
+          active_pages(sys.argv[1])
+          PY
+
       - name: Node.js 22 mit npm-Cache einrichten
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -1340,6 +1358,7 @@ jobs:
         if: vars.MID_RUC_FAST_PAGES_ENABLED == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL }}
           RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
         run: python3 tools/ruc/install_fast_pages.py retain --release-sha "$RELEASE_SHA" --dist dist --proof installer-fast-proof.json
 
@@ -1388,6 +1407,7 @@ jobs:
         if: vars.MID_RUC_FAST_PAGES_ENABLED == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL }}
           RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
         run: python3 tools/ruc/install_fast_pages.py verify --release-sha "$RELEASE_SHA" --dist dist --proof installer-fast-proof.json
 
@@ -1518,6 +1538,7 @@ jobs:
         if: vars.MID_RUC_FAST_PAGES_ENABLED == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL }}
           RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
         run: python3 tools/ruc/install_fast_pages.py retain --release-sha "$RELEASE_SHA" --dist dist --proof installer-fast-proof.json
 
@@ -1547,6 +1568,7 @@ jobs:
         if: vars.MID_RUC_FAST_PAGES_ENABLED == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL }}
           RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
         run: python3 tools/ruc/install_fast_pages.py verify --release-sha "$RELEASE_SHA" --dist dist --proof installer-fast-proof.json
 

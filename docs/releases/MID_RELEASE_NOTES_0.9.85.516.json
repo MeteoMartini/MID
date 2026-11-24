@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "version": "0.9.85.516",
+  "title": "Wiederaufnahme der Pages-Veröffentlichung",
+  "date": "2026-11-24",
+  "external": [
+    "Die bereits geprüften Änderungen für Reiseplaner, Karten und Bergwetter aus den unveröffentlichten Ständen .514 und .515 sind im Release-Kandidaten enthalten.",
+    "Bei aktiviertem Fast-Pages-Modus prüft der Installer ausgewählte Dateien des bisherigen Pages-Stands, bevor er verfügbare Fast-Daten übernimmt."
+  ],
+  "internal": [
+    "Ausgangspunkt ist das installierte main ab96ac712fd4f3ba9be5af2cb546febf9ee13329 bei produktivem Stable 331fffff081303e1c597badddfa4ae41c4b4e0f0.",
+    "GitHub-Installer 45256731707, Versuch 1, brach vor der Pages-Veröffentlichung ab. Der getrennte Runner-Nachweis 45362112280 bestätigte den Abgleich mit dem Originalarchiv.",
+    "Versionsziel für den vorhandenen Prebuild-Schritt. Veröffentlichung setzt erfolgreiche Source-, Installer-, Worker-, Pages- und Stable-Gates voraus."
+  ],
+  "sourceOfTruth": [
+    "Der Release-Kandidat baut auf dem installierten Stand `.515` (`ab96ac712fd4f3ba9be5af2cb546febf9ee13329`) auf. Der zuletzt veröffentlichte Stand ist `.513` (`331fffff081303e1c597badddfa4ae41c4b4e0f0`).",
+    "Installer `45256731707`, Versuch 1, scheiterte vor dem Pages-Deployment. Der separate lesende [Runner-Nachweis](https://github.com/MeteoMartini/MID/actions/runs/45362112280) prüfte Deployment `8001180786`, Archiv `14826697649` (SHA-256 `7cf9265850a9921c4300ec94b92c6dc350e498de9860fc5e5544799ab0b3692f`) und ausgewählte öffentliche Dateien. Der Lauf erteilt keine Release-Freigabe.",
+    "Veröffentlichung und Stable-Promotion setzen die vollständigen Release-Gates voraus."
+  ]
+}

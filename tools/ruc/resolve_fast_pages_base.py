@@ -70,7 +70,88 @@ def own_pages_job(api, environment):
     return event_sha, f'https://github.com/{REPOSITORY}/actions/runs/{run_id}/job/{job["id"]}'
 
 
-def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None, environment=None):
+# Immutable workflow blob shared by published Stable .513 and the original
+# .514/.515 RUC runs. This narrowly identifies historical non-publishing
+# jobs that produced a successful GitHub *environment* status anyway.
+RUC_FALSE_SUCCESS_WORKFLOW_SHA = 'f43d49a53a86bf41c3797a0c8c7e047a32f22863'
+
+
+def verified_ruc_nonpublication(api, deployment, status, expected_main):
+    """Skip only a signed-by-GitHub environment success with NO Pages action.
+
+    All unknown, changed, incomplete or actually publishing jobs remain
+    subject to the ordinary source and artifact checks.
+    """
+    link = status.get('log_url')
+    if not isinstance(link, str):
+        return False
+    matched = re.fullmatch(
+        rf'https://github\.com/{REPOSITORY}/actions/runs/([1-9]\d*)/job/([1-9]\d*)',
+        link,
+    )
+    if not matched:
+        return False
+    run_id, job_id = int(matched[1]), int(matched[2])
+    event_sha = deployment.get('sha')
+    if not isinstance(event_sha, str) or not SHA.fullmatch(event_sha):
+        return False
+
+    run = api(f'actions/runs/{run_id}')
+    if not (run.get('id') == run_id
+            and run.get('path') == RUC_WORKFLOW
+            and run.get('head_branch') == 'main'
+            and run.get('head_sha') == event_sha
+            and (run.get('head_repository') or {}).get('full_name') == REPOSITORY
+            and run.get('status') == 'completed'
+            and run.get('conclusion') == 'success'
+            and type(run.get('run_attempt')) is int
+            and run['run_attempt'] >= 1):
+        return False
+    job = api(f'actions/jobs/{job_id}')
+    if not (job.get('id') == job_id
+            and job.get('run_id') == run_id
+            and job.get('head_sha') == event_sha
+            and job.get('run_attempt') == run['run_attempt']
+            and job.get('status') == 'completed'
+            and job.get('conclusion') == 'success'
+            and job.get('name') == LOCKED_PUBLISHERS[(RUC_WORKFLOW, 'publish')]):
+        return False
+
+    steps = job.get('steps')
+    if not isinstance(steps, list):
+        return False
+    expected = {
+        'RUC-Basis und laufendes Release gegen aktuellen MID-Stable-Stand prüfen': 'success',
+        'Vor dem großen Snapshot-Download authentifizierten Contract-Hash prüfen': 'skipped',
+        'Vorbereiteten RUC-Snapshot laden': 'skipped',
+        'GitHub-Pages-Artefakt hochladen': 'skipped',
+        'MID + RUC kostenfrei auf GitHub Pages veröffentlichen': 'skipped',
+        'Nach fehlgeschlagenem Codec-Healthcheck RUC-Rohsnapshot zurückveröffentlichen': 'skipped',
+        'Rollback-Rohdaten als GitHub-Pages-Artefakt hochladen': 'skipped',
+        'RUC-Ergebnis eindeutig zusammenfassen': 'success',
+    }
+    for name, outcome in expected.items():
+        matching = [step for step in steps if isinstance(step, dict) and step.get('name') == name]
+        if len(matching) != 1 or matching[0].get('conclusion') != outcome:
+            return False
+
+    # An old source must be an ancestor of today's pending release; neither
+    # another PR nor an unrelated historic workflow may suppress a success.
+    if event_sha != expected_main:
+        ancestry = api(f'compare/{event_sha}...{expected_main}')
+        if not (ancestry.get('status') == 'ahead'
+                and (ancestry.get('merge_base_commit') or {}).get('sha') == event_sha
+                and (ancestry.get('base_commit') or {}).get('sha') == event_sha):
+            return False
+
+    # A later source edit could add an unrecognised deploy step. Verify the
+    # exact original reviewed workflow blob, not just display step names.
+    wf = api(f'contents/{RUC_WORKFLOW}?ref={event_sha}')
+    return wf.get('sha') == RUC_FALSE_SUCCESS_WORKFLOW_SHA
+
+
+def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None, environment=None,
+                            verify_inactive=None):
     """Accept only the verified installer, Fast deployment, or verified Fast rollback."""
     require(SHA.fullmatch(expected_stable), 'invalid expected Stable SHA')
     require(api('git/ref/heads/mid-stable')['object']['sha'] == expected_stable,
@@ -116,21 +197,75 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
     # Failed newer Pages deployments must not hide the last successfully
     # attested Stable deployment from Installer retries. Refuse unknown
     # successful sources and pending deployments; inspect bounded history.
-    deployments = api('deployments?environment=github-pages&per_page=30')
-    require(isinstance(deployments, list) and 0 < len(deployments) <= 30,
-            'Pages deployment history missing or incomplete')
+    history_path = 'deployments?environment=github-pages&per_page=30'
+    history_pages = []
+    observed_statuses = []
+    seen_ids = set()
+
+    def bounded_history():
+        for page in range(1, 5):
+            path = history_path if page == 1 else f'{history_path}&page={page}'
+            batch = api(path)
+            require(isinstance(batch, list) and len(batch) <= 30,
+                    'Pages deployment history missing or incomplete')
+            require(page > 1 or batch, 'Pages deployment history missing or incomplete')
+            for item in batch:
+                ident = item.get('id') if isinstance(item, dict) else None
+                require(type(ident) is int and ident > 0, 'invalid Pages deployment ID')
+                require(ident not in seen_ids, 'duplicate ID in Pages deployment history')
+                seen_ids.add(ident)
+            history_pages.append((path, batch))
+            yield from batch
+            if len(batch) < 30:
+                return
+        raise ValueError('Pages deployment history scan limit reached')
+
     own_job = own_pages_job(api, environment if environment is not None else {})
     own_seen = False
     deployment = None
     statuses = None
-    for item in deployments:
+    inactive_candidate = False
+    for item in bounded_history():
         require(item.get('environment') == 'github-pages',
                 'Pages deployment environment differs')
-        recent = api(f"deployments/{item['id']}/statuses?per_page=1")
-        require(len(recent) == 1, 'Pages deployment status missing')
+        status_path = f"deployments/{item['id']}/statuses?per_page=1"
+        recent = api(status_path)
+        require(isinstance(recent, list) and len(recent) == 1
+                and isinstance(recent[0], dict), 'Pages deployment status missing')
+        observed_statuses.append((status_path, recent))
+        if recent[0]['state'] == 'inactive':
+            status_history_path = f"deployments/{item['id']}/statuses?per_page=30"
+            history = api(status_history_path)
+            require(isinstance(history, list) and 1 < len(history) < 30
+                    and history[0] == recent[0]
+                    and all(isinstance(status, dict) for status in history),
+                    'inactive Pages status history missing, changed or incomplete')
+            observed_statuses.append((status_history_path, history))
+            prior_success = [status for status in history[1:] if status.get('state') == 'success']
+            if len(prior_success) == 1 and verified_ruc_nonpublication(
+                    api, item, prior_success[0], expected_main):
+                continue
+            if (verify_inactive is not None and len(prior_success) == 1
+                    and item.get('sha') in {source, expected_stable}):
+                deployment, statuses = item, prior_success
+                inactive_candidate = True
+                break
+        if (recent[0]['state'] == 'success'
+                and verified_ruc_nonpublication(api, item, recent[0], expected_main)):
+            continue
         if recent[0]['state'] == 'success':
-            require(item.get('sha') in {source, expected_stable},
-                    'latest successful Pages deployment not on Stable source')
+            if item.get('sha') not in {source, expected_stable}:
+                # Rejection stays fail-closed. A bounded, sanitized identity lets
+                # the original installer logs identify the exact foreign record,
+                # without disclosing status URLs, tokens or untrusted API fields.
+                foreign_id = item.get('id')
+                foreign_sha = item.get('sha')
+                diagnostic_id = foreign_id if type(foreign_id) is int and foreign_id > 0 else 'INVALID'
+                diagnostic_sha = foreign_sha if isinstance(foreign_sha, str) and SHA.fullmatch(foreign_sha) else 'INVALID'
+                raise ValueError(
+                    'latest successful Pages deployment not on Stable source'
+                    f' (deployment_id={diagnostic_id}, deployment_sha={diagnostic_sha})'
+                )
             deployment, statuses = item, recent
             break
         # The environment creates this record before the job executes any step.
@@ -140,7 +275,7 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
             own_seen = True
             continue
         require(recent[0]['state'] in ('failure', 'error'),
-                'newest Pages deployment not in a safe terminal state')
+                f"newest Pages deployment not in a safe terminal state (deployment_id={item['id']})")
     require(deployment is not None,
             'latest Pages deployment is not successful')
     # deploy-pages publishes a run-level status URL on some valid Pages
@@ -245,7 +380,7 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
     archive = archives[0]
     require(not archive['expired'] and DIGEST.fullmatch(archive.get('digest') or ''),
             'Stable Pages artifact is expired or has no immutable digest')
-    return {
+    identity = {
         'deployment_id': deployment['id'],
         'run_id': run_id,
         'artifact_id': archive['id'],
@@ -253,6 +388,18 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
         'source_sha': run['head_sha'],
         'stable_sha': expected_stable,
     }
+    if inactive_candidate:
+        require(verify_inactive(identity) is True,
+                'inactive Pages archive does not match the public site')
+    for path, expected in reversed(observed_statuses):
+        require(api(path) == expected, 'Pages deployment status changed during scan')
+    for path, expected in reversed(history_pages):
+        require(api(path) == expected, 'Pages deployment history changed during scan')
+    if inactive_candidate:
+        require(api('git/ref/heads/mid-stable')['object']['sha'] == expected_stable
+                and api('git/ref/heads/main')['object']['sha'] == expected_main,
+                'main/Stable lineage changed during public proof')
+    return identity
 
 
 def main():

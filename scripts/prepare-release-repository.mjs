@@ -27,6 +27,20 @@ async function applyOneShotReleaseTarget(root){
  if(!noteFile)throw new Error(`Release-Ziel ${toVersion} besitzt keine passende Release-Notiz.`);
  const pkg=JSON.parse(await readFile(packageFile,'utf8')),current=String(pkg.version||'').trim();
  if(current!==fromVersion&&current!==toVersion)throw new Error(`Release-Ziel erwartet ${fromVersion} oder ${toVersion}, package.json enthält aber ${current||'keine Version'}.`);
+ const notes=JSON.parse(await readFile(noteFile,'utf8'));
+ if(String(notes.version)!==toVersion||!Array.isArray(notes.external)||!notes.external.length||
+    !Array.isArray(notes.internal)||!notes.internal.length||
+    (target.requireSourceOfTruth===true&&(!Array.isArray(notes.sourceOfTruth)||!notes.sourceOfTruth.length)))
+  throw new Error('Release-Ziel besitzt keine gültigen Versionsnotizen.');
+ const heading=`# MID v${toVersion}`;
+ const bullets=entries=>entries.map(item=>`- ${String(item)}`).join('\n');
+ const rollingNotes=path.join(root,'RELEASE_NOTES.md');
+ if(await fileExists(rollingNotes))await prependIfMissing(rollingNotes,heading,bullets(notes.external));
+ if(Array.isArray(notes.sourceOfTruth)&&notes.sourceOfTruth.length){
+  const sourceOfTruth=path.join(root,'MID_SOURCE_OF_TRUTH.md');
+  const sourceHeading=notes.title ? `${heading} · ${notes.title}` : heading;
+  await prependIfMissing(sourceOfTruth,sourceHeading,bullets(notes.sourceOfTruth));
+ }
  if(current===fromVersion){pkg.version=toVersion;await writeFile(packageFile,`${JSON.stringify(pkg,null,2)}\n`,'utf8');console.log(`Einmaliges Release-Ziel: ${fromVersion} → ${toVersion}.`)}
  await unlink(targetFile);
  console.log(`Einmaliges Release-Ziel ${toVersion} wurde nach Anwendung entfernt.`);
