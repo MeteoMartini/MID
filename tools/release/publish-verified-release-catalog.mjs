@@ -129,7 +129,7 @@ export function assessMidCatalogEvidence(data={}){
     packageCompare.commits?.length!==1||packageCompare.commits[0]?.sha!==zipSha||
     packageCompare.files?.length!==1||
     packageCompare.files[0]?.filename!=='MID-professional-replacement.zip'||
-    packageCompare.files[0]?.status!=='added')
+    !['added','modified'].includes(packageCompare.files[0]?.status))
   return block('PACKAGE_NOT_ZIP_ONLY_OR_UNPROVEN');
  if(!Array.isArray(jobs)||jobs.length===0||jobs.length>=100)return block('INCOMPLETE_JOB_INVENTORY');
  const catalogJobs=jobs.filter(j=>j?.name==='SHA-verifizierten GitHub Release-Katalog nach Stable aktualisieren');

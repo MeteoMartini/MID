@@ -154,8 +154,14 @@ describe('MID post-Stable GitHub Releases catalog eligibility (not recovery auth
   reject({packageCompare:{...baseline().packageCompare,status:'diverged'}});
   reject({packageCompare:{...baseline().packageCompare,commits:[{sha:'d'.repeat(40)}]}});
   reject({packageCompare:{...baseline().packageCompare,files:[]}});
-  reject({packageCompare:{...baseline().packageCompare,files:[{filename:'MID-professional-replacement.zip',status:'modified'}]}});
+  reject({packageCompare:{...baseline().packageCompare,files:[{filename:'MID-professional-replacement.zip',status:'renamed'}]}});
   reject({packageCompare:{...baseline().packageCompare,files:[...baseline().packageCompare.files,{filename:'worker.js',status:'modified'}]}});
+ });
+ it('accepts a verified ZIP-only replacement after predeploy recovery',()=>{
+  const evidence=baseline();
+  evidence.packageCompare.files[0].status='modified';
+  expect(assessMidCatalogEvidence(evidence)).toMatchObject({state:'ELIGIBLE_METADATA_ONLY',
+   createAllowed:true,recoveryAuthorized:false});
  });
  it('refuses competing annotated or foreign tags',()=>{
   reject({tagRef:{ref:'refs/tags/v'+version,object:{type:'commit',sha:'b'.repeat(40)}}});
