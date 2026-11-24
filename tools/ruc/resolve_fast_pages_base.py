@@ -268,7 +268,7 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
             own_seen = True
             continue
         require(recent[0]['state'] in ('failure', 'error'),
-                'newest Pages deployment not in a safe terminal state')
+                f"newest Pages deployment not in a safe terminal state (deployment_id={item['id']})")
     require(deployment is not None,
             'latest Pages deployment is not successful')
     # deploy-pages publishes a run-level status URL on some valid Pages
