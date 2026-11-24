@@ -18,7 +18,7 @@ test('only documented version omission means zero explicit flags',()=>{
 test('readback must equal frozen bytes, exact SHA annotation and module identity',async()=>{
   const bytes=await readFile(new URL('./worker.mjs',import.meta.url));
   const sha='a'.repeat(40), id='b'.repeat(36);
-  const good={id,annotations:{'workers/tag':'logicc-0.1.1-2d8544bc4298f3445','workers/message':'MID SHA '+sha},main_module:'worker.mjs',modules:[{name:'worker.mjs',content_type:'application/javascript+module',content_base64:bytes.toString('base64')}]};
+  const good={id,annotations:{'workers/tag':'logicc-0.1.1-2d8544bc4298f344','workers/message':'MID SHA '+sha},main_module:'worker.mjs',modules:[{name:'worker.mjs',content_type:'application/javascript+module',content_base64:bytes.toString('base64')}]};
   assert.doesNotThrow(()=>verifyModule(good,id,sha,bytes));
   for(const change of [{id:'wrong'},{annotations:{}},{modules:undefined},{modules:[]},{modules:[{...good.modules[0],content_base64:'YQ=='}]},{modules:[{...good.modules[0],content_type:'text/plain'}]},{main_module:'other.mjs'}])
     assert.throws(()=>verifyModule({...good,...change},id,sha,bytes));
