@@ -13,7 +13,7 @@ const noDeployment = [
 
 // Diagnostic only. Inputs must be independently read from GitHub; JSON alone
 // is neither authenticated evidence nor authority to merge or deploy.
-export function assessFailedReleaseEvidence({main, stable, finalRefs, source, packet, run, jobs, installerRuns} = {}) {
+export function assessFailedReleaseEvidence({main, stable, finalRefs, source, packet, run, jobs, attempts, installerRuns} = {}) {
   const result = (eligibleForReview, reason) => ({eligibleForReview, reason, mergeAuthorized: false, releaseAuthorized: false});
   if (![main, stable, source?.sha, packet?.sha].every(value => sha.test(value ?? '')) ||
       new Set([main, stable, source.sha]).size !== 3 || packet.sha !== main ||
@@ -30,11 +30,9 @@ export function assessFailedReleaseEvidence({main, stable, finalRefs, source, pa
   if (!run || run.path !== installerPath || run.head_branch !== 'main' ||
       run.head_sha !== main || run.event !== 'workflow_dispatch' ||
       run.status !== 'completed' || run.conclusion !== 'failure' ||
-      !Number.isSafeInteger(run.id) || run.id < 1 || run.run_attempt !== 1) {
+      !Number.isSafeInteger(run.id) || run.id < 1 || (!Number.isSafeInteger(run.run_attempt) || run.run_attempt < 1 || run.run_attempt > 10)) {
     return result(false, 'UNEXPECTED_INSTALLER_RUN');
   }
-  // A retry can have earlier attempts with side effects. This initial checker
-  // only qualifies complete first attempts and the normal skipped bot push.
   const runs = installerRuns?.workflow_runs;
   if (!Array.isArray(runs) || runs.length !== installerRuns.total_count ||
       runs.filter(item => item.id === run.id && item.run_attempt === run.run_attempt && item.conclusion === 'failure').length !== 1 ||
@@ -42,22 +40,38 @@ export function assessFailedReleaseEvidence({main, stable, finalRefs, source, pa
         item.event === 'push' && item.status === 'completed' && item.conclusion === 'skipped'))) {
     return result(false, 'COMPETING_OR_INCOMPLETE_INSTALLER_HISTORY');
   }
-  const entries = jobs?.jobs;
-  if (!Array.isArray(entries) || entries.length !== jobs.total_count ||
-      new Set(entries.map(job => job?.id)).size !== entries.length ||
-      entries.some(job => !Number.isSafeInteger(job?.id) || job.run_id !== run.id ||
-        job.status !== 'completed' || !['success', 'failure', 'skipped'].includes(job.conclusion))) {
-    return result(false, 'INCOMPLETE_JOB_INVENTORY');
+  const legacySingle = attempts === undefined && run.run_attempt === 1;
+  const inventories = legacySingle ? [jobs] : attempts;
+  if (!Array.isArray(inventories) || inventories.length !== run.run_attempt) {
+    return result(false, 'INCOMPLETE_ATTEMPT_HISTORY');
   }
-  for (const name of noDeployment) {
-    const matches = entries.filter(job => job.name === name);
-    if (matches.length !== 1 || matches[0].conclusion !== 'skipped' || matches[0].steps?.length) {
-      return result(false, 'DEPLOYMENT_STARTED_OR_UNVERIFIED');
+  // These are attempt-specific inventories, not the run-wide job listing.
+  // Every job must belong to that exact attempt; repeated IDs are inconsistent.
+  const seenJobs = new Set();
+  for (const [index, inventory] of inventories.entries()) {
+    const attempt = index + 1;
+    const entries = inventory?.jobs;
+    if (!Array.isArray(entries) || entries.length !== inventory.total_count || entries.length > 100 ||
+        new Set(entries.map(job => job?.id)).size !== entries.length ||
+        entries.some(job => !Number.isSafeInteger(job?.id) || job.run_id !== run.id ||
+          (job.run_attempt !== attempt && !(legacySingle && job.run_attempt === undefined)) ||
+          job.status !== 'completed' || !['success', 'failure', 'skipped'].includes(job.conclusion))) {
+      return result(false, 'INCOMPLETE_JOB_INVENTORY');
     }
-  }
-  if (!entries.some(job => job.conclusion === 'failure' &&
-    /^Release-(Core|Heavy)\b/.test(job.name))) {
-    return result(false, 'NO_PREDEPLOY_VERIFICATION_FAILURE');
+    for (const name of noDeployment) {
+      const matches = entries.filter(job => job.name === name);
+      if (matches.length !== 1 || matches[0].conclusion !== 'skipped' || matches[0].steps?.length) {
+        return result(false, 'DEPLOYMENT_STARTED_OR_UNVERIFIED');
+      }
+    }
+    if (!entries.some(job => job.conclusion === 'failure' &&
+      /^Release-(Core|Heavy)\b/.test(job.name))) {
+      return result(false, 'NO_PREDEPLOY_VERIFICATION_FAILURE');
+    }
+    for (const job of entries) {
+      if (seenJobs.has(job.id)) return result(false, 'INCOMPLETE_ATTEMPT_HISTORY');
+      seenJobs.add(job.id);
+    }
   }
   return result(true, 'PREDEPLOY_FAILURE_CONFIRMED');
 }

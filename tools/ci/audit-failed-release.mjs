@@ -20,18 +20,40 @@ export async function auditFailedRelease({expectedMain, expectedStable, installe
   };
   const before = await refs();
   if (before.main !== expectedMain || before.stable !== expectedStable) throw new Error('Live refs differ from expected SHAs');
-  const [packet, run, jobs, installerRuns] = await Promise.all([
+  const inventoryPath = 'actions/workflows/install-mid.yml/runs?per_page=100&head_sha=' + expectedMain;
+  const [packet, run, installerRuns] = await Promise.all([
     get('commits/' + expectedMain),
     get('actions/runs/' + installerId),
-    get('actions/runs/' + installerId + '/attempts/1/jobs?per_page=100'),
-    get('actions/workflows/install-mid.yml/runs?per_page=100&head_sha=' + expectedMain),
+    get(inventoryPath),
   ]);
   if (String(run.id) !== installerId || !sha.test(packet.parents?.[0]?.sha ?? '')) {
     throw new Error('Installer or package identity mismatch');
   }
-  const source = await get('commits/' + packet.parents[0].sha);
+  if (!Number.isSafeInteger(run.run_attempt) || run.run_attempt < 1 || run.run_attempt > 10) {
+    throw new Error('Installer attempt history outside audit bounds');
+  }
+  const [source, ...attempts] = await Promise.all([
+    get('commits/' + packet.parents[0].sha),
+    ...Array.from({length: run.run_attempt}, (_, index) =>
+      get('actions/runs/' + installerId + '/attempts/' + (index + 1) + '/jobs?per_page=100')),
+  ]);
+  const [finalRun, finalInventory] = await Promise.all([
+    get('actions/runs/' + installerId), get(inventoryPath),
+  ]);
+  const inventoryIdentity = inventory => JSON.stringify([
+    inventory.total_count,
+    inventory.workflow_runs?.map(item =>
+      [item.id, item.run_attempt, item.status, item.conclusion, item.head_sha, item.event]),
+  ]);
+  if (inventoryIdentity(finalInventory) !== inventoryIdentity(installerRuns)) {
+    throw new Error('Installer run inventory changed during audit');
+  }
   const finalRefs = await refs();
-  return assessFailedReleaseEvidence({...before, finalRefs, packet, source, run, jobs, installerRuns});
+  if (['id', 'run_attempt', 'status', 'conclusion', 'head_sha', 'path', 'event', 'head_branch']
+    .some(key => finalRun[key] !== run[key])) {
+    throw new Error('Installer run changed during audit');
+  }
+  return assessFailedReleaseEvidence({...before, finalRefs, packet, source, run, attempts, installerRuns});
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
