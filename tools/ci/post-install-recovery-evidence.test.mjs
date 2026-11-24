@@ -69,6 +69,9 @@ for (const [label, mutate, reason] of [
   ['foreign job SHA', data => { data.inventory.jobs[0].head_sha = stable; }, 'INCOMPLETE_JOBS'],
   ['foreign job attempt', data => { data.inventory.jobs[0].run_attempt = 2; }, 'INCOMPLETE_JOBS'],
   ['unknown matrix job', data => { data.inventory.jobs[2].name = 'Release-Core-Regression · forged'; }, 'UNEXPECTED_JOB_INVENTORY'],
+  ['unexpected cooldown outcome', data => {
+    data.inventory.jobs.find(job => job.name === 'Pages-Retry abkühlen · 1').conclusion = 'failure';
+  }, 'UNEXPECTED_JOB_OUTCOME'],
   ['partial inventory', data => { data.inventory.jobs.pop(); }, 'INCOMPLETE_JOBS'],
   ['prior Pages publication', data => {
     data.inventory.jobs.find(job => job.name.endsWith('Versuch 2')).steps[1].conclusion = 'success';
