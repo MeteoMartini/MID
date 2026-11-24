@@ -328,11 +328,23 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
         require(len(selected) == 1, 'missing or ambiguous Pages deployment job')
         job = selected[0]
         job_id = job['id']
-    require(run['id'] == run_id and run['head_sha'] == deployment['sha']
-            and run['head_branch'] == 'main' and run['head_repository']['full_name'] == REPOSITORY
-            and job['id'] == job_id and job['run_id'] == run_id
-            and job['head_sha'] == run['head_sha'] and job['run_attempt'] == run['run_attempt'],
-            'untrusted Pages workflow or attempt')
+    historical_job = job.get('run_attempt') != run.get('run_attempt')
+    require(job.get('id') == job_id and job.get('run_id') == run_id
+            and job.get('head_sha') == run['head_sha'],
+            'untrusted Pages job identity')
+    if historical_job:
+        attempt = job.get('run_attempt')
+        require(run_link[2] and run['path'] == '.github/workflows/install-mid.yml'
+                and run['status'] == 'completed' and run['conclusion'] == 'success'
+                and type(attempt) is int and type(run.get('run_attempt')) is int
+                and 1 <= attempt < run['run_attempt'] and verify_inactive is not None,
+                'untrusted historical Pages attempt')
+        historic = api(f'actions/runs/{run_id}/attempts/{attempt}/jobs?per_page=100')
+        entries = historic.get('jobs')
+        require(isinstance(entries, list) and len(entries) == historic.get('total_count')
+                and len(entries) <= 100 and entries.count(job) == 1,
+                'historical Pages job missing or ambiguous')
+
     passed = {step['name'] for step in job['steps'] if step['conclusion'] == 'success'}
     if run['path'] == '.github/workflows/install-mid.yml':
         require(run['head_sha'] == source and run['conclusion'] == 'success'
@@ -388,14 +400,14 @@ def resolve_installer_pages(expected_stable, api=gh_api, *, pending_release=None
         'source_sha': run['head_sha'],
         'stable_sha': expected_stable,
     }
-    if inactive_candidate:
+    if inactive_candidate or historical_job:
         require(verify_inactive(identity) is True,
-                'inactive Pages archive does not match the public site')
+                'Pages archive does not match the public site')
     for path, expected in reversed(observed_statuses):
         require(api(path) == expected, 'Pages deployment status changed during scan')
     for path, expected in reversed(history_pages):
         require(api(path) == expected, 'Pages deployment history changed during scan')
-    if inactive_candidate:
+    if inactive_candidate or historical_job:
         require(api('git/ref/heads/mid-stable')['object']['sha'] == expected_stable
                 and api('git/ref/heads/main')['object']['sha'] == expected_main,
                 'main/Stable lineage changed during public proof')
