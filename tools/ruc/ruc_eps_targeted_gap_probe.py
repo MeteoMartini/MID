@@ -99,6 +99,32 @@ def index_url(run, member):
     return ROOT + run + f'/e/{member:02d}/s/'
 
 
+def read_framed_body(response):
+    """No negative index evidence from an incomplete or ambiguous HTTP body."""
+    lengths = response.headers.get_all('Content-Length') or []
+    transfers = response.headers.get_all('Transfer-Encoding') or []
+    encodings = response.headers.get_all('Content-Encoding') or []
+    if encodings and encodings != ['identity']:
+        raise ValueError('untrusted response Content-Encoding')
+    if lengths:
+        if (len(lengths) != 1 or transfers or not re.fullmatch(r'[0-9]{1,10}', lengths[0])
+                or int(lengths[0]) > MAX_BODY_BYTES):
+            raise ValueError('untrusted response Content-Length')
+        expected = int(lengths[0])
+    elif transfers == ['chunked'] and getattr(response, 'chunked', False) is True:
+        expected = None
+    else:
+        raise ValueError('unverified response framing')
+    payload = response.read(MAX_BODY_BYTES + 1)
+    if len(payload) > MAX_BODY_BYTES:
+        raise ValueError('source index byte limit exceeded')
+    if expected is not None and len(payload) != expected:
+        raise ValueError('incomplete response Content-Length')
+    if expected is None and not response.isclosed():
+        raise ValueError('incomplete chunked response')
+    return payload
+
+
 def read_original_index(url):
     """Fixed DWD origin, maximum response bytes BEFORE UTF-8 decoding."""
     if not isinstance(url, str) or not url.startswith(ROOT):
@@ -106,18 +132,13 @@ def read_original_index(url):
     parts = urlsplit(url)
     if parts.scheme != 'https' or parts.netloc != 'opendata.dwd.de' or parts.query or parts.fragment:
         raise ValueError('untrusted index origin')
-    req = Request(url, headers={'Accept': 'text/html', 'User-Agent': 'MID-Data13-RUC-EPS-targeted-gap/1'})
+    req = Request(url, headers={'Accept': 'text/html', 'Accept-Encoding': 'identity', 'User-Agent': 'MID-Data13-RUC-EPS-targeted-gap/1'})
     with urlopen(req, timeout=TIMEOUT_SECONDS) as response:
         resolved = urlsplit(response.geturl())
         if (response.status != 200 or resolved.scheme != 'https' or resolved.netloc != parts.netloc
                 or unquote(resolved.path) != unquote(parts.path) or resolved.query or resolved.fragment):
             raise ValueError('noncanonical source response')
-        declared = response.headers.get('Content-Length')
-        if declared is not None and (not declared.isdecimal() or int(declared) > MAX_BODY_BYTES):
-            raise ValueError('untrusted response Content-Length')
-        payload = response.read(MAX_BODY_BYTES + 1)
-        if len(payload) > MAX_BODY_BYTES:
-            raise ValueError('source index byte limit exceeded')
+        payload = read_framed_body(response)
     return payload.decode('utf-8', errors='strict')
 
 

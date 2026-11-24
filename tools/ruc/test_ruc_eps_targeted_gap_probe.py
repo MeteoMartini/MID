@@ -2,6 +2,9 @@
 """Offline adversarial original-index QA; no actual HTTP or GRIB reads."""
 from datetime import datetime, timedelta, timezone
 import unittest
+from email.message import Message
+from http.client import HTTPResponse
+from io import BytesIO
 from unittest.mock import patch
 
 import ruc_eps_targeted_gap_probe as qa
@@ -80,7 +83,7 @@ class TargetedGapTest(unittest.TestCase):
         class FakeResponse:
             status=200
             def __init__(self, url, *, size):
-                self.url=url;self.headers={'Content-Length':str(size)};self.was_read=False
+                self.url=url;self.headers=Message();self.headers['Content-Length']=str(size);self.was_read=False
             def geturl(self):return self.url
             def __enter__(self):return self
             def __exit__(self,*_):pass
@@ -95,7 +98,9 @@ class TargetedGapTest(unittest.TestCase):
     def test_bounded_network_reader_checks_actual_bytes_and_redirect(self):
         class FakeResponse:
             status=200
-            def __init__(self, url, data):self.url=url;self.data=data;self.headers={}
+            def __init__(self, url, data):
+                self.url=url;self.data=data;self.headers=Message()
+                self.headers['Content-Length']=str(min(len(data),qa.MAX_BODY_BYTES))
             def geturl(self):return self.url
             def __enter__(self):return self
             def __exit__(self,*_):pass
@@ -118,6 +123,44 @@ class TargetedGapTest(unittest.TestCase):
         self.assertEqual(report['requestCount'],1)
         self.assertEqual(len(calls),1)
         self.assertEqual(len(report['cases']),2)
+
+
+    def test_real_http_response_framing_and_gap_provenance(self):
+        class Socket:
+            def __init__(self, raw): self.raw=raw
+            def makefile(self, *args, **kwargs): return BytesIO(self.raw)
+        url=qa.index_url('2026-11-23T11:00',9)
+        a=html([1]).encode()
+        full=html([1,2]).encode()
+        def cl(n):return b'Content-Length: '+str(n).encode()
+        def chunk(data):return format(len(data),'x').encode()+b'\r\n'+data+b'\r\n'
+        cases=[
+            (cl(len(full)),full,'ADVERTISED'),
+            (cl(len(a)),a,'NOT_ADVERTISED'),
+            (cl(len(full)),a,'UNKNOWN'),
+            (cl(len(a))+b'\r\n'+cl(len(a)),a,'UNKNOWN'),
+            (cl(len(a))+b'\r\nTransfer-Encoding: chunked',chunk(a)+b'0\r\n\r\n','UNKNOWN'),
+            (b'Content-Length: +31',a,'UNKNOWN'),
+            (b'Content-Type: text/html',a,'UNKNOWN'),
+            (cl(qa.MAX_BODY_BYTES+1),b'','UNKNOWN'),
+            (cl(len(a))+b'\r\nContent-Encoding: gzip',a,'UNKNOWN'),
+            (b'Transfer-Encoding: chunked',chunk(a)+b'0\r\n\r\n','NOT_ADVERTISED'),
+            (b'Transfer-Encoding: chunked',chunk(a),'UNKNOWN'),
+            (b'Transfer-Encoding: chunked',b'ff\r\n'+a,'UNKNOWN'),
+            (b'Transfer-Encoding: gzip, chunked',chunk(a)+b'0\r\n\r\n','UNKNOWN'),
+            (b'Transfer-Encoding: chunked\r\nTransfer-Encoding: chunked',chunk(a)+b'0\r\n\r\n','UNKNOWN'),
+            (b'Transfer-Encoding: chunked',chunk(b'x'*(qa.MAX_BODY_BYTES+1))+b'0\r\n\r\n','UNKNOWN'),
+        ]
+        for headers, payload, expected in cases:
+            with self.subTest(headers=headers, expected=expected):
+                response=HTTPResponse(Socket(b'HTTP/1.1 200 OK\r\n'+headers+b'\r\n\r\n'+payload))
+                response.begin()
+                response.geturl=lambda:url
+                with patch.object(qa,'urlopen',return_value=response):
+                    report=qa.probe(CASES[:1],observed_at=NOW)
+                self.assertEqual(report['cases'][0]['directoryStatus'],expected)
+                self.assertFalse(report['publicationAuthorized'])
+                self.assertFalse(report['cases'][0]['valuesVerified'])
 
 
 if __name__ == '__main__':
