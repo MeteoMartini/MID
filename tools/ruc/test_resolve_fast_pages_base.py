@@ -538,8 +538,11 @@ class InstallerPagesResolverTest(unittest.TestCase):
         self.assertEqual(a, b, 'protected workflow and source mirror must remain identical')
         publish = a.split('\n  publish:\n', 1)[1].split('\n  diagnostics:\n', 1)[0]
         publish_fast = a.split('\n  publish_fast:\n', 1)[1]
-        self.assertIn('needs.prepare.outputs.should_run == \'true\' && github.sha == needs.prepare.outputs.stable_sha', publish)
-        self.assertIn('needs.prepare_fast.outputs.artifact_id != \'\' && github.sha == needs.qualify_fast.outputs.stable_sha', publish_fast)
+        self.assertIn('needs.prepare.outputs.should_run == \'true\' && github.sha == needs.prepare.outputs.stable_sha', publish.split('    steps:', 1)[0])
+        self.assertIn('needs.prepare_fast.outputs.artifact_id != \'\' && github.sha == needs.qualify_fast.outputs.stable_sha', publish_fast.split('    steps:', 1)[0])
+        self.assertIn("needs.publish_admission.result == 'success'", publish.split('    steps:', 1)[0])
+        self.assertIn("needs.publish_fast_admission.result == 'success'", publish_fast.split('    steps:', 1)[0])
+        self.assertIn('ref: ${{ needs.prepare.outputs.stable_sha }}', publish)
         guard = publish.split('      - name: RUC-Basis und laufendes Release gegen aktuellen MID-Stable-Stand prüfen', 1)[1].split(
             '      - name: Exakte Producer-Artefakt-ID prüfen', 1)[0]
         self.assertEqual(guard.count('            exit 1'), 3)

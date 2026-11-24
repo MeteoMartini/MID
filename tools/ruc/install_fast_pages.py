@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
+from urllib.parse import urlsplit
 from uuid import uuid4
 from zipfile import ZipFile
 
@@ -56,6 +57,12 @@ OPTIONAL_PUBLIC_FILES = ('ruc/fast/paged-shadow.json', 'ruc/fast/publisher-proof
 
 
 def public_pages_match(archive, scratch):
+    configured = os.environ.get('MID_RUC_PAGES_BASE_URL') or 'https://www.midwx.app/ruc/'
+    base = urlsplit(configured)
+    if (base.scheme != 'https' or not base.hostname or base.username or base.password
+            or base.query or base.fragment or base.path not in ('/ruc/', '/ruc')):
+        raise ValueError('invalid configured RUC Pages base URL')
+    origin = f'https://{base.netloc}'
     paths = REQUIRED_PUBLIC_FILES + OPTIONAL_PUBLIC_FILES
     expected = {}
     archive_bytes = 0
@@ -79,7 +86,7 @@ def public_pages_match(archive, scratch):
             'curl', '--silent', '--show-error', '--max-time', '10',
             '--proto', '=https', '--max-filesize', str(PUBLIC_MAX_BYTES),
             '--header', 'Cache-Control: no-cache', '--output', str(body),
-            '--write-out', '%{http_code}', f'https://www.midwx.app/{name}?mid-pages-proof={uuid4().hex}',
+            '--write-out', '%{http_code}', f'{origin}/{name}?mid-pages-proof={uuid4().hex}',
         ], check=True, capture_output=True, text=True, timeout=12)
         if name in expected:
             if response.stdout != '200' or body.read_bytes() != expected[name]:

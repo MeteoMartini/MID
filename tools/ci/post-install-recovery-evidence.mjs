@@ -7,6 +7,31 @@ const installJob = 'Vollständig geprüften Release sammeln und committen';
 const workerJob = 'Geprüften MID-Worker sicher automatisch veröffentlichen';
 const finalizer = 'Erfolgreichen Pages-/Worker-Release finalisieren';
 
+const expectedJobs = new Map([
+  ["Release-ZIP prüfen und immutable Snapshot vorbereiten", 'success'],
+  ["Release-Core-Regression · core-3/4", 'success'],
+  ["Release-Core-Regression · core-2/4", 'success'],
+  ["Release-Heavy · heavy-unified-map · 2/3", 'success'],
+  ["Release-Core-Regression · core-4/4", 'success'],
+  ["Release-Heavy · heavy-browser-state ·", 'success'],
+  ["Release-Core, Build, Audit und iOS prüfen", 'success'],
+  ["Release-Core-Regression · core-1/4", 'success'],
+  ["Release-Heavy · heavy-unified-map · 1/3", 'success'],
+  ["Release-Heavy · heavy-mountain-visual ·", 'success'],
+  ["Release-Heavy · heavy-native-map ·", 'success'],
+  ["Release-Heavy · heavy-unified-map · 3/3", 'success'],
+  ["Vollständig geprüften Release sammeln und committen", 'success'],
+  ["Geprüften MID-Worker sicher automatisch veröffentlichen", 'success'],
+  ["GitHub-Pages-Artefakt parallel vorbereiten", 'skipped'],
+  ["Pages-Retry abkühlen · 1", 'success'],
+  ["MID auf GitHub Pages veröffentlichen · Versuch 1", 'skipped'],
+  ["MID auf GitHub Pages veröffentlichen · Versuch 2", 'failure'],
+  ["Pages-Retry abkühlen · 2", 'success'],
+  ["MID auf GitHub Pages veröffentlichen · Versuch 3", 'failure'],
+  ["SHA-verifizierten GitHub Release-Katalog nach Stable aktualisieren", 'skipped'],
+  ["Erfolgreichen Pages-/Worker-Release finalisieren", 'skipped'],
+]);
+
 export function assessPostInstallEvidence({installed, packet, stable, lineage, run, inventory, finalRefs} = {}) {
   const result = (reason, evidenceComplete = false) => ({
     reason, evidenceComplete, mergeAuthorized: false, releaseAuthorized: false,
@@ -35,6 +60,8 @@ export function assessPostInstallEvidence({installed, packet, stable, lineage, r
       jobs.some(j => !Number.isSafeInteger(j.id) || j.id <= 0 || j.run_id !== run.id ||
         j.run_attempt !== run.run_attempt || j.head_sha !== packet.sha || j.status !== 'completed' ||
         !['success','failure','skipped'].includes(j.conclusion))) return result('INCOMPLETE_JOBS');
+  if (jobs.length !== expectedJobs.size || new Set(jobs.map(job => job.name)).size !== jobs.length ||
+      jobs.some(job => !expectedJobs.has(job.name))) return result('UNEXPECTED_JOB_INVENTORY');
   const exact = name => {
     const matches = jobs.filter(j => j.name === name);
     return matches.length === 1 ? matches[0] : undefined;
@@ -65,6 +92,9 @@ export function assessPostInstallEvidence({installed, packet, stable, lineage, r
   if (exact(finalizer)?.conclusion !== 'skipped' ||
       exact('SHA-verifizierten GitHub Release-Katalog nach Stable aktualisieren')?.conclusion !== 'skipped') {
     return result('FINALIZATION_SIDE_EFFECT_UNKNOWN');
+  }
+  if (jobs.some(job => job.conclusion !== expectedJobs.get(job.name))) {
+    return result('UNEXPECTED_JOB_OUTCOME');
   }
   return result('POST_INSTALL_PRE_PAGES_FAILURE', true);
 }

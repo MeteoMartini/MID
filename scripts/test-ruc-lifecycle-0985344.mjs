@@ -7,6 +7,10 @@ for(const pattern of ['test_prepared_snapshot.py','test_timed_command.py']){
  const result=spawnSync('python',['-m','unittest','discover','-s','tools/ruc','-p',pattern],{encoding:'utf8',timeout:60000});
  assert.equal(result.status,0,result.stdout+result.stderr);
 }
+const recovery=spawnSync(process.execPath,['--test','tools/ci/post-install-recovery-evidence.test.mjs'],{
+ encoding:'utf8',timeout:60000
+});
+assert.equal(recovery.status,0,recovery.error?.message||recovery.stdout+recovery.stderr);
 const workflow=readFileSync('ci/github/workflows/mid-ruc-preprocess.yml','utf8');
 function step(name){const start=workflow.indexOf('      - name: '+name+'\n');assert.ok(start>=0,name);const end=workflow.indexOf('\n      - ',start+1);return workflow.slice(start,end<0?undefined:end);}
 function shell(name){return step(name).split('        run: |\n')[1].split('\n').map(l=>l.replace(/^          /,'')).join('\n');}

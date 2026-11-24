@@ -22,10 +22,16 @@ function fixture() {
   });
   add('Release-ZIP prüfen und immutable Snapshot vorbereiten');
   add('Release-Core, Build, Audit und iOS prüfen');
-  for (let i = 1; i <= 4; i++) add('Release-Core-Regression · ' + i);
-  for (let i = 1; i <= 6; i++) add('Release-Heavy · ' + i);
+  for (let i = 1; i <= 4; i++) add('Release-Core-Regression · ' + `core-${i}/4`);
+  for (const name of ['heavy-browser-state', 'heavy-mountain-visual', 'heavy-native-map']) {
+    add('Release-Heavy · ' + name + ' ·');
+  }
+  for (let i = 1; i <= 3; i++) add(`Release-Heavy · heavy-unified-map · ${i}/3`);
   add(install, 'success', [{name: 'Neue MID-Version committen', conclusion: 'success'}]);
   add('Geprüften MID-Worker sicher automatisch veröffentlichen');
+  add('GitHub-Pages-Artefakt parallel vorbereiten', 'skipped');
+  add('Pages-Retry abkühlen · 1');
+  add('Pages-Retry abkühlen · 2');
   add('MID auf GitHub Pages veröffentlichen · Versuch 1', 'skipped');
   for (const slot of [2, 3]) {
     add('MID auf GitHub Pages veröffentlichen · Versuch ' + slot, 'failure', [
@@ -62,6 +68,7 @@ for (const [label, mutate, reason] of [
   ['foreign packet', data => { data.packet.committer = {login: 'foreign'}; }, 'UNEXPECTED_INSTALL_CHAIN'],
   ['foreign job SHA', data => { data.inventory.jobs[0].head_sha = stable; }, 'INCOMPLETE_JOBS'],
   ['foreign job attempt', data => { data.inventory.jobs[0].run_attempt = 2; }, 'INCOMPLETE_JOBS'],
+  ['unknown matrix job', data => { data.inventory.jobs[2].name = 'Release-Core-Regression · forged'; }, 'UNEXPECTED_JOB_INVENTORY'],
   ['partial inventory', data => { data.inventory.jobs.pop(); }, 'INCOMPLETE_JOBS'],
   ['prior Pages publication', data => {
     data.inventory.jobs.find(job => job.name.endsWith('Versuch 2')).steps[1].conclusion = 'success';

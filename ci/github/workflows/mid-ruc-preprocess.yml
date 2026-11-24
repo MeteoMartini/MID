@@ -473,10 +473,31 @@ jobs:
           if-no-files-found: ignore
           retention-days: 2
 
+  publish_admission:
+    name: Live-Refs vor Vollstand prüfen
+    needs: [prepare]
+    if: ${{ always() && needs.prepare.result == 'success' && needs.prepare.outputs.should_run == 'true' && github.sha == needs.prepare.outputs.stable_sha }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: read
+    steps:
+      - name: Main und Stable an den Producer binden
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_SHA: ${{ needs.prepare.outputs.stable_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
+          for branch in main mid-stable; do
+            test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$branch" --jq .object.sha)" = "$EXPECTED_SHA"
+          done
+
   publish:
     name: MID + RUC kostenfrei auf GitHub Pages veröffentlichen
-    needs: prepare
-    if: ${{ always() && needs.prepare.result == 'success' && needs.prepare.outputs.should_run == 'true' && github.sha == needs.prepare.outputs.stable_sha }}
+    needs: [prepare, publish_admission]
+    if: ${{ always() && needs.prepare.result == 'success' && needs.prepare.outputs.should_run == 'true' && github.sha == needs.prepare.outputs.stable_sha && needs.publish_admission.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -497,7 +518,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: mid-stable
+          ref: ${{ needs.prepare.outputs.stable_sha }}
           fetch-depth: 1
       - name: RUC-Basis und laufendes Release gegen aktuellen MID-Stable-Stand prüfen
         id: stable_guard
@@ -1082,10 +1103,31 @@ jobs:
           retention-days: 2
           if-no-files-found: error
 
-  publish_fast:
-    name: Unabhängige Fast Lane geschützt auf Pages veröffentlichen
+  publish_fast_admission:
+    name: Live-Refs vor Fast Lane prüfen
     needs: [qualify_fast, prepare_fast]
     if: ${{ ((github.event.schedule == '13,43 * * * *' || github.event.schedule == '28,58 * * * *') || (github.event_name == 'workflow_dispatch' && inputs.fast_only == true)) && github.ref == 'refs/heads/main' && vars.MID_RUC_FAST_PAGES_ENABLED == 'true' && needs.prepare_fast.result == 'success' && needs.prepare_fast.outputs.artifact_id != '' && github.sha == needs.qualify_fast.outputs.stable_sha }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: read
+    steps:
+      - name: Main und Stable an den Producer binden
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_SHA: ${{ needs.qualify_fast.outputs.stable_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
+          for branch in main mid-stable; do
+            test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$branch" --jq .object.sha)" = "$EXPECTED_SHA"
+          done
+
+  publish_fast:
+    name: Unabhängige Fast Lane geschützt auf Pages veröffentlichen
+    needs: [qualify_fast, prepare_fast, publish_fast_admission]
+    if: ${{ ((github.event.schedule == '13,43 * * * *' || github.event.schedule == '28,58 * * * *') || (github.event_name == 'workflow_dispatch' && inputs.fast_only == true)) && github.ref == 'refs/heads/main' && vars.MID_RUC_FAST_PAGES_ENABLED == 'true' && needs.prepare_fast.result == 'success' && needs.prepare_fast.outputs.artifact_id != '' && github.sha == needs.qualify_fast.outputs.stable_sha && needs.publish_fast_admission.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     permissions:
