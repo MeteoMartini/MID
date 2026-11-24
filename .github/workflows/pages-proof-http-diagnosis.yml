@@ -22,6 +22,14 @@ jobs:
           MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL }}
         run: |
           set -euo pipefail
+          for host in www.midwx.app midwx.app; do
+            for query in '' "?mid-pages-proof=$GITHUB_RUN_ID"; do
+              for object in ruc/fast/publisher-proof.v2.json mid-build-identity.json; do
+                printf '%s %s ' "$host" "$object"
+                curl -sS --max-time 10 -o /dev/null -w '%{http_code} %{redirect_url}\n' "https://$host/$object$query"
+              done
+            done
+          done
           PYTHONPATH=tools/ruc python3 -B - <<'PY'
           import json
           from install_fast_pages import active_pages
