@@ -1,3 +1,9 @@
+## MID v0.9.85.520 · 2026-11-24 · Robustere Release-Metadaten und isolierte QA-Werkzeuge
+
+- #901: explizite HTTP-Statusauswertung statt stderr-Muster, maximal eine Wiederholung bestätigter temporärer GET-Fehler 502/503/504 ohne Retry-After, keine POST-Wiederholung, weiterhin unveränderte Tag-/Release-/SHA-/Job-Gates.
+- #1013: exakt vorqualifizierte drei Dateien für Ergebnisvalidierung und Akteur-/Inhalts-/Kommentar-Readback. Kein Live-Transport, kein dauerhaft atomarer Speicher, keine neuen Secrets oder Berechtigungen.
+- #991: exakt vorqualifizierte zwei rein lesende DWD-Diagnosedateien. Keine GRIB-Zulassung, kein aktiver Publisher, keine Wetterdaten-Freshness-Behauptung. #1007 und #1014 Live-Abnahme bleiben separat offen.
+
 ## MID v0.9.85.519 · 2026-11-24 · RUC-Pages-Provenienz nach isoliertem Katalogfehler
 
 - Konsolidierung des gezielten #1012-Katalogfixes für ein SHA-verifiziertes Ersatz-ZIP und der Pages-Baseline-Reparatur; unveränderte fachliche Release-, Worker-, Pages- und Stable-Gates.

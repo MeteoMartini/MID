@@ -1,3 +1,9 @@
+# MID v0.9.85.520 · Robustere Release-Metadaten und isolierte QA-Werkzeuge
+
+- Basis: main=mid-stable 0.9.85.519 @ 83d7bccba4ac1f747345e7944241ba50ed17d2c3, Installer 45501749806 Attempt 1, fachliche Gates/Worker/Pages/Stable erfolgreich, Katalog fehlgeschlagen, GitHub latest weiterhin .517.
+- Katalog-Originalfehler in Job 138836633506; tatsächlicher HTTP-Status unbekannt. .519 Tag existiert, Herkunft nicht belegt, Release fehlt; keine historische Katalog-Recovery autorisiert oder behauptet.
+- Node22 lokal 7/7 HTTP-Adaptertests (Vitest-Datei mit identischer Testlogik, nur Importpfade angepasst); #1013 HEAD 9f0f1da2279f4dd52d6498e9dad266c3a4a77300 9/9, #991 HEAD fd21419437e6a282a693e31ed85b99806e0c7355 10/10. Kombinierte Draft- und vollständige Source-/Installer-/Worker-/Pages-/Stable-Gates bleiben Pflicht.
+
 # MID v0.9.85.519 · RUC-Pages-Provenienz nach isoliertem Katalogfehler
 
 - Basis: promotetes v0.9.85.518 @ 385117bb93d06403c33aea4ce4ceb7714f5bfc33; Installer 45466878720 Attempt 1, fachliche Gates erfolgreich, Katalog fehlgeschlagen. Katalog .518 weiterhin offen.

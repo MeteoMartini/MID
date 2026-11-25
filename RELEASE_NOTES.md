@@ -1,3 +1,8 @@
+# MID v0.9.85.520
+
+- Technisches Wartungsupdate: Die GitHub-Release-Katalogabfragen unterscheiden bestätigte fehlende Einträge, temporäre Serverfehler und andere HTTP-Fehler zuverlässiger.
+- Interne Diagnosewerkzeuge für Logicc-Ergebnisse und DWD-RUC-Verzeichnisdaten wurden ergänzt. Keine neue aktive Datenversorgung oder Logicc-Schreibfreigabe.
+
 # MID v0.9.85.519
 
 - Technisches Wartungsupdate zur Prüfung des Release-Katalogs und der veröffentlichten Pages-Ausgangsbasis. Die tatsächliche Aktualität der Wetterdaten wird separat geprüft.
