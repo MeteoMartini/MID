@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "version": "0.9.85.520",
+  "title": "Robustere Release-Metadaten und isolierte QA-Werkzeuge",
+  "date": "2026-11-24",
+  "external": [
+    "Technisches Wartungsupdate: Die GitHub-Release-Katalogabfragen unterscheiden bestätigte fehlende Einträge, temporäre Serverfehler und andere HTTP-Fehler zuverlässiger.",
+    "Interne Diagnosewerkzeuge für Logicc-Ergebnisse und DWD-RUC-Verzeichnisdaten wurden ergänzt. Keine neue aktive Datenversorgung oder Logicc-Schreibfreigabe."
+  ],
+  "internal": [
+    "#901: explizite HTTP-Statusauswertung statt stderr-Muster, maximal eine Wiederholung bestätigter temporärer GET-Fehler 502/503/504 ohne Retry-After, keine POST-Wiederholung, weiterhin unveränderte Tag-/Release-/SHA-/Job-Gates.",
+    "#1013: exakt vorqualifizierte drei Dateien für Ergebnisvalidierung und Akteur-/Inhalts-/Kommentar-Readback. Kein Live-Transport, kein dauerhaft atomarer Speicher, keine neuen Secrets oder Berechtigungen.",
+    "#991: exakt vorqualifizierte zwei rein lesende DWD-Diagnosedateien. Keine GRIB-Zulassung, kein aktiver Publisher, keine Wetterdaten-Freshness-Behauptung. #1007 und #1014 Live-Abnahme bleiben separat offen."
+  ],
+  "sourceOfTruth": [
+    "Basis: main=mid-stable 0.9.85.519 @ 83d7bccba4ac1f747345e7944241ba50ed17d2c3, Installer 45501749806 Attempt 1, fachliche Gates/Worker/Pages/Stable erfolgreich, Katalog fehlgeschlagen, GitHub latest weiterhin .517.",
+    "Katalog-Originalfehler in Job 138836633506; tatsächlicher HTTP-Status unbekannt. .519 Tag existiert, Herkunft nicht belegt, Release fehlt; keine historische Katalog-Recovery autorisiert oder behauptet.",
+    "Node22 lokal 7/7 HTTP-Adaptertests (Vitest-Datei mit identischer Testlogik, nur Importpfade angepasst); #1013 HEAD 9f0f1da2279f4dd52d6498e9dad266c3a4a77300 9/9, #991 HEAD fd21419437e6a282a693e31ed85b99806e0c7355 10/10. Kombinierte Draft- und vollständige Source-/Installer-/Worker-/Pages-/Stable-Gates bleiben Pflicht."
+  ]
+}
