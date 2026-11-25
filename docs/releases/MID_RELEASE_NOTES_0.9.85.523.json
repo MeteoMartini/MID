@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "version": "0.9.85.523",
+  "title": "Verlässlichere Tastaturführung in Dialogen",
+  "date": "2026-11-25",
+  "external": [
+    "Dialoge setzen den Tastaturfokus zuverlässiger auf sichtbare und bedienbare Elemente."
+  ],
+  "internal": [
+    "Selektive Übernahme aus #1001 mit Rückfall auf ein tatsächlich fokussierbares Element, falls der bevorzugte Startfokus nicht gesetzt werden kann."
+  ],
+  "sourceOfTruth": [
+    "Stable .522 @ 8bf0b230c27f2c4c34c8b37c70503e56a9bcc76a; Original #1001 @ bbed715d9ee56c5d099a023c0a94945120ecf6d1."
+  ]
+}
