@@ -634,7 +634,7 @@ test('post-Stable GitHub catalog keeps the original Installer protected and mirr
 });
 
 test('mandatory .520 release diagnostics: native Logicc and DWD regression suites',()=>{
- const files=['tools/handoff/logicc-result.test.mjs','tools/handoff/logicc-delivery.test.mjs','tools/ruc/ruc_extended_directory_coverage.test.mjs'];
+ const files=['tools/handoff/logicc-result.test.mjs','tools/handoff/logicc-delivery.test.mjs','tools/handoff/logicc-github-transport.test.mjs','tools/ruc/ruc_extended_directory_coverage.test.mjs'];
  const checked=spawnSync(process.execPath,['--test',...files],{
   cwd:new URL('..',import.meta.url),encoding:'utf8',timeout:30000,maxBuffer:2*1024*1024
  });
