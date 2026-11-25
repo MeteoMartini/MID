@@ -1,3 +1,7 @@
+# MID v0.9.85.522
+
+- Technisches Wartungsupdate: zusätzliche interne Sicherheits- und Datenqualitätsprüfungen. Keine neue aktive Datenquelle oder Schreibfreigabe.
+
 # MID v0.9.85.521
 
 - Technisches Wartungsupdate für den Veröffentlichungsprozess.

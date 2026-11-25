@@ -1,3 +1,9 @@
+# MID v0.9.85.522 · Isolierte Logicc- und EPS-Diagnoseintegrität
+
+- Basis: main=mid-stable=Tag v0.9.85.521 @ 8c47a4d26c897dc428a80c814f27bbe847a1650f; Installer 45589782327 und Katalog erfolgreich.
+- Originalkandidaten #1017 4c7a785bc15a78e210936c500faa5ad207132a95 und #1000 41b8083c1a5f6a53d186df936aea650b1932c9af; nur selektive Dateiübernahme auf aktueller Basis, .521-Regression erhalten. Neue kombinierte Tests noch zu qualifizieren.
+- #1007/#1014 Owner-Pfad und authentifizierte Abnahme, #541 tatsächliche RUC/EPS-Vollversorgung und #901 historische Katalog-Recovery bleiben separat offen.
+
 # MID v0.9.85.521 · Zuverlässiger Start des Release-Installers
 
 - Basis: MID .520 @ cacaf877c3d06b71f8bde39e3d79f953ac29a8f2. Installer 45574997445 veröffentlichte Worker, Pages, Stable und Katalog.

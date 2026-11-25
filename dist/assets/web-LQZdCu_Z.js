@@ -1,1 +1,0 @@
-import{pa as e}from"./index-BP18_R6J.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};

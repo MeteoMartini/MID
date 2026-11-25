@@ -1,3 +1,8 @@
+## MID v0.9.85.522 · 2026-11-25 · Isolierte Logicc- und EPS-Diagnoseintegrität
+
+- #1017: fest gebundener, noch nicht aktivierter Rückgabetransport und SQLite-Quittungsledger; begrenzte UTF-8-JSON-Antworten und negative Transporttests; keine neue Ressource, kein Token, kein Live-POST.
+- #1000: gezielte, rein lesende EPS-Indexdiagnose; kanonische Original-URLs, keine Redirects, komprimierte Namen, mehrdeutige Links fail-closed; keine GRIB-Zulassung. Beide Testpakete in bestehende Pflichtregressionen integriert.
+
 ## MID v0.9.85.521 · 2026-11-25 · Zuverlässiger Start des Release-Installers
 
 - Der Release-Bot liest den Paket-SHA nach dem Push bei Bedarf erneut und startet den Installer einmalig mit dem exakt bestätigten SHA.
