@@ -665,3 +665,13 @@ test('mandatory .520 release diagnostics: native Logicc and DWD regression suite
  assert.equal(checked.signal,null);
  assert.equal(checked.status,0,(checked.stdout||'')+(checked.stderr||''));
 });
+
+test('mandatory .522 EPS targeted original-index diagnostics: stdlib-only offline Python suite',()=>{
+ const checked=spawnSync('python3',['-m','unittest','-v','test_ruc_eps_targeted_gap_probe'],{
+  cwd:new URL('../tools/ruc/',import.meta.url),encoding:'utf8',timeout:30000,maxBuffer:2*1024*1024
+ });
+ assert.equal(checked.error,undefined,checked.error?.message);
+ assert.equal(checked.signal,null);
+ assert.equal(checked.status,0,(checked.stdout||'')+(checked.stderr||''));
+ assert.match(checked.stderr,/Ran [1-9][0-9]* tests?/);
+});

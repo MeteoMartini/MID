@@ -11,6 +11,3 @@ assert.ok(workflow.includes('mid-ruc-rollback-')&&workflow.includes('RUC-Rohsnap
 assert.ok(workflow.includes("MID_RUC_FORECAST_HOURS: '27'")&&workflow.includes('prepare_ruc_pages.py --codec-staging'),'27h input must be staged without relaxing the publication budget');
 assert.ok(workflow.includes('prepare_legacy_core_rollback.py .ruc-out .ruc14-reference .ruc14-rollback')&&workflow.includes('path: ./.ruc14-rollback/ruc'),'published rollback must remain a same-run raw 14h snapshot, never codec staging');
 console.log('MID .267 RUC full replacement activation with independently verified Python/JS proof and raw rollback contract OK.');
-
-// Read-only original EPS directory diagnostics: preserve hard NoData/provenance boundaries.
-execFileSync('python3',['-m','unittest','test_ruc_eps_targeted_gap_probe'],{cwd:'tools/ruc',stdio:'inherit',timeout:30000});
