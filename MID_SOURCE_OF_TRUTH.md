@@ -1,3 +1,8 @@
+# MID v0.9.85.521 · Zuverlässiger Start des Release-Installers
+
+- Basis: MID .520 @ cacaf877c3d06b71f8bde39e3d79f953ac29a8f2. Installer 45574997445 veröffentlichte Worker, Pages, Stable und Katalog.
+- Regression: Source-Bot 45569656600 stoppte nach erfolgreichem Paketschreiben beim Ref-Abgleich. Ursache der abweichenden Antwort bleibt offen.
+
 # MID v0.9.85.520 · Robustere Release-Metadaten und isolierte QA-Werkzeuge
 
 - Basis: main=mid-stable 0.9.85.519 @ 83d7bccba4ac1f747345e7944241ba50ed17d2c3, Installer 45501749806 Attempt 1, fachliche Gates/Worker/Pages/Stable erfolgreich, Katalog fehlgeschlagen, GitHub latest weiterhin .517.

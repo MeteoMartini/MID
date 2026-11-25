@@ -1,3 +1,7 @@
+# MID v0.9.85.521
+
+- Technisches Wartungsupdate für den Veröffentlichungsprozess.
+
 # MID v0.9.85.520
 
 - Technisches Wartungsupdate: Die GitHub-Release-Katalogabfragen unterscheiden bestätigte fehlende Einträge, temporäre Serverfehler und andere HTTP-Fehler zuverlässiger.

@@ -1,3 +1,8 @@
+## MID v0.9.85.521 · 2026-11-25 · Zuverlässiger Start des Release-Installers
+
+- Der Release-Bot liest den Paket-SHA nach dem Push bei Bedarf erneut und startet den Installer einmalig mit dem exakt bestätigten SHA.
+- Die Pflichtregression führt die tatsächliche Shell-Logik mit simulierten GitHub-Antworten aus.
+
 ## MID v0.9.85.520 · 2026-11-24 · Robustere Release-Metadaten und isolierte QA-Werkzeuge
 
 - #901: explizite HTTP-Statusauswertung statt stderr-Muster, maximal eine Wiederholung bestätigter temporärer GET-Fehler 502/503/504 ohne Retry-After, keine POST-Wiederholung, weiterhin unveränderte Tag-/Release-/SHA-/Job-Gates.
