@@ -20,7 +20,7 @@ const settings={compatibility_date:'2026-11-24',usage_model:'standard',compatibi
 function fixture(mode='ok',action='stage'){
   let active={id:accidental,versions:one(candidate)},reads=0,refs=0;const posts=[];
   if(mode==='baseline')active={id:baseline,versions:one(old)};
-  if(mode==='already')active={id:created,versions:split};
+  if(mode==='already')active={id:'22222222-3333-4444-8555-666666666666',versions:split};
   const wrap=result=>Response.json({success:true,result});
   const fetcher=async(url,init={})=>{
     const u=new URL(url);
