@@ -10,6 +10,7 @@
     "Lesende PR-/Issue-Inventur: Prioritätslabels vor eindeutigen führenden Titel-Tags, unbekannte Prioritäten getrennt, SHA-/Paginierungs- und Negativtests; vorhandener manueller Preflight, kein zusätzlicher Scheduler."
   ],
   "sourceOfTruth": [
-    "Stable .522 @ 8bf0b230c27f2c4c34c8b37c70503e56a9bcc76a; #981 @ 3842fc44d8e7abf8b78466c914134924e00d6d48; unabhängige Spezialchat-Kandidatenkette @ 35c4c094856169ace55866dc914e7a4cd066c4ed."
+    "Stable .522 @ 8bf0b230c27f2c4c34c8b37c70503e56a9bcc76a; #981 @ 3842fc44d8e7abf8b78466c914134924e00d6d48; unabhängige Spezialchat-Kandidatenkette @ 35c4c094856169ace55866dc914e7a4cd066c4ed.",
+    "Status vor Freigabe: QA-Kandidat; Draft-, vollständiges Source-Gate, Installer und Stable-Promotion auf finalem SHA nachzuweisen. #1019 bleibt bis zur getrennten Qualifikation zurückgestellt; #981 erst nach nachgewiesener Stable-Promotion und vollständiger Übernahme schließen."
   ]
 }

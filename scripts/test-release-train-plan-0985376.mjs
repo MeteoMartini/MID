@@ -681,19 +681,26 @@ test('discovery verifies a pinned main/stable snapshot across paginated issue in
  try {
   globalThis.fetch=async url=>{
    const path=String(url);calls.push(path);
-   const data=path.includes('/git/ref/heads/')?{object:{sha}}:[
+   const page=Number(new URL(path).searchParams.get('page'));
+   const data=path.includes('/git/ref/heads/')?{object:{sha}}:page===1?[
+    ...Array.from({length:98},(_,i)=>({number:i+1,state:'open',title:'Unclassified',labels:[]})),
     {number:541,state:'open',title:'[P0][RUC] Native freshness',labels:[]},
-    {number:901,state:'open',title:'[P1] Release catalog',labels:[]},
+    {number:901,state:'open',title:'[P1] Release catalog',labels:[]}
+   ]:page===2?[
     {number:987,state:'open',title:'Release PR',labels:[{name:'P2'}],pull_request:{url:'https://api.github.com/repos/MeteoMartini/MID/pulls/987'}}
-   ];
+   ]:null;
+   assert.notEqual(data,null,'Unexpected extra inventory page');
    return {ok:true,json:async()=>structuredClone(data)};
   };
   const result=await discoverBacklog('MeteoMartini/MID','');
   assert.equal(result.state,'ADVISORY_STABLE_SNAPSHOT');
   assert.equal(result.mainSha,sha);assert.equal(result.stableSha,sha);
   assert.equal(result.validForIntegrationReview,false);assert.equal(result.releaseAuthorized,false);
-  assert.deepEqual(result.backlog.map(v=>v.number),[541,901,987]);
-  assert.equal(calls.length,5);
+  assert.equal(result.backlog.length,101);
+  assert.deepEqual(result.backlog.slice(0,3).map(v=>v.number),[541,901,987]);
+  assert.deepEqual(result.backlog.slice(3).map(v=>v.number),Array.from({length:98},(_,i)=>i+1));
+  assert.deepEqual(calls.filter(url=>url.includes('/issues?')).map(url=>new URL(url).searchParams.get('page')),['1','2']);
+  assert.equal(calls.length,6);
  }finally{globalThis.fetch=previous;}
 });
 test('discovery preserves a P0 queue but marks main/stable divergence as an advisory HOLD',async()=>{
@@ -714,25 +721,30 @@ test('discovery preserves a P0 queue but marks main/stable divergence as an advi
 });
 test('discovery rejects branch drift, duplicate/malformed issue identity, and page overflow',async()=>{
  const previous=globalThis.fetch,a='a'.repeat(40),b='b'.repeat(40);
+ let inventoryPages=0;
  const request=async kind=>{
-  let reads=0;
+  let reads=0;inventoryPages=0;
   globalThis.fetch=async url=>{
    const path=String(url);
    if(path.includes('/git/ref/heads/')){
     reads++;
     return {ok:true,json:async()=>({object:{sha:kind==='drift'&&reads>2?b:a}})};
    }
+   inventoryPages++;
    const item={number:541,state:'open',title:'[P0] RUC',labels:[]};
    const batch=kind==='duplicates'?[item,item]:
     kind==='malformed'?[{...item,labels:null}]:
-    kind==='pages'?Array.from({length:100},(_,i)=>({...item,number:i+1})):[item];
+    kind==='pages'?Array.from({length:100},(_,i)=>({...item,number:(inventoryPages-1)*100+i+1})):[item];
    return {ok:true,json:async()=>batch};
   };
   return discoverBacklog('MeteoMartini/MID','');
  };
  try {
-  for(const kind of ['drift','duplicates','malformed','pages'])
-   await assert.rejects(request(kind),/changed|duplicate|Incomplete/);
+  await assert.rejects(request('drift'),/Main\/Stable changed/);
+  await assert.rejects(request('duplicates'),/Invalid or duplicate/);
+  await assert.rejects(request('malformed'),/Invalid or duplicate/);
+  await assert.rejects(request('pages'),/Incomplete backlog inventory \(10 pages exceeded\)/);
+  assert.equal(inventoryPages,10);
  }finally{globalThis.fetch=previous;}
 });
 
@@ -748,13 +760,22 @@ test('queue tags, provenance, explicit unknown and no implied release authority'
   {number:990,title:'RUC P1–P5',labels:[],body:'[P0] body only'},
   {number:992,title:'[P1][P0] ambiguous',labels:[]},
   {number:994,title:'[P1]joined prose',labels:[]},
+  {number:995,title:'[P1][P0]joined prose',labels:[]},
+  {number:996,title:'[P1] [P0]joined prose',labels:[]},
+  {number:997,title:'[P1] [unfinished',labels:[]},
+  {number:998,title:'[P0] conflicting labels',labels:[{name:'P0'},{name:'priority:p3'}]},
+  {number:999,title:'[P0] equivalent labels',labels:[{name:'P2'},{name:'priority:p2'}]},
+  {number:1000,title:'[QA][P1]: colon delimiter',labels:[]},
  ];
  const result=prioritizeBacklog(items);
  assert.deepEqual(result.map(x=>[x.number,x.priority,x.prioritySource]),[
-  [541,0,'title-tag'],[984,1,'label'],[1002,1,'title-tag'],[1021,1,'title-tag'],[960,2,'label'],
-  [982,null,'unclassified'],[983,null,'unclassified'],[990,null,'unclassified'],[992,null,'unclassified'],[994,null,'unclassified']]);
+  [541,0,'title-tag'],[984,1,'label'],[1000,1,'title-tag'],[1002,1,'title-tag'],[1021,1,'title-tag'],[960,2,'label'],[999,2,'label'],
+  [982,null,'unclassified'],[983,null,'unclassified'],[990,null,'unclassified'],[992,null,'unclassified'],[994,null,'unclassified'],
+  [995,null,'unclassified'],[996,null,'unclassified'],[997,null,'unclassified'],[998,null,'unclassified']]);
+ assert.equal(result.find(x=>x.number===998).priorityConflict,'labels');
+ assert.equal(result.find(x=>x.number===992).priorityConflict,'title-tags');
  assert.equal(result.find(x=>x.number===1021).kind,'pull-request');
- assert.equal(Object.hasOwn(result,'releaseAuthorized'),false);
+ assert.ok(result.every(x=>!Object.hasOwn(x,'releaseAuthorized')));
 });
 test('queue discovery rejects malformed labels and foreign PR markers',async()=>{
  const previous=globalThis.fetch,sha='a'.repeat(40);

@@ -136,11 +136,18 @@ export async function inspectStableVersion(repository,stableSha,token) {
 }
 export function prioritizeBacklog(items) {
  const priority=item=>{
-  const ranks=item.labels.map(label=>/^(?:priority[: /-]*)?p([0-3])$/i.exec(label.name)?.[1]).filter(rank=>rank!==undefined).map(Number);
-  if(ranks.length)return {priority:Math.min(...ranks),prioritySource:'label'};
-  // Only explicit tags in the contiguous leading bracket group; never incidental prose.
-  const prefix=/^\s*((?:\[[^\[\]\r\n]+\]\s*)+)(?=\s|\[|:|$)/.exec(item.title)?.[1]??'';
+  const ranks=[...new Set(item.labels.map(label=>/^(?:priority[: /-]*)?p([0-3])$/i.exec(label.name)?.[1]).filter(rank=>rank!==undefined).map(Number))];
+  if(ranks.length===1)return {priority:ranks[0],prioritySource:'label'};
+  if(ranks.length>1)return {priority:null,prioritySource:'unclassified',priorityConflict:'labels'};
+  // Consume the entire leading bracket group before checking its final delimiter.
+  // A malformed or glued-on later tag must not turn an earlier partial match into a priority.
+  const title=item.title.trimStart();
+  const prefix=/^(?:\[[^\[\]\r\n]+\][ \t]*)+/.exec(title)?.[0]??'';
+  const rest=title.slice(prefix.length);
+  if(!prefix||rest.startsWith('[')||(rest&&!/[ \t]$/.test(prefix)&&!rest.startsWith(':')))
+   return {priority:null,prioritySource:'unclassified'};
   const tags=[...new Set(Array.from(prefix.matchAll(/\[P([0-3])\]/gi),m=>Number(m[1])))];
+  if(tags.length>1)return {priority:null,prioritySource:'unclassified',priorityConflict:'title-tags'};
   return tags.length===1?{priority:tags[0],prioritySource:'title-tag'}:{priority:null,prioritySource:'unclassified'};
  };
  return items.map(item=>({number:item.number,...priority(item),kind:item.pull_request?'pull-request':'issue'})).sort((a,b)=>(a.priority??4)-(b.priority??4)||a.number-b.number);
