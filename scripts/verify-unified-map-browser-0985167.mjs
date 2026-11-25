@@ -330,7 +330,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
   const oldRaster=await page.evaluate(()=>window.__qaMap.getStyle().layers.find(l=>l.type==='raster'&&l.id.startsWith('cloud-weather-icon-d2-ruc-pseudo')&&window.__qaMap.getPaintProperty(l.id,'raster-opacity')>.1)?.id);
   assert.ok(oldRaster,'Old complete native cloud raster is visible');
   await page.evaluate(()=>{const map=window.__qaMap;window.__qaCloudFade={rows:[],active:true};const capture=()=>{const tracker=window.__qaCloudFade;if(!tracker.active)return;const layers=map.getStyle().layers.filter(l=>l.id.startsWith('cloud-weather-icon-d2-ruc-pseudo'));const alpha=kind=>Math.max(0,...layers.filter(l=>kind==='raster'?l.type==='raster':l.type==='line'&&l.id.includes('-'+kind+'-')).map(l=>Number(map.getPaintProperty(l.id,l.type==='raster'?'raster-opacity':'line-opacity'))||0));tracker.rows.push([alpha('raster'),alpha('isobars'),alpha('isoheights')]);requestAnimationFrame(capture)};capture()});
-  const previousTerm=new Date(Date.parse(rucEnd)-hour).toISOString();
+  const previousTerm=rucEnd-hour/1000; // data-valid-time is UTC epoch seconds, not ISO text
   const previousChoice=direct.locator(`option[data-valid-time="${previousTerm}"]`);
   assert.equal(await previousChoice.count(),1,'Adjacent original RUC term is listed');
   try{

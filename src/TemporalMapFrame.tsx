@@ -17,7 +17,7 @@ export function createTemporalMapFrameController(map:MidMap,id:string,env:Enviro
  let serial=0,visible:StagedFrame|null=null,pending:StagedFrame|null=null,cancelPending=()=>{},opacity=1,weight=1,disposed=false;
  let clearHover=()=>{};
  const remove=(frame:StagedFrame|null)=>{if(!frame)return;frame.cleanup();for(const layer of frame.layers){unregisterMapLayerOrder(map,layer.id);try{if(map.getLayer(layer.id))map.removeLayer(layer.id)}catch{}}for(const source of frame.sources){try{if(map.getSource(source))map.removeSource(source)}catch{}}};
- const paint=(frame:StagedFrame|null,factor:number)=>{if(!frame)return;for(const layer of frame.layers){if(!map.getLayer(layer.id))continue;for(const [property,alpha] of Object.entries(layer.alphas))try{map.setPaintProperty(layer.id,property,alpha*opacity*factor)}catch{/* context/layer may have disappeared */}}};
+ const paint=(frame:StagedFrame|null,factor:number)=>{if(!frame)return;for(const layer of frame.layers){if(!map.getLayer(layer.id))continue;for(const [property,alpha] of Object.entries(layer.alphas))try{map.setPaintProperty(layer.id,property as keyof maplibregl.AllPaintProperties,alpha*opacity*factor)}catch{/* context/layer may have disappeared */}}};
  const intact=(frame:StagedFrame)=>frame.layers.every(layer=>Boolean(map.getLayer(layer.id)))&&frame.sources.every(source=>Boolean(map.getSource(source)));
  const hover=(frame:StagedFrame|null)=>{clearHover();clearHover=()=>{};if(!frame)return;
   const interactive=frame.layers.filter(layer=>layer.hoverProperty);if(!interactive.length)return;
