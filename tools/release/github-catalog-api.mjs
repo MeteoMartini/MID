@@ -10,10 +10,10 @@ const pause=()=>Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,500);
 export function githubApi(path,method='GET',payload,optional404=false,{spawn=spawnSync,wait=pause}={}){
  if(typeof path!=='string'||!path.startsWith(PREFIX)||!/^[A-Za-z0-9/_.?=&-]+$/.test(path)||
     path.includes('..')&&!/^repos\/MeteoMartini\/MID\/compare\/[a-f0-9]{40}\.\.\.[a-f0-9]{40}$/.test(path)||
-    !['GET','POST'].includes(method)||optional404&&(method!=='GET'||!OPTIONAL.test(path)))
+    !['GET','POST'].includes(method)||(method==='GET'&&payload!==undefined)||optional404&&(method!=='GET'||!OPTIONAL.test(path)))
   throw Error('Invalid catalog API request');
  const args=['api','--hostname','github.com','--include','-H','X-GitHub-Api-Version: 2022-11-28'];
- if(method!=='GET')args.push('--method',method);
+ args.push('--method',method);
  args.push(path);
  if(payload!==undefined)args.push('--input','-');
  for(let attempt=1;attempt<=2;attempt++){

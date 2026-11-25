@@ -12,7 +12,7 @@ function harness(...responses){
  return {calls,waits:()=>waits,deps:{spawn:(bin,args,opts)=>{calls.push({bin,args,opts});assert.ok(responses.length);return responses.shift();},wait:()=>{waits++;}}};
 }
 test('confirmed HTTP 404, independent of stderr wording, is optional tag/release absence',()=>{
- for(const path of [tag,release]){const h=harness(response(404,{message:'Not Found'}));assert.equal(githubApi(path,'GET',undefined,true,h.deps),null);assert.equal(h.calls.length,1);assert.ok(h.calls[0].args.includes('--include'));}
+ for(const path of [tag,release]){const h=harness(response(404,{message:'Not Found'},{stderr:'unexpected diagnostic HTTP 503'}));assert.equal(githubApi(path,'GET',undefined,true,h.deps),null);assert.equal(h.calls.length,1);assert.ok(h.calls[0].args.includes('--include'));}
 });
 test('success returns JSON after status and headers',()=>{const h=harness(response(200,{object:{sha:'a'.repeat(40)}}));assert.equal(githubApi(ref,'GET',undefined,false,h.deps).object.sha,'a'.repeat(40));});
 test('forbidden, unauthorized, rate limited and misleading stderr never mean missing',()=>{
@@ -31,4 +31,14 @@ test('missing or malformed status, non-JSON, timeout and exit mismatch fail clos
 test('POST verified response exactly once, ambiguous result is not retried or leaked',()=>{
  const h=harness(response(201,{id:1}));assert.deepEqual(githubApi('repos/MeteoMartini/MID/releases','POST',{tag_name:'v0.9.85.520'},false,h.deps),{id:1});assert.equal(h.calls.length,1);
  const b=harness({status:1,stdout:'',stderr:'Bearer SHOULD_NOT_LEAK'});assert.throws(()=>githubApi('repos/MeteoMartini/MID/releases','POST',{},false,b.deps),err=>!err.message.includes('SHOULD_NOT_LEAK'));assert.equal(b.calls.length,1);
+});
+
+test('GET cannot carry a body or silently become POST',()=>{
+ const h=harness(response(200,{ok:true}));
+ assert.throws(()=>githubApi(ref,'GET',{},false,h.deps),/Invalid catalog API request/);
+ assert.equal(h.calls.length,0);
+ assert.deepEqual(githubApi(ref,'GET',undefined,false,h.deps),{ok:true});
+ const args=h.calls[0].args;
+ assert.equal(args[args.indexOf('--method')+1],'GET');
+ assert.ok(!args.includes('--input'));
 });

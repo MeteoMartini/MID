@@ -73,3 +73,15 @@ test('rejects untrusted status, URL, redirect, framing, encoding and truncation'
     {headers:{'content-length':'1'},chunks:[Uint8Array.of(255)]},
   ])await assert.rejects(readOriginalIndex(fixture(options),url));
 });
+
+test('only actual href attributes are counted; comments, quoted lookalikes and inert content are ignored',()=>{
+ const html='<a data-href="PT027H00M.grib2">fake</a><a title=\' href="PT026H00M.grib2"\'>fake</a><!-- <a href="PT025H00M.grib2">fake</a> --><script><a href="PT024H00M.grib2">fake</a></script><a HREF="PT000H00M.grib2">real</a>';
+ assert.deepEqual(parseHourlyIndex(html,directory),[0]);
+ assert.throws(()=>parseHourlyIndex('<a href="PT000H00M.grib2" href="PT001H00M.grib2">ambiguous</a>',directory));
+ assert.throws(()=>parseHourlyIndex('<a data-href="PT000H00M.grib2">fake</a>',directory));
+});
+test('observation time must be explicit canonical UTC, independent of process timezone',()=>{
+ for(const stamp of ['2026-11-23T09:30:00','2026-11-23T10:30:00+01:00','2026-11-23T09:30Z','2026-11-31T09:30:00Z','2026-11-23T09:30:00.01Z'])
+  assert.throws(()=>qualifyHorizon({run,observedAt:stamp,fieldHours:full()}));
+ assert.equal(qualifyHorizon({run,observedAt:'2026-11-23T09:30:00.000Z',fieldHours:full()}).ageMinutes,90);
+});

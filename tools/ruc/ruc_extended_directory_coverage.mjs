@@ -42,9 +42,35 @@ export function parseHourlyIndex(html,directoryUrl){
   if(base.origin!=='https://opendata.dwd.de'||base.search||base.hash||!pathPattern.test(base.pathname))
     throw Error('noncanonical DWD original directory URL');
   const leads=[];
-  for(const hit of html.matchAll(/<a\b[^>]*\bhref\s*=\s*["']([^"']+)["']/gi)){
+  // The original directory listing is a bounded HTML document. Tokenize
+  // complete tags, not substrings in data-href, quoted attributes or comments.
+  const tags=/<!--[\s\S]*?(?:-->|$)|<\/?[A-Za-z][A-Za-z0-9:-]*(?:[^<>"']|"[^"]*"|'[^']*')*>/g;
+  const inert=new Set(['script','style','textarea','title','xmp','iframe','noembed','noframes','noscript','template','plaintext']);
+  let raw=null;
+  for(const hit of html.matchAll(tags)){
+    const tag=hit[0],name=/^<(\/?)([A-Za-z][A-Za-z0-9:-]*)(?=[\t\n\f\r />])/.exec(tag);
+    if(!name)continue;
+    const kind=name[2].toLowerCase();
+    if(raw){if(name[1]&&kind===raw)raw=null;continue;}
+    if(name[1])continue;
+    if(inert.has(kind)){raw=kind;continue;}
+    if(kind!=='a')continue;
+    const attrs=tag.slice(name[0].length,-1);
+    const token=/[\t\n\f\r ]+([^\t\n\f\r "'<>/=]+)(?:[\t\n\f\r ]*=[\t\n\f\r ]*(?:"([^"]*)"|'([^']*)'|([^\t\n\f\r "'=<>\x60]+)))?/gy;
+    let pos=0,link=null,seen=false;
+    while(pos<attrs.length){
+      if(/^[\t\n\f\r ]*\/?$/.test(attrs.slice(pos)))break;
+      token.lastIndex=pos;
+      const attr=token.exec(attrs);
+      if(!attr)throw Error('malformed DWD anchor attributes');
+      pos=token.lastIndex;
+      if(attr[1].toLowerCase()!=='href')continue;
+      if(seen)throw Error('ambiguous DWD anchor href');
+      seen=true;link=attr[2]??attr[3]??attr[4]??null;
+    }
+    if(!link)continue;
     let href;
-    try{href=new URL(hit[1],base)}catch{continue}
+    try{href=new URL(link,base)}catch{continue}
     if(href.origin!==base.origin||href.search||href.hash||!href.pathname.startsWith(base.pathname))continue;
     const candidate=/^PT(\d{3})H00M\.grib2$/.exec(href.pathname.slice(base.pathname.length));
     if(!candidate)continue;
@@ -53,13 +79,16 @@ export function parseHourlyIndex(html,directoryUrl){
     if(leads.includes(hour))throw Error('duplicate DWD original lead');
     leads.push(hour);
   }
+  if(raw)throw Error('unclosed inert DWD HTML element');
   if(!leads.length)throw Error('no advertised hourly DWD originals');
   return leads.sort((a,b)=>a-b);
 }
 export function qualifyHorizon({run,observedAt,fieldHours,siteBytes=null,siteBudgetBytes=900_000_000}){
   if(typeof run!=='string'||!/^20\d\d-\d\d-\d\dT\d\d:00$/.test(run))throw Error('invalid UTC run');
+  if(typeof observedAt!=='string'||!/^20\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{3})?Z$/.test(observedAt))throw Error('invalid UTC observation time');
   const epoch=Date.parse(run+':00Z'),clock=Date.parse(observedAt);
-  if(!Number.isFinite(epoch)||!Number.isFinite(clock)||new Date(epoch).toISOString().slice(0,16)!==run)throw Error('invalid source/observation time');
+  const canonicalObservation=observedAt.length===20?observedAt.slice(0,-1)+'.000Z':observedAt;
+  if(!Number.isFinite(epoch)||!Number.isFinite(clock)||new Date(epoch).toISOString().slice(0,16)!==run||new Date(clock).toISOString()!==canonicalObservation)throw Error('invalid source/observation time');
   const ageMinutes=(clock-epoch)/60000;
   if(ageMinutes>240||ageMinutes < -5)throw Error('run outside original 4h freshness window');
   if(!fieldHours||typeof fieldHours!=='object'||Array.isArray(fieldHours))throw Error('untrusted field inventory');

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {deliverLogiccResult} from './logicc-result.mjs';
+import {deliverLogiccResult,prepareLogiccResult} from './logicc-result.mjs';
 
 const assignment = {taskId: 'case-1', sourceSha: 'a'.repeat(40)};
 const result = {...assignment, status: 'completed', summary: 'Done', checks: []};
@@ -9,7 +9,9 @@ const issue = 'https://api.github.com/repos/MeteoMartini/MID/issues/1007';
 const url = 'https://api.github.com/repos/MeteoMartini/MID/issues/comments/42';
 function reservation() {
   const claims = new Set();
+  const expected=prepareLogiccResult(result,assignment).receipt;
   return async key => {
+    assert.equal(key,expected,'reservation must bind the prepared receipt');
     if (claims.has(key)) return 'existing';
     claims.add(key);
     return 'claimed';
