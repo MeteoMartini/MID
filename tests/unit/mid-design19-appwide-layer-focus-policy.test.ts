@@ -27,9 +27,13 @@ describe('MID Design19 – focus eligibility policy for shared app dialogs',()=>
  });
  it('excludes native-disabled controls and disabled fieldset descendants',()=>{
   expect(eligible({nativeDisabled:true})).toBe(false);
-  // The browser adapter uses :disabled, covering fieldset semantics.
-  const code=readFileSync('src/appLayerFocusEligibility.ts','utf8');
-  expect(code).toContain("element.matches(':disabled')");
+  // DOM adapter behavior, not merely a source string: :disabled also covers fieldset descendants.
+  vi.stubGlobal('window',{getComputedStyle:()=>({display:'block',visibility:'visible'})});
+  const matches=vi.fn((query:string)=>query===':disabled');
+  const element={tabIndex:0,matches,closest:()=>null,getClientRects:()=>[{width:44,height:44}]} as unknown as HTMLElement;
+  expect(appLayerFocusEligibleElement(element)).toBe(false);
+  expect(appLayerFocusEligibleElement(element,true)).toBe(false);
+  expect(matches).toHaveBeenCalledWith(':disabled');
  });
  it('excludes aria-hidden and inert ancestors rather than own attrs only',()=>{
   expect(eligible({hiddenTree:true})).toBe(false);

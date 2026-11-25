@@ -44,7 +44,8 @@ for(const token of ['.ensemble-portal-popover{','z-index:6200!important','pointe
 if(panel.includes('<details className="model-run-details"'))failures.push('Veralteter nativer Details-Button für Ensemble-Modellstände ist noch aktiv.');
 if(app.includes('<details ref={ref} open={open} className="model-run-details"'))failures.push('Veralteter nativer Details-Button für Best-Match-Modellstände ist noch aktiv.');
 if(failures.length){console.error('Popover-Regression fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Popover-Regression bestanden: gemeinsame App-Portalprimitive sowie Ensemble-Spezialtooltips schließen per Außenklick/Escape und bleiben viewportfest.');
-
 // Execute the real React portal fixture within the existing registered Draft and full regression.
-await import('./lib/dialog-focus-browser-qa.mjs');
+const {browserQaExecuted}=await import('./lib/dialog-focus-browser-qa.mjs');
+console.log(browserQaExecuted
+ ?'Popover-Regression bestanden: statische Portal-Verträge und echte React/Chromium-Komponentenprüfung.'
+ :'Popover-Quellprüfung bestanden; Browser-QA lokal NICHT AUSGEFÜHRT.');
