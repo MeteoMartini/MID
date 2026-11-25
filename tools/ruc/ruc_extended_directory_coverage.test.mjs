@@ -85,3 +85,38 @@ test('observation time must be explicit canonical UTC, independent of process ti
   assert.throws(()=>qualifyHorizon({run,observedAt:stamp,fieldHours:full()}));
  assert.equal(qualifyHorizon({run,observedAt:'2026-11-23T09:30:00.000Z',fieldHours:full()}).ageMinutes,90);
 });
+
+test('directory and original file links must be canonical and credential-free',async()=>{
+ const original='<a href="PT000H00M.grib2">0</a>';
+ const aliases=[
+  directory.replace('https://','https://user:pass@'),
+  directory.replace('opendata.dwd.de','opendata.dwd.de:443'),
+  directory.replace('opendata.dwd.de','OPENDATA.DWD.DE'),
+  directory.replace('/s/','/s/../s/'),
+  directory+'?',directory+'#',' '+directory,
+  directory.replace('11-23','11-31')
+ ];
+ for(const alias of aliases){
+  assert.throws(()=>parseHourlyIndex(original,alias),/DWD|UTC/);
+  await assert.rejects(readOriginalIndex(fixture({target:alias}),alias),/DWD|UTC/);
+ }
+ for(const link of [...aliases.map(x=>x+'PT000H00M.grib2'), './PT000H00M.grib2','//opendata.dwd.de'+new URL(directory).pathname+'PT000H00M.grib2'])
+  assert.throws(()=>parseHourlyIndex('<a href="'+link+'">bad</a>',directory));
+ assert.deepEqual(parseHourlyIndex('<a href="'+new URL(directory).pathname+'PT001H00M.grib2">1</a>',directory),[1]);
+});
+test('every required field must include initialization lead 0',()=>{
+ for(const field of FIELDS){
+  const x=full();x[field]=[1,2,3];
+  assert.throws(()=>qualifyHorizon({run,observedAt,fieldHours:x}),/missing lead 0/);
+ }
+ const onlyZero=Object.fromEntries(FIELDS.map(f=>[f,[0]]));
+ assert.equal(qualifyHorizon({run,observedAt,fieldHours:onlyZero}).candidateHorizonHours,0);
+});
+test('Pages budget permits stricter limits but cannot exceed 900 MB or fit at equality',()=>{
+ for(const budget of [900000001,1000000000,Infinity,0,-1,'900000000'])
+  assert.throws(()=>qualifyHorizon({run,observedAt,fieldHours:full(),siteBudgetBytes:budget}),/untrusted site budget/);
+ const bytes=900000000-273188160;
+ assert.equal(qualifyHorizon({run,observedAt,fieldHours:full(),siteBytes:bytes}).rawAppendWouldFit,false);
+ assert.equal(qualifyHorizon({run,observedAt,fieldHours:full(),siteBytes:bytes-1}).rawAppendWouldFit,true);
+ assert.equal(qualifyHorizon({run,observedAt,fieldHours:full(),siteBytes:bytes-1,siteBudgetBytes:800000000}).rawAppendWouldFit,false);
+});

@@ -3,7 +3,24 @@
 // This QA tool is intentionally disjoint from the signed live Pages/Worker publisher.
 export const FIELDS=["T_2M","TD_2M","RELHUM_2M","PMSL","U_10M","V_10M","VMAX_10M","TOT_PREC","CLCT","CLCL","CAPE_ML","CIN_ML"];
 const MAX_INDEX_BYTES=2_000_000;
+const MAX_PAGES_BYTES=900_000_000;
+const DWD_ORIGIN='https://opendata.dwd.de';
+const DWD_PATH=new RegExp('^/weather/nwp/v1/m/icon-d2-ruc/p/(?:'+FIELDS.join('|')+')/r/(20\\d\\d-\\d\\d-\\d\\dT\\d\\d:00)/s/$');
+function canonicalDirectory(value){
+  if(typeof value!=='string')throw Error('invalid DWD original directory URL');
+  let base;
+  try{base=new URL(value)}catch{throw Error('invalid DWD original directory URL')}
+  const match=DWD_PATH.exec(base.pathname);
+  if(base.origin!==DWD_ORIGIN||base.username||base.password||base.search||base.hash||
+     value!==DWD_ORIGIN+base.pathname||value!==base.href||!match)
+    throw Error('noncanonical DWD original directory URL');
+  const epoch=Date.parse(match[1]+':00Z');
+  if(!Number.isFinite(epoch)||new Date(epoch).toISOString().slice(0,16)!==match[1])
+    throw Error('invalid UTC directory run');
+  return base;
+}
 export async function readOriginalIndex(response,directoryUrl){
+  canonicalDirectory(directoryUrl);
   if(response.status!==200||response.redirected||response.url!==directoryUrl||!response.body)
     throw Error('noncanonical DWD index response');
   const encoding=response.headers.get('content-encoding');
@@ -36,11 +53,7 @@ export async function readOriginalIndex(response,directoryUrl){
 
 export function parseHourlyIndex(html,directoryUrl){
   if(typeof html!=='string'||Buffer.byteLength(html,'utf8')>MAX_INDEX_BYTES)throw Error('untrusted DWD index');
-  let base;
-  try{base=new URL(directoryUrl)}catch{throw Error('invalid DWD original directory URL')}
-  const pathPattern=new RegExp('^/weather/nwp/v1/m/icon-d2-ruc/p/(?:'+FIELDS.join('|')+')/r/20\\d\\d-\\d\\d-\\d\\dT\\d\\d:00/s/$');
-  if(base.origin!=='https://opendata.dwd.de'||base.search||base.hash||!pathPattern.test(base.pathname))
-    throw Error('noncanonical DWD original directory URL');
+  const base=canonicalDirectory(directoryUrl);
   const leads=[];
   // The original directory listing is a bounded HTML document. Tokenize
   // complete tags, not substrings in data-href, quoted attributes or comments.
@@ -69,10 +82,11 @@ export function parseHourlyIndex(html,directoryUrl){
       seen=true;link=attr[2]??attr[3]??attr[4]??null;
     }
     if(!link)continue;
-    let href;
-    try{href=new URL(link,base)}catch{continue}
-    if(href.origin!==base.origin||href.search||href.hash||!href.pathname.startsWith(base.pathname))continue;
-    const candidate=/^PT(\d{3})H00M\.grib2$/.exec(href.pathname.slice(base.pathname.length));
+    // Only a canonical filename, exact absolute URL or exact root-relative
+    // path from this directory is original evidence. Never normalize aliases.
+    const file=link.startsWith(base.href)?link.slice(base.href.length):
+      link.startsWith(base.pathname)?link.slice(base.pathname.length):link;
+    const candidate=/^PT(\d{3})H00M\.grib2$/.exec(file);
     if(!candidate)continue;
     const hour=Number(candidate[1]);
     if(hour>27)continue;
@@ -83,7 +97,7 @@ export function parseHourlyIndex(html,directoryUrl){
   if(!leads.length)throw Error('no advertised hourly DWD originals');
   return leads.sort((a,b)=>a-b);
 }
-export function qualifyHorizon({run,observedAt,fieldHours,siteBytes=null,siteBudgetBytes=900_000_000}){
+export function qualifyHorizon({run,observedAt,fieldHours,siteBytes=null,siteBudgetBytes=MAX_PAGES_BYTES}){
   if(typeof run!=='string'||!/^20\d\d-\d\d-\d\dT\d\d:00$/.test(run))throw Error('invalid UTC run');
   if(typeof observedAt!=='string'||!/^20\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{3})?Z$/.test(observedAt))throw Error('invalid UTC observation time');
   const epoch=Date.parse(run+':00Z'),clock=Date.parse(observedAt);
@@ -99,10 +113,11 @@ export function qualifyHorizon({run,observedAt,fieldHours,siteBytes=null,siteBud
     const present=new Set(hours);
     let contiguous=-1;
     for(let i=0;i<=27;i++){if(!present.has(i))break;contiguous=i;}
+    if(contiguous<0)throw Error('missing lead 0 in '+field+' inventory');
     commonH=Math.min(commonH,contiguous);
   }
+  if(!Number.isSafeInteger(siteBudgetBytes)||siteBudgetBytes<=0||siteBudgetBytes>MAX_PAGES_BYTES)throw Error('untrusted site budget');
   if(siteBytes!==null&&(!Number.isSafeInteger(siteBytes)||siteBytes<0||siteBytes>siteBudgetBytes))throw Error('untrusted site byte count');
-  if(!Number.isSafeInteger(siteBudgetBytes)||siteBudgetBytes<=0||siteBudgetBytes>1_000_000_000)throw Error('untrusted site budget');
   const extraRawBytes=commonH>6?(commonH-6)*FIELDS.length*2*542_040:0;
   return {schema:'mid.ruc.deterministic-directory-coverage.v1',run,observedAt,ageMinutes,
     candidateHorizonHours:commonH,hasOriginalFastPrefix:commonH>=6,
@@ -124,6 +139,7 @@ if(process.argv[1]?.endsWith('/ruc_extended_directory_coverage.mjs')){
  for(let start=0;start<FIELDS.length;start+=3){
   await Promise.all(FIELDS.slice(start,start+3).map(async field=>{
    const directoryUrl=base+field+'/r/'+run+'/s/';
+   canonicalDirectory(directoryUrl);
    const response=await fetch(directoryUrl,{signal:AbortSignal.timeout(12000),redirect:'error',headers:{Accept:'text/html','Accept-Encoding':'identity','User-Agent':'MID-data-RUC-deterministic-directory-probe/1.0'}});
    if(!response.ok)throw Error(field+' original DWD index HTTP '+response.status);
    fieldHours[field]=parseHourlyIndex(await readOriginalIndex(response,directoryUrl),directoryUrl);
