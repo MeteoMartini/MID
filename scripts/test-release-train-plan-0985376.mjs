@@ -656,12 +656,22 @@ test('post-Stable GitHub catalog keeps the original Installer protected and mirr
  assert.ok(!prior.includes('publish-verified-release-catalog.mjs'),'No catalog write before Stable');
 });
 
-test('mandatory .520 release diagnostics: native Logicc and DWD regression suites',()=>{
- const files=['tools/handoff/logicc-result.test.mjs','tools/handoff/logicc-delivery.test.mjs','tools/ruc/ruc_extended_directory_coverage.test.mjs'];
+test('mandatory release diagnostics: native Logicc and DWD regression suites',()=>{
+ const files=['tools/handoff/logicc-result.test.mjs','tools/handoff/logicc-delivery.test.mjs','tools/handoff/logicc-github-transport.test.mjs','tools/handoff/logicc-receipt-store.test.mjs','tools/ruc/ruc_extended_directory_coverage.test.mjs'];
  const checked=spawnSync(process.execPath,['--test',...files],{
   cwd:new URL('..',import.meta.url),encoding:'utf8',timeout:30000,maxBuffer:2*1024*1024
  });
  assert.equal(checked.error,undefined,checked.error?.message);
  assert.equal(checked.signal,null);
  assert.equal(checked.status,0,(checked.stdout||'')+(checked.stderr||''));
+});
+
+test('mandatory .522 EPS targeted original-index diagnostics: stdlib-only offline Python suite',()=>{
+ const checked=spawnSync('python3',['-m','unittest','-v','test_ruc_eps_targeted_gap_probe'],{
+  cwd:new URL('../tools/ruc/',import.meta.url),encoding:'utf8',timeout:30000,maxBuffer:2*1024*1024
+ });
+ assert.equal(checked.error,undefined,checked.error?.message);
+ assert.equal(checked.signal,null);
+ assert.equal(checked.status,0,(checked.stdout||'')+(checked.stderr||''));
+ assert.match(checked.stderr,/Ran [1-9][0-9]* tests?/);
 });
