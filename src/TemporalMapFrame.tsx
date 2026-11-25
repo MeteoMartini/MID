@@ -70,15 +70,15 @@ export function createTemporalMapFrameController(map:MidMap,id:string,env:Enviro
   };
   const install=()=>{if(!active)return;try{
    if(data.raster&&image){const {bounds,resampling,zIndex}=data.raster,[[south,west],[north,east]]=bounds,source=prefix+'-raster',layerId=source+'-layer';
-    frame.sources.push(source);map.addSource(source,{type:'image',coordinates:[[west,north],[east,north],[east,south],[west,south]]});
-    (map.getSource(source) as maplibregl.ImageSource).updateImage({image});
+    frame.sources.push(source);map.addSource(source,{type:'image',coordinates:[[west,north],[east,north],[east,south],[west,south]]});if(!active)return;
+    (map.getSource(source) as maplibregl.ImageSource).updateImage({image});if(!active)return;
     frame.layers.push({id:layerId,alphas:{'raster-opacity':1}});
     map.addLayer({id:layerId,type:'raster',source,paint:{'raster-opacity':opacity*.001,'raster-opacity-transition':{duration:0,delay:0},'raster-fade-duration':0,'raster-resampling':resampling}});
     registerMapLayerOrder(map,layerId,zIndex);
    }
    for(const group of data.groups){if(!group.data?.features?.length)continue;const source=prefix+'-'+safe(group.id);
-    frame.sources.push(source);map.addSource(source,{type:'geojson',data:group.data});
-    group.layers.forEach((spec,index)=>add(source,spec,group.zIndex+index/1000,group.hoverProperty));
+    frame.sources.push(source);map.addSource(source,{type:'geojson',data:group.data});if(!active)return;
+    for(const [index,spec] of group.layers.entries()){if(!active)return;add(source,spec,group.zIndex+index/1000,group.hoverProperty)}
    }
    installed=true;map.on('render',ready);map.triggerRepaint();
   }catch{fail()}};
