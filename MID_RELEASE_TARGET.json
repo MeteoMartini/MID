@@ -1,0 +1,5 @@
+{
+  "fromVersion": "0.9.85.522",
+  "toVersion": "0.9.85.523",
+  "requireSourceOfTruth": true
+}
