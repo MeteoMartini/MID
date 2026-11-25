@@ -134,9 +134,71 @@ export async function inspectStableVersion(repository,stableSha,token) {
   throw Error('Stable version mirrors disagree; block release proposal');
  return v;
 }
+export function prioritizeBacklog(items) {
+ const priority=item=>{
+  const ranks=item.labels.map(label=>/^(?:priority[: /-]*)?p([0-3])$/i.exec(label.name)?.[1]).filter(rank=>rank!==undefined).map(Number);
+  if(ranks.length)return {priority:Math.min(...ranks),prioritySource:'label'};
+  // Only explicit tags in the contiguous leading bracket group; never incidental prose.
+  const prefix=/^\s*((?:\[[^\[\]\r\n]+\]\s*)+)(?=\s|\[|:|$)/.exec(item.title)?.[1]??'';
+  const tags=[...new Set(Array.from(prefix.matchAll(/\[P([0-3])\]/gi),m=>Number(m[1])))];
+  return tags.length===1?{priority:tags[0],prioritySource:'title-tag'}:{priority:null,prioritySource:'unclassified'};
+ };
+ return items.map(item=>({number:item.number,...priority(item),kind:item.pull_request?'pull-request':'issue'})).sort((a,b)=>(a.priority??4)-(b.priority??4)||a.number-b.number);
+}
+
+// Discovery is a read-only inventory, never a release-eligible manifest.
+// Pin main/stable refs across pagination and fail on duplicate/malformed items.
+export async function discoverBacklog(repository,token) {
+  if (!validRepo(repository)) throw Error('Invalid repository');
+  const readRefs=async()=>Promise.all([
+    api(repository,'git/ref/heads/main',token),
+    api(repository,'git/ref/heads/mid-stable',token),
+  ]);
+  const getShas=refs=>refs.map(x=>x?.object?.sha);
+  const start=getShas(await readRefs());
+  if (!start.every(x=>SHA.test(x||''))) throw Error('Invalid discovery branch refs');
+  const rows=[],numbers=new Set();
+  let complete=false;
+  for (let page=1; page<=10; page++) {
+    const batch=await api(repository,'issues?state=open&sort=created&direction=asc&per_page=100&page='+page,token);
+    if (!Array.isArray(batch)||batch.length>100) throw Error('Incomplete backlog inventory');
+    for (const item of batch) {
+      if (!Number.isSafeInteger(item?.number)||item.number<1||numbers.has(item.number)||
+          item.state!=='open'||!Array.isArray(item.labels)||
+          typeof item.title!=='string'||item.labels.some(label=>!label||typeof label.name!=='string')||
+          (Object.hasOwn(item,'pull_request')&&(!item.pull_request||typeof item.pull_request!=='object'||
+            item.pull_request.url!=='https://api.github.com/repos/'+repository+'/pulls/'+item.number)))
+        throw Error('Invalid or duplicate backlog item during pagination');
+      numbers.add(item.number);
+      rows.push(item);
+    }
+    if (batch.length<100) {complete=true;break;}
+  }
+  if (!complete) throw Error('Incomplete backlog inventory (10 pages exceeded)');
+  const end=getShas(await readRefs());
+  if (!end.every(x=>SHA.test(x||''))||start.some((x,i)=>x!==end[i]))
+    throw Error('Main/Stable changed during backlog discovery');
+  const same=start[0]===start[1];
+  return {schema:1,repository,mainSha:start[0],stableSha:start[1],
+    state:same?'ADVISORY_STABLE_SNAPSHOT':'HOLD_MAIN_STABLE_DIVERGED',
+    blockers:same?[]:['MAIN_STABLE_DIVERGED'],
+    releaseAuthorized:false,validForIntegrationReview:false,
+    notice:'Advisory inventory, not an atomic issue snapshot, not a release authorization.',
+    backlog:prioritizeBacklog(rows)};
+}
+
 async function main() {
   const [file,repository] = process.argv.slice(2);
   if (!file || !repository) throw Error('Usage: release-train-plan.mjs <manifest.json> <owner/repo>');
+  if (file==='--discover') {
+    const inventory=await discoverBacklog(repository,process.env.GITHUB_TOKEN||'');
+    process.stdout.write(JSON.stringify(inventory,null,2)+'\n');
+    if(inventory.blockers.length){
+      process.stderr.write('Release discovery HOLD: '+JSON.stringify(inventory.blockers)+'\n');
+      process.exitCode=1;
+    }
+    return;
+  }
   const manifest=validateManifest(JSON.parse(await readFile(file,'utf8')));
   const token=process.env.GITHUB_TOKEN || '';
   const snapshot=await inspectRemoteSnapshot(manifest,repository,token);

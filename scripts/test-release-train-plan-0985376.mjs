@@ -4,7 +4,7 @@ import {classifyReleaseFailure} from '../tools/ci/release-self-heal-classify.mjs
 import {parseMidVersion,makeProposedVersion,analyzeReleaseVersion,analyzeVerifiedReleaseVersion,verifyProposedTarget} from '../tools/ci/mid-release-version-proposal.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {validateManifest,analyzeCandidates,inspectRemote,inspectRemoteSnapshot,inspectStableVersion} from '../tools/ci/release-train-plan.mjs';
+import {validateManifest,analyzeCandidates,inspectRemote,inspectRemoteSnapshot,inspectStableVersion,prioritizeBacklog,discoverBacklog} from '../tools/ci/release-train-plan.mjs';
 const a='a'.repeat(40),b='b'.repeat(40),c='c'.repeat(40);
 const manifest=()=>({schema:1,mainSha:a,stableSha:a,changes:[{pr:501,headSha:b},{pr:502,headSha:c}]});
 const prs=()=>[
@@ -674,4 +674,105 @@ test('mandatory .522 EPS targeted original-index diagnostics: stdlib-only offlin
  assert.equal(checked.signal,null);
  assert.equal(checked.status,0,(checked.stdout||'')+(checked.stderr||''));
  assert.match(checked.stderr,/Ran [1-9][0-9]* tests?/);
+});
+
+test('discovery verifies a pinned main/stable snapshot across paginated issue inventory',async()=>{
+ const previous=globalThis.fetch,sha='a'.repeat(40),calls=[];
+ try {
+  globalThis.fetch=async url=>{
+   const path=String(url);calls.push(path);
+   const data=path.includes('/git/ref/heads/')?{object:{sha}}:[
+    {number:541,state:'open',title:'[P0][RUC] Native freshness',labels:[]},
+    {number:901,state:'open',title:'[P1] Release catalog',labels:[]},
+    {number:987,state:'open',title:'Release PR',labels:[{name:'P2'}],pull_request:{url:'https://api.github.com/repos/MeteoMartini/MID/pulls/987'}}
+   ];
+   return {ok:true,json:async()=>structuredClone(data)};
+  };
+  const result=await discoverBacklog('MeteoMartini/MID','');
+  assert.equal(result.state,'ADVISORY_STABLE_SNAPSHOT');
+  assert.equal(result.mainSha,sha);assert.equal(result.stableSha,sha);
+  assert.equal(result.validForIntegrationReview,false);assert.equal(result.releaseAuthorized,false);
+  assert.deepEqual(result.backlog.map(v=>v.number),[541,901,987]);
+  assert.equal(calls.length,5);
+ }finally{globalThis.fetch=previous;}
+});
+test('discovery preserves a P0 queue but marks main/stable divergence as an advisory HOLD',async()=>{
+ const previous=globalThis.fetch,a='a'.repeat(40),b='b'.repeat(40);
+ try{
+  globalThis.fetch=async url=>{
+   const path=String(url),data=path.endsWith('/git/ref/heads/main')?{object:{sha:b}}:
+    path.endsWith('/git/ref/heads/mid-stable')?{object:{sha:a}}:
+    [{number:541,state:'open',title:'[P0][RUC] Native freshness',labels:[]}];
+   return {ok:true,json:async()=>structuredClone(data)};
+  };
+  const result=await discoverBacklog('MeteoMartini/MID','');
+  assert.equal(result.state,'HOLD_MAIN_STABLE_DIVERGED');
+  assert.deepEqual(result.blockers,['MAIN_STABLE_DIVERGED']);
+  assert.equal(result.releaseAuthorized,false);assert.equal(result.validForIntegrationReview,false);
+  assert.equal(result.backlog[0].number,541);
+ }finally{globalThis.fetch=previous;}
+});
+test('discovery rejects branch drift, duplicate/malformed issue identity, and page overflow',async()=>{
+ const previous=globalThis.fetch,a='a'.repeat(40),b='b'.repeat(40);
+ const request=async kind=>{
+  let reads=0;
+  globalThis.fetch=async url=>{
+   const path=String(url);
+   if(path.includes('/git/ref/heads/')){
+    reads++;
+    return {ok:true,json:async()=>({object:{sha:kind==='drift'&&reads>2?b:a}})};
+   }
+   const item={number:541,state:'open',title:'[P0] RUC',labels:[]};
+   const batch=kind==='duplicates'?[item,item]:
+    kind==='malformed'?[{...item,labels:null}]:
+    kind==='pages'?Array.from({length:100},(_,i)=>({...item,number:i+1})):[item];
+   return {ok:true,json:async()=>batch};
+  };
+  return discoverBacklog('MeteoMartini/MID','');
+ };
+ try {
+  for(const kind of ['drift','duplicates','malformed','pages'])
+   await assert.rejects(request(kind),/changed|duplicate|Incomplete/);
+ }finally{globalThis.fetch=previous;}
+});
+
+test('queue tags, provenance, explicit unknown and no implied release authority',()=>{
+ const items=[
+  {number:541,title:'[P0][RUC] Native freshness',labels:[]},
+  {number:1021,title:'[QA][P1] Karten',labels:[],pull_request:{url:'https://api.github.com/repos/MeteoMartini/MID/pulls/1021'}},
+  {number:1002,title:'[QA DRAFT][P1][Audit 1.5] Missing-as-zero',labels:[]},
+  {number:960,title:'[P0] label wins',labels:[{name:'P2'}]},
+  {number:982,title:'[P9] out of range',labels:[]},
+  {number:983,title:'Context [P0] not-leading',labels:[]},
+  {number:984,title:'[P0] label wins',labels:[{name:'priority:p1'}]},
+  {number:990,title:'RUC P1–P5',labels:[],body:'[P0] body only'},
+  {number:992,title:'[P1][P0] ambiguous',labels:[]},
+  {number:994,title:'[P1]joined prose',labels:[]},
+ ];
+ const result=prioritizeBacklog(items);
+ assert.deepEqual(result.map(x=>[x.number,x.priority,x.prioritySource]),[
+  [541,0,'title-tag'],[984,1,'label'],[1002,1,'title-tag'],[1021,1,'title-tag'],[960,2,'label'],
+  [982,null,'unclassified'],[983,null,'unclassified'],[990,null,'unclassified'],[992,null,'unclassified'],[994,null,'unclassified']]);
+ assert.equal(result.find(x=>x.number===1021).kind,'pull-request');
+ assert.equal(Object.hasOwn(result,'releaseAuthorized'),false);
+});
+test('queue discovery rejects malformed labels and foreign PR markers',async()=>{
+ const previous=globalThis.fetch,sha='a'.repeat(40);
+ try{
+  for(const patch of [{labels:[null]},{labels:[{name:3}]},{pull_request:null},{pull_request:{url:'https://api.github.com/repos/foreign/repo/pulls/1'}}]){
+   globalThis.fetch=async url=>({ok:true,json:async()=>String(url).includes('/git/ref/heads/')?{object:{sha}}:[{number:1,state:'open',title:'[P0] test',labels:[],...patch}]});
+   await assert.rejects(discoverBacklog('MeteoMartini/MID',''),/Invalid or duplicate/);
+  }
+ }finally{globalThis.fetch=previous}
+});
+test('queue workflow uses only existing manual preflight and mirrored read-only permissions',async()=>{
+ const canonical=await readRepositoryFile(new URL('../ci/github/workflows/release-train-preflight.yml',import.meta.url),'utf8');
+ const active=await readRepositoryFile(new URL('../.github/workflows/release-train-preflight.yml',import.meta.url),'utf8');
+ assert.equal(active,canonical);
+ assert.match(canonical,/workflow_dispatch:/);
+ assert.doesNotMatch(canonical,/^  schedule:|pull_request_target|: write$/m);
+ assert.ok(canonical.includes('issues: read'));
+ assert.ok(canonical.includes('PLAN_MODE'));
+ assert.ok(canonical.includes('plan=--discover'));
+ assert.ok(canonical.includes('manifest mode requires a manifest'));
 });
