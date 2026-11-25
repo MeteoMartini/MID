@@ -44,4 +44,19 @@ describe('atomic model weather frame presentation',()=>{
  it('honors reduced motion, opacity and complete cleanup',()=>{
   const f=fixture(true);f.controller.setOpacity(.7);f.stage('a');f.mark();f.tick(1);expect(f.alpha(1,'raster')).toEqual([.7]);expect(f.alpha(1,'line')).toEqual([.7,.7]);f.controller.dispose();expect(f.sources.size).toBe(0);expect(f.layers.size).toBe(0);expect(f.jobs.size).toBe(0);expect(f.timers.size).toBe(0);expect([...f.listeners.values()].every(s=>s.size===0)).toBe(true);
  });
+ it('does not restart identical immutable requests during image loading or fade; latest acknowledgement wins',()=>{
+  const f=fixture();f.stage('a');f.mark();f.tick(350);
+  const first=vi.fn(),latest=vi.fn();f.controller.stage(f.frame('b'),first,f.error);
+  const image=f.images.at(-1);f.controller.stage(f.frame('b'),latest,f.error);expect(f.images.length).toBe(2);
+  image.onload();f.mark();f.tick(175);expect(f.alpha(1,'raster')).toEqual([.5]);
+  f.controller.stage(f.frame('b'),latest,f.error);expect(f.images.length).toBe(2);
+  f.tick(175);expect(first).not.toHaveBeenCalled();expect(latest).toHaveBeenCalledTimes(1);expect(f.sources.size).toBe(3);
+ });
+ it('preserves independent original raster and contour opacity for native maps',()=>{
+  const f=fixture(true),frame=f.frame('native');
+  frame.raster!.opacity=.85;frame.groups[0].layers[0].paint!['line-opacity']=.8;
+  f.controller.stage(frame,()=>f.display('native'),f.error);f.images.at(-1).onload();f.mark();f.tick(1);
+  expect(f.alpha(1,'raster')).toEqual([.85]);expect(f.alpha(1,'line')).toEqual([.8,1]);
+ });
+
 });

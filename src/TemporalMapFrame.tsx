@@ -3,7 +3,7 @@ import * as maplibregl from 'maplibre-gl';
 import {registerMapLayerOrder,unregisterMapLayerOrder,useMidMap,type MidMap,type MidGeoLayer} from './MapLibreCore';
 
 export type TemporalMapGroup={id:string;data:any;layers:MidGeoLayer[];zIndex:number;hoverProperty?:string};
-export type TemporalMapFrameData={key:string;raster?:{url:string;bounds:[[number,number],[number,number]];resampling:'nearest'|'linear';zIndex:number};groups:TemporalMapGroup[]};
+export type TemporalMapFrameData={key:string;raster?:{url:string;bounds:[[number,number],[number,number]];resampling:'nearest'|'linear';zIndex:number;opacity?:number};groups:TemporalMapGroup[]};
 type FrameLayer={id:string;alphas:Record<string,number>;hoverProperty?:string};
 type StagedFrame={key:string;sources:string[];layers:FrameLayer[];cleanup:()=>void};
 type Environment={makeImage:()=>HTMLImageElement;now:()=>number;raf:(fn:FrameRequestCallback)=>number;cancelRaf:(id:number)=>void;timeout:(fn:()=>void,ms:number)=>number;clearTimeout:(id:number)=>void;reducedMotion:()=>boolean};
@@ -15,7 +15,7 @@ const browserEnvironment:Environment={makeImage:()=>new Image(),now:()=>performa
  */
 export function createTemporalMapFrameController(map:MidMap,id:string,env:Environment=browserEnvironment){
  let serial=0,visible:StagedFrame|null=null,pending:StagedFrame|null=null,cancelPending=()=>{},opacity=1,weight=1,disposed=false;
- let clearHover=()=>{};
+ let clearHover=()=>{},pendingReady=()=>{},pendingError=(_message:string)=>{};
  const remove=(frame:StagedFrame|null)=>{if(!frame)return;frame.cleanup();for(const layer of frame.layers){unregisterMapLayerOrder(map,layer.id);try{if(map.getLayer(layer.id))map.removeLayer(layer.id)}catch{}}for(const source of frame.sources){try{if(map.getSource(source))map.removeSource(source)}catch{}}};
  const paint=(frame:StagedFrame|null,factor:number)=>{if(!frame)return;for(const layer of frame.layers){if(!map.getLayer(layer.id))continue;for(const [property,alpha] of Object.entries(layer.alphas))try{map.setPaintProperty(layer.id,property as keyof maplibregl.AllPaintProperties,alpha*opacity*factor)}catch{/* context/layer may have disappeared */}}};
  const intact=(frame:StagedFrame)=>frame.layers.every(layer=>Boolean(map.getLayer(layer.id)))&&frame.sources.every(source=>Boolean(map.getSource(source)));
@@ -36,7 +36,10 @@ export function createTemporalMapFrameController(map:MidMap,id:string,env:Enviro
  const setOpacity=(value:number)=>{opacity=Math.max(0,Math.min(1,value));paint(visible,pending?1-weight:1);paint(pending,Math.max(.001,weight))};
  const stage=(data:TemporalMapFrameData|null,onReady:()=>void,onError:(message:string)=>void)=>{
   if(disposed)return;
-  cancelPending();cancelPending=()=>{};
+  // Identical immutable frame requests (e.g. unrelated React/UI changes) must
+  // neither restart GPU staging nor reset a running fade. Use newest callbacks.
+  if(data&&pending?.key===data.key){pendingReady=onReady;pendingError=onError;return}
+  cancelPending();cancelPending=()=>{};pendingReady=onReady;pendingError=onError;
   // null = pending/unavailable selection, not an instruction to erase the last complete frame.
   if(!data)return;
   if(visible?.key===data.key&&intact(visible)){onReady();return}
@@ -47,8 +50,8 @@ export function createTemporalMapFrameController(map:MidMap,id:string,env:Enviro
   const detach=()=>{map.off('render',ready);map.off('error',sourceError);env.clearTimeout(timer);env.cancelRaf(raf);frame.cleanup()};
   const rollback=()=>{if(!active)return;active=false;detach();pending=null;remove(frame);weight=1;paint(visible,1);hover(visible)};
   cancelPending=rollback;
-  const fail=()=>{if(!active)return;rollback();onError('Kartenbild nicht vollständig renderbar. Der letzte vollständige Modelltermin bleibt sichtbar.')};
-  const finish=()=>{if(!active)return;active=false;detach();const old=visible;visible=frame;pending=null;weight=1;remove(old);paint(visible,1);hover(visible);cancelPending=()=>{};onReady()};
+  const fail=()=>{if(!active)return;rollback();pendingError('Kartenbild nicht vollständig renderbar. Der letzte vollständige Modelltermin bleibt sichtbar.')};
+  const finish=()=>{if(!active)return;active=false;detach();const old=visible;visible=frame;pending=null;weight=1;remove(old);paint(visible,1);hover(visible);cancelPending=()=>{};pendingReady()};
   const fade=(now:number,start:number,duration:number)=>{if(!active)return;if(!intact(frame)){fail();return}
    weight=duration?Math.max(0,Math.min(1,(now-start)/duration)):1;
    paint(visible,1-weight);paint(frame,weight);
@@ -72,8 +75,9 @@ export function createTemporalMapFrameController(map:MidMap,id:string,env:Enviro
    if(data.raster&&image){const {bounds,resampling,zIndex}=data.raster,[[south,west],[north,east]]=bounds,source=prefix+'-raster',layerId=source+'-layer';
     frame.sources.push(source);map.addSource(source,{type:'image',coordinates:[[west,north],[east,north],[east,south],[west,south]]});if(!active)return;
     (map.getSource(source) as maplibregl.ImageSource).updateImage({image});if(!active)return;
-    frame.layers.push({id:layerId,alphas:{'raster-opacity':1}});
-    map.addLayer({id:layerId,type:'raster',source,paint:{'raster-opacity':opacity*.001,'raster-opacity-transition':{duration:0,delay:0},'raster-fade-duration':0,'raster-resampling':resampling}});
+    const rasterAlpha=data.raster.opacity??1;if(!Number.isFinite(rasterAlpha)||rasterAlpha<0||rasterAlpha>1)throw Error('Invalid raster opacity');
+    frame.layers.push({id:layerId,alphas:{'raster-opacity':rasterAlpha}});
+    map.addLayer({id:layerId,type:'raster',source,paint:{'raster-opacity':rasterAlpha*opacity*.001,'raster-opacity-transition':{duration:0,delay:0},'raster-fade-duration':0,'raster-resampling':resampling}});
     registerMapLayerOrder(map,layerId,zIndex);
    }
    for(const group of data.groups){if(!group.data?.features?.length)continue;const source=prefix+'-'+safe(group.id);
