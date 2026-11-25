@@ -136,7 +136,7 @@ def parse_case(value):
 def validate_cases(cases, observed_at):
     if not isinstance(cases, list) or not 1 <= len(cases) <= MAX_CASES:
         raise ValueError('case count out of bounds')
-    if not isinstance(observed_at, datetime) or observed_at.tzinfo is None:
+    if not isinstance(observed_at, datetime) or observed_at.utcoffset() is None:
         raise ValueError('observation must be timezone-aware')
     now = observed_at.astimezone(timezone.utc)
     checked = set()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Offline adversarial original-index QA; no actual HTTP or GRIB reads."""
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, tzinfo
 import unittest
 import contextlib
 import io
@@ -267,6 +267,15 @@ class TargetedGapTest(unittest.TestCase):
         self.assertNotIn('private-marker',stderr.getvalue())
         self.assertIn('child failed',stderr.getvalue())
 
+
+class ObservationTimezoneRegression(unittest.TestCase):
+    def test_rejects_timezone_without_utc_offset(self):
+        class UnknownOffset(tzinfo):
+            def utcoffset(self, value):
+                return None
+
+        with self.assertRaisesRegex(ValueError, 'observation must be timezone-aware'):
+            qa.validate_cases(CASES, NOW.replace(tzinfo=UnknownOffset()))
 
 if __name__ == '__main__':
     unittest.main()
