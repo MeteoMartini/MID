@@ -45,3 +45,6 @@ if(panel.includes('<details className="model-run-details"'))failures.push('Veral
 if(app.includes('<details ref={ref} open={open} className="model-run-details"'))failures.push('Veralteter nativer Details-Button für Best-Match-Modellstände ist noch aktiv.');
 if(failures.length){console.error('Popover-Regression fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Popover-Regression bestanden: gemeinsame App-Portalprimitive sowie Ensemble-Spezialtooltips schließen per Außenklick/Escape und bleiben viewportfest.');
+
+// Execute the real React portal fixture within the existing registered Draft and full regression.
+await import('./lib/dialog-focus-browser-qa.mjs');
