@@ -4,6 +4,15 @@ import {modelMapDisplayFactor,modelMapUnit,modelMapValue} from './modelMapUnits'
 import type {WindUnit} from './weather';
 
 export type RasterExtreme={type:'Min'|'Max';lat:number;lon:number;value:number};
+export type RasterDisplayExtreme=RasterExtreme&{uniform:boolean};
+// Product-specific annotation policy, not a change to the mathematical range.
+// Both endpoints remain available to contour generation and quantitative scales.
+const extremeModes:Record<NativeField['kind'],'both'|'max'|'none'>={
+ temperature:'both',pressure:'both',thetae:'both',cloud:'both',
+ precipitation:'max',wind:'max',gust:'max',sigwx:'none'
+};
+export const rasterExtremeMode=(kind:NativeField['kind'])=>extremeModes[kind];
+export const rasterExtremeLabel=(point:RasterDisplayExtreme)=>point.uniform?'Einheitlicher Wert':point.type==='Min'?'Minimum':'Maximum';
 export type RasterViewport={south:number;west:number;north:number;east:number};
 /** MapLibre longitudes can be unwrapped across the antimeridian. */
 function visibleLongitude(lon:number,west:number,east:number){
@@ -43,6 +52,18 @@ export function nativeRasterExtremes(field:ScalarRaster,viewport?:RasterViewport
  }
  if(lo<0)return [];
  return ([['Min',lo],['Max',hi]] as const).map(([type,i])=>({type,lat:field.lats[Math.floor(i/field.lons.length)],lon:field.lons[i%field.lons.length],value:field.values[i]*field.scale}));
+}
+/** Display-only filtering, shared by interactive viewport markers and exports.
+ * A genuine zero maximum is valid; categorical codes have no numeric ranking.
+ * Uniform bidirectional fields get one neutral label, not a spurious minimum.
+ */
+export function nativeDisplayedExtremes(field:ScalarRaster,viewport?:RasterViewport):RasterDisplayExtreme[]{
+ const mode=rasterExtremeMode(field.kind);
+ if(mode==='none'||!mode)return [];
+ const points=nativeRasterExtremes(field,viewport);
+ if(mode==='max')return points.filter(p=>p.type==='Max').map(p=>({...p,uniform:false}));
+ if(points.length===2&&points[0].value===points[1].value)return [{...points[0],uniform:true}];
+ return points.map(p=>({...p,uniform:false}));
 }
 /** Piecewise-linear isolines of the published regular grid. No spatial thinning,
  * smoothing or extrapolation. Missing corners exclude the entire quad. A fixed
@@ -96,9 +117,8 @@ export function scalarLineFeatures(lines:ScalarLine[]){return {type:'FeatureColl
 
 export function nativeAnnotationSvg(field:NativeField,unit:WindUnit,options:NativeAnnotationOptions,x:(lon:number)=>number,y:(lat:number)=>number){
  const xml=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]!));
- const lines=options.lines?nativeScalarLines(field,unit):[],extremes=options.extremes===false?[]:nativeRasterExtremes(field);
+ const lines=options.lines?nativeScalarLines(field,unit):[],extremes=options.extremes===false?[]:nativeDisplayedExtremes(field);
  const text=(lon:number,lat:number,label:string,color='#20384d')=>`<text x="${x(lon).toFixed(1)}" y="${y(lat).toFixed(1)}" text-anchor="middle" font-family="Arial" font-size="10" font-weight="400" fill="${color}" fill-opacity=".52" stroke="white" stroke-opacity=".2" stroke-width="1.4" paint-order="stroke">${xml(label)}</text>`;
- const extremeNumber=(lon:number,lat:number,label:string,type:'Min'|'Max')=>`<text x="${x(lon).toFixed(1)}" y="${y(lat).toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="12" font-weight="600" fill="#fff" stroke="#17232b" stroke-width="2.5" stroke-opacity=".8" paint-order="stroke" role="img" aria-label="${xml(type==='Min'?'Minimum':'Maximum')}: ${xml(label)}">${xml(label)}</text>`;
- const uniform=extremes.length===2&&extremes[0].value===extremes[1].value;
- return `<g class="native-scalar-annotations">${lines.map(l=>{const p=l.path[Math.floor(l.path.length/2)];return `<path d="${l.path.map(([lon,lat],i)=>`${i?'L':'M'}${x(lon).toFixed(1)},${y(lat).toFixed(1)}`).join(' ')}" fill="none" stroke="#20384d" stroke-width=".7" stroke-opacity=".32"/>${text(p[0],p[1],l.label)}`}).join('')}${extremes.filter((_,i)=>!uniform||i===0).map(p=>extremeNumber(p.lon,p.lat,modelMapValue(field.kind,p.value,field.unit,unit),p.type)).join('')}</g>`;
+ const extremeNumber=(lon:number,lat:number,label:string,point:RasterDisplayExtreme)=>`<text x="${x(lon).toFixed(1)}" y="${y(lat).toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="12" font-weight="600" fill="#fff" stroke="#17232b" stroke-width="2.5" stroke-opacity=".8" paint-order="stroke" role="img" aria-label="${xml(rasterExtremeLabel(point))}: ${xml(label)}">${xml(label)}</text>`;
+ return `<g class="native-scalar-annotations">${lines.map(l=>{const p=l.path[Math.floor(l.path.length/2)];return `<path d="${l.path.map(([lon,lat],i)=>`${i?'L':'M'}${x(lon).toFixed(1)},${y(lat).toFixed(1)}`).join(' ')}" fill="none" stroke="#20384d" stroke-width=".7" stroke-opacity=".32"/>${text(p[0],p[1],l.label)}`}).join('')}${extremes.map(p=>extremeNumber(p.lon,p.lat,modelMapValue(field.kind,p.value,field.unit,unit),p)).join('')}</g>`;
 }
