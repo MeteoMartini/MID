@@ -86,7 +86,7 @@ export function parseHourlyIndex(html,directoryUrl){
     // path from this directory is original evidence. Never normalize aliases.
     const file=link.startsWith(base.href)?link.slice(base.href.length):
       link.startsWith(base.pathname)?link.slice(base.pathname.length):link;
-    const candidate=/^PT(\d{3})H00M\.grib2$/.exec(file);
+    const candidate=/^PT(\d{3})H00M\.grib2(?:\.bz2)?$/.exec(file);
     if(!candidate)continue;
     const hour=Number(candidate[1]);
     if(hour>27)continue;
@@ -133,6 +133,7 @@ export function qualifyHorizon({run,observedAt,fieldHours,siteBytes=null,siteBud
 // Bounded read-only invocation: node tools/ruc/ruc_extended_directory_coverage.mjs 2026-11-23T08:00 [siteBytes]
 if(process.argv[1]?.endsWith('/ruc_extended_directory_coverage.mjs')){
  const run=process.argv[2],siteText=process.argv[3];
+ if(siteText!==undefined&&!/^\d+$/.test(siteText))throw Error('invalid siteBytes');
  if(!/^20\d\d-\d\d-\d\dT\d\d:00$/.test(run||''))throw Error('explicit canonical DWD run required');
  const fieldHours={};
  const base='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/';
