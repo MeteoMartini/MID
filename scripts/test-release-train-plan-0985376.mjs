@@ -413,6 +413,8 @@ test('trusted bot never repackages another SHA after approved merge or stale Sou
    'sleep() { reads=$((reads+1)); }',
    'gh() {',
    ' if [ "$1" = api ]; then',
+   '  if [ "$MODE" = invalid ]; then echo "$EXPECTED_PACKAGE_SHA"; return; fi',
+   '  if [ "$MODE" = drift ] && [ "$reads" -gt 0 ]; then return 1; fi',
    '  if [ "$MODE" = converges ] && [ "$reads" -ge 1 ]; then echo "$EXPECTED_PACKAGE_SHA"; else echo "$OTHER_SHA"; fi',
    ' else',
    '  echo DISPATCH',
@@ -423,6 +425,7 @@ test('trusted bot never repackages another SHA after approved merge or stale Sou
    encoding:'utf8',env:{...process.env,MODE:mode,EXPECTED_PACKAGE_SHA:sha,OTHER_SHA:b,GITHUB_REPOSITORY:'MeteoMartini/MID'},
   });
   assert.equal(result.status,status,mode+': '+result.stderr);
+  if(mode==='drift') assert.ok(result.stderr.includes('('+a+'); last read: '+b+'.'));
   assert.equal(result.stdout.split('\n').filter(line=>line==='DISPATCH').length,writes,mode);
  }
  assert.doesNotMatch(canonical,/Release-Paket wird aus dem neuesten main-Stand neu erzeugt/);
