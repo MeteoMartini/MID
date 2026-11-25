@@ -9,9 +9,12 @@ describe('MID Design 1.13 shared dialog focus wiring',()=>{
   expect(portal).toContain(".filter(element=>appLayerFocusEligibleElement(element))");
   expect(portal).not.toContain("element.getClientRects().length>0||element===document.activeElement");
  });
- it('chooses the first *eligible* explicitly marked autofocus target',()=>{
-  expect(portal).toContain(".find(element=>appLayerFocusEligibleElement(element,true))");
+ it('tries every explicitly marked autofocus target before natural Tab targets and verifies actual focus',()=>{
+  expect(portal).toContain("const preferred=Array.from(layer.querySelectorAll<HTMLElement>('[autofocus],[data-mid-autofocus]'))");
+  expect(portal).toContain('for(const candidate of new Set([...preferred,...appFocusableElements(layer)]))');
+  expect(portal).toContain('if(!appLayerFocusEligibleElement(candidate,true))continue;candidate.focus({preventScroll:true});if(document.activeElement===candidate)return');
   expect(portal).not.toContain("const preferred=layer.querySelector<HTMLElement>('[autofocus],[data-mid-autofocus]')");
+  expect(portal).not.toContain(".find(element=>appLayerFocusEligibleElement(element,true))");
  });
  it('does not steal focus from an eligible control already inside the opened layer',()=>{
   expect(portal).toContain("layer.contains(document.activeElement)");
