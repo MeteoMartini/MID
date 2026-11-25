@@ -41,7 +41,7 @@ async function readBoundedJson(response) {
 
 // The host supplies a scoped installation token provider, the expected app
 // actor and a durable, atomic receipt store. Callers supply only the result.
-export async function sendLogiccResult(result, assignment, {getInstallationToken, reserve, expectedActor}) {
+export function createLogiccCommentTransport(getInstallationToken) {
   if (typeof getInstallationToken !== 'function') {
     throw new TypeError('Logicc installation token provider is missing');
   }
@@ -69,10 +69,12 @@ export async function sendLogiccResult(result, assignment, {getInstallationToken
     }
     return readBoundedJson(response);
   }
-  return deliverLogiccResult(result, assignment, {
-    reserve,
-    expectedActor,
+  return Object.freeze({
     publish: ({body}) => request('/1007/comments', 'POST', body),
-    readback: ({commentId}) => request('/comments/' + commentId, 'GET'),
+    readback: ({commentId}) => {if(!Number.isSafeInteger(commentId)||commentId<=0)throw new TypeError('Invalid comment ID');return request('/comments/' + commentId, 'GET');},
   });
+}
+
+export async function sendLogiccResult(result, assignment, {getInstallationToken, reserve, expectedActor}) {
+  return deliverLogiccResult(result, assignment, {reserve,expectedActor,...createLogiccCommentTransport(getInstallationToken)});
 }
