@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "version": "0.9.85.522",
+  "title": "Isolierte Logicc- und EPS-Diagnoseintegrität",
+  "date": "2026-11-25",
+  "external": [
+    "Technisches Wartungsupdate: zusätzliche interne Sicherheits- und Datenqualitätsprüfungen. Keine neue aktive Datenquelle oder Schreibfreigabe."
+  ],
+  "internal": [
+    "#1017: fest gebundener, noch nicht aktivierter Rückgabetransport und SQLite-Quittungsledger; begrenzte UTF-8-JSON-Antworten und negative Transporttests; keine neue Ressource, kein Token, kein Live-POST.",
+    "#1000: gezielte, rein lesende EPS-Indexdiagnose; kanonische Original-URLs, keine Redirects, komprimierte Namen, mehrdeutige Links fail-closed; keine GRIB-Zulassung. Beide Testpakete in bestehende Pflichtregressionen integriert."
+  ],
+  "sourceOfTruth": [
+    "Basis: main=mid-stable=Tag v0.9.85.521 @ 8c47a4d26c897dc428a80c814f27bbe847a1650f; Installer 45589782327 und Katalog erfolgreich.",
+    "Originalkandidaten #1017 4c7a785bc15a78e210936c500faa5ad207132a95 und #1000 41b8083c1a5f6a53d186df936aea650b1932c9af; nur selektive Dateiübernahme auf aktueller Basis, .521-Regression erhalten. Neue kombinierte Tests noch zu qualifizieren.",
+    "#1007/#1014 Owner-Pfad und authentifizierte Abnahme, #541 tatsächliche RUC/EPS-Vollversorgung und #901 historische Katalog-Recovery bleiben separat offen."
+  ]
+}
