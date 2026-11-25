@@ -333,6 +333,22 @@ def run_cli_with_deadline(command, timeout=WALL_BUDGET_SECONDS):
         return 124
     if completed.returncode != 0:
         # No partial JSON can be mistaken for source evidence.
+        # Only forward known, fixed validation messages. Arbitrary child
+        # stderr may contain paths, supplied arguments or unexpected data.
+        if completed.returncode == 2:
+            allowed = ('invalid canonical UTC run', 'invalid calendar run',
+                       'invalid case', 'expected UTC-run,member,lead-hours',
+                       'expected two-digit member 01..20',
+                       'expected three-digit UTC lead 000..027',
+                       'case count out of bounds', 'duplicate tuple',
+                       'case outside original four-hour freshness window',
+                       'too many model runs',
+                       'the following arguments are required: --case')
+            tail = completed.stderr[-4096:].decode('utf-8', errors='replace').splitlines()
+            for message in allowed:
+                if tail and tail[-1].endswith(': error: ' + message):
+                    print('EPS index diagnostic: ' + message, file=sys.stderr)
+                    return 2
         print('EPS index diagnostic child failed; no evidence emitted', file=sys.stderr)
         return completed.returncode if completed.returncode > 0 else 1
     sys.stdout.buffer.write(completed.stdout)

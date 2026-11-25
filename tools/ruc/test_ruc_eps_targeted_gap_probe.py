@@ -222,6 +222,51 @@ class TargetedGapTest(unittest.TestCase):
         self.assertEqual(stdout.getvalue(),'')
         self.assertIn('deadline exceeded',stderr.getvalue())
 
+    def test_public_entrypoint_validation_and_deadline(self):
+        # Exercise the actual isolated child, not just the supervisor helper.
+        # Invalid/stale cases are rejected before any network access.
+        for args, message in [
+            (['--case','invalid'], 'expected UTC-run,member,lead-hours'),
+            (['--case','2000-01-01T00:00,09,002'], 'case outside original four-hour freshness window'),
+        ]:
+            with self.subTest(args=args):
+                stdout,stderr=io.StringIO(),io.StringIO()
+                with contextlib.redirect_stdout(stdout),contextlib.redirect_stderr(stderr):
+                    code=qa.main(args)
+                self.assertEqual(code,2)
+                self.assertEqual(stdout.getvalue(),'')
+                self.assertIn(message,stderr.getvalue())
+        # Inject only the child-process transport. The real public entrypoint
+        # must use the supervisor and enforce the configured deadline.
+        original=qa.subprocess.run
+        calls=[]
+        def slow_child(command, **kwargs):
+            calls.append((command,kwargs))
+            self.assertEqual(kwargs['timeout'],qa.WALL_BUDGET_SECONDS)
+            self.assertEqual(kwargs['stdout'],qa.subprocess.PIPE)
+            self.assertEqual(kwargs['stderr'],qa.subprocess.PIPE)
+            return original([sys.executable,'-c',"import time; print('partial',flush=True); time.sleep(20)"],
+                            **dict(kwargs,timeout=0.25))
+        stdout,stderr=io.StringIO(),io.StringIO()
+        with patch.object(qa.subprocess,'run',side_effect=slow_child),contextlib.redirect_stdout(stdout),contextlib.redirect_stderr(stderr):
+            code=qa.main(['--case','2026-11-23T11:00,09,002'])
+        self.assertEqual(code,124)
+        self.assertEqual(len(calls),1)
+        self.assertEqual(calls[0][0][:3],[sys.executable,'-I','-c'])
+        self.assertEqual(calls[0][0][-2:],['--case','2026-11-23T11:00,09,002'])
+        self.assertEqual(stdout.getvalue(),'')
+        self.assertIn('deadline exceeded',stderr.getvalue())
+
+    def test_child_failure_does_not_echo_untrusted_stderr_or_stdout(self):
+        stdout,stderr=io.StringIO(),io.StringIO()
+        with contextlib.redirect_stdout(stdout),contextlib.redirect_stderr(stderr):
+            code=qa.run_cli_with_deadline([sys.executable,'-c',
+                "import sys; print('partial'); print('private-marker',file=sys.stderr); sys.exit(2)"])
+        self.assertEqual(code,2)
+        self.assertEqual(stdout.getvalue(),'')
+        self.assertNotIn('private-marker',stderr.getvalue())
+        self.assertIn('child failed',stderr.getvalue())
+
 
 if __name__ == '__main__':
     unittest.main()
