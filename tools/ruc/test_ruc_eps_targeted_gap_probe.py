@@ -178,7 +178,9 @@ class TargetedGapTest(unittest.TestCase):
                      '<base href="https://example.org/">'+html([2]),
                      '<title><a href="PT002H00M.grib2">fake</a></title>'+html([1]),
                      '<title>unfinished'+html([2]),html([1],['PT002H00M.GRIB2'])]:
-            with self.assertRaises(ValueError):qa.classify_index(body,url,2)
+            with self.subTest(body=body):
+                with self.assertRaises(ValueError):qa.classify_index(body,url,2)
+        self.assertEqual(qa.classify_index('<title>Index of directory</title>'+html([2]),url,2)['directoryStatus'],'ADVERTISED')
         self.assertEqual(qa.classify_index(html([],['PT002H00M.grib2.bz2']),url,2)['directoryStatus'],'ADVERTISED')
         with self.assertRaises(ValueError):qa.classify_index(html([2],['PT002H00M.grib2.bz2']),url,2)
         with self.assertRaisesRegex(ValueError,'redirected'):

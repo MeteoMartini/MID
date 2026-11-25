@@ -67,6 +67,12 @@ class Anchors(HTMLParser):
         elif self.in_title:
             raise ValueError('unexpected closing tag inside directory title')
 
+    def handle_data(self, data):
+        # HTMLParser versions differ in whether title markup is emitted as
+        # tags or RCDATA. Reject markup in both paths.
+        if self.in_title and '<' in data:
+            raise ValueError('unexpected markup inside directory title')
+
 
 def run_epoch(run):
     if not isinstance(run, str) or not RUN_RE.fullmatch(run):
