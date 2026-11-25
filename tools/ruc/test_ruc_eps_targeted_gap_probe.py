@@ -2,6 +2,9 @@
 """Offline adversarial original-index QA; no actual HTTP or GRIB reads."""
 from datetime import datetime, timedelta, timezone
 import unittest
+import contextlib
+import io
+import sys
 from email.message import Message
 from http.client import HTTPResponse
 from io import BytesIO
@@ -16,10 +19,14 @@ CASES = [qa.parse_case('2026-11-23T11:00,09,002'),
          qa.parse_case('2026-11-23T10:00,01,009')]
 
 
+def document(content, head='<title>Index of directory</title>'):
+    return '<!DOCTYPE html><html><head>'+head+'</head><body><pre>'+content+'</pre></body></html>'
+
+
 def html(leads, extra=()):
-    return '<a href="../">Parent</a>' + ''.join(
+    return document('<a href="../">Parent</a>' + ''.join(
         f'<a href="PT{h:03d}H00M.grib2">{h}</a>' for h in leads
-    ) + ''.join(f'<a href="{x}">{x}</a>' for x in extra)
+    ) + ''.join(f'<a href="{x}">{x}</a>' for x in extra))
 
 
 class TargetedGapTest(unittest.TestCase):
@@ -173,18 +180,47 @@ class TargetedGapTest(unittest.TestCase):
         for href in ['./PT002H00M.grib2',url.replace('opendata.dwd.de','opendata.dwd.de:443')+'PT002H00M.grib2',
                      '%50T002H00M.grib2',url.replace('/s/','/s/../s/')+'PT002H00M.grib2']:
             with self.assertRaises(ValueError):qa.classify_index(html([1],[href]),url,2)
-        for body in ['<a href="PT001H00M.grib2" href="PT002H00M.grib2">x</a>',
-                     '<template><a href="PT002H00M.grib2">x</a></template>',
-                     '<base href="https://example.org/">'+html([2]),
-                     '<title><a href="PT002H00M.grib2">fake</a></title>'+html([1]),
-                     '<title>unfinished'+html([2]),html([1],['PT002H00M.GRIB2'])]:
+        for body in [document('<a href="PT001H00M.grib2" href="PT002H00M.grib2">x</a>'),
+                     document('<template><a href="PT002H00M.grib2">x</a></template>'),
+                     document('<a href="PT002H00M.grib2">x</a>', '<base href="https://example.org/">'),
+                     document('<a href="PT001H00M.grib2">x</a>', '<title><a href="PT002H00M.grib2">fake</a></title>'),
+                     document('<a href="PT002H00M.grib2">x</a>', '<title>unfinished'),html([1],['PT002H00M.GRIB2'])]:
             with self.subTest(body=body):
                 with self.assertRaises(ValueError):qa.classify_index(body,url,2)
-        self.assertEqual(qa.classify_index('<title>Index of directory</title>'+html([2]),url,2)['directoryStatus'],'ADVERTISED')
+        self.assertEqual(qa.classify_index(html([2]),url,2)['directoryStatus'],'ADVERTISED')
         self.assertEqual(qa.classify_index(html([],['PT002H00M.grib2.bz2']),url,2)['directoryStatus'],'ADVERTISED')
         with self.assertRaises(ValueError):qa.classify_index(html([2],['PT002H00M.grib2.bz2']),url,2)
         with self.assertRaisesRegex(ValueError,'redirected'):
             qa.RejectRedirect().redirect_request(None,None,302,'Found',{},url)
+
+    def test_truncated_html_never_proves_absence(self):
+        complete=html([1])
+        for body in [
+            complete[:-7], complete.replace('</body>',''),
+            complete.replace('</pre>',''), complete.replace('</a>','',1),
+            complete.replace('</pre>','<!-- unfinished </pre>'),
+            complete.replace('</pre>','<a href="unfinished </pre>'),
+            complete.replace('</pre>','<a href="PT002H00M.grib2"/> </pre>'),
+            '<html><head></head></html>', complete+'<!-- unfinished',
+            '<a href="PT001H00M.grib2">1</a>',
+        ]:
+            with self.subTest(body=body):
+                result=qa.probe(CASES[:1],observed_at=NOW,fetch_index=lambda _url:body)
+                self.assertEqual(result['cases'][0]['directoryStatus'],'UNKNOWN')
+                self.assertFalse(result['publicationAuthorized'])
+        self.assertEqual(qa.classify_index(complete,qa.index_url(CASES[0]['run'],9),2)['directoryStatus'],'NOT_ADVERTISED')
+
+    def test_process_deadline_discards_partial_evidence(self):
+        # Real subprocess, no DWD access: a slow child emits partial output
+        # before blocking. It must be killed, and stdout must stay empty.
+        stdout=io.StringIO()
+        stderr=io.StringIO()
+        with contextlib.redirect_stdout(stdout),contextlib.redirect_stderr(stderr):
+            code=qa.run_cli_with_deadline([sys.executable,'-c',
+                "import time; print('partial',flush=True); time.sleep(20)"],timeout=0.25)
+        self.assertEqual(code,124)
+        self.assertEqual(stdout.getvalue(),'')
+        self.assertIn('deadline exceeded',stderr.getvalue())
 
 
 if __name__ == '__main__':

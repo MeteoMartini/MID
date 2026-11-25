@@ -11,7 +11,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as
 from datetime import datetime, timedelta, timezone
 from html.parser import HTMLParser
 import json
+from pathlib import Path
 import re
+import subprocess
+import sys
 from urllib.parse import urlsplit
 from urllib.request import Request, HTTPRedirectHandler, build_opener
 
@@ -38,40 +41,71 @@ urlopen = build_opener(RejectRedirect()).open
 
 
 class Anchors(HTMLParser):
+    """Conservative explicit HTML envelope; not a general browser HTML parser."""
+    VOID = frozenset({'area','br','col','embed','hr','img','input','link','meta',
+                      'param','source','track','wbr'})
+    INERT = frozenset({'base','template','script','style','textarea','xmp','iframe',
+                       'noembed','noframes','noscript','plaintext','svg','math','object'})
+
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self.hrefs = []
-        self.in_title = False
+        self.stack = []
+        self.seen_html = False
+        self.seen_head = False
+        self.seen_body = False
+        self.closed_html = False
 
     def handle_starttag(self, tag, attrs):
-        # Original Apache directory indexes do not require these elements.
-        # Refuse ambiguous or inert HTML instead of treating fake links as data.
-        if self.in_title:
-            raise ValueError('unexpected tag inside directory title')
-        if tag.lower() == 'title':
-            self.in_title = True
-            return
-        if tag.lower() in {'base','template','script','style','textarea',
-                            'xmp','iframe','noembed','noframes','noscript','plaintext'}:
-            raise ValueError('unexpected inert or base element in original index')
-        if tag.lower() == 'a':
+        if self.closed_html or 'title' in self.stack or tag in self.INERT:
+            raise ValueError('unexpected or inert directory markup')
+        if tag == 'html':
+            if self.seen_html or self.stack:
+                raise ValueError('duplicate directory root')
+            self.seen_html = True
+        elif not self.stack:
+            raise ValueError('directory markup outside root')
+        if tag in {'head','body'}:
+            if self.stack != ['html'] or self.seen_body or (tag == 'head' and self.seen_head):
+                raise ValueError('ambiguous directory envelope')
+            if tag == 'head':
+                self.seen_head = True
+            else:
+                self.seen_body = True
+        elif tag != 'html' and not any(x in self.stack for x in ('head','body')):
+            raise ValueError('directory markup outside head/body')
+        if tag == 'a':
+            if 'body' not in self.stack or 'a' in self.stack:
+                raise ValueError('misplaced or nested directory link')
             hrefs = [value for name, value in attrs if name.lower() == 'href']
-            if len(hrefs) > 1:
-                raise ValueError('ambiguous original href')
-            if len(hrefs) == 1 and isinstance(hrefs[0], str):
-                self.hrefs.append(hrefs[0])
+            if len(hrefs) != 1 or not isinstance(hrefs[0], str) or not hrefs[0]:
+                raise ValueError('missing or ambiguous original href')
+            self.hrefs.append(hrefs[0])
+        if tag not in self.VOID:
+            self.stack.append(tag)
+
+    def handle_startendtag(self, tag, attrs):
+        if tag not in self.VOID:
+            raise ValueError('unexpected self-closing directory element')
+        self.handle_starttag(tag, attrs)
 
     def handle_endtag(self, tag):
-        if tag.lower() == 'title':
-            self.in_title = False
-        elif self.in_title:
-            raise ValueError('unexpected closing tag inside directory title')
+        if not self.stack or self.stack[-1] != tag:
+            raise ValueError('unbalanced directory markup')
+        self.stack.pop()
+        if tag == 'html':
+            if not self.seen_body:
+                raise ValueError('missing directory body')
+            self.closed_html = True
 
     def handle_data(self, data):
-        # HTMLParser versions differ in whether title markup is emitted as
-        # tags or RCDATA. Reject markup in both paths.
-        if self.in_title and '<' in data:
-            raise ValueError('unexpected markup inside directory title')
+        # HTMLParser may emit incomplete markup or RCDATA as text.
+        if '<' in data or (not self.stack and data.strip()):
+            raise ValueError('unverified directory text/markup')
+
+    def verify_complete(self):
+        if self.stack or not self.closed_html or not self.seen_body:
+            raise ValueError('incomplete directory HTML envelope')
 
 
 def run_epoch(run):
@@ -188,11 +222,14 @@ def classify_index(body, directory, lead):
     canonical_directory(directory)
     if type(lead) is not int or not 0 <= lead <= 27:
         raise ValueError('invalid lead')
+    # A fully framed HTTP response can still contain truncated HTML.
+    # Require explicit final root closure and balanced parsed elements.
+    if not body.rstrip().lower().endswith('</html>'):
+        raise ValueError('incomplete directory HTML ending')
     anchors = Anchors()
     anchors.feed(body)
     anchors.close()
-    if anchors.in_title:
-        raise ValueError('unclosed directory title')
+    anchors.verify_complete()
     names = set()
     grib_count = 0
     for href in anchors.hrefs:
@@ -226,6 +263,8 @@ def probe(cases, *, observed_at=None, fetch_index=read_original_index):
     unique = {(c['run'], c['member']) for c in cases}
     results = {}
     # At most 8 source indexes and 4 concurrent requests, no retries or writes.
+    # The library's wait budget is soft; main() supervises the entire CLI
+    # child process so even socket/DNS/thread cleanup cannot extend its runtime.
     with ThreadPoolExecutor(max_workers=min(MAX_WORKERS, len(unique))) as pool:
         futures = {pool.submit(fetch_index, index_url(run, member)): (run, member)
                    for run, member in sorted(unique)}
@@ -269,7 +308,7 @@ def probe(cases, *, observed_at=None, fetch_index=read_original_index):
             'warning': 'Directory-only observation: can change after publication, no GRIB/header/member/value admission.'}
 
 
-def main():
+def _run_cli():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--case', dest='cases', action='append', required=True,
                         help='exact init,member,hour: 2026-11-23T11:00,09,002')
@@ -281,6 +320,33 @@ def main():
     print(json.dumps(report, separators=(',', ':'), ensure_ascii=False, allow_nan=False))
     # 0 = bounded audit completed; explicitly NOT a full EPS20 source-green signal.
     return 0
+
+
+def run_cli_with_deadline(command, timeout=WALL_BUDGET_SECONDS):
+    """Supervise one read-only child; discard partial output on any failure."""
+    try:
+        completed = subprocess.run(command, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, timeout=timeout,
+                                   check=False)
+    except subprocess.TimeoutExpired:
+        print('EPS index diagnostic deadline exceeded; no evidence emitted', file=sys.stderr)
+        return 124
+    if completed.returncode != 0:
+        # No partial JSON can be mistaken for source evidence.
+        print('EPS index diagnostic child failed; no evidence emitted', file=sys.stderr)
+        return completed.returncode if completed.returncode > 0 else 1
+    sys.stdout.buffer.write(completed.stdout)
+    return 0
+
+
+def main(argv=None):
+    # A separate process, not non-daemon threads, is the cancellation boundary.
+    # subprocess.run kills and reaps it on timeout after process creation.
+    args = sys.argv[1:] if argv is None else argv
+    command = [sys.executable, '-I', '-c',
+               "import runpy,sys; ns=runpy.run_path(sys.argv.pop(1)); raise SystemExit(ns['_run_cli']())",
+               str(Path(__file__).resolve()), *args]
+    return run_cli_with_deadline(command)
 
 
 if __name__ == '__main__':
