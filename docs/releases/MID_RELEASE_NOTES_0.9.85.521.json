@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "version": "0.9.85.521",
+  "title": "Zuverlässiger Start des Release-Installers",
+  "date": "2026-11-25",
+  "external": [
+    "Technisches Wartungsupdate für den Veröffentlichungsprozess."
+  ],
+  "internal": [
+    "Der Release-Bot liest den Paket-SHA nach dem Push bei Bedarf erneut und startet den Installer einmalig mit dem exakt bestätigten SHA.",
+    "Die Pflichtregression führt die tatsächliche Shell-Logik mit simulierten GitHub-Antworten aus."
+  ],
+  "sourceOfTruth": [
+    "Basis: MID .520 @ cacaf877c3d06b71f8bde39e3d79f953ac29a8f2. Installer 45574997445 veröffentlichte Worker, Pages, Stable und Katalog.",
+    "Regression: Source-Bot 45569656600 stoppte nach erfolgreichem Paketschreiben beim Ref-Abgleich. Ursache der abweichenden Antwort bleibt offen."
+  ]
+}

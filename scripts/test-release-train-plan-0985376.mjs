@@ -405,7 +405,30 @@ test('trusted bot never repackages another SHA after approved merge or stale Sou
  assert.match(canonical,/git reset --hard "\$EXPECTED_MERGE_SHA"/);
  assert.match(canonical,/if \[ "\$remote_main" != "\$EXPECTED_MERGE_SHA" \]/);
  assert.match(canonical,/if \[ "\$current_main" != "\$merge_sha" \]/);
- assert.ok(canonical.includes('if [[ ! "$EXPECTED_PACKAGE_SHA" =~ ^[0-9a-f]{40}$ ]] || [ "$current_main" != "$EXPECTED_PACKAGE_SHA" ]'),'Installer dispatch must validate both the full SHA format and the current main SHA');
+ const dispatch=canonical.split('      - name: Bewährten MID-Installer explizit starten\n')[1].split('      - name:')[0];
+ const script=dispatch.split('        run: |\n')[1].split('          {\n')[0];
+ for(const [mode,sha,status,writes] of [['converges',a,0,1],['drift',a,1,0],['invalid','bad',1,0]]){
+  const mock=[
+   'reads=0',
+   'sleep() { reads=$((reads+1)); }',
+   'gh() {',
+   ' if [ "$1" = api ]; then',
+   '  if [ "$MODE" = invalid ]; then echo UNEXPECTED_API >&2; echo "$EXPECTED_PACKAGE_SHA"; return; fi',
+   '  if [ "$MODE" = drift ] && [ "$reads" -gt 0 ]; then return 1; fi',
+   '  if [ "$MODE" = converges ] && [ "$reads" -ge 1 ]; then echo "$EXPECTED_PACKAGE_SHA"; else echo "$OTHER_SHA"; fi',
+   ' else',
+   '  echo DISPATCH',
+   ' fi',
+   '}',
+  ].join('\n');
+  const result=spawnSync('bash',['-c',mock+'\n'+script],{
+   encoding:'utf8',env:{...process.env,MODE:mode,EXPECTED_PACKAGE_SHA:sha,OTHER_SHA:b,GITHUB_REPOSITORY:'MeteoMartini/MID'},
+  });
+  assert.equal(result.status,status,mode+': '+result.stderr);
+  if(mode==='invalid') assert.doesNotMatch(result.stderr,/UNEXPECTED_API/);
+  if(mode==='drift') assert.ok(result.stderr.includes('('+a+'); last read: '+b+'.'));
+  assert.equal(result.stdout.split('\n').filter(line=>line==='DISPATCH').length,writes,mode);
+ }
  assert.doesNotMatch(canonical,/Release-Paket wird aus dem neuesten main-Stand neu erzeugt/);
 });
 test('installer dispatch must pin expected release ZIP SHA while manual workflow stays optional',async()=>{

@@ -311,9 +311,24 @@ jobs:
           EXPECTED_PACKAGE_SHA: ${{ steps.package.outputs.package_sha || steps.pr.outputs.package_sha }}
         run: |
           set -euo pipefail
-          current_main="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
-          if [[ ! "$EXPECTED_PACKAGE_SHA" =~ ^[0-9a-f]{40}$ ]] || [ "$current_main" != "$EXPECTED_PACKAGE_SHA" ]; then
-            echo "::error::Installer dispatch refused because main no longer equals the approved ZIP SHA."
+          if [[ ! "$EXPECTED_PACKAGE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Installer dispatch refused: missing or invalid approved package SHA."
+            exit 1
+          fi
+          # Only re-read the ref after the ZIP push. Never retry the dispatch POST.
+          current_main=""
+          for delay in 0 2 4 8; do
+            if [ "$delay" -gt 0 ]; then sleep "$delay"; fi
+            if read_sha="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)" &&
+               [[ "$read_sha" =~ ^[0-9a-f]{40}$ ]]; then
+              current_main="$read_sha"
+            fi
+            if [ "$current_main" = "$EXPECTED_PACKAGE_SHA" ]; then
+              break
+            fi
+          done
+          if [ "$current_main" != "$EXPECTED_PACKAGE_SHA" ]; then
+            echo "::error::Installer dispatch refused: GitHub did not confirm the approved main SHA ($EXPECTED_PACKAGE_SHA); last read: ${current_main:-unavailable}." >&2
             exit 1
           fi
           gh workflow run install-mid.yml --repo "$GITHUB_REPOSITORY" --ref main -f expected_package_sha="$EXPECTED_PACKAGE_SHA"
