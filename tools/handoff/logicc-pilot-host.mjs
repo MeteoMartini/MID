@@ -55,13 +55,43 @@ export async function prepareLogiccCodeCandidate(input,a,readBaseFile){
   return {receipt,body,payload};
 }
 
+// Trusted receiver only: re-read the actual GitHub comment and the task/refs
+// independently; no reference or PR writes are performed here.
+export async function verifyReceivedLogiccCode({commentId,assignment,expectedActor,readComment,readRefs,readBaseFile}={}){
+  need(positive(commentId)&&record(assignment)&&typeof readComment==='function'&&typeof readRefs==='function'&&typeof readBaseFile==='function','Trusted intake dependencies missing');
+  const a=assignmentValid(assignment,assignment.taskId,'code');
+  const refs=await readRefs();
+  need(record(refs)&&refs.main===a.sourceSha&&refs.stable===a.sourceSha,'Intake stable drift');
+  const comment=await readComment(commentId);
+  need(record(comment)&&typeof comment.body==='string'&&Buffer.byteLength(comment.body,'utf8')<=32768,'Missing or oversized comment');
+  const lines=comment.body.split('\n');
+  need(lines.length===4&&/^<!-- MID-LOGICC-CODE:[a-f0-9]{64} -->$/.test(lines[0])&&lines[1]==='Logicc code candidate (public, untrusted, no release authority)'&&lines[2]==='','Code marker or framing mismatch');
+  let p;
+  try{p=JSON.parse(lines[3]);}catch{throw new Error('Invalid code JSON');}
+  need(keys(p,'files,schema,sourceSha,taskId')&&p.schema==='MID-LOGICC-CODE-V1'&&p.taskId===a.taskId&&p.sourceSha===a.sourceSha&&Array.isArray(p.files)&&p.files.length>0&&p.files.length<=2,'Code payload mismatch');
+  const files=p.files.map(f=>{
+    need(keys(f,'baseBlob,bytes,contentBase64,mode,newBlob,path')&&f.mode==='100644'&&Number.isSafeInteger(f.bytes)&&f.bytes>0&&f.bytes<=12288&&typeof f.contentBase64==='string'&&f.contentBase64.length<=16384&&sha.test(f.newBlob??''),'Code blob metadata mismatch');
+    const b=Buffer.from(f.contentBase64,'base64');
+    need(b.length===f.bytes&&b.toString('base64')===f.contentBase64&&blob(b)===f.newBlob,'Code bytes or blob digest mismatch');
+    const content=b.toString('utf8');
+    need(Buffer.from(content,'utf8').equals(b),'Invalid UTF-8');
+    return {path:f.path,baseBlob:f.baseBlob,content};
+  });
+  const prepared=await prepareLogiccCodeCandidate({taskId:p.taskId,sourceSha:p.sourceSha,files},a,readBaseFile);
+  need(prepared.body===comment.body&&verifyLogiccComment(comment,commentId,prepared.body,expectedActor),'Canonical body or GitHub actor mismatch');
+  const latest=await readRefs();
+  need(record(latest)&&latest.main===a.sourceSha&&latest.stable===a.sourceSha&&Date.parse(a.expiresAt)>Date.now(),'Intake source or task drift');
+  return {status:'verified_candidate_only',receipt:prepared.receipt,commentId,sourceSha:a.sourceSha,files};
+}
+
 // This is a host adapter, not an MCP endpoint or a permission grant. All
 // dependencies are supplied by the independently authorized host, never by callers.
-export function createLogiccPilotHost({readAssignment,readRefs,readBaseFile,readQualification,issueToken,revokeToken,receiptNamespace}={}){
-  for(const fn of [readAssignment,readRefs,readBaseFile,readQualification,issueToken,revokeToken])need(typeof fn==='function','Trusted host dependency missing');
+export function createLogiccPilotHost({readAssignment,readRefs,readBaseFile,readQualification,issueToken,revokeToken,assertOperational,recordCleanupIncident,receiptNamespace}={}){
+  for(const fn of [readAssignment,readRefs,readBaseFile,readQualification,issueToken,revokeToken,assertOperational,recordCleanupIncident])need(typeof fn==='function','Trusted host dependency missing');
   const reserve=bindReceiptReservation(receiptNamespace);
   async function run(input,kind){
     need(record(input)&&typeof input.taskId==='string'&&task.test(input.taskId),'Invalid task ID');
+    need(await assertOperational()===true,'Host incident gate is closed');
     const a=assignmentValid(await readAssignment(input.taskId),input.taskId,kind);
     if(kind==='result')need(a.publicationApproved===true,'Public result not authorized');
     const q=qualify(await readQualification());
@@ -77,6 +107,7 @@ export function createLogiccPilotHost({readAssignment,readRefs,readBaseFile,read
     async function getInstallationToken(){
       if(issued)return issued.token;
       await checkRefs();
+      need(await assertOperational()===true,'Host incident gate is closed');
       const t=await issueToken({appId:APP_ID,installationId:q.installationId,repositoryIds:[REPO_ID],permissions:{issues:'write',metadata:'read'}});
       if(record(t)&&typeof t.token==='string'&&/^[A-Za-z0-9_-]+$/.test(t.token))observed=t.token;
       const expiry=Date.parse(t?.expires_at);
@@ -103,7 +134,12 @@ export function createLogiccPilotHost({readAssignment,readRefs,readBaseFile,read
       if(observed){
         let cleaned=false;
         try{cleaned=await revokeToken(observed)===true;}catch{}
-        if(!cleaned)result={status:'token_cleanup_required',receipt:prepared.receipt,deliveryStatus:result?.status??'unknown',...(positive(result?.commentId)?{commentId:result.commentId}:{})};
+        if(!cleaned){
+          const incident={receipt:prepared.receipt,deliveryStatus:result?.status??'unknown',...(positive(result?.commentId)?{commentId:result.commentId}:{})};
+          let recorded=false;
+          try{recorded=await recordCleanupIncident(incident)===true;}catch{}
+          result={status:'token_cleanup_required',...incident,incidentRecorded:recorded};
+        }
       }
     }
     return result;

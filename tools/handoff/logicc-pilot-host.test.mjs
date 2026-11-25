@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {createLogiccPilotHost,prepareLogiccCodeCandidate} from './logicc-pilot-host.mjs';
+import {createLogiccPilotHost,prepareLogiccCodeCandidate,verifyReceivedLogiccCode} from './logicc-pilot-host.mjs';
 const sourceSha='a'.repeat(40),path='src/example.ts',text='export const n=1;\n';
 const blob=s=>createHash('sha1').update('blob '+Buffer.byteLength(s)+'\0').update(s).digest('hex');
 const baseBlob=blob(text),actor={id:123,login:'logicc-test[bot]',type:'Bot'};
@@ -10,11 +10,12 @@ const result={taskId:'pilot-1',sourceSha,status:'completed',summary:'Pilot ready
 const assignment=kind=>({taskId:'pilot-1',sourceSha,kind,expiresAt:new Date(Date.now()+60000).toISOString(),publicationApproved:true,paths:[path]});
 const readBaseFile=async(s,p)=>({sourceSha:s,path:p,mode:'100644',type:'blob',blobSha:baseBlob,content:text});
 function fixture(t,kind='code',patch={}){
-  const claims=new Set();let posts=0,reads=0,issued=0,revoked=0,body;
+  const claims=new Set();let posts=0,reads=0,issued=0,revoked=0,body,halted=false;
   const deps={readAssignment:async()=>assignment(kind),readRefs:async()=>({main:sourceSha,stable:sourceSha}),readBaseFile,
     readQualification:async()=>({appId:5904572,installationId:9,repositoryId:1305110795,repository:'MeteoMartini/MID',privateApp:true,selectedOnly:true,isolationVerified:true,actorVerified:true,actor}),
     issueToken:async request=>{issued++;assert.deepEqual(request.permissions,{issues:'write',metadata:'read'});assert.deepEqual(request.repositoryIds,[1305110795]);return {token:'synthetic-only',permissions:request.permissions,repositoryIds:request.repositoryIds,expires_at:new Date(Date.now()+60000).toISOString()};},
     revokeToken:async token=>{revoked++;assert.equal(token,'synthetic-only');return true;},
+    assertOperational:async()=>!halted,recordCleanupIncident:async()=>{halted=true;return true;},
     receiptNamespace:{getByName:()=>({claim:async key=>{if(claims.has(key))return 'existing';claims.add(key);return 'claimed';}})},
     ...patch
   };
@@ -64,5 +65,24 @@ test('broad token is not used; cleanup still required',async t=>{
 test('cleanup failure preserves delivery status without claiming success',async t=>{
   const f=fixture(t,'code',{revokeToken:async()=>false});
   const r=await f.host.submitCodeCandidate(code);
-  assert.equal(r.status,'token_cleanup_required');assert.equal(r.deliveryStatus,'posted');assert.equal(r.commentId,42);
+  assert.equal(r.status,'token_cleanup_required');assert.equal(r.deliveryStatus,'posted');assert.equal(r.commentId,42);assert.equal(r.incidentRecorded,true);
+  await assert.rejects(f.host.submitCodeCandidate(code),/incident gate/);
+  assert.equal(f.counts()[0],1);
+});
+
+test('trusted receiver re-hashes canonical comment bytes and rejects actor or base drift',async()=>{
+  const a=assignment('code'),p=await prepareLogiccCodeCandidate(code,a,readBaseFile);
+  const url='https://api.github.com/repos/MeteoMartini/MID/issues/comments/42';
+  const comment={id:42,url,issue_url:'https://api.github.com/repos/MeteoMartini/MID/issues/1007',body:p.body,user:actor};
+  const args={commentId:42,assignment:a,expectedActor:actor,readComment:async()=>comment,readRefs:async()=>({main:sourceSha,stable:sourceSha}),readBaseFile};
+  const v=await verifyReceivedLogiccCode(args);
+  assert.equal(v.status,'verified_candidate_only');assert.deepEqual(v.files,code.files);
+  for(const bad of [{...comment,user:{...actor,id:124}},{...comment,body:comment.body+' '},{...comment,body:comment.body.replace(p.payload.files[0].newBlob,'b'.repeat(40))},{...comment,issue_url:comment.issue_url+'1'}])
+    await assert.rejects(verifyReceivedLogiccCode({...args,readComment:async()=>bad}));
+  await assert.rejects(verifyReceivedLogiccCode({...args,readRefs:async()=>({main:'b'.repeat(40),stable:sourceSha})}));
+});
+test('missing app evidence, publication approval and expired task deny write',async t=>{
+  const f=fixture(t,'code',{readQualification:async()=>({})});
+  await assert.rejects(f.host.submitCodeCandidate(code),/qualification/);
+  assert.deepEqual(f.counts(),[0,0,0,0]);
 });
