@@ -1,6 +1,7 @@
 import {createContext,useContext,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {rasterTileRetryDelayMs} from './mapLayerRecovery';
 import {createMapLayerOrderScheduler} from './mapLayerOrderScheduler';
+import {abandonMissingQuadFade} from './mapQuadFadeLiveness';
 import {createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback,restoreCanvasFromSnapshot} from './mapCanvasCrossfadePolicy';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -322,13 +323,26 @@ export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='lin
    frames.current=previous?[previous,next]:[next];
    const start=performance.now(),duration=window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:350;
    fading.current=true;
+   const abandonFade=()=>{
+    const abandoned=abandonMissingQuadFade(fading,frames,remove);
+    // Never attribute an obsolete frame failure to a newer selected term.
+    if(abandoned.abandoned&&active)errorRef.current?.('Das Kartenbild konnte nicht angezeigt werden.');
+   };
    const fade=(now:number)=>{
-    if(!map.getLayer(layer))return;
-    const t=duration?Math.max(0,Math.min(1,(now-start)/duration)):1;
-    next.weight=t;map.setPaintProperty(layer,'raster-opacity',t*opacityRef.current);
-    if(previous&&map.getLayer(previous.layer)){previous.weight=1-t;map.setPaintProperty(previous.layer,'raster-opacity',(1-t)*opacityRef.current)}
-    if(t<1)animation.current=requestAnimationFrame(fade);
-    else{if(previous)remove(previous);frames.current=[next];fading.current=false;onDisplayed?.()}
+    try{
+     // A style/GPU rebuild may remove the layer between paint frames.
+     // Never leave fading.current latched: the next image would poll forever.
+     if(!map.getLayer(layer)){abandonFade();return}
+     const t=duration?Math.max(0,Math.min(1,(now-start)/duration)):1;
+     next.weight=t;map.setPaintProperty(layer,'raster-opacity',t*opacityRef.current);
+     if(previous&&map.getLayer(previous.layer)){previous.weight=1-t;map.setPaintProperty(previous.layer,'raster-opacity',(1-t)*opacityRef.current)}
+     if(t<1)animation.current=requestAnimationFrame(fade);
+     else{if(previous)remove(previous);frames.current=[next];fading.current=false;onDisplayed?.()}
+    }catch{
+     // A lost renderer/style is NOT evidence of missing radar or dry weather.
+     // Do not call onReady or mark an original time as successfully painted.
+     abandonFade();
+    }
    };
    animation.current=requestAnimationFrame(fade);
   };
