@@ -1,3 +1,13 @@
+## MID v0.9.85.523 · 2026-11-25 · Zuverlässigere Priorisierung der MID-Entwicklungswarteschlange
+
+- Lesende PR-/Issue-Inventur: Prioritätslabels vor eindeutigen führenden Titel-Tags; unbekannte oder widersprüchliche Prioritäten getrennt.
+- Titel und sortierte Labelnamen als prüfbare Einstufungsgrundlage.
+- SHA-/Paginierungs- und Negativtests: exakt 1.000 Einträge mit leerer Prüfseite; case-insensitive Repositorynamen bei strikt gebundener PR-Identität.
+- Zwei vollständige übereinstimmende Inventuren mit Abbruch bei Bestands- oder Metadatendrift.
+- Vorhandener manueller Preflight mit festem Manifest-Default, exakt lesenden Rechten und erweiterten Tests ungültiger Issue-Identitäten; kein zusätzlicher Scheduler.
+- SHA-gebundener Review-Guard meldet vollständige offene und aufgelöste Threadzahlen sowie separate aktive Änderungsanforderungen direkt als Workflow-Fehler.
+- Unvollständige Review-Evidenz bleibt unbekannt; alle Sperren unverändert.
+
 ## MID v0.9.85.522 · 2026-11-25 · Isolierte Logicc- und EPS-Diagnoseintegrität
 
 - #1017: fest gebundener, noch nicht aktivierter Rückgabetransport und SQLite-Quittungsledger; begrenzte UTF-8-JSON-Antworten und negative Transporttests; keine neue Ressource, kein Token, kein Live-POST.

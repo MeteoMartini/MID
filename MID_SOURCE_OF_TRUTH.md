@@ -1,3 +1,8 @@
+# MID v0.9.85.523 · Zuverlässigere Priorisierung der MID-Entwicklungswarteschlange
+
+- Stable .522 @ 8bf0b230c27f2c4c34c8b37c70503e56a9bcc76a; #981 @ 3842fc44d8e7abf8b78466c914134924e00d6d48; unabhängige Spezialchat-Kandidatenkette @ 35c4c094856169ace55866dc914e7a4cd066c4ed.
+- Status vor Freigabe: QA-Kandidat; Draft-, vollständiges Source-Gate, Installer und Stable-Promotion auf finalem SHA nachzuweisen. #1019 bleibt bis zur getrennten Qualifikation zurückgestellt; #981 erst nach nachgewiesener Stable-Promotion und vollständiger Übernahme schließen.
+
 # MID v0.9.85.522 · Isolierte Logicc- und EPS-Diagnoseintegrität
 
 - Basis: main=mid-stable=Tag v0.9.85.521 @ 8c47a4d26c897dc428a80c814f27bbe847a1650f; Installer 45589782327 und Katalog erfolgreich.

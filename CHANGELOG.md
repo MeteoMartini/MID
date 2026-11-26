@@ -1,3 +1,7 @@
+# MID v0.9.85.523
+
+- Wartung: Verbesserte interne Priorisierung und Nachvollziehbarkeit der MID-Weiterentwicklung; Wetterdaten und Darstellung bleiben unverändert.
+
 # MID v0.9.85.522
 
 - Technisches Wartungsupdate: zusätzliche interne Sicherheits- und Datenqualitätsprüfungen. Keine neue aktive Datenquelle oder Schreibfreigabe.
