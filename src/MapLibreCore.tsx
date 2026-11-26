@@ -336,13 +336,15 @@ export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='lin
      const t=duration?Math.max(0,Math.min(1,(now-start)/duration)):1;
      next.weight=t;map.setPaintProperty(layer,'raster-opacity',t*opacityRef.current);
      if(previous&&map.getLayer(previous.layer)){previous.weight=1-t;map.setPaintProperty(previous.layer,'raster-opacity',(1-t)*opacityRef.current)}
-     if(t<1)animation.current=requestAnimationFrame(fade);
-     else{if(previous)remove(previous);frames.current=[next];fading.current=false;onDisplayed?.()}
+     if(t<1){animation.current=requestAnimationFrame(fade);return}
+     if(previous)remove(previous);frames.current=[next];fading.current=false;
     }catch{
      // A lost renderer/style is NOT evidence of missing radar or dry weather.
      // Do not call onReady or mark an original time as successfully painted.
-     abandonFade();
+     abandonFade();return;
     }
+    // Consumer exceptions are not renderer failures; preserve their original propagation.
+    onDisplayed?.();
    };
    animation.current=requestAnimationFrame(fade);
   };

@@ -57,7 +57,14 @@ describe('MID Karten 1.15 · lost image-layer fade liveness (QA only)',()=>{
   const actualFade=source.slice(start,end);
   expect(actualFade).toContain('if(!map.getLayer(layer)){abandonFade();return}');
   expect(actualFade).toContain('}catch{');
-  expect(actualFade).toContain('abandonFade();');
+  expect(actualFade).toContain('abandonFade();return;');
+  expect(actualFade).toContain('if(t<1){animation.current=requestAnimationFrame(fade);return}');
+  const catchStart=actualFade.indexOf('}catch{');
+  const ready=actualFade.indexOf('onDisplayed?.();');
+  expect(ready).toBeGreaterThan(catchStart);
+  expect(actualFade.slice(catchStart,ready)).toContain('abandonFade();return;');
+  expect(actualFade.slice(0,catchStart)).not.toContain('onDisplayed?.()');
+  expect(actualFade.slice(catchStart,ready)).toMatch(/abandonFade\(\);return;\s*\}\s*\/\/ Consumer exceptions[^\n]*\n\s*$/);
   const abortStart=source.lastIndexOf('const abandonFade=()=>{',start);
   expect(abortStart).toBeGreaterThan(0);
   const abort=source.slice(abortStart,start);
@@ -66,12 +73,16 @@ describe('MID Karten 1.15 · lost image-layer fade liveness (QA only)',()=>{
   expect(abort).not.toContain('bisherige Stand bleibt sichtbar');
   expect(actualFade).not.toContain('if(!map.getLayer(layer))return;');
  });
- it('does not invent a rendered radar frame or change weather validity during renderer cleanup',()=>{
-  const fading={current:true},frames={current:[{source:'old',layer:'old'}]};
-  let delivered=false,weatherTime=1700000000000;
-  abandonMissingQuadFade(fading,frames,()=>{});
-  expect(delivered).toBe(false);
-  expect(weatherTime).toBe(1700000000000);
+ it('disposes only the original frames without rewriting their validity metadata',()=>{
+  const old=Object.freeze({source:'old',layer:'old',validAt:1700000000000});
+  const next=Object.freeze({source:'next',layer:'next',validAt:1700000300000});
+  const fading={current:true},frames={current:[old,next]};
+  const observed:typeof frames.current=[];
+  expect(abandonMissingQuadFade(fading,frames,frame=>observed.push(frame))).toEqual({abandoned:true,disposedFrames:2,failedDisposals:0});
+  expect(observed).toEqual([old,next]);
+  expect(observed[0]).toBe(old);
+  expect(observed[1]).toBe(next);
+  expect(fading.current).toBe(false);
   expect(frames.current).toEqual([]);
  });
 });

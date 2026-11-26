@@ -82,6 +82,21 @@ describe('MID-Karten 1.18: foreground-only surroundings display clock',()=>{
   expect(vi.getTimerCount()).toBe(0);
  });
 
+ it('accepts both inclusive interval boundaries with exact cadence and cleanup',()=>{
+  for(const duration of [1000,60000]){
+   const page=fakeVisibility(),tick=vi.fn();
+   const stop=observeSurroundingsVisibleClock(page.source,tick,duration);
+   expect(tick).toHaveBeenCalledTimes(1);
+   vi.advanceTimersByTime(duration-1);
+   expect(tick).toHaveBeenCalledTimes(1);
+   vi.advanceTimersByTime(1);
+   expect(tick).toHaveBeenCalledTimes(2);
+   stop();
+   expect(vi.getTimerCount()).toBe(0);
+   expect(page.listeners()).toBe(0);
+  }
+ });
+
  it('is wired into the compact view with no unconditional 30-second timer',()=>{
   const source=readFileSync('src/CurrentSurroundings.tsx','utf8');
   expect(source).toContain("import {observeSurroundingsVisibleClock} from './surroundingsVisibleClock';");

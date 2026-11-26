@@ -2,7 +2,7 @@
  * MID-Karten 1.15: bounded liveness cleanup for MapLibre image layers.
  * An image target layer can disappear after a style rebuild during a fade.
  * Leaving the active fade flag set makes subsequent installs poll endlessly.
- * Used only on confirmed renderer-layer loss; never on normal frame transitions.
+ * Used on renderer-layer loss or failed paint during an active fade; never on normal frame transitions.
  * No requests, weather data, TIME, coverage, or official warning semantics.
  */
 export type QuadFadeMutable<T> = {current:T};
