@@ -70,12 +70,20 @@ def discover_runs(base:str,param:str,fetch:Callable[[str],str]=fetch_text)->set[
     return parse_run_links(fetch(f'{base}/{param}/r/'))
 
 def newest_common_run(fetch:Callable[[str],str]=fetch_text)->str|None:
+    sources=[(DET_BASE,param) for param in REQUIRED]+[(EPS_BASE,'TOT_PREC')]
     common:set[str]|None=None
-    for param in REQUIRED:
-        values=discover_runs(DET_BASE,param,fetch)
-        common=values if common is None else common&values
-        if not common:return None
-    common=(common or set())&discover_runs(EPS_BASE,'TOT_PREC',fetch)
+    # Deliberately submit only one batch of four. A worker limit alone would
+    # queue every index, allowing later batches to start before an earlier
+    # empty intersection or exception is consumed. Keep ordered results and
+    # accept the batch barrier to avoid those unnecessary upstream requests.
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        for offset in range(0,len(sources),4):
+            batch=sources[offset:offset+4]
+            pending=[executor.submit(discover_runs,base,param,fetch) for base,param in batch]
+            for request in pending:
+                values=request.result()
+                common=values if common is None else common&values
+                if not common:return None
     return max(common) if common else None
 
 
