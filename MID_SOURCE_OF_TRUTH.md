@@ -1,3 +1,9 @@
+# MID v0.9.85.525 · Verständlicher Wetterzwilling und effizientere RUC-Laufprüfung
+
+- Stable .524 @ 0625ec56f042511186c77c271d3122e70b9d90fd; #1026 @ 39e9f73db100617b2cedd55cdd8665ae21f4e60a; #944 @ 97496f86dac3eb8df24c8ec10b906e4607e28316.
+- Neun Originalblobs selektiv übernommen. #1026 direkt auf .524; beide Ausgangsblobs von #944 unverändert auf .524.
+- Original-Draft-CI 45823752525 und 44461403592 erfolgreich; neue gemeinsame QA, Source-Gate, Installer und Stable-Promotion erforderlich.
+
 # MID v0.9.85.524 · Meteorologisch sinnvolle Kartenextrema und präzisere Klima-QA
 
 - Stable .523 @ d788b927ef67c25c9e9f8aab45ed4503dcf2b65d; #1023 @ d1403f1522c9bd18ed147d70603832123a911687; #1002 @ ed9908addeec0671c85a0290b48b34e8f294b326.

@@ -1,3 +1,10 @@
+## MID v0.9.85.525 · 2026-11-26 · Verständlicher Wetterzwilling und effizientere RUC-Laufprüfung
+
+- Abgeschlossene, gültige und eindeutige unabhängige Referenztage; Reanalyse und Modellrückblick zählen nicht als unabhängige Messungen. Aktivierungslogik und Prognosegewichte bleiben unverändert.
+- RUC-Scheduler: begrenzte parallele Indexabfragen mit vier Requests je Batch und unveränderter geordneter Schnittmenge. Keine Änderung an GRIB-, EPS-, Daten- oder Publish-Gates.
+- Kein Nachweis einer Behebung des DWD-Transporttimeouts oder einer gemessenen Latenzverbesserung. #541 bleibt offen.
+- AQI #1027, Review-Mitigation #1024 und Kartenübergänge #1021 bleiben separate Kandidaten.
+
 ## MID v0.9.85.524 · 2026-11-26 · Meteorologisch sinnvolle Kartenextrema und präzisere Klima-QA
 
 - Gemeinsame parameterabhängige Anzeige-Policy für native Karten und Exporte; numerische Originalwerte, mathematische Rastergrenzen, Isolinien und Farbskalen bleiben unverändert.
