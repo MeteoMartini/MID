@@ -1,3 +1,11 @@
+## MID v0.9.85.526 · 2026-11-26 · Stabilere Kartenübergänge und ressourcenschonende Umfeldkarte
+
+- Selektiver Intake #1030 und #1031 auf identischer Stable-Basis; kein vollständiger Intake #937 oder #904 ohne gesonderten Nachweis.
+- Bei abgebrochenem aktiven Raster-Fade meldet der vorhandene Fehlercallback den Darstellungsverlust, sofern vorhanden. Keine Erfolgsmeldung, keine falsche Aussage über weiter sichtbaren Altstand, kein meteorologischer NoData-/Trockenheitsnachweis. Veraltete Generationen lösen keine neue Fehlermeldung aus.
+- Nur sichtbarkeitsgebundener Anzeigeclock und wiederverwendete IANA-Zeitformatierer; keine Veränderung meteorologischer Werte, Akkumulation, Quellen, Modellgültigkeit oder Refresh-Verträge.
+- #1027 AQI-Quellenregression, #1029 Intake-Provenienz und #1024 Review-Mitigation bleiben getrennt. #541 Fast-Lane-/Langzeitnachweis bleibt offen. Keine gemessene FPS-/Energieverbesserung oder physische iOS-Abnahme behauptet.
+- Review: Fehler aus Verbraucher-Callbacks werden nicht als Rendererfehler verschluckt; beobachtbare Frame-Disposal- und inklusive Intervallgrenztests ergänzen die Wiring-Prüfung. Keine reale GPU-Fehlerinjektion behauptet.
+
 ## MID v0.9.85.525 · 2026-11-26 · Verständlicher Wetterzwilling und effizientere RUC-Laufprüfung
 
 - Abgeschlossene, gültige und eindeutige unabhängige Referenztage; Reanalyse und Modellrückblick zählen nicht als unabhängige Messungen. Aktivierungslogik und Prognosegewichte bleiben unverändert.

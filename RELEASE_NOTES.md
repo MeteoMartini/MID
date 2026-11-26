@@ -1,3 +1,8 @@
+# MID v0.9.85.526
+
+- Karten und Umfeldkarte: Nach einer unterbrochenen Bildüberblendung können weitere Kartenbilder wieder geladen werden.
+- Umfeldkarte: Die Zeitanzeige pausiert im Hintergrund und aktualisiert sich beim Wiederöffnen unmittelbar.
+
 # MID v0.9.85.525
 
 - Wetterzwilling: Statt einer vermeintlichen Systemgüte in Prozent werden unabhängige Vergleichstage angezeigt.

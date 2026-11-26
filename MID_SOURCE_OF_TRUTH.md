@@ -1,3 +1,10 @@
+# MID v0.9.85.526 · Stabilere Kartenübergänge und ressourcenschonende Umfeldkarte
+
+- Stable .525 @ 56011238b20955cbbfa1ffa039a66eb96156ab37; #1030 @ 80e8a3b79081f34519f97c500832cc834cc529e7; #1031 @ bdf40168985b9761bfef77f6637b9b53862a1e5d.
+- Drei exakte Originalblobs; vier Quell-/Testdateien mit gezielten Leit-/Review-Korrekturen; Source-Target und Release Notes zusätzlich.
+- Original-Draft-CI 45875376444/45884161644 und SHA 45875404307/45884199871 erfolgreich. Gemeinsame neue Draft-QA, Review, Source-Gate, Installer und Stable-Promotion erforderlich.
+- Erster Leit-HEAD 653813f01714e717b2b1525fcb57c1e562661ea5: Draft 45885043657 und Source 45891610344 erfolgreich. Bot 45893166556 hielt wegen fünf Review-Threads an; erneute vollständige QA auf korrigiertem HEAD erforderlich.
+
 # MID v0.9.85.525 · Verständlicher Wetterzwilling und effizientere RUC-Laufprüfung
 
 - Stable .524 @ 0625ec56f042511186c77c271d3122e70b9d90fd; #1026 @ 39e9f73db100617b2cedd55cdd8665ae21f4e60a; #944 @ 97496f86dac3eb8df24c8ec10b906e4607e28316.
