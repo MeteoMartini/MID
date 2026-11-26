@@ -1,3 +1,4 @@
+import {nonnegativeAqiNumber} from './airQualitySourceEvidence';
 export type EuropeanAqiBandKey='good'|'fair'|'moderate'|'poor'|'very-poor'|'extremely-poor';
 export type EuropeanAqiPollutantKey='pm2_5'|'pm10'|'nitrogen_dioxide'|'ozone'|'sulphur_dioxide';
 export type EuropeanAqiBand={key:EuropeanAqiBandKey;label:string;index:number;color:string;health:string};
@@ -19,12 +20,6 @@ export const EUROPEAN_AQI_BANDS:EuropeanAqiBand[]=[
 
 export const EUROPEAN_AQI_INDEX_THRESHOLDS=[20,40,60,80,100] as const;
 const EUROPEAN_AQI_FIELD_BY_POLLUTANT:Record<EuropeanAqiPollutantKey,string>={pm2_5:'european_aqi_pm2_5',pm10:'european_aqi_pm10',nitrogen_dioxide:'european_aqi_nitrogen_dioxide',ozone:'european_aqi_ozone',sulphur_dioxide:'european_aqi_sulphur_dioxide'};
-// Accept finite nonnegative numbers and explicit decimal numeric strings only.
-// JSON null, blank strings, booleans and other coercible types are missing, not zero.
-function nonnegativeAqiNumber(value:unknown):number|null{
- if(typeof value!=='number'&&(typeof value!=='string'||!/^\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?\s*$/.test(value)))return null;
- const number=Number(value);return Number.isFinite(number)&&number>=0?number:null;
-}
 export function europeanAqiBandFromIndex(value:unknown):EuropeanAqiBand|null{const number=nonnegativeAqiNumber(value);if(number===null)return null;const index=EUROPEAN_AQI_INDEX_THRESHOLDS.findIndex(max=>number<=max);return EUROPEAN_AQI_BANDS[index<0?5:index]}
 
 type PollutantDefinition={key:EuropeanAqiPollutantKey;label:string;formula:string;thresholds:[number,number,number,number,number]};
@@ -56,6 +51,17 @@ export function classifyEuropeanAirQuality(current:Record<string,unknown>|undefi
  return{band:overallBand??dominant.band,dominant,pollutants};
 }
 
+
+// Display admission is separate from the per-pollutant classifier: partial
+// concentration coverage is not a complete index and conflicting native
+// provider bands must not acquire an authoritative colour.
+export function describeEuropeanAqiModel(current:Record<string,unknown>|undefined|null){
+ const result=classifyEuropeanAirQuality(current),coverage=result?.pollutants.length??0,providerBand=europeanAqiBandFromIndex(current?.european_aqi);
+ const nativeBands=Object.values(EUROPEAN_AQI_FIELD_BY_POLLUTANT).map(key=>europeanAqiBandFromIndex(current?.[key])).filter((band):band is EuropeanAqiBand=>band!==null);
+ const inconsistent=providerBand!==null&&(nativeBands.some(band=>band.index>providerBand.index)||(nativeBands.length===EUROPEAN_AQI_POLLUTANTS.length&&nativeBands.every(band=>band.index<providerBand.index)));
+ const band=inconsistent?null:providerBand??(coverage===EUROPEAN_AQI_POLLUTANTS.length?result?.band??null:null);
+ return{result,coverage,providerBand,band,inconsistent,derived:band!==null&&providerBand===null};
+}
 
 export function describeEuropeanAqiPollutantScale(key:EuropeanAqiPollutantKey,value:unknown,aqiValue?:unknown):EuropeanAqiPollutantScale|null{
  const number=nonnegativeAqiNumber(value),definition=EUROPEAN_AQI_POLLUTANTS.find(item=>item.key===key),classification=classifyEuropeanAqiPollutant(key,value);
