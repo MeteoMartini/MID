@@ -4,7 +4,7 @@
   "title": "Meteorologisch sinnvolle Kartenextrema und präzisere Klima-QA",
   "date": "2026-11-26",
   "external": [
-    "Karten: Niederschlag, Windgeschwindigkeit und Böen zeigen nur das Maximum; Temperatur, Luftdruck, Theta-E und Bewölkung behalten Minimum und Maximum. Einheitliche Felder erhalten eine neutrale Kennzeichnung. Kartenexporte verwenden dieselbe Auswahlregel."
+    "Karten: Niederschlag, Windgeschwindigkeit und Böen zeigen nur das Maximum; Temperatur, Luftdruck, Theta-E und Bewölkung behalten Minimum und Maximum. Einheitliche Felder erhalten eine neutrale Kennzeichnung. Native Einzelfeld-Exporte verwenden dieselbe Auswahlregel."
   ],
   "internal": [
     "Gemeinsame parameterabhängige Anzeige-Policy für native Karten und Exporte; numerische Originalwerte, mathematische Rastergrenzen, Isolinien und Farbskalen bleiben unverändert.",

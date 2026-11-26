@@ -1,6 +1,6 @@
 # MID Audit 1.5 · research-only Reise-Klimareferenz/NoData-Oracle (2026-11-23)
 
-**Status: QA DRAFT ONLY – keine Änderung am MID-Produktionscode, keine Releasefreigabe.**
+**Status: QA DRAFT ONLY – keine Änderung an der produktiven Reise-Klimaberechnung, keine Releasefreigabe.**
 
 ## Belegte Ausgangslage
 

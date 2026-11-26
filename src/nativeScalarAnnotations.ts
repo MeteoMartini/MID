@@ -61,8 +61,8 @@ export function nativeDisplayedExtremes(field:ScalarRaster,viewport?:RasterViewp
  const mode=rasterExtremeMode(field.kind);
  if(mode==='none'||!mode)return [];
  const points=nativeRasterExtremes(field,viewport);
+ if(points.length===2&&points[0].value===points[1].value)return [{...points[mode==='max'?1:0],uniform:true}];
  if(mode==='max')return points.filter(p=>p.type==='Max').map(p=>({...p,uniform:false}));
- if(points.length===2&&points[0].value===points[1].value)return [{...points[0],uniform:true}];
  return points.map(p=>({...p,uniform:false}));
 }
 /** Piecewise-linear isolines of the published regular grid. No spatial thinning,

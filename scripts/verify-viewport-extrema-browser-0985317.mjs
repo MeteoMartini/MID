@@ -62,7 +62,7 @@ try{
   await page.waitForFunction(()=>{const n=document.querySelectorAll('.native-raster-extreme span');return n.length===1&&n[0].getAttribute('aria-label')?.startsWith('Maximum im sichtbaren Ausschnitt: 20')});
   for(const kind of ['wind','gust']){
    await page.evaluate(kind=>window.__midTestSetField(current=>({...current,kind,unit:'km/h'})),kind);
-   await page.waitForFunction(()=>{const n=document.querySelectorAll('.native-raster-extreme span');return n.length===1&&n[0].getAttribute('aria-label')?.startsWith('Maximum im sichtbaren Ausschnitt:')&&n[0].getAttribute('aria-label')?.endsWith('kt')});
+   await page.waitForFunction(()=>{const n=document.querySelectorAll('.native-raster-extreme span');return n.length===1&&n[0].getAttribute('aria-label')?.startsWith('Maximum im sichtbaren Ausschnitt: 11')&&n[0].getAttribute('aria-label')?.endsWith('kt')});
   }
   await page.evaluate(()=>window.__midTestSetField(current=>({...current,kind:'sigwx',unit:'WMO'})));
   await page.waitForFunction(()=>document.querySelectorAll('.native-raster-extreme span').length===0);

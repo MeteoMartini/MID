@@ -38,9 +38,9 @@ export function assessTravelFieldCoverage(values: readonly unknown[], field: Tra
     valid,
     total,
     missing: total - valid,
-    completeSum: complete && field !== 'wmo-code' ? sum : null,
-    completeMean: complete && field !== 'wmo-code' ? sum / total : null,
-    observedMean: valid && field !== 'wmo-code' ? sum / valid : null,
+    completeSum: complete && field !== 'wmo-code' && field !== 'probability' && Number.isFinite(sum) ? sum : null,
+    completeMean: complete && field !== 'wmo-code' && Number.isFinite(sum) ? sum / total : null,
+    observedMean: valid && field !== 'wmo-code' && Number.isFinite(sum) ? sum / valid : null,
   };
 }
 
@@ -61,10 +61,16 @@ export type ClimateReferenceCoverage = {
  * not counted twice. Feb 29 has only eight original years and requires a separately
  * labelled interpolation if shown as a 30-year daily climatology.
  */
-export function assessTravelClimateYears(samples: readonly ClimateYearSample[], field: TravelCoverageField): ClimateReferenceCoverage {
+export function assessTravelClimateYears(samples: readonly ClimateYearSample[], field: TravelCoverageField, calendarDay?: string): ClimateReferenceCoverage {
+  if (calendarDay !== undefined && !/^(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$/.test(calendarDay)) throw new RangeError('Invalid calendar day');
   const byYear = new Map<number, { value: unknown; duplicated: boolean }>();
   for (const sample of samples) {
     if (!Number.isInteger(sample.year) || sample.year < 1991 || sample.year > 2020) continue;
+    if (calendarDay !== undefined) {
+      const [month, day] = calendarDay.split('-').map(Number);
+      const date = new Date(Date.UTC(sample.year, month - 1, day));
+      if (date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) continue;
+    }
     const previous = byYear.get(sample.year);
     if (previous) previous.duplicated = true;
     else byYear.set(sample.year, { value: sample.value, duplicated: false });
@@ -85,6 +91,6 @@ export function assessTravelClimateYears(samples: readonly ClimateYearSample[], 
     expectedYears: 30,
     minimumYears: 20,
     conflictingYears,
-    referenceMean: field !== 'wmo-code' && validYears >= 20 ? sum / validYears : null,
+    referenceMean: field !== 'wmo-code' && validYears >= 20 && Number.isFinite(sum) ? sum / validYears : null,
   };
 }

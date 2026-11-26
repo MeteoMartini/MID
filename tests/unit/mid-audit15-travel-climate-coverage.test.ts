@@ -42,4 +42,16 @@ describe('MID Audit 1.5 · climate field coverage, never missing-as-zero',()=>{
   expect(assessTravelClimateYears([{year:1991,value:null},{year:1992,value:-999}],'nonnegative'))
     .toMatchObject({status:'insufficient',validYears:0,referenceMean:null});
  });
+ it('keeps probability means but excludes summed percentages',()=>{
+  expect(assessTravelFieldCoverage([50,50],'probability')).toMatchObject({completeSum:null,completeMean:50});
+ });
+ it('withholds overflowing aggregates',()=>{
+  expect(assessTravelFieldCoverage([Number.MAX_VALUE,Number.MAX_VALUE],'temperature')).toMatchObject({completeSum:null,completeMean:null,observedMean:null});
+  expect(assessTravelClimateYears(Array.from({length:20},(_,i)=>({year:1991+i,value:Number.MAX_VALUE})),'temperature').referenceMean).toBeNull();
+ });
+ it('admits only real leap days from an explicitly identified February 29 series',()=>{
+  const rows=Array.from({length:30},(_,i)=>({year:1991+i,value:1}));
+  expect(assessTravelClimateYears(rows,'nonnegative','02-29')).toMatchObject({status:'insufficient',validYears:8,referenceMean:null});
+ });
+
 });
