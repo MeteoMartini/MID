@@ -1,0 +1,33 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {mkdtempSync,writeFileSync,unlinkSync,chmodSync,rmSync,mkdirSync,symlinkSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {inspectIntakeCheckpoint as inspect} from './mid-intake-checkpoint-evidence.mjs';
+function fixture(t,{correct=false,partial=false,mode=false,symlink=false,baseDrift=false}={}){
+ const cwd=mkdtempSync(join(tmpdir(),'mid-intake-'));t.after(()=>rmSync(cwd,{recursive:true,force:true}));
+ const g=(...a)=>execFileSync('git',a,{cwd,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
+ const put=(p,s)=>writeFileSync(join(cwd,p),s);const del=p=>unlinkSync(join(cwd,p));
+ const commit=message=>{g('add','-A');g('commit','-qm',message);return g('rev-parse','HEAD');};
+ g('init','-q','-b','main');g('config','user.email','fixture@example.invalid');g('config','user.name','Fixture');g('config','core.filemode','true');
+ mkdirSync(join(cwd,'nested'));put('nested/x','old');put('gone','delete');put('rename-old','rename');put('perm','mode');const sourceBase=commit('base');
+ g('checkout','-qb','candidate');put('nested/x','new');del('gone');g('mv','rename-old','rename-new');put('added','add');if(mode)chmodSync(join(cwd,'perm'),0o755);if(symlink)symlinkSync('nested/x',join(cwd,'link'));const sourceHead=commit('candidate');
+ g('checkout','-q','main');put('unrelated','base advancement');if(baseDrift)put('nested/x','drift');const leadBase=commit('stable base');
+ g('checkout','-qb','lead');put('nested/x','new');del('gone');g('mv','rename-old','rename-new');if(!partial)put('added','add');if(mode)chmodSync(join(cwd,'perm'),0o755);if(symlink)symlinkSync('nested/x',join(cwd,'link'));const checkpoint=commit('intake');
+ put('lead-note','note');if(correct)put('nested/x','review correction');const leadHead=commit('review');
+ g('checkout','-q','main');g('merge','--squash','lead');const merge=commit('squash');put('version','published');const stable=commit('promotion');
+ return {cwd,input:{repository:'MeteoMartini/MID',sourcePr:1,leadPr:2,sourceBase,sourceHead,leadBase,checkpoint,leadHead,merge,stable},g,put,commit};
+}
+const result=(t,opts)=>{const {cwd,input}=fixture(t,opts);return inspect(input,{cwd});};
+test('exact additions, deletions, rename and nested file',t=>{const r=result(t);assert.equal(r.state,'EXACT_TREE_CANDIDATE');assert.equal(r.files.length,5);assert.ok(r.files.every(f=>f.baseMatches&&f.intakeMatches&&f.leadMatches&&f.stableMatches));assert.equal(r.closureAuthorized,false);assert.equal(r.mergeAuthorized,false);assert.equal(r.releaseAuthorized,false);});
+test('mode-only change is checked',t=>{const r=result(t,{mode:true});assert.equal(r.state,'EXACT_TREE_CANDIDATE');assert.equal(r.files.length,6);});
+test('later review correction does not authorize closure',t=>{const r=result(t,{correct:true});assert.equal(r.state,'CHANGED_AFTER_INTAKE');assert.equal(r.fullAtIntake,true);assert.equal(r.closureAuthorized,false);});
+test('partial intake is held',t=>assert.equal(result(t,{partial:true}).state,'INTAKE_NOT_EXACT'));
+test('pre-intake base changed even though final blob matches',t=>assert.equal(result(t,{baseDrift:true}).state,'INTAKE_NOT_EXACT'));
+test('symlink addition is rejected',t=>assert.equal(result(t,{symlink:true}).state,'HOLD'));
+test('missing or malformed SHAs and foreign repo are rejected',t=>{const {cwd,input}=fixture(t);for(const patch of [{sourceHead:'a'.repeat(40)},{sourceHead:'HEAD'},{repository:'foreign/repo'},{sourcePr:2}])assert.equal(inspect({...input,...patch},{cwd}).state,'HOLD');});
+test('stable not descended from merge is rejected',t=>{const {cwd,input}=fixture(t);assert.equal(inspect({...input,stable:input.leadHead},{cwd}).state,'HOLD');});
+test('wrong checkpoint is rejected',t=>{const {cwd,input}=fixture(t);assert.equal(inspect({...input,checkpoint:input.sourceHead},{cwd}).state,'HOLD');});
+test('different squash tree is rejected',t=>{const {cwd,input,g,put,commit}=fixture(t);g('checkout','-q','lead');put('extra','not merged');const leadHead=commit('extra');assert.equal(inspect({...input,leadHead},{cwd}).reason,'SQUASH_TREE_MISMATCH');});
+test('later Stable mutation is not exact',t=>{const {cwd,input,put,commit}=fixture(t);put('nested/x','later');const stable=commit('later');assert.equal(inspect({...input,stable},{cwd}).state,'CHANGED_AFTER_INTAKE');});
