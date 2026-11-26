@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "version": "0.9.85.526",
+  "title": "Stabilere Kartenübergänge und ressourcenschonende Umfeldkarte",
+  "date": "2026-11-26",
+  "external": [
+    "Karten und Umfeldkarte: Nach einer unterbrochenen Bildüberblendung können weitere Kartenbilder wieder geladen werden.",
+    "Umfeldkarte: Die Zeitanzeige pausiert im Hintergrund und aktualisiert sich beim Wiederöffnen unmittelbar."
+  ],
+  "internal": [
+    "Selektiver Intake #1030 und #1031 auf identischer Stable-Basis; kein vollständiger Intake #937 oder #904 ohne gesonderten Nachweis.",
+    "Bei abgebrochenem aktiven Raster-Fade meldet der vorhandene Fehlercallback den Darstellungsverlust, sofern vorhanden. Keine Erfolgsmeldung, keine falsche Aussage über weiter sichtbaren Altstand, kein meteorologischer NoData-/Trockenheitsnachweis. Veraltete Generationen lösen keine neue Fehlermeldung aus.",
+    "Nur sichtbarkeitsgebundener Anzeigeclock und wiederverwendete IANA-Zeitformatierer; keine Veränderung meteorologischer Werte, Akkumulation, Quellen, Modellgültigkeit oder Refresh-Verträge.",
+    "#1027 AQI-Quellenregression, #1029 Intake-Provenienz und #1024 Review-Mitigation bleiben getrennt. #541 Fast-Lane-/Langzeitnachweis bleibt offen. Keine gemessene FPS-/Energieverbesserung oder physische iOS-Abnahme behauptet.",
+    "Review: Fehler aus Verbraucher-Callbacks werden nicht als Rendererfehler verschluckt; beobachtbare Frame-Disposal- und inklusive Intervallgrenztests ergänzen die Wiring-Prüfung. Keine reale GPU-Fehlerinjektion behauptet."
+  ],
+  "sourceOfTruth": [
+    "Stable .525 @ 56011238b20955cbbfa1ffa039a66eb96156ab37; #1030 @ 80e8a3b79081f34519f97c500832cc834cc529e7; #1031 @ bdf40168985b9761bfef77f6637b9b53862a1e5d.",
+    "Drei exakte Originalblobs; vier Quell-/Testdateien mit gezielten Leit-/Review-Korrekturen; Source-Target und Release Notes zusätzlich.",
+    "Original-Draft-CI 45875376444/45884161644 und SHA 45875404307/45884199871 erfolgreich. Gemeinsame neue Draft-QA, Review, Source-Gate, Installer und Stable-Promotion erforderlich.",
+    "Erster Leit-HEAD 653813f01714e717b2b1525fcb57c1e562661ea5: Draft 45885043657 und Source 45891610344 erfolgreich. Bot 45893166556 hielt wegen fünf Review-Threads an; erneute vollständige QA auf korrigiertem HEAD erforderlich."
+  ]
+}
