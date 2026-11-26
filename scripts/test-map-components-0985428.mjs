@@ -80,14 +80,14 @@ try{
  { // Exercise the real image-layer lifecycle with deterministic image/network/RAF delays.
  const core=readFileSync('src/MapLibreCore.tsx','utf8'),start=core.indexOf('export function ImageQuadLayer('),end=core.indexOf('\n}',start)+2;
  const compiled=transformSync(core.slice(start,end).replace('export function','function'),{loader:'tsx',target:'es2022'}).code;
- let now=0,hook=0,serial=0,reduced=false;const refs=[],effects=[],pending=[],rafs=new Map(),timers=new Map(),images=[],layers=new Map(),sources=new Map();
+ let now=0,hook=0,serial=0,reduced=false;const refs=[],effects=[],pending=[],rafs=new Map(),timers=new Map(),images=[],imageUploads=[],layers=new Map(),sources=new Map();
  const listeners=new Map(),loadedSources=new Set(),emit=(event,data={})=>{for(const cb of [...(listeners.get(event)??[])])cb(data)};
- const map={addSource:(id,source)=>sources.set(id,{...source,updateImage(){}}),getSource:id=>sources.get(id),removeSource:id=>{sources.delete(id);loadedSources.delete(id)},addLayer:layer=>layers.set(layer.id,layer),getLayer:id=>layers.get(id),removeLayer:id=>layers.delete(id),setPaintProperty:(id,key,value)=>{assert.ok(layers.has(id));layers.get(id).paint[key]=value},on:(event,cb)=>{if(!listeners.has(event))listeners.set(event,new Set());listeners.get(event).add(cb)},off:(event,cb)=>listeners.get(event)?.delete(cb),isSourceLoaded:id=>loadedSources.has(id),triggerRepaint:()=>{}};
+ const map={addSource:(id,source)=>sources.set(id,{...source,updateImage({image}){imageUploads.push({id,image})}}),getSource:id=>sources.get(id),removeSource:id=>{sources.delete(id);loadedSources.delete(id)},addLayer:layer=>layers.set(layer.id,layer),getLayer:id=>layers.get(id),removeLayer:id=>layers.delete(id),setPaintProperty:(id,key,value)=>{assert.ok(layers.has(id));layers.get(id).paint[key]=value},on:(event,cb)=>{if(!listeners.has(event))listeners.set(event,new Set());listeners.get(event).add(cb)},off:(event,cb)=>listeners.get(event)?.delete(cb),isSourceLoaded:id=>loadedSources.has(id),triggerRepaint:()=>{}};
  const useRef=value=>{const index=hook++;return refs[index]??= {current:value}},useEffect=(fn,deps)=>{const index=hook++,old=effects[index];if(!old||deps.some((value,i)=>value!==old.deps[i]))pending.push(()=>{old?.cleanup?.();effects[index]={deps,cleanup:fn()}})};
  class FakeImage{constructor(){images.push(this)}removeAttribute(){}}
  const env={useMidMap:()=>map,useRef,useEffect,safeId:id=>id,registerMapLayerOrder(){},unregisterMapLayerOrder(){},Image:FakeImage,performance:{now:()=>now},requestAnimationFrame:fn=>{const id=++serial;rafs.set(id,fn);return id},cancelAnimationFrame:id=>rafs.delete(id),window:{matchMedia:()=>({matches:reduced}),setTimeout:(fn,delay)=>{const id=++serial;timers.set(id,{fn,time:now+delay});return id},clearTimeout:id=>timers.delete(id)}};
  const Layer=new Function(...Object.keys(env),compiled+';return ImageQuadLayer')(...Object.values(env));
- let errors=0,displayed=[];const render=(url,frameKey=url)=>{hook=0;Layer({id:'test',url,frameKey,bounds:[[47,5],[55,15]],onReady:()=>displayed.push(url),onError:()=>errors++});pending.splice(0).forEach(fn=>fn())},tick=ms=>{now+=ms;const jobs=[...rafs.values()];rafs.clear();jobs.forEach(fn=>fn(now));for(const [id,timer] of [...timers])if(timer.time<=now){timers.delete(id);timer.fn()}};
+ let errors=0,displayed=[];const render=(url,frameKey=url,decodedImage)=>{hook=0;Layer({id:'test',url,frameKey,decodedImage,bounds:[[47,5],[55,15]],onReady:()=>displayed.push(url),onError:()=>errors++});pending.splice(0).forEach(fn=>fn())},tick=ms=>{now+=ms;const jobs=[...rafs.values()];rafs.clear();jobs.forEach(fn=>fn(now));for(const [id,timer] of [...timers])if(timer.time<=now){timers.delete(id);timer.fn()}};
  const ready=()=>{loadedSources.add([...sources.keys()].at(-1));emit('render')};
  render('a');assert.equal(layers.size,0,'Initial cloud frame must not be opaque while it has not loaded');images.at(-1).onload();assert.equal(layers.size,1);assert.equal([...layers.values()][0].paint['raster-opacity'],.001,'A decoded but not MapLibre-render-ready image must stay translucent');tick(250);assert.equal([...layers.values()][0].paint['raster-opacity'],.001,'Never fade ahead of GPU readiness');assert.deepEqual(displayed,[],'A loading image must not replace the displayed time');ready();tick(400);assert.equal([...layers.values()][0].paint['raster-opacity'],1);assert.deepEqual(displayed,['a']);
  const old=[...layers.keys()][0];render('b');assert.equal(layers.get(old).paint['raster-opacity'],1,'Old image stays fully visible while next URL is pending');images.at(-1).onerror();assert.equal(errors,1);assert.ok(layers.has(old),'Failed image never erases displayed source');
@@ -104,6 +104,26 @@ try{
  ready();tick(0);
  render('throttle-c');images.at(-1).onload();ready();tick(400);
  assert.equal(layers.size,1,'Delayed RAF and earlier timer must never orphan a previous raster');
+ // The admitted parent image is borrowed, not decoded a second time.
+ const admitted=new FakeImage();Object.assign(admitted,{src:'admitted-rv',complete:true,naturalWidth:256,naturalHeight:128});
+ const borrowedCount=images.length;
+ render('admitted-rv','verified-source-time',admitted);
+ assert.equal(images.length,borrowedCount,'Admitted radar image must not allocate a second HTMLImageElement');
+ assert.equal(imageUploads.at(-1)?.image,admitted,'GPU staging must receive the exact admitted image object');
+ assert.equal(displayed.at(-1),'throttle-c','Admitted but not GPU-ready radar must not replace the previous frame');
+ ready();tick(400);
+ assert.equal(displayed.at(-1),'admitted-rv','Borrowed radar frame is acknowledged only after actual MapLibre paint');
+ render('stale-rv','different-source-time',admitted);
+ assert.equal(errors,3,'Wrong original URL must fail closed instead of rendering borrowed stale pixels');
+ assert.equal(images.length,borrowedCount,'Stale borrowed frame must not cause another image allocation');
+ assert.equal(admitted.src,'admitted-rv','Cleanup must never change the parent-owned image URL');
+ assert.equal(displayed.at(-1),'admitted-rv','GPU failure retains the last completed frame');
+ const incomplete=new FakeImage();Object.assign(incomplete,{src:'incomplete-rv',complete:false,naturalWidth:256,naturalHeight:128});
+ const afterIncomplete=images.length;
+ render('incomplete-rv','not-admitted',incomplete);
+ assert.equal(errors,4,'Incomplete image must be rejected without GPU promotion');
+ assert.equal(images.length,afterIncomplete,'Invalid borrowed image must never silently trigger another download');
+ assert.equal(layers.size,1,'Invalid borrowed image preserves the previous GPU layer');
  reduced=true;render('reduced');images.at(-1).onload();ready();tick(1);assert.equal(displayed.at(-1),'reduced');assert.equal(layers.size,1,'Reduced motion still requires an actually renderable successor');effects.forEach(effect=>effect?.cleanup?.());assert.equal(layers.size,0);assert.equal(sources.size,0);assert.equal(rafs.size,0);assert.equal(timers.size,0);assert.equal(listeners.get('render')?.size??0,0);assert.equal(listeners.get('error')?.size??0,0);check();
  }
  for(const [path,expected] of Object.entries({'src/synopPrecipitationSymbols.ts':'a6cf1869f801dd03209aba5d6fafc24a4456e035','src/RadarModelPrecipTypeOverlay.tsx':'51c7b3a463ed963b0c0706e857bd4a7bb5e63060','scripts/test-synop-precipitation-symbols-0985337.mjs':'bcd620bb09734c606fee9478d8d3d8ef3ea728b1'})){const bytes=readFileSync('docs/handoffs/PR480_originals/'+path);assert.equal(createHash('sha1').update(Buffer.concat([Buffer.from(`blob ${bytes.length}\0`),bytes])).digest('hex'),expected,'Historic PR480 original changed: '+path)}check();

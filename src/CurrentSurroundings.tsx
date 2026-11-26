@@ -16,6 +16,13 @@ import {compositeReferenceLayers} from './mapReferenceLayers';
 import {chooseSurroundingsCities,citiesFromMapFeatures,type SurroundingsCityCandidate} from './surroundingsCitySelection';
 import {loadSurroundingsTemperatures} from './currentSurroundingsTemperature';
 import {currentSurroundingsTemperature,type SurroundingsTemperatureRequest} from './surroundingsTemperatureDisplay';
+import SurroundingsViewportCapture from './SurroundingsViewportCapture';
+import {admitSurroundingsWmsDecodedImage} from './surroundingsWmsImageAdmission';
+import {planSurroundingsMercatorWmsRaster} from './surroundingsMercatorWmsRaster';
+import {mercatorLatitudeAtImageFraction,type SurroundingsRasterPlan} from './surroundingsViewportRaster';
+import {summarizeSurroundingsOperaCoverage,type SurroundingsOperaCoverage} from './surroundingsOperaCoverage';
+import {interpretSurroundingsMap} from './surroundingsMapInterpretation';
+import {observeSurroundingsVisibleClock} from './surroundingsVisibleClock';
 import './CurrentSurroundings.css';
 
 export type SurroundingsBounds={west:number;south:number;east:number;north:number};
@@ -43,11 +50,11 @@ function MapCityInventory({onChange}:{onChange:(values:SurroundingsCityCandidate
  return null;
 }
 
-function imageUrl(provider:WmsProvider,layer:string,time:number,bounds:string){
+function imageUrl(provider:WmsProvider,layer:string,time:number,plan:(Pick<SurroundingsRasterPlan,'bbox'|'width'|'height'>&{srs:'EPSG:4326'|'EPSG:3857'})|undefined){
  const proxy=compositeWmsProxy(provider);
- if(!proxy)return '';
+ if(!proxy||!plan)return '';
  const url=new URL(proxy,window.location.href);
- const parameters={service:'WMS',request:'GetMap',version:'1.1.1',srs:'EPSG:4326',layers:layer,format:'image/png',transparent:'true',bbox:bounds,width:'512',height:'256',time:new Date(time).toISOString()};
+ const parameters={service:'WMS',request:'GetMap',version:'1.1.1',srs:plan.srs,layers:layer,format:'image/png',transparent:'true',bbox:plan.bbox,width:String(plan.width),height:String(plan.height),time:new Date(time).toISOString()};
  for(const [key,value] of Object.entries(parameters))url.searchParams.set(key,value);
  return url.href;
 }
@@ -72,12 +79,12 @@ export default function CurrentSurroundings(props:Props){
  const [cloudStep,setCloudStep]=useState(0); // Step 0 = last UTC quarter-hour; step 9 guarantees >=+120 min
  const [catalog,setCatalog]=useState<CompositeProductTimes>();
  const [failed,setFailed]=useState(false);
- const [loaded,setLoaded]=useState<{url:string;time:number;kind:'Beobachtung'|'Nowcast'}>();
+ const [loaded,setLoaded]=useState<{url:string;time:number;kind:'Beobachtung'|'Nowcast';image:HTMLImageElement}>();
  const [now,setNow]=useState(Date.now);
  const cloudTarget=surroundingsQuarterHourTarget(now,cloudStep);
  const cloudRelativeMinutes=Math.max(0,Math.ceil((cloudTarget-now)/60000));
  const cloudForecast=useSurroundingsCloudImage(mode==='cloud',lat,lon,cloudTarget);
- const [opera,setOpera]=useState<{url:string;time:number;requestKey:string}>();
+ const [opera,setOpera]=useState<{url:string;time:number;requestKey:string;coverage:SurroundingsOperaCoverage}>();
  const [operaFinished,setOperaFinished]=useState(false);
  const [imageError,setImageError]=useState('');
  const [cloudError,setCloudError]=useState('');
@@ -86,6 +93,17 @@ export default function CurrentSurroundings(props:Props){
  const [phaseLoading,setPhaseLoading]=useState(false);
  const [mapCities,setMapCities]=useState<SurroundingsCityCandidate[]>([]);
  const [mapViewport,setMapViewport]=useState<{width:number;height:number}|null>(null);
+ // Bind every Rad/Sat original to the actual post-fit camera rectangle.
+ const [rasterState,setRasterState]=useState<{lat:number;lon:number;plan:SurroundingsRasterPlan|undefined}>();
+ const rasterPlan=rasterState?.lat===lat&&rasterState.lon===lon?rasterState.plan:undefined;
+ // Only DWD RV is verified for native EPSG:3857 GetMap. Satellite providers
+ // retain original EPSG:4326 until their specific CRS/PIXEL gate succeeds.
+ const radarWmsPlan=useMemo(()=>planSurroundingsMercatorWmsRaster(rasterPlan),[rasterPlan]);
+ const geographicWmsPlan=useMemo(()=>rasterPlan?{
+  bbox:rasterPlan.bbox,width:rasterPlan.width,height:rasterPlan.height,
+  srs:'EPSG:4326' as const
+ }:undefined,[rasterPlan]);
+ const rasterPending=!rasterState||rasterState.lat!==lat||rasterState.lon!==lon;
  const mapFigureRef=useRef<HTMLElement|null>(null);
  const darkMap=useDarkMapTheme();
  useEffect(()=>{
@@ -122,10 +140,9 @@ export default function CurrentSurroundings(props:Props){
    document.removeEventListener('visibilitychange',refresh);
   };
  },[lat,lon,mode]);
- useEffect(()=>{
-  const timer=window.setInterval(()=>setNow(Date.now()),30000);
-  return ()=>window.clearInterval(timer);
- },[]);
+ // Clock drives target-time labels only while the document is visible.
+ // Foreground resume reads actual wall time immediately; no synthetic source frame.
+ useEffect(()=>observeSurroundingsVisibleClock(document,setNow),[]);
  // Same admission bounds as the DWD RV point service. An empty WMS image
  // inside these bounds still needs the independent OPERA check.
  const dwdArea=lat>=47&&lat<=55.3&&lon>=5.4&&lon<=15.7;
@@ -135,9 +152,10 @@ export default function CurrentSurroundings(props:Props){
  const radarAtNow=radarStep===0;
  const west=Math.max(-180,Math.min(177.2,lon-1.4)),south=Math.max(-85,Math.min(83.7,lat-.65));
  const east=west+2.8,north=south+1.3;
- const bounds=[west,south,east,north].join(',');
- // Request identity includes the exact selected location and the WMS bbox.
- const operaRequestKey=JSON.stringify([lat,lon,bounds]);
+ // These fixed bounds serve only the initial camera and the detail-map handoff.
+ const bounds=rasterPlan?.bbox??'';
+ // A changed viewport or raster resolution invalidates old OPERA and WMS data.
+ const operaRequestKey=JSON.stringify([lat,lon,bounds,rasterPlan?.width,rasterPlan?.height]);
  const [geography,setGeography]=useState<ModelMapGeography>();
  useEffect(()=>{
   let active=true;
@@ -145,10 +163,13 @@ export default function CurrentSurroundings(props:Props){
   return ()=>{active=false};
  },[]);
  // Coordinates come from actual named settlements, not screen-grid reference points.
- const nearbyCities=useMemo(()=>mapViewport?chooseSurroundingsCities([
+ // Derive label eligibility from the *actual* post-fit/resize camera, not
+ // the narrower initial focus bounds (especially wrong after maxZoom on tablets).
+ // No camera or invalid geometry => no claimed visible settlements/extra requests.
+ const nearbyCities=useMemo(()=>mapViewport&&rasterPlan?chooseSurroundingsCities([
   ...mapCities,...(geography?.places??[]).map(place=>({name:place.name,lat:place.lat,lon:place.lon,population:place.population,rank:place.minZoom,origin:'natural-earth' as const}))
- ],{lat,lon},{west,south,east,north},4,mapViewport):[],[mapCities,geography,lat,lon,west,south,east,north,mapViewport]);
- const mapBounds=useMemo(()=>[[south,west],[north,east]] as [[number,number],[number,number]],[south,west,north,east]);
+ ],{lat,lon},rasterPlan.bounds,4,mapViewport):[],[mapCities,geography,lat,lon,rasterPlan,mapViewport]);
+ const mapBounds=useMemo(()=>rasterPlan?[[rasterPlan.bounds.south,rasterPlan.bounds.west],[rasterPlan.bounds.north,rasterPlan.bounds.east]] as [[number,number],[number,number]]:undefined,[rasterPlan]);
  const mapReferences=useMemo(()=>compositeReferenceLayers(.93,surroundingReference),[darkMap]);
  const directVectorAllowed=browserExternalWeatherFallbackAllowed();
  const referenceTileUrl=openFreeMapVectorTileProxy()||(directVectorAllowed?DIRECT_VECTOR_TILES:'');
@@ -157,40 +178,45 @@ export default function CurrentSurroundings(props:Props){
   const signature=(places:SurroundingsCityCandidate[])=>places.map(p=>`${p.name}:${p.lat.toFixed(3)}:${p.lon.toFixed(3)}`).sort().join('|');
   return signature(previous)===signature(next)?previous:next;
  }),[]);
- const radar=mode!=='radar'||target===undefined?'':imageUrl('dwd',rvLayer,target,bounds);
+ const radar=mode!=='radar'||target===undefined?'':imageUrl('dwd',rvLayer,target,radarWmsPlan);
  const satellite=catalog?.satelliteRgbProduct??catalog?.satelliteIrProduct;
  const satelliteTime=radarStep>0?undefined:nearestVerifiedOriginal(satellite?.times,radarTarget,now);
- const clouds=mode==='radar'&&satellite&&satelliteTime!==undefined?imageUrl(satellite.provider,satellite.layer,satelliteTime,bounds):'';
- const clock=(time:number)=>new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:timezone}).format(time);
- const datedClock=(time:number)=>new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:timezone}).format(time);
+ const clouds=mode==='radar'&&satellite&&satelliteTime!==undefined?imageUrl(satellite.provider,satellite.layer,satelliteTime,geographicWmsPlan):'';
+ // Reuse the same IANA-zone formatters while the surroundings map rerenders.
+ // Original timestamps and DST behavior remain unchanged; formatting is presentation only.
+ const clockFormat=useMemo(()=>new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:timezone}),[timezone]);
+ const datedClockFormat=useMemo(()=>new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:timezone}),[timezone]);
+ const clock=(time:number)=>clockFormat.format(time);
+ const datedClock=(time:number)=>datedClockFormat.format(time);
  useEffect(()=>{
   if(mode!=='radar'||!radar||target===undefined)return;
+  // WMS alpha is presentation, not a weather validity mask. Verify only
+  // decoded dimensions against the exact post-fit request; coverage stays unknown.
+  const admittedRasterPlan=radarWmsPlan;
+  if(!admittedRasterPlan)return;
+  let active=true;
   const img=new Image();
   img.crossOrigin='anonymous';
   img.onload=()=>{
-   const canvas=document.createElement('canvas');
-   canvas.width=img.naturalWidth;
-   canvas.height=img.naturalHeight;
-   const context=canvas.getContext('2d',{willReadFrequently:true});
-   try{
-    if(context&&canvas.width&&canvas.height){
-     context.drawImage(img,0,0);
-     if(context.getImageData(0,0,canvas.width,canvas.height).data.some((value,index)=>index%4===3&&value>0)){
-      setLoaded({url:radar,time:target,kind:radarOriginal!.kind});
-      return;
-     }
-    }
-   }catch{/* A frame with unreadable pixels cannot establish coverage. */}
-   setImageError(radar);
+   if(!active)return;
+   if(admitSurroundingsWmsDecodedImage(admittedRasterPlan,img.naturalWidth,img.naturalHeight)&&
+      radarOriginal?.time===target){
+    // Keep the *same* decoded, dimension-admitted image for GPU staging.
+    // It remains bound to the complete WMS URL, original term and phase.
+    setLoaded({url:radar,time:target,kind:radarOriginal.kind,image:img});
+   }else{
+    setImageError(radar);
+   }
   };
-  img.onerror=()=>setImageError(radar);
+  img.onerror=()=>{if(active)setImageError(radar)};
   img.src=radar;
-  return ()=>{img.onload=null;img.onerror=null};
- },[radar,target,mode,radarOriginal?.kind]);
- const needsOpera=mode==='radar'&&radarAtNow&&Boolean(showPhase||(catalog&&!radar)||failed||(radar&&imageError===radar));
+  return ()=>{active=false;img.onload=null;img.onerror=null};
+ },[radar,target,mode,radarWmsPlan,radarOriginal?.kind,radarOriginal?.time]);
+ const needsOpera=mode==='radar'&&radarAtNow&&Boolean(rasterPlan)&&Boolean(showPhase||(catalog&&!radar)||failed||(radar&&imageError===radar));
  // biome-ignore lint/correctness/useExhaustiveDependencies: A refreshed composite catalog intentionally revalidates OPERA availability even when location/radar mode remain unchanged.
  useEffect(()=>{
-  if(!needsOpera)return;
+  if(!needsOpera||!rasterPlan)return;
+  const admittedRasterPlan=rasterPlan;
   const controller=new AbortController();
   setOperaFinished(false);
   setPhaseImage(undefined);
@@ -207,21 +233,26 @@ export default function CurrentSurroundings(props:Props){
    const raster=await loadOperaRasterData(frame.fileUrl,controller.signal);
    if(controller.signal.aborted)return;
    const canvas=document.createElement('canvas');
-   canvas.width=256;canvas.height=128;
+   canvas.width=Math.max(16,Math.ceil(admittedRasterPlan.width/2));
+   canvas.height=Math.max(16,Math.ceil(admittedRasterPlan.height/2));
    const context=canvas.getContext('2d');
    if(!context)return;
-   const [west,south,east,north]=bounds.split(',').map(Number);
+   const {west,south,east,north}=admittedRasterPlan.bounds;
+   const rowLatitudes=Array.from({length:canvas.height},(_,y)=>mercatorLatitudeAtImageFraction(north,south,(y+.5)/canvas.height));
    const image=context.createImageData(canvas.width,canvas.height);
-   let covered=false;
+   let validPixels=0;
    for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){
-    const point=operaRasterPoint(raster,north-(y+.5)*(north-south)/canvas.height,west+(x+.5)*(east-west)/canvas.width);
-    covered ||= point.covered;
+    const point=operaRasterPoint(raster,rowLatitudes[y],west+(x+.5)*(east-west)/canvas.width);
+    if(point.covered)validPixels++;
     if(point.dbz!==undefined)image.data.set(radarDbzColor(point.dbz),(y*canvas.width+x)*4);
    }
-   if(!covered)return;
+   const coverage=summarizeSurroundingsOperaCoverage(validPixels,canvas.width*canvas.height);
+   // An empty or partial meteorological footprint is never a dry-weather observation.
+   if(!coverage||coverage.kind==='none')return;
    context.putImageData(image,0,0);
    const time=Date.parse(frame.time);
-   setOpera({url:canvas.toDataURL(),time,requestKey:operaRequestKey});
+   if(controller.signal.aborted)return;
+   setOpera({url:canvas.toDataURL(),time,requestKey:operaRequestKey,coverage});
    if(!showPhase)return;
    const [{loadWeatherPhaseGrid},{buildPhaseDisplay,paintPhaseRaster}]=await Promise.all([
     import('./WeatherMapsData'),import('./RadarModelPrecipTypeOverlay')
@@ -231,16 +262,19 @@ export default function CurrentSurroundings(props:Props){
    if(controller.signal.aborted||grid.error||grid.stale||!Number.isFinite(modelTime)||Math.abs(modelTime-time)>20*60000||(grid.modelAgeHours??0)>16)return;
    const phase=buildPhaseDisplay(grid,raster);
    if(phase.colors.size)paintPhaseRaster(context,raster,grid,phase,(x,y)=>({
-    lat:north-y*(north-south)/canvas.height,
+    lat:rowLatitudes[Math.floor(y)],
     lng:west+x*(east-west)/canvas.width
    }));
+   if(controller.signal.aborted)return;
    setPhaseImage({url:phase.colors.size?canvas.toDataURL():undefined,time,requestKey:operaRequestKey});
   }
   void load().catch(()=>{}).finally(()=>{if(!controller.signal.aborted){setOperaFinished(true);setPhaseLoading(false)}});
   return ()=>controller.abort();
- },[needsOpera,showPhase,lat,lon,bounds,operaRequestKey,catalog?.checkedAt]);
+ },[needsOpera,showPhase,lat,lon,rasterPlan,operaRequestKey,catalog?.checkedAt]);
  const displayedOpera=needsOpera?selectVerifiedSurroundingsOperaFrame(opera,operaRequestKey,now):undefined;
  const displayedRadar=mode==='radar'?selectVerifiedSurroundingsRadarFrame(loaded,radar,radarOriginal):undefined;
+ const admittedRadarImage=displayedRadar&&loaded?.url===displayedRadar.url&&
+  loaded.time===displayedRadar.time&&loaded.kind===displayedRadar.kind?loaded.image:undefined;
  const displayedPhase=showPhase&&displayedOpera&&phaseImage?.requestKey===operaRequestKey&&phaseImage?.time===displayedOpera.time?phaseImage:undefined;
  const displayTime=displayedOpera?.time??displayedRadar?.time;
  const temperatureTarget=mode==='cloud'?cloudTarget:radarTarget;
@@ -270,6 +304,13 @@ export default function CurrentSurroundings(props:Props){
  const forecastSiteTemperature=mode==='cloud'&&cloudStep>0?temperatures?.[siteId]:undefined;
  const displaySiteTemperature=mode==='cloud'&&cloudStep>0?forecastSiteTemperature:(mode==='cloud'||radarAtNow)&&Number.isFinite(temperature)?temperature:undefined;
  const visibleClouds=Boolean(clouds&&cloudError!==clouds);
+ // O(1), only already-admitted sources; no meteorological pixel inference.
+ const mapInterpretation=interpretSurroundingsMap(mode==='cloud'
+  ?{mode:'cloud',cloudOriginalAvailable:Boolean(cloudForecast.image)}
+  :{mode:'radar',radar:displayedOpera
+    ?{source:'opera',kind:'Beobachtung',time:displayedOpera.time,coverage:displayedOpera.coverage.kind==='partial'?'partial':displayedOpera.coverage.kind==='complete'?'complete':'unknown'}
+    :displayedRadar?{source:'dwd',kind:displayedRadar.kind,time:displayedRadar.time,coverage:'unknown'}:undefined,
+   satelliteTime:visibleClouds?satelliteTime:undefined,phaseAvailable:Boolean(displayedPhase?.url)});
  return <section className="card current-surroundings" aria-labelledby={heading}>
   <header><h2 id={heading}>Wetter im Umfeld</h2><button type="button" onClick={()=>onOpen(mode==='cloud'?cloudTarget:mode==='radar'?displayTime:undefined,{west,south,east,north})}>Karte öffnen</button></header>
   <div className="current-surroundings-display-modes" role="group" aria-label="Kartendarstellung wählen">
@@ -303,11 +344,13 @@ export default function CurrentSurroundings(props:Props){
   <figure ref={mapFigureRef} className="current-surroundings-map" aria-label={`Wetterbild um ${name}: MID-Kartenbasis und Temperaturen an benannten Orten`}>
    <MidMapLibre center={[lat,lon]} zoom={7} scrollZoom={false} interactive={false} navigationControl={false} className="current-surroundings-maplibre">
     <MapFitBounds south={south} west={west} north={north} east={east} padding={8} maxZoom={7}/>
+    <SurroundingsViewportCapture onChange={plan=>setRasterState({lat,lon,plan})}/>
     <UnifiedVectorBasemap dark={darkMap}/>
     {mode==='cloud'&&cloudForecast.image&&<ImageQuadLayer id="surroundings-model-cloud-weather" url={cloudForecast.image.url}
      bounds={cloudForecast.image.bounds} resampling="nearest" zIndex={270} frameKey={`${cloudForecast.image.run}:${cloudForecast.image.validTime}:pseudo`}/>}
-    {mode==='radar'&&visibleClouds&&<ImageQuadLayer id="surroundings-clouds" url={clouds} bounds={mapBounds} zIndex={220} onError={()=>setCloudError(clouds)}/>}
-    {mode==='radar'&&(displayedOpera??displayedRadar)&&<ImageQuadLayer id="surroundings-radar" url={displayedPhase?.url??(displayedOpera??displayedRadar)!.url} bounds={mapBounds} zIndex={360}/>}
+    {mode==='radar'&&visibleClouds&&mapBounds&&<ImageQuadLayer id="surroundings-clouds" key={`surroundings-clouds:${operaRequestKey}`} url={clouds} bounds={mapBounds} zIndex={220} onError={()=>setCloudError(clouds)}/>}
+    {mode==='radar'&&mapBounds&&(displayedOpera??displayedRadar)&&<ImageQuadLayer id="surroundings-radar" key={`surroundings-radar:${operaRequestKey}`} url={displayedPhase?.url??(displayedOpera??displayedRadar)!.url} bounds={mapBounds} zIndex={360}
+     decodedImage={!displayedOpera&&!displayedPhase?.url?admittedRadarImage:undefined}/>}
     <VectorReferenceLayer url={referenceTileUrl} glyphsUrl={referenceGlyphsUrl} layers={mapReferences} zIndex={790}/>
     <MapCityInventory onChange={updateMapCities}/>
     {nearbyCities.map((place,index)=>{
@@ -331,7 +374,8 @@ export default function CurrentSurroundings(props:Props){
      {cloudForecast.unavailable&&<small>Aktualisierung nicht erreichbar; letzter gültiger Bildstand.</small>}
     </>
     :<span>{cloudForecast.loading?'Verifiziertes PseudoSat-/SigWx-Modellbild wird geladen …':'Kein gültiges Wolken-/SigWx-Modellbild für Ort und Termin; keine Satellitenbeobachtung oder Entwarnung.'}</span>
-   :<span>{displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:radarStep!==0&&(!radar||target===undefined)?'Kein originales Radar-/Nowcast-Bild für diesen 15-Minuten-Termin':failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</span>}</div>
+    :<span>{!rasterPlan?(rasterPending?'Kartenausschnitt wird vorbereitet …':'Radar-/Satellitenausschnitt geometrisch nicht verfügbar; keine Wetterdaten als 0 interpretiert.'):displayedOpera?<>EUMETNET OPERA · Beobachtung {clock(displayedOpera.time)} Uhr{displayedOpera.coverage.kind==='partial'?` · Teilabdeckung ${displayedOpera.coverage.percentageLabel} gültige Rasterzellen`:''}</>:needsOpera&&!operaFinished&&!displayedRadar?'Europäisches Radar wird geladen …':displayedRadar?<>DWD-Radar · {displayedRadar.kind} {clock(displayedRadar.time)} Uhr · WMS-Bild geladen, Quellabdeckung nicht bestätigt{displayedRadar.url!==radar?((!radar||imageError===radar)?' · neuer Termin nicht verfügbar':' · neuer Termin lädt'):''}</>:radarStep!==0&&(!radar||target===undefined)?'Kein originales Radar-/Nowcast-Bild für diesen 15-Minuten-Termin':failed||catalog&&!radar||imageError&&imageError===radar?'Radarbild nicht verfügbar':'Wetterbild wird geladen …'}</span>}</div>
+  {mapInterpretation&&<p role="note" aria-label="Einordnung des Wetterbilds" className="current-surroundings-interpretation"><strong>Einordnung:</strong> {mapInterpretation}</p>}
   <details className="current-surroundings-sources">
    <summary>Quellen und Datenstand</summary>
    <p>Kartengrundlage · MID-Kartenbereich, OpenFreeMap / OpenStreetMap; Orte Natural Earth und Kartenkacheln</p>

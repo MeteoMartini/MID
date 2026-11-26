@@ -58,7 +58,7 @@ assert.ok(component.includes('<MidMapLibre center={[lat,lon]}')&&component.inclu
 assert.ok(component.includes('<VectorReferenceLayer url={referenceTileUrl}')&&component.includes('glyphsUrl={referenceGlyphsUrl}'),'Use MID border, city, waterway and road styling');
 assert.ok(component.includes('referenceTileUrl=openFreeMapVectorTileProxy()')&&component.includes('referenceGlyphsUrl=openFreeMapGlyphProxy()'),'Reference layers must use the same proxied vector/glyph source as the MID basemap');
 assert.ok(component.includes("directVectorAllowed?DIRECT_VECTOR_TILES:''")&&component.includes("directVectorAllowed?DIRECT_VECTOR_GLYPHS:''"),'No direct external basemap requests when browser fallback is disallowed');
-assert.ok(component.includes('ResizeObserver(update)')&&component.includes('mapViewport?chooseSurroundingsCities'),'Selection must use measured viewport dimensions, not a hardcoded desktop raster');
+assert.ok(component.includes('ResizeObserver(update)')&&component.includes('mapViewport&&rasterPlan?chooseSurroundingsCities')&&component.includes('rasterPlan.bounds,4,mapViewport')&&!component.includes('],{lat,lon},{west,south,east,north},4,mapViewport):[]'),'Selection must use measured post-fit/resize camera bounds and fail closed when geometry is absent');
 assert.ok(component.includes('<ImageQuadLayer id="surroundings-radar"'),'Radar stays georeferenced');
 assert.ok(component.includes('nearbyCities.map((place,index)=>'),'Temperatures bind to ranked named settlements');
 assert.ok(component.includes('current-surroundings-city-marker'),'Use MapLibre HTML markers');

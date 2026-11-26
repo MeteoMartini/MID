@@ -1,5 +1,5 @@
 import {synopticBrowserFixtureHours} from './lib/synopticBrowserFixtureHours.mjs';
-import {gzipSync,gunzipSync} from 'node:zlib';
+import {gzipSync,gunzipSync,deflateSync} from 'node:zlib';
 import {appendFile,writeFile} from 'node:fs/promises';
 import {installMapBrowserProbe,snapshotMapBrowserProbe} from './lib/mapBrowserPerformanceProbe.mjs';
 import {summarizePhases} from './lib/mapBaselineStatistics.mjs';
@@ -594,6 +594,60 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
    perfRows.push({width,theme,design,caseKind:profileMemory?'isolated-memory-cycles':'functional-matrix',memoryProfile,readyMs:readyMs===null?null:Math.round(readyMs*100)/100,...summarizePhases(perfPhases)});
   }cases++;console.log(`Map case ${cases}: ${width}px ${theme} ${design} passed · ${((performance.now()-caseStarted)/1000).toFixed(1)} s`);await context.close();
 }
+
+/**
+ * Browser fixture only: construct a lossless RGBA PNG with the EXACT WMS
+ * GetMap WIDTH/HEIGHT. A one-pixel image was sufficient for the old alpha
+ * heuristic but is intentionally rejected by the new source-shape contract.
+ * Transparent cells are NOT interpreted as valid dry radar observations.
+ */
+const qaWmsPngCache=new Map();
+function qaPngCrc(bytes){
+ let crc=0xffffffff;
+ for(const byte of bytes){
+  crc^=byte;
+  for(let bit=0;bit<8;bit++)crc=(crc>>>1)^((crc&1)?0xedb88320:0);
+ }
+ return (crc^0xffffffff)>>>0;
+}
+function qaPngChunk(type,data){
+ const chunk=Buffer.alloc(12+data.length);
+ chunk.writeUInt32BE(data.length,0);
+ chunk.write(type,4,4,'ascii');
+ data.copy(chunk,8);
+ chunk.writeUInt32BE(qaPngCrc(chunk.subarray(4,8+data.length)),8+data.length);
+ return chunk;
+}
+function qaSurroundingsWmsPng(width,height,transparent){
+ if(!Number.isSafeInteger(width)||!Number.isSafeInteger(height)||
+  width<16||height<16||width>512||height>256||width*height>512*256)
+  throw new RangeError('Invalid synthetic WMS fixture geometry');
+ const key=`${width}:${height}:${transparent?'transparent':'opaque'}`;
+ if(qaWmsPngCache.has(key))return qaWmsPngCache.get(key);
+ const ihdr=Buffer.alloc(13);
+ ihdr.writeUInt32BE(width,0);
+ ihdr.writeUInt32BE(height,4);
+ ihdr[8]=8;ihdr[9]=6; // RGBA, 8-bit channels; no palette or interlace.
+ const raw=Buffer.alloc(height*(1+4*width));
+ for(let y=0;y<height;y++){
+  const row=y*(1+4*width);
+  for(let x=0;x<width;x++){
+   const p=row+1+x*4;
+   raw[p]=145;raw[p+1]=43;raw[p+2]=213;raw[p+3]=transparent?0:255;
+  }
+ }
+ const png=Buffer.concat([
+  Buffer.from([137,80,78,71,13,10,26,10]),
+  qaPngChunk('IHDR',ihdr),
+  qaPngChunk('IDAT',deflateSync(raw,{level:1})),
+  qaPngChunk('IEND',Buffer.alloc(0))
+ ]);
+ if(png.readUInt32BE(16)!==width||png.readUInt32BE(20)!==height)
+  throw new Error('Synthetic WMS dimensions mismatch');
+ qaWmsPngCache.set(key,png);
+ return png;
+}
+
 async function verifySurroundings(width,theme){
  const context=await browser.newContext({viewport:{width,height:780},colorScheme:theme});
  try{
@@ -605,7 +659,14 @@ async function verifySurroundings(width,theme){
   await page.route('**/__qa-worker?**',async route=>{
    const url=new URL(route.request().url()),mode=url.searchParams.get('mode');
    if(mode==='composite-times')return route.fulfill({json:{dwdRadar:[observed],dwdRadarNowcast:[future]}});
-   if(mode==='composite-wms')return route.fulfill({body:png,contentType:'image/png'});
+   if(mode==='composite-wms'){
+    const w=Number(url.searchParams.get('width')),h=Number(url.searchParams.get('height'));
+    // Observation: fully transparent native-sized frame. Nowcast: opaque
+    // native-sized frame. Neither proves meteorological coverage.
+    const transparent=url.searchParams.get('time')===observed;
+    const image=qaSurroundingsWmsPng(w,h,transparent);
+    return route.fulfill({body:image,contentType:'image/png'});
+   }
    return route.fulfill({json:{error:'Unavailable in surroundings fixture'}});
   });
   await page.goto(base+'/__map-qa?surroundings');
@@ -668,6 +729,34 @@ async function verifySurroundings(width,theme){
    })).catch(e=>({inspectionError:String(e)}));
    throw new Error('Umfeld-Radar-Fixturnier (echte Bilddaten erforderlich): '+JSON.stringify({state,requests:requests.slice(-16),pageErrors:errors})+'; Ursache: '+String(error));
   }
+  // The observed WMS PNG is deliberately fully transparent, but has the
+  // exact WIDTH/HEIGHT requested by the fitted camera. That must NOT be
+  // treated as a failed meteorological observation or as proven dry weather.
+  assert.match(await radarObserved.innerText(),/Quellabdeckung nicht bestätigt/,
+   'Decoded transparent WMS image has unknown source coverage, never proven 0 mm');
+  const observedWms=requests.map(value=>new URL(value)).find(url=>
+   url.searchParams.get('mode')==='composite-wms'&&url.searchParams.get('time')===observed);
+  assert.ok(observedWms,'Actual observed WMS query must use source timestamp');
+  const imageWidth=Number(observedWms.searchParams.get('width'));
+  const imageHeight=Number(observedWms.searchParams.get('height'));
+  const bbox=observedWms.searchParams.get('bbox')?.split(',').map(Number)??[];
+  assert.ok(imageWidth>=16&&imageWidth<=512&&imageHeight>=16&&imageHeight<=256&&
+   imageWidth*imageHeight<=512*256,'WMS image remains within the source pixel budget');
+  assert.equal(bbox.length,4);
+  assert.equal(observedWms.searchParams.get('srs'),'EPSG:3857',
+   'Verified DWD RV original must use WMS 1.1.1 native WebMercator source pixels');
+  assert.ok(bbox.every(Number.isFinite)&&bbox[0]<bbox[2]&&bbox[1]<bbox[3]&&
+   bbox.some(value=>Math.abs(value)>100000),
+   'Radar BBOX contains ordered projected metres, not degree coordinates');
+  assert.ok(Math.abs(imageWidth/imageHeight-(bbox[2]-bbox[0])/(bbox[3]-bbox[1]))<.02,
+   'Radar PNG shape corresponds to native EPSG:3857 projected BBOX');
+  // Satellite providers remain geographic until EACH layer has independent
+  // GetCapabilities, rights and actual image-pixel CRS qualification.
+  for(const satelliteWms of requests.map(value=>new URL(value)).filter(url=>
+   url.searchParams.get('mode')==='composite-wms'&&
+   url.searchParams.get('layers')!=='dwd:Radar_rv_product_1x1km_ger'))
+   assert.equal(satelliteWms.searchParams.get('srs'),'EPSG:4326',
+    'Unverified satellite source projection must not silently change');
   // #795/.478 replaces the old approximate SVG borders with the real MapLibre vector basemap.
   // The independent radar admission still requires a real rendered frame after explicit selection.
   await page.locator('.current-surroundings-maplibre canvas').first().waitFor({timeout:30000});

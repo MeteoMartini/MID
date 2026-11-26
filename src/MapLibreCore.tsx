@@ -293,7 +293,7 @@ export function CanvasOverlay({id,opacity=1,zIndex=5,render,events=['moveend','z
  useEffect(()=>{if(canvasRef.current)canvasRef.current.style.opacity=String(Math.max(0,Math.min(1,opacity)))},[opacity]);return null;
 }
 
-export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='linear',frameKey,onReady,onError}:{id:string;url:string;bounds:[[number,number],[number,number]];opacity?:number;zIndex?:number;resampling?:'linear'|'nearest';frameKey?:string;onReady?:()=>void;onError?:(message:string)=>void}){
+export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='linear',frameKey,decodedImage,onReady,onError}:{id:string;url:string;bounds:[[number,number],[number,number]];opacity?:number;zIndex?:number;resampling?:'linear'|'nearest';frameKey?:string;decodedImage?:HTMLImageElement;onReady?:()=>void;onError?:(message:string)=>void}){
  const map=useMidMap(),south=bounds[0][0],west=bounds[0][1],north=bounds[1][0],east=bounds[1][1],errorRef=useRef(onError),opacityRef=useRef(opacity),sequence=useRef(0),animation=useRef(0),fading=useRef(false),frames=useRef<{source:string;layer:string;weight:number}[]>([]);errorRef.current=onError;opacityRef.current=opacity;
  const remove=(frame:{source:string;layer:string})=>{if(!map)return;unregisterMapLayerOrder(map,frame.layer);try{if(map.getLayer(frame.layer))map.removeLayer(frame.layer);if(map.getSource(frame.source))map.removeSource(frame.source)}catch{}};
  useEffect(()=>()=>{cancelAnimationFrame(animation.current);fading.current=false;for(const frame of frames.current)remove(frame);frames.current=[]},[map,id]);
@@ -302,7 +302,9 @@ export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='lin
   let active=true,timer=0,watchdog=0;
   let staged:{source:string;layer:string}|null=null;
   let readiness:(()=>void)|null=null,sourceError:((event:maplibregl.ErrorEvent)=>void)|null=null;
-  const generation=++sequence.current,image=new Image();
+  // A WMS parent may supply its already-decoded, source-time/geometry-admitted image.
+  // Other map layers keep the original owned-Image loading path unchanged.
+  const generation=++sequence.current,image=decodedImage??new Image(),ownsImage=decodedImage===undefined;
   // Capture this URL's ready callback; a newer selected term must not relabel an older fade.
   const onDisplayed=onReady;
   const releaseStaging=()=>{
@@ -356,9 +358,21 @@ export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='lin
     map.triggerRepaint();
    }catch{releaseStaging();remove({source,layer});fail()}
   };
-  image.onload=()=>{if(active)install()};
-  image.onerror=fail;image.src=url;
-  return()=>{active=false;window.clearTimeout(timer);image.onload=null;image.onerror=null;releaseStaging();if(!frames.current.some(frame=>frame.source===`${safeId(id)}-source-${generation}`))image.removeAttribute('src')};
- },[map,id,url,frameKey,south,west,north,east,zIndex,resampling]);
+  if(decodedImage){
+   // Never accept a stale URL, unfinished or dimensionless image; preserve
+   // the last MapLibre GPU frame and notify the existing error path instead.
+   if(decodedImage.src===url&&decodedImage.complete&&Number.isInteger(decodedImage.naturalWidth)&&
+      Number.isInteger(decodedImage.naturalHeight)&&decodedImage.naturalWidth>0&&decodedImage.naturalHeight>0)install();
+   else fail();
+  }else{
+   image.onload=()=>{if(active)install()};
+   image.onerror=fail;image.src=url;
+  }
+  return()=>{active=false;window.clearTimeout(timer);releaseStaging();
+   // The admitting parent owns a borrowed WMS image; never mutate its src/handlers.
+   if(ownsImage){image.onload=null;image.onerror=null;
+    if(!frames.current.some(frame=>frame.source===`${safeId(id)}-source-${generation}`))image.removeAttribute('src')}
+  };
+ },[map,id,url,frameKey,south,west,north,east,zIndex,resampling,decodedImage]);
  useEffect(()=>{for(const frame of frames.current)if(map?.getLayer(frame.layer))map.setPaintProperty(frame.layer,'raster-opacity',frame.weight*Math.max(0,Math.min(1,opacity)))},[map,opacity]);return null;
 }
