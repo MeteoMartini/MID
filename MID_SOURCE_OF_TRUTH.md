@@ -1,3 +1,10 @@
+# MID v0.9.85.524 · Meteorologisch sinnvolle Kartenextrema und präzisere Klima-QA
+
+- Stable .523 @ d788b927ef67c25c9e9f8aab45ed4503dcf2b65d; #1023 @ d1403f1522c9bd18ed147d70603832123a911687; #1002 @ ed9908addeec0671c85a0290b48b34e8f294b326.
+- Neun exakte Originalblobs selektiv übernommen; vier Karten-Ausgangsblobs unverändert gegenüber .522, fünf additive Pfade auf .523 nicht vorhanden.
+- Historischer Klima-Audit bleibt Originalevidenz; aktueller travelPlanner.ts @ 537fbe569cc11c20fe4b36c23b5ac44cc58bbd3e enthält weiterhin die geprüften Aggregationsrisiken. Noch keine produktive Fehlerbehebung.
+- Draft- und vollständige Source-/Installer-Gates, Worker/Pages, Stable und GitHub-Katalog erst auf exaktem finalem Kandidaten nachzuweisen.
+
 # MID v0.9.85.523 · Zuverlässigere Priorisierung der MID-Entwicklungswarteschlange
 
 - Stable .522 @ 8bf0b230c27f2c4c34c8b37c70503e56a9bcc76a; #981 @ 3842fc44d8e7abf8b78466c914134924e00d6d48; unabhängige Spezialchat-Kandidatenkette @ 35c4c094856169ace55866dc914e7a4cd066c4ed.

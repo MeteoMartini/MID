@@ -1,3 +1,7 @@
+# MID v0.9.85.524
+
+- Karten: Niederschlag, Windgeschwindigkeit und Böen zeigen nur das Maximum; Temperatur, Luftdruck, Theta-E und Bewölkung behalten Minimum und Maximum. Einheitliche Felder erhalten eine neutrale Kennzeichnung. Native Einzelfeld-Exporte verwenden dieselbe Auswahlregel.
+
 # MID v0.9.85.523
 
 - Wartung: Verbesserte interne Priorisierung und Nachvollziehbarkeit der MID-Weiterentwicklung; Wetterdaten und Darstellung bleiben unverändert.

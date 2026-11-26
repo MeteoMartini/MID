@@ -1,3 +1,11 @@
+## MID v0.9.85.524 · 2026-11-26 · Meteorologisch sinnvolle Kartenextrema und präzisere Klima-QA
+
+- Gemeinsame parameterabhängige Anzeige-Policy für native Karten und Exporte; numerische Originalwerte, mathematische Rastergrenzen, Isolinien und Farbskalen bleiben unverändert.
+- Echte Nullwerte und NoData bleiben getrennt; Wettercodes werden nicht numerisch gerankt. Sichtbarer Ausschnitt und vollständiger Export behalten ihre jeweiligen räumlichen Bezugsflächen.
+- Isolierter Klima-QA-Oracle für feldbezogene Vollständigkeit und eindeutige Referenzjahre 1991–2020; keine produktive Klima-Adapter-, Cache- oder UI-Änderung.
+- Erneute Prüfung von travelPlanner.ts auf .523 bestätigt offene Risiken bei fehlenden Werten, Klimajahresabdeckung und leeren Wettercode-Verteilungen; #999 bleibt offen.
+- Separat: Kartenübergänge #1021, Review-Mitigation #1024, RUC #541 und Open-Meteo #405 nicht Bestandteil dieses Kandidaten.
+
 ## MID v0.9.85.523 · 2026-11-25 · Zuverlässigere Priorisierung der MID-Entwicklungswarteschlange
 
 - Lesende PR-/Issue-Inventur: Prioritätslabels vor eindeutigen führenden Titel-Tags; unbekannte oder widersprüchliche Prioritäten getrennt.
