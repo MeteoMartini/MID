@@ -872,10 +872,10 @@ test('queue tags, provenance, explicit unknown and no implied release authority'
  assert.equal(result.find(x=>x.number===1021).kind,'pull-request');
  assert.ok(result.every(x=>!Object.hasOwn(x,'releaseAuthorized')));
 });
-test('queue discovery rejects malformed labels and foreign PR markers',async()=>{
+test('queue discovery rejects non-open or invalid issue identities, malformed labels and foreign PR markers',async()=>{
  const previous=globalThis.fetch,sha='a'.repeat(40);
  try{
-  for(const patch of [{labels:[null]},{labels:[{name:3}]},{pull_request:null},{pull_request:{url:'https://api.github.com/repos/foreign/repo/pulls/1'}}]){
+  for(const patch of [{state:'closed'},{number:0},{number:-1},{number:1.5},{number:Number.MAX_SAFE_INTEGER+1},{number:'1'},{labels:[null]},{labels:[{name:3}]},{pull_request:null},{pull_request:{url:'https://api.github.com/repos/foreign/repo/pulls/1'}}]){
    globalThis.fetch=async url=>({ok:true,json:async()=>String(url).includes('/git/ref/heads/')?{object:{sha}}:[{number:1,state:'open',title:'[P0] test',labels:[],...patch}]});
    await assert.rejects(discoverBacklog('MeteoMartini/MID',''),/Invalid or duplicate/);
   }
@@ -885,9 +885,26 @@ test('queue workflow uses only existing manual preflight and mirrored read-only 
  const canonical=await readRepositoryFile(new URL('../ci/github/workflows/release-train-preflight.yml',import.meta.url),'utf8');
  const active=await readRepositoryFile(new URL('../.github/workflows/release-train-preflight.yml',import.meta.url),'utf8');
  assert.equal(active,canonical);
- assert.match(canonical,/workflow_dispatch:/);
- assert.doesNotMatch(canonical,/^  schedule:|pull_request_target|: write$/m);
- assert.ok(canonical.includes('issues: read'));
+ // Lock complete top-level trigger and permission blocks, not just individual keywords.
+ const on=canonical.match(/^on:\n(?:[ \t].*\n|\n)*/m)?.[0].trimEnd();
+ assert.equal(on,[
+  'on:',
+  '  workflow_dispatch:',
+  '    inputs:',
+  '      mode:',
+  "        description: 'SHA-gebundenes Manifest oder rein lesende Backlog-Sichtung'",
+  '        type: choice',
+  '        options: [manifest, discover]',
+  '        default: manifest',
+  '      manifest:',
+  "        description: 'Schema-1 JSON: stableSha, mainSha, changes:[{pr,headSha}]; optional candidateMode/versioning; impact needs review (NO RELEASE)'",
+  '        required: false',
+  '        type: string'
+ ].join('\n'));
+ const permissions=canonical.match(/^permissions:\n(?:[ \t].*\n|\n)*/m)?.[0].trimEnd();
+ assert.equal(permissions,'permissions:\n  contents: read\n  pull-requests: read\n  issues: read');
+ assert.equal((canonical.match(/^\s*permissions\s*:/gm)||[]).length,1,'No job-level permission override');
+ assert.doesNotMatch(canonical,/^  schedule:|pull_request_target|: write(?:-all)?\s*$/m);
  assert.ok(canonical.includes('PLAN_MODE'));
  assert.ok(canonical.includes('plan=--discover'));
  assert.ok(canonical.includes('manifest mode requires a manifest'));
