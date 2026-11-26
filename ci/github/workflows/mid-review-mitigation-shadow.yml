@@ -1,0 +1,52 @@
+name: MID Review Mitigation Shadow
+run-name: SHA-gebundene Review-Mitigation rein lesend vorprüfen
+on:
+  workflow_run:
+    workflows:
+      - MID ChatGPT/Codex Source-PR Gate
+    types:
+      - completed
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+concurrency:
+  group: mid-review-mitigation-shadow-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+jobs:
+  observe:
+    if: >-
+      github.repository == 'MeteoMartini/MID' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Vertrauenswürdigen Workflow-SHA laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+      - name: Node 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+      - name: Nur lesende Review- und Budgetbeobachtung
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_WORKFLOW_SHA: ${{ github.workflow_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_WORKFLOW_SHA" =~ ^[a-f0-9]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$EXPECTED_WORKFLOW_SHA"
+          node tools/ci/mid-review-mitigation-shadow.mjs > "$RUNNER_TEMP/mid-review-shadow.json"
+          cat "$RUNNER_TEMP/mid-review-shadow.json"
+          {
+            echo '### MID Review-Mitigation Shadow (nur lesend)'
+            echo 'Keine Korrektur-, Merge- oder Release-Autorisierung.'
+            echo '~~~json'
+            cat "$RUNNER_TEMP/mid-review-shadow.json"
+            echo '~~~'
+          } >> "$GITHUB_STEP_SUMMARY"
