@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "version": "0.9.85.527",
+  "title": "Zuverlässigere technische Qualitäts- und Übernahmenachweise",
+  "date": "2026-11-26",
+  "external": [
+    "Die technischen Qualitätsprüfungen für kommende MID-Updates wurden erweitert."
+  ],
+  "internal": [
+    "Selektiver Intake #1029: rein lesende, SHA-gebundene Datei- und Abstammungsprüfung mit begrenzter First-Parent-Kette. Keine automatische PR-Schließung oder Release-Autorisierung.",
+    "Selektiver Intake #1024: nur deterministischer, rein beobachtender Review-Planer mit strikt konsistenten Statuswerten und gültigen numerisch aufsteigenden Versionszielen. Keine Shadow-Workflow-Aktivierung, keine Bot-Halt-/Resume-Autorisierung, keine Modellinferenz.",
+    "Vier Node-Testsuiten an die bestehende Pflichtregression angebunden. Keine zusätzliche Workflowdatei, kein neuer Testpfad im Pflichtinventar, keine veränderte Shard-Zuordnung.",
+    "Keine Änderungen an der Wetterdatenversorgung, meteorologischen Darstellung, UI oder produktiven Veröffentlichungslogik. Unabhängiger GitHub-Evidenzcollector und aktive Shadow-Qualifikation bleiben gesondert offen."
+  ],
+  "sourceOfTruth": [
+    "Stable .526 @ cc275420d602ae6313f8c6e5f81f28d50f57a122; #1029 @ 9d0f70506773b8445343bde131f5764f562ca3e0; #1024 @ a0698c55a7f340f7aab9ef692374d568130fb516.",
+    "Intake-Kandidat 59fcd8e0c04442edfa754206c4fa11c63930a9fd und Härtungskommentar #1024/7204342194. Lokale kombinierte Pflichtregression mit 41/41 Tests erfolgreich, originale Review-Vitest-Suite zusätzlich unverändert übernommen.",
+    "Neue gemeinsame Draft-QA, SHA-Readback, vollständige Source- und Installer-Gates, Worker-/Pages-Entscheidung, Stable-Promotion und Katalog noch erforderlich."
+  ]
+}
