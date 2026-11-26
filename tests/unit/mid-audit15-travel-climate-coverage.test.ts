@@ -53,5 +53,20 @@ describe('MID Audit 1.5 · climate field coverage, never missing-as-zero',()=>{
   const rows=Array.from({length:30},(_,i)=>({year:1991+i,value:1}));
   expect(assessTravelClimateYears(rows,'nonnegative','02-29')).toMatchObject({status:'insufficient',validYears:8,referenceMean:null});
  });
-
+ it('rejects impossible calendar days before inspecting any sample and preserves valid leap-day semantics',()=>{
+  const rows=Array.from({length:30},(_,i)=>({year:1991+i,value:1}));
+  const days=[31,29,31,30,31,30,31,31,30,31,30,31];
+  for(let month=1;month<=12;month++)for(let day=1;day<=31;day++){
+   const key=String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+   if(day>days[month-1]){
+    expect(()=>assessTravelClimateYears(rows,'nonnegative',key)).toThrow(RangeError);
+    expect(()=>assessTravelClimateYears([],'nonnegative',key)).toThrow(RangeError);
+   }else{
+    const leap=month===2&&day===29;
+    expect(assessTravelClimateYears(rows,'nonnegative',key)).toMatchObject({validYears:leap?8:30,referenceMean:leap?null:1});
+   }
+  }
+  for(const key of ['','2-29','02-00','00-01','13-01','01-32','02-29\n'])expect(()=>assessTravelClimateYears([],'nonnegative',key)).toThrow(RangeError);
+  expect(assessTravelClimateYears(rows,'nonnegative')).toMatchObject({validYears:30,complete:true});
+ });
 });

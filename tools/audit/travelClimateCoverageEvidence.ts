@@ -62,7 +62,13 @@ export type ClimateReferenceCoverage = {
  * labelled interpolation if shown as a 30-year daily climatology.
  */
 export function assessTravelClimateYears(samples: readonly ClimateYearSample[], field: TravelCoverageField, calendarDay?: string): ClimateReferenceCoverage {
-  if (calendarDay !== undefined && !/^(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$/.test(calendarDay)) throw new RangeError('Invalid calendar day');
+  if (calendarDay !== undefined) {
+    if (typeof calendarDay !== 'string' || !/^(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$/.test(calendarDay)) throw new RangeError('Invalid calendar day');
+    const [month, day] = calendarDay.split('-').map(Number);
+    // A leap-year probe admits Feb 29 but rejects impossible Gregorian dates before inspecting samples.
+    const probe = new Date(Date.UTC(2000, month - 1, day));
+    if (probe.getUTCMonth() !== month - 1 || probe.getUTCDate() !== day) throw new RangeError('Invalid calendar day');
+  }
   const byYear = new Map<number, { value: unknown; duplicated: boolean }>();
   for (const sample of samples) {
     if (!Number.isInteger(sample.year) || sample.year < 1991 || sample.year > 2020) continue;
