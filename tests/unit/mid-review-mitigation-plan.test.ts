@@ -20,7 +20,7 @@ describe('review mitigation shadow, no authority',()=>{
   expect(planReviewMitigation(fixture({guard:{ok:false,reason:'MID_REVIEW_OPEN_THREAD'}}))).toMatchObject({state:'HOLD',openThreads:null,reason:'REVIEW_EVIDENCE_UNKNOWN'});
   expect(planReviewMitigation(fixture({guard:{...guard,openThreads:0}}))).toMatchObject({state:'HOLD',reason:'REVIEW_EVIDENCE_INCONSISTENT'});
   expect(planReviewMitigation(fixture({guard:{...guard,activeChangeRequests:1}}))).toMatchObject({state:'HOLD',reason:'FORMAL_CHANGE_REQUEST_REQUIRES_DISPOSITION'});
-  expect(planReviewMitigation(fixture({guard:{ok:true,reason:'READBACK_CLEAN',openThreads:0,resolvedThreads:12,activeChangeRequests:0}}))).toMatchObject({state:'CLEAN_OBSERVATION',releaseAuthorized:false});
+  expect(planReviewMitigation(fixture({guard:{ok:true,reason:'READBACK_CLEAN',openThreads:0,resolvedThreads:12,activeChangeRequests:0}}))).toMatchObject({state:'HOLD',reason:'CLEAN_COUNTS_UNVERIFIED',reviewEvidenceVerified:false,releaseAuthorized:false});
  });
  it('counts linear history across HEAD changes and refuses resets, duplicates, malformed trailers and overflow',()=>{
   const chain=[];let prev=base;
@@ -35,9 +35,9 @@ describe('review mitigation shadow, no authority',()=>{
   for(const provider of ['openai','groq','openrouter','other','constructor','__proto__'])expect(planProvider(provider)).toMatchObject({state:'HOLD',maxCalls:0,externalCallsAuthorized:false});
  });
  it('only prepares lossless notes split as a ref-free untrusted proposal',()=>{
-  const raw=JSON.stringify({schema:1,version,internal:['Alpha; Beta','Gamma'],external:['Keep']});
+  const raw=JSON.stringify({schema:1,version,internal:['Alpha; Beta','Gamma'],external:['Keep'],sourceOfTruth:['Pinned evidence']});
   const p=proposeNotesSplit({raw,index:0,segments:['Alpha','Beta']});
-  expect(JSON.parse(p.content)).toEqual({schema:1,version,internal:['Alpha','Beta','Gamma'],external:['Keep']});
+  expect(JSON.parse(p.content)).toEqual({schema:1,version,internal:['Alpha','Beta','Gamma'],external:['Keep'],sourceOfTruth:['Pinned evidence']});
   expect(p).toMatchObject({writeAuthorized:false,releaseAuthorized:false,state:'UNTRUSTED_PROPOSAL_ONLY'});
   for(const segments of [['Alpha','Changed'],['Alpha'],[' Alpha','Beta']])expect(()=>proposeNotesSplit({raw,index:0,segments})).toThrow();
  });
