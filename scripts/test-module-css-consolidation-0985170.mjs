@@ -210,6 +210,79 @@ assert.ok(!read('src/midPresentation.css').includes(mountainStyle),'Deferred mou
 originalEntries.splice(historicMountainIndex,0,{file:'src/midC18MountainResponsiveFix.css',original:mountainStyle,tree:postcss.parse(mountainStyle)});
 
 const entries=loadCssCascade(root),removed=consolidateCssCascade(entries);
+// Atmospheric Precision: exact reviewed neutral colors and scalable typography.
+// Reconstruct only these two SHA-bound source blobs for the historical AST;
+// keep the .169 golden and the independent actual-production equality intact.
+const atmosphericBlobSha=source=>createHash('sha1').update('blob '+Buffer.byteLength(source)+String.fromCharCode(0)).update(source).digest('hex');
+const atmosphericReviewed=[
+ [
+  "src/styles-src/00-foundation.css",
+  "b41ebb50e9f98470e8fe74710dff84eff02776f4",
+  "6e95b95b55b03edf80fa947919e9afda4e824ee4",
+  [
+   [
+    "--bg:#f3f7fb;--surface:#fff;",
+    "--bg:#edf3f8;--surface:#fff;"
+   ],
+   [
+    "--text:#132238;--muted:#526678;",
+    "--text:#132238;--muted:#65778b;"
+   ],
+   [
+    "--text:#eef6ff;--muted:#bcd0de;",
+    "--text:#eef6ff;--muted:#94a8bc;"
+   ]
+  ]
+ ],
+ [
+  "src/midC18TypographyReadability.css",
+  "57d0dd381919e1866bd5ec02b013da7ea9ec6b68",
+  "105e966a1fa492fde379574ded9f166756394f9e",
+  [
+   [
+    "\nhtml[data-mid-design='next']{\n --mid18-text-label:.75rem;\n --mid18-text-meta:.75rem;\n --mid18-text-body:.875rem;\n --mid18-text-control:.75rem;\n --mid18-text-subhead:1rem;\n --mid18-track-label:.045em;\n}\n",
+    "\nhtml[data-mid-design='next']{\n --mid18-text-label:clamp(9px,.68rem,10px);\n --mid18-text-meta:clamp(9px,.66rem,10px);\n --mid18-text-body:clamp(10.5px,.74rem,11.5px);\n --mid18-text-control:clamp(10px,.72rem,11px);\n --mid18-text-subhead:clamp(13px,.9rem,15px);\n --mid18-track-label:.045em;\n}\n"
+   ],
+   [
+    "\nhtml[data-mid-design='next'] .mid-insight strong{\n font-size:.875rem!important;\n line-height:1.25!important;\n letter-spacing:-.008em!important;\n",
+    "\nhtml[data-mid-design='next'] .mid-insight strong{\n font-size:13.5px!important;\n line-height:1.25!important;\n letter-spacing:-.008em!important;\n"
+   ],
+   [
+    " .composite-advanced select\n){\n font-size:.75rem!important;\n line-height:1.25!important;\n}\n",
+    " .composite-advanced select\n){\n font-size:12px!important;\n line-height:1.25!important;\n}\n"
+   ],
+   [
+    "\nhtml[data-mid-design='next'] .mid-metric>strong{\n font-size:1rem!important;\n line-height:1.15!important;\n}\n\nhtml[data-mid-design='next'] .forecast-meta b{\n font-size:.875rem!important;\n line-height:1.2!important;\n}\n\nhtml[data-mid-design='next'] .warning-event-main strong{\n font-size:.75rem!important;\n line-height:1.25!important;\n white-space:normal!important;\n",
+    "\nhtml[data-mid-design='next'] .mid-metric>strong{\n font-size:14.5px!important;\n line-height:1.15!important;\n}\n\nhtml[data-mid-design='next'] .forecast-meta b{\n font-size:12.5px!important;\n line-height:1.2!important;\n}\n\nhtml[data-mid-design='next'] .warning-event-main strong{\n font-size:11.5px!important;\n line-height:1.25!important;\n white-space:normal!important;\n"
+   ],
+   [
+    "/* Mobile readability: preserve density without micro typography. */\n@media(max-width:620px){\n html[data-mid-design='next'] .dashboard-bottom-tabs button span{\n  font-size:.75rem!important;\n }\n html[data-mid-design='next'] .mid-data-status{\n",
+    "/* Mobile readability: preserve density without micro typography. */\n@media(max-width:620px){\n html[data-mid-design='next']{\n  --mid18-text-label:9.5px;\n  --mid18-text-meta:9.5px;\n  --mid18-text-body:11px;\n  --mid18-text-control:10.5px;\n  --mid18-text-subhead:14px;\n }\n html[data-mid-design='next'] .dashboard-bottom-tabs button span{\n  font-size:10px!important;\n }\n html[data-mid-design='next'] .mid-data-status{\n"
+   ],
+   [
+    " }\n html[data-mid-design='next'] .water-source{\n  font-size:.75rem!important;\n  line-height:1.38!important;\n }\n html[data-mid-design='next'] .current-compact-source{\n  font-size:.75rem!important;\n  line-height:1.35!important;\n }\n",
+    " }\n html[data-mid-design='next'] .water-source{\n  font-size:9px!important;\n  line-height:1.38!important;\n }\n html[data-mid-design='next'] .current-compact-source{\n  font-size:9.5px!important;\n  line-height:1.35!important;\n }\n"
+   ],
+   [
+    "  .composite-advanced select\n ){\n  font-size:max(16px,1rem)!important;\n }\n}\n",
+    "  .composite-advanced select\n ){\n  font-size:16px!important;\n }\n}\n"
+   ]
+  ]
+ ]
+];
+for(const [file,candidateSha,stableSha,pairs] of atmosphericReviewed){
+ const matches=originalEntries.filter(entry=>entry.file===file);
+ assert.equal(matches.length,1,`${file}: exactly one reviewed owner`);
+ const entry=matches[0];
+ assert.equal(atmosphericBlobSha(entry.original),candidateSha,`${file}: reviewed Atmospheric Precision source drift`);
+ let historical=entry.original;
+ for(const [current,previous] of pairs){
+  assert.equal(historical.split(current).length-1,1,`${file}: ambiguous reviewed change`);
+  historical=historical.replace(current,previous);
+ }
+ assert.equal(atmosphericBlobSha(historical),stableSha,`${file}: historical source must reconstruct exactly`);
+ entry.tree=postcss.parse(historical,{from:file});
+}
 // C55: ten exact, intentionally reviewed dashboard/common-touch changes.
 // Require each complete current fragment exactly once, then restore ONLY it on
 // the historical comparison AST. The immutable .169 fingerprint stays intact;

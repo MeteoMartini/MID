@@ -18,6 +18,34 @@ assert.ok(chart.includes("freezingPointVisible=unit==='°C'&&lo<=0&&hi>=0")&&cha
 const exactQuartile='P25–P75 ${valueLabel(point.q25)} bis ${valueLabel(point.q75)} ${unit}';
 assert.ok(chart.split(exactQuartile).length>=3&&chart.includes('<title>')&&chart.includes('role="status"'),
  'Both accessible SVG title and selected status show genuine inner quartiles using unit-aware valueLabel, not rounded surrogate data');
+// Atmospheric Precision: test the exact production legend/interval predicates.
+const signalHelpers=chart.slice(chart.indexOf('export function hasSignalMean('),chart.indexOf('/** Connect only adjacent dated'));
+assert.ok(signalHelpers.includes('export function signalRangeLegend('));
+vm.runInContext((await transform(signalHelpers.replaceAll('export function','function')+';globalThis.signal={hasSignalMean,hasSignalOuterRange,hasSignalInnerRange,signalRangeLegend};',{loader:'ts',format:'iife'})).code,context);
+{
+const {hasSignalMean,hasSignalOuterRange,hasSignalInnerRange,signalRangeLegend}=context.signal;
+let signalChecks=0;
+const testSignal=(name,fn)=>{try{fn();signalChecks++}catch(error){throw new Error(name,{cause:error})}};
+const p=(extra={})=>({id:'2026-11-26',label:'Do',mean:5,...extra});
+const s=(...points)=>[{id:'test',label:'Best Match',color:'var(--param-temperature)',points}];
+const unit='°C',outer=' · P10–P90 (dünne Linie)',inner=' · P25–P75 (breite Linie)';
+testSignal('no data or deterministic points do not advertise ensemble intervals',()=>{assert.equal(signalRangeLegend([],unit),unit);assert.equal(signalRangeLegend(s(p()),unit),unit);assert.equal(signalRangeLegend(s(p({low:null,high:null,q25:null,q75:null})),unit),unit)});
+testSignal('true outer range displayed, including negative values and zero',()=>{const point=p({low:-8,high:0});assert.equal(hasSignalOuterRange(point),true);assert.equal(signalRangeLegend(s(point),unit),unit+outer)});
+testSignal('actual nested ranges both displayed',()=>{const point=p({low:-10,high:30,q25:1,q75:10});assert.equal(hasSignalInnerRange(point),true);assert.equal(signalRangeLegend(s(point),unit),unit+outer+inner)});
+testSignal('valid inner-only range identified without claiming P10/P90',()=>{assert.equal(signalRangeLegend(s(p({q25:1,q75:10})),unit),unit+inner)});
+testSignal('partial or reversed endpoints do not create an interval',()=>{for(const extra of [{low:1},{low:10,high:1},{q25:3},{q25:10,q75:1}])assert.equal(signalRangeLegend(s(p(extra)),unit),unit)});
+testSignal('NaN and infinities excluded from both interval types',()=>{for(const n of [NaN,Infinity,-Infinity])for(const extra of [{low:n,high:20},{low:1,high:n},{q25:n,q75:10},{q25:1,q75:n}])assert.equal(signalRangeLegend(s(p(extra)),unit),unit)});
+testSignal('no visible interval for missing or nonfinite point center',()=>{for(const mean of [null,NaN,Infinity,-Infinity]){const pt=p({mean,low:-8,high:20,q25:1,q75:9});assert.equal(hasSignalMean(pt),false);assert.equal(signalRangeLegend(s(pt),unit),unit)}});
+testSignal('contradictory inner outside valid outer interval is not advertised',()=>{const pt=p({low:0,high:10,q25:-1,q75:8});assert.equal(hasSignalOuterRange(pt),true);assert.equal(hasSignalInnerRange(pt),false);assert.equal(signalRangeLegend(s(pt),unit),unit+outer)});
+testSignal('a zero-width genuine interval remains admissible',()=>{const pt=p({mean:0,low:0,high:0,q25:0,q75:0});assert.equal(signalRangeLegend(s(pt),unit),unit+outer+inner)});
+testSignal('mixed coverage or multiple series only advertise genuinely present interval types',()=>{const rows=[...s(p({low:0,high:10})),...s(p({q25:1,q75:8}),p({mean:null,low:0,high:10}))];assert.equal(signalRangeLegend(rows,'mm/Tag'),'mm/Tag'+outer+inner)});
+testSignal('valid extreme interval remains untouched and input is immutable',()=>{const rows=s(p({mean:4,low:-42,high:51,q25:-12,q75:24}));const before=structuredClone(rows);Object.freeze(rows[0].points[0]);assert.equal(signalRangeLegend(rows,unit),unit+outer+inner);assert.deepEqual(rows,before)});
+assert.equal(signalChecks,11);
+assert.equal(chart.split('hasSignalOuterRange(point)?').length-1,3,'SVG title, visible outer interval and selected status use the same guard');
+assert.equal(chart.split('hasSignalInnerRange(point)?').length-1,3,'SVG title, visible inner interval and selected status use the same guard');
+assert.ok(chart.includes('{signalRangeLegend(series,unit)}')&&chart.includes('point&&hasSignalMean(point)?'),'Legend and selected status are evidence-bound');
+console.log('Atmospheric Precision: 11 quantile legend/interval regressions passed');
+}
 const paths=chart.slice(chart.indexOf('export function dailySignalPaths'),chart.indexOf('/** Period intervals'));
 vm.runInContext((await transform(paths.replace('export function','function')+';globalThis.paths=dailySignalPaths;',{loader:'ts',format:'iife'})).code,context);
 const point=(id,mean)=>({id,mean,label:id}),identity=x=>x;
