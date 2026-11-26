@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "version": "0.9.85.525",
+  "title": "Verständlicher Wetterzwilling und effizientere RUC-Laufprüfung",
+  "date": "2026-11-26",
+  "external": [
+    "Wetterzwilling: Lernstatus, unabhängige Vergleichstage und heuristisches Quellvertrauen werden klarer von gemessener Prognosegüte unterschieden."
+  ],
+  "internal": [
+    "Abgeschlossene, gültige und eindeutige unabhängige Referenztage; Reanalyse und Modellrückblick zählen nicht als unabhängige Messungen. Aktivierungslogik und Prognosegewichte bleiben unverändert.",
+    "RUC-Scheduler: begrenzte parallele Indexabfragen mit vier Requests je Batch und unveränderter geordneter Schnittmenge. Keine Änderung an GRIB-, EPS-, Daten- oder Publish-Gates.",
+    "Kein Nachweis einer Behebung des DWD-Transporttimeouts oder einer gemessenen Latenzverbesserung. #541 bleibt offen.",
+    "AQI #1027, Review-Mitigation #1024 und Kartenübergänge #1021 bleiben separate Kandidaten."
+  ],
+  "sourceOfTruth": [
+    "Stable .524 @ 0625ec56f042511186c77c271d3122e70b9d90fd; #1026 @ 39e9f73db100617b2cedd55cdd8665ae21f4e60a; #944 @ 97496f86dac3eb8df24c8ec10b906e4607e28316.",
+    "Neun Originalblobs selektiv übernommen. #1026 direkt auf .524; beide Ausgangsblobs von #944 unverändert auf .524.",
+    "Original-Draft-CI 45823752525 und 44461403592 erfolgreich; neue gemeinsame QA, Source-Gate, Installer und Stable-Promotion erforderlich."
+  ]
+}

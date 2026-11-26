@@ -70,12 +70,18 @@ def discover_runs(base:str,param:str,fetch:Callable[[str],str]=fetch_text)->set[
     return parse_run_links(fetch(f'{base}/{param}/r/'))
 
 def newest_common_run(fetch:Callable[[str],str]=fetch_text)->str|None:
+    sources=[(DET_BASE,param) for param in REQUIRED]+[(EPS_BASE,'TOT_PREC')]
     common:set[str]|None=None
-    for param in REQUIRED:
-        values=discover_runs(DET_BASE,param,fetch)
-        common=values if common is None else common&values
-        if not common:return None
-    common=(common or set())&discover_runs(EPS_BASE,'TOT_PREC',fetch)
+    # Four bounded requests at a time. Consume in contract order so an empty
+    # intersection and upstream failures keep their existing meaning.
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        for offset in range(0,len(sources),4):
+            batch=sources[offset:offset+4]
+            pending=[executor.submit(discover_runs,base,param,fetch) for base,param in batch]
+            for request in pending:
+                values=request.result()
+                common=values if common is None else common&values
+                if not common:return None
     return max(common) if common else None
 
 
