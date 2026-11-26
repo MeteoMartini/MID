@@ -150,7 +150,7 @@ export function prioritizeBacklog(items) {
   if(tags.length>1)return {priority:null,prioritySource:'unclassified',priorityConflict:'title-tags'};
   return tags.length===1?{priority:tags[0],prioritySource:'title-tag'}:{priority:null,prioritySource:'unclassified'};
  };
- return items.map(item=>({number:item.number,...priority(item),kind:item.pull_request?'pull-request':'issue'})).sort((a,b)=>(a.priority??4)-(b.priority??4)||a.number-b.number);
+ return items.map(item=>({number:item.number,title:item.title,labels:item.labels.map(label=>label.name).sort(),...priority(item),kind:item.pull_request?'pull-request':'issue'})).sort((a,b)=>(a.priority??4)-(b.priority??4)||a.number-b.number);
 }
 
 // Discovery is a read-only inventory, never a release-eligible manifest.

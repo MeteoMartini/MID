@@ -698,6 +698,8 @@ test('discovery verifies a pinned main/stable snapshot across paginated issue in
   assert.equal(result.validForIntegrationReview,false);assert.equal(result.releaseAuthorized,false);
   assert.equal(result.backlog.length,101);
   assert.deepEqual(result.backlog.slice(0,3).map(v=>v.number),[541,901,987]);
+  assert.deepEqual(result.backlog[2],{number:987,title:'Release PR',labels:['P2'],priority:2,prioritySource:'label',kind:'pull-request'});
+  assert.deepEqual(result.backlog[3],{number:1,title:'Unclassified',labels:[],priority:null,prioritySource:'unclassified',kind:'issue'});
   assert.deepEqual(result.backlog.slice(3).map(v=>v.number),Array.from({length:98},(_,i)=>i+1));
   assert.deepEqual(calls.filter(url=>url.includes('/issues?')).map(url=>new URL(url).searchParams.get('page')),['1','2','1','2']);
   assert.equal(calls.length,8);
@@ -794,6 +796,7 @@ test('discovery ignores ordering changes without changing membership or metadata
   };
   const result=await discoverBacklog('MeteoMartini/MID','');
   assert.deepEqual(result.backlog.map(row=>row.number),[2,1]);
+  assert.deepEqual(result.backlog[1].labels,['P1','QA']);
   assert.equal(result.releaseAuthorized,false);assert.equal(calls,2);
  }finally{globalThis.fetch=previous;}
 });
@@ -823,6 +826,11 @@ test('queue tags, provenance, explicit unknown and no implied release authority'
   [982,null,'unclassified'],[983,null,'unclassified'],[990,null,'unclassified'],[992,null,'unclassified'],[994,null,'unclassified'],
   [995,null,'unclassified'],[996,null,'unclassified'],[997,null,'unclassified'],[998,null,'unclassified']]);
  assert.equal(result.find(x=>x.number===998).priorityConflict,'labels');
+ assert.deepEqual(result.find(x=>x.number===998).labels,['P0','priority:p3']);
+ assert.equal(result.find(x=>x.number===998).title,'[P0] conflicting labels');
+ assert.deepEqual(result.find(x=>x.number===960).labels,['P2']);
+ assert.equal(result.find(x=>x.number===990).title,'RUC P1–P5');
+ assert.ok(result.every(x=>!Object.hasOwn(x,'body')));
  assert.equal(result.find(x=>x.number===992).priorityConflict,'title-tags');
  assert.equal(result.find(x=>x.number===1021).kind,'pull-request');
  assert.ok(result.every(x=>!Object.hasOwn(x,'releaseAuthorized')));
