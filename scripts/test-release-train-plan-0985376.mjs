@@ -699,8 +699,8 @@ test('discovery verifies a pinned main/stable snapshot across paginated issue in
   assert.equal(result.backlog.length,101);
   assert.deepEqual(result.backlog.slice(0,3).map(v=>v.number),[541,901,987]);
   assert.deepEqual(result.backlog.slice(3).map(v=>v.number),Array.from({length:98},(_,i)=>i+1));
-  assert.deepEqual(calls.filter(url=>url.includes('/issues?')).map(url=>new URL(url).searchParams.get('page')),['1','2']);
-  assert.equal(calls.length,6);
+  assert.deepEqual(calls.filter(url=>url.includes('/issues?')).map(url=>new URL(url).searchParams.get('page')),['1','2','1','2']);
+  assert.equal(calls.length,8);
  }finally{globalThis.fetch=previous;}
 });
 test('discovery preserves a P0 queue but marks main/stable divergence as an advisory HOLD',async()=>{
@@ -745,6 +745,56 @@ test('discovery rejects branch drift, duplicate/malformed issue identity, and pa
   await assert.rejects(request('malformed'),/Invalid or duplicate/);
   await assert.rejects(request('pages'),/Incomplete backlog inventory \(10 pages exceeded\)/);
   assert.equal(inventoryPages,10);
+ }finally{globalThis.fetch=previous;}
+});
+
+test('discovery rejects silent page-boundary omissions and metadata drift between complete reads',async()=>{
+ const previous=globalThis.fetch,sha='a'.repeat(40);
+ const item=number=>({number,state:'open',title:'[P1] test',labels:[]});
+ try{
+  for(const kind of ['page-omission','addition','title','label','kind']){
+   let pages=0;
+   globalThis.fetch=async url=>{
+    const path=String(url);
+    if(path.includes('/git/ref/heads/'))return {ok:true,json:async()=>({object:{sha}})};
+    const page=Number(new URL(path).searchParams.get('page'));pages++;
+    let batch;
+    if(kind==='page-omission'){
+     // First page before closure, second page after it: item 101 is silently skipped.
+     batch=pages===1?Array.from({length:100},(_,i)=>item(i+1)):
+      pages===2?[item(102)]:
+      page===1?Array.from({length:100},(_,i)=>item(i+2)):[item(102)];
+    }else{
+     batch=[item(1)];
+     if(pages===2){
+      if(kind==='addition')batch.push(item(2));
+      if(kind==='title')batch[0].title='[P1] changed';
+      if(kind==='label')batch[0].labels=[{name:'P0'}];
+      if(kind==='kind')batch[0].pull_request={url:'https://api.github.com/repos/MeteoMartini/MID/pulls/1'};
+     }
+    }
+    return {ok:true,json:async()=>structuredClone(batch)};
+   };
+   await assert.rejects(discoverBacklog('MeteoMartini/MID',''),/Backlog inventory changed between complete reads/,kind);
+   assert.equal(pages,kind==='page-omission'?4:2,'No unbounded retry');
+  }
+ }finally{globalThis.fetch=previous;}
+});
+test('discovery ignores ordering changes without changing membership or metadata',async()=>{
+ const previous=globalThis.fetch,sha='a'.repeat(40);
+ const rows=[{number:1,state:'open',title:'[P1] test',labels:[{name:'P1'},{name:'QA'}]},
+  {number:2,state:'open',title:'[P0] test',labels:[]}];
+ let calls=0;
+ try{
+  globalThis.fetch=async url=>{
+   if(String(url).includes('/git/ref/heads/'))return {ok:true,json:async()=>({object:{sha}})};
+   const batch=structuredClone(rows);
+   if(++calls===2){batch.reverse();batch[1].labels.reverse();}
+   return {ok:true,json:async()=>batch};
+  };
+  const result=await discoverBacklog('MeteoMartini/MID','');
+  assert.deepEqual(result.backlog.map(row=>row.number),[2,1]);
+  assert.equal(result.releaseAuthorized,false);assert.equal(calls,2);
  }finally{globalThis.fetch=previous;}
 });
 

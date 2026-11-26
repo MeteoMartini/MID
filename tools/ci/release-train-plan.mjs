@@ -154,7 +154,7 @@ export function prioritizeBacklog(items) {
 }
 
 // Discovery is a read-only inventory, never a release-eligible manifest.
-// Pin main/stable refs across pagination and fail on duplicate/malformed items.
+// Pin main/stable refs across two complete inventories and fail on drift or malformed items.
 export async function discoverBacklog(repository,token) {
   if (!validRepo(repository)) throw Error('Invalid repository');
   const readRefs=async()=>Promise.all([
@@ -164,24 +164,37 @@ export async function discoverBacklog(repository,token) {
   const getShas=refs=>refs.map(x=>x?.object?.sha);
   const start=getShas(await readRefs());
   if (!start.every(x=>SHA.test(x||''))) throw Error('Invalid discovery branch refs');
-  const rows=[],numbers=new Set();
-  let complete=false;
-  for (let page=1; page<=10; page++) {
-    const batch=await api(repository,'issues?state=open&sort=created&direction=asc&per_page=100&page='+page,token);
-    if (!Array.isArray(batch)||batch.length>100) throw Error('Incomplete backlog inventory');
-    for (const item of batch) {
-      if (!Number.isSafeInteger(item?.number)||item.number<1||numbers.has(item.number)||
-          item.state!=='open'||!Array.isArray(item.labels)||
-          typeof item.title!=='string'||item.labels.some(label=>!label||typeof label.name!=='string')||
-          (Object.hasOwn(item,'pull_request')&&(!item.pull_request||typeof item.pull_request!=='object'||
-            item.pull_request.url!=='https://api.github.com/repos/'+repository+'/pulls/'+item.number)))
-        throw Error('Invalid or duplicate backlog item during pagination');
-      numbers.add(item.number);
-      rows.push(item);
+  const readInventory=async()=>{
+    const rows=[],numbers=new Set();
+    let complete=false;
+    for (let page=1; page<=10; page++) {
+      const batch=await api(repository,'issues?state=open&sort=created&direction=asc&per_page=100&page='+page,token);
+      if (!Array.isArray(batch)||batch.length>100) throw Error('Incomplete backlog inventory');
+      for (const item of batch) {
+        if (!Number.isSafeInteger(item?.number)||item.number<1||numbers.has(item.number)||
+            item.state!=='open'||!Array.isArray(item.labels)||
+            typeof item.title!=='string'||item.labels.some(label=>!label||typeof label.name!=='string')||
+            (Object.hasOwn(item,'pull_request')&&(!item.pull_request||typeof item.pull_request!=='object'||
+              item.pull_request.url!=='https://api.github.com/repos/'+repository+'/pulls/'+item.number)))
+          throw Error('Invalid or duplicate backlog item during pagination');
+        numbers.add(item.number);
+        rows.push(item);
+      }
+      if (batch.length<100) {complete=true;break;}
     }
-    if (batch.length<100) {complete=true;break;}
-  }
-  if (!complete) throw Error('Incomplete backlog inventory (10 pages exceeded)');
+    if (!complete) throw Error('Incomplete backlog inventory (10 pages exceeded)');
+    return rows;
+  };
+  // Offset pagination is not atomic. Compare two independently complete inventories,
+  // including the fields that determine membership and priority, not just the ranked output.
+  const fingerprint=items=>JSON.stringify(items.map(item=>[
+    item.number,item.title,item.pull_request?'pull-request':'issue',
+    item.labels.map(label=>label.name).sort()
+  ]).sort((a,b)=>a[0]-b[0]));
+  const rows=await readInventory();
+  const confirmation=await readInventory();
+  if(fingerprint(rows)!==fingerprint(confirmation))
+    throw Error('Backlog inventory changed between complete reads');
   const end=getShas(await readRefs());
   if (!end.every(x=>SHA.test(x||''))||start.some((x,i)=>x!==end[i]))
     throw Error('Main/Stable changed during backlog discovery');
@@ -190,7 +203,7 @@ export async function discoverBacklog(repository,token) {
     state:same?'ADVISORY_STABLE_SNAPSHOT':'HOLD_MAIN_STABLE_DIVERGED',
     blockers:same?[]:['MAIN_STABLE_DIVERGED'],
     releaseAuthorized:false,validForIntegrationReview:false,
-    notice:'Advisory inventory, not an atomic issue snapshot, not a release authorization.',
+    notice:'Two matching advisory inventories, not an atomic issue snapshot, not a release authorization.',
     backlog:prioritizeBacklog(rows)};
 }
 
