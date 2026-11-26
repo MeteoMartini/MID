@@ -19,3 +19,9 @@ Originale Vergleichsquellen: https://www.ecmwf.int/en/research/modelling-and-pre
 ## Leit-Intake
 
 P0 #541 und Release-Gates bleiben zuerst. P1 #999 produktive Reiseaggregation getrennt von diesem P1 Darstellungsfix. Erst auf frisch verifizierter promoted Stable-SHA, unabhängige Review-/Source-Gates und vollständige CI/Browser, dann über den bestehenden Release-Train. Nicht als fertige Veröffentlichung oder wissenschaftliche Güteverbesserung behandeln.
+
+## Regressionserhalt nach erstem Draft-CI
+
+Run 45821093996 / Job 139913225483: bisherige statische Assertion in scripts/test-p1-reference-provenance-0985307.mjs erwartete den alten inline .filter-Ausdruck. Der produktive, unveränderte Messreferenzfilter wird nun als callback an twinArchiveEvidence übergeben. Nur dieser Implementierungsanker wurde angepasst; die originalen positiven/negativen QC-, Regime- und Zeitlückentests bleiben erhalten. Zusätzlich wird der echte per AST extrahierte isIndependentTwinReference-Filter zusammen mit dem transpilierten realen Archivevidence-Helper gegen Mischquellen, mangelnde zeitliche Abdeckung, Reanalyse, Modellrückblick, doppelte, heutige, künftige und ungültige Tage geprüft. Kein Gate übersprungen. Neue CI auf finalem HEAD erforderlich.
+
+OpenRouter-Generationsnachweis inzwischen abrufbar: gen-1795696317-tzDPc4TN3SdHIDJnHDdr, particle-ai/particle-1-20261027:free / Particle AI, total_cost=0 USD, 520 prompt / 1277 completion tokens im Abrechnungsbeleg, finish_reason=length; weiterhin kein Antworttext und keine fachliche Gegenprüfung.
