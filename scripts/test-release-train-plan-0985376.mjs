@@ -746,7 +746,44 @@ test('discovery rejects branch drift, duplicate/malformed issue identity, and pa
   await assert.rejects(request('duplicates'),/Invalid or duplicate/);
   await assert.rejects(request('malformed'),/Invalid or duplicate/);
   await assert.rejects(request('pages'),/Incomplete backlog inventory \(10 pages exceeded\)/);
-  assert.equal(inventoryPages,10);
+  assert.equal(inventoryPages,11);
+ }finally{globalThis.fetch=previous;}
+});
+
+test('discovery admits exactly 1000 rows with an empty sentinel, not 1001',async()=>{
+ const previous=globalThis.fetch,sha='a'.repeat(40);
+ try{
+  for(const count of [999,1000,1001]){
+   let calls=0;
+   globalThis.fetch=async url=>{
+    const path=String(url);
+    if(path.includes('/git/ref/heads/'))return {ok:true,json:async()=>({object:{sha}})};
+    const page=Number(new URL(path).searchParams.get('page'));calls++;
+    const start=(page-1)*100;
+    const rows=Array.from({length:Math.max(0,Math.min(100,count-start))},(_,i)=>({number:start+i+1,state:'open',title:'[P1] test',labels:[]}));
+    return {ok:true,json:async()=>rows};
+   };
+   if(count===1001){
+    await assert.rejects(discoverBacklog('MeteoMartini/MID',''),/10 pages exceeded/);
+    assert.equal(calls,11);
+   }else{
+    const result=await discoverBacklog('MeteoMartini/MID','');
+    assert.equal(result.backlog.length,count);assert.equal(result.releaseAuthorized,false);
+    assert.equal(calls,count===1000?22:20);
+   }
+  }
+ }finally{globalThis.fetch=previous;}
+});
+test('discovery accepts repository name casing only, not foreign or malformed PR URLs',async()=>{
+ const previous=globalThis.fetch,sha='a'.repeat(40),prefix='https://api.github.com/repos/';
+ try{
+  for(const url of [prefix+'MeteoMartini/MID/pulls/1',prefix+'METEOMARTINI/mid/pulls/1',prefix+'foreign/MID/pulls/1',prefix+'MeteoMartini/MID/pulls/2',prefix+'MeteoMartini/MID/pulls/1?x=1',prefix+'MeteoMartini/MID/pulls/01','https://evil.example/repos/MeteoMartini/MID/pulls/1',null,1]){
+   globalThis.fetch=async path=>({ok:true,json:async()=>String(path).includes('/git/ref/heads/')?{object:{sha}}:[{number:1,state:'open',title:'[P0] test',labels:[],pull_request:{url}}]});
+   const result=discoverBacklog('meteomartini/mid','');
+   if(url===prefix+'MeteoMartini/MID/pulls/1'||url===prefix+'METEOMARTINI/mid/pulls/1'){
+    assert.equal((await result).backlog[0].kind,'pull-request');
+   }else await assert.rejects(result,/Invalid or duplicate/);
+  }
  }finally{globalThis.fetch=previous;}
 });
 

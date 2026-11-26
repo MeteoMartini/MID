@@ -164,26 +164,34 @@ export async function discoverBacklog(repository,token) {
   const getShas=refs=>refs.map(x=>x?.object?.sha);
   const start=getShas(await readRefs());
   if (!start.every(x=>SHA.test(x||''))) throw Error('Invalid discovery branch refs');
+  const matchesPrUrl=item=>{
+    const url=item.pull_request.url,prefix='https://api.github.com/repos/',suffix='/pulls/'+item.number;
+    // GitHub owner/repository names are case-insensitive; the fixed origin,
+    // path shape and issue number must still match exactly.
+    return typeof url==='string'&&url.startsWith(prefix)&&url.endsWith(suffix)&&
+      url.slice(prefix.length,-suffix.length).toLowerCase()===repository.toLowerCase();
+  };
   const readInventory=async()=>{
     const rows=[],numbers=new Set();
-    let complete=false;
-    for (let page=1; page<=10; page++) {
+    // At the 1,000-item cap, one empty sentinel page proves exact completion.
+    // A nonempty sentinel is overflow, not permission to exceed the cap.
+    for (let page=1; page<=11; page++) {
       const batch=await api(repository,'issues?state=open&sort=created&direction=asc&per_page=100&page='+page,token);
       if (!Array.isArray(batch)||batch.length>100) throw Error('Incomplete backlog inventory');
+      if(page===11&&batch.length)throw Error('Incomplete backlog inventory (10 pages exceeded)');
       for (const item of batch) {
         if (!Number.isSafeInteger(item?.number)||item.number<1||numbers.has(item.number)||
             item.state!=='open'||!Array.isArray(item.labels)||
             typeof item.title!=='string'||item.labels.some(label=>!label||typeof label.name!=='string')||
             (Object.hasOwn(item,'pull_request')&&(!item.pull_request||typeof item.pull_request!=='object'||
-              item.pull_request.url!=='https://api.github.com/repos/'+repository+'/pulls/'+item.number)))
+              !matchesPrUrl(item))))
           throw Error('Invalid or duplicate backlog item during pagination');
         numbers.add(item.number);
         rows.push(item);
       }
-      if (batch.length<100) {complete=true;break;}
+      if (batch.length<100) return rows;
     }
-    if (!complete) throw Error('Incomplete backlog inventory (10 pages exceeded)');
-    return rows;
+    throw Error('Incomplete backlog inventory (10 pages exceeded)');
   };
   // Offset pagination is not atomic. Compare two independently complete inventories,
   // including the fields that determine membership and priority, not just the ranked output.
