@@ -72,8 +72,10 @@ def discover_runs(base:str,param:str,fetch:Callable[[str],str]=fetch_text)->set[
 def newest_common_run(fetch:Callable[[str],str]=fetch_text)->str|None:
     sources=[(DET_BASE,param) for param in REQUIRED]+[(EPS_BASE,'TOT_PREC')]
     common:set[str]|None=None
-    # Four bounded requests at a time. Consume in contract order so an empty
-    # intersection and upstream failures keep their existing meaning.
+    # Deliberately submit only one batch of four. A worker limit alone would
+    # queue every index, allowing later batches to start before an earlier
+    # empty intersection or exception is consumed. Keep ordered results and
+    # accept the batch barrier to avoid those unnecessary upstream requests.
     with ThreadPoolExecutor(max_workers=4) as executor:
         for offset in range(0,len(sources),4):
             batch=sources[offset:offset+4]

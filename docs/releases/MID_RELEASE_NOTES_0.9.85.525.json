@@ -4,7 +4,9 @@
   "title": "Verständlicher Wetterzwilling und effizientere RUC-Laufprüfung",
   "date": "2026-11-26",
   "external": [
-    "Wetterzwilling: Lernstatus, unabhängige Vergleichstage und heuristisches Quellvertrauen werden klarer von gemessener Prognosegüte unterschieden."
+    "Wetterzwilling: Statt einer vermeintlichen Systemgüte in Prozent werden unabhängige Vergleichstage angezeigt.",
+    "Die Quellenübersicht zeigt bis zu sechs unterschiedliche Referenzquellen; das Quellvertrauen ist ein heuristischer Hinweis.",
+    "Bei offenen Defiziten wird auch ein intern bereiter Wetterzwilling weiterhin als lernend angezeigt."
   ],
   "internal": [
     "Abgeschlossene, gültige und eindeutige unabhängige Referenztage; Reanalyse und Modellrückblick zählen nicht als unabhängige Messungen. Aktivierungslogik und Prognosegewichte bleiben unverändert.",

@@ -68,6 +68,32 @@ else:
     raise AssertionError('An unavailable upstream listing must reach the fail-open caller')
 
 
+# Ordered early termination and request-volume contract: an executor's worker
+# cap alone does not stop queued later indexes from starting. Four simultaneous
+# first-batch calls are permitted; no later batch after an empty/failed prefix.
+discovery_urls=[f'{guard.DET_BASE}/{param}/r/' for param in guard.REQUIRED]+[f'{guard.EPS_BASE}/TOT_PREC/r/']
+for first_empty in (True,False):
+    first_batch=threading.Barrier(4,timeout=10)
+    calls=[]
+    call_lock=threading.Lock()
+    def bounded_discovery_fetch(url):
+        with call_lock:calls.append(url)
+        first_batch.wait()
+        if url==discovery_urls[0]:
+            if first_empty:return ''
+            raise TimeoutError('first source unavailable')
+        if url==discovery_urls[1]:
+            if first_empty:raise TimeoutError('later source unavailable')
+            return ''
+        return listing
+    try:
+        actual=guard.newest_common_run(bounded_discovery_fetch)
+        assert first_empty and actual is None
+    except TimeoutError:
+        assert not first_empty, 'later exception must not override earlier empty intersection'
+    assert len(calls)==4 and set(calls)==set(discovery_urls[:4]), 'no later batch after early exit'
+
+
 report=guard.freshness_report('2026-08-30T02:00',meta('2026-08-30T01:00'),True,'catch-up',now=NOW)
 assert report['publishedRunAgeMinutes']==120 and report['upstreamRunAgeMinutes']==60
 assert report['availabilityLagMinutes']==60 and report['pagesMetaValid'] is True

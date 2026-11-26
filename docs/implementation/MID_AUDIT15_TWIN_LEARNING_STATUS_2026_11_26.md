@@ -4,7 +4,7 @@
 
 ## Provenienz / Scope
 
-Verifiziert vor Arbeit: main = mid-stable = latest v0.9.85.524 @ `0625ec56f042511186c77c271d3122e70b9d90fd`; package, baseline, SOT, Vertragsregistry und AGENTS. Original-Blob forecastVerification.ts `9c6c216f5bc7ec94d6239299e2ac8f3146509aaa`, ForecastVerificationPanel.tsx `05f49bc992eae25964a8377c7609c86b0469154b`. Fünf aktive Rulesets; Production Guard bypass never. #1025/.524 hat #1002 QA selektiv übernommen, #999 bleibt produktiv offen. #905 ändert dieselbe Engine-Datei, jedoch andere Funktionen (Bias); selektiver Hunk-Intake statt Altbaum. #911/#922/#923 sind getrennte Verifikations-QA. Keine Änderung an Kartendateien, Releases, CI, Kontrakten, package, Secrets oder Berechtigungen.
+Verifiziert vor Arbeit: main = mid-stable = latest v0.9.85.524 @ `0625ec56f042511186c77c271d3122e70b9d90fd`; package, baseline, SOT, Vertragsregistry und AGENTS. Original-Blob forecastVerification.ts `9c6c216f5bc7ec94d6239299e2ac8f3146509aaa`, ForecastVerificationPanel.tsx `05f49bc992eae25964a8377c7609c86b0469154b`. Fünf aktive Rulesets; Production Guard bypass never. #1025/.524 hat #1002 QA selektiv übernommen, #999 bleibt produktiv offen. #905 ändert dieselbe Engine-Datei, jedoch andere Funktionen (Bias); selektiver Hunk-Intake statt Altbaum. #911/#922/#923 sind getrennte Verifikations-QA. Der ursprüngliche Audit-Draft änderte keine Kartendateien, Release-Gates, CI, Kontrakte, package, Secrets oder Berechtigungen. Der Leit-Intake #1028 ergänzt ausdrücklich den Release-Target und die versionierten Release Notes für .525; die Schutzgates bleiben unverändert.
 
 ## Befund und Korrektur
 
