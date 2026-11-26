@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import {AIR_QUALITY_SOURCE_SCHEMA,airQualityObservationEvidence as obs,airQualityModelCurrent as model,airQualityModelTimeLabel as time,nonnegativeAqiNumber as num} from '../../src/airQualitySourceEvidence';
 import {describeEuropeanAqiModel as describeModel} from '../../src/airQuality';
+import {formatDecimal} from '../../src/format';
 const now=Date.parse('2026-11-26T14:00:00Z');
 const raw={available:true,observation:true,provider:'UBA',station:{name:'Station A'},preliminary:true,observedAt:'2026-11-26T13:00:00Z',current:{pm2_5:0,pm10:80,ozone:null,european_aqi:3}};
 const invalid=[null,undefined,'',' ',false,true,[],{},-1,NaN,Infinity,'0x10'];
@@ -24,6 +25,24 @@ describe('AQI model display admission',()=>{
  it('detects an overall category above all five native component bands',()=>{const r=describeModel({european_aqi:80,european_aqi_pm2_5:0,european_aqi_pm10:0,european_aqi_nitrogen_dioxide:0,european_aqi_ozone:0,european_aqi_sulphur_dioxide:0});expect(r.inconsistent).toBe(true);expect(r.band).toBeNull()});
  it('derives only with all five concentrations, and labels derivation',()=>{const r=describeModel({pm2_5:95,pm10:0,nitrogen_dioxide:0,ozone:0,sulphur_dioxide:0});expect(r.coverage).toBe(5);expect(r.derived).toBe(true);expect(r.band?.key).toBe('very-poor')});
  it('does not flag unverified concentration-derived bands as provider contradictions',()=>expect(describeModel({pm2_5:145,european_aqi:20}).inconsistent).toBe(false));
+});
+describe('AQI German decimal presentation on admitted values',()=>{
+ it('formats admitted model concentrations including zero, decimal and an uncapped extreme',()=>{
+  for(const [value,label] of [[0,'0,0'],[1.4,'1,4'],[10000,'10000,0']] as const){
+   const r=describeModel({pm2_5:value,pm10:0,nitrogen_dioxide:0,ozone:0,sulphur_dioxide:0});
+   expect(r.coverage).toBe(5);expect(r.derived).toBe(true);
+   const p=r.result?.pollutants.find(item=>item.key==='pm2_5');
+   expect(p?.value).toBe(value);expect(formatDecimal(p!.value,1,1)).toBe(label);
+  }
+ });
+ it('keeps station missing distinct from zero and preserves the actual admitted decimal value',()=>{
+  const data=obs({...raw,current:{pm2_5:0,pm10:24.9,ozone:null,sulphur_dioxide:10000}},now)?.current;
+  expect(data).toEqual({pm2_5:0,pm10:24.9,sulphur_dioxide:10000});
+  expect(formatDecimal(data!.pm2_5!,1,1)).toBe('0,0');
+  expect(formatDecimal(data!.pm10!,1,1)).toBe('24,9');
+  expect(formatDecimal(data!.sulphur_dioxide!,1,1)).toBe('10000,0');
+  expect(data?.ozone).toBeUndefined();
+ });
 });
 describe('exact UBA worker number parser and source wiring',()=>{
  const read=(path:string)=>readFileSync(new URL('../../'+path,import.meta.url),'utf8');

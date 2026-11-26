@@ -11,7 +11,7 @@ const failures=[];
 
 for(const token of ["new Intl.NumberFormat('de-DE'",'formatDecimalFixed','useGrouping:false'])if(!format.includes(token))failures.push(`Zentrale deutsche Zahlenformatierung fehlt: ${token}`);
 for(const [name,source,tokens] of [
- ['Dashboard',app,['precipitationAmountLabel({precipitation:reconciledCurrentPrecipSourceRate','formatUvi(actualCurrentUv)','formatDecimal(airClassification.dominant.value,1,1)','formatDecimal(loc.latitude,2,2)']],
+ ['Dashboard',app,['precipitationAmountLabel({precipitation:reconciledCurrentPrecipSourceRate','formatUvi(actualCurrentUv)','formatDecimal(model.result.dominant.value,1,1)','formatDecimal(item.value,1,1)','formatDecimal(value,1,1)',"value===undefined?'–':`${formatDecimal(value,1,1)} µg/m³`",'formatDecimal(loc.latitude,2,2)']],
  ['Ensemble',ensemble,["formatWeatherValue(best,'precipitation')",'formatDecimalFixed(row.minLow,1)','formatDecimal(Number(value),1)']],
  ['Meteogramm',meteogram,['precipitationAmountLabel({precipitation:amount,snowfall:snow})',"`Schneehöhe: ${depth===null?'–':Math.round(depth)} cm`",'formatDecimal(item.values[index]!']],
  ['Niederschlagszusammenfassung',precipitation,['compactPrecipitationAmount(precipitation)','formatDecimalFixed(snowfall,1)']],
