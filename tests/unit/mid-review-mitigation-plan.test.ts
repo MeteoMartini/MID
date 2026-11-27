@@ -32,7 +32,15 @@ describe('review mitigation shadow, no authority',()=>{
    expect(countMitigationRounds({base,head,version,commits})).toBeNull();
  });
  it('never permits a provider, unknown model or paid fallback without separate verified routing',()=>{
-  for(const provider of ['openai','groq','openrouter','other','constructor','__proto__'])expect(planProvider(provider)).toMatchObject({state:'HOLD',maxCalls:0,externalCallsAuthorized:false});
+  const expected = [
+   ['openai',null,'API_BUDGET_AND_ENTITLEMENT_UNVERIFIED'],
+   ['groq','openai/gpt-oss-20b','VERIFIED_ROUTER_BINDING_REQUIRED'],
+   ['openrouter','google/gemma-4-26b-a4b-it:free','VERIFIED_ROUTER_BINDING_REQUIRED'],
+  ] as const;
+  for(const [provider,model,reason] of expected)
+   expect(planProvider(provider)).toEqual({state:'HOLD',provider,model,reason,maxCalls:0,externalCallsAuthorized:false,paidFallback:false});
+  for(const provider of ['other','constructor','__proto__'])
+   expect(planProvider(provider)).toEqual({state:'HOLD',reason:'PROVIDER_NOT_ALLOWLISTED',maxCalls:0,externalCallsAuthorized:false});
  });
  it('only prepares lossless notes split as a ref-free untrusted proposal',()=>{
   const raw=JSON.stringify({schema:1,version,internal:['Alpha; Beta','Gamma'],external:['Keep'],sourceOfTruth:['Pinned evidence']});
