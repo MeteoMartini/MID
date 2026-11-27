@@ -21,6 +21,19 @@ LEADS=(1,2,3,4,5,6,12,24,48)
 TOT_PREC_PREVIOUS=(11,23,47)
 MAX_GRIB_BYTES=80_000_000
 CYCLE_HOURS=3
+SNOW_FIELDS=("h_snow","snow_gsp","snow_con")
+
+def scope_fields(scope):
+ if scope=="core":return FIELDS
+ if scope=="snow":return SNOW_FIELDS
+ raise ValueError("unqualified native catalog scope")
+
+def field_leads(field):
+ if field in ("clat","clon"):return (0,)
+ if field in ("tot_prec","snow_gsp","snow_con"):return (0,*LEADS,*TOT_PREC_PREVIOUS)
+ if field=="h_snow":return (0,*LEADS)
+ if field in FIELDS:return LEADS
+ raise ValueError("unqualified native field")
 
 class Hrefs(HTMLParser):
  def __init__(self):
@@ -41,7 +54,7 @@ def cycles(last):
  return [(dt-timedelta(hours=3*i)).strftime("%Y%m%d%H") for i in (2,1,0)]
 
 def select_name(links,field,stamp,lead):
- if field not in FIELDS or not re.fullmatch(r"[0-9]{10}",stamp) or type(lead) is not int or lead not in LEADS and not (field=="tot_prec" and lead in (0,*TOT_PREC_PREVIOUS)):
+ if field not in (*FIELDS,*SNOW_FIELDS) or not re.fullmatch(r"[0-9]{10}",stamp) or type(lead) is not int or lead not in field_leads(field):
   raise ValueError("unqualified native source request")
  prefix="icon-d2_germany_icosahedral_"
  pressure=field in ("t","relhum")
@@ -68,13 +81,13 @@ def select_coordinate(links,field,stamp):
  if source_stamp>parse_last_run(stamp):raise ValueError("native grid coordinate file from future cycle")
  return matches[0][0]
 
-def catalogue(last,fetch_listing):
- planned=[];runs=cycles(last)
+def catalogue(last,fetch_listing,scope="core"):
+ planned=[];runs=cycles(last);fields=scope_fields(scope)
  for stamp in runs:
-  for field in (*FIELDS,"clat","clon"):
+  for field in (*fields,"clat","clon"):
    url=ROOT+stamp[-2:]+"/"+field+"/"
    links=Hrefs();links.feed(fetch_listing(url))
-   wanted=(0,) if field in ("clat","clon") else (0,*LEADS,*TOT_PREC_PREVIOUS) if field=="tot_prec" else LEADS
+   wanted=field_leads(field)
    for lead in wanted:
     name=select_coordinate(links.links,field,stamp) if field in ("clat","clon") else select_name(links.links,field,stamp,lead)
     planned.append({"model":"icon-d2","run":stamp+"00","parameter":field,"leadHours":lead,
@@ -82,7 +95,8 @@ def catalogue(last,fetch_listing):
                     "status":"catalog-only; GRIB not verified"})
  return {"schema":"mid.dwd.native-source-catalog.v1","productionApproved":False,
          "basis":"DWD original germany_icosahedral; no regular-grid fallback",
-         "expectedRuns":runs,"requiredFields":list(FIELDS),"offeredLeads":list(LEADS),"files":planned}
+         "expectedRuns":runs,"requiredFields":list(fields),"offeredLeads":list(LEADS),"files":planned,
+         **({"scope":"snow"} if scope=="snow" else {})}
 
 def read_listing(url,session):
  """Retry only transient official DWD directory GET timeouts, never changed data."""
@@ -137,10 +151,13 @@ WMO={"t_2m":([0,0,0],"instant"),"pmsl":([0,3,1],"instant"),
  "u_10m":([0,2,2],"instant"),"v_10m":([0,2,3],"instant"),
  "vmax_10m":([0,2,22],"max"),"clct":([0,6,1],"instant"),
  "ww":([0,19,25],"instant"),"t":([0,0,0],"instant"),
- "relhum":([0,1,1],"instant"),"tot_prec":([0,1,52],"accum")}
+ "relhum":([0,1,1],"instant"),"tot_prec":([0,1,52],"accum"),
+ "h_snow":([0,1,11],"instant"),"snow_gsp":([0,1,56],"accum"),"snow_con":([0,1,55],"accum")}
 def pin_original_inventory(catalog):
  if catalog.get("schema")!="mid.dwd.native-source-catalog.v1" or catalog.get("productionApproved") is not False:
   raise ValueError("not an original DWD pilot catalog")
+ fields=scope_fields(catalog.get("scope","core"))
+ if catalog.get("requiredFields")!=list(fields):raise ValueError("native catalog scope/fields mismatch")
  runs=catalog.get("expectedRuns",[])
  if len(runs)!=3 or runs!=cycles(runs[-1]):raise ValueError("not three consecutive native D2 cycles")
  bykey={}
@@ -158,8 +175,8 @@ def pin_original_inventory(catalog):
   if not lat or not lon:raise ValueError("native CLAT/CLON missing")
   coordinates={"latitude":{"path":lat["file"],"sha256":lat["sha256"]},
                "longitude":{"path":lon["file"],"sha256":lon["sha256"]}}
-  for field in FIELDS:
-   for lead in ((0,*LEADS,*TOT_PREC_PREVIOUS) if field=="tot_prec" else LEADS):
+  for field in fields:
+   for lead in field_leads(field):
     item=bykey.get((run,field,lead))
     if not item:raise ValueError("native DWD parameter/lead missing")
     identity,step=WMO[field]
@@ -168,8 +185,8 @@ def pin_original_inventory(catalog):
                  "wmoParameter":identity,"stepType":step,"nativeCoordinates":coordinates})
  if len(rows)+6!=len(bykey):raise ValueError("unknown catalog entries")
  return {"schema":"mid.dwd.domain-inventory-input.v1","productionApproved":False,
-         "expectedParameters":{"icon-d2":list(FIELDS)},
-         "expectedLeads":{"icon-d2/"+f:list((0,*LEADS,*TOT_PREC_PREVIOUS) if f=="tot_prec" else LEADS) for f in FIELDS},
+         "expectedParameters":{"icon-d2":list(fields)},
+         "expectedLeads":{"icon-d2/"+f:list(field_leads(f)) for f in fields},
          "records":rows}
 
 def main():
@@ -177,20 +194,21 @@ def main():
  parser=argparse.ArgumentParser(description=__doc__)
  parser.add_argument("--last-run",required=True,help="Last complete DWD ICON-D2 UTC cycle YYYYMMDDHH")
  parser.add_argument("--output",required=True,type=Path)
+ parser.add_argument("--scope",choices=("core","snow"),default="core",help="Snow is an isolated original-field QA inventory, never production admission")
  parser.add_argument("--download",action="store_true",help="Download all scoped native files for subsequent separate WMO/ecCodes inventory")
  args=parser.parse_args()
  if args.output.exists():raise ValueError("immutable pilot output directory already exists")
  # Original directory listings and immutable GRIBs are independent reads.
  # Two separate Sessions bound upstream load and avoid thread-unsafe Session sharing.
  urls=[ROOT+stamp[-2:]+"/"+field+"/" for stamp in cycles(args.last_run)
-       for field in (*FIELDS,"clat","clon")]
+       for field in (*scope_fields(args.scope),"clat","clon")]
  def listing_worker(url):
   with requests.Session() as session:
    session.headers.update({"User-Agent":"MID-DWD-original-native-audit/1.0"})
    return read_listing(url,session)
  pages=map_two_at_a_time(urls,listing_worker)
  listings=dict(zip(urls,pages,strict=True))
- report=catalogue(args.last_run,lambda url:listings[url])
+ report=catalogue(args.last_run,lambda url:listings[url],scope=args.scope)
  print(json.dumps({"stage":"official-directory-catalog","runs":report["expectedRuns"],
                    "directories":len(urls),"originals":len(report["files"]),
                    "productionApproved":False}),flush=True)

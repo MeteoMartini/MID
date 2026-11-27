@@ -153,6 +153,8 @@ describe('seasonal WXCharts-inspired cards stay inside the original MID map sele
   expect(availableUnifiedParameters(null,false,false,ruc).filter(x=>['winter-berge','sommer-gewitter'].includes(x.id)).map(x=>x.id)).toEqual(['winter-berge','sommer-gewitter']);
   expect(unifiedSources('winter-berge',index(),false,false,ruc).map(x=>x.id)).toEqual(['icon-d2','icon-d2-ruc']);
   expect(unifiedSources('sommer-gewitter',null,false,false,ruc).map(x=>x.id)).toEqual(['icon-d2-ruc']);
+  expect(unifiedSources('winter-berge',ruc,false,false,index())).toEqual([]);
+  expect(availableUnifiedParameters(ruc,false,false,index()).some(x=>x.id==='winter-berge')).toBe(false);
   delete ruc.products.temperature;
   expect(unifiedSources('winter-berge',null,false,false,ruc)).toEqual([]);
   const onlyTemp=index();delete onlyTemp.products.precipitation;

@@ -83,6 +83,25 @@ def assert_dwd_native_total_precipitation(record,centre,unit,statistical_process
                                                  'startStep':0,'endStep':lead}},sort_keys=True))
 
 
+def assert_dwd_native_snow(record,centre,unit,level_type,level,start_step,end_step,statistical_processing):
+    """Snow depth is geometric m; accumulated snowfall components are SWE kg/m².
+    Keep the snow pilot separate from existing core and production admission.
+    """
+    field=record.get('parameter')
+    expected={'h_snow':([0,1,11],'instant'),'snow_gsp':([0,1,56],'accum'),'snow_con':([0,1,55],'accum')}
+    if record.get('model')!='icon-d2' or field not in expected or (record.get('wmoParameter'),record.get('stepType'))!=expected[field]:
+        raise ValueError('DWD native snow identity drift')
+    lead=record.get('leadHours')
+    if (centre!=78 or level_type!='surface' or level!=0 or type(lead) is not int
+            or not 0<=lead<=48 or type(start_step) is not int or type(end_step) is not int or end_step!=lead):
+        raise ValueError('DWD native snow surface/forecast identity drift')
+    if field=='h_snow':
+        if unit!='m' or start_step!=lead:
+            raise ValueError('DWD native geometric snow depth semantics drift')
+    elif (str(unit).replace(' ','').lower() not in {'kgm**-2','kgm-2'}
+          or start_step!=0 or statistical_processing!=1):
+        raise ValueError('DWD native snowfall water-equivalent accumulation drift')
+
 def validate_dwd_precipitation_extra_headers(record, first, extra):
     """DWD native TOT_PREC bundles valid cumulative 15/30/45-minute siblings.
 
@@ -292,6 +311,17 @@ def inventory_record(record,root):
                     record,int(codes_get_long(gid,'centre')),str(codes_get(gid,'units')),
                     int(codes_get_long(gid,'typeOfStatisticalProcessing')),
                     int(codes_get_long(gid,'startStep')),lead)
+
+            if record['model']=='icon-d2' and record['parameter'] in ('h_snow','snow_gsp','snow_con'):
+                snow_stat=(int(codes_get_long(gid,'typeOfStatisticalProcessing')) if record['parameter']!='h_snow' else None)
+                snow_unit=str(codes_get(gid,'units'))
+                snow_start=int(codes_get_long(gid,'startStep'))
+                assert_dwd_native_snow(record,int(codes_get_long(gid,'centre')),snow_unit,
+                    str(codes_get(gid,'typeOfLevel')),int(codes_get_long(gid,'level')),snow_start,lead,snow_stat)
+                if np.any(values[np.isfinite(values)]<0):raise ValueError('Negative native snow value')
+                stats['sourceUnit']=snow_unit
+                stats['startLeadHours']=snow_start
+                stats['endLeadHours']=lead
 
             next_gid=codes_grib_new_from_file(stream)
             if next_gid is not None:

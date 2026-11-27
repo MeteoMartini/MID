@@ -24,13 +24,13 @@ export const UNIFIED_MAP_PARAMETERS:{id:string;label:string;detail:string}[]=[
 export type UnifiedParameter=typeof UNIFIED_MAP_PARAMETERS[number]['id'];
 export function unifiedModelForParameter(parameter:UnifiedParameter){return parameter==='observed'?'radolan':'icon-d2'}
 export function availableUnifiedParameters(index:NativeIndex|null,hasTotals:boolean,hasObserved:boolean,rucIndex:NativeIndex|null=null,catalog:WeatherMapCatalog|null=null){
- return UNIFIED_MAP_PARAMETERS.filter(p=>seasonalMapKinds(p.id)?(seasonalMapFrames(index,p.id).length>0||seasonalMapFrames(rucIndex,p.id).length>0):['synoptic','thetae','geopotential','sigwx'].includes(p.id)?true:p.id==='totals'?hasTotals:p.id==='observed'?hasObserved:Boolean(index?.products[p.id as NativeFieldKind]?.frames.length||rucIndex?.products[p.id as NativeFieldKind]?.frames.length)||unifiedWmsChoices(catalog).some(c=>c.parameter===p.id));
+ return UNIFIED_MAP_PARAMETERS.filter(p=>seasonalMapKinds(p.id)?((index?.schema!=='mid.ruc.map-fields.v1'&&seasonalMapFrames(index,p.id).length>0)||(rucIndex?.schema==='mid.ruc.map-fields.v1'&&seasonalMapFrames(rucIndex,p.id).length>0)):['synoptic','thetae','geopotential','sigwx'].includes(p.id)?true:p.id==='totals'?hasTotals:p.id==='observed'?hasObserved:Boolean(index?.products[p.id as NativeFieldKind]?.frames.length||rucIndex?.products[p.id as NativeFieldKind]?.frames.length)||unifiedWmsChoices(catalog).some(c=>c.parameter===p.id));
 }
 /** Both selectors use this single verified capability matrix. */
 export function unifiedSources(parameter:string,index:NativeIndex|null,hasTotals:boolean,hasObserved:boolean,rucIndex:NativeIndex|null=null,catalog:WeatherMapCatalog|null=null):{id:string;label:string}[]{
  if(seasonalMapKinds(parameter))return [
-  ...(seasonalMapFrames(index,parameter).length?[{id:'icon-d2',label:'DWD ICON-D2 · geprüfte Felder'}]:[]),
-  ...(seasonalMapFrames(rucIndex,parameter).length?[{id:'icon-d2-ruc',label:'DWD ICON-D2-RUC · geprüfte Felder'}]:[]),
+  ...(index?.schema!=='mid.ruc.map-fields.v1'&&seasonalMapFrames(index,parameter).length?[{id:'icon-d2',label:'DWD ICON-D2 · geprüfte Felder'}]:[]),
+  ...(rucIndex?.schema==='mid.ruc.map-fields.v1'&&seasonalMapFrames(rucIndex,parameter).length?[{id:'icon-d2-ruc',label:'DWD ICON-D2-RUC · geprüfte Felder'}]:[]),
  ];
  if(['synoptic','thetae','geopotential'].includes(parameter))return [];
  const native=parameter==='observed'?hasObserved?{id:'radolan',label:'DWD RADOLAN · Messanalyse'}:null:parameter==='totals'?hasTotals?{id:'icon-d2',label:'DWD ICON-D2'}:null:index?.products[parameter as NativeFieldKind]?.frames.length?{id:'icon-d2',label:'DWD ICON-D2'}:null;
