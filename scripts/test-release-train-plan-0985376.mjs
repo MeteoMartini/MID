@@ -4,7 +4,7 @@ import {classifyReleaseFailure} from '../tools/ci/release-self-heal-classify.mjs
 import {parseMidVersion,makeProposedVersion,analyzeReleaseVersion,analyzeVerifiedReleaseVersion,verifyProposedTarget} from '../tools/ci/mid-release-version-proposal.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {validateManifest,analyzeCandidates,inspectRemote,inspectRemoteSnapshot,inspectStableVersion} from '../tools/ci/release-train-plan.mjs';
+import {validateManifest,analyzeCandidates,inspectRemote,inspectRemoteSnapshot,inspectStableVersion,prioritizeBacklog,discoverBacklog} from '../tools/ci/release-train-plan.mjs';
 const a='a'.repeat(40),b='b'.repeat(40),c='c'.repeat(40);
 const manifest=()=>({schema:1,mainSha:a,stableSha:a,changes:[{pr:501,headSha:b},{pr:502,headSha:c}]});
 const prs=()=>[
@@ -674,4 +674,238 @@ test('mandatory .522 EPS targeted original-index diagnostics: stdlib-only offlin
  assert.equal(checked.signal,null);
  assert.equal(checked.status,0,(checked.stdout||'')+(checked.stderr||''));
  assert.match(checked.stderr,/Ran [1-9][0-9]* tests?/);
+});
+
+test('discovery verifies a pinned main/stable snapshot across paginated issue inventory',async()=>{
+ const previous=globalThis.fetch,sha='a'.repeat(40),calls=[];
+ try {
+  globalThis.fetch=async url=>{
+   const path=String(url);calls.push(path);
+   const page=Number(new URL(path).searchParams.get('page'));
+   const data=path.includes('/git/ref/heads/')?{object:{sha}}:page===1?[
+    ...Array.from({length:98},(_,i)=>({number:i+1,state:'open',title:'Unclassified',labels:[]})),
+    {number:541,state:'open',title:'[P0][RUC] Native freshness',labels:[]},
+    {number:901,state:'open',title:'[P1] Release catalog',labels:[]}
+   ]:page===2?[
+    {number:987,state:'open',title:'Release PR',labels:[{name:'P2'}],pull_request:{url:'https://api.github.com/repos/MeteoMartini/MID/pulls/987'}}
+   ]:null;
+   assert.notEqual(data,null,'Unexpected extra inventory page');
+   return {ok:true,json:async()=>structuredClone(data)};
+  };
+  const result=await discoverBacklog('MeteoMartini/MID','');
+  assert.equal(result.state,'ADVISORY_STABLE_SNAPSHOT');
+  assert.equal(result.mainSha,sha);assert.equal(result.stableSha,sha);
+  assert.equal(result.validForIntegrationReview,false);assert.equal(result.releaseAuthorized,false);
+  assert.equal(result.backlog.length,101);
+  assert.deepEqual(result.backlog.slice(0,3).map(v=>v.number),[541,901,987]);
+  assert.deepEqual(result.backlog[2],{number:987,title:'Release PR',labels:['P2'],priority:2,prioritySource:'label',kind:'pull-request'});
+  assert.deepEqual(result.backlog[3],{number:1,title:'Unclassified',labels:[],priority:null,prioritySource:'unclassified',kind:'issue'});
+  assert.deepEqual(result.backlog.slice(3).map(v=>v.number),Array.from({length:98},(_,i)=>i+1));
+  assert.deepEqual(calls.filter(url=>url.includes('/issues?')).map(url=>new URL(url).searchParams.get('page')),['1','2','1','2']);
+  assert.equal(calls.length,8);
+ }finally{globalThis.fetch=previous;}
+});
+test('discovery preserves a P0 queue but marks main/stable divergence as an advisory HOLD',async()=>{
+ const previous=globalThis.fetch,a='a'.repeat(40),b='b'.repeat(40);
+ try{
+  globalThis.fetch=async url=>{
+   const path=String(url),data=path.endsWith('/git/ref/heads/main')?{object:{sha:b}}:
+    path.endsWith('/git/ref/heads/mid-stable')?{object:{sha:a}}:
+    [{number:541,state:'open',title:'[P0][RUC] Native freshness',labels:[]}];
+   return {ok:true,json:async()=>structuredClone(data)};
+  };
+  const result=await discoverBacklog('MeteoMartini/MID','');
+  assert.equal(result.state,'HOLD_MAIN_STABLE_DIVERGED');
+  assert.deepEqual(result.blockers,['MAIN_STABLE_DIVERGED']);
+  assert.equal(result.releaseAuthorized,false);assert.equal(result.validForIntegrationReview,false);
+  assert.equal(result.backlog[0].number,541);
+ }finally{globalThis.fetch=previous;}
+});
+test('discovery rejects branch drift, duplicate/malformed issue identity, and page overflow',async()=>{
+ const previous=globalThis.fetch,a='a'.repeat(40),b='b'.repeat(40);
+ let inventoryPages=0;
+ const request=async kind=>{
+  let reads=0;inventoryPages=0;
+  globalThis.fetch=async url=>{
+   const path=String(url);
+   if(path.includes('/git/ref/heads/')){
+    reads++;
+    return {ok:true,json:async()=>({object:{sha:kind==='drift'&&reads>2?b:a}})};
+   }
+   inventoryPages++;
+   const item={number:541,state:'open',title:'[P0] RUC',labels:[]};
+   const batch=kind==='duplicates'?[item,item]:
+    kind==='malformed'?[{...item,labels:null}]:
+    kind==='pages'?Array.from({length:100},(_,i)=>({...item,number:(inventoryPages-1)*100+i+1})):[item];
+   return {ok:true,json:async()=>batch};
+  };
+  return discoverBacklog('MeteoMartini/MID','');
+ };
+ try {
+  await assert.rejects(request('drift'),/Main\/Stable changed/);
+  await assert.rejects(request('duplicates'),/Invalid or duplicate/);
+  await assert.rejects(request('malformed'),/Invalid or duplicate/);
+  await assert.rejects(request('pages'),/Incomplete backlog inventory \(10 pages exceeded\)/);
+  assert.equal(inventoryPages,11);
+ }finally{globalThis.fetch=previous;}
+});
+
+test('discovery admits exactly 1000 rows with an empty sentinel, not 1001',async()=>{
+ const previous=globalThis.fetch,sha='a'.repeat(40);
+ try{
+  for(const count of [999,1000,1001]){
+   let calls=0;
+   globalThis.fetch=async url=>{
+    const path=String(url);
+    if(path.includes('/git/ref/heads/'))return {ok:true,json:async()=>({object:{sha}})};
+    const page=Number(new URL(path).searchParams.get('page'));calls++;
+    const start=(page-1)*100;
+    const rows=Array.from({length:Math.max(0,Math.min(100,count-start))},(_,i)=>({number:start+i+1,state:'open',title:'[P1] test',labels:[]}));
+    return {ok:true,json:async()=>rows};
+   };
+   if(count===1001){
+    await assert.rejects(discoverBacklog('MeteoMartini/MID',''),/10 pages exceeded/);
+    assert.equal(calls,11);
+   }else{
+    const result=await discoverBacklog('MeteoMartini/MID','');
+    assert.equal(result.backlog.length,count);assert.equal(result.releaseAuthorized,false);
+    assert.equal(calls,count===1000?22:20);
+   }
+  }
+ }finally{globalThis.fetch=previous;}
+});
+test('discovery accepts repository name casing only, not foreign or malformed PR URLs',async()=>{
+ const previous=globalThis.fetch,sha='a'.repeat(40),prefix='https://api.github.com/repos/';
+ try{
+  for(const url of [prefix+'MeteoMartini/MID/pulls/1',prefix+'METEOMARTINI/mid/pulls/1',prefix+'foreign/MID/pulls/1',prefix+'MeteoMartini/MID/pulls/2',prefix+'MeteoMartini/MID/pulls/1?x=1',prefix+'MeteoMartini/MID/pulls/01','https://evil.example/repos/MeteoMartini/MID/pulls/1',null,1]){
+   globalThis.fetch=async path=>({ok:true,json:async()=>String(path).includes('/git/ref/heads/')?{object:{sha}}:[{number:1,state:'open',title:'[P0] test',labels:[],pull_request:{url}}]});
+   const result=discoverBacklog('meteomartini/mid','');
+   if(url===prefix+'MeteoMartini/MID/pulls/1'||url===prefix+'METEOMARTINI/mid/pulls/1'){
+    assert.equal((await result).backlog[0].kind,'pull-request');
+   }else await assert.rejects(result,/Invalid or duplicate/);
+  }
+ }finally{globalThis.fetch=previous;}
+});
+
+test('discovery rejects silent page-boundary omissions and metadata drift between complete reads',async()=>{
+ const previous=globalThis.fetch,sha='a'.repeat(40);
+ const item=number=>({number,state:'open',title:'[P1] test',labels:[]});
+ try{
+  for(const kind of ['page-omission','addition','title','label','kind']){
+   let pages=0;
+   globalThis.fetch=async url=>{
+    const path=String(url);
+    if(path.includes('/git/ref/heads/'))return {ok:true,json:async()=>({object:{sha}})};
+    const page=Number(new URL(path).searchParams.get('page'));pages++;
+    let batch;
+    if(kind==='page-omission'){
+     // First page before closure, second page after it: item 101 is silently skipped.
+     batch=pages===1?Array.from({length:100},(_,i)=>item(i+1)):
+      pages===2?[item(102)]:
+      page===1?Array.from({length:100},(_,i)=>item(i+2)):[item(102)];
+    }else{
+     batch=[item(1)];
+     if(pages===2){
+      if(kind==='addition')batch.push(item(2));
+      if(kind==='title')batch[0].title='[P1] changed';
+      if(kind==='label')batch[0].labels=[{name:'P0'}];
+      if(kind==='kind')batch[0].pull_request={url:'https://api.github.com/repos/MeteoMartini/MID/pulls/1'};
+     }
+    }
+    return {ok:true,json:async()=>structuredClone(batch)};
+   };
+   await assert.rejects(discoverBacklog('MeteoMartini/MID',''),/Backlog inventory changed between complete reads/,kind);
+   assert.equal(pages,kind==='page-omission'?4:2,'No unbounded retry');
+  }
+ }finally{globalThis.fetch=previous;}
+});
+test('discovery ignores ordering changes without changing membership or metadata',async()=>{
+ const previous=globalThis.fetch,sha='a'.repeat(40);
+ const rows=[{number:1,state:'open',title:'[P1] test',labels:[{name:'P1'},{name:'QA'}]},
+  {number:2,state:'open',title:'[P0] test',labels:[]}];
+ let calls=0;
+ try{
+  globalThis.fetch=async url=>{
+   if(String(url).includes('/git/ref/heads/'))return {ok:true,json:async()=>({object:{sha}})};
+   const batch=structuredClone(rows);
+   if(++calls===2){batch.reverse();batch[1].labels.reverse();}
+   return {ok:true,json:async()=>batch};
+  };
+  const result=await discoverBacklog('MeteoMartini/MID','');
+  assert.deepEqual(result.backlog.map(row=>row.number),[2,1]);
+  assert.deepEqual(result.backlog[1].labels,['P1','QA']);
+  assert.equal(result.releaseAuthorized,false);assert.equal(calls,2);
+ }finally{globalThis.fetch=previous;}
+});
+
+test('queue tags, provenance, explicit unknown and no implied release authority',()=>{
+ const items=[
+  {number:541,title:'[P0][RUC] Native freshness',labels:[]},
+  {number:1021,title:'[QA][P1] Karten',labels:[],pull_request:{url:'https://api.github.com/repos/MeteoMartini/MID/pulls/1021'}},
+  {number:1002,title:'[QA DRAFT][P1][Audit 1.5] Missing-as-zero',labels:[]},
+  {number:960,title:'[P0] label wins',labels:[{name:'P2'}]},
+  {number:982,title:'[P9] out of range',labels:[]},
+  {number:983,title:'Context [P0] not-leading',labels:[]},
+  {number:984,title:'[P0] label wins',labels:[{name:'priority:p1'}]},
+  {number:990,title:'RUC P1–P5',labels:[],body:'[P0] body only'},
+  {number:992,title:'[P1][P0] ambiguous',labels:[]},
+  {number:994,title:'[P1]joined prose',labels:[]},
+  {number:995,title:'[P1][P0]joined prose',labels:[]},
+  {number:996,title:'[P1] [P0]joined prose',labels:[]},
+  {number:997,title:'[P1] [unfinished',labels:[]},
+  {number:998,title:'[P0] conflicting labels',labels:[{name:'P0'},{name:'priority:p3'}]},
+  {number:999,title:'[P0] equivalent labels',labels:[{name:'P2'},{name:'priority:p2'}]},
+  {number:1000,title:'[QA][P1]: colon delimiter',labels:[]},
+ ];
+ const result=prioritizeBacklog(items);
+ assert.deepEqual(result.map(x=>[x.number,x.priority,x.prioritySource]),[
+  [541,0,'title-tag'],[984,1,'label'],[1000,1,'title-tag'],[1002,1,'title-tag'],[1021,1,'title-tag'],[960,2,'label'],[999,2,'label'],
+  [982,null,'unclassified'],[983,null,'unclassified'],[990,null,'unclassified'],[992,null,'unclassified'],[994,null,'unclassified'],
+  [995,null,'unclassified'],[996,null,'unclassified'],[997,null,'unclassified'],[998,null,'unclassified']]);
+ assert.equal(result.find(x=>x.number===998).priorityConflict,'labels');
+ assert.deepEqual(result.find(x=>x.number===998).labels,['P0','priority:p3']);
+ assert.equal(result.find(x=>x.number===998).title,'[P0] conflicting labels');
+ assert.deepEqual(result.find(x=>x.number===960).labels,['P2']);
+ assert.equal(result.find(x=>x.number===990).title,'RUC P1–P5');
+ assert.ok(result.every(x=>!Object.hasOwn(x,'body')));
+ assert.equal(result.find(x=>x.number===992).priorityConflict,'title-tags');
+ assert.equal(result.find(x=>x.number===1021).kind,'pull-request');
+ assert.ok(result.every(x=>!Object.hasOwn(x,'releaseAuthorized')));
+});
+test('queue discovery rejects non-open or invalid issue identities, malformed labels and foreign PR markers',async()=>{
+ const previous=globalThis.fetch,sha='a'.repeat(40);
+ try{
+  for(const patch of [{state:'closed'},{number:0},{number:-1},{number:1.5},{number:Number.MAX_SAFE_INTEGER+1},{number:'1'},{labels:[null]},{labels:[{name:3}]},{pull_request:null},{pull_request:{url:'https://api.github.com/repos/foreign/repo/pulls/1'}}]){
+   globalThis.fetch=async url=>({ok:true,json:async()=>String(url).includes('/git/ref/heads/')?{object:{sha}}:[{number:1,state:'open',title:'[P0] test',labels:[],...patch}]});
+   await assert.rejects(discoverBacklog('MeteoMartini/MID',''),/Invalid or duplicate/);
+  }
+ }finally{globalThis.fetch=previous}
+});
+test('queue workflow uses only existing manual preflight and mirrored read-only permissions',async()=>{
+ const canonical=await readRepositoryFile(new URL('../ci/github/workflows/release-train-preflight.yml',import.meta.url),'utf8');
+ const active=await readRepositoryFile(new URL('../.github/workflows/release-train-preflight.yml',import.meta.url),'utf8');
+ assert.equal(active,canonical);
+ // Lock complete top-level trigger and permission blocks, not just individual keywords.
+ const on=canonical.match(/^on:\n(?:[ \t].*\n|\n)*/m)?.[0].trimEnd();
+ assert.equal(on,[
+  'on:',
+  '  workflow_dispatch:',
+  '    inputs:',
+  '      mode:',
+  "        description: 'SHA-gebundenes Manifest oder rein lesende Backlog-Sichtung'",
+  '        type: choice',
+  '        options: [manifest, discover]',
+  '        default: manifest',
+  '      manifest:',
+  "        description: 'Schema-1 JSON: stableSha, mainSha, changes:[{pr,headSha}]; optional candidateMode/versioning; impact needs review (NO RELEASE)'",
+  '        required: false',
+  '        type: string'
+ ].join('\n'));
+ const permissions=canonical.match(/^permissions:\n(?:[ \t].*\n|\n)*/m)?.[0].trimEnd();
+ assert.equal(permissions,'permissions:\n  contents: read\n  pull-requests: read\n  issues: read');
+ assert.equal((canonical.match(/^\s*permissions\s*:/gm)||[]).length,1,'No job-level permission override');
+ assert.doesNotMatch(canonical,/^  schedule:|pull_request_target|: write(?:-all)?\s*$/m);
+ assert.ok(canonical.includes('PLAN_MODE'));
+ assert.ok(canonical.includes('plan=--discover'));
+ assert.ok(canonical.includes('manifest mode requires a manifest'));
 });

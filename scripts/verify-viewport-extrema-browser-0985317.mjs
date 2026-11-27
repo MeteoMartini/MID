@@ -57,6 +57,15 @@ try{
   assert.equal(await labels().first().getAttribute('tabindex'),'0','Numeric marker keyboard focus preserved');
   await page.evaluate(()=>window.__midTestSetField(current=>({...current,values:[0,0,0,0,NaN,0,0,0,0]})));
   await page.waitForFunction(()=>document.querySelectorAll('.native-raster-extreme span').length===0);
+  // Reuse the real MapLibre viewport at every display/theme profile.
+  await page.evaluate(()=>{window.__midTestMap.jumpTo({center:[8,49],zoom:5});window.__midTestSetField(current=>({...current,kind:'precipitation',unit:'mm/1 h',values:[0,1,2,3,20,5,6,7,8]}))});
+  await page.waitForFunction(()=>{const n=document.querySelectorAll('.native-raster-extreme span');return n.length===1&&n[0].getAttribute('aria-label')?.startsWith('Maximum im sichtbaren Ausschnitt: 20')});
+  for(const kind of ['wind','gust']){
+   await page.evaluate(kind=>window.__midTestSetField(current=>({...current,kind,unit:'km/h'})),kind);
+   await page.waitForFunction(()=>{const n=document.querySelectorAll('.native-raster-extreme span');return n.length===1&&n[0].getAttribute('aria-label')?.startsWith('Maximum im sichtbaren Ausschnitt: 11')&&n[0].getAttribute('aria-label')?.endsWith('kt')});
+  }
+  await page.evaluate(()=>window.__midTestSetField(current=>({...current,kind:'sigwx',unit:'WMO'})));
+  await page.waitForFunction(()=>document.querySelectorAll('.native-raster-extreme span').length===0);
   if(width===320)await page.locator('.mid-viewport-test-map').screenshot({path:`${out}/${width}-${theme}.png`});
   assert.equal(await page.locator('.map-availability-error').count(),0,'MapLibre rendered without a WebGL error');
   count++;

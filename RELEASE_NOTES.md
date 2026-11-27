@@ -1,3 +1,22 @@
+# MID v0.9.85.526
+
+- Karten und Umfeldkarte: Nach einer unterbrochenen Bildüberblendung können weitere Kartenbilder wieder geladen werden.
+- Umfeldkarte: Die Zeitanzeige pausiert im Hintergrund und aktualisiert sich beim Wiederöffnen unmittelbar.
+
+# MID v0.9.85.525
+
+- Wetterzwilling: Statt einer vermeintlichen Systemgüte in Prozent werden unabhängige Vergleichstage angezeigt.
+- Die Quellenübersicht zeigt bis zu sechs unterschiedliche Referenzquellen; das Quellvertrauen ist ein heuristischer Hinweis.
+- Bei offenen Defiziten wird auch ein intern bereiter Wetterzwilling weiterhin als lernend angezeigt.
+
+# MID v0.9.85.524
+
+- Karten: Niederschlag, Windgeschwindigkeit und Böen zeigen nur das Maximum; Temperatur, Luftdruck, Theta-E und Bewölkung behalten Minimum und Maximum. Einheitliche Felder erhalten eine neutrale Kennzeichnung. Native Einzelfeld-Exporte verwenden dieselbe Auswahlregel.
+
+# MID v0.9.85.523
+
+- Wartung: Verbesserte interne Priorisierung und Nachvollziehbarkeit der MID-Weiterentwicklung; Wetterdaten und Darstellung bleiben unverändert.
+
 # MID v0.9.85.522
 
 - Technisches Wartungsupdate: zusätzliche interne Sicherheits- und Datenqualitätsprüfungen. Keine neue aktive Datenquelle oder Schreibfreigabe.

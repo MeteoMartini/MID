@@ -1,3 +1,36 @@
+## MID v0.9.85.526 · 2026-11-26 · Stabilere Kartenübergänge und ressourcenschonende Umfeldkarte
+
+- Selektiver Intake #1030 und #1031 auf identischer Stable-Basis; kein vollständiger Intake #937 oder #904 ohne gesonderten Nachweis.
+- Bei abgebrochenem aktiven Raster-Fade meldet der vorhandene Fehlercallback den Darstellungsverlust, sofern vorhanden. Keine Erfolgsmeldung, keine falsche Aussage über weiter sichtbaren Altstand, kein meteorologischer NoData-/Trockenheitsnachweis. Veraltete Generationen lösen keine neue Fehlermeldung aus.
+- Nur sichtbarkeitsgebundener Anzeigeclock und wiederverwendete IANA-Zeitformatierer; keine Veränderung meteorologischer Werte, Akkumulation, Quellen, Modellgültigkeit oder Refresh-Verträge.
+- #1027 AQI-Quellenregression, #1029 Intake-Provenienz und #1024 Review-Mitigation bleiben getrennt. #541 Fast-Lane-/Langzeitnachweis bleibt offen. Keine gemessene FPS-/Energieverbesserung oder physische iOS-Abnahme behauptet.
+- Review: Fehler aus Verbraucher-Callbacks werden nicht als Rendererfehler verschluckt; beobachtbare Frame-Disposal- und inklusive Intervallgrenztests ergänzen die Wiring-Prüfung. Keine reale GPU-Fehlerinjektion behauptet.
+
+## MID v0.9.85.525 · 2026-11-26 · Verständlicher Wetterzwilling und effizientere RUC-Laufprüfung
+
+- Abgeschlossene, gültige und eindeutige unabhängige Referenztage; Reanalyse und Modellrückblick zählen nicht als unabhängige Messungen. Aktivierungslogik und Prognosegewichte bleiben unverändert.
+- RUC-Scheduler: begrenzte parallele Indexabfragen mit vier Requests je Batch und unveränderter geordneter Schnittmenge. Keine Änderung an GRIB-, EPS-, Daten- oder Publish-Gates.
+- Kein Nachweis einer Behebung des DWD-Transporttimeouts oder einer gemessenen Latenzverbesserung. #541 bleibt offen.
+- AQI #1027, Review-Mitigation #1024 und Kartenübergänge #1021 bleiben separate Kandidaten.
+
+## MID v0.9.85.524 · 2026-11-26 · Meteorologisch sinnvolle Kartenextrema und präzisere Klima-QA
+
+- Gemeinsame parameterabhängige Anzeige-Policy für native Karten und Exporte; numerische Originalwerte, mathematische Rastergrenzen, Isolinien und Farbskalen bleiben unverändert.
+- Echte Nullwerte und NoData bleiben getrennt; Wettercodes werden nicht numerisch gerankt. Sichtbarer Ausschnitt und vollständiger Export behalten ihre jeweiligen räumlichen Bezugsflächen.
+- Isolierter Klima-QA-Oracle für feldbezogene Vollständigkeit und eindeutige Referenzjahre 1991–2020; keine produktive Klima-Adapter-, Cache- oder UI-Änderung.
+- Erneute Prüfung von travelPlanner.ts auf .523 bestätigt offene Risiken bei fehlenden Werten, Klimajahresabdeckung und leeren Wettercode-Verteilungen; #999 bleibt offen.
+- Separat: Kartenübergänge #1021, Review-Mitigation #1024, RUC #541 und Open-Meteo #405 nicht Bestandteil dieses Kandidaten.
+
+## MID v0.9.85.523 · 2026-11-25 · Zuverlässigere Priorisierung der MID-Entwicklungswarteschlange
+
+- Lesende PR-/Issue-Inventur: Prioritätslabels vor eindeutigen führenden Titel-Tags; unbekannte oder widersprüchliche Prioritäten getrennt.
+- Titel und sortierte Labelnamen als prüfbare Einstufungsgrundlage.
+- SHA-/Paginierungs- und Negativtests: exakt 1.000 Einträge mit leerer Prüfseite; case-insensitive Repositorynamen bei strikt gebundener PR-Identität.
+- Zwei vollständige übereinstimmende Inventuren mit Abbruch bei Bestands- oder Metadatendrift.
+- Vorhandener manueller Preflight mit festem Manifest-Default, exakt lesenden Rechten und erweiterten Tests ungültiger Issue-Identitäten; kein zusätzlicher Scheduler.
+- SHA-gebundener Review-Guard meldet vollständige offene und aufgelöste Threadzahlen sowie separate aktive Änderungsanforderungen direkt als Workflow-Fehler.
+- Unvollständige Review-Evidenz bleibt unbekannt; alle Sperren unverändert.
+
 ## MID v0.9.85.522 · 2026-11-25 · Isolierte Logicc- und EPS-Diagnoseintegrität
 
 - #1017: fest gebundener, noch nicht aktivierter Rückgabetransport und SQLite-Quittungsledger; begrenzte UTF-8-JSON-Antworten und negative Transporttests; keine neue Ressource, kein Token, kein Live-POST.

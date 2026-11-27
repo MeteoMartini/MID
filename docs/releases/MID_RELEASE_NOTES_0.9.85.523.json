@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "version": "0.9.85.523",
+  "title": "Zuverlässigere Priorisierung der MID-Entwicklungswarteschlange",
+  "date": "2026-11-25",
+  "external": [
+    "Wartung: Verbesserte interne Priorisierung und Nachvollziehbarkeit der MID-Weiterentwicklung; Wetterdaten und Darstellung bleiben unverändert."
+  ],
+  "internal": [
+    "Lesende PR-/Issue-Inventur: Prioritätslabels vor eindeutigen führenden Titel-Tags; unbekannte oder widersprüchliche Prioritäten getrennt.",
+    "Titel und sortierte Labelnamen als prüfbare Einstufungsgrundlage.",
+    "SHA-/Paginierungs- und Negativtests: exakt 1.000 Einträge mit leerer Prüfseite; case-insensitive Repositorynamen bei strikt gebundener PR-Identität.",
+    "Zwei vollständige übereinstimmende Inventuren mit Abbruch bei Bestands- oder Metadatendrift.",
+    "Vorhandener manueller Preflight mit festem Manifest-Default, exakt lesenden Rechten und erweiterten Tests ungültiger Issue-Identitäten; kein zusätzlicher Scheduler.",
+    "SHA-gebundener Review-Guard meldet vollständige offene und aufgelöste Threadzahlen sowie separate aktive Änderungsanforderungen direkt als Workflow-Fehler.",
+    "Unvollständige Review-Evidenz bleibt unbekannt; alle Sperren unverändert."
+  ],
+  "sourceOfTruth": [
+    "Stable .522 @ 8bf0b230c27f2c4c34c8b37c70503e56a9bcc76a; #981 @ 3842fc44d8e7abf8b78466c914134924e00d6d48; unabhängige Spezialchat-Kandidatenkette @ 35c4c094856169ace55866dc914e7a4cd066c4ed.",
+    "Status vor Freigabe: QA-Kandidat; Draft-, vollständiges Source-Gate, Installer und Stable-Promotion auf finalem SHA nachzuweisen. #1019 bleibt bis zur getrennten Qualifikation zurückgestellt; #981 erst nach nachgewiesener Stable-Promotion und vollständiger Übernahme schließen."
+  ]
+}

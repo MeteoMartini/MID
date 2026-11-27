@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
-import {assessMidPremerge as check,collectMidReviews} from '../../tools/ci/mid-review-premerge-guard.mjs';
+import {assessMidPremerge as check,collectMidReviews,formatMidReviewBlock} from '../../tools/ci/mid-review-premerge-guard.mjs';
 const sha='a'.repeat(40),stable='b'.repeat(40),branch='chatgpt/v0.9.85.455-review-native-guard';
 const pr={number:777,state:'open',draft:false,base:{ref:'main',sha:stable},head:{ref:branch,sha,repo:{full_name:'MeteoMartini/MID'}}};
 const meta={number:777,headRefOid:sha,headRefName:branch,baseRefName:'main',state:'OPEN',isDraft:false};
@@ -35,6 +35,27 @@ describe('SHA-bound MID merge-time review guard',()=>{
  });
  it.each([false,true])('blocks unresolved review thread, even outdated=%s',outdated=>{
   expect(check(input({data:{meta,threads:[thread(false,outdated)],reviews:[],truncated:false}})).ok).toBe(false);
+ });
+ it('counts all verified open and resolved threads, including outdated ones, and separates formal requests',()=>{
+  const d=check(input({data:{meta,threads:[thread(false,false,'t1'),thread(true,false,'t2'),thread(false,true,'t3'),thread(true,true,'t4')],reviews:[review('CHANGES_REQUESTED','r1'),review('COMMENTED','r2'),review('CHANGES_REQUESTED','r3','second')],truncated:false}}));
+  expect(d).toMatchObject({ok:false,reason:'MID_REVIEW_OPEN_THREAD',openThreads:2,resolvedThreads:2,activeChangeRequests:2,mergeAuthorized:false,releaseAuthorized:false});
+  expect(formatMidReviewBlock(d)).toBe('MID review BLOCKED: MID_REVIEW_OPEN_THREAD; open_threads=2; resolved_threads=2; active_change_requests=2');
+ });
+ it('does not count partial or invalid thread evidence as zero or complete',()=>{
+  for(const data of [null,{meta,threads:[thread(false),thread(false)],reviews:[],truncated:false},{meta,threads:[thread(false),{id:'bad'}],reviews:[],truncated:false},{meta,threads:[],reviews:[],truncated:true}]){
+   const d=check(input({data}));
+   expect(d).toMatchObject({ok:false,openThreads:null,resolvedThreads:null,activeChangeRequests:null});
+   expect(formatMidReviewBlock(d)).toContain('open_threads=unknown; resolved_threads=unknown; active_change_requests=unknown');
+  }
+ });
+ it('reports known thread counts but unknown formal requests when review evidence is invalid or ambiguous',()=>{
+  const invalid=check(input({data:{meta,threads:[thread(false)],reviews:[{id:'bad'}],truncated:false}}));
+  expect(invalid).toMatchObject({ok:false,reason:'MID_REVIEW_BAD_REVIEW',openThreads:1,resolvedThreads:0,activeChangeRequests:null});
+  const ambiguous=check(input({data:{meta,threads:[],reviews:[review('CHANGES_REQUESTED'),review('APPROVED','r2')],truncated:false}}));
+  expect(ambiguous).toMatchObject({ok:false,reason:'MID_REVIEW_AMBIGUOUS_REVIEW_ORDER',openThreads:0,resolvedThreads:0,activeChangeRequests:null});
+  const request=check(input({data:{meta,threads:[],reviews:[review('CHANGES_REQUESTED')],truncated:false}}));
+  expect(request).toMatchObject({ok:false,reason:'MID_REVIEW_CHANGES_REQUESTED',openThreads:0,resolvedThreads:0,activeChangeRequests:1});
+  expect(check(input())).toMatchObject({ok:true,openThreads:0,resolvedThreads:0,activeChangeRequests:0,mergeAuthorized:false,releaseAuthorized:false});
  });
  it('accepts a resolved GitHub conversation but never claims independent approval',()=>{
   expect(check(input({data:{meta,threads:[thread(true)],reviews:[review('COMMENTED')],truncated:false}})))

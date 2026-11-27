@@ -3,7 +3,7 @@ import {GeoJsonLayers,HtmlMarker,useMidMap,type MidGeoLayer} from './MapLibreCor
 import type {NativeField} from './nativeModelFields';
 import type {ScalarRaster} from './nativeScalarAnnotations';
 import {modelMapUnit,modelMapValue} from './modelMapUnits';
-import {nativeRasterExtremes,nativeScalarLines,scalarLineFeatures,scalarLineName,type RasterViewport} from './nativeScalarAnnotations';
+import {nativeDisplayedExtremes,nativeScalarLines,scalarLineFeatures,scalarLineName,rasterExtremeMode,rasterExtremeLabel,type RasterViewport} from './nativeScalarAnnotations';
 import type {WindUnit} from './weather';
 
 const escape=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
@@ -33,10 +33,8 @@ export function NativeScalarOverlay({field,unit,lines=false,extremes=true}:{fiel
   return()=>{map.off('movestart',start);map.off('moveend',end);map.off('zoomend',end);map.off('resize',update)};
  },[map]);
  const contours=useMemo(()=>scalarLineFeatures(lines?nativeScalarLines(field,unit):[]),[field,unit,lines]);
- const points=useMemo(()=>extremes&&!moving&&viewport?nativeRasterExtremes(field,viewport):[],[field,viewport,extremes,moving]);
- const uniform=points.length===2&&points[0].value===points[1].value;
- const visiblePoints=uniform?points.slice(0,1):points;
- const locations=visiblePoints.map(p=>{
+ const points=useMemo(()=>extremes&&!moving&&viewport?nativeDisplayedExtremes(field,viewport):[],[field,viewport,extremes,moving]);
+ const locations=points.map(p=>{
   const centerLon=map?.getCenter().lng??p.lon;
   const longitude=p.lon+360*Math.round((centerLon-p.lon)/360);
   const pixel=map?.project([longitude,p.lat]),canvas=map?.getCanvas();
@@ -49,18 +47,18 @@ export function NativeScalarOverlay({field,unit,lines=false,extremes=true}:{fiel
  return <>{lines&&<GeoJsonLayers id="native-parameter-isolines" data={contours} zIndex={620} hoverProperty="label" layers={scalarMapLayers()}/>}
   {locations.map(({p,anchor,longitude},i)=>{
    const val=modelMapValue(field.kind,p.value,field.unit,unit);
-   const full=`${uniform?'Einheitlicher Wert':p.type==='Min'?'Minimum':'Maximum'} im sichtbaren Ausschnitt: ${val} ${modelMapUnit(field.kind,field.unit,unit)}`;
+   const full=`${rasterExtremeLabel(p)} im sichtbaren Ausschnitt: ${val} ${modelMapUnit(field.kind,field.unit,unit)}`;
    const html=`<span role="img" tabindex="0" aria-label="${escape(full)}" style="display:block;color:#fff;font:600 12px/1.2 Arial,sans-serif;white-space:nowrap;text-shadow:0 1px 2px #12202b,1px 0 2px #12202b,-1px 0 2px #12202b,0 -1px 2px #12202b;pointer-events:auto">${escape(val)}</span>`;
    return <HtmlMarker key={p.type} latitude={p.lat} longitude={longitude} anchor={anchor} offset={(collision?[0,i===0?-12:12]:[0,0]) as [number,number]} zIndex={735} className="native-raster-extreme" html={html} popupHtml={escape(full)+`<br/>Modelltermin: ${escape(field.time)}`}/>;
   })}
  </>;
 }
 export function NativeScalarControls({field,unit,extremes,onExtremes,lines,onLines}:{field:NativeField;unit:WindUnit;extremes:boolean;onExtremes:(v:boolean)=>void;lines?:boolean;onLines?:(v:boolean)=>void}){
- const points=useMemo(()=>nativeRasterExtremes(field),[field]);
+ const points=useMemo(()=>nativeDisplayedExtremes(field),[field]);
  if(!points.length)return null;
  const touch={display:'flex',alignItems:'center',gap:8,minHeight:44};
  return <div className="unified-scalar-controls" style={{display:'grid',gap:8,padding:'8px 0',fontSize:12}}>
-  <label className="unified-check" style={touch} title={`Extremwerte in ${modelMapUnit(field.kind,field.unit,unit)}`}><input type="checkbox" checked={extremes} onChange={e=>onExtremes(e.target.checked)}/>Extremwerte im sichtbaren Ausschnitt</label>
+  <label className="unified-check" style={touch} title={`${rasterExtremeMode(field.kind)==='max'?'Maximum':'Extremwerte'} in ${modelMapUnit(field.kind,field.unit,unit)}`}><input type="checkbox" checked={extremes} onChange={e=>onExtremes(e.target.checked)}/>Extremwerte im sichtbaren Ausschnitt{rasterExtremeMode(field.kind)==='max'?' · nur Maximum':''}</label>
   {onLines&&field.kind!=='pressure'&&<label className="unified-check" style={touch}><input type="checkbox" checked={lines} onChange={e=>onLines(e.target.checked)}/>{scalarLineName(field.kind)} · aus Rasterwerten</label>}
  </div>;
 }

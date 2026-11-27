@@ -4,15 +4,21 @@ run-name: SHA-geprüfte MID-Updatebündelung vorprüfen
 on:
   workflow_dispatch:
     inputs:
+      mode:
+        description: 'SHA-gebundenes Manifest oder rein lesende Backlog-Sichtung'
+        type: choice
+        options: [manifest, discover]
+        default: manifest
       manifest:
         description: 'Schema-1 JSON: stableSha, mainSha, changes:[{pr,headSha}]; optional candidateMode/versioning; impact needs review (NO RELEASE)'
-        required: true
+        required: false
         type: string
 
 # Planning only. No workflow can merge, build production or deploy.
 permissions:
   contents: read
   pull-requests: read
+  issues: read
 
 concurrency:
   group: mid-release-train-preflight
@@ -34,13 +40,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           PLAN_MANIFEST: ${{ inputs.manifest }}
+          PLAN_MODE: ${{ inputs.mode }}
         shell: bash
         run: |
           set -euo pipefail
-          printf '%s' "$PLAN_MANIFEST" > "$RUNNER_TEMP/mid-release-train-plan.json"
+          plan="$RUNNER_TEMP/mid-release-train-plan.json"
+          case "$PLAN_MODE" in
+            manifest) [ -n "$PLAN_MANIFEST" ] || { echo 'manifest mode requires a manifest' >&2; exit 1; }
+              printf '%s' "$PLAN_MANIFEST" > "$plan" ;;
+            discover) [ -z "$PLAN_MANIFEST" ] || { echo 'discover mode does not accept a manifest' >&2; exit 1; }
+              plan=--discover ;;
+            *) echo 'Invalid preflight mode' >&2; exit 1 ;;
+          esac
           # Capture the result and publish its explanation EVEN when the advisory preflight blocks.
           set +e
-          node tools/ci/release-train-plan.mjs "$RUNNER_TEMP/mid-release-train-plan.json" "$GITHUB_REPOSITORY" > "$RUNNER_TEMP/mid-release-train-result.json" 2> "$RUNNER_TEMP/mid-release-train-error.log"
+          node tools/ci/release-train-plan.mjs "$plan" "$GITHUB_REPOSITORY" > "$RUNNER_TEMP/mid-release-train-result.json" 2> "$RUNNER_TEMP/mid-release-train-error.log"
           preflight_status=$?
           set -e
           # Make pre-JSON failures visible, keeping the original failed exit.

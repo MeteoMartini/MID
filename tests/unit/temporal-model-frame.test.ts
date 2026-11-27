@@ -5,24 +5,24 @@ import {createTemporalMapFrameController,type TemporalMapFrameData} from '../../
 import type {MidMap} from '../../src/MapLibreCore';
 
 function fixture(reducedMotion=false){
- let now=0,serial=0;const jobs=new Map<number,FrameRequestCallback>(),timers=new Map<number,{fn:()=>void;at:number}>(),sources=new Map<string,any>(),layers=new Map<string,any>(),loaded=new Set<string>(),listeners=new Map<string,Set<(...args:any[])=>void>>(),images:any[]=[];
+ let now=0,serial=0,brokenPaint='';const jobs=new Map<number,FrameRequestCallback>(),timers=new Map<number,{fn:()=>void;at:number}>(),sources=new Map<string,any>(),layers=new Map<string,any>(),loaded=new Set<string>(),listeners=new Map<string,Set<(...args:any[])=>void>>(),images:any[]=[];
  const emit=(event:string,value?:any)=>{for(const cb of [...(listeners.get(event)??[])])cb(value)};
  const map={
   addSource(id:string,s:any){sources.set(id,{...s,updateImage:vi.fn()})},getSource:(id:string)=>sources.get(id),removeSource(id:string){sources.delete(id);loaded.delete(id)},
-  addLayer(l:any){layers.set(l.id,l)},getLayer:(id:string)=>layers.get(id),removeLayer:(id:string)=>layers.delete(id),setPaintProperty(id:string,p:string,v:number){layers.get(id).paint[p]=v},
+  addLayer(l:any){layers.set(l.id,l)},getLayer:(id:string)=>layers.get(id),removeLayer:(id:string)=>layers.delete(id),setPaintProperty(id:string,p:string,v:number){if(brokenPaint&&id.includes(brokenPaint))throw Error('lost paint target');layers.get(id).paint[p]=v},
   on(event:string,cb:(...args:any[])=>void){if(!listeners.has(event))listeners.set(event,new Set());listeners.get(event)!.add(cb)},off(event:string,cb:(...args:any[])=>void){listeners.get(event)?.delete(cb)},
   isSourceLoaded:(id:string)=>loaded.has(id),triggerRepaint:()=>{}
  };
  const controller=createTemporalMapFrameController(map as unknown as MidMap,'test',{
   makeImage:()=>{const image:any={};images.push(image);return image},now:()=>now,raf:fn=>{jobs.set(++serial,fn);return serial},cancelRaf:id=>{jobs.delete(id)},timeout:(fn,ms)=>{timers.set(++serial,{fn,at:now+ms});return serial},clearTimeout:id=>{timers.delete(id)},reducedMotion:()=>reducedMotion
  });
- const tick=(ms:number)=>{now+=ms;const tasks=[...jobs.values()];jobs.clear();tasks.forEach(fn=>fn(now));for(const [id,t] of [...timers])if(t.at<=now){timers.delete(id);t.fn()}};
+ const tick=(ms:number,render=true)=>{now+=ms;const tasks=[...jobs.values()];jobs.clear();tasks.forEach(fn=>fn(now));if(render)emit('render');for(const [id,t] of [...timers])if(t.at<=now){timers.delete(id);t.fn()}};
  const frame=(key:string,withContours=true):TemporalMapFrameData=>({key,raster:{url:key,bounds:[[48,7],[49,8]],resampling:'nearest',zIndex:300},groups:withContours?['isobars','isoheights'].map((id,index)=>({id,zIndex:680+index,data:{type:'FeatureCollection',features:[{type:'Feature',properties:{level:1016},geometry:{type:'LineString',coordinates:[[7,48],[8,49]]}}]},layers:[{id:'line',type:'line',paint:{'line-opacity':1}},{id:'label',type:'symbol',layout:{'text-field':['get','level']},paint:{'text-opacity':1}}]})):[]});
  const display=vi.fn(),error=vi.fn();
  const stage=(key:string,contours=true)=>{controller.stage(frame(key,contours),()=>display(key),error);images.at(-1).onload()};
  const mark=(ids=[...sources.keys()])=>{ids.forEach(id=>loaded.add(id));emit('render')};
  const alpha=(generation:number,type:string)=>[...layers.values()].filter(l=>l.id.includes('-frame-'+generation+'-')&&l.type===type).map(l=>l.paint[type==='raster'?'raster-opacity':type==='line'?'line-opacity':'text-opacity']);
- return {controller,images,sources,layers,loaded,listeners,jobs,timers,emit,tick,stage,mark,alpha,display,error,frame};
+ return {controller,images,sources,layers,loaded,listeners,jobs,timers,emit,tick,stage,mark,alpha,display,error,frame,breakPaint:(match:string)=>{brokenPaint=match}};
 }
 describe('atomic model weather frame presentation',()=>{
  it('retains all old layers until raster AND both vector sources render, then fades lines, labels and raster together',()=>{
@@ -51,6 +51,16 @@ describe('atomic model weather frame presentation',()=>{
   image.onload();f.mark();f.tick(175);expect(f.alpha(1,'raster')).toEqual([.5]);
   f.controller.stage(f.frame('b'),latest,f.error);expect(f.images.length).toBe(2);
   f.tick(175);expect(first).not.toHaveBeenCalled();expect(latest).toHaveBeenCalledTimes(1);expect(f.sources.size).toBe(3);
+ });
+ it('does not acknowledge the selected term until the fully opaque frame is actually rendered',()=>{
+  const f=fixture();f.stage('a');f.mark();f.tick(350,false);expect(f.display).not.toHaveBeenCalled();f.emit('render');expect(f.display).toHaveBeenLastCalledWith('a');
+  f.stage('b');f.mark();f.tick(350,false);expect(f.display.mock.calls).toEqual([['a']]);const layer=[...f.layers.keys()].find(id=>id.includes('frame-2'))!;f.layers.delete(layer);f.emit('render');expect(f.error).toHaveBeenCalledTimes(1);expect(f.display.mock.calls).toEqual([['a']]);expect(f.alpha(1,'raster')).toEqual([1]);
+ });
+ it('rolls back a paint exception without admitting the failed term, then recovers',()=>{
+  const f=fixture();f.stage('a');f.mark();f.tick(350);f.stage('b');f.mark();f.breakPaint('frame-2');f.tick(175);expect(f.error).toHaveBeenCalledTimes(1);expect(f.display.mock.calls).toEqual([['a']]);expect(f.alpha(1,'raster')).toEqual([1]);expect(f.sources.size).toBe(3);f.breakPaint('');f.stage('c');f.mark();f.tick(350);expect(f.display.mock.calls).toEqual([['a'],['c']]);expect(f.sources.size).toBe(3);
+ });
+ it('does not claim a retained model term if the old renderer has also disappeared',()=>{
+  const f=fixture(true);f.stage('a');f.mark();f.tick(1);f.stage('b');f.mark();f.breakPaint('frame-');f.tick(1);expect(f.display.mock.calls).toEqual([['a']]);expect(f.error).toHaveBeenLastCalledWith(expect.stringContaining('Kein bestätigtes Kartenbild'));expect(f.sources.size).toBe(0);
  });
  it('preserves independent original raster and contour opacity for native maps',()=>{
   const f=fixture(true),frame=f.frame('native');

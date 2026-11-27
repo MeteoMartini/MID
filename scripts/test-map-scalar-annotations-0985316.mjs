@@ -7,7 +7,7 @@ import {pathToFileURL} from 'node:url';
 const dir=mkdtempSync(join(tmpdir(),'mid-scalar-'));
 try{
  for(const [name,entry] of [['scalar','nativeScalarAnnotations'],['math','chartMath'],['export','nativeModelMapExport'],['totals','totalsScalarField']])await build({entryPoints:[`src/${entry}.ts`],outfile:join(dir,name+'.mjs'),bundle:true,platform:'node',format:'esm',logLevel:'silent'});
- const {nativeScalarLines,nativeRasterExtremes}=await import(pathToFileURL(join(dir,'scalar.mjs')));
+ const {nativeScalarLines,nativeRasterExtremes,nativeDisplayedExtremes,rasterExtremeLabel}=await import(pathToFileURL(join(dir,'scalar.mjs')));
  const {totalsScalarField}=await import(pathToFileURL(join(dir,'totals.mjs')));
  const {niceWindRange,spacedGuideLabels}=await import(pathToFileURL(join(dir,'math.mjs')));
  const guides=[{threshold:50,y:34},{threshold:65,y:31},{threshold:85,y:27},{threshold:100,y:23},{threshold:115,y:20},{threshold:140,y:14}];
@@ -41,6 +41,25 @@ try{
  assert.deepEqual(nativeRasterExtremes({...field,values:field.values.map(()=>NaN)}),[]);
  assert.deepEqual(nativeScalarLines({...field,values:field.values.map(()=>5)}),[],'Uniform fields have no invented isolines');
  assert.deepEqual(nativeRasterExtremes({...field,kind:'sigwx'}),[],'Weather codes have no scalar extrema');
+ // Annotation rules are intentionally separate from the mathematical range.
+ for(const kind of ['wind','gust','precipitation']){
+  const sample={...field,kind,values:[0,1,2,3,NaN,5,6,7,80]};
+  assert.deepEqual(nativeDisplayedExtremes(sample).map(p=>[p.type,p.value]),[['Max',80]],kind);
+  assert.deepEqual(nativeRasterExtremes(sample).map(p=>p.value),[0,80],'Raw range remains available');
+  assert.deepEqual(nativeDisplayedExtremes({...sample,values:Array(9).fill(0)}).map(p=>[p.type,p.value]),[['Max',0]],'Real zero is not missing');
+  assert.deepEqual(nativeDisplayedExtremes({...sample,values:Array(9).fill(NaN)}),[],'NoData never creates a maximum');
+ }
+ for(const kind of ['temperature','pressure','thetae','cloud']){
+  const sample={...field,kind};
+  assert.deepEqual(nativeDisplayedExtremes(sample).map(p=>p.type),['Min','Max']);
+  assert.equal(rasterExtremeLabel(nativeDisplayedExtremes(sample,mid)[0]),'Einheitlicher Wert');
+ }
+ assert.deepEqual(nativeDisplayedExtremes({...field,kind:'sigwx'}),[]);
+ const rainSvg=nativeFieldSvg({...field,kind:'precipitation',unit:'mm/1 h'},'Niederschlag','',[],1,'kn',undefined,[],{extremes:true,lines:false});
+ assert.match(rainSvg,/aria-label="Maximum: 20"/);
+ assert.doesNotMatch(rainSvg,/aria-label="Minimum:/);
+ const uniformSvg=nativeFieldSvg({...field,values:Array(9).fill(5)},'Temperatur','',[],0,'kn',undefined,[],{extremes:true});
+ assert.match(uniformSvg,/aria-label="Einheitlicher Wert: 5"/);
  const boundary={...field,values:[-40,0,0,0,20,0,0,0,65]};assert.equal(nativeRasterExtremes(boundary)[1].value,65,'Boundary maximum is retained');
  const wind={...field,kind:'gust',unit:'km/h',values:[0,30,60,10,90,120,20,100,150]};
  for(const [unit,factor,suffix] of [['kn',1,'kt'],['kmh',1.852,'km/h'],['ms',.514444,'m/s'],['mph',1.15078,'mph']]){
