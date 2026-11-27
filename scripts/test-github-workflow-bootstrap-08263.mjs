@@ -70,6 +70,10 @@ function isolatedFastArtifactContractValid(text){
  const reviewedBuild="      - name: Build authentic 0-6h deterministic and 5/15min native GRIBs\n        if: steps.choice.outputs.ready == 'true'\n        shell: bash\n        env:\n          FAST_RUN: ${{ steps.choice.outputs.run }}\n          MID_RUC_DOWNLOAD_WORKERS: '4'\n        run: |\n          set -euo pipefail\n          python tools/ruc/ruc_fast_lane_producer.py --run \"$FAST_RUN\" --stage .ruc-fast-grib-staging --output .ruc-fast-candidate\n          python tools/ruc/ruc_fast_pointer_staging.py --candidate .ruc-fast-candidate --output ruc-fast-shadow\n          python - <<'PY'\n          import json,sys\n          from pathlib import Path\n          sys.path.insert(0,'tools/ruc')\n          from ruc_fast_lane_producer import verify_candidate_manifest\n          from ruc_fast_pointer_staging import strict_budget,count_files\n          root=Path('.ruc-fast-candidate')\n          meta=json.loads((root/'fast-candidate.json').read_text())\n          assert verify_candidate_manifest(meta,root)=={'verifiedLocalBytes':True,'publicationAuthorized':False}\n          pointer=json.loads(next(Path('ruc-fast-shadow').rglob('latest.json')).read_text())\n          assert pointer['publicationAuthorized'] is False\n          assert pointer['productionEnabled'] is False\n          assert pointer['realtimeConsumerEnabled'] is False\n          assert pointer['consumerAdoptionVerified'] is False\n          assert strict_budget(0,count_files(Path('ruc-fast-shadow')))>0\n          print('Verified immutable 0-6h fast shadow; not published, not an app consumer.')\n          PY\n";
  if(!upload[0].endsWith(reviewedBuild)||upload[0].split('      - name: Build authentic 0-6h deterministic and 5/15min native GRIBs\n').length!==2)return false;
  const step=upload[1].split('\n      - name:')[0];
+ // Pin the entire reviewed upload contract: no alternate inputs, retention, identity,
+ // guard, action revision, compression or overwrite semantics without requalification.
+ const reviewedUpload="        if: steps.choice.outputs.ready == 'true'\n        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2\n        with:\n          name: mid-ruc-fast-native-${{ github.run_id }}-${{ github.run_attempt }}\n          path: ruc-fast-shadow/\n          retention-days: 2\n          if-no-files-found: error\n          compression-level: 1";
+ if(step!==reviewedUpload)return false;
  return !text.includes('.ruc-fast-shadow') &&
   count('          python tools/ruc/ruc_fast_pointer_staging.py --candidate .ruc-fast-candidate --output ruc-fast-shadow')===1 &&
   count("          pointer=json.loads(next(Path('ruc-fast-shadow').rglob('latest.json')).read_text())")===1 &&
@@ -88,6 +92,30 @@ const isolatedFastDiagnostic=await readFile(path.join(root,'ci/github/workflows/
 const activeFastDiagnostic=await readFile(path.join(root,'.github/workflows/mid-ruc-fast-lane-qualification.yml'),'utf8');
 if(activeFastDiagnostic!==isolatedFastDiagnostic||!isolatedFastArtifactContractValid(isolatedFastDiagnostic))failures.push('Isolierter RUC-Fast-Diagnoseupload muss exakt denselben sichtbaren SHA-/Budget-geprüften Stagingbaum verwenden.');
 const invalidFastArtifacts=[
+ // retention increased
+ isolatedFastDiagnostic.replace("retention-days: 2","retention-days: 90"),
+ // retention default
+ isolatedFastDiagnostic.replace("          retention-days: 2\n",""),
+ // retention duplicate
+ isolatedFastDiagnostic.replace("retention-days: 2","retention-days: 2\n          retention-days: 90"),
+ // retention dynamic
+ isolatedFastDiagnostic.replace("retention-days: 2","retention-days: ${{ inputs.retention }}"),
+ // overwrite
+ isolatedFastDiagnostic.replace("retention-days: 2","retention-days: 2\n          overwrite: true"),
+ // artifact name
+ isolatedFastDiagnostic.replace("name: mid-ruc-fast-native-","name: other-"),
+ // name not attempt bound
+ isolatedFastDiagnostic.replace("-${{ github.run_attempt }}",""),
+ // compression
+ isolatedFastDiagnostic.replace("compression-level: 1","compression-level: 9"),
+ // action different SHA
+ isolatedFastDiagnostic.replace("cf430e030ddbb5b0abf93d22962f4752f3646cd9","aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+ // conditional failure handling
+ isolatedFastDiagnostic.replace("          retention-days: 2","          retention-days: 2\n        timeout-minutes: 1"),
+ // unknown action input
+ isolatedFastDiagnostic.replace("          retention-days: 2","          retention-days: 2\n          unexpected-input: true"),
+ // duplicate if-no-files-found
+ isolatedFastDiagnostic.replace("if-no-files-found: error","if-no-files-found: error\n          if-no-files-found: warn"),
  isolatedFastDiagnostic.replace("          PY\n      - name: Store ONLY","          PY\n          echo unverified > ruc-fast-shadow/extra.txt\n      - name: Store ONLY"),
  isolatedFastDiagnostic.replace("      - name: Store ONLY","      - name: Inject extra file\n        run: touch ruc-fast-shadow/extra.txt\n      - name: Store ONLY"),
  isolatedFastDiagnostic.replace(/(      - name: Store ONLY immutable inactive short-lived diagnostic artifact\n)        if:[^\n]+/,"$1        if: always()"),
