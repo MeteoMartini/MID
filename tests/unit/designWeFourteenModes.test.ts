@@ -43,24 +43,45 @@ describe('MID Design-WE 14d real A/B/C rendering',()=>{
   expect((html.match(/class="mid-we-fourteen-daytile/g)||[]).length).toBe(14);
   expect(html).toContain('mid-we-fourteen-symbol');
   expect(html).toContain('mid-we-fourteen-weekscroll');
-  expect(html.indexOf('mid-we-fourteen-chart-feature')).toBeLessThan(html.indexOf('mid-we-fourteen-weekscroll'));
+  expect(html).not.toContain('mid-we-fourteen-chart-feature');
+  expect(html).not.toContain('Temperatur und Unsicherheit');
   expect(html).not.toContain('NaN');
   expect(html).toContain('P10–P90');
   expect(html).not.toContain('daily-accumulation-bar');
+ });
+ it('A keeps the readable Best Match temperature curve when no original ensemble is available',()=>{
+  preference.mode='compact';
+  const withoutEnsemble=days.map(row=>({...row,ensembleAvailable:false}));
+  const html=renderToStaticMarkup(createElement(FourteenDayDevelopment,{series:withoutEnsemble,unit:'kmh'}));
+  expect(html).toContain('data-mid-fourteen-view="compact"');
+  expect(html).toContain('data-mid-fourteen-fallback="best-match"');
+  expect(html).toContain('Temperatur · Best Match');
+  expect(html).toContain('ohne verfügbare Ensemble-Spannen');
+  expect(html).not.toContain('NaN');
+  expect((html.match(/class="mid-we-fourteen-daytile/g)||[]).length).toBe(14);
  });
  it('B displays independent temperature, daily amount, probability, wind/gust diagrams',()=>{
   const html=render('charts');
   expect(html).toContain('data-mid-fourteen-view="charts"');
   expect(html).not.toContain('mid-we-fourteen-weekrow');
   expect(html).not.toContain('fourteen-phase-summary');
-  for(const token of ['Temperatur · Tmax und Tmin','Niederschlagsmenge · Tagesakkumulation','Niederschlagswahrscheinlichkeit · Best Match','Wind und Böen · km/h']){
+  for(const token of ['Niederschlagsmenge · Tagesakkumulation','Niederschlagswahrscheinlichkeit · Best Match','Wind und Böen · km/h']){
    expect(html).toContain(token);
   }
-  expect((html.match(/<h3>/g)||[]).length).toBe(4);
+  expect((html.match(/<h3>/g)||[]).length).toBe(3);
+  expect(html).not.toContain('Temperatur · Tmax und Tmin');
   expect(html).toContain('daily-accumulation-bar');
   expect(html).toContain('data-signal-series="gust"');
   expect(html).toContain('P10–P90');
   expect(html).not.toContain('NaN mm');
+ });
+ it('B keeps a deterministic temperature chart only while original ensemble coverage is unavailable',()=>{
+  preference.mode='charts';
+  const withoutEnsemble=days.map(row=>({...row,ensembleAvailable:false}));
+  const html=renderToStaticMarkup(createElement(FourteenDayDevelopment,{series:withoutEnsemble,unit:'kmh'}));
+  expect(html).toContain('Temperatur · Tmax und Tmin (Best Match, Ensemble noch ausstehend)');
+  expect(html).toContain('14 Tage Best-Match-Temperatur ohne verfügbare Ensemble-Spannen');
+  expect(html).not.toContain('NaN');
  });
  it('C compares exactly fourteen dates with real independent detail toggles',()=>{
   const html=render('days');

@@ -37,7 +37,7 @@ export default function MapWorkspacePanel(props:MapWorkspacePanelProps){
  },[]);
 
  return <section className={`map-workspace-shell${props.focusMode?' focus':''}`} aria-label="Kartenarbeitsbereich">
-  {props.gpuPaused?<p className="map-workspace-paused">Kartenrenderer pausiert · zur Ansicht „Karten“ wechseln, um die interaktive Karte wieder anzuzeigen.</p>:<>
+  {props.gpuPaused?<p className="map-workspace-paused lazy-placeholder map-workspace-loading" role="status">Kartenrenderer pausiert · zur Ansicht „Karten“ wechseln, um die interaktive Karte wieder anzuzeigen.</p>:<>
    <Suspense fallback={<LoadingMapPanel/>}><MemoLazyUnifiedWeatherMap {...props} requestedProductId={requestedProductId}/></Suspense>
    <GeoSphereIncaNowcast lat={props.lat} lon={props.lon} timezone={props.timezone}/>
   </>}

@@ -6,8 +6,8 @@ import {resolve} from 'node:path';
 const root=resolve(import.meta.dirname,'../..');
 const canonical=resolve(root,'ci/github/workflows');
 const active=resolve(root,'.github/workflows');
-const authorized={'deploy.yml':3,'install-mid.yml':3,'mid-ruc-preprocess.yml':1};
-const actionInventory={'deploy.yml':3,'install-mid.yml':3,'mid-ruc-preprocess.yml':2};
+const authorized={'deploy.yml':3,'install-mid.yml':3,'mid-ruc-preprocess.yml':2};
+const actionInventory={'deploy.yml':3,'install-mid.yml':3,'mid-ruc-preprocess.yml':4};
 function jobsOf(text){
  const starts=[...text.matchAll(/^  ([A-Za-z_][A-Za-z0-9_-]*):\s*$/gm)];
  const jobs=[];
@@ -19,6 +19,15 @@ function jobsOf(text){
  }
  return jobs;
 }
+test('RUC Fast overlay changes trigger the existing mirrored P2–P5 QA workflow',()=>{
+ for(const file of ['tools/ruc/ruc_fast_pages_overlay.py','tools/ruc/test_ruc_fast_pages_overlay.py']){
+  const entry="      - '"+file+"'";
+  for(const folder of [canonical,active]){
+   const yaml=readFileSync(resolve(folder,'mid-ruc-fast-p2345-shadow-qa.yml'),'utf8');
+   assert.ok(yaml.includes(entry),'overlay-only change must trigger P2–P5 QA: '+folder+'/'+file);
+  }
+ }
+});
 test('all GitHub Pages publishers are enumerated, SHA mirrored and share global mid-pages lease',()=>{
  const observed={};
  for(const name of readdirSync(canonical).filter(x=>x.endsWith('.yml'))){
@@ -30,6 +39,10 @@ test('all GitHub Pages publishers are enumerated, SHA mirrored and share global 
   if(!jobs.length)continue;
   assert.ok(Object.hasOwn(authorized,name),'unknown Pages writer: '+name);
   assert.equal(jobs.length,authorized[name],'unreviewed Pages publisher job count: '+name);
+  if(name==='mid-ruc-preprocess.yml'){
+   assert.deepEqual(jobs.map(job=>job.id).sort(),['publish','publish_fast'],
+     'expected exactly the full and independent Fast Pages publishers');
+  }
   assert.equal((workflow.match(/uses: actions\/deploy-pages@/g)||[]).length,actionInventory[name],
     'unreviewed Normal- or Rollback Pages publish action: '+name);
   for(const job of jobs){
@@ -47,7 +60,25 @@ test('all GitHub Pages publishers are enumerated, SHA mirrored and share global 
     assert.match(job.body,/steps\.ruc_guard\.outputs\.current == 'true'/,'release can bypass RUC source freshness');
    }
    if(name==='mid-ruc-preprocess.yml'){
-    assert.match(job.body,/needs\.prepare/,'publisher must depend on sealed RUC producer snapshot');
+    if(job.id==='publish_fast'){
+     assert.match(job.body,/needs\.prepare_fast\.result == 'success'/);
+     assert.match(job.body,/MID_RUC_FAST_PAGES_ENABLED == 'true'/);
+     assert.match(job.body,/verify_fast_pages_publish\.py/);
+     assert.match(job.body,/steps\.fast_publish_guard\.outcome == 'success'/);
+     assert.match(job.body,/id:\s*fast_oidc_readback/,'public GitHub issuer proof missing');
+     assert.match(job.body,/ruc_fast_oidc_readback\.mjs/,'public receipt readback must check SHA and issuer signature');
+     assert.match(job.body,/id:\s*fast_rollback_readback/,'rollback readback is unobserved');
+     assert.match(job.body,/if:\s*steps\.fast_readback\.outcome == 'success'/,'signed readback must follow native readback');
+     assert.match(job.body,/steps\.fast_deployment\.outcome == 'success' && \(steps\.fast_readback\.outcome == 'failure' \|\| steps\.fast_oidc_readback\.outcome == 'failure'\)/,
+       'Pages rollback must cover failed GitHub issuer proof verification');
+     assert.ok(job.body.indexOf('id: fast_readback')<job.body.indexOf('id: fast_oidc_readback')&&
+       job.body.indexOf('id: fast_oidc_readback')<job.body.indexOf('id: fast_rollback'),
+       'GitHub OIDC trust may only be checked after public DWD Pages readback');
+     assert.doesNotMatch(job.body,/MID_RUC_R2_BUCKET|r2 object (put|delete)|fast_trust/,
+       'Fast Pages publisher must not require a billable R2 subscription');
+    }else{
+     assert.match(job.body,/needs\.prepare/,'publisher must depend on sealed RUC producer snapshot');
+    }
    }
   }
   observed[name]=jobs.length;

@@ -70,7 +70,3 @@
  .current-surroundings-cloud-timeline{column-gap:5px}
  .current-surroundings-cloud-timeline>button{padding-inline:5px;font-size:.75rem}
 }
-/* Release the compact WebGL renderer while the full map owns the map workspace. */
-.current-surroundings-map-paused{position:absolute;inset:0;display:grid;place-items:center;margin:0;padding:1.25rem;max-width:100%;text-align:center;font-size:clamp(.8rem,2.4vw,.95rem);line-height:1.5;color:var(--muted,#65778b);background:var(--panel,Canvas);overflow-wrap:anywhere}
-/* An unacknowledged map-opening action must not strand a disabled button. */
-.current-surroundings-map-open-error{margin:.35rem 0 .65rem!important;padding:.45rem .65rem;border-inline-start:3px solid var(--accent,#007aa8);border-radius:.4rem;background:var(--surroundings-surface);color:var(--text,CanvasText);font-size:clamp(.78rem,2.5vw,.9rem);line-height:1.45;overflow-wrap:anywhere}

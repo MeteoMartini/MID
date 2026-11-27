@@ -29,7 +29,8 @@ if(needsApt){
  if(process.platform!=='linux')throw Error('MID_BROWSER_HOST_DEPENDENCIES_MISSING');
  // Missing libraries are not suppressed. Keep signed Ubuntu packages and
  // strict bounded, root-owned apt process. A DNS failure still fails closed.
- await runBounded('sudo',['-n','sed','-i','s#http://azure.archive.ubuntu.com/ubuntu#https://archive.ubuntu.com/ubuntu#g','/etc/apt/apt-mirrors.txt'],{timeoutMs:15000});
+ const ubuntuMirrorRule=String.raw`s#https?://(azure|[a-z0-9-]+\.ec2)\.archive\.ubuntu\.com/ubuntu([/[:space:]]|$)#https://archive.ubuntu.com/ubuntu\2#g`;
+ await runBounded('sudo',['-n','sed','-E','-i',ubuntuMirrorRule,'/etc/apt/apt-mirrors.txt'],{timeoutMs:15000});
  await runBounded('sudo',['-n','timeout','--signal=TERM','--kill-after=10s','300s',process.execPath,cli,'install-deps','chromium','webkit'],{timeoutMs:320000,graceMs:15000});
  await verifyMidBrowserEngines(playwright);
  console.log('[browser-setup] signed system dependencies installed; both engines launched');

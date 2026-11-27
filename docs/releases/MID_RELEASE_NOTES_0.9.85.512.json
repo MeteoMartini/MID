@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "version": "0.9.85.512",
+  "title": "SHA-geprüfter GitHub-Release-Katalog nach Stable-Promotion",
+  "date": "2026-11-23",
+  "external": [
+    "Nach erfolgreich bestätigter Stable-Promotion werden neue MID-Versionen mit nachprüfbarem GitHub-Tag, Installer-Beleg und aktuellen Release-Notes im öffentlichen Versionskatalog geführt.",
+    "Keine Rückdatierung oder fingierten ZIP-Assets; Wetterdaten, amtliche Warnungen und bestehende DWD-/EPS-Freigaben bleiben unverändert."
+  ],
+  "internal": [
+    "Selektiver QA-Intake #956 auf SHA-gebundener .511 Stable-Basis; ausschließlich gespiegelter Installer-Nachfolgejob, Katalogprüfcode, Negativtests und Dokumentation.",
+    "Original-Installer-Gates, Versions-/Changelog-Historie, eine erfolgreiche Pages-Deployment-Instanz, ZIP-only-Commit, Worker und Stable-Fast-Forward vollständig verpflichtend.",
+    "GitHub-App-Token ausschließlich im Katalogjob mit Actions:read und Contents:write; keine neuen Secrets, Apps, Provider oder Infrastruktur.",
+    "Idempotenter GitHub-Release-Katalog mit Git-Tag auf exakt aktuelle Stable-SHA; kein historisches Backfill und keine unbeglaubigten Assets."
+  ]
+}

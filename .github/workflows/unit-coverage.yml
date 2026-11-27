@@ -386,44 +386,11 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: node tools/ci/mid-draft-regression-preflight.mjs --base "$BASE_SHA" --head "$HEAD_SHA" --run
 
-  # Draft-only real browser evidence for this specialist branch; never import the job into LC.
-  draft-map-owner-bidirectional-chromium:
-    name: MID Draft · bidirektionaler GPU-Kartenwechsel (echtes Chromium)
-    if: >-
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.draft == true &&
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      github.head_ref == 'chatgpt/v0.9.85.487-karten114-compact-map-gpu-owner-qa'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    permissions:
-      contents: read
-    steps:
-      - name: SHA-genauen Draft ohne gespeicherte Zugangsdaten laden
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: SHA-gebundene Ensemble-Browserbilder und Recharts-Geometriemessungen aufbewahren
+        if: always() && steps.regression-plan.outputs.needs_npm == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          persist-credentials: false
-      - name: Node 22.16 für reale Chromium-Komponenten
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 22.16.0
-          cache: npm
-          cache-dependency-path: package-lock.json
-      - name: Lockfilegenaue Abhängigkeiten installieren
-        timeout-minutes: 7
-        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
-      - name: Versioniertes Chromium ohne neue Dienste installieren
-        timeout-minutes: 5
-        run: npm exec --yes --package=playwright@1.56.1 -- playwright install chromium
-      - name: Dauerhaft zwei React-Panels montieren und echte 0/1-WebGL-Maps prüfen
-        timeout-minutes: 8
-        shell: bash
-        env:
-          MID_EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
-          GH_TOKEN: ''
-          GITHUB_TOKEN: ''
-        run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$MID_EXPECTED_SOURCE_SHA"
-          node scripts/verify-map-gpu-owner-bidirectional-browser-0985487.mjs
+          name: mid-draft-ensemble-geometry-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/ensemble-952-browser-qa/
+          if-no-files-found: ignore
+          retention-days: 7

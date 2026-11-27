@@ -27,13 +27,13 @@ describe('MID Karten 1.14 · bidirektionaler GPU-Eigentümer für Umfeld-/Großk
   expect(surroundings).toContain("return()=>window.clearTimeout(timeout)");
   expect(surroundings).toContain("Der Kartenwechsel wurde nicht bestätigt");
   expect(surroundings).toContain("catch{setOpeningMap(false);setMapOpenError");
-  expect(css).toContain('.current-surroundings-map-open-error{');
+  expect(surroundings).toContain('current-surroundings-map-open-error current-surroundings-data-status');expect(css).toContain('.current-surroundings-data-status{');
  });
  it('unmounts the complete compact MapLibre subtree, rather than hiding the GPU canvas with CSS',()=>{
-  expect(surroundings).toContain('{mapPaused?<p className="current-surroundings-map-paused"');
+  expect(surroundings).toContain('{mapPaused?<p className="current-surroundings-map-paused current-surroundings-data-status"');
   expect(surroundings).toContain(':<MidMapLibre');
   expect(surroundings).toContain('</MidMapLibre>}');
-  expect(css).toContain('.current-surroundings-map-paused{');
+  expect(css).toContain('.current-surroundings-data-status{');
   expect(css).not.toMatch(/\.current-surroundings-maplibre\s*\{[^}]*display\s*:\s*none/);
   expect(mapLibre).toContain('map.remove()');
   expect(mapLibre).toContain("map.on('style.load',handleRestoredStyle)");
@@ -43,10 +43,10 @@ describe('MID Karten 1.14 · bidirektionaler GPU-Eigentümer für Umfeld-/Großk
  });
  it('unmounts the expensive FULL map subtree when the compact preview or another section is active',()=>{
   expect(workspace).toContain('gpuPaused?:boolean');
-  expect(workspace).toContain('props.gpuPaused?<p className="map-workspace-paused"');
+  expect(workspace).toContain('props.gpuPaused?<p className="map-workspace-paused lazy-placeholder map-workspace-loading" role="status"');
   expect(workspace).toContain('<MemoLazyUnifiedWeatherMap {...props} requestedProductId={requestedProductId}/>');
   expect(workspace).toContain('<GeoSphereIncaNowcast lat={props.lat} lon={props.lon} timezone={props.timezone}/>');
-  expect(workspaceCss).toContain('.map-workspace-paused{');
+  expect(workspaceCss).toContain('.map-workspace-shell .lazy-placeholder.map-workspace-loading{');
  });
  it('admits real Chromium fixture with simultaneously mounted compact/full components',()=>{
   for(const [source,loader] of [[fixture,'tsx'],[runner,'js']] as const)
@@ -77,7 +77,7 @@ describe('MID Karten 1.14 · bidirektionaler GPU-Eigentümer für Umfeld-/Großk
   expect(surroundings).toContain("const temperatureGrid=mapPaused||mode==='radar'");
   expect(surroundings).toContain('Kartendaten im Hintergrund pausiert · keine Aussage zur Datenverfügbarkeit');
   expect(surroundings).toContain("},[lat,lon,mode,mapPaused])");
-  expect(surroundings).toContain("},[mapPaused])");
+  expect(surroundings).toContain('if(mapPaused)return;return observeSurroundingsVisibleClock(document,setNow)');expect(surroundings).toContain('},[mapPaused]);');
   expect(surroundings).toContain('Quellen und Datenstand');
   expect(surroundings).toContain('MID-Kartenbasis und Temperaturen');
  });

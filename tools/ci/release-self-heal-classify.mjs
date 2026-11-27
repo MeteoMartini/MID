@@ -10,11 +10,15 @@ const TRANSIENT = /ECONNRESET|ETIMEDOUT|EAI_AGAIN|ENETUNREACH|ECONNREFUSED|socke
 const blocked = reason => Object.freeze({retry:false,reason});
 export function classifyReleaseFailure({failedLog,jobs,attempt}={}){
   if(!Number.isInteger(attempt)||attempt<1||attempt>=3)return blocked('invalid-or-exhausted-attempt');
-  if(typeof failedLog!=='string'||!failedLog.trim()||failedLog.length>8_000_000)
-    return blocked('failed-log-missing-or-oversize');
+  // Cancelled jobs have no --log-failed output. Check complete inventory first.
+  // Runner shutdown alone cannot prove whether cancellation was operator-issued.
   if(!jobs||typeof jobs!=='object'||!Number.isSafeInteger(jobs.total_count)||
      jobs.total_count<1||jobs.total_count>100||!Array.isArray(jobs.jobs)||
      jobs.jobs.length!==jobs.total_count)return blocked('incomplete-job-inventory');
+  const cancelled=jobs.jobs.filter(x=>x?.conclusion==='cancelled');
+  if(cancelled.length)return blocked('cancelled-jobs-require-operator-provenance');
+  if(typeof failedLog!=='string'||!failedLog.trim()||failedLog.length>8_000_000)
+    return blocked('failed-log-missing-or-oversize');
   const failures=jobs.jobs.filter(x=>x?.conclusion==='failure');
   if(failures.length===0)return blocked('no-failed-jobs');
   if(failures.length!==1)return blocked('multiple-failed-jobs');

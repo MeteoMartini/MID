@@ -16,6 +16,7 @@ import {compositeReferenceLayers} from './mapReferenceLayers';
 import {chooseSurroundingsCities,citiesFromMapFeatures,type SurroundingsCityCandidate} from './surroundingsCitySelection';
 import {loadSurroundingsTemperatures} from './currentSurroundingsTemperature';
 import {currentSurroundingsTemperature,type SurroundingsTemperatureRequest} from './surroundingsTemperatureDisplay';
+import {observeSurroundingsVisibleClock} from './surroundingsVisibleClock';
 import './CurrentSurroundings.css';
 
 export type SurroundingsBounds={west:number;south:number;east:number;north:number};
@@ -89,15 +90,10 @@ export default function CurrentSurroundings(props:Props){
  const [mapViewport,setMapViewport]=useState<{width:number;height:number}|null>(null);
  const [openingMap,setOpeningMap]=useState(false);
  const [mapOpenError,setMapOpenError]=useState('');
- // In section-rail the compact panel remains mounted. Never leave an
- // unacknowledged "open map" attempt blocking this button indefinitely.
  useEffect(()=>{
   if(!openingMap)return;
   if(mapPaused){setOpeningMap(false);return}
-  const timeout=window.setTimeout(()=>{
-   setOpeningMap(false);
-   setMapOpenError('Der Kartenwechsel wurde nicht bestätigt. Bitte erneut versuchen.');
-  },8000);
+  const timeout=window.setTimeout(()=>{setOpeningMap(false);setMapOpenError('Der Kartenwechsel wurde nicht bestätigt. Bitte erneut versuchen.')},8000);
   return()=>window.clearTimeout(timeout);
  },[openingMap,mapPaused]);
  const mapFigureRef=useRef<HTMLElement|null>(null);
@@ -136,12 +132,9 @@ export default function CurrentSurroundings(props:Props){
    document.removeEventListener('visibilitychange',refresh);
   };
  },[lat,lon,mode,mapPaused]);
- useEffect(()=>{
-  if(mapPaused)return;
-  setNow(Date.now());
-  const timer=window.setInterval(()=>setNow(Date.now()),30000);
-  return ()=>window.clearInterval(timer);
- },[mapPaused]);
+ // Clock drives target-time labels only while the document is visible.
+ // Foreground resume reads actual wall time immediately; no synthetic source frame.
+ useEffect(()=>{if(mapPaused)return;return observeSurroundingsVisibleClock(document,setNow)},[mapPaused]);
  // Same admission bounds as the DWD RV point service. An empty WMS image
  // inside these bounds still needs the independent OPERA check.
  const dwdArea=lat>=47&&lat<=55.3&&lon>=5.4&&lon<=15.7;
@@ -177,8 +170,12 @@ export default function CurrentSurroundings(props:Props){
  const satellite=catalog?.satelliteRgbProduct??catalog?.satelliteIrProduct;
  const satelliteTime=radarStep>0?undefined:nearestVerifiedOriginal(satellite?.times,radarTarget,now);
  const clouds=mode==='radar'&&satellite&&satelliteTime!==undefined?imageUrl(satellite.provider,satellite.layer,satelliteTime,bounds):'';
- const clock=(time:number)=>new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:timezone}).format(time);
- const datedClock=(time:number)=>new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:timezone}).format(time);
+ // Reuse the same IANA-zone formatters while the surroundings map rerenders.
+ // Original timestamps and DST behavior remain unchanged; formatting is presentation only.
+ const clockFormat=useMemo(()=>new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:timezone}),[timezone]);
+ const datedClockFormat=useMemo(()=>new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:timezone}),[timezone]);
+ const clock=(time:number)=>clockFormat.format(time);
+ const datedClock=(time:number)=>datedClockFormat.format(time);
  useEffect(()=>{
   if(mapPaused||mode!=='radar'||!radar||target===undefined)return;
   const img=new Image();
@@ -297,7 +294,7 @@ export default function CurrentSurroundings(props:Props){
    try{onOpen(mode==='cloud'?cloudTarget:mode==='radar'?displayTime:undefined,{west,south,east,north})}
    catch{setOpeningMap(false);setMapOpenError('Der Kartenbereich konnte nicht geöffnet werden. Bitte erneut versuchen.')}
   }}>{openingMap?'Karte wird geöffnet …':'Karte öffnen'}</button></header>
-  {mapOpenError&&<p role="alert" className="current-surroundings-map-open-error">{mapOpenError}</p>}
+  {mapOpenError&&<p role="alert" className="current-surroundings-map-open-error current-surroundings-data-status">{mapOpenError}</p>}
   <div className="current-surroundings-display-modes" role="group" aria-label="Kartendarstellung wählen">
    <button type="button" aria-pressed={mode==='cloud'} onClick={()=>setMode('cloud')}>Wolken + Wetter</button>
    <button type="button" aria-pressed={mode==='radar'} onClick={()=>setMode('radar')}>Radar / Satellit</button>
@@ -327,7 +324,7 @@ export default function CurrentSurroundings(props:Props){
    </div>
   </>}
   <figure ref={mapFigureRef} className="current-surroundings-map" aria-label={mapPaused?`Umfeldkarte um ${name} pausiert; Vorschau im Bereich Aktuell`:`Wetterbild um ${name}: MID-Kartenbasis und Temperaturen an benannten Orten`}>
-   {mapPaused?<p className="current-surroundings-map-paused" role="status">Umfeldkarte pausiert · zur Ansicht „Aktuell“ wechseln, um die Vorschau wieder anzuzeigen.</p>:<MidMapLibre center={[lat,lon]} zoom={7} scrollZoom={false} interactive={false} navigationControl={false} className="current-surroundings-maplibre">
+   {mapPaused?<p className="current-surroundings-map-paused current-surroundings-data-status" role="status">Umfeldkarte pausiert · zur Ansicht „Aktuell“ wechseln, um die Vorschau wieder anzuzeigen.</p>:<MidMapLibre center={[lat,lon]} zoom={7} scrollZoom={false} interactive={false} navigationControl={false} className="current-surroundings-maplibre">
     <MapFitBounds south={south} west={west} north={north} east={east} padding={8} maxZoom={7}/>
     <UnifiedVectorBasemap dark={darkMap}/>
     {mode==='cloud'&&cloudForecast.image&&<ImageQuadLayer id="surroundings-model-cloud-weather" url={cloudForecast.image.url}

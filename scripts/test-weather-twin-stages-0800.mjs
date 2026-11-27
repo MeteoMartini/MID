@@ -22,8 +22,11 @@ requireTokens('Stufe 4 · Entscheidungszwilling',engine,[
  'buildTwinRecommendations(','recordTwinRecommendationFeedback(','TwinActivity','bestActivityWindow(','Arbeitsweg','Berg-/Wintersport'
 ]);
 requireTokens('Wetterzwilling-Oberfläche',panel,[
- 'Unabhängige Wetterwahrheit','Räumliche Umfeldanalyse','Lokales Standortprofil','Parametergetrennte Modellgüte','Kalibrierung der Regenwahrscheinlichkeit','Persönlicher Entscheidungszwilling','MID-Gewichtung gegen Best Match'
+ 'Unabhängige Referenzmessungen','Reanalyse und Modellrückblick sind keine unabhängigen Messungen.','Quellvertrauen (heuristisch)','Räumliche Umfeldanalyse','Lokales Standortprofil','Parametergetrennte Modellgüte','Kalibrierung der Regenwahrscheinlichkeit','Persönlicher Entscheidungszwilling','MID-Gewichtung gegen Best Match'
 ]);
+
+// Audit 1.5: readiness and source heuristics are not measured skill; preserve all four stages.
+for(const token of ['Unabhängige Wetterwahrheit','Systemgüte {Math.round(report.health.score)}'])if(panel.includes(token))failures.push(`Irreführende Güteaussage: ${token}`);
 
 // Eigene Sensoren sind seit der reaktivierten Stations-/Lüftungsintegration wieder zulässig.
 // Dieser Stufentest darf deshalb weder eine frühere UI-Deaktivierung noch einen bestimmten

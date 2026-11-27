@@ -1,3 +1,213 @@
+# MID v0.9.85.527
+
+- Die technischen Qualitätsprüfungen für kommende MID-Updates wurden erweitert.
+
+# MID v0.9.85.526
+
+- Karten und Umfeldkarte: Nach einer unterbrochenen Bildüberblendung können weitere Kartenbilder wieder geladen werden.
+- Umfeldkarte: Die Zeitanzeige pausiert im Hintergrund und aktualisiert sich beim Wiederöffnen unmittelbar.
+
+# MID v0.9.85.525
+
+- Wetterzwilling: Statt einer vermeintlichen Systemgüte in Prozent werden unabhängige Vergleichstage angezeigt.
+- Die Quellenübersicht zeigt bis zu sechs unterschiedliche Referenzquellen; das Quellvertrauen ist ein heuristischer Hinweis.
+- Bei offenen Defiziten wird auch ein intern bereiter Wetterzwilling weiterhin als lernend angezeigt.
+
+# MID v0.9.85.524
+
+- Karten: Niederschlag, Windgeschwindigkeit und Böen zeigen nur das Maximum; Temperatur, Luftdruck, Theta-E und Bewölkung behalten Minimum und Maximum. Einheitliche Felder erhalten eine neutrale Kennzeichnung. Native Einzelfeld-Exporte verwenden dieselbe Auswahlregel.
+
+# MID v0.9.85.523
+
+- Wartung: Verbesserte interne Priorisierung und Nachvollziehbarkeit der MID-Weiterentwicklung; Wetterdaten und Darstellung bleiben unverändert.
+
+# MID v0.9.85.522
+
+- Technisches Wartungsupdate: zusätzliche interne Sicherheits- und Datenqualitätsprüfungen. Keine neue aktive Datenquelle oder Schreibfreigabe.
+
+# MID v0.9.85.521
+
+- Technisches Wartungsupdate für den Veröffentlichungsprozess.
+
+# MID v0.9.85.520
+
+- Technisches Wartungsupdate: Die GitHub-Release-Katalogabfragen unterscheiden bestätigte fehlende Einträge, temporäre Serverfehler und andere HTTP-Fehler zuverlässiger.
+- Interne Diagnosewerkzeuge für Logicc-Ergebnisse und DWD-RUC-Verzeichnisdaten wurden ergänzt. Keine neue aktive Datenversorgung oder Logicc-Schreibfreigabe.
+
+# MID v0.9.85.519
+
+- Technisches Wartungsupdate zur Prüfung des Release-Katalogs und der veröffentlichten Pages-Ausgangsbasis. Die tatsächliche Aktualität der Wetterdaten wird separat geprüft.
+
+# MID v0.9.85.518
+
+- Technisches Wartungs- und Sicherheitsupdate ohne sichtbare Funktionsänderungen der Wetter-App.
+
+# MID v0.9.85.517
+
+- Bei vorübergehenden HTTP-Fehlern wiederholt der Installer den Abgleich mit dem bestehenden Pages-Archiv begrenzt. Die Prüfung auf identische Inhalte bleibt verpflichtend.
+
+# MID v0.9.85.516
+
+- Die bereits geprüften Änderungen für Reiseplaner, Karten und Bergwetter aus den unveröffentlichten Ständen .514 und .515 sind im Release-Kandidaten enthalten.
+- Bei aktiviertem Fast-Pages-Modus prüft der Installer ausgewählte Dateien des bisherigen Pages-Stands, bevor er verfügbare Fast-Daten übernimmt.
+
+# MID v0.9.85.515
+
+- **Reiseplaner (mitgeführter, bislang unveröffentlichter .514-Quellstand):** GEFS-24h-Originalintervalle und EC46-Wochenanomalien erhalten korrekte UTC-Gültigkeit und vollständige Belegschwellen. Missing Data werden nicht zu 0 und Wochenregen nicht zu Tageswahrscheinlichkeiten umgerechnet.
+- **Karten (mitgeführter .514-Quellstand):** der lesende WMS-Audit prüft Original-Lauf-, Zeit- und Akkumulationsfenster sowie vollständige PNG-Transporte; ein gültiges PNG allein ist keine meteorologische Freigabe.
+- **Berg- und Wintersport:** Sommer-, Winter- und Automatikansicht verwenden denselben gültigen Höhenwetter-Originaldatensatz, statt beim reinen Profilwechsel einen identischen Core-Abruf zu wiederholen. Später eintreffende Bergdiagnostik wird in die jeweils aktive Saisonansicht projiziert; vorhandene Schnee-, UTC-, NoData-, Höhen- und Quellenverträge bleiben erhalten.
+- **Qualität:** unveränderte 60-Sekunden-Akzeptanz für die tatsächliche Bergwetter-Ansicht, zusätzliche Profil-/ARIA- und unnötige-Core-Request-Prüfung sowie begrenzte Browserdiagnose. Keine abgeschwächten Release- oder meteorologischen Gates.
+- **Governance (mitgeführter .514-Quellstand):** dynamische Auswahl bestehender Plugins ohne neue autonome Agenten, Abonnements oder Release-Berechtigungen.
+- **Status:** Source-Recovery-Kandidat aus dem Original-.514-Source-Merge mit nachweisbar fehlgeschlagenem Installer; Veröffentlichung erst nach regulärem Source-PR-Gate, Review, kontrolliertem Bot-ZIP, Installer, Worker/Pages und Stable-Promotion.
+
+# MID v0.9.85.514
+
+- Reiseplaner: GEFS-Niederschlagsstunden werden dem korrekten UTC-Tag zugeordnet und nur bei vollständigen 24-Stunden-Belegen aggregiert. Fehlende Mess- oder Modellwerte gelten nie als 0 mm; extreme Originalwerte werden nicht ungeprüft verworfen.
+- Reiseplaner: EC46-Wochenanomalien werden nur auf fachlich vollständige Kalenderwochen und belegbare Tagesparameter angewandt. Unzulässige Tages-Niederschlagswahrscheinlichkeiten werden nicht aus Wochenwerten abgeleitet.
+- Kartenaudit: Der lesende WMS-Prüfpfad prüft Modelllauf, Gültigkeitszeit, Akkumulationsfenster und die Integrität vollständiger PNG-Transporte; ein gültiges PNG gilt nicht automatisch als meteorologischer Datenbeleg.
+- Amtliche DWD-/WMO-Warnungen, bestehende RUC-/EPS-Schranken sowie alle Source-/Release-/Worker-/Pages-/Stable-Gates bleiben unverändert.
+
+# MID v0.9.85.513
+
+- 14-Tage-Prognose: Die bestehende Ensemble-Hauptgrafik ist in der 14-Tage-Ansicht unmittelbar sichtbar. Die redundante obere Temperaturgrafik und der doppelte Analyse-Aufklapper entfallen; originale Tageswerte, Modellinfos, Unsicherheitsbereiche und Detailmodi bleiben verfügbar.
+- GitHub-Release-Katalog: Der nach erfolgreicher Stable-Promotion vorgesehene Katalogjob wird nicht länger durch regulär übersprungene, optionale Installer-Vorgänger unterdrückt. Release-Core und Stable-Finalizer müssen weiterhin ausdrücklich erfolgreich sein; abgebrochene Workflows bleiben gesperrt.
+- Keine Änderung der amtlichen Warnungen, RUC-/EPS-Frischeprüfung, Datenherkunft, WMO-/DWD-Zeitsemantik oder produktiven Worker-/Pages-Freigabegates.
+
+# MID v0.9.85.512
+
+- GitHub-Release-Katalog: Nach einem vollständig geprüften Installer-/Worker-/Pages-Release und der erfolgreichen Stable-Promotion wird die aktuelle MID-Version zusätzlich als SHA-gebundener GitHub-Release-Eintrag mit Tag und Änderungsnotizen aufgeführt.
+- Bestehender Release-Bot mit minimalem Schreibumfang und Original-Installer-Gates; keine automatische Nachdatierung älterer Versionen, keine erfundenen ZIP- oder Recovery-Assets.
+- DWD-/WMO-Verträge, amtliche Warnungen, RUC-/EPS-Frische-/NoData-Prüfungen sowie alle bestehenden Source-/Core-/Heavy-/Installer-/Worker-/Pages-/Stable-Gates bleiben unverändert.
+
+# MID v0.9.85.511
+
+- Release-Selbstheilung: Abgebrochene GitHub-Installerjobs werden mit Original-Run-Link ausdrücklich als nicht automatisch retry-fähig diagnostiziert. Unbekannte Abbruchursachen und manuell abgebrochene Workflows werden weiterhin nicht blind wiederholt.
+- Karten-QA: Nach simuliertem ECCC-GDPS-502 erkennt die Browserprüfung eine bereits erfolgte automatische Wiederherstellung nur bei belegtem neuen Original-GetMap und gültigem INIT; ein ausgebliebener Recovery-Nachweis bleibt Releaseblocker.
+- DWD-/WMO-Datenverträge, amtliche Warnungen, NoData, Modelllaufzeiten und sämtliche Source-/Core-/Heavy-/ZIP-/Installer-/Worker-/Pages-/Stable-Gates bleiben unverändert geschützt.
+
+# MID v0.9.85.510
+
+- ICON-D2-RUC-Fast-Lane: Zusätzlich zu den bestehenden :13/:43-UTC-Terminen prüft ein geschützter Nachholpfad um :28/:58 UTC, ob die Fast-Veröffentlichung zuletzt bereits erfolgreich war oder noch läuft. Nur bei tatsächlichem Nachholbedarf setzt er die bisherigen DWD-Originaldaten-, Qualitäts- und Pages-Gates fort. Der reguläre DWD-RUC/EPS-Vollpfad bleibt unverändert; fehlende EPS-/Originaldaten werden nicht durch Ersatzwerte ersetzt.
+
+# MID v0.9.85.509
+
+- UV-Index in Stunden- und Tagesprognosen: Echte Stundenmittel bleiben an Dämmerungsgrenzen erhalten; fehlende Werte werden nicht als 0 ausgegeben. Fehlt UVI in der Stundenprognose, bleibt für die gefühlte Temperatur der vorhandene Anbieter-Fallback verfügbar.
+- Karten: Canvas-Überblendungen mit großem Backing-Store werden übersprungen, um zusätzlichen Speicherbedarf zu vermeiden; bei der Rückkehr aus dem Hintergrund wird die aktuelle Ebene nur einmal gezeichnet. Bei einem Fehler während einer Canvas-Überblendung wird das vorherige Canvas-Bild wiederhergestellt. Original-Wetterdaten und Warnungen bleiben unverändert.
+
+# MID v0.9.85.508
+
+- Der Wetter-Worker prüft die GitHub-Signaturschlüssel für die DWD-Fast-Lane über den festen Herausgeber-Endpunkt.
+
+# MID v0.9.85.507
+
+- Der signierte DWD-Fast-Lane-Beleg wird über den etablierten Pages-Einstieg für RUC abgerufen.
+
+# MID v0.9.85.506
+
+- Die Fast-Lane-Diagnose zeigt, an welcher Stelle der produktive Worker den signierten Datenbeleg verwirft. Der Produktionsnachweis steht aus.
+
+# MID v0.9.85.505
+
+- Der Wetter-Worker erhält mehr Zeit für den Abruf signierter Fast-Lane-Daten. Der Produktionsnachweis steht aus.
+
+# MID v0.9.85.504
+
+- Das Niederschlagsphasenraster nutzt natives ICON-D2-RUC über Open-Meteo, wenn an einer Zelle geprüfte DWD-Originaldaten fehlen. Die Zellquelle bleibt sichtbar. Produktivabnahme nach Stable-Promotion.
+
+# MID v0.9.85.503
+
+- Behebt einen Abbruch beim Erhalt vorhandener RUC-Daten während der GitHub-Pages-Veröffentlichung. Die Prüfung erkennt den laufenden Job anhand seiner GitHub-Identität.
+
+# MID v0.9.85.502
+
+- Die RUC-Fast-Lane kann die aktuelle Pages-Auslieferung auch bei einer vollen GitHub-Deploymentliste prüfen und für neue DWD-Daten verwenden.
+
+# MID v0.9.85.501
+
+- Die unabhängige DWD-ICON-D2-RUC-Fast-Lane wird für einen SHA-authentifizierten, R2-freien GitHub-Pages-Vertrauenspfad vorbereitet. Neue zusätzliche Cloudflare-R2-Kosten oder Abonnements sind dafür nicht vorgesehen.
+- Die geplante Fast-Versorgung prüft originale 0–6-Stunden-DWD-Daten, veröffentlicht einen kryptografisch gebundenen Herkunftsbeleg und verwendet nur nach erfolgreicher Worker-Prüfung gültige Wetterwerte; fehlende EPS-Daten bleiben nicht verfügbar.
+- Das bisherige 27-Stunden-RUC/EPS-Produkt, amtliche Warnungen und die Unterscheidung zwischen fehlenden und tatsächlichen Nullwerten bleiben geschützt. Die produktive Fast-Lane gilt erst nach den vorgeschriebenen Release- und echten End-to-End-Prüfungen als aktiv.
+
+# MID v0.9.85.500
+
+- Die Einstellungen laden die Bedienbereiche Ansicht, Wetter, Navigation und Einheiten erst beim Öffnen des jeweiligen Bereichs. Alle neun Einstellungsregister und gespeicherten Präferenzen bleiben erhalten.
+- Beim Umordnen der Dashboard-Module werden Status und Änderungen für Tastatur, Maus und Touch einheitlicher zugänglich angesagt. Die bestehende Modulreihenfolge bleibt gespeichert.
+- Wetterprognosen, Originalwerte, amtliche Warnungen sowie die getrennten RUC-Voll- und Fast-Lane-Produktionswege bleiben unverändert; fehlende Werte werden nicht zu Null umgedeutet.
+
+# MID v0.9.85.499
+
+- Der Prognose-Cache unterscheidet jetzt exakt passende Ortsdaten von Daten aus nahegelegenen Orten. Ein räumlich abweichender Cache-Eintrag wird nicht länger als ortsgenaue frische Vorhersage dargestellt.
+- Das Ensemble-Temperaturdiagramm trennt Wetter- und Gefahrenstreifen vom eigentlichen Datenplot und schützt Beschriftungen sowie Best-Match-Werte vor Überlagerung auf schmalen Displays.
+- Der WMS-Kartenproxy begrenzt große Rasteranfragen und prüft Bounding-Boxen, Bildabmessungen und doppelte Parameter, bevor externe Kartendienste angesprochen werden.
+- Die Taupunkt-Legende verwendet wieder das gleiche gestrichelte Linienmuster wie die zugehörige Kurve.
+- Die vorhandenen DWD-RUC-Fast-Lane-Funktionen, amtlichen Warnungen und meteorologischen Originalwerte bleiben erhalten. Fehlende Daten werden nicht als gemessene Nullwerte ausgegeben.
+
+# MID v0.9.85.498
+
+- Die DWD-ICON-D2-RUC-Fast-Lane kann qualifizierte, eigenständige Prognosen für die nächsten sechs Stunden bereitstellen, ohne auf einen vollständigen 27h-Ensemble-Lauf zu warten.
+- Originale Temperatur-, Wind-, Wolken- und Niederschlagswerte bleiben mit Laufzeit und Herkunft erkennbar; schnelle Niederschlagsdaten verwenden echte 5-Minuten-Schritte, Konvektionsdaten echte 15-Minuten-Schritte.
+- Fehlende EPS-Ensemblewerte bleiben ausdrücklich nicht verfügbar und werden nicht als null Prozent Regenwahrscheinlichkeit oder Trockenheit ausgegeben.
+- Die Fast-Pages-Veröffentlichung erhält den bisherigen Voll-RUC-Stand und kann bei fehlgeschlagener Prüfung zurückrollen.
+- Bei einem neueren authentifizierten Modelllauf nutzt MID die eigenständige 0–6h-Fast-Lane; ein gleich aktueller oder neuerer Voll-RUC-Lauf behält seinen 27h-Horizont. Unbestätigte Fast-Daten verdrängen nie einen geprüften Voll-Lauf.
+- Der Worker akzeptiert Fast-Daten ausschließlich mit einem extern gesetzten, SHA-geprüften Manifest-Digest: entweder über die ausdrücklich konfigurierte administrative Bindung oder über den nach erfolgreicher Pages-Prüfung gesicherten R2-Publisher-Beleg. Der unveränderte Datenpfad bleibt als Rückfall erhalten.
+
+# MID v0.9.85.497
+
+- Lange Ladehinweise bleiben auch auf schmalen Displays und bei vergrößerter Schrift vollständig lesbar.
+- Ensemble-Detailinformationen umbrechen besser und die Erklärung der Methodik lässt sich leichter per Touch öffnen.
+- Die 7-Tage-Kurve unterscheidet Tageslicht und Nacht deutlicher. Sonnenzeiten und Wetterprognosen bleiben unverändert.
+- Nachtbänder behalten im Widget-SVG-Export eine ausfallsichere Ersatzfarbe.
+
+# MID v0.9.85.496
+
+- Eine rein lesende Eingangsprüfung für neue Pull Requests ist vorbereitet. Ihr aktiver Einsatz gilt erst nach erfolgreicher Stable-Veröffentlichung und geprüftem Echt-PR-Ereignis als nachgewiesen; sie erteilt selbst keine Merge- oder Releasefreigabe.
+- Hyperlokale Stationsanalysen verwenden nur belegte ursprüngliche Messzeiten und unterscheiden fehlende Messwerte zuverlässig von tatsächlich gemessenen Nullwerten.
+- Beim Wiederherstellen von RUC-Datensnapshots werden doppelte oder nichtkanonische Manifest-Schlüssel vor parallelen Schreibvorgängen zurückgewiesen.
+
+# MID v0.9.85.495
+
+- Aufsummierte Ensemble-Niederschlagsmengen verwenden nur vollständig belegte aufeinanderfolgende Tageswerte. Fehlende Werte erscheinen nicht mehr als 0 mm oder vermeintliche Trockenheit.
+- Stationswerte ohne gültige Angaben zu Messalter, Entfernung oder Höhenunterschied werden nicht mehr als frische hyperlokale Messanker gewertet.
+- Negative Rohwerte einer Niederschlagsmessung gelten als nicht verfügbar; tatsächlich gemessene 0 mm bleiben erhalten.
+
+# MID v0.9.85.494
+
+- Lange Orts- und Favoritennamen brechen auf kleinen Bildschirmen um und bleiben vollständig lesbar.
+- Die Quellenangaben lassen sich leichter antippen. Die Bezeichnungen der Prognosereihen sind verständlicher.
+- Schaltflächen für Wetterinfos sind für assistive Technik eindeutig mit ihrem jeweiligen Dialog verbunden.
+
+# MID v0.9.85.492
+
+- Wenn der neueste gemeinsame DWD-RUC- und RUC-EPS-Lauf nachweislich zu alt ist, bricht MID die Aufbereitung frühzeitig ab. Der zuletzt veröffentlichte Datenstand bleibt erhalten.
+
+# MID v0.9.85.491
+
+- Die Prognosespannen der Ensemble-Ansicht werden einmal je Darstellung skaliert. Fehlende oder ungültige Quantile fließen nicht als Nullwerte in die Skala ein.
+- Die Legende nativer Modellkarten passt sich der Breite ihres Kartenbereichs an und ordnet ihre Bedienelemente bei wenig Platz untereinander an.
+- EC46- und GEFS-Wochenwerte und ihr Klimavergleich verwenden vollständige Sieben-Tage-Zeiträume. Fehlende Tage und unvollständige Randwochen werden nicht als vollständige Wochensummen ausgegeben.
+
+# MID v0.9.85.490
+
+- Auf Touch-Geräten wird die neue Reihenfolge beim Loslassen über einem anderen gültigen Modul gespeichert. Ein ungültiges Loslassen oder ein Abbruch verwirft die Vorschau.
+- Der Wetterzwilling zeigt fehlende Temperatur- und Niederschlagsmessungen ausdrücklich als fehlend an. Tatsächlich gemessene 0 mm bleiben als Messwert sichtbar.
+
+# MID v0.9.85.489
+
+- Der Wetterzwilling wertet archivierte Modellvorläufe nur aus, wenn Ausgabezeit, örtlicher Zielmittag und tatsächliche Zeitdifferenz zusammenpassen. Unplausible Horizonte beeinflussen die Prognosegüte nicht.
+- Sicherheitswartung im vorbereiteten Build: Für GHSA-fc5q-39xc-vjpf / CVE-2026-112366 wird die betroffene Build-Abhängigkeit durch das gepinnte Community-Fork-Paket `@ryotsu/picomatch@4.0.7-a` ersetzt. Dies ist kein offizieller Upstream-Fix; Prognosewerte und amtliche Warnungen bleiben unverändert.
+
+# MID v0.9.85.488
+
+- Fehlende, fehlerhafte oder negative beobachtete Niederschlagsmengen zählen bei der Verifikation weder als trockene Tage noch als gültige Brier- oder Kalibrationsbelege.
+- Wetterzwilling-Vergleiche verwenden für Temperatur, Windböen und Sonnenschein nur tatsächlich gültige Messwerte; fehlende Beobachtungen bleiben fehlend.
+- Die mobile Bottom-Navigation vermeidet redundante Style-Änderungen bei unveränderter Bildschirmtastatur-Geometrie und bewahrt fremde Inline-Einstellungen.
+
+# MID v0.9.85.487
+
+- Die Wetterzwilling-Auswertung berücksichtigt für den Volltagesvergleich nur Prognosen, die spätestens zu Beginn des Zielorts-Tages vorlagen.
+- Ungültige archivierte Regenwahrscheinlichkeiten zählen weder als 0 % noch für Brier-Score oder Kalibrierung. Die Anzeige nennt den Brier-Score und die Vergleichstage ohne unbelegte Güteklasse.
+- Die Anzeige der Modellfrische fasst fehlende Zeitnachweise kompakter zusammen. Die ausführliche Modellliste bleibt verfügbar.
+
 # MID v0.9.85.486
 
 - **Karten-Zeitachse mit zuverlässigeren Home-/End-Tasten:** Nach asynchronen Terminwechseln wird eine neue Tastatureingabe nicht mehr durch einen veralteten internen Seek-Cache unterdrückt. Gültige Originalzeiten und Screenreader-Zeitangaben bleiben unverändert.

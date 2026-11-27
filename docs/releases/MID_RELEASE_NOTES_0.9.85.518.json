@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "version": "0.9.85.518",
+  "title": "Isolierte Logicc-Governance und zuverlässiger Dependency-Audit",
+  "date": "2026-11-24",
+  "external": [
+    "Technisches Wartungs- und Sicherheitsupdate ohne sichtbare Funktionsänderungen der Wetter-App."
+  ],
+  "internal": [
+    "Selektive Übernahme #1007 @ b77d801eabf6bcae03178a3385b3a6c1f4a480ad und #998 @ e7491a7b7c240df04d563cbce659630783658901. Produktions-Wetter-Worker unverändert; isolierter Logicc-Qualifikationsworker und seine Originaldiagnostik byteidentisch aus #1007 übernommen.",
+    "Dependency-Audit: ubuntu-24.04 in .github/workflows/dependency-audit.yml und ci/github/workflows/dependency-audit.yml; bestehende Audit- und Regressionspflichten unverändert.",
+    "Ergänzte Pages-Timeout-Assertion und Einbindung der unveränderten Logicc-Diagnostik in vorhandenen verpflichtenden Runner-Regressionstest. Normative Owner-/Plugin-Trennung; keine Gateway-Aktivierung. #1000 bleibt separat."
+  ],
+  "sourceOfTruth": [
+    "Basis: veröffentlichte v0.9.85.517 @ 114d7d700bb627189943b5a840ca88085995bac3; Installer 45421269080 Versuch 2 erfolgreich.",
+    "Die isolierte Owner-Gateway-Operation bleibt bis zur Governance-Stable-Promotion und unabhängigen Live-Abnahme gesperrt. Keine zusätzlichen Rechte, Kosten oder Deploymentfreigaben."
+  ]
+}

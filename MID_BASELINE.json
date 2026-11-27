@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.486",
+  "releaseVersion": "0.9.85.527",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -828,6 +828,7 @@
     "scripts/test-ruc-dual-read-0985258.mjs",
     "scripts/test-ruc-dwd-pipeline-09690.mjs",
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
+    "scripts/test-ruc-fast-pages-worker-point-qa-0985498.mjs",
     "scripts/test-ruc-full-fusion-horizon-0985363.mjs",
     "scripts/test-ruc-full-production-0985267.mjs",
     "scripts/test-ruc-fusion-runtime-09691.mjs",
@@ -1051,6 +1052,7 @@
     "scripts/test-water-tides-full-calendar-day-08254.mjs",
     "scripts/test-water-unused-callback-buildfix-08266.mjs",
     "scripts/test-weather-aggregate-type-contract-09602.mjs",
+    "scripts/test-weather-map-audit-admission.mjs",
     "scripts/test-weather-maps-module-09210.mjs",
     "scripts/test-weather-pictogram-appwide-contract-098441.mjs",
     "scripts/test-weather-pictogram-cloud-forms-09143.mjs",
@@ -1111,7 +1113,8 @@
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
     "scripts/test-www-proxy-hotfix-0985184.mjs",
-    "scripts/test-css-ownership-0985484.mjs"
+    "scripts/test-css-ownership-0985484.mjs",
+    "scripts/test-ensemble-plot-browser-0952.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1929,6 +1932,7 @@
     "scripts/test-ruc-dual-read-0985258.mjs",
     "scripts/test-ruc-dwd-pipeline-09690.mjs",
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
+    "scripts/test-ruc-fast-pages-worker-point-qa-0985498.mjs",
     "scripts/test-ruc-full-fusion-horizon-0985363.mjs",
     "scripts/test-ruc-full-production-0985267.mjs",
     "scripts/test-ruc-fusion-runtime-09691.mjs",
@@ -2152,6 +2156,7 @@
     "scripts/test-water-tides-full-calendar-day-08254.mjs",
     "scripts/test-water-unused-callback-buildfix-08266.mjs",
     "scripts/test-weather-aggregate-type-contract-09602.mjs",
+    "scripts/test-weather-map-audit-admission.mjs",
     "scripts/test-weather-maps-module-09210.mjs",
     "scripts/test-weather-pictogram-appwide-contract-098441.mjs",
     "scripts/test-weather-pictogram-cloud-forms-09143.mjs",
@@ -2212,7 +2217,8 @@
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
     "scripts/test-www-proxy-hotfix-0985184.mjs",
-    "scripts/test-css-ownership-0985484.mjs"
+    "scripts/test-css-ownership-0985484.mjs",
+    "scripts/test-ensemble-plot-browser-0952.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/chatgpt-pr-gate.yml",
@@ -3239,7 +3245,11 @@
     "worker-src/20-composite-models.js",
     "worker-src/25-dach-extreme-outlook.js",
     "worker-src/30-push-events.js",
-    "worker-src/40-aviation-router.js"
+    "worker-src/40-aviation-router.js",
+    "scripts/test-ensemble-plot-browser-0952.mjs",
+    "scripts/verify-ensemble-plot-browser-0952.mjs",
+    "tests/visual/ensemble-geometry-qa.html",
+    "tests/visual/ensemble-geometry-qa.tsx"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3980,8 +3990,8 @@
     "scripts/test-skybar-solid-colors-0985358.mjs",
     "scripts/test-current-moisture-0985462.mjs"
   ],
-  "version": "0.9.85.486",
-  "updatedAt": "2026-11-12",
+  "version": "0.9.85.527",
+  "updatedAt": "2026-11-23",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",
     "docs/implementation/MID_C42_PLUGIN_REACT_0.9.85.330.md",

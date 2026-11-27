@@ -1,9 +1,14 @@
 import type {SynopticModel} from './nativeSynopticFields';
 import {modelInstant} from './modelForecastTime';
-export function validateRucSynopticIndex(d:any):SynopticModel{
+export function validateRucSynopticIndexStructure(d:any):SynopticModel{
  const m=d?.model,stamp=modelInstant(d?.run),frames=m?.frames;
- if(d?.schema!=='mid.ruc.synoptic-fields.v1'||d.modelId!=='icon-d2-ruc'||d.sampling!=='nearest-native-cell'||!Number.isFinite(d.maxNearestKm)||d.maxNearestKm<=0||d.maxNearestKm>5||!Number.isFinite(stamp)||stamp>Date.now()+3600000||Date.now()-stamp>4*3600000||m?.run!==d.run||m.resolutionKm!==2.2||m.license!=='CC BY 4.0'||!Array.isArray(frames)||frames.length!==28||frames.some((f:any,h:number)=>f.hour!==h||modelInstant(f.time)!==stamp+h*3600000||f.file!==`icon-d2-ruc-${String(h).padStart(3,'0')}.bin`||(h>0?f.cloudWeather!==true:f.cloudWeather!==true&&f.cloudWeather!==false)||f.encoding!=='gzip-json'||!Number.isInteger(f.bytes)||f.bytes<1||f.bytes>12000000||!Number.isInteger(f.decodedBytes)||f.decodedBytes<1||f.decodedBytes>12000000||!/^[a-f0-9]{64}$/.test(f.sha256)))throw Error('RUC-Synoptik: vollständiger Lauf, Zeitachse oder Prüfsummen ungültig.');
+ if(d?.schema!=='mid.ruc.synoptic-fields.v1'||d.modelId!=='icon-d2-ruc'||d.sampling!=='nearest-native-cell'||!Number.isFinite(d.maxNearestKm)||d.maxNearestKm<=0||d.maxNearestKm>5||!Number.isFinite(stamp)||m?.run!==d.run||m.resolutionKm!==2.2||m.license!=='CC BY 4.0'||!Array.isArray(frames)||frames.length!==28||frames.some((f:any,h:number)=>f.hour!==h||modelInstant(f.time)!==stamp+h*3600000||f.file!==`icon-d2-ruc-${String(h).padStart(3,'0')}.bin`||(h>0?f.cloudWeather!==true:f.cloudWeather!==true&&f.cloudWeather!==false)||f.encoding!=='gzip-json'||!Number.isInteger(f.bytes)||f.bytes<1||f.bytes>12000000||!Number.isInteger(f.decodedBytes)||f.decodedBytes<1||f.decodedBytes>12000000||!/^[a-f0-9]{64}$/.test(f.sha256)))throw Error('RUC-Synoptik: vollständiger Lauf, Zeitachse oder Prüfsummen ungültig.');
  return {...m,label:'DWD ICON-D2-RUC'};
+}
+export function validateRucSynopticIndex(d:any):SynopticModel{
+ const model=validateRucSynopticIndexStructure(d),stamp=modelInstant(model.run),now=Date.now();
+ if(stamp>now+3600000||now-stamp>4*3600000)throw Error('RUC-Synoptik: Lauf liegt außerhalb des Live-Zeitfensters.');
+ return model;
 }
 export async function loadRucSynopticIndex(signal:AbortSignal){
  const r=await fetch(`/ruc/latest.json?mid_ruc_synoptic=${Date.now()}`,{signal,cache:'no-store'});if(!r.ok)throw Error('RUC-Synoptik-Katalog nicht erreichbar.');

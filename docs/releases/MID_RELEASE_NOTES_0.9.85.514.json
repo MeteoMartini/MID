@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "version": "0.9.85.514",
+  "title": "LC 1.34 – Originalzeitintervalle im Reiseplaner und WMS-Kartenaudit",
+  "date": "2026-11-23",
+  "external": [
+    "Reiseplaner: GEFS-Niederschlagsstunden werden dem korrekten UTC-Tag zugeordnet und nur bei vollständigen 24-Stunden-Belegen aggregiert. Fehlende Mess- oder Modellwerte gelten nie als 0 mm; extreme Originalwerte werden nicht ungeprüft verworfen.",
+    "Reiseplaner: EC46-Wochenanomalien werden nur auf fachlich vollständige Kalenderwochen und belegbare Tagesparameter angewandt. Unzulässige Tages-Niederschlagswahrscheinlichkeiten werden nicht aus Wochenwerten abgeleitet.",
+    "Kartenaudit: Der lesende WMS-Prüfpfad prüft Modelllauf, Gültigkeitszeit, Akkumulationsfenster und die Integrität vollständiger PNG-Transporte; ein gültiges PNG gilt nicht automatisch als meteorologischer Datenbeleg.",
+    "Amtliche DWD-/WMO-Warnungen, bestehende RUC-/EPS-Schranken sowie alle Source-/Release-/Worker-/Pages-/Stable-Gates bleiben unverändert."
+  ],
+  "internal": [
+    "Projektregeln: ChatGPT wählt aus den tatsächlich installierten Plugins weiterhin gezielt die passenden, verfügbaren und kostenkonformen Werkzeuge. Veraltete feste Automationslisten werden nicht als aktueller Zustand ausgegeben.",
+    "Veröffentlichte Ausgangsbasis main=mid-stable=331fffff081303e1c597badddfa4ae41c4b4e0f0 (v0.9.85.513); fünf GitHub-Rulesets aktiv. Noch kein .514 Release.",
+    "Original Git-Blob Intake aus QA-Draft #995 6f07e1b4ec13f0fd51e39b7deb4567c423083656 (6 Governance-Dateien), #992 580245ec5afd53181fa60c327c96b5b8c791c6e8 (5 Reise-Dateien), #988 ed0eeb8ab8569ff886366bc0ea0160d7e8c71445 (4 WMS-Audit-/Registry-Dateien). Quellrefs vor Gate neu zu prüfen.",
+    "Reise-GEFS-UTC-Completeness und Original-EC46-Anwendbarkeit: keine Tagesregenwahrscheinlichkeit aus Wochenanomalie, keine Null-Substitution, unveränderte Provider-/Warnquellen. WMS-Prüfung read-only, PNG-Wire-Validität nicht Wetterbeweis.",
+    "PR-Drafts der Original-Spezialisten bleiben unverändert. RUC-27h-/EPS-Publikation, Umfeldkarten-23-Pfad-Draft #937 und native iOS/VoiceOver-Abnahme gehören nicht zu diesem Release.",
+    "Benötigt: kombinierte Draft-Tests, Source/Review/Core/Heavy, serverseitiges ZIP, install-mid.yml, betroffene Worker-/Pages-Gates, Stable-Promotion und echten tag/release/latest-Readback; bislang keine davon als .514 erfüllt behauptet."
+  ]
+}

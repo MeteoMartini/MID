@@ -4,6 +4,11 @@ import {formatDisplayDateTime} from './timeDisplay';
 import {guardedOpenMeteoFetch,isOpenMeteoRateLimitError} from './openMeteoGuard';
 import type {EnsembleConfidenceCalibration,EnsembleParameter,EnsembleSkillBucket,EnsembleSkillMetric} from './ensembleAssessment';
 import {fetchWithDeadline} from './fetchDeadline';
+import {isFullDayForecastEvidenceIssuedBeforeDay} from './forecastCaptureEvidence';
+import {isArchivedDailyForecastLeadCoherent} from './forecastLeadTimeEvidence';
+import {isVerifiableTwinRainProbability} from './twinProbabilityValidity';
+import {isTwinVerifiedNonnegative,isTwinVerifiedTemperaturePair} from './twinObservationEvidence';
+import {twinArchiveEvidence,twinLearningPresentation} from './twinHealthPresentation';
 
 const PREFIX='mid:forecast-verification:v3:';
 const LEGACY_PREFIXES=['mid:forecast-verification:v2:','mid:forecast-verification:v1:'];
@@ -401,8 +406,8 @@ function inferRegime(value:{weatherCode?:number;precipitation:number;gust?:numbe
 export function weatherRegimeLabel(regime:WeatherRegime){return({hochdruck:'Hochdruck / sonnig',wechselhaft:'wechselhaft',front:'Frontdurchgang',konvektiv:'konvektive Schauerlage',schauer:'Schauerlage',dauerregen:'Dauerregenlage',gewitter:'Gewitterlage',sturm:'Sturmlage',winterlich:'winterliche Lage',inversion:'Inversionslage',foehn:'Föhn-/Staulage'} as Record<WeatherRegime,string>)[regime]}
 
 function migrateObservationSource(value:any):ObservationSource{const label=String(value?.label||value?.id||'Quelle'),rawDistance=finite(value?.distanceKm,NaN),distanceKm=Number.isFinite(rawDistance)?(rawDistance>500?rawDistance/1000:rawDistance):undefined,rawKind=String(value?.kind||'model-fallback') as ObservationKind,analysed=/hyperlokal|stationsmittel|analyse/i.test(`${label} ${value?.detail||''}`),kind:ObservationKind=rawKind==='measured'&&analysed?'analysed':rawKind,rawQuality=finite(value?.quality,.3),quality=clamp(rawQuality>1?rawQuality/100:rawQuality,0,1);return{id:String(value?.id||kind),label,kind,quality,timestamp:value?.timestamp?String(value.timestamp):undefined,distanceKm,detail:value?.detail?String(value.detail):undefined}}
-function migrateReference(reference:any):ForecastReference{const source=String(reference.source||'Rückblick'),era5=source.includes('ERA5'),kind=(reference.kind??(era5?'reanalysis':'model-fallback')) as ObservationKind,row={...reference,max:finite(reference.max,NaN),min:finite(reference.min,NaN),precipitation:Math.max(0,finite(reference.precipitation,NaN)),source,quality:clamp(finite(reference.quality,era5?.72:.32),0,1),kind,sources:Array.isArray(reference.sources)?reference.sources.map(migrateObservationSource):[]} as ForecastReference;row.regime=inferRegime(row);row.confidence=reference.confidence??(row.quality>=.8?'high':row.quality>=.55?'medium':'low');if(!row.sources.length)row.sources=[{id:row.kind,label:row.source,kind:row.kind,quality:row.quality}];return row}
-function migrateStore(value:any):Store{const source=value&&Array.isArray(value.captures)&&Array.isArray(value.references)?value:emptyStore();return{version:3,updatedAt:String(source.updatedAt||new Date().toISOString()),captures:source.captures.map((capture:any,index:number)=>({...capture,id:String(capture.id||`${capture.targetDate}:${capture.issuedAt}:${index}`),predictions:Array.isArray(capture.predictions)?capture.predictions:[]})).filter((capture:ForecastCapture)=>capture.targetDate&&capture.issuedAt),references:source.references.map(migrateReference).filter((row:ForecastReference)=>row.date&&[row.max,row.min,row.precipitation].every(Number.isFinite)),observations:Array.isArray(source.observations)?source.observations.filter((row:TwinLiveObservation)=>row?.timestamp&&row?.date&&row?.source).map((row:TwinLiveObservation)=>({...row,source:migrateObservationSource(row.source)})):[]}}
+function migrateReference(reference:any):ForecastReference{const source=String(reference.source||'Rückblick'),era5=source.includes('ERA5'),kind=(reference.kind??(era5?'reanalysis':'model-fallback')) as ObservationKind,row={...reference,max:typeof reference.max==='number'&&Number.isFinite(reference.max)?reference.max:NaN,min:typeof reference.min==='number'&&Number.isFinite(reference.min)?reference.min:NaN,precipitation:isTwinVerifiedNonnegative(reference.precipitation)?reference.precipitation:NaN,source,quality:clamp(finite(reference.quality,era5?.72:.32),0,1),kind,sources:Array.isArray(reference.sources)?reference.sources.map(migrateObservationSource):[]} as ForecastReference;row.regime=inferRegime(row);row.confidence=reference.confidence??(row.quality>=.8?'high':row.quality>=.55?'medium':'low');if(!row.sources.length)row.sources=[{id:row.kind,label:row.source,kind:row.kind,quality:row.quality}];return row}
+function migrateStore(value:any):Store{const source=value&&Array.isArray(value.captures)&&Array.isArray(value.references)?value:emptyStore();return{version:3,updatedAt:String(source.updatedAt||new Date().toISOString()),captures:source.captures.map((capture:any,index:number)=>({...capture,id:String(capture.id||`${capture.targetDate}:${capture.issuedAt}:${index}`),predictions:Array.isArray(capture.predictions)?capture.predictions:[]})).filter((capture:ForecastCapture)=>capture.targetDate&&capture.issuedAt),references:source.references.map(migrateReference).filter((row:ForecastReference)=>row.date&&(isTwinVerifiedTemperaturePair(row.max,row.min)||isTwinVerifiedNonnegative(row.precipitation)||isTwinVerifiedNonnegative(row.gust)||isTwinVerifiedNonnegative(row.sunshineDuration))),observations:Array.isArray(source.observations)?source.observations.filter((row:TwinLiveObservation)=>row?.timestamp&&row?.date&&row?.source).map((row:TwinLiveObservation)=>({...row,source:migrateObservationSource(row.source)})):[]}}
 
 function mergeStores(primary:Store,secondary:Store):Store{const captures=new Map<string,ForecastCapture>(),references=new Map<string,ForecastReference>(),observations=new Map<string,TwinLiveObservation>();for(const row of[...secondary.captures,...primary.captures])captures.set(row.id,row);for(const row of[...secondary.references,...primary.references]){const current=references.get(row.date);if(!current||row.quality>=current.quality)references.set(row.date,row)}for(const row of[...secondary.observations,...primary.observations])observations.set(row.id,row);return{version:3,updatedAt:[primary.updatedAt,secondary.updatedAt].sort().at(-1)??new Date().toISOString(),captures:[...captures.values()].sort((a,b)=>Date.parse(a.issuedAt)-Date.parse(b.issuedAt)).slice(-ARCHIVE_MAX_CAPTURES),references:[...references.values()].sort((a,b)=>a.date.localeCompare(b.date)).slice(-ARCHIVE_MAX_REFERENCES),observations:[...observations.values()].sort((a,b)=>Date.parse(a.timestamp)-Date.parse(b.timestamp)).slice(-ARCHIVE_MAX_OBSERVATIONS)}}
 function readStore(locationKey:string):Store{const memory=ARCHIVE_MEMORY.get(locationKey);if(memory)return memory;try{const current=localStorage.getItem(storeKey(locationKey));let raw=current;for(const prefix of LEGACY_PREFIXES)if(!raw)raw=localStorage.getItem(`${prefix}${locationKey}`);const store=migrateStore(JSON.parse(raw||'null'));ARCHIVE_MEMORY.set(locationKey,store);if(!current&&raw)saveStore(locationKey,store);return store}catch{const store=emptyStore();ARCHIVE_MEMORY.set(locationKey,store);return store}}
@@ -470,11 +475,58 @@ function isIndependentTwinReference(row:ForecastReference):boolean{
  // Keine Zirkelschlüsse aus Reanalyse, Modellrückblick oder unvollständigen Tagesfragmenten.
  return (row.kind==='measured'||row.kind==='private-sensor')&&Number.isFinite(row.coverageHours)&&Number(row.coverageHours)>=18&&row.quality>=.55&&Array.isArray(row.sources)&&row.sources.length>0&&row.sources.every(source=>source.kind==='measured'||source.kind==='private-sensor');
 }
-function chosenEvaluations(store:Store,beforeDate?:string){const references=new Map(store.references.filter(row=>(!beforeDate||row.date<beforeDate)&&isIndependentTwinReference(row)).map(row=>[row.date,row])),byKey=new Map<string,ForecastCapture[]>(),now=Date.now();for(const capture of store.captures){const completeAt=localDateTimeEpoch(capture.targetDate,capture.timezone,23,59);if(Number.isFinite(completeAt)&&completeAt>=now||beforeDate&&capture.targetDate>=beforeDate||!references.has(capture.targetDate))continue;const horizon=horizonBucket(capture.leadHours),key=`${capture.targetDate}:${horizon}`,list=byKey.get(key)??[];list.push(capture);byKey.set(key,list)}const evaluations:Evaluation[]=[];for(const[key,list]of byKey){const[date,horizonText]=key.split(':'),horizon=Number(horizonText) as ForecastHorizon,capture=[...list].sort((a,b)=>Math.abs(a.leadHours-horizon)-Math.abs(b.leadHours-horizon))[0],reference=references.get(date);if(reference)evaluations.push({date,capture,reference,horizon,regime:capture.predictedRegime??'wechselhaft'})}return evaluations.sort((a,b)=>b.date.localeCompare(a.date)||a.horizon-b.horizon)}
-
+function chosenEvaluations(store:Store,beforeDate?:string){
+ const references=new Map(store.references.filter(row=>(!beforeDate||row.date<beforeDate)&&isIndependentTwinReference(row)).map(row=>[row.date,row]));
+ const byKey=new Map<string,ForecastCapture[]>(),dayBounds=new Map<string,{start:number;noon:number;end:number;valid:boolean}>(),now=Date.now();
+ for(const capture of store.captures){
+  if(beforeDate&&capture.targetDate>=beforeDate||!references.has(capture.targetDate))continue;
+  const boundsKey=capture.targetDate+'|'+String(capture.timezone||''),cached=dayBounds.get(boundsKey);
+  let bounds=cached;
+  if(!bounds){
+   const start=localDateTimeEpoch(capture.targetDate,capture.timezone,0,0),noon=localDateTimeEpoch(capture.targetDate,capture.timezone,12,0),end=localDateTimeEpoch(capture.targetDate,capture.timezone,23,59);
+   const valid=Number.isFinite(start)&&Number.isFinite(noon)&&Number.isFinite(end)&&end>noon&&noon>start&&
+    (!capture.timezone||dateTimeParts(start,capture.timezone)!==null)&&
+    (capture.timezone?dateAtEpoch(start,capture.timezone):new Date(start).toISOString().slice(0,10))===capture.targetDate;
+   bounds={start,noon,end,valid};
+   dayBounds.set(boundsKey,bounds);
+  }
+  // Daily observed maxima, minima and 00–24h precipitation can contain facts
+  // already known at issue time. Do not score same-day/hindsight snapshots.
+  if(!bounds.valid||bounds.end>=now||!isFullDayForecastEvidenceIssuedBeforeDay(capture.issuedAt,capture.leadHours,bounds.start)||
+    !isArchivedDailyForecastLeadCoherent(capture.issuedAt,capture.leadHours,bounds.noon))continue;
+  const horizon=horizonBucket(capture.leadHours),key=capture.targetDate+':'+horizon,list=byKey.get(key)??[];
+  list.push(capture);byKey.set(key,list);
+ }
+ const evaluations:Evaluation[]=[];
+ for(const[key,list]of byKey){
+  const [date,horizonText]=key.split(':'),horizon=Number(horizonText) as ForecastHorizon,
+   capture=[...list].sort((a,b)=>Math.abs(a.leadHours-horizon)-Math.abs(b.leadHours-horizon))[0],
+   reference=references.get(date);
+  if(reference)evaluations.push({date,capture,reference,horizon,regime:capture.predictedRegime??'wechselhaft'});
+ }
+ return evaluations.sort((a,b)=>b.date.localeCompare(a.date)||a.horizon-b.horizon);
+}
 function emptyParameters():Record<ForecastParameter,ParamAccumulator>{return{temperature:{sum:0,count:0},precipitation:{sum:0,count:0},probability:{sum:0,count:0},gust:{sum:0,count:0},sunshine:{sum:0,count:0}}}
 function addParameter(accumulator:ParamAccumulator,value:number){if(Number.isFinite(value)){accumulator.sum+=value;accumulator.count++}}
-function modelParameterErrors(prediction:ForecastPrediction,reference:ForecastReference){const observed=reference.precipitation>DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM?1:0,probability=clamp(prediction.probability/100,0,1),probabilityComparable=prediction.id==='best_match'&&!prediction.probabilityKind?false:!['spread-estimate','hourly-max'].includes(String(prediction.probabilityKind||''));return{temperature:(Math.abs(prediction.max-reference.max)+Math.abs(prediction.min-reference.min))/2,precipitation:Math.abs(prediction.precipitation-reference.precipitation),probability:probabilityComparable?(probability-observed)**2:NaN,gust:Number.isFinite(prediction.gust)&&Number.isFinite(reference.gust)?Math.abs(Number(prediction.gust)-Number(reference.gust)):NaN,sunshine:Number.isFinite(prediction.sunshineDuration)&&Number.isFinite(reference.sunshineDuration)?Math.abs(Number(prediction.sunshineDuration)-Number(reference.sunshineDuration))/3600:NaN}}
+function modelParameterErrors(prediction:ForecastPrediction,reference:ForecastReference){
+ const verifiedRain=isTwinVerifiedNonnegative(reference.precipitation);
+ const observed=verifiedRain?(reference.precipitation>DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM?1:0):NaN;
+ const probabilityComparable=verifiedRain&&isVerifiableTwinRainProbability(prediction.probability)&&
+  (prediction.id!=='best_match'||Boolean(prediction.probabilityKind))&&
+  !['spread-estimate','hourly-max'].includes(String(prediction.probabilityKind||''));
+ const validTemp=isTwinVerifiedTemperaturePair(prediction.max,prediction.min)&&
+  isTwinVerifiedTemperaturePair(reference.max,reference.min);
+ return {
+  temperature:validTemp?(Math.abs(prediction.max-reference.max)+Math.abs(prediction.min-reference.min))/2:NaN,
+  precipitation:verifiedRain&&isTwinVerifiedNonnegative(prediction.precipitation)?
+   Math.abs(prediction.precipitation-reference.precipitation):NaN,
+  probability:probabilityComparable?(prediction.probability/100-observed)**2:NaN,
+  gust:isTwinVerifiedNonnegative(prediction.gust)&&isTwinVerifiedNonnegative(reference.gust)?
+   Math.abs(prediction.gust-reference.gust):NaN,
+  sunshine:isTwinVerifiedNonnegative(prediction.sunshineDuration)&&isTwinVerifiedNonnegative(reference.sunshineDuration)?
+   Math.abs(prediction.sunshineDuration-reference.sunshineDuration)/3600:NaN,
+ };
+}
 function parameterScore(parameter:ForecastParameter,error:number){if(parameter==='temperature')return error;if(parameter==='precipitation')return Math.min(4,error*.35);if(parameter==='probability')return error*3;if(parameter==='gust')return Math.min(3,error*.09);return Math.min(3,error*.28)}
 function priorityWeightedMetricScore(metrics:Partial<Record<ForecastParameter,ParameterMetric>>){let weighted=0,total=0;for(const parameter of Object.keys(FORECAST_PARAMETER_IMPORTANCE) as ForecastParameter[]){const metric=metrics[parameter];if(!metric||!Number.isFinite(metric.score))continue;const importance=FORECAST_PARAMETER_IMPORTANCE[parameter];weighted+=metric.score*importance;total+=importance}return total?weighted/total:NaN}
 function priorityWeightedErrorScore(errors:Record<ForecastParameter,number>){let weighted=0,total=0;for(const parameter of Object.keys(FORECAST_PARAMETER_IMPORTANCE) as ForecastParameter[]){const value=parameterScore(parameter,errors[parameter]);if(!Number.isFinite(value))continue;const importance=FORECAST_PARAMETER_IMPORTANCE[parameter];weighted+=value*importance;total+=importance}return total?weighted/total:NaN}
@@ -500,12 +552,53 @@ function statsFor(evaluations:Evaluation[],filter?:(evaluation:Evaluation)=>bool
   return{id:row.id,label:row.label,days,temperatureMae,precipitationMae,brier,gustMae:metrics.gust?.error,sunshineMae:metrics.sunshine?.error,score,weight:0,confidence:confidenceFromSamples(days),parameterMetrics:metrics} satisfies ForecastModelScore
  }).sort((a,b)=>a.score-b.score)
 }
-function modelBiases(evaluations:Evaluation[],regime:WeatherRegime,horizon:ForecastHorizon){const rows=new Map<string,{label:string;dates:Set<string>;sum:Record<ForecastParameter,number>;count:Record<ForecastParameter,number>}>();for(const evaluation of evaluations){if(evaluation.regime!==regime||evaluation.horizon!==horizon)continue;for(const rawPrediction of evaluation.capture.predictions){if(!modelPredictionIsLearnable(rawPrediction))continue;const prediction=normalizedPredictionForLearning(rawPrediction),row=rows.get(prediction.id)??{label:prediction.label,dates:new Set<string>(),sum:{temperature:0,precipitation:0,probability:0,gust:0,sunshine:0},count:{temperature:0,precipitation:0,probability:0,gust:0,sunshine:0}};row.dates.add(evaluation.date);const temp=((prediction.max-evaluation.reference.max)+(prediction.min-evaluation.reference.min))/2;row.sum.temperature+=temp;row.count.temperature++;row.sum.precipitation+=prediction.precipitation-evaluation.reference.precipitation;row.count.precipitation++;if(Number.isFinite(prediction.gust)&&Number.isFinite(evaluation.reference.gust)){row.sum.gust+=Number(prediction.gust)-Number(evaluation.reference.gust);row.count.gust++}if(Number.isFinite(prediction.sunshineDuration)&&Number.isFinite(evaluation.reference.sunshineDuration)){row.sum.sunshine+=(Number(prediction.sunshineDuration)-Number(evaluation.reference.sunshineDuration))/3600;row.count.sunshine++}rows.set(prediction.id,row)}}return[...rows].map(([id,row])=>{const samples=row.dates.size,shrink=samples/(samples+5),corrections:Partial<Record<ForecastParameter,number>>={};for(const parameter of['temperature','precipitation','gust','sunshine'] as ForecastParameter[])if(row.count[parameter])corrections[parameter]=-(row.sum[parameter]/row.count[parameter])*shrink;return{id,label:row.label,regime,horizon,samples,confidence:confidenceFromSamples(samples),corrections} satisfies BiasCorrection})}
+function modelBiases(evaluations:Evaluation[],regime:WeatherRegime,horizon:ForecastHorizon){
+ const rows=new Map<string,{label:string;dates:Set<string>;sum:Record<ForecastParameter,number>;count:Record<ForecastParameter,number>}>();
+ for(const evaluation of evaluations){
+  if(evaluation.regime!==regime||evaluation.horizon!==horizon)continue;
+  for(const rawPrediction of evaluation.capture.predictions){
+   if(!modelPredictionIsLearnable(rawPrediction))continue;
+   const prediction=normalizedPredictionForLearning(rawPrediction);
+   const row=rows.get(prediction.id)??{
+    label:prediction.label,dates:new Set<string>(),
+    sum:{temperature:0,precipitation:0,probability:0,gust:0,sunshine:0},
+    count:{temperature:0,precipitation:0,probability:0,gust:0,sunshine:0},
+   };
+   row.dates.add(evaluation.date);
+   if(isTwinVerifiedTemperaturePair(prediction.max,prediction.min)&&isTwinVerifiedTemperaturePair(evaluation.reference.max,evaluation.reference.min)){
+    row.sum.temperature+=((prediction.max-evaluation.reference.max)+(prediction.min-evaluation.reference.min))/2;
+    row.count.temperature++;
+   }
+   if(isTwinVerifiedNonnegative(prediction.precipitation)&&isTwinVerifiedNonnegative(evaluation.reference.precipitation)){
+    row.sum.precipitation+=prediction.precipitation-evaluation.reference.precipitation;
+    row.count.precipitation++;
+   }
+   if(isTwinVerifiedNonnegative(prediction.gust)&&isTwinVerifiedNonnegative(evaluation.reference.gust)){
+    row.sum.gust+=prediction.gust-evaluation.reference.gust;
+    row.count.gust++;
+   }
+   if(isTwinVerifiedNonnegative(prediction.sunshineDuration)&&isTwinVerifiedNonnegative(evaluation.reference.sunshineDuration)){
+    row.sum.sunshine+=(prediction.sunshineDuration-evaluation.reference.sunshineDuration)/3600;
+    row.count.sunshine++;
+   }
+   rows.set(prediction.id,row);
+  }
+ }
+ return[...rows].map(([id,row])=>{
+  const samples=row.dates.size,corrections:Partial<Record<ForecastParameter,number>>={};
+  for(const parameter of ['temperature','precipitation','gust','sunshine'] as ForecastParameter[]){
+   const n=row.count[parameter];
+   if(n){const correction=-(row.sum[parameter]/n)*(n/(n+5));corrections[parameter]=correction===0?0:correction;}
+  }
+  return{id,label:row.label,regime,horizon,samples,confidence:confidenceFromSamples(samples),corrections} satisfies BiasCorrection;
+ });
+}
 function calibrationBins(evaluations:Evaluation[],modelId='best_match'){
  const daily=new Map<string,{probabilitySum:number;count:number;observed:number}>();
  for(const evaluation of evaluations){
-  const prediction=evaluation.capture.predictions.find(row=>row.id===modelId);if(!prediction||prediction.id==='best_match'&&!prediction.probabilityKind||['spread-estimate','hourly-max'].includes(String(prediction.probabilityKind||'')))continue;
-  const probability=clamp(prediction.probability,0,100),row=daily.get(evaluation.date)??{probabilitySum:0,count:0,observed:evaluation.reference.precipitation>DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM?1:0};row.probabilitySum+=probability;row.count++;daily.set(evaluation.date,row)
+  if(!isTwinVerifiedNonnegative(evaluation.reference.precipitation))continue;
+  const prediction=evaluation.capture.predictions.find(row=>row.id===modelId);if(!prediction||!isVerifiableTwinRainProbability(prediction.probability)||prediction.id==='best_match'&&!prediction.probabilityKind||['spread-estimate','hourly-max'].includes(String(prediction.probabilityKind||'')))continue;
+  const probability=prediction.probability,row=daily.get(evaluation.date)??{probabilitySum:0,count:0,observed:evaluation.reference.precipitation>DWD_PRECIPITATION_PROBABILITY_THRESHOLD_MM?1:0};row.probabilitySum+=probability;row.count++;daily.set(evaluation.date,row)
  }
  const buckets=Array.from({length:5},(_,index)=>({lower:index*20,upper:(index+1)*20,samples:0,forecastSum:0,observed:0}));
  for(const row of daily.values()){const probability=row.probabilitySum/Math.max(1,row.count),index=Math.min(4,Math.floor(probability/20)),bucket=buckets[index];bucket.samples++;bucket.forecastSum+=probability;bucket.observed+=row.observed}
@@ -589,10 +682,22 @@ function mainForecastStatus(currentForecasts:LocalWeightedForecast[],weightingRe
  const ready=currentForecasts.filter(row=>row.ready&&row.prediction),requiredReady=Math.min(2,Math.max(1,currentForecasts.length)),totals=new Map<string,{id:string;label:string;sum:number;count:number}>();
  for(const row of ready){const dayGroups=new Map<string,{label:string;weight:number}>();for(const weight of row.weights){if(!modelPredictionIsLearnable({id:weight.id})||!Number.isFinite(weight.weight)||weight.weight<=0)continue;const group=weight.independenceGroup||stableModelIdentity({id:weight.id}).independenceGroup,current=dayGroups.get(group)??{label:weight.label,weight:0};current.weight+=weight.weight;if(weight.weight>current.weight/2)current.label=weight.label;dayGroups.set(group,current)}for(const[group,day]of dayGroups){const current=totals.get(group)??{id:group,label:day.label,sum:0,count:0};current.sum+=day.weight;current.count++;totals.set(group,current)}}
  const models=[...totals.values()].map(row=>({id:row.id,label:row.label,weight:row.sum/Math.max(1,row.count)})).sort((a,b)=>b.weight-a.weight),dominantModel=models[0],modelCount=models.length,improvement=Number.isFinite(weightedImprovement)?Number(weightedImprovement):undefined,validated=validationDays>=6&&Number.isFinite(improvement)&&Number(improvement)>=0,eligible=weightingReady&&ready.length>=requiredReady&&modelCount>=2&&validated,confidence:TwinConfidence=validationDays>=18&&Number(improvement)>=3?'high':validationDays>=6?'medium':'low';
- let reason='';if(!weightingReady)reason='Mindestens fünf abgeschlossene Vergleichstage und zwei unabhängige Modellgruppen sind erforderlich.';else if(ready.length<requiredReady)reason='Für mindestens zwei der nächsten drei Tage fehlt noch eine belastbare lokal gewichtete Prognose.';else if(modelCount<2)reason='Der aktuelle Modellmix enthält noch nicht mindestens zwei unabhängige Modellgruppen.';else if(validationDays<6)reason=`Noch ${Math.max(0,6-validationDays)} abgeschlossene Kontrolltage bis zur Freigabe gegen Best Match.`;else if(!Number.isFinite(improvement))reason='Der Kontrollvergleich mit Best Match ist noch nicht vollständig berechenbar.';else if(Number(improvement)<0)reason=`MID liegt im Kontrollvergleich derzeit ${Math.round(Math.abs(Number(improvement)))} % hinter Best Match.`;else reason=`MID ist nach ${validationDays} Kontrolltagen mindestens gleichwertig zu Best Match (${Number(improvement)>=0?'+':''}${Math.round(Number(improvement))} %).`;
+ let reason='';if(!weightingReady)reason='Mindestens fünf abgeschlossene Vergleichstage und zwei unabhängige Modellgruppen sind erforderlich.';else if(ready.length<requiredReady)reason='Für mindestens zwei der nächsten drei Tage fehlt noch eine belastbare lokal gewichtete Prognose.';else if(modelCount<2)reason='Der aktuelle Modellmix enthält noch nicht mindestens zwei unabhängige Modellgruppen.';else if(validationDays<6)reason=`Noch ${Math.max(0,6-validationDays)} abgeschlossene Kontrolltage bis zur Freigabe gegen Best Match.`;else if(!Number.isFinite(improvement))reason='Der Kontrollvergleich mit Best Match ist noch nicht vollständig berechenbar.';else if(Number(improvement)<0)reason=`MID liegt im Kontrollvergleich derzeit ${Math.round(Math.abs(Number(improvement)))} % hinter Best Match.`;else reason=`Bisheriger gepaarter Kontrollvergleich mit Best Match: ${validationDays} Tage, ${Number(improvement)>=0?'+':''}${Math.round(Number(improvement))} % (kein statistischer Gleichwertigkeitsnachweis).`;
  const sourceLabel=dominantModel?`Best-Match-Nachkorrektur · Diagnose-Schwerpunkt ${dominantModel.label} ${Math.round(dominantModel.weight)} %`:'Best-Match-Nachkorrektur';return{eligible,confidence,readyDays:ready.length,modelCount,validationDays,improvement,dominantModel,sourceLabel,reason}
 }
-function healthReport(store:Store,evaluations:Evaluation[],currentForecasts:LocalWeightedForecast[]){const issues:string[]=[],independent=store.references.filter(isIndependentTwinReference),sources=[...new Set(store.references.flatMap(row=>row.sources.map(source=>source.label)))].slice(0,6),latestReference=(independent.length?independent:store.references).at(-1),age=latestReference?Date.now()-dateNoon(latestReference.date,store.captures.at(-1)?.timezone):Infinity,uniqueDays=new Set(evaluations.map(item=>item.date)).size;if(independent.length<5)issues.push('Zu wenige unabhängige Rückblickstage.');if(store.observations.filter(row=>row.source.kind==='measured'||row.source.kind==='private-sensor').length<8)issues.push('Lokale Mess-/Analyseserie befindet sich noch in der Lernphase.');if(uniqueDays<5||!currentForecasts.some(row=>row.ready))issues.push('Lokale Gewichtung für die aktuelle Wetterlage noch nicht freigegeben.');if(age>7*86400000)issues.push('Unabhängige Rückblicksdaten sind älter als sieben Tage.');const score=clamp(100-issues.length*22+Math.min(15,uniqueDays*2),10,100),status: TwinHealth['status']=score>=78?'ready':score>=48?'learning':'limited';return{status,label:status==='ready'?'Wetterzwilling belastbar':status==='learning'?'Wetterzwilling lernt':'Wetterzwilling eingeschränkt',score,issues,sources} satisfies TwinHealth}
+function healthReport(store:Store,evaluations:Evaluation[],currentForecasts:LocalWeightedForecast[],timeZone?:string){
+ const issues:string[]=[],now=Date.now(),zone=timeZone??store.captures.at(-1)?.timezone;
+ const archive=twinArchiveEvidence(store.references,dateAtEpoch(now,zone),isIndependentTwinReference),uniqueDays=new Set(evaluations.map(item=>item.date)).size;
+ if(archive.independentDays<5)issues.push('Zu wenige unabhängige Rückblickstage.');
+ if(store.observations.filter(row=>row.source.kind==='measured'||row.source.kind==='private-sensor').length<8)issues.push('Lokale Messserie befindet sich noch in der Lernphase.');
+ if(uniqueDays<5||!currentForecasts.some(row=>row.ready))issues.push('Lokale Gewichtung für die aktuelle Wetterlage noch nicht bereit.');
+ const age=archive.latestDate?now-dateNoon(archive.latestDate,zone):NaN;
+ if(!Number.isFinite(age)||age<0)issues.push('Kein abgeschlossener unabhängiger Referenztag belegt.');
+ else if(age>7*86400000)issues.push('Unabhängige Rückblicksdaten sind älter als sieben Tage.');
+ const score=clamp(100-issues.length*22+Math.min(15,uniqueDays*2),10,100),status:TwinHealth['status']=score>=78?'ready':score>=48?'learning':'limited';
+ const presentation=twinLearningPresentation(status,issues.length,uniqueDays);
+ return{status:presentation.status,label:presentation.label,score,issues,sources:archive.sources} satisfies TwinHealth
+}
 
 export function buildForecastVerificationReport(locationKey:string,days:Day[]=[],ensemble:EnsembleDay[]=[],location?:Location,hours:Hour[]=[],additional:AdditionalForecastPrediction[]=[]):ForecastVerificationReport{
  const store=readStore(locationKey),evaluations=chosenEvaluations(store).slice(0,300),raw=statsFor(evaluations),uniqueDays=new Set(evaluations.map(item=>item.date)).size,minimumEvidence=Math.min(5,Math.max(2,uniqueDays)),eligible=raw.filter(row=>row.days>=minimumEvidence),reportCandidates=eligible.filter(row=>modelPredictionIsLearnable({id:row.id})).map(row=>({row,independenceGroup:stableModelIdentity({id:row.id}).independenceGroup,raw:1/Math.max(.25,row.score),weight:0}));
@@ -602,7 +707,7 @@ export function buildForecastVerificationReport(locationKey:string,days:Day[]=[]
  segments.sort((a,b)=>b.days-a.days||a.horizon-b.horizon);
  const reviews:ForecastDayReview[]=evaluations.slice(0,50).map(evaluation=>{const winner=[...evaluation.capture.predictions].sort((a,b)=>predictionDayScore(a,evaluation.reference)-predictionDayScore(b,evaluation.reference))[0];return{date:evaluation.date,issuedAt:evaluation.capture.issuedAt,leadHours:evaluation.capture.leadHours,horizon:evaluation.horizon,regime:evaluation.regime,reference:evaluation.reference,bestMatch:evaluation.capture.predictions.find(row=>row.id==='best_match'),equalWeighted:evaluation.capture.predictions.find(row=>row.id==='equal_weighted'),localWeighted:evaluation.capture.predictions.find(row=>row.id==='mid_local_weighted'),winner:winner?raw.find(score=>score.id===winner.id):undefined}}),bestMatch=raw.find(row=>row.id==='best_match'),equal=raw.find(row=>row.id==='equal_weighted'),siteProfile=readTwinSiteProfile(locationKey,location??{id:0,name:locationKey,latitude:0,longitude:0}),currentForecasts=currentWeightedForecasts(days,ensemble,evaluations,siteProfile,location?.timezone,hours,additional),parameterLeaders:Partial<Record<ForecastParameter,ForecastModelScore>>={};
  for(const parameter of['temperature','precipitation','probability','gust','sunshine'] as ForecastParameter[]){parameterLeaders[parameter]=raw.filter(row=>modelPredictionIsLearnable({id:row.id})&&(row.parameterMetrics[parameter]?.samples??0)>=2).sort((a,b)=>(a.parameterMetrics[parameter]?.score??Infinity)-(b.parameterMetrics[parameter]?.score??Infinity))[0]}
- const biases=REGIMES.flatMap(regime=>HORIZONS.flatMap(horizon=>modelBiases(evaluations,regime,horizon))).filter(row=>row.samples>=2).sort((a,b)=>b.samples-a.samples).slice(0,30),calibrations=calibrationBins(evaluations),health=healthReport(store,evaluations,currentForecasts),weightingReady=uniqueDays>=5&&new Set(eligible.filter(row=>modelPredictionIsLearnable({id:row.id})).map(row=>stableModelIdentity({id:row.id}).independenceGroup)).size>=2,validation=localValidationEvidence(evaluations),weightedImprovement=validation.improvement,weightedValidationDays=validation.days,mainForecast=mainForecastStatus(currentForecasts,weightingReady,weightedValidationDays,weightedImprovement);
+ const biases=REGIMES.flatMap(regime=>HORIZONS.flatMap(horizon=>modelBiases(evaluations,regime,horizon))).filter(row=>row.samples>=2).sort((a,b)=>b.samples-a.samples).slice(0,30),calibrations=calibrationBins(evaluations),health=healthReport(store,evaluations,currentForecasts,location?.timezone),weightingReady=uniqueDays>=5&&new Set(eligible.filter(row=>modelPredictionIsLearnable({id:row.id})).map(row=>stableModelIdentity({id:row.id}).independenceGroup)).size>=2,validation=localValidationEvidence(evaluations),weightedImprovement=validation.improvement,weightedValidationDays=validation.days,mainForecast=mainForecastStatus(currentForecasts,weightingReady,weightedValidationDays,weightedImprovement);
  return{days:uniqueDays,samples:evaluations.length,models:raw,segments,reviews,bestModel:uniqueDays>=5?eligible.find(row=>modelPredictionIsLearnable({id:row.id})):undefined,rainBrier:bestMatch?.brier,temperatureMae:bestMatch?.temperatureMae,weightingReady,weightedScore:validation.weightedMean,equalWeightedScore:equal?.score,bestMatchScore:validation.bestMean,weightedImprovement,weightedValidationDays,weightedValidationCases:validation.cases,mainForecastStatus:mainForecast,currentForecasts,parameterLeaders,calibrations,biases,siteProfile,health,archiveUpdatedAt:store.updatedAt}
 }
 

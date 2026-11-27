@@ -4,6 +4,7 @@ import datetime as dt
 import importlib.util
 import json
 import os
+import sys
 import tempfile
 import contextlib
 import io
@@ -45,6 +46,53 @@ def fake_fetch(url):
     if '/r/' not in url:raise AssertionError(url)
     return listing
 assert guard.newest_common_run(fake_fetch)=='2026-08-30T01:00'
+
+def delayed_eps_fetch(url):
+    if url.startswith(guard.EPS_BASE):
+        return '<a href="2026-08-30T00:00/">older EPS run</a>'
+    return listing
+
+assert guard.newest_common_run(delayed_eps_fetch)=='2026-08-30T00:00'
+assert guard.newest_common_run(lambda url: '' if url.startswith(guard.EPS_BASE) else listing) is None
+
+def unreachable_eps_fetch(url):
+    if url.startswith(guard.EPS_BASE):
+        raise TimeoutError('EPS listing unavailable')
+    return listing
+
+try:
+    guard.newest_common_run(unreachable_eps_fetch)
+except TimeoutError:
+    pass
+else:
+    raise AssertionError('An unavailable upstream listing must reach the fail-open caller')
+
+
+# Ordered early termination and request-volume contract: an executor's worker
+# cap alone does not stop queued later indexes from starting. Four simultaneous
+# first-batch calls are permitted; no later batch after an empty/failed prefix.
+discovery_urls=[f'{guard.DET_BASE}/{param}/r/' for param in guard.REQUIRED]+[f'{guard.EPS_BASE}/TOT_PREC/r/']
+for first_empty in (True,False):
+    first_batch=threading.Barrier(4,timeout=10)
+    calls=[]
+    call_lock=threading.Lock()
+    def bounded_discovery_fetch(url):
+        with call_lock:calls.append(url)
+        first_batch.wait()
+        if url==discovery_urls[0]:
+            if first_empty:return ''
+            raise TimeoutError('first source unavailable')
+        if url==discovery_urls[1]:
+            if first_empty:raise TimeoutError('later source unavailable')
+            return ''
+        return listing
+    try:
+        actual=guard.newest_common_run(bounded_discovery_fetch)
+        assert first_empty and actual is None
+    except TimeoutError:
+        assert not first_empty, 'later exception must not override earlier empty intersection'
+    assert len(calls)==4 and set(calls)==set(discovery_urls[:4]), 'no later batch after early exit'
+
 
 report=guard.freshness_report('2026-08-30T02:00',meta('2026-08-30T01:00'),True,'catch-up',now=NOW)
 assert report['publishedRunAgeMinutes']==120 and report['upstreamRunAgeMinutes']==60
@@ -320,6 +368,69 @@ assert not guard.may_defer_incomplete_eps(NEW,'2026-08-30T02:00',healthy,False,n
 import inspect
 main_source=inspect.getsource(guard.main)
 assert 'listing=bounded_eps_listing_complete(dwd)' in main_source
-assert 'now=dt.datetime.now(dt.timezone.utc)' in main_source
+# Verify the same injected instant reaches the real EPS deferral decision.
+with mock.patch.object(guard,'newest_common_run',return_value=NEW), \
+     mock.patch.object(guard,'published_meta',return_value=healthy), \
+     mock.patch.object(guard,'bounded_eps_listing_complete',return_value=False), \
+     mock.patch.object(guard,'may_defer_incomplete_eps',wraps=guard.may_defer_incomplete_eps) as defer, \
+     mock.patch.object(guard,'report_run'), \
+     mock.patch.object(sys,'argv',['guard.py']), \
+     mock.patch.dict(os.environ,{'GITHUB_OUTPUT':'','GITHUB_STEP_SUMMARY':'',
+                                 'MID_RUC_MAX_AGE_MINUTES':str(guard.DEFAULT_MAX_AGE_MINUTES)}):
+    with contextlib.redirect_stdout(io.StringIO()):
+        assert guard.main(now=clock)==0
+    defer.assert_called_once_with(NEW,'2026-08-30T02:00',healthy,False,
+                                  now=clock,max_age_minutes=guard.DEFAULT_MAX_AGE_MINUTES)
 
 print('RUC EPS advertised-incomplete 20x28 directory guard: fail-open negatives and healthy-only wait PASS')
+
+# MID LC 1.18 regression: a genuinely expired newest common DWD/EPS
+# directory must fail explicitly BEFORE expensive pip/ecCodes/GRIB steps.
+# A stale Pages pointer is never a healthy outcome or an EPS value of zero.
+RUC_NOW=dt.datetime(2026,11,18,9,11,tzinfo=dt.timezone.utc)
+for source,expected in [
+    ('2026-11-17T22:00',True),('2026-11-18T06:00',False),
+    ('2026-11-18T05:11',False),('2026-11-18T05:10',True),
+    ('2026-11-18T10:00',False),('2026-02-30T00:00',False),
+    ('not-a-run',False)]:
+    assert guard.joint_run_expired(source,now=RUC_NOW)==expected, source
+assert guard.joint_run_expired('2026-11-18T05:11',now=RUC_NOW,max_age_minutes=200)
+assert guard.joint_run_expired('2026-11-17T22:00',now=RUC_NOW,max_age_minutes=600)
+assert not guard.joint_run_expired('2026-11-17T22:00',now=RUC_NOW,max_age_minutes=0)
+assert not guard.joint_run_expired('2026-11-17T22:00',now=RUC_NOW.replace(tzinfo=None))
+# Test the ACTUAL main() fail-fast path without a DWD network request.
+with tempfile.TemporaryDirectory() as directory:
+    output=Path(directory)/'github_outputs.txt'
+    summary=Path(directory)/'summary.md'
+    with mock.patch.object(guard,'newest_common_run',return_value='2026-11-17T22:00'), \
+         mock.patch.object(guard,'published_meta',return_value=meta('2026-11-17T07:00')), \
+         mock.patch.object(guard,'report_run'), \
+         mock.patch.object(sys,'argv',['guard.py','--github-output',str(output)]), \
+         mock.patch.dict(os.environ,{'GITHUB_STEP_SUMMARY':str(summary)}):
+        out=io.StringIO();err=io.StringIO()
+        with contextlib.redirect_stdout(out),contextlib.redirect_stderr(err):
+            code=guard.main(now=RUC_NOW)
+    # This is a red job by design; no deceptive success or publisher dispatch.
+    assert code==1
+    assert '::error::' in err.getvalue() and 'kein Decode/Release' in err.getvalue()
+    result=dict(line.split('=',1) for line in output.read_text().strip().splitlines())
+    assert result['should_run']=='false'
+    assert result['published_run']=='2026-11-17T07:00'
+    assert result['dwd_run']=='2026-11-17T22:00'
+    metrics=json.loads(result['freshness_metrics'])
+    assert metrics['shouldRun'] is False and metrics['reason']==result['reason']
+    assert metrics['upstreamRunAgeMinutes']==671
+    assert 'RUC-Aktualitätsdiagnostik' in summary.read_text()
+print('RUC expired joint source: no wasted decode, explicit failure and NoData preserved PASS')
+
+# An expired source must not override the existing recovery path when Pages metadata is invalid.
+with tempfile.TemporaryDirectory() as directory:
+    output=Path(directory)/'github_outputs.txt'
+    with mock.patch.object(guard,'newest_common_run',return_value='2026-11-17T22:00'), \
+         mock.patch.object(guard,'published_meta',return_value={}), \
+         mock.patch.object(sys,'argv',['guard.py','--github-output',str(output)]), \
+         mock.patch.dict(os.environ,{'GITHUB_STEP_SUMMARY':str(Path(directory)/'summary.md')}):
+        with contextlib.redirect_stdout(io.StringIO()),contextlib.redirect_stderr(io.StringIO()):
+            assert guard.main(now=RUC_NOW)==0
+    result=dict(line.split('=',1) for line in output.read_text().strip().splitlines())
+    assert result['should_run']=='true'

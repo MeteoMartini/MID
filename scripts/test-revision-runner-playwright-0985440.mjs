@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 const canonical=readFileSync(new URL('../ci/github/workflows/mid-code-revision.yml',import.meta.url),'utf8');
 const mirrored=readFileSync(new URL('../.github/workflows/mid-code-revision.yml',import.meta.url),'utf8');
 const browserJobs=['revision_regressions','ci','nightly','performance'];
@@ -28,4 +30,28 @@ const unsafe=canonical.replace('  revision_regressions:\n','  revision_regressio
 const broken=unsafe.replace(/(  revision_regressions:\n[\s\S]*?)    runs-on: ubuntu-24\.04/,'$1    runs-on: ubuntu-latest');
 assert.notEqual(broken,canonical,'Negativprobe muss den Runner wirklich verändern');
 assert.throws(()=>requireCompatibleRunners(broken),/Ungeprüfter Browser-Runner/,'Ein ubuntu-latest-Rückfall muss entdeckt werden');
-console.log('MID-Revision: vier Browserjobs auf Ubuntu 24.04, Mirror, Testmatrix und negative Runner-Probe geprüft.');
+
+const dependencyAuditCanonical=readFileSync(new URL('../ci/github/workflows/dependency-audit.yml',import.meta.url),'utf8');
+const dependencyAuditMirror=readFileSync(new URL('../.github/workflows/dependency-audit.yml',import.meta.url),'utf8');
+function requireCompatibleDependencyAuditRunner(document){
+ const section=jobSection(document,'audit');
+ assert.match(section,/^    runs-on: ubuntu-24\.04$/m,'Ungeprüfter Dependency-Audit-Browser-Runner');
+ assert.doesNotMatch(section,/^    runs-on: ubuntu-latest$/m,'Ungeprüfter Dependency-Audit-Browser-Runner');
+ for(const originalCheck of ['npm run audit:all','npm run test:maintenance-08260','npm run test:regressions']){
+  assert.ok(section.includes(originalCheck),`Pflichtprüfung im Dependency-Audit fehlt: ${originalCheck}`);
+ }
+}
+assert.equal(dependencyAuditMirror,dependencyAuditCanonical,'Dependency-Audit: beide Workflowspiegel müssen byteidentisch sein');
+requireCompatibleDependencyAuditRunner(dependencyAuditCanonical);
+assert.equal((dependencyAuditCanonical.match(/^    runs-on: ubuntu-24\.04$/gm)||[]).length,1,'Dependency-Audit: genau ein expliziter kompatibler Browser-Runner');
+const dependencyAuditBroken=dependencyAuditCanonical.replace(/^    runs-on: ubuntu-24\.04$/m,'    runs-on: ubuntu-latest');
+assert.notEqual(dependencyAuditBroken,dependencyAuditCanonical,'Dependency-Audit-Negativfixture muss Runner verändern');
+assert.throws(()=>requireCompatibleDependencyAuditRunner(dependencyAuditBroken),/Ungeprüfter Dependency-Audit-Browser-Runner/,'Dependency-Audit darf nicht auf ubuntu-latest zurückfallen');
+
+console.log('MID-Revision: vier Revisions-Browserjobs und Dependency-Audit auf Ubuntu 24.04, Spiegel, Pflichtregressionen und Negativproben geprüft.');
+
+// Frozen Logicc candidate: exercise original offline diagnostics in the existing mandatory regression.
+const logiccWorker=fileURLToPath(new URL('../docs/implementation/logicc-gateway/worker.mjs',import.meta.url));
+const logiccDiagnostics=fileURLToPath(new URL('../docs/implementation/logicc-gateway/diagnostics.test.mjs',import.meta.url));
+execFileSync(process.execPath,['--check',logiccWorker],{stdio:'inherit',timeout:15000});
+execFileSync(process.execPath,['--test',logiccDiagnostics],{stdio:'inherit',timeout:30000});

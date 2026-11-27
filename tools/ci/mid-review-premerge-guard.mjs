@@ -6,7 +6,16 @@ import {pathToFileURL} from 'node:url';
 const REPO='MeteoMartini/MID',SHA=/^[a-f0-9]{40}$/;
 const BRANCH=/^(chatgpt|codex)\/[^/]+(?:\/[^/]+)*$/;
 const QUERY='query($owner:String!,$name:String!,$number:Int!,$threadAfter:String,$reviewAfter:String){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid headRefName baseRefName isDraft state reviewThreads(first:100,after:$threadAfter){nodes{id isResolved isOutdated}pageInfo{hasNextPage endCursor}} reviews(first:100,after:$reviewAfter){nodes{id state author{login} submittedAt}pageInfo{hasNextPage endCursor}}}}}';
-const block=reason=>({ok:false,reason:'MID_REVIEW_'+reason,mergeAuthorized:false,releaseAuthorized:false});
+const block=(reason,counts={})=>({ok:false,reason:'MID_REVIEW_'+reason,mergeAuthorized:false,releaseAuthorized:false,
+ openThreads:null,resolvedThreads:null,activeChangeRequests:null,...counts});
+
+// Counts are observations, not a count of unique defects or review approval.
+// Unknown/incomplete evidence is never printed as zero. Never include review text in annotations.
+export function formatMidReviewBlock(d){
+ const count=value=>Number.isSafeInteger(value)&&value>=0?String(value):'unknown';
+ return 'MID review BLOCKED: '+d.reason+'; open_threads='+count(d.openThreads)+
+  '; resolved_threads='+count(d.resolvedThreads)+'; active_change_requests='+count(d.activeChangeRequests);
+}
 
 export function assessMidPremerge({before,after,main,stable,data,number,sha,branch,sourceBaseSha,recovery}={}){
  if(!Number.isSafeInteger(number)||number<1||!SHA.test(sha??'')||!BRANCH.test(branch??''))return block('BAD_INPUT');
@@ -23,18 +32,20 @@ export function assessMidPremerge({before,after,main,stable,data,number,sha,bran
  if(p?.number!==number||p.headRefOid!==sha||p.headRefName!==branch||
     p.baseRefName!=='main'||p.state!=='OPEN'||p.isDraft!==false)return block('GRAPHQL_PR_DRIFT');
  const threadIds=new Set();
+ let openThreads=0;
  for(const t of data.threads){
   if(typeof t?.id!=='string'||!t.id||threadIds.has(t.id)||
     typeof t.isResolved!=='boolean'||typeof t.isOutdated!=='boolean')return block('BAD_THREAD');
   threadIds.add(t.id);
-  if(!t.isResolved)return block('OPEN_THREAD');
+  if(!t.isResolved)openThreads++;
  }
+ const threadCounts={openThreads,resolvedThreads:data.threads.length-openThreads};
  const reviewIds=new Set(),requests=new Set();
  for(const r of data.reviews){
   if(typeof r?.id!=='string'||!r.id||reviewIds.has(r.id)||
      typeof r.author?.login!=='string'||!r.author.login||
      !['APPROVED','CHANGES_REQUESTED','COMMENTED','DISMISSED','PENDING'].includes(r.state)||
-     (r.state!=='PENDING'&&!Number.isFinite(Date.parse(r.submittedAt??''))))return block('BAD_REVIEW');
+     (r.state!=='PENDING'&&!Number.isFinite(Date.parse(r.submittedAt??''))))return block('BAD_REVIEW',threadCounts);
   reviewIds.add(r.id);
  }
  // A PENDING draft review has no submittedAt. Including it in Date.parse
@@ -53,7 +64,7 @@ export function assessMidPremerge({before,after,main,stable,data,number,sha,bran
  for(const states of tied.values())
   if(states.has('CHANGES_REQUESTED')&&
     (states.has('APPROVED')||states.has('DISMISSED')))
-   return block('AMBIGUOUS_REVIEW_ORDER');
+   return block('AMBIGUOUS_REVIEW_ORDER',threadCounts);
  for(const r of submitted){
   const author=r.author.login.toLowerCase();
   if(r.state==='CHANGES_REQUESTED')requests.add(author);
@@ -61,8 +72,10 @@ export function assessMidPremerge({before,after,main,stable,data,number,sha,bran
   // A separate DISMISSED approval is not evidence that this author's
   // outstanding CHANGES_REQUESTED was dismissed. Fail closed without identity.
  }
- if(requests.size)return block('CHANGES_REQUESTED');
- return {ok:true,reason:'READBACK_CLEAN',threadCount:data.threads.length,reviewCount:data.reviews.length,
+ const counts={...threadCounts,activeChangeRequests:requests.size};
+ if(openThreads)return block('OPEN_THREAD',counts);
+ if(requests.size)return block('CHANGES_REQUESTED',counts);
+ return {ok:true,reason:'READBACK_CLEAN',threadCount:data.threads.length,reviewCount:data.reviews.length,...counts,
   // GitHub conversation state is not independent reviewer attestation.
   independentlyReviewed:false,reviewDispositionAttested:false,
   mergeAuthorized:false,releaseAuthorized:false,nativeEnforcementRequired:true};
@@ -144,10 +157,10 @@ export async function runMidReviewGuard(env=process.env){
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  try{
   const d=await runMidReviewGuard();
-  if(!d.ok){process.stderr.write('MID review BLOCKED: '+d.reason+'\n');process.exitCode=1;}
+  if(!d.ok){process.stderr.write('::error::'+formatMidReviewBlock(d)+'\n');process.exitCode=1;}
   else process.stdout.write('MID review readback verified ('+d.threadCount+' threads, '+d.reviewCount+' reviews). Native merge-time rule still mandatory.\n');
  }catch{
-  process.stderr.write('MID review BLOCKED: UNAVAILABLE_OR_INCONSISTENT_GITHUB_EVIDENCE\n');
+  process.stderr.write('::error::'+formatMidReviewBlock(block('UNAVAILABLE_OR_INCONSISTENT_GITHUB_EVIDENCE'))+'\n');
   process.exitCode=1;
  }
 }

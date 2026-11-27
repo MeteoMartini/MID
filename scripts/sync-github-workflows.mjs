@@ -39,6 +39,7 @@ export const managedFiles=[
  ['workflows/install-mid.yml','workflows/install-mid.yml'],
  ['workflows/release-timing-audit.yml','workflows/release-timing-audit.yml'],
  ['workflows/release-train-preflight.yml','workflows/release-train-preflight.yml'],
+ ['workflows/mid-pr-intake.yml','workflows/mid-pr-intake.yml'],
  ['workflows/chatgpt-pr-gate.yml','workflows/chatgpt-pr-gate.yml'],
  ['workflows/replit-handoff-gate.yml','workflows/replit-handoff-gate.yml'],
  ['workflows/agent-source-release.yml','workflows/agent-source-release.yml'],

@@ -27,6 +27,11 @@ jobs:
       contents: read
 
     steps:
+      - name: Legacy-Dist-Deploy bei aktiver Fast Lane sperren
+        if: vars.MID_RUC_FAST_PAGES_ENABLED == 'true'
+        run: |
+          echo "::error::Fast-Lane-retaining app releases must use the protected MID Installer."
+          exit 1
       - name: Repository laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

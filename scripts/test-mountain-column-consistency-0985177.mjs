@@ -19,6 +19,46 @@ const points=context.configuredPoints(loc,config);assert.ok(points.every(p=>p.la
 assert.equal(context.configuredPoints(loc,{...config,summitLatitude:47.01})[2].latitude,47.01,'Real horizontal coordinates must not be collapsed into an artificial common column');
 const result=await context.mountainSportsForecast(loc,config);
 await new Promise(resolve=>setImmediate(resolve));
+// The original Best-Match query does not depend on the UI season. Previously
+// the season in the cache key forced redundant network fetches after each toggle.
+const coreCalls=()=>requests.filter(q=>q.get('past_hours')==='24').length;
+const initialCoreCalls=coreCalls();
+assert.equal(initialCoreCalls,1,'The initial mountain core response must be one complete request');
+const summerUpdates=[];
+const summer=await context.mountainSportsForecast(loc,{...config,season:'summer'},undefined,update=>{
+ if(update.forecast)summerUpdates.push(update.forecast);
+});
+const winter=await context.mountainSportsForecast(loc,{...config,season:'winter'});
+const autoAgain=await context.mountainSportsForecast(loc,{...config,season:'auto'});
+assert.equal(coreCalls(),initialCoreCalls,'Summer/winter/auto toggles must reuse original meteorological core data');
+assert.equal(summer.season,'summer');
+assert.equal(winter.season,'winter');
+assert.equal(autoAgain.season,result.season,'Auto must be inferred from source valid times, not cached UI state');
+assert.notStrictEqual(summer,winter,'Season-specific views must not alias the mutable cache object');
+assert.strictEqual(summer.levels,winter.levels,'Meteorological source levels must remain identical across seasons');
+assert.ok(summerUpdates.every(f=>f.season==='summer'),'Late enrichment must not restore the winter presentation in summer mode');
+await new Promise(resolve=>setImmediate(resolve));
+assert.ok(summerUpdates.every(f=>f.season==='summer'),'Async enrichment must retain the requesting season');
+// An old, aborted winter enrichment may finish after a new summer request.
+// The newly observed async forecast must still carry the summer projection.
+const originalFetch=context.guardedOpenMeteoFetch;
+context.guardedOpenMeteoFetch=async (...args)=>{
+ if(new URL(args[0]).searchParams.get('elevation')==='nan')await new Promise(resolve=>setTimeout(resolve,30));
+ return originalFetch(...args);
+};
+const locationAfterAbort={...loc,latitude:loc.latitude+.01};
+const winterAbort=new AbortController();
+await context.mountainSportsForecast(locationAfterAbort,{...config,season:'winter'},winterAbort.signal);
+winterAbort.abort();
+const observedSummerUpdates=[];
+const freshSummer=await context.mountainSportsForecast(locationAfterAbort,{...config,season:'summer'},undefined,update=>{
+ if(update.forecast)observedSummerUpdates.push(update.forecast);
+});
+await new Promise(resolve=>setTimeout(resolve,65));
+assert.equal(freshSummer.season,'summer','A season projection must be correct while enrichment is pending');
+assert.ok(observedSummerUpdates.some(f=>f.season==='summer'),'Delayed original diagnostic must reach the current summer listener');
+assert.ok(observedSummerUpdates.every(f=>f.season==='summer'),'Aborted winter enrichment must not reactivate winter rendering');
+context.guardedOpenMeteoFetch=originalFetch;
 assert.ok(requests.length>=3);
 assert.ok(requests.every(q=>q.get('cell_selection')==='nearest'),'Surface, regional and atmospheric diagnostics must not switch grid cells with selected elevation');
 assert.ok(requests.some(q=>q.get('elevation')==='1352,2081,3340'),'Surface downscaling must retain actual selected station elevations');

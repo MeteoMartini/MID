@@ -1,6 +1,8 @@
 import {createContext,useContext,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {rasterTileRetryDelayMs} from './mapLayerRecovery';
 import {createMapLayerOrderScheduler} from './mapLayerOrderScheduler';
+import {abandonMissingQuadFade} from './mapQuadFadeLiveness';
+import {createMapCanvasRedrawScheduler,mapCanvasCrossfadeBackingSize,shouldCrossfadeMapCanvas,withCanvasFadeRollback,restoreCanvasFromSnapshot} from './mapCanvasCrossfadePolicy';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './mapPopupTheme.css';
@@ -32,9 +34,6 @@ export function MidMapLibre({center,zoom,minZoom=2,maxZoom=14,className,scrollZo
   mapRef.current=map;map.touchZoomRotate.disableRotation();map.touchPitch.disable();
   if(attributionControl)map.addControl(new maplibregl.AttributionControl({compact:true}),'bottom-right');
   if(navigationControl)map.addControl(new maplibregl.NavigationControl({showCompass:false,visualizePitch:false}),'top-right');
-  // MapLibre rebuilds its style after GPU recovery. MID's React layer subtree
-  // is unmounted while lost: remount only after style.load, not on the earlier
-  // webglcontextrestored event (sources may still be unavailable then).
   let contextWasLost=false;
   const handleLoad=()=>{setMapError(null);setLoaded(true);statusRef.current?.('ready')},handleClick=(event:maplibregl.MapMouseEvent)=>onClick?.(event.lngLat.lat,event.lngLat.lng);
   const handleContextLost=(event:Event)=>{event.preventDefault();contextWasLost=true;setLoaded(false);setMapError('WebGL-Kontext verloren');statusRef.current?.('error')};
@@ -210,8 +209,95 @@ export function HtmlMarker({latitude,longitude,html,className='',anchor='bottom'
 
 export function CanvasOverlay({id,opacity=1,zIndex=5,render,events=['moveend','zoomend','resize'] as const}:{id:string;opacity?:number;zIndex?:number;render:(map:MidMap,canvas:HTMLCanvasElement)=>void;events?:readonly ('moveend'|'zoomend'|'resize'|'render')[]}){
  const map=useMidMap(),canvasRef=useRef<HTMLCanvasElement|null>(null),renderRef=useRef(render),opacityRef=useRef(opacity);renderRef.current=render;opacityRef.current=opacity;
- useEffect(()=>{if(!map)return;let raf=0;const canvas=document.createElement('canvas');canvasRef.current=canvas;canvas.className=`mid-maplibre-canvas ${safeId(id)}`;Object.assign(canvas.style,{position:'absolute',inset:'0',pointerEvents:'none',zIndex:String(zIndex),opacity:String(opacityRef.current)});map.getCanvasContainer().appendChild(canvas);const redraw=()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;renderRef.current(map,canvas)})};for(const event of events)map.on(event,redraw);return()=>{cancelAnimationFrame(raf);for(const event of events)map.off(event,redraw);canvas.remove();canvasRef.current=null}},[map,id,zIndex,events.join('|')]);
- useEffect(()=>{const canvas=canvasRef.current;if(!map||!canvas)return;const old=document.createElement('canvas');old.width=canvas.width;old.height=canvas.height;old.style.cssText=canvas.style.cssText;old.getContext('2d')?.drawImage(canvas,0,0);canvas.before(old);render(map,canvas);canvas.style.transition='none';canvas.style.opacity='0';let raf=requestAnimationFrame(()=>{canvas.style.transition='opacity 350ms linear';old.style.transition='opacity 350ms linear';canvas.style.opacity=String(opacityRef.current);old.style.opacity='0'});const timer=window.setTimeout(()=>old.remove(),380);return()=>{cancelAnimationFrame(raf);window.clearTimeout(timer);old.remove();canvas.style.transition='none';canvas.style.opacity=String(opacityRef.current)}},[map,render]);
+ useEffect(()=>{if(!map)return;
+  const canvas=document.createElement('canvas');canvasRef.current=canvas;
+  canvas.className=`mid-maplibre-canvas ${safeId(id)}`;
+  Object.assign(canvas.style,{position:'absolute',inset:'0',pointerEvents:'none',zIndex:String(zIndex),opacity:String(opacityRef.current)});
+  map.getCanvasContainer().appendChild(canvas);
+  // Hidden-tab MapLibre events must not queue cosmetic redraw work.
+  // Upon return, redraw the latest in-memory overlay exactly once.
+  const scheduler=createMapCanvasRedrawScheduler(
+   ()=>renderRef.current(map,canvas),
+   callback=>requestAnimationFrame(callback),
+   handle=>cancelAnimationFrame(handle),
+   ()=>document.visibilityState==='visible'
+  );
+  const redraw=()=>scheduler.request();
+  const onVisibility=()=>scheduler.visibilityChange(document.visibilityState==='visible');
+  for(const event of events)map.on(event,redraw);
+  document.addEventListener('visibilitychange',onVisibility);
+  return()=>{
+   document.removeEventListener('visibilitychange',onVisibility);
+   scheduler.dispose();
+   for(const event of events)map.off(event,redraw);
+   canvas.remove();canvasRef.current=null
+  };
+ },[map,id,zIndex,events.join('|')]);
+ useEffect(()=>{const canvas=canvasRef.current;if(!map||!canvas)return;
+  // Data/prop refreshes also reach this effect while the tab is hidden.
+  // The visibility scheduler above will paint renderRef.current on return;
+  // avoid a redundant background draw or a stale meteorological canvas.
+  if(document.visibilityState!=='visible'){
+   canvas.style.transition='none';
+   canvas.style.opacity=String(Math.max(0,Math.min(1,opacityRef.current)));
+   return;
+  }
+  // A cosmetic fade must not clone a multi-megapixel canvas on mobile,
+  // during backgrounding or for users who request reduced motion.
+  const saveData=(navigator as Navigator&{connection?:{saveData?:boolean}}).connection?.saveData===true;
+  // MapLibre has an actual device-pixel backing store. An untouched overlay
+  // starts at the HTML default 300x150 and would understate retina-map cost.
+  const backing=mapCanvasCrossfadeBackingSize(canvas,map.getCanvas());
+  const animate=shouldCrossfadeMapCanvas({
+   width:backing?.width??0,height:backing?.height??0,
+   visible:document.visibilityState==='visible',
+   reducedMotion:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches===true,
+   saveData
+  });
+  if(!animate){
+   render(map,canvas);
+   canvas.style.transition='none';
+   canvas.style.opacity=String(Math.max(0,Math.min(1,opacityRef.current)));
+   return;
+  }
+  const old=document.createElement('canvas');old.width=canvas.width;old.height=canvas.height;
+  old.style.cssText=canvas.style.cssText;old.getContext('2d')?.drawImage(canvas,0,0);
+  canvas.before(old);
+  let raf=0,timer=0,settled=false;
+  // Hidden tabs may throttle RAF while allowing cleanup timers to advance.
+  // Complete an already painted frame atomically: no transparent flash on return.
+  function finishFade(){
+   if(settled)return;
+   settled=true;
+   document.removeEventListener('visibilitychange',onVisibility);
+   cancelAnimationFrame(raf);window.clearTimeout(timer);old.remove();
+   // TypeScript must re-check this captured DOM ref inside the delayed
+   // callback; React's outer effect guard does not narrow future closures.
+   if(canvas){
+    canvas.style.transition='none';
+    canvas.style.opacity=String(Math.max(0,Math.min(1,opacityRef.current)));
+   }
+  }
+  function onVisibility(){if(document.visibilityState!=='visible')finishFade()}
+  // Rendering or scheduling can fail after the previous image is inserted.
+  // Always dispose that temporary image and restore the canvas before rethrow.
+  withCanvasFadeRollback(()=>{
+   render(map,canvas);canvas.style.transition='none';canvas.style.opacity='0';
+   raf=requestAnimationFrame(()=>{
+    if(settled)return;
+    canvas.style.transition='opacity 350ms linear';old.style.transition='opacity 350ms linear';
+    canvas.style.opacity=String(opacityRef.current);old.style.opacity='0';
+   });
+   timer=window.setTimeout(finishFade,380);
+   document.addEventListener('visibilitychange',onVisibility);
+   if(document.visibilityState!=='visible')finishFade();
+  },()=>{
+   // The failed renderer may have cleared/resized canvas: restore previous
+   // actual pixels before finishFade destroys the only snapshot.
+   try{restoreCanvasFromSnapshot(canvas,old)}finally{finishFade()}
+  });
+  return finishFade
+ },[map,render]);
  useEffect(()=>{if(canvasRef.current)canvasRef.current.style.opacity=String(Math.max(0,Math.min(1,opacity)))},[opacity]);return null;
 }
 
@@ -244,13 +330,28 @@ export function ImageQuadLayer({id,url,bounds,opacity=1,zIndex=0,resampling='lin
    frames.current=previous?[previous,next]:[next];
    const start=performance.now(),duration=window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:350;
    fading.current=true;
+   const abandonFade=()=>{
+    const abandoned=abandonMissingQuadFade(fading,frames,remove);
+    // Never attribute an obsolete frame failure to a newer selected term.
+    if(abandoned.abandoned&&active)errorRef.current?.('Das Kartenbild konnte nicht angezeigt werden.');
+   };
    const fade=(now:number)=>{
-    if(!map.getLayer(layer))return;
-    const t=duration?Math.max(0,Math.min(1,(now-start)/duration)):1;
-    next.weight=t;map.setPaintProperty(layer,'raster-opacity',t*opacityRef.current);
-    if(previous&&map.getLayer(previous.layer)){previous.weight=1-t;map.setPaintProperty(previous.layer,'raster-opacity',(1-t)*opacityRef.current)}
-    if(t<1)animation.current=requestAnimationFrame(fade);
-    else{if(previous)remove(previous);frames.current=[next];fading.current=false;onDisplayed?.()}
+    try{
+     // A style/GPU rebuild may remove the layer between paint frames.
+     // Never leave fading.current latched: the next image would poll forever.
+     if(!map.getLayer(layer)){abandonFade();return}
+     const t=duration?Math.max(0,Math.min(1,(now-start)/duration)):1;
+     next.weight=t;map.setPaintProperty(layer,'raster-opacity',t*opacityRef.current);
+     if(previous&&map.getLayer(previous.layer)){previous.weight=1-t;map.setPaintProperty(previous.layer,'raster-opacity',(1-t)*opacityRef.current)}
+     if(t<1){animation.current=requestAnimationFrame(fade);return}
+     if(previous)remove(previous);frames.current=[next];fading.current=false;
+    }catch{
+     // A lost renderer/style is NOT evidence of missing radar or dry weather.
+     // Do not call onReady or mark an original time as successfully painted.
+     abandonFade();return;
+    }
+    // Consumer exceptions are not renderer failures; preserve their original propagation.
+    onDisplayed?.();
    };
    animation.current=requestAnimationFrame(fade);
   };

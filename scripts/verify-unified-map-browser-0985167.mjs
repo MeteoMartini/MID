@@ -178,6 +178,13 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
    console.error('Selected source term did not commit',{expected:value,detail});
    throw error;
   });
+  // The React source-select can commit before the visible native range.
+  // Wait for both controls to reflect the exact same selected source term.
+  await page.waitForFunction(expected=>{
+   const select=document.querySelector('select[aria-label="Kartentermin auswählen"]');
+   const range=document.querySelector('.composite-timeline-range input[type="range"]');
+   return select?.value===expected&&range?.value===expected;
+  },value,{timeout:5000});
   assert.equal(await timelineRange.inputValue(),value,'Visible range and exact source term stay synchronized');
  }
  await chooseTerm('0');
@@ -540,7 +547,17 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  });
  const gdpsWeatherGetMaps=()=>requests.filter(value=>{const url=new URL(value);return url.searchParams.get('layers')==='GDPS_15km_PrecipType-Instant'&&url.searchParams.get('request')?.toLowerCase()==='getmap'});
  assert.ok(gdpsWeatherGetMaps().length>0,'Visible retry follows an actual GDPS weather GetMap');
- failGdps=false;const beforeRetry=gdpsWeatherGetMaps().length;await page.getByRole('button',{name:'Wolken und Wetter erneut laden'}).click();await page.waitForFunction(()=>{const text=document.querySelector('.unified-layer-status')?.textContent||'';return text.includes('INIT')&&!text.includes('wird geprüft')&&!text.includes('laden')});assert.ok(gdpsWeatherGetMaps().length>beforeRetry,'Retry requests a fresh failed GDPS source');assert.equal(await page.getByRole('button',{name:'Linien',exact:true}).isDisabled(),true);assert.ok(requests.some(u=>u.includes('layers=GDPS_15km_PrecipType-Instant')&&u.includes('dim_reference_time=')),'Combined GDPS uses instant precipitation type with explicit init');await page.locator('.cloud-weather-legend summary').click();assert.match(await page.locator('.cloud-weather-legend').innerText(),/Keine vollständige Nebel/);
+ failGdps=false;const beforeRetry=gdpsWeatherGetMaps().length;
+ // A recovered original source may unmount the retry button before click.
+ // Accept that only if a fresh GDPS GetMap and ready INIT prove recovery.
+ let retryClickError=null;
+ try{await page.getByRole('button',{name:'Wolken und Wetter erneut laden'}).click()}
+ catch(error){retryClickError=error}
+ if(retryClickError)assert.equal(await page.getByRole('button',{name:'Wolken und Wetter erneut laden'}).count(),0,
+  'Only an actually removed GDPS retry button may enter verified original recovery after click failure');
+ await page.waitForFunction(()=>{const text=document.querySelector('.unified-layer-status')?.textContent||'';return text.includes('INIT')&&!text.includes('wird geprüft')&&!text.includes('laden')}).catch(error=>{throw retryClickError||error});
+ assert.ok(gdpsWeatherGetMaps().length>beforeRetry,'Retry or verified original recovery must issue a fresh GDPS GetMap');
+ if(retryClickError)console.log('Original GDPS auto recovery verified after retry button unmount');assert.equal(await page.getByRole('button',{name:'Linien',exact:true}).isDisabled(),true);assert.ok(requests.some(u=>u.includes('layers=GDPS_15km_PrecipType-Instant')&&u.includes('dim_reference_time=')),'Combined GDPS uses instant precipitation type with explicit init');await page.locator('.cloud-weather-legend summary').click();assert.match(await page.locator('.cloud-weather-legend').innerText(),/Keine vollständige Nebel/);
  await page.getByLabel('Modell für Parameter').selectOption('icon-d2');await page.getByRole('button',{name:'Raster + Ortswerte · SVG'}).waitFor();await page.waitForFunction(()=>document.querySelector('.unified-favorites tbody')?.textContent.includes('15 % Wolken'));assert.match(await page.locator('.cloud-weather-legend').innerText(),/Modell-Wolkenbild/);assert.equal(await page.locator('.maplibregl-map').getAttribute('data-qa-identity'),'original');await verifyGroupedSelectors(page);
  await page.getByLabel('Modell für Parameter').selectOption('icon-eu');await page.waitForFunction(()=>document.querySelector('.unified-favorites tbody')?.textContent.includes('75 % Wolken'));const euCloudLabel=await page.getByLabel('Modell für Parameter').locator('option[value="icon-eu"]').innerText();assert.match(euCloudLabel,/🇩🇪 DWD ICON-EU · 14 km Raster/,'ICON-EU cloud/WW selector uses verified native 14 km grid, never WMS 0,0625°');if(width===390&&theme==='light'&&design==='next')await page.screenshot({path:'/tmp/mid-cloud-weather-390.png',fullPage:true});
  // .437: phase markers require radar echoes; non-radar model/cloud views must have none.

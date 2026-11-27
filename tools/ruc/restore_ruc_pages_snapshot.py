@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """Preserve the currently deployed free RUC snapshot across normal MID Pages releases."""
 from __future__ import annotations
-import argparse,concurrent.futures,hashlib,http.client,json,shutil,time,urllib.error,urllib.parse,urllib.request
+import argparse,concurrent.futures,hashlib,http.client,json,shutil,time,unicodedata,urllib.error,urllib.parse,urllib.request
 from pathlib import Path
 
 TRANSIENT_HTTP_CODES={429,500,502,503,504,520}
 MAX_RESTORE_WORKERS=8
 DEFAULT_FETCH_RETRIES=4
+# Bound work before constructing canonical ancestor prefixes for each manifest object.
+MAX_RUC_OBJECT_KEY_LENGTH=1024
+MAX_RUC_OBJECT_KEY_SEGMENTS=32
 
 def _retry_delay(url:str,attempt:int,retry_after:str|None=None)->float:
     if retry_after:
@@ -32,6 +35,13 @@ def fetch(url:str,timeout=30,retries=DEFAULT_FETCH_RETRIES)->bytes:
     raise RuntimeError(f'unreachable retry state for {url}')
 
 def sha(data:bytes)->str:return hashlib.sha256(data).hexdigest()
+
+def safe_object_key(key)->bool:
+    return (isinstance(key,str) and 0 < len(key) <= MAX_RUC_OBJECT_KEY_LENGTH and
+            key.count('/') < MAX_RUC_OBJECT_KEY_SEGMENTS and key.startswith('runs/') and
+            not any(mark in key for mark in ('\\','?','#','%')) and
+            not any(ord(char)<32 or ord(char)==127 for char in key) and
+            all(part not in ('','.','..') for part in key.split('/')))
 
 def restore(base:str,target:Path,required=False,workers=16):
     base=base.rstrip('/')+'/'
@@ -61,10 +71,24 @@ def restore(base:str,target:Path,required=False,workers=16):
     if not objects:
         if required: raise RuntimeError('deployed RUC snapshot has no object manifest')
         return False
+    # Validate the whole inventory before starting concurrent writes: two
+    # individually valid entries must never race to the same on-disk path.
+    keys=set();ancestry=set()
+    for row in objects:
+        if not isinstance(row,dict): raise RuntimeError('invalid RUC object manifest entry')
+        key=row.get('key')
+        if not safe_object_key(key):
+            raise RuntimeError(f'unsafe RUC object key: {key}')
+        canonical=unicodedata.normalize('NFC',key.casefold())
+        parts=canonical.split('/')
+        parents={'/'.join(parts[:i]) for i in range(1,len(parts))}
+        if canonical in keys or canonical in ancestry or parents.intersection(keys):
+            raise RuntimeError(f'duplicate RUC object key: {key}')
+        keys.add(canonical);ancestry.update(parents)
     tmp=target.with_name(target.name+'.tmp');shutil.rmtree(tmp,ignore_errors=True);tmp.mkdir(parents=True)
     def one(row):
         key=str(row.get('key') or '')
-        if not key.startswith('runs/') or '..' in key.split('/'): raise RuntimeError(f'unsafe RUC object key: {key}')
+        if not safe_object_key(key): raise RuntimeError(f'unsafe RUC object key: {key}')
         data=fetch(urllib.parse.urljoin(base,key),45)
         if len(data)!=int(row.get('bytes') or -1) or sha(data)!=row.get('sha256'): raise RuntimeError(f'RUC object verification failed: {key}')
         path=tmp/key;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(data)

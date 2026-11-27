@@ -150,6 +150,28 @@ function historicalDisplaySource(name,source){
  }
  const reviewed=reviewedNoDataMountains.get(name);
  if(reviewed){assert.equal(source,reviewed[0],name+': changed v.408 NoData declaration differs from explicitly reviewed source');source=reviewed[1]}
+ // Preserve the approved CSS baseline while checking the exact season/data separation.
+ if(name==='MountainSki')for(const [current,historical] of [
+  [
+    " const[forecastData,setData]",
+    " const[data,setData]"
+  ],
+  [
+    "  // Season is a display choice. Resolve automatic season with the weather data once.\n  mountainSportsForecast(loc,{...config,season:'auto'},controller.signal,update=>{",
+    "  mountainSportsForecast(loc,config,controller.signal,update=>{"
+  ],
+  [
+    "config.enabled,config.middleEnabled,config.valleyElevation,config.valleyName",
+    "config.enabled,config.season,config.middleEnabled,config.valleyElevation,config.valleyName"
+  ],
+  [
+    " const data=forecastData&&config.season!=='auto'&&forecastData.season!==config.season\n  ?{...forecastData,season:config.season}\n  :forecastData;\n",
+    ""
+  ]
+]){
+  assert.equal(source.split(current).length-1,1,'MountainSki .515 reviewed season projection differs: '+current.slice(0,60));
+  source=source.replace(current,historical);
+ }
  if(name==='Widget')for(const [current,historical] of approvedWidgetStorageWiring){
   assert.equal(source.split(current).length-1,1,'Widget v.396 reviewed storage expression must occur exactly once: '+current.slice(0,60));
   source=source.replace(current,historical);
@@ -167,7 +189,7 @@ assert.ok(!app.includes('function storedWidgetSettings('),'Widget implementation
 for(const file of files.keys())assert.ok(!/from ['"]\.\/App['"]|import\(['"]\.\/App['"]\)/.test(read(file)),`${file}: forbidden reverse dependency into App`);
 assert.match(read('src/WidgetGenerator.tsx'),/SevenDayCurveOverview/,'Widget must retain the common curve renderer');
 assert.match(read('src/WidgetGenerator.tsx'),/freezeWidgetSvgPaintsForExport/,'PNG export must retain resolved SVG paints');
-assert.match(read('src/MountainWeather.tsx'),/mountainSportsForecast\(loc,config,controller.signal/,'Mountain data acquisition must retain cancellation');
+assert.match(read('src/MountainWeather.tsx'),/mountainSportsForecast\(loc,\{\.\.\.config,season:'auto'\},controller\.signal/,'Mountain data acquisition must retain cancellation');
 assert.deepEqual(activeCssSources(root),[...baseline.cssSources.filter(file=>file!=='src/midPollen.css'&&file!=='src/midC18MountainResponsiveFix.css'),'src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css','src/midC48TabletTimeline.css'],'Only reviewed Pollen and Mountain CSS may leave the original eager cascade; remaining order stays immutable');
 const originalEntries=loadCssCascade(root).filter(entry=>!['src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css','src/midC28MapPhase.css','src/midC48TabletTimeline.css'].includes(entry.file));
 // QA-only reconstruction of the *immutable* .169 stylesheet fingerprint.
@@ -282,14 +304,15 @@ for(const entry of originalEntries){
  });
 }
 assert.equal(reviewedSearchRoots,1,'Exactly the authorized root overflow rule');
-// .378: on the historical comparison AST only, undo the exact reviewed
-// theme and shared-line changes. Production CSS and the .169 golden remain intact.
+// .378 and the Design 1.12 P2 fine-dot dewpoint legend: undo only the exact
+// reviewed declarations in the HISTORICAL comparison AST. Keep the immutable .169
+// golden, production rules and existing test strength unchanged. Production CSS and the .169 golden remain intact.
 const reviewedThemeColors=[
  [':root','--param-pressure','#8469be','#7b61b7'],
  [':root[data-theme=light]','--param-precipitation-snow','#418bb6','#4f9fc9'],
  [':root[data-theme=light]','--param-sunshine','#a77c00','#bf8d00']
 ];
-const reviewedLineRules=[[".cockpit-meteogram-pro__tooltip-content dt i.dew",0,"background:#71869a","background:var(--param-dewpoint)",1],[".cockpit-meteogram-pro__tooltip-content dt i.rain",0,"background:#2697d8","background:var(--param-precipitation)",1],[".cockpit-meteogram-pro__tooltip-content dt i.wind",0,"background:#3ba66e","background:var(--param-wind)",1],[".cockpit-meteogram-pro__tooltip-content dt i.gust",0,"background:#9c63bb","background:var(--param-gust)",1],[".cockpit-meteogram-pro__tooltip-content dt i.pressure",0,"background:#6d89a5","background:var(--param-pressure)",1],[".cockpit-meteogram-pro__legend i.temperature",0,"width:24px;height:4px;border-radius:999px;background:linear-gradient(90deg,#74b7d8,#ffe391,#f06a46)","width:24px;height:4px;border-radius:999px;background:var(--param-temperature)",1],[".cockpit-weather-profile .cockpit-meteogram-pro__legend i.apparent",0,null,"width:24px;height:2px;border:0;background:repeating-linear-gradient(90deg,var(--apparent-line) 0 5px,transparent 5px 9px)",1],[".cockpit-meteogram-pro__legend i.rain",0,"width:8px;height:14px;border-radius:999px;background:#2697d8","width:8px;height:14px;border-radius:999px;background:var(--param-precipitation)",1],[".cockpit-meteogram-pro__legend i.wind",0,"width:12px;height:12px;border-top:3px solid #3ba66e;border-right:3px solid #3ba66e;transform:rotate(45deg)","width:12px;height:12px;border-top:3px solid var(--param-wind);border-right:3px solid var(--param-wind);transform:rotate(45deg)",1],[".cockpit-weather-profile .gust-line",0,"fill:none;stroke:var(--profile-gust);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:5 4;opacity:.96","fill:none;stroke:var(--profile-gust);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:9 4;opacity:.96",2],[".cockpit-weather-profile .cockpit-meteogram-pro__legend i.dewpoint",0,"width:24px;height:0;border-top:2px dotted var(--profile-dew)","width:24px;height:2px;border:0;background:repeating-linear-gradient(90deg,var(--profile-dew) 0 2px,transparent 2px 7px)",1],[".cockpit-weather-profile .cockpit-meteogram-pro__legend i.probability",0,"width:24px;height:0;border-top:2px dashed var(--profile-prob)","width:24px;height:2px;border:0;background:repeating-linear-gradient(90deg,var(--profile-prob) 0 4px,transparent 4px 7px)",1],[".cockpit-weather-profile .cockpit-meteogram-pro__legend i.gust",0,"width:24px;height:0;border-top:2px dashed var(--profile-gust)","width:24px;height:2px;border:0;background:repeating-linear-gradient(90deg,var(--profile-gust) 0 9px,transparent 9px 13px)",1],[".detaillegend i.gustline",0,"background:repeating-linear-gradient(90deg,var(--param-gust) 0 7px,transparent 7px 11px)!important","background:repeating-linear-gradient(90deg,var(--param-gust) 0 9px,transparent 9px 13px)!important",1],[".detaillegend i.apparent",0,null,"background:repeating-linear-gradient(90deg,var(--apparent-line) 0 5px,transparent 5px 9px)!important",1],[".detaillegend i.probability",0,null,"background:repeating-linear-gradient(90deg,var(--param-precipitation) 0 4px,transparent 4px 7px)!important",1]];
+const reviewedLineRules=[[".cockpit-meteogram-pro__tooltip-content dt i.dew",0,"background:#71869a","background:var(--param-dewpoint)",1],[".cockpit-meteogram-pro__tooltip-content dt i.rain",0,"background:#2697d8","background:var(--param-precipitation)",1],[".cockpit-meteogram-pro__tooltip-content dt i.wind",0,"background:#3ba66e","background:var(--param-wind)",1],[".cockpit-meteogram-pro__tooltip-content dt i.gust",0,"background:#9c63bb","background:var(--param-gust)",1],[".cockpit-meteogram-pro__tooltip-content dt i.pressure",0,"background:#6d89a5","background:var(--param-pressure)",1],[".cockpit-meteogram-pro__legend i.temperature",0,"width:24px;height:4px;border-radius:999px;background:linear-gradient(90deg,#74b7d8,#ffe391,#f06a46)","width:24px;height:4px;border-radius:999px;background:var(--param-temperature)",1],[".cockpit-weather-profile .cockpit-meteogram-pro__legend i.apparent",0,null,"width:24px;height:2px;border:0;background:repeating-linear-gradient(90deg,var(--apparent-line) 0 5px,transparent 5px 9px)",1],[".cockpit-meteogram-pro__legend i.rain",0,"width:8px;height:14px;border-radius:999px;background:#2697d8","width:8px;height:14px;border-radius:999px;background:var(--param-precipitation)",1],[".cockpit-meteogram-pro__legend i.wind",0,"width:12px;height:12px;border-top:3px solid #3ba66e;border-right:3px solid #3ba66e;transform:rotate(45deg)","width:12px;height:12px;border-top:3px solid var(--param-wind);border-right:3px solid var(--param-wind);transform:rotate(45deg)",1],[".cockpit-weather-profile .gust-line",0,"fill:none;stroke:var(--profile-gust);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:5 4;opacity:.96","fill:none;stroke:var(--profile-gust);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:9 4;opacity:.96",2],[".cockpit-weather-profile .cockpit-meteogram-pro__legend i.dewpoint",0,"width:24px;height:0;border-top:2px dotted var(--profile-dew)","width:24px;height:2px;border:0;background:repeating-linear-gradient(90deg,var(--profile-dew) 0 2px,transparent 2px 7px)",1],[".cockpit-weather-profile .cockpit-meteogram-pro__legend i.probability",0,"width:24px;height:0;border-top:2px dashed var(--profile-prob)","width:24px;height:2px;border:0;background:repeating-linear-gradient(90deg,var(--profile-prob) 0 4px,transparent 4px 7px)",1],[".cockpit-weather-profile .cockpit-meteogram-pro__legend i.gust",0,"width:24px;height:0;border-top:2px dashed var(--profile-gust)","width:24px;height:2px;border:0;background:repeating-linear-gradient(90deg,var(--profile-gust) 0 9px,transparent 9px 13px)",1],[".detaillegend i.dewpoint",0,"background:var(--param-dewpoint)!important","background:repeating-linear-gradient(90deg,var(--param-dewpoint) 0 2px,transparent 2px 7px)!important",1],[".detaillegend i.gustline",0,"background:repeating-linear-gradient(90deg,var(--param-gust) 0 7px,transparent 7px 11px)!important","background:repeating-linear-gradient(90deg,var(--param-gust) 0 9px,transparent 9px 13px)!important",1],[".detaillegend i.apparent",0,null,"background:repeating-linear-gradient(90deg,var(--apparent-line) 0 5px,transparent 5px 9px)!important",1],[".detaillegend i.probability",0,null,"background:repeating-linear-gradient(90deg,var(--param-precipitation) 0 4px,transparent 4px 7px)!important",1]];
 for(const entry of originalEntries){
  if(entry.file==='src/styles-src/00-foundation.css')for(const [selector,prop,actual,historical] of reviewedThemeColors){
   // A theme may legitimately have multiple :root blocks. Identify the

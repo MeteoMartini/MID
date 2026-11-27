@@ -10,7 +10,7 @@ const features=fs.readFileSync(path.join(process.cwd(),'src','styles-src','10-fe
 
 const checks=[
   ['trend panel title',source.includes('<h3>Wochenentwicklung</h3>')],
-  ['week blocks start at day 15',source.includes('for(let start=14;start<time.length;start+=7)')],
+  ['week blocks start at day 15 and exclude incomplete 7-day periods',source.includes('for(let start=14;start+7<=time.length;start+=7)')&&source.includes('hasCompleteSubseasonalWeek(time.slice(start,start+7))')&&source.includes('if(!hasConsecutiveSubseasonalDates(time))return weeks')],
   ['ecmwf seasonal endpoint',source.includes("const SEASONAL_ENDPOINT='https://seasonal-api.open-meteo.com/v1/seasonal'")],
   ['ecmwf model explicit',source.includes("models:'ecmwf_ec46'")],
   ['ecmwf exposes 51 members',source.includes("'ECMWF EC46',51,46")],
