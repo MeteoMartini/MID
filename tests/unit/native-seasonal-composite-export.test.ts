@@ -10,6 +10,12 @@ const precip=mk('precipitation',[0,1,2,3]),temperature=mk('temperature',[-2,2,-1
 const raster='data:image/png;base64,AAAA';
 const place=[{name:'Testort & Tal',latitude:50,longitude:7}];
 describe('native paired DWD seasonal export',()=>{
+ it('keeps the original RUC model identity in the shared SVG and rejects mixed-model export',()=>{
+  const ruc=(f:NativeField):NativeField=>({...f,schema:'mid.ruc.map-field.v1',modelId:'icon-d2-ruc',sampling:'nearest-native-cell'});
+  const src=nativeSeasonalSvg('winter-berge',ruc(precip),ruc(temperature),raster,place);
+  expect(src).toContain('ICON-D2-RUC');
+  expect(()=>nativeSeasonalSvg('winter-berge',ruc(precip),temperature,raster,place)).toThrow('kein gemeinsamer');
+ });
  it('exports both variables with the run/term, zero-preserving favorite and explicit provenance',()=>{
   const src=nativeSeasonalSvg('winter-berge',precip,temperature,raster,place,'kn',nativeMapScale(precip,'absolute'));
   expect(src).toContain('Winter &amp; Berge');

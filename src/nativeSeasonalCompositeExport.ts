@@ -5,7 +5,7 @@
  */
 import {nativeFieldSvg} from './nativeModelMapExport';
 import {nativeAnnotationSvg} from './nativeScalarAnnotations';
-import {nativeAt,nativeMapScale,type NativeField} from './nativeModelFields';
+import {nativeAt,nativeMapScale,nativeFieldModel,type NativeField} from './nativeModelFields';
 import {modelMapUnit,modelMapValue} from './modelMapUnits';
 import {mercatorY} from './precipitationTotals';
 import {loadModelMapGeography} from './modelMapGeography';
@@ -75,7 +75,7 @@ export async function exportNativeSeasonal(
    blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('PNG nicht verfügbar.')),'image/png'));
   }finally{URL.revokeObjectURL(url)}
  }
- const filename=`MID-ICON-D2-${id}-${precip.time.slice(0,13).replace(/[^0-9]/g,'')}.${kind}`;
+ const filename=`MID-${nativeFieldModel(precip)==='icon-d2-ruc'?'ICON-D2-RUC':'ICON-D2'}-${id}-${precip.time.slice(0,13).replace(/[^0-9]/g,'')}.${kind}`;
  const file=new File([blob],filename,{type:blob.type}),share={title:'MID · DWD-Saisonkarte',files:[file]};
  if(typeof navigator.share==='function'&&navigator.canShare?.(share)){await navigator.share(share);return}
  const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=filename;
