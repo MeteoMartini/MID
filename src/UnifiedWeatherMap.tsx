@@ -63,7 +63,7 @@ export default function UnifiedWeatherMap(props:Props){
  const [rucCatalog,setRucCatalog]=useState<{index:NativeIndex;base:string}|null>(null);
  const catalog=settings.modelId==='icon-d2-ruc'?rucCatalog:d2Catalog,isNativeModel=['icon-d2','icon-d2-ruc'].includes(settings.modelId);
  const [favoritesOpen,setFavoritesOpen]=useState(false),[pointValues,setPointValues]=useState<Record<string,number|null>>({}),[pointStatus,setPointStatus]=useState('');
- const [metadata,setMetadata]=useState<WeatherMapMetadata|null>(null),[wmsError,setWmsError]=useState(''),[loadedWms,setLoadedWms]=useState<Set<string>>(()=>new Set()),[pressureField,setPressureField]=useState<NativeField|null>(null),[cloudSynopticPressure,setCloudSynopticPressure]=useState<SynopticField|null>(null),[pressureError,setPressureError]=useState('');
+ const [metadata,setMetadata]=useState<WeatherMapMetadata|null>(null),[wmsError,setWmsError]=useState(''),[loadedWms,setLoadedWms]=useState<Set<string>>(()=>new Set()),[pressureField,setPressureField]=useState<NativeField|null>(null),[cloudSynopticPressure,setCloudSynopticPressure]=useState<SynopticField|null>(null),[ordinaryPressureError,setPressureError]=useState(''),[nativeCloudPressureError,setNativeCloudPressureError]=useState(''),[synopticCloudPressureError,setSynopticCloudPressureError]=useState('');
  const fieldCache=useRef(new Map<string,NativeField>());
  const [availability,setAvailability]=useState({forecast:false,observed:false});
  const [wmsCatalog,setWmsCatalog]=useState<WeatherMapCatalog|null>(null);
@@ -156,13 +156,13 @@ export default function UnifiedWeatherMap(props:Props){
  const showIsobars=isSeasonal?false:isCloudWeather?eligibleCloudIsobarModel(modelId)&&cloudIsobars:settings.isobars||(presentation==='lines'&&parameter==='pressure');
  const pressureContours=field?.kind===kind&&nativeFieldModel(field)===modelId&&field.run===catalog?.index.run&&field.isobars.length?field:field&&pressureField?.time===field.time&&pressureField.run===field.run&&nativeFieldModel(pressureField)===modelId&&catalog&&nativeDisplayedFrameEvidence(catalog.index,pressureField)?pressureField:null;
  useEffect(()=>{if(isCloudWeather)return;setPressureField(previous=>previous&&previous.time===field?.time&&nativeFieldModel(previous)===modelId?previous:null);setPressureError('');if(kind==='pressure'||!settings.enabled||!showIsobars||!catalog||!field||nativeFieldModel(field)!==modelId||field.kind!==kind||field?.isobars.length)return;const pressureRef=catalog.index.products.pressure?.frames.find(f=>f.time===field.time);if(!pressureRef)return;const c=new AbortController();void loadNativeField(catalog.index,catalog.base,pressureRef,'pressure',c.signal).then(d=>{if(!c.signal.aborted)setPressureField(d)}).catch(e=>{if(!c.signal.aborted)setPressureError('Zusätzliche Isobaren nicht verfügbar: '+String(e.message||e))});return()=>c.abort()},[settings.enabled,showIsobars,catalog,fieldKey,field,kind]);
- useEffect(()=>{if(!cloudPressureTime||!cloudIsobars||!catalog||!settings.enabled){if(isCloudWeather){setPressureField(null);setNativeContourDone('')}return}
+ useEffect(()=>{if(!cloudPressureTime||!cloudIsobars||!catalog||!settings.enabled){if(isCloudWeather){setPressureField(null);setNativeContourDone('')}setNativeCloudPressureError('');return}
   setPressureField(previous=>previous?.run===catalog.index.run&&previous.time===cloudPressureTime?previous:null);
   const pressureRef=catalog.index.products.pressure?.frames.find(f=>f.time===cloudPressureTime);
-  if(!pressureRef){setPressureError('Isobaren für diesen Modelltermin nicht verfügbar.');return}
-  const c=new AbortController();setPressureError('');setNativeContourDone('');
-  const timer=window.setTimeout(()=>{c.abort();setNativeContourDone(cloudFrameKey);setPressureError('Isobaren: Zeitüberschreitung.')},15000);
-  void loadNativeField(catalog.index,catalog.base,pressureRef,'pressure',c.signal).then(value=>{if(!c.signal.aborted&&value.run===catalog.index.run&&value.time===cloudPressureTime)setPressureField(value)}).catch(error=>{if(!c.signal.aborted)setPressureError('Isobaren nicht verfügbar: '+String(error instanceof Error?error.message:error))}).finally(()=>{window.clearTimeout(timer);if(!c.signal.aborted)setNativeContourDone(cloudFrameKey)});
+  if(!pressureRef){setNativeCloudPressureError('Isobaren für diesen Modelltermin nicht verfügbar.');return}
+  const c=new AbortController();setNativeCloudPressureError('');setNativeContourDone('');
+  const timer=window.setTimeout(()=>{c.abort();setNativeContourDone(cloudFrameKey);setNativeCloudPressureError('Isobaren: Zeitüberschreitung.')},15000);
+  void loadNativeField(catalog.index,catalog.base,pressureRef,'pressure',c.signal).then(value=>{if(!c.signal.aborted&&value.run===catalog.index.run&&value.time===cloudPressureTime)setPressureField(value)}).catch(error=>{if(!c.signal.aborted)setNativeCloudPressureError('Isobaren nicht verfügbar: '+String(error instanceof Error?error.message:error))}).finally(()=>{window.clearTimeout(timer);if(!c.signal.aborted)setNativeContourDone(cloudFrameKey)});
   return()=>{window.clearTimeout(timer);c.abort()};
  },[isCloudWeather,cloudPressureTime,cloudIsobars,catalog,settings.enabled,revision,cloudFrameKey]);
  const synopticCloudModel=synopticCatalog.catalog?.index.models[modelId];
@@ -171,13 +171,15 @@ export default function UnifiedWeatherMap(props:Props){
  const nativePressureMissing=Boolean(!nativePressureFrameListed||(nativeContourDone===cloudFrameKey&&!nativeCloudIsobars(cloudData,verifiedCloudPressure)));
  const needsSynopticCloud=cloudIsoheights||(showIsobars&&nativePressureMissing);
  const synopticCloudTime=cloudData&&needsSynopticCloud&&synopticCloudModel?.run===cloudData.run&&synopticCloudModel.frames.some(f=>f.time===cloudData.time)?cloudData.time:'';
- useEffect(()=>{setCloudSynopticPressure(null);setSynopticContourDone('');if(!synopticCloudTime||!synopticCloudModel||!synopticCatalog.catalog||!cloudData)return;
+ useEffect(()=>{setCloudSynopticPressure(null);setSynopticContourDone('');setSynopticCloudPressureError('');if(!synopticCloudTime||!synopticCloudModel||!synopticCatalog.catalog||!cloudData)return;
   const frame=synopticCloudModel.frames.find(f=>f.time===synopticCloudTime);if(!frame)return;
-  const c=new AbortController();setPressureError('');setSynopticContourDone('');
-  const timer=window.setTimeout(()=>{c.abort();setSynopticContourDone(cloudFrameKey);setPressureError('Synoptische Konturen: Zeitüberschreitung.')},15000);
-  void loadSynopticField(synopticCatalog.catalog.base,modelId,synopticCloudModel,frame,c.signal).then(v=>{if(!c.signal.aborted&&v.model===cloudData.model&&v.run===cloudData.run&&v.time===cloudData.time)setCloudSynopticPressure(v)}).catch(err=>{if(!c.signal.aborted)setPressureError('Synoptische Konturen nicht verfügbar: '+String(err instanceof Error?err.message:err))}).finally(()=>{window.clearTimeout(timer);if(!c.signal.aborted)setSynopticContourDone(cloudFrameKey)});
+  const c=new AbortController();setSynopticCloudPressureError('');setSynopticContourDone('');
+  const timer=window.setTimeout(()=>{c.abort();setSynopticContourDone(cloudFrameKey);setSynopticCloudPressureError('Synoptische Konturen: Zeitüberschreitung.')},15000);
+  void loadSynopticField(synopticCatalog.catalog.base,modelId,synopticCloudModel,frame,c.signal).then(v=>{if(!c.signal.aborted&&v.model===cloudData.model&&v.run===cloudData.run&&v.time===cloudData.time)setCloudSynopticPressure(v)}).catch(err=>{if(!c.signal.aborted)setSynopticCloudPressureError('Synoptische Konturen nicht verfügbar: '+String(err instanceof Error?err.message:err))}).finally(()=>{window.clearTimeout(timer);if(!c.signal.aborted)setSynopticContourDone(cloudFrameKey)});
   return()=>{window.clearTimeout(timer);c.abort()};
  },[synopticCloudTime,synopticCloudModel,synopticCatalog.catalog,modelId,revision,cloudFrameKey]);
+ // Scope messages to the still-requested contour source; a stale disabled layer cannot report an error.
+ const pressureError=isCloudWeather?((cloudIsobars&&cloudPressureTime?nativeCloudPressureError:'')||(needsSynopticCloud&&synopticCloudTime?synopticCloudPressureError:'')):ordinaryPressureError;
  const selectedCloudIsobars=useMemo(()=>cloudData&&showIsobars?(nativeCloudIsobars(cloudData,verifiedCloudPressure)??synopticCloudIsobars(cloudData,cloudSynopticPressure)):null,[cloudData,showIsobars,verifiedCloudPressure,cloudSynopticPressure]);
  const contours=useMemo(()=>nativeIsobarFeatures(isCloudWeather?matchingCloudIsobars(cloudData,selectedCloudIsobars):pressureContours?.isobars??[]),[isCloudWeather,cloudData,selectedCloudIsobars,pressureContours]);
  const selectedCloudIsoheights=useMemo(()=>cloudData&&cloudIsoheights?synopticCloudIsoheights(cloudData,cloudSynopticPressure):null,[cloudData,cloudIsoheights,cloudSynopticPressure]);
