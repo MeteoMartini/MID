@@ -38,6 +38,27 @@ describe('Audit 1.6 travel interval integrity',()=>{
   expect(bestTravelWindows(dataset,'2027-01-01','2027-01-02',2,'dry')).toEqual([]);
   expect(bestTravelWindows(dataset,'2027-01-01','2027-01-02',2,'warm',{maxWetDays:2})).toEqual([]);
  });
+ it('rounds expected wet days only in presentation and retains the continuous expectation',()=>{
+  const summary=summarizeTravelPeriod([point(1,{wetProbability:30}),point(2,{wetProbability:30})]);
+  expect(summary.wetDaysExpected).toBeCloseTo(.6);
+  expect(travelNarrative(summary,'dry',false)).toContain('rund 1 Niederschlagstage');
+  const absent=summarizeTravelPeriod([point(1,{wetProbability:NaN}),point(2,{wetProbability:0})]);
+  expect(travelNarrative(absent,'dry',false)).not.toMatch(/rund (?:NaN|0) Niederschlagstage/);
+ });
+ it('ranks real zero snow and excludes incomplete snow evidence instead of fabricating a score',()=>{
+  const dataset:TravelClimateDataset={createdAt:0,latitude:0,longitude:0,timezone:'UTC',source:'fixture',referencePeriod:'1991–2020',snowDepthIncluded:true,days:{
+   '01-01':{...base,key:'01-01',snowDepthMean:0,snowCoverProbability:0,snowfallMean:2000},
+   '01-02':{...base,key:'01-02',snowDepthMean:0,snowCoverProbability:0,snowfallMean:2000},
+   '01-03':{...base,key:'01-03',snowDepthMean:40,snowCoverProbability:100},
+   '01-04':{...base,key:'01-04',snowDepthMean:40,snowCoverProbability:100}
+  }};
+  const results=bestTravelWindows(dataset,'2027-01-01','2027-01-04',2,'snow',{},3);
+  expect(results[0]?.start).toBe('2027-01-03');
+  expect(results.find(x=>x.start==='2027-01-01')?.score).toBe(0);
+  dataset.days['01-03'].snowCoverProbability=NaN;
+  expect(bestTravelWindows(dataset,'2027-01-03','2027-01-04',2,'snow')).toEqual([]);
+  expect(travelNarrative(summarizeTravelPeriod([point(1,{snowfallMean:NaN}),point(2)]),'snow',true)).not.toMatch(/NaN|zusätzlich rund 0 cm Schnee/);
+ });
  it('empty and overflowing aggregates are not physical zero',()=>{
   expect(summarizeTravelPeriod([]).precipitationTotal).toBeNaN();
   expect(travelFieldStats([{t:Number.MAX_VALUE},{t:Number.MAX_VALUE}],'t').sum).toBeNaN();

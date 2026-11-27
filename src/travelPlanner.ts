@@ -362,7 +362,7 @@ export function travelNarrative(summary:TravelSummary,preference:TravelPreferenc
  const missing=[!thermal?'Temperatur':null,!moisture?'Niederschlag':null,!sun?'Sonnenschein':null,!wind?'Wind':null].filter(Boolean);
  if(missing.length)parts.push('Nicht vollständig belegt: '+missing.join(', ')+'.');
  if(wind)parts.push(wind[0].toUpperCase()+wind.slice(1)+'.');
- if(Number.isFinite(summary.wetDaysExpected))parts.push('Erwartet werden im Mittel rund '+Math.round(summary.wetDaysExpected)+' Niederschlagstage.');
+ if(Number.isFinite(summary.wetDaysExpected)){const roundedWetDays=Math.round(summary.wetDaysExpected);parts.push('Erwartet werden im Mittel rund '+roundedWetDays+' Niederschlagstage.');}
  if(preference==='snow'){
   if(snowDepthIncluded&&Number.isFinite(summary.snowDepthMean))parts.push('Die mittlere modellierte Schneehöhe liegt bei rund '+Math.round(Number(summary.snowDepthMean))+' cm.');
   else parts.push('Für die Schneehöhenoptimierung fehlen belastbare historische Schneehöhendaten.');
