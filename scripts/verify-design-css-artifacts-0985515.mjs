@@ -46,7 +46,9 @@ export function verifyCssArtifacts(report,distDir){
   const file=cssFileName(asset.file);
   const full=join(root,...file.split('/'));
   const real=realpathSync(full);
-  if(!real.startsWith(root+sep)||!lstatSync(real).isFile())throw Error('CSS asset outside of dist: '+file);
+  const info=lstatSync(real);
+  if(!real.startsWith(root+sep)||!info.isFile())throw Error('CSS asset outside of dist: '+file);
+  if(info.nlink!==1)throw Error('Hardlinked CSS artifact is not independent: '+file);
   const data=readFileSync(real);
   const metrics={
    bytes:data.length,
@@ -60,7 +62,10 @@ export function verifyCssArtifacts(report,distDir){
   }
   checked.push({...metrics,file,extension:'.css'});
  }
- const indexHtml=readFileSync(join(root,'index.html'),'utf8');
+ const indexPath=join(root,'index.html'),indexInfo=lstatSync(indexPath);
+ if(!indexInfo.isFile())throw Error('Index HTML artifact must be a regular file');
+ if(indexInfo.nlink!==1)throw Error('Hardlinked index HTML artifact is not independent');
+ const indexHtml=readFileSync(indexPath,'utf8');
  const initial=initialCssAssetStats(indexHtml,checked);
  const fromReport=report.initialCssAssets;
  if(initial.entries.length!==fromReport.length)throw Error('Initial CSS reference count drift in built HTML');

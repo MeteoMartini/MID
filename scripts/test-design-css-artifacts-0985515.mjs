@@ -120,3 +120,26 @@ test('CLI accepts distinct matching report files and dist trees',()=>{
   assert.equal(result.status,0,result.stderr);assert.match(result.stdout,/PASS_CSS_NET_ZERO_ARTIFACTS/);
  }finally{a.close();b.close()}
 });
+
+test('shared initial CSS hardlink across distinct trees is rejected',()=>{
+ const a=fixture(),b=fixture();
+ try{
+  const path='assets/index-a.css';rmSync(join(b.root,path));linkSync(join(a.root,path),join(b.root,path));
+  assert.throws(()=>verifyCssArtifactPair(a.report,a.root,b.report,b.root),/Hardlinked CSS artifact/);
+ }finally{a.close();b.close()}
+});
+test('shared lazy CSS hardlink across distinct trees is rejected',()=>{
+ const files={'assets/index-a.css':'body{color:red}','assets/lazy.css':'p{color:blue}'};
+ const a=fixture(files),b=fixture(files);
+ try{
+  const path='assets/lazy.css';rmSync(join(b.root,path));linkSync(join(a.root,path),join(b.root,path));
+  assert.throws(()=>verifyCssArtifactPair(a.report,a.root,b.report,b.root),/Hardlinked CSS artifact/);
+ }finally{a.close();b.close()}
+});
+test('shared index HTML hardlink across distinct trees is rejected',()=>{
+ const a=fixture(),b=fixture();
+ try{
+  rmSync(join(b.root,'index.html'));linkSync(join(a.root,'index.html'),join(b.root,'index.html'));
+  assert.throws(()=>verifyCssArtifactPair(a.report,a.root,b.report,b.root),/Hardlinked index HTML artifact/);
+ }finally{a.close();b.close()}
+});

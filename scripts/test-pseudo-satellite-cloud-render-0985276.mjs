@@ -25,7 +25,10 @@ try{
  for(const source of [unified,native]){assert.doesNotMatch(source,/CloudWeatherModeControl|cloudRenderMode/);assert.match(source,/CLOUD_WEATHER_ISOBARS_KEY/);}
  assert.match(layer,/cloudWeatherRaster\(data,mode\)/);
  assert.match(layer,/kein Satellitenbild/);
- assert.match(native,/cloudWeatherRaster\(combined\)/);
+ assert.match(native,/cloudWeatherRaster\(nextCombined\)/);
+ assert.match(native,/nativeCloudWeatherPair\(nextCloud,next\)/);
+ assert.match(native,/frame:\{key,raster:\{url:nextRaster,bounds:evidence.bounds/);
+ assert.match(native,/if\(!ready\|\|!field\|\|!raster\|\|!colorScale\|\|field.time!==ref\?\.time\)return/);
  const exportSource=readFileSync('src/cloudWeatherExport.ts','utf8');
  assert.ok(unified.includes("exportCloudWeather(cloudWeather.data,cloudWeather.raster,places,type,'pseudo',linesActive?selectedCloudIsobars:null,heightsActive?selectedCloudIsoheights:null)"));
  assert.ok(native.includes("exportCloudWeather(combined,raster,places,format,'pseudo',cloudContourSelection)"));

@@ -1,3 +1,25 @@
+# MID v0.9.85.528 · Flüssigere Modellkarten und zuverlässige RUC-Diagnoseartefakte
+
+- Stable .527 @ 7e5e2385b0092e40c268ed1f0c7203325c8d18e4; Installer 45973926187 mit erfolgreichem Pflichtpfad, Worker, Pages Versuch 2, Stable und Release-Katalog.
+- #1021 @ 0d4337ddb923fada43a3a4a0f0b4f84c3c1433ca: Original-Draft 45955889905 und SHA 45955913061 erfolgreich. Reale Karten-/Export-/Label-Collision- und physische iOS-Abnahme nicht daraus ableiten.
+- #945 @ 680d83e7491b8fa1d2e85d961366ea327a3b6add; ref-freier selektiver Kandidat d5eb956097c1a7ce437081782ec5b3d61182f206 auf .526. 1 Positiv-/8 Negativfälle historisch im JS-Isolat geprüft; kein vollständiger Diagnoseworkflow-Run behauptet.
+- 18 exakte Originalblobs mit Modus 100644, disjunkt zum 109-Pfad-Diff .526→.527; keine alten Builds oder Produktversionsspiegel kopiert.
+- Kombinierte Draft-QA, Review, vollständige Source-/Installer-/Worker-/Pages-/Stable- und Kataloggates sowie erforderliche Browser-/Originaldatenprüfungen stehen aus.
+- Ursprünglicher Leit-HEAD 6e402cd73b23d7750ead62586035a8517fd89a68: Draft 45976772164, SHA 45989398778, Source-Gate 45989399227 erfolgreich; Bot 45990759946 blockierte vier offene Reviewthreads. Diese grünen Läufe gelten ausschließlich für diesen früheren HEAD.
+- Ref-freie Korrekturen 20078730203deb4cee076c303f5724b67096180f (isoliert 1 Positiv-/8 Negativfälle) und b75fb74780da0321db0e0e4ae3679d59ed9e2a9b (29 isolierte JS-Prüfungen an extrahierten Funktionskörpern, WeakMap-Evidenz im Isolat injiziert; keine integrierte SHA-/React-/Browser-Prüfung). Anschließende Wolken-Frame-Identitätshärtung und gesamter finaler HEAD benötigen eigene vollständige Draft-/Review-/Source-/Installer-Gates.
+- Draft 45994364882 / Job 140489918751 auf bd9f81338cc77e204a414b9f512dc235abbaf341: gezielte Regression stoppte an veralteter Ref-Array-Literal-Assertion; fachliche Selektionspriorität und verschärfte SHA-Frame-Identität werden im aktualisierten Test explizit geschützt. Finaler HEAD benötigt neue Runner-Abnahme.
+- HEAD 583c7b046563f782ad4daf798a6e92557cf038c4: Source-Gate 46007593930 success; Bot 46009120611 hielt fünf neue Reviewthreads vor Merge an. Die neuen Korrekturen benötigen eigene Draft-/Source-/Installer-Qualifikation; keine Wiederverwendung des alten Gate-Erfolgs.
+- HEAD e68956df54db64611c5aa4f4993a8279e4cd780a: Draft 46010208757 inkl. echtem React-Callback-Browsertest, SHA 46010253062, RUC-Diagnose 46010208486 und Source 46011609526 erfolgreich; Bot 46013623170 stoppte einen neuen P2-Retention-Reviewthread vor Merge. Korrektur erfordert eigene QA und volle Releasekette.
+
+# MID v0.9.85.527 · Zuverlässigere technische Qualitäts- und Übernahmenachweise
+
+- Stable .526 @ cc275420d602ae6313f8c6e5f81f28d50f57a122; #1029 @ 9d0f70506773b8445343bde131f5764f562ca3e0; #1024 @ a0698c55a7f340f7aab9ef692374d568130fb516.
+- Intake-Kandidat 59fcd8e0c04442edfa754206c4fa11c63930a9fd und Härtungskommentar #1024/7204342194. Historisch dokumentierte lokale kombinierte Pflichtregression 41/41 am ursprünglichen Integrationsstand c4f7f983d6ddaa42e6948b71fa24661756f95ec1. Die Review-Vitest-Suite wurde zunächst übernommen und anschließend in den unten aufgeführten Korrekturcommits angepasst; das 41/41-Ergebnis gilt ausschließlich für den ursprünglichen Stand.
+- Neue gemeinsame Draft-QA, SHA-Readback, vollständige Source- und Installer-Gates, Worker-/Pages-Entscheidung, Stable-Promotion und Katalog noch erforderlich.
+- Cubic-Review auf Leit-HEAD c4f7f983d6ddaa42e6948b71fa24661756f95ec1: vier Befunde. Korrekturcommit 120c8b2bca496fb689f94f068c7534e6912d5d93 mit historisch dokumentierter lokaler Pflichtregression 58/58. Diese Evidenz gilt nur für diesen Korrekturstand.
+- Cubic P2 auf dem vorherigen HEAD 120c8b2bca496fb689f94f068c7534e6912d5d93: unvollständige Provider-Assertions. Die Korrektur befindet sich in 017ff7838b879fbef4f7c38a7eb2e5c5d4d84ce8 (Testblob 91480e3e6b5c40bd54bcf5132072dde72585e9e1, zuvor dokumentierte lokale Provider-/Mutationsprüfung 12/12 am korrigierten Teststand).
+- Runner-Nachweis ausschließlich für 017ff7838b879fbef4f7c38a7eb2e5c5d4d84ce8: Draft/Vitest 45949082709, SHA-/Blob 45949130827 und Source-Gate 45951134201 erfolgreich. Release-Bot 45952400819 stoppte wegen offenem Provenienz-Reviewthread. Für jede nachfolgende Notes-Korrektur ist die eigene SHA-gebundene Runner- und Release-Abnahme erforderlich.
+
 # MID v0.9.85.526 · Stabilere Kartenübergänge und ressourcenschonende Umfeldkarte
 
 - Stable .525 @ 56011238b20955cbbfa1ffa039a66eb96156ab37; #1030 @ 80e8a3b79081f34519f97c500832cc834cc529e7; #1031 @ bdf40168985b9761bfef77f6637b9b53862a1e5d.

@@ -108,3 +108,10 @@ test('remote inspector pins job attempt and rechecks refs, PR and run after read
   }
  }finally{globalThis.fetch=original}
 });
+
+// Register the offline intake/review evidence suites in this existing mandatory
+// regression. No workflow, shard assignment, or release authority is changed.
+import '../tools/ci/mid-intake-checkpoint-evidence.test.mjs';
+import '../tools/ci/mid-intake-checkpoint-lineage.test.mjs';
+import '../tools/ci/mid-intake-checkpoint-limit.test.mjs';
+import '../tools/ci/mid-review-mitigation-strict.test.mjs';

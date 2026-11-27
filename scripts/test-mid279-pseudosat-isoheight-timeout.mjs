@@ -38,7 +38,7 @@ try{
  assert.doesNotMatch(exporter.cloudWeatherSvg(data,raster,[],[],'pseudo',null,{...height,run:'bad'}),/Isohypsen gpdm/);
  assert.deepEqual(cloud.cloudWeatherPixel(null,null,'pseudo'),[0,0,0,0],'Missing cloud/weather stays transparent');
  const map=readFileSync('src/UnifiedWeatherMap.tsx','utf8'),panel=readFileSync('src/RadarPanel.tsx','utf8'),base=readFileSync('src/UnifiedVectorBasemap.tsx','utf8'),app=readFileSync('src/App.tsx','utf8');
- for(const token of ['useRawDisplayPreference','readUnifiedMapSettings','CLOUD_WEATHER_ISOHEIGHTS_KEY','parseCloudWeatherToggle','matchingCloudIsoheights(cloudData,selectedCloudIsoheights)','cloudContrast:settings.enabled&&isCloudWeather','heightsActive?<GeoJsonLayers'])assert.ok(map.includes(token),token);
+ for(const token of ['useRawDisplayPreference','readUnifiedMapSettings','CLOUD_WEATHER_ISOHEIGHTS_KEY','parseCloudWeatherToggle','matchingCloudIsoheights(cloudData,selectedCloudIsoheights)','cloudContrast:settings.enabled&&isCloudWeather',"groups.push({id:'isoheights',data:isoheightContours,hoverProperty:'label'",'cloudContoursResolved','frame={cloudPresentation}','cloudPresentedKey===cloudBundleKey'])assert.ok(map.includes(token),token);
  assert.match(panel,/cloudContrast=\{Boolean\(unified\.cloudContrast&&modelAtSelectedTime\)\}/);
  assert.match(base,/PSEUDO_SAT_BASEMAP\.water/,'Vector basemap must use the shared water tone');assert.match(base,/PSEUDO_SAT_BASEMAP\.land/,'Vector basemap must use the shared land tone');assert.match(base,/cloudContrast&&!dark/);
  assert.match(app,/forecastTimeoutRetryState\.current\.attempts<1/,'Only one automatic timeout retry');
