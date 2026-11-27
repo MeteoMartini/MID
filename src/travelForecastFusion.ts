@@ -1,3 +1,4 @@
+import {travelStrictBlend} from './travelPeriodIntegrity';
 import {guardedOpenMeteoFetch} from './openMeteoGuard';
 import {aggregateGefsUtcDays,consecutiveUtcWeek,ec46DailyApplicability,nativeFinite,seasonalTemperatureScenario,ec46DailyTemperatureScenario,NATIVE_DAILY_FORECAST_SOURCE,type GefsDayEvidence} from './travelForecastPeriodEvidence';
 import {ensembles,forecast,mapDays,type Day,type EnsembleDay,type Location} from './weather';
@@ -39,7 +40,7 @@ const MAX_SOURCE_WAIT_MS=18000;
 function localToday(){try{const parts=new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),get=(type:string)=>parts.find(part=>part.type===type)?.value;return`${get('year')}-${get('month')}-${get('day')}`}catch{return new Date().toISOString().slice(0,10)}}
 function finite(value:unknown){return nativeFinite(value)}
 function clamp(value:number,min:number,max:number){return Math.max(min,Math.min(max,value))}
-function blend(base:number,target:number,share:number){return Number.isFinite(target)?base+(target-base)*share:base}
+function blend(base:number,target:number,share:number){return travelStrictBlend(base,target,share)}
 function dateKey(value:string){return value.slice(5,10)}
 function monthKey(value:string){return value.slice(0,7)}
 function mean(values:(number|undefined|null)[]){const finiteValues=values.filter((value):value is number=>typeof value==='number'&&Number.isFinite(value));return finiteValues.length?finiteValues.reduce((sum,value)=>sum+value,0)/finiteValues.length:undefined}
@@ -131,7 +132,7 @@ function applyEc46Week(days:Record<string,TravelClimateDay>,dataset:TravelClimat
 }
 
 function mediumDay(day:TravelClimateDay,ensemble:EnsembleDay|undefined,best:Day|undefined,lead:number){const share=modelShareForMedium(lead),maxTarget=finite(ensemble?.maxMean)??finite(best?.max),minTarget=finite(ensemble?.minMean)??finite(best?.min),precipTarget=finite(ensemble?.precipitationMean)??finite(best?.precipitation),probTarget=finite(ensemble?.precipitationProbability)??finite(best?.probability),sunTarget=finite(ensemble?.sunshineDurationMean)!==undefined?Number(ensemble!.sunshineDurationMean)/3600:finite(best?.sunshineDuration)!==undefined?Number(best!.sunshineDuration)/3600:undefined,windTarget=finite(ensemble?.windMean)??finite(best?.wind),snowTarget=finite(best?.snowfall),familyCount=Math.max(1,Number(ensemble?.modelCount)||0),sources=[...(ensemble?.modelSummaries??[]).map(row=>row.family||row.label),best?.weatherSourceLabel].filter(Boolean) as string[];const result={...day};
- if(maxTarget!==undefined)result.maxMean=blend(day.maxMean,maxTarget,share);if(minTarget!==undefined)result.minMean=blend(day.minMean,minTarget,share);result.meanMean=(result.maxMean+result.minMean)/2;if(ensemble){result.maxP25=blend(day.maxP25,ensemble.maxQ25,share);result.maxP75=blend(day.maxP75,ensemble.maxQ75,share);result.minP25=blend(day.minP25,ensemble.minQ25,share);result.minP75=blend(day.minP75,ensemble.minQ75,share)}
+ if(maxTarget!==undefined)result.maxMean=blend(day.maxMean,maxTarget,share);if(minTarget!==undefined)result.minMean=blend(day.minMean,minTarget,share);result.meanMean=Number.isFinite(result.maxMean)&&Number.isFinite(result.minMean)?(result.maxMean+result.minMean)/2:NaN;if(ensemble){result.maxP25=blend(day.maxP25,ensemble.maxQ25,share);result.maxP75=blend(day.maxP75,ensemble.maxQ75,share);result.minP25=blend(day.minP25,ensemble.minQ25,share);result.minP75=blend(day.minP75,ensemble.minQ75,share)}
  if(precipTarget!==undefined)result.precipitationMean=Math.max(0,blend(day.precipitationMean,precipTarget,share));if(probTarget!==undefined)result.wetProbability=clamp(blend(day.wetProbability,probTarget,share),0,100);if(sunTarget!==undefined)result.sunshineMeanHours=clamp(blend(day.sunshineMeanHours,sunTarget,share),0,day.daylightMeanHours||24);if(windTarget!==undefined)result.windMaxMean=Math.max(0,blend(day.windMaxMean,windTarget,share));if(snowTarget!==undefined)result.snowfallMean=Math.max(0,blend(day.snowfallMean,snowTarget,share));if(best)result.weatherCode=best.code;
  result.forecastSource=NATIVE_DAILY_FORECAST_SOURCE;result.forecastShare=share;return{day:result,share,familyCount,sources:[...new Set(sources)]};
 }
