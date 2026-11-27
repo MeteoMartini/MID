@@ -16,7 +16,7 @@ const browserEnvironment:Environment={makeImage:()=>new Image(),now:()=>performa
  */
 export function createTemporalMapFrameController(map:MidMap,id:string,env:Environment=browserEnvironment){
  let serial=0,visible:StagedFrame|null=null,pending:StagedFrame|null=null,cancelPending=()=>{},opacity=1,weight=1,disposed=false;
- let clearHover=()=>{},pendingReady=()=>{},pendingError=(_message:string)=>{},failPending=()=>{};
+ let clearHover=()=>{},pendingReady=()=>{},pendingError=(_message:string,_retained:boolean)=>{},failPending=()=>{};
  const remove=(frame:StagedFrame|null)=>{if(!frame)return;frame.cleanup();for(const layer of frame.layers){unregisterMapLayerOrder(map,layer.id);try{if(map.getLayer(layer.id))map.removeLayer(layer.id)}catch{}}for(const source of frame.sources){try{if(map.getSource(source))map.removeSource(source)}catch{}}};
  const paint=(frame:StagedFrame|null,factor:number):boolean=>{if(!frame)return true;try{for(const layer of frame.layers){if(!map.getLayer(layer.id))return false;for(const [property,alpha] of layer.alphas)map.setPaintProperty(layer.id,property,alpha*opacity*factor)}return true}catch{return false}};
  const intact=(frame:StagedFrame)=>frame.layers.every(layer=>Boolean(map.getLayer(layer.id)))&&frame.sources.every(source=>Boolean(map.getSource(source)));
@@ -34,8 +34,8 @@ export function createTemporalMapFrameController(map:MidMap,id:string,env:Enviro
   });
   clearHover=()=>{popup.off('close',close);popup.remove();for(const {layer,move,leave,click} of handlers){map.off('mousemove',layer.id,move);map.off('mouseleave',layer.id,leave);map.off('click',layer.id,click)}map.getCanvas().style.cursor=''};
  };
- const setOpacity=(value:number)=>{opacity=Math.max(0,Math.min(1,value));if(!paint(visible,pending?1-weight:1)||!paint(pending,Math.max(.001,weight))){if(pending)failPending();else{clearHover();remove(visible);visible=null;pendingError('Kartenbild nicht vollständig renderbar. Kein bestätigtes Kartenbild sichtbar.')}}};
- const stage=(data:TemporalMapFrameData|null,onReady:()=>void,onError:(message:string)=>void)=>{
+ const setOpacity=(value:number)=>{opacity=Math.max(0,Math.min(1,value));if(!paint(visible,pending?1-weight:1)||!paint(pending,Math.max(.001,weight))){if(pending)failPending();else{clearHover();remove(visible);visible=null;pendingError('Kartenbild nicht vollständig renderbar. Kein bestätigtes Kartenbild sichtbar.',false)}}};
+ const stage=(data:TemporalMapFrameData|null,onReady:()=>void,onError:(message:string,retained:boolean)=>void)=>{
   if(disposed)return;
   // Identical immutable frame requests (e.g. unrelated React/UI changes) must
   // neither restart GPU staging nor reset a running fade. Use newest callbacks.
@@ -51,7 +51,7 @@ export function createTemporalMapFrameController(map:MidMap,id:string,env:Enviro
   const detach=()=>{map.off('render',ready);map.off('render',complete);map.off('error',sourceError);env.clearTimeout(timer);env.cancelRaf(raf);frame.cleanup();failPending=()=>{}};
   const rollback=()=>{if(!active)return;active=false;detach();pending=null;remove(frame);weight=1;if(visible&&(!intact(visible)||!paint(visible,1))){clearHover();remove(visible);visible=null}hover(visible)};
   cancelPending=rollback;
-  const fail=()=>{if(!active)return;rollback();pendingError(visible?'Kartenbild nicht vollständig renderbar. Der letzte vollständige Modelltermin bleibt sichtbar.':'Kartenbild nicht vollständig renderbar. Kein bestätigtes Kartenbild sichtbar.')};
+  const fail=()=>{if(!active)return;rollback();pendingError(visible?'Kartenbild nicht vollständig renderbar. Der letzte vollständige Modelltermin bleibt sichtbar.':'Kartenbild nicht vollständig renderbar. Kein bestätigtes Kartenbild sichtbar.',Boolean(visible))};
   failPending=fail;
   function complete(){if(!active)return;if(!intact(frame)){fail();return}if(!frame.sources.every(source=>map.isSourceLoaded(source)))return;active=false;detach();const old=visible;visible=frame;pending=null;weight=1;remove(old);hover(visible);cancelPending=()=>{};pendingReady()}
   const fade=(now:number,start:number,duration:number)=>{if(!active)return;if(!intact(frame)){fail();return}
@@ -94,12 +94,12 @@ export function createTemporalMapFrameController(map:MidMap,id:string,env:Enviro
  return {stage,setOpacity,dispose(){if(disposed)return;disposed=true;cancelPending();clearHover();remove(visible);visible=null}};
 }
 
-export function TemporalMapFrame({id,frame,opacity,onReady,onError}:{id:string;frame:TemporalMapFrameData|null;opacity:number;onReady?:()=>void;onError?:(message:string)=>void}){
+export function TemporalMapFrame({id,frame,opacity,onReady,onError}:{id:string;frame:TemporalMapFrameData|null;opacity:number;onReady?:()=>void;onError?:(message:string,retained:boolean)=>void}){
  const map=useMidMap(),controller=useRef<ReturnType<typeof createTemporalMapFrameController>|null>(null);
  const callbacks=useRef({onReady,onError});callbacks.current={onReady,onError};
  useEffect(()=>{if(!map)return;const c=createTemporalMapFrameController(map,id);controller.current=c;return()=>{c.dispose();controller.current=null}},[map,id]);
  useEffect(()=>{controller.current?.setOpacity(opacity)},[map,id,opacity]);
  // Capture the candidate's callback, not the next selection's callback.
- useEffect(()=>{const ready=onReady,error=onError;controller.current?.stage(frame,()=>ready?.(),message=>error?.(message))},[map,id,frame]);
+ useEffect(()=>{const ready=onReady,error=onError;controller.current?.stage(frame,()=>ready?.(),(message,retained)=>error?.(message,retained))},[map,id,frame]);
  return null;
 }

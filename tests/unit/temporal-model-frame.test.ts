@@ -57,10 +57,10 @@ describe('atomic model weather frame presentation',()=>{
   f.stage('b');f.mark();f.tick(350,false);expect(f.display.mock.calls).toEqual([['a']]);const layer=[...f.layers.keys()].find(id=>id.includes('frame-2'))!;f.layers.delete(layer);f.emit('render');expect(f.error).toHaveBeenCalledTimes(1);expect(f.display.mock.calls).toEqual([['a']]);expect(f.alpha(1,'raster')).toEqual([1]);
  });
  it('rolls back a paint exception without admitting the failed term, then recovers',()=>{
-  const f=fixture();f.stage('a');f.mark();f.tick(350);f.stage('b');f.mark();f.breakPaint('frame-2');f.tick(175);expect(f.error).toHaveBeenCalledTimes(1);expect(f.display.mock.calls).toEqual([['a']]);expect(f.alpha(1,'raster')).toEqual([1]);expect(f.sources.size).toBe(3);f.breakPaint('');f.stage('c');f.mark();f.tick(350);expect(f.display.mock.calls).toEqual([['a'],['c']]);expect(f.sources.size).toBe(3);
+  const f=fixture();f.stage('a');f.mark();f.tick(350);f.stage('b');f.mark();f.breakPaint('frame-2');f.tick(175);expect(f.error).toHaveBeenCalledTimes(1);expect(f.error).toHaveBeenLastCalledWith(expect.stringContaining('Der letzte vollständige Modelltermin bleibt sichtbar'),true);expect(f.display.mock.calls).toEqual([['a']]);expect(f.alpha(1,'raster')).toEqual([1]);expect(f.sources.size).toBe(3);f.breakPaint('');f.stage('c');f.mark();f.tick(350);expect(f.display.mock.calls).toEqual([['a'],['c']]);expect(f.sources.size).toBe(3);
  });
  it('does not claim a retained model term if the old renderer has also disappeared',()=>{
-  const f=fixture(true);f.stage('a');f.mark();f.tick(1);f.stage('b');f.mark();f.breakPaint('frame-');f.tick(1);expect(f.display.mock.calls).toEqual([['a']]);expect(f.error).toHaveBeenLastCalledWith(expect.stringContaining('Kein bestätigtes Kartenbild'));expect(f.sources.size).toBe(0);
+  const f=fixture(true);f.stage('a');f.mark();f.tick(1);f.stage('b');f.mark();f.breakPaint('frame-');f.tick(1);expect(f.display.mock.calls).toEqual([['a']]);expect(f.error).toHaveBeenLastCalledWith(expect.stringContaining('Kein bestätigtes Kartenbild'),false);expect(f.sources.size).toBe(0);
  });
  it('preserves independent original raster and contour opacity for native maps',()=>{
   const f=fixture(true),frame=f.frame('native');

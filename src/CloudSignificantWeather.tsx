@@ -48,8 +48,9 @@ export function useCloudWeatherMap(enabled:boolean,target:number,modelId:string,
  const markTile=(role:string)=>{const key=`${context}:${role}`;if(currentContext.current!==context)return;setTiles(current=>{if(current.has(key))return current;const next=new Set(current);next.add(key);while(next.size>12)next.delete(next.values().next().value!);return next})};
  const markDisplayed=(value:CloudWeatherData)=>{if(value.model===modelId)setDisplayedNative(current=>current===value?current:value)};
  const failTile=()=>{if(currentContext.current===context)setError('Wolken oder Niederschlagsart sind nicht vollständig erreichbar. Der bisherige vollständige Stand bleibt sichtbar.')};
+ const failNativeFrame=(message:string,retained:boolean)=>{if(currentContext.current!==context)return;if(!retained)setDisplayedNative(null);setError(message)};
  const sample=(lat:number,lon:number)=>{if(!ready||!data)return null;const p=cloudWeatherAt(data,lat,lon);return p&&(p.cloud!==null||p.weather!==null)?`${p.cloud===null?'Wolken nicht verfügbar':`${Math.round(p.cloud)} % Wolken`} · ${cloudWeatherDescription(p.weather)}`:null};
- return {enabled,modelId,mode,data,raster,time,run,revision,context,ready,displayedTime,displayedRun,loading,error,times:modelId==='gdps'?gdpsCloudWeatherCatalog(metadata)?.times??[]:nativeTimes,gdpsPlan,markTile,markDisplayed,failTile,sample};
+ return {enabled,modelId,mode,data,raster,time,run,revision,context,ready,displayedTime,displayedRun,loading,error,times:modelId==='gdps'?gdpsCloudWeatherCatalog(metadata)?.times??[]:nativeTimes,gdpsPlan,markTile,markDisplayed,failTile,failNativeFrame,sample};
 }
 export type CloudWeatherState=ReturnType<typeof useCloudWeatherMap>;
 export function CloudWeatherLayers({state,opacity,modelLabel,renderNative=true,nativeProbeReady=state.ready}:{state:CloudWeatherState;opacity:number;modelLabel:string;renderNative?:boolean;nativeProbeReady?:boolean}){
