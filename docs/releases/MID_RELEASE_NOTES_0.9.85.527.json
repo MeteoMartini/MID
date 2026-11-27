@@ -18,7 +18,8 @@
     "Stable .526 @ cc275420d602ae6313f8c6e5f81f28d50f57a122; #1029 @ 9d0f70506773b8445343bde131f5764f562ca3e0; #1024 @ a0698c55a7f340f7aab9ef692374d568130fb516.",
     "Intake-Kandidat 59fcd8e0c04442edfa754206c4fa11c63930a9fd und Härtungskommentar #1024/7204342194. Lokale kombinierte Pflichtregression mit 41/41 Tests erfolgreich, originale Review-Vitest-Suite zusätzlich unverändert übernommen.",
     "Neue gemeinsame Draft-QA, SHA-Readback, vollständige Source- und Installer-Gates, Worker-/Pages-Entscheidung, Stable-Promotion und Katalog noch erforderlich.",
-    "Cubic-Review auf erstem Leit-HEAD c4f7f983d6ddaa42e6948b71fa24661756f95ec1: vier Befunde korrigiert, 58/58 lokale gemeinsame Pflichtregressionen bestanden. Neue Runner- und Source-/Installer-Abnahme auf Korrektur-HEAD erforderlich.",
-    "Cubic P2 auf 120c8b2bca496fb689f94f068c7534e6912d5d93: manuelle Testhärtung, kein Produktionslogikwechsel. Lokale Provider- und Mutationsprüfung 12/12; erneute Runner-Gates erforderlich."
+    "Cubic-Review auf Leit-HEAD c4f7f983d6ddaa42e6948b71fa24661756f95ec1: vier Befunde. Korrekturcommit 120c8b2bca496fb689f94f068c7534e6912d5d93 mit historisch dokumentierter lokaler Pflichtregression 58/58. Diese Evidenz gilt nur für diesen Korrekturstand.",
+    "Cubic P2 auf dem vorherigen HEAD 120c8b2bca496fb689f94f068c7534e6912d5d93: unvollständige Provider-Assertions. Die Korrektur befindet sich in 017ff7838b879fbef4f7c38a7eb2e5c5d4d84ce8 (Testblob 91480e3e6b5c40bd54bcf5132072dde72585e9e1, zuvor dokumentierte lokale Provider-/Mutationsprüfung 12/12 am korrigierten Teststand).",
+    "Runner-Nachweis ausschließlich für 017ff7838b879fbef4f7c38a7eb2e5c5d4d84ce8: Draft/Vitest 45949082709, SHA-/Blob 45949130827 und Source-Gate 45951134201 erfolgreich. Release-Bot 45952400819 stoppte wegen offenem Provenienz-Reviewthread. Für jede nachfolgende Notes-Korrektur ist die eigene SHA-gebundene Runner- und Release-Abnahme erforderlich."
   ]
 }
