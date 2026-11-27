@@ -1,3 +1,8 @@
+# MID v0.9.85.528
+
+- Modellkarten: Wolken, signifikantes Wetter und zugehörige Druckkonturen sollen beim Terminwechsel gemeinsam und ohne irreführende Zwischenzustände dargestellt werden.
+- Die technische Prüfung kurzer RUC-Originaldatenläufe wird durch verlässlichere Diagnoseartefakte verbessert.
+
 # MID v0.9.85.527
 
 - Die technischen Qualitätsprüfungen für kommende MID-Updates wurden erweitert.
