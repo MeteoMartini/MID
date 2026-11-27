@@ -16,6 +16,16 @@ export function signalRangeLegend(series:SignalSeries[],unit:string){
  const inner=series.some(row=>row.points.some(hasSignalInnerRange));
  return unit+(outer?' · P10–P90 (dünne Linie)':'')+(inner?' · P25–P75 (breite Linie)':'');
 }
+export function signalScaleValues(series:SignalSeries[]):number[]{
+ const values:number[]=[];
+ for(const row of series)for(const point of row.points){
+  if(!hasSignalMean(point))continue;
+  values.push(point.mean);
+  if(hasSignalOuterRange(point))values.push(point.low,point.high);
+  if(hasSignalInnerRange(point))values.push(point.q25,point.q75);
+ }
+ return values;
+}
 /** Connect only adjacent dated daily observations; missing values/dates break a path. */
 export function dailySignalPaths(points:SignalPoint[],x:(index:number)=>number,y:(value:number)=>number){
  const paths:string[]=[];let path='',previousTime=Number.NaN;
@@ -44,7 +54,7 @@ export function HorizonSignalChart({series,unit,zero=true,label,connectDaily=fal
  const [chartRef,width]=useSignalChartWidth(),[selected,setSelected]=useState<string|null>(null);
  const chartId=useId().replace(/[^a-zA-Z0-9_-]/g,'');
  const valueLabel=(value:number)=>formatValue?formatValue(value):formatDecimalFixed(value,1);
- const points=series[0]?.points??[],values=series.flatMap(row=>row.points.flatMap(point=>[point.mean,point.low,point.q25,point.q75,point.high])).filter((value):value is number=>typeof value==='number'&&Number.isFinite(value)),scale=niceChartScale(values,zero),lo=scale.low,hi=scale.high,freezingPointVisible=unit==='°C'&&lo<=0&&hi>=0,height=compact?210:250,left=points.some(point=>point.labelEnd)?48:60,right=points.some(point=>point.labelEnd)?12:22,top=22,bottom=48,x=(index:number)=>left+(index+.5)*(width-left-right)/Math.max(1,points.length),y=(value:number)=>top+(hi-value)/(hi-lo)*(height-top-bottom),ticks=freezingPointVisible&&!scale.ticks.includes(0)?[...scale.ticks,0].sort((a,b)=>a-b):scale.ticks;
+ const points=series[0]?.points??[],values=signalScaleValues(series),scale=niceChartScale(values,zero),lo=scale.low,hi=scale.high,freezingPointVisible=unit==='°C'&&lo<=0&&hi>=0,height=compact?210:250,left=points.some(point=>point.labelEnd)?48:60,right=points.some(point=>point.labelEnd)?12:22,top=22,bottom=48,x=(index:number)=>left+(index+.5)*(width-left-right)/Math.max(1,points.length),y=(value:number)=>top+(hi-value)/(hi-lo)*(height-top-bottom),ticks=freezingPointVisible&&!scale.ticks.includes(0)?[...scale.ticks,0].sort((a,b)=>a-b):scale.ticks;
  if(!values.length)return <div ref={chartRef} className="long-range-info"><p>Keine vergleichbaren Periodenwerte verfügbar. Fehlende Daten werden nicht als Nullsignal dargestellt.</p></div>;
  return <div ref={chartRef} className="long-range-chart" data-horizon-signal="period-intervals"><svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={label}>
   {ticks.map((tick,index)=>{const freezingPoint=freezingPointVisible&&tick===0;return <g key={index}><line className={freezingPoint?'grid freezing-point-grid':'grid'} x1={left} x2={width-right} y1={y(tick)} y2={y(tick)} style={freezingPoint?{stroke:'var(--text)',strokeWidth:1.9,strokeDasharray:'none',opacity:.8}:undefined}/><text className="axis-label" x={left-8} y={y(tick)+4} textAnchor="end" style={freezingPoint?{fill:'var(--text)',fontWeight:900}:undefined}>{formatDecimalFixed(tick,scale.decimals)}</text></g>})}

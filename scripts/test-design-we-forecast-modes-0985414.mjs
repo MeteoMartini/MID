@@ -62,8 +62,8 @@ requireTokens(chart,[
  'dailySignalPaths',
  'point.mean===null',
  'time-previousTime!==86400000',
- 'point.low!=null&&point.high!=null',
- 'point.q25!=null&&point.q75!=null'
+ 'hasSignalOuterRange(point)?',
+ 'hasSignalInnerRange(point)?'
 ],'daily calendar/missing data and authentic quantile paths');
 for(const [name,css] of [['7d',sevenCss],['14d',fourteenCss]]){
  requireTokens(css,['@media','min-height:44px','overflow-x:auto',':focus-visible'],'responsive '+name);

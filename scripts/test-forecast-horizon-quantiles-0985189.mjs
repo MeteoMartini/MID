@@ -13,7 +13,7 @@ assert.deepEqual(JSON.parse(JSON.stringify(series.map(s=>[s.id,s.points[0].mean,
 for(const s of context.build([{...row,ensembleAvailable:false}]))for(const key of ['low','q25','q75','high'])assert.equal(s.points[0][key],null,'Best Match fallback never invents an ensemble interval');
 const missing=context.build([{...row,bestMin:NaN,minQ25:NaN,minQ75:NaN}])[1].points[0];assert.equal(missing.mean,null);assert.equal(missing.q25,null);assert.equal(missing.q75,null);
 for(const key of ['maxQ25','maxQ75','minQ25','minQ75'])assert.ok(cockpit.includes(`${key}:item.${key}`),'Canonical weighted daily quartiles must reach the phase chart');
-assert.ok(chart.includes('[point.mean,point.low,point.q25,point.q75,point.high]'),'Scale includes both interval levels');
+assert.ok(chart.includes('values=signalScaleValues(series)'),'Scale uses the visible center and admitted interval levels');
 assert.ok(chart.includes("freezingPointVisible=unit==='°C'&&lo<=0&&hi>=0")&&chart.includes("strokeWidth:1.9,strokeDasharray:'none'"),'Temperature horizon charts emphasize a visible 0 °C reference without changing other units');
 const exactQuartile='P25–P75 ${valueLabel(point.q25)} bis ${valueLabel(point.q75)} ${unit}';
 assert.ok(chart.split(exactQuartile).length>=3&&chart.includes('<title>')&&chart.includes('role="status"'),
@@ -21,9 +21,9 @@ assert.ok(chart.split(exactQuartile).length>=3&&chart.includes('<title>')&&chart
 // Atmospheric Precision: test the exact production legend/interval predicates.
 const signalHelpers=chart.slice(chart.indexOf('export function hasSignalMean('),chart.indexOf('/** Connect only adjacent dated'));
 assert.ok(signalHelpers.includes('export function signalRangeLegend('));
-vm.runInContext((await transform(signalHelpers.replaceAll('export function','function')+';globalThis.signal={hasSignalMean,hasSignalOuterRange,hasSignalInnerRange,signalRangeLegend};',{loader:'ts',format:'iife'})).code,context);
+vm.runInContext((await transform(signalHelpers.replaceAll('export function','function')+';globalThis.signal={hasSignalMean,hasSignalOuterRange,hasSignalInnerRange,signalRangeLegend,signalScaleValues};',{loader:'ts',format:'iife'})).code,context);
 {
-const {hasSignalMean,hasSignalOuterRange,hasSignalInnerRange,signalRangeLegend}=context.signal;
+const {hasSignalMean,hasSignalOuterRange,hasSignalInnerRange,signalRangeLegend,signalScaleValues}=context.signal;
 let signalChecks=0;
 const testSignal=(name,fn)=>{try{fn();signalChecks++}catch(error){throw new Error(name,{cause:error})}};
 const p=(extra={})=>({id:'2026-11-26',label:'Do',mean:5,...extra});
@@ -41,6 +41,30 @@ testSignal('a zero-width genuine interval remains admissible',()=>{const pt=p({m
 testSignal('mixed coverage or multiple series only advertise genuinely present interval types',()=>{const rows=[...s(p({low:0,high:10})),...s(p({q25:1,q75:8}),p({mean:null,low:0,high:10}))];assert.equal(signalRangeLegend(rows,'mm/Tag'),'mm/Tag'+outer+inner)});
 testSignal('valid extreme interval remains untouched and input is immutable',()=>{const rows=s(p({mean:4,low:-42,high:51,q25:-12,q75:24}));const before=structuredClone(rows);Object.freeze(rows[0].points[0]);assert.equal(signalRangeLegend(rows,unit),unit+outer+inner);assert.deepEqual(rows,before)});
 assert.equal(signalChecks,11);
+// Each visible finite center and each admitted interval endpoint contributes to the scale.
+const scaleCases=[
+ [[],[]],
+ [s(p()),[5]],
+ [s(p({mean:null,low:-500,high:500,q25:-100,q75:100})),[]],
+ [s(p({mean:NaN,low:-500,high:500}),p({mean:Infinity,q25:-100,q75:100})),[]],
+ [s(p({high:9000,q25:-9000})),[5]],
+ [s(p({low:500,high:-500})),[5]],
+ [s(p({low:-Infinity,high:500,q25:NaN,q75:500})),[5]],
+ [s(p({low:0,high:10,q25:-500,q75:8})),[5,0,10]],
+ [s(p({q25:-10,q75:15})),[5,-10,15]],
+ [s(p({low:-42,high:51,q25:-12,q75:24})),[5,-42,51,-12,24]],
+ [s(p({mean:-10,low:20,high:80,q25:30,q75:70})),[-10,20,80,30,70]],
+ [s(p({mean:0,low:0,high:0,q25:0,q75:0})),[0,0,0,0,0]],
+ [[...s(p({mean:null,low:-9000,high:9000})),...s(p({mean:20,low:12,high:30}),p({mean:9,q25:3,q75:11}))],[20,12,30,9,3,11]]
+];
+for(const [rows,expected] of scaleCases){
+ for(const row of rows){row.points.forEach(Object.freeze);Object.freeze(row.points);Object.freeze(row)}
+ Object.freeze(rows);
+ assert.deepEqual(Array.from(signalScaleValues(rows)),expected);
+}
+assert.ok(chart.includes('if(!values.length)return')&&chart.includes('Fehlende Daten werden nicht als Nullsignal dargestellt.'),'All-hidden points must select NoData instead of an empty plot');
+console.log('Atmospheric Precision: 13 visible scale input regressions passed');
+
 assert.equal(chart.split('hasSignalOuterRange(point)?').length-1,3,'SVG title, visible outer interval and selected status use the same guard');
 assert.equal(chart.split('hasSignalInnerRange(point)?').length-1,3,'SVG title, visible inner interval and selected status use the same guard');
 assert.ok(chart.includes('{signalRangeLegend(series,unit)}')&&chart.includes('point&&hasSignalMean(point)?'),'Legend and selected status are evidence-bound');
