@@ -162,7 +162,9 @@ describe('MID map model identity: flag, family and fine-to-coarse ordering',()=>
   expect(contour).not.toContain('hoverProperty="label"');
   // Only redundant seasonal tooltip changes: cloud/synoptic contour
   // hover info is not silently disabled.
-  expect(map).toContain('id="unified-cloud-weather-isobars" data={contours} hoverProperty="label"');
+  expect(map).toContain("groups.push({id:'isobars',data:contours,hoverProperty:'label'");
+  expect(map).toContain("groups.push({id:'isoheights',data:isoheightContours,hoverProperty:'label'");
+  expect(map).toContain('frame={cloudPresentation}');
  });
  it('keeps unknown model identities transparent, sorted after verified sources',()=>{
   const list=[{id:'unlisted-a',label:'Zeta'},{id:'ifs',label:'ECMWF IFS'},

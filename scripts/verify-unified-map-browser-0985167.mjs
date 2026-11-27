@@ -322,7 +322,27 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  await page.waitForFunction(()=>window.__qaMap?.getStyle().layers.some(l=>l.id.includes('cloud-weather-icon-d2-ruc')&&l.id.includes('pseudo')));
  await page.getByLabel(/Isobaren · DWD ICON-D2-RUC · gleicher Lauf/).check();
  await page.getByLabel('Isohypsen · gleicher Lauf und Termin').check();
- await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('Isohypsen 500 hPa'));
+ await page.waitForFunction(()=>{const t=document.querySelector('.unified-layer-status')?.textContent||'';return t.includes('Isohypsen 500 hPa')&&t.includes('Isobaren desselben Modelltermins')});
+ // One real GPU transition on the compact phone layout. Sample every rendered
+ // animation frame, not just endpoint layer inventories. Both line groups
+ // must stay visible throughout the ordinary original-term change.
+ if(width===390&&theme==='light'&&design==='next'){
+  const oldRaster=await page.evaluate(()=>window.__qaMap.getStyle().layers.find(l=>l.type==='raster'&&l.id.startsWith('cloud-weather-icon-d2-ruc-pseudo')&&window.__qaMap.getPaintProperty(l.id,'raster-opacity')>.1)?.id);
+  assert.ok(oldRaster,'Old complete native cloud raster is visible');
+  await page.evaluate(()=>{const map=window.__qaMap;window.__qaCloudFade={rows:[],active:true};const capture=()=>{const tracker=window.__qaCloudFade;if(!tracker.active)return;const layers=map.getStyle().layers.filter(l=>l.id.startsWith('cloud-weather-icon-d2-ruc-pseudo'));const alpha=kind=>Math.max(0,...layers.filter(l=>kind==='raster'?l.type==='raster':l.type==='line'&&l.id.includes('-'+kind+'-')).map(l=>Number(map.getPaintProperty(l.id,l.type==='raster'?'raster-opacity':'line-opacity'))||0));tracker.rows.push([alpha('raster'),alpha('isobars'),alpha('isoheights')]);requestAnimationFrame(capture)};capture()});
+  const previousTerm=rucEnd-hour/1000; // data-valid-time is UTC epoch seconds, not ISO text
+  const previousChoice=direct.locator(`option[data-valid-time="${previousTerm}"]`);
+  assert.equal(await previousChoice.count(),1,'Adjacent original RUC term is listed');
+  try{
+   await chooseTerm(await previousChoice.getAttribute('value'));
+   await page.waitForFunction(old=>{const map=window.__qaMap,layers=map.getStyle().layers;const t=document.querySelector('.unified-layer-status')?.textContent||'';return !layers.some(l=>l.id===old)&&layers.some(l=>l.type==='raster'&&l.id.startsWith('cloud-weather-icon-d2-ruc-pseudo')&&map.getPaintProperty(l.id,'raster-opacity')>.1)&&t.includes('Isobaren desselben Modelltermins')&&t.includes('Isohypsen 500 hPa')},oldRaster);
+   const rows=await page.evaluate(()=>{window.__qaCloudFade.active=false;return window.__qaCloudFade.rows});
+   assert.ok(rows.length>=2,'Real browser recorded the transition');
+   assert.ok(rows.every(row=>row.every(alpha=>alpha>.01)),'Raster, isobars and isoheights must never all disappear in an animation frame');
+  }finally{await page.evaluate(()=>{if(window.__qaCloudFade)window.__qaCloudFade.active=false})}
+  await chooseTerm(await rucFinal.getAttribute('value'));
+  await page.waitForFunction(()=>{const t=document.querySelector('.unified-layer-status')?.textContent||'';return t.includes('Isobaren desselben Modelltermins')&&t.includes('Isohypsen 500 hPa')});
+ }
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'RUC composite/pseudo time labels wrap on every viewport');
  await page.getByLabel(/Isobaren · DWD ICON-D2-RUC · gleicher Lauf/).uncheck();
  await page.getByLabel('Isohypsen · gleicher Lauf und Termin').uncheck();

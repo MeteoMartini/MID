@@ -58,6 +58,38 @@ if('preverify' in (pkg.scripts??{}))failures.push('Der reguläre Installationsla
 if(pkg.scripts?.['sync:github-workflows']!=='node scripts/sync-github-workflows.mjs')failures.push('Explizites Synchronisationsskript fehlt in package.json.');
 if(!baseline.regressionTests?.includes('scripts/test-github-workflow-bootstrap-08263.mjs'))failures.push('Workflow-Paket-Regression fehlt in MID_BASELINE.json.');
 
+
+// #945: the isolated read-only Fast diagnostic must upload only the exact visible staged tree.
+function isolatedFastArtifactContractValid(text){
+ const lines=text.split('\n');
+ const count=line=>lines.filter(value=>value===line).length;
+ const upload=text.split('      - name: Store ONLY immutable inactive short-lived diagnostic artifact\n');
+ if(upload.length!==2)return false;
+ const step=upload[1].split('\n      - name:')[0];
+ return !text.includes('.ruc-fast-shadow') &&
+  count('          python tools/ruc/ruc_fast_pointer_staging.py --candidate .ruc-fast-candidate --output ruc-fast-shadow')===1 &&
+  count("          pointer=json.loads(next(Path('ruc-fast-shadow').rglob('latest.json')).read_text())")===1 &&
+  count("          assert strict_budget(0,count_files(Path('ruc-fast-shadow')))>0")===1 &&
+  (text.match(/uses: actions\/upload-artifact@/g)||[]).length===1 &&
+  (step.match(/^\s+path:/gm)||[]).length===1 &&
+  /^          path: ruc-fast-shadow\/$/m.test(step) &&
+  /^          if-no-files-found: error$/m.test(step) &&
+  !/^\s+include-hidden-files:/m.test(step);
+}
+const isolatedFastDiagnostic=await readFile(path.join(root,'ci/github/workflows/mid-ruc-fast-lane-qualification.yml'),'utf8');
+const activeFastDiagnostic=await readFile(path.join(root,'.github/workflows/mid-ruc-fast-lane-qualification.yml'),'utf8');
+if(activeFastDiagnostic!==isolatedFastDiagnostic||!isolatedFastArtifactContractValid(isolatedFastDiagnostic))failures.push('Isolierter RUC-Fast-Diagnoseupload muss exakt denselben sichtbaren SHA-/Budget-geprüften Stagingbaum verwenden.');
+const invalidFastArtifacts=[
+ isolatedFastDiagnostic.replace("--output ruc-fast-shadow","--output .ruc-fast-shadow"),
+ isolatedFastDiagnostic.replace("Path('ruc-fast-shadow').rglob","Path('other').rglob"),
+ isolatedFastDiagnostic.replace("count_files(Path('ruc-fast-shadow'))","count_files(Path('other'))"),
+ isolatedFastDiagnostic.replace("path: ruc-fast-shadow/","path: .ruc-fast-grib-staging/"),
+ isolatedFastDiagnostic.replace("path: ruc-fast-shadow/","path: ruc-fast-shadow/\n          include-hidden-files: true"),
+ isolatedFastDiagnostic.replace("if-no-files-found: error","if-no-files-found: warn"),
+ isolatedFastDiagnostic.replace("path: ruc-fast-shadow/","path: ruc-fast-shadow/\n          path: .")
+];
+for(const variant of invalidFastArtifacts)if(variant===isolatedFastDiagnostic||isolatedFastArtifactContractValid(variant))failures.push('Unsicherer isolierter RUC-Fast-Artefaktpfad wurde nicht abgelehnt.');
+
 const managed=managedFiles.map(([sourceRelative])=>sourceRelative);
 for(const relative of managed)await readFile(path.join(root,'ci','github',relative),'utf8');
 const sourceRelease=await readFile(path.join(root,'ci','github','workflows','agent-source-release.yml'),'utf8');

@@ -14,7 +14,7 @@ assert.match(vector,/sourceLayer:'water'/,'Vector water features required');
 assert.match(vector,/PSEUDO_SAT_BASEMAP.land/);
 assert.match(vector,/PSEUDO_SAT_BASEMAP.water/);
 assert.match(native,/combined\?<UnifiedVectorBasemap cloudContrast zIndex={-10} dark=/,'Native ICON-D2 uses pseudo land/water with theme-aware contrast');
-assert.match(unified,/cloudContrast:settings.enabled&&isCloudWeather&&cloudWeather.ready/);
+assert.match(unified,/cloudContrast:settings\.enabled&&isCloudWeather&&Boolean\(cloudBundleReady\|\|cloudWeather\.displayedTime\)/,'Retain the pseudo basemap while the last coherent cloud frame is visible; observation mode remains gated by RadarPanel');
 assert.match(exporter,/geography\.countries/,'Natural Earth countries must provide exported land mask');
 assert.match(exporter,/states\.flatMap\(s=>s\.rings\)/,'German state polygons must prevent Germany being painted as water');
 assert.match(exporter,/PSEUDO_SAT_BASEMAP.water/);
