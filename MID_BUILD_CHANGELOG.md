@@ -1,3 +1,14 @@
+## MID v0.9.85.528 · 2026-11-27 · Flüssigere Modellkarten und zuverlässige RUC-Diagnoseartefakte
+
+- Selektiver vollständiger 15-Pfad-Intake #1021: gemeinsame visuelle Präsentation exakter Modell-/Lauf-/Gültigkeitszeitframes; maximal zwei Generationen; Rollback bei Fehlern; Reduced Motion; konsistente Druckfeld- und Export-Evidenz. Keine Interpolation meteorologischer Werte.
+- Selektiver #945-Intake: ausschließlich drei bereits vorbereitete Originalblobs. Kanonischer und aktiver isolierter manueller Diagnoseworkflow verwenden exakt denselben sichtbaren SHA-/Budget-geprüften Stagingbaum; keine hidden-files-Freigabe, keine Produktionspublikation, keine Veränderung von Datenwerten, EPS, Warnungen oder Berechtigungen.
+- Additive Pflichtregression in bestehendem Workflow-Bootstrap-Test; unveränderte Testregistrierung und Shard-Zuordnungen. Keine neue Workflowdatei, kein neuer Produktionsdispatch.
+- Design Evolution #1038, Reisezeitraum #1036, AQI #1027 und weitere Spezialkandidaten bleiben separat qualifiziert; keine vorzeitige Schließung.
+- Cubic-Reviewkorrekturen: Datenlade- und Darstellungsfehler getrennt, ACK nur für aktuelle verifizierte Wolken-/Wetterbytes; Wolken-/Wetter-/Kontur-Frame-Key an Feldidentität gebunden. Native Feldcache-/Anzeige-/Export-Evidenz an SHA256, Byte-/Zeit-/Einheiten-/Katalogmetadaten gebunden; WeakMap ohne zusätzliche Rasterkopien. Vollständiges strukturell validiertes 8×9-ICON-D2-Testfixture (synthetisch), echter SHA-Prüfpfad im Unit-Test. Artefakt-Upload-Schritt mit negativer Relocation-Mutation abgesichert.
+- Bestehende Cloud-Wetter-Regressionsassertion an strengeren Frame-Identitätsvertrag angepasst: ursprüngliche unabhängige Quellenpriorität und echte native Paare weiter explizit geprüft; Frame-Acknowledgement jetzt zusätzlich SHA-/Katalog-/Byte-gebunden. Keine meteorologische Regression entfernt.
+- Zweite Cubic-Runde: exakt geprüfter Staging-/Validierungsschritt unmittelbar vor Upload, Guard und unveränderlicher Action-Pin plus negative Mutationen; getrennte native/synoptische Konturfehlermeldungen, inaktive Quellen unterdrückt; ausführbarer React-Hook-Browserfall mit echten SHA-geprüften synthetischen Wolkenfeldern und alten/aktuellen ACK-/Fehlercallbacks. Runnerabnahme ausstehend.
+- Dritte Cubic-Runde: gesamter geprüfter Upload-Schritt einschließlich exakter zweitägiger Aufbewahrung, Run-/Attempt-gebundener Identität, unveränderlichem Action-Pin, Kompression, Ready-Guard und erlaubten Inputs als zusammenhängender Vertrag; additive Negativmutationen. Keine Änderung des produktiven Workflows.
+
 ## MID v0.9.85.527 · 2026-11-26 · Zuverlässigere technische Qualitäts- und Übernahmenachweise
 
 - Selektiver Intake #1029: rein lesende, SHA-gebundene Datei- und Abstammungsprüfung mit begrenzter First-Parent-Kette. Keine automatische PR-Schließung oder Release-Autorisierung.

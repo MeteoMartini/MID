@@ -83,7 +83,7 @@ jobs:
         run: |
           set -euo pipefail
           python tools/ruc/ruc_fast_lane_producer.py --run "$FAST_RUN" --stage .ruc-fast-grib-staging --output .ruc-fast-candidate
-          python tools/ruc/ruc_fast_pointer_staging.py --candidate .ruc-fast-candidate --output .ruc-fast-shadow
+          python tools/ruc/ruc_fast_pointer_staging.py --candidate .ruc-fast-candidate --output ruc-fast-shadow
           python - <<'PY'
           import json,sys
           from pathlib import Path
@@ -93,12 +93,12 @@ jobs:
           root=Path('.ruc-fast-candidate')
           meta=json.loads((root/'fast-candidate.json').read_text())
           assert verify_candidate_manifest(meta,root)=={'verifiedLocalBytes':True,'publicationAuthorized':False}
-          pointer=json.loads(next(Path('.ruc-fast-shadow').rglob('latest.json')).read_text())
+          pointer=json.loads(next(Path('ruc-fast-shadow').rglob('latest.json')).read_text())
           assert pointer['publicationAuthorized'] is False
           assert pointer['productionEnabled'] is False
           assert pointer['realtimeConsumerEnabled'] is False
           assert pointer['consumerAdoptionVerified'] is False
-          assert strict_budget(0,count_files(Path('.ruc-fast-shadow')))>0
+          assert strict_budget(0,count_files(Path('ruc-fast-shadow')))>0
           print('Verified immutable 0-6h fast shadow; not published, not an app consumer.')
           PY
       - name: Store ONLY immutable inactive short-lived diagnostic artifact
@@ -106,7 +106,7 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mid-ruc-fast-native-${{ github.run_id }}-${{ github.run_attempt }}
-          path: .ruc-fast-shadow/
+          path: ruc-fast-shadow/
           retention-days: 2
           if-no-files-found: error
           compression-level: 1

@@ -322,7 +322,27 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  await page.waitForFunction(()=>window.__qaMap?.getStyle().layers.some(l=>l.id.includes('cloud-weather-icon-d2-ruc')&&l.id.includes('pseudo')));
  await page.getByLabel(/Isobaren · DWD ICON-D2-RUC · gleicher Lauf/).check();
  await page.getByLabel('Isohypsen · gleicher Lauf und Termin').check();
- await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('Isohypsen 500 hPa'));
+ await page.waitForFunction(()=>{const t=document.querySelector('.unified-layer-status')?.textContent||'';return t.includes('Isohypsen 500 hPa')&&t.includes('Isobaren desselben Modelltermins')});
+ // One real GPU transition on the compact phone layout. Sample every rendered
+ // animation frame, not just endpoint layer inventories. Both line groups
+ // must stay visible throughout the ordinary original-term change.
+ if(width===390&&theme==='light'&&design==='next'){
+  const oldRaster=await page.evaluate(()=>window.__qaMap.getStyle().layers.find(l=>l.type==='raster'&&l.id.startsWith('cloud-weather-icon-d2-ruc-pseudo')&&window.__qaMap.getPaintProperty(l.id,'raster-opacity')>.1)?.id);
+  assert.ok(oldRaster,'Old complete native cloud raster is visible');
+  await page.evaluate(()=>{const map=window.__qaMap;window.__qaCloudFade={rows:[],active:true};const capture=()=>{const tracker=window.__qaCloudFade;if(!tracker.active)return;const layers=map.getStyle().layers.filter(l=>l.id.startsWith('cloud-weather-icon-d2-ruc-pseudo'));const alpha=kind=>Math.max(0,...layers.filter(l=>kind==='raster'?l.type==='raster':l.type==='line'&&l.id.includes('-'+kind+'-')).map(l=>Number(map.getPaintProperty(l.id,l.type==='raster'?'raster-opacity':'line-opacity'))||0));tracker.rows.push([alpha('raster'),alpha('isobars'),alpha('isoheights')]);requestAnimationFrame(capture)};capture()});
+  const previousTerm=rucEnd-hour/1000; // data-valid-time is UTC epoch seconds, not ISO text
+  const previousChoice=direct.locator(`option[data-valid-time="${previousTerm}"]`);
+  assert.equal(await previousChoice.count(),1,'Adjacent original RUC term is listed');
+  try{
+   await chooseTerm(await previousChoice.getAttribute('value'));
+   await page.waitForFunction(old=>{const map=window.__qaMap,layers=map.getStyle().layers;const t=document.querySelector('.unified-layer-status')?.textContent||'';return !layers.some(l=>l.id===old)&&layers.some(l=>l.type==='raster'&&l.id.startsWith('cloud-weather-icon-d2-ruc-pseudo')&&map.getPaintProperty(l.id,'raster-opacity')>.1)&&t.includes('Isobaren desselben Modelltermins')&&t.includes('Isohypsen 500 hPa')},oldRaster);
+   const rows=await page.evaluate(()=>{window.__qaCloudFade.active=false;return window.__qaCloudFade.rows});
+   assert.ok(rows.length>=2,'Real browser recorded the transition');
+   assert.ok(rows.every(row=>row.every(alpha=>alpha>.01)),'Raster, isobars and isoheights must never all disappear in an animation frame');
+  }finally{await page.evaluate(()=>{if(window.__qaCloudFade)window.__qaCloudFade.active=false})}
+  await chooseTerm(await rucFinal.getAttribute('value'));
+  await page.waitForFunction(()=>{const t=document.querySelector('.unified-layer-status')?.textContent||'';return t.includes('Isobaren desselben Modelltermins')&&t.includes('Isohypsen 500 hPa')});
+ }
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'RUC composite/pseudo time labels wrap on every viewport');
  await page.getByLabel(/Isobaren · DWD ICON-D2-RUC · gleicher Lauf/).uncheck();
  await page.getByLabel('Isohypsen · gleicher Lauf und Termin').uncheck();
@@ -746,9 +766,48 @@ async function verifyHomeEndControlledSeek(){
  }finally{await probe.close()}
 }
 
+
+// Exercise the production hook in real React, not just source literals or a mocked frame controller.
+async function verifyCloudFrameCallbacks(){
+ const probe=await browser.newPage({viewport:{width:390,height:844}});
+ const model=synopticModels['icon-d2'],frames=model.cloudWeatherFrames.filter(f=>f.hour===1||f.hour===2);
+ assert.equal(frames.length,2);
+ const config={index:{schema:'mid.synoptic.fields.v1',models:{'icon-d2':{...model,cloudWeatherFrames:frames}}},base:'/ruc/runs/qa_cloud_callbacks/synoptic-fields/',times:frames.map(f=>Date.parse(f.time))};
+ const [first,second]=frames.map(f=>f.time);
+ try{
+  await probe.addInitScript(value=>{window.__qaCloudConfig=value},config);
+  await probe.route('**/*',route=>{
+   const url=new URL(route.request().url());
+   if(url.origin!==base)return route.abort();
+   if(url.pathname.startsWith(config.base)){
+    const bytes=synopticObjects.get(url.pathname.split('/').at(-1));
+    return bytes?route.fulfill({body:bytes,contentType:'application/octet-stream'}):route.abort();
+   }
+   return route.continue();
+  });
+  await probe.goto(base+'/__map-qa?design=next&cloud-callback-probe');
+  const read=async()=>JSON.parse(await probe.getByTestId('qa-cloud-state').textContent());
+  const wait=async(expected)=>probe.waitForFunction(expected=>{
+   const el=document.querySelector('[data-testid="qa-cloud-state"]');if(!el)return false;
+   const state=JSON.parse(el.textContent);return Object.entries(expected).every(([key,value])=>state[key]===value);
+  },expected,{timeout:15000});
+  const click=name=>probe.getByRole('button',{name,exact:true}).click();
+  await wait({dataTime:first,current:true,ready:false,displayed:null,error:''});
+  await click('Current ready');await wait({displayed:first,ready:true,error:''});
+  await click('Successor');await wait({dataTime:second,current:true,ready:false,displayed:first,error:''});
+  await click('Stale ready');await click('Stale error');
+  assert.deepEqual(await read(),{time:second,dataTime:second,displayed:first,ready:false,error:'',current:true});
+  await click('Retained error');await wait({displayed:first,ready:false,error:'retained failure'});
+  await click('Current ready');await wait({displayed:second,ready:true,error:''});
+  await click('Lost error');await wait({displayed:null,ready:false,error:'lost frame'});
+  await click('Current ready');await wait({displayed:second,ready:true,error:''});
+  console.log('QA React cloud callbacks: stale ready/error, retained/lost rollback, current recovery passed');
+ }finally{await probe.close()}
+}
+
 const focusedCases=process.env.GITHUB_ACTIONS!=='true'&&process.env.MID_MAP_QA_FOCUSED==='1'?[320,390,430,1024,1440].flatMap(width=>['light','dark'].map(theme=>({width,theme,design:'next'}))):null;
 const assignedCases=seasonalDraftPilot?seasonalDraftKeys.map(key=>seasonalDraftAllowed.get(key)):focusedCases??mapBrowserCases(process.env.MID_MAP_QA_SHARD);
-try{await verifyHomeEndControlledSeek();for(const {width,theme,design} of assignedCases)if(design==='next'&&[320,390,430,834].includes(width))await verifySurroundings(width,theme);for(const width of [...new Set(assignedCases.map(row=>row.width))]){const variants=assignedCases.filter(row=>row.width===width),concurrency=mapBrowserCaseConcurrency(width);/* Bound synthetic MapLibre software-GPU contention; all cases and all assertions remain mandatory. */for(let offset=0;offset<variants.length;offset+=concurrency){const results=await Promise.allSettled(variants.slice(offset,offset+concurrency).map(({theme,design})=>verifyCase(width,theme,design)));for(const result of results)if(result.status==='rejected')throw result.reason;}}assert.equal(cases,assignedCases.length,'Complete assigned viewport/theme/design coverage');if(perfEnabled&&mapBrowserMemoryProbe(process.env.MID_MAP_QA_SHARD))await verifyCase(390,'light','next',true);if(perfRows.length){
+try{await verifyHomeEndControlledSeek();await verifyCloudFrameCallbacks();for(const {width,theme,design} of assignedCases)if(design==='next'&&[320,390,430,834].includes(width))await verifySurroundings(width,theme);for(const width of [...new Set(assignedCases.map(row=>row.width))]){const variants=assignedCases.filter(row=>row.width===width),concurrency=mapBrowserCaseConcurrency(width);/* Bound synthetic MapLibre software-GPU contention; all cases and all assertions remain mandatory. */for(let offset=0;offset<variants.length;offset+=concurrency){const results=await Promise.allSettled(variants.slice(offset,offset+concurrency).map(({theme,design})=>verifyCase(width,theme,design)));for(const result of results)if(result.status==='rejected')throw result.reason;}}assert.equal(cases,assignedCases.length,'Complete assigned viewport/theme/design coverage');if(perfEnabled&&mapBrowserMemoryProbe(process.env.MID_MAP_QA_SHARD))await verifyCase(390,'light','next',true);if(perfRows.length){
  const rows=perfRows.sort((a,b)=>a.width-b.width||a.theme.localeCompare(b.theme)||a.design.localeCompare(b.design));
  const report={schema:'mid.map.runtime.fixture.v2',version:JSON.parse(readFileSync(new URL('../package.json',import.meta.url))).version,commit:process.env.GITHUB_SHA||null,shard:process.env.MID_MAP_QA_SHARD||'all',kind:'synthetic-Vite-MapLibre-fixture-not-user-CWV',cases:rows};
  const serialized=JSON.stringify(report),safeShard=String(report.shard).replace(/[^A-Za-z0-9_-]/g,'_');

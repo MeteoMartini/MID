@@ -89,6 +89,44 @@ async function verify(width,theme,iterations){
    bothPanelsMounted:true,atMostOneWebglMap:true});
  }finally{await page.close()}
 }
+async function verifyLiveContainerResize(){
+ const page=await browser.newPage({viewport:{width:834,height:850},colorScheme:'dark'});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ try{
+  await page.route('**/*',route=>new URL(route.request().url()).host===new URL(base).host?
+   route.continue():route.abort('blockedbyclient'));
+  await page.goto(base+'/__mid_bidirectional_map_qa',{waitUntil:'domcontentloaded',timeout:45000});
+  for(const [owner,target] of [['compact','.current-surroundings-maplibre'],['workspace','.composite-maplibre']]){
+   if(owner==='workspace')await page.getByRole('button',{name:'Karte öffnen',exact:true}).click();
+   await check(page,owner,834,'dark');
+   const original=await page.locator(target).evaluate(el=>{
+    const canvas=el.querySelector('canvas.maplibregl-canvas');
+    if(!canvas||!el.clientWidth||!canvas.width)throw new Error('Unmeasurable map');
+    window.__midQaResizeCanvas=canvas;
+    return {width:el.clientWidth,ratio:canvas.width/el.clientWidth};
+   });
+   assert.ok(original.width>180,'Fixture has space to shrink');
+   const width=Math.floor(original.width*.7);
+   await page.locator(target).evaluate((el,width)=>{el.style.width=width+'px'},width);
+   const awaitSize=()=>page.waitForFunction(({target,ratio})=>{
+    const el=document.querySelector(target),canvas=el?.querySelector('canvas.maplibregl-canvas');
+    return Boolean(el&&canvas===window.__midQaResizeCanvas&&el.clientWidth>0&&
+     Math.abs(canvas.width-el.clientWidth*ratio)<=2&&Math.abs(canvas.clientWidth-el.clientWidth)<=1);
+   },{target,ratio:original.ratio},{timeout:10000});
+   await awaitSize();
+   assert.ok(await page.locator(target).evaluate((el,originalWidth)=>el.clientWidth<originalWidth,original.width));
+   await page.locator(target).evaluate(el=>{el.style.display='none'});
+   await page.waitForFunction(target=>document.querySelector(target)?.clientWidth===0,target);
+   await page.locator(target).evaluate((el,width)=>{el.style.width=width+'px';el.style.display=''},width-25);
+   await awaitSize();
+   await page.locator(target).evaluate(el=>{el.style.width=''});
+   await awaitSize();
+   assert.equal(await page.locator('.maplibregl-map').count(),1);
+  }
+  assert.deepEqual(errors,[],'Live and hidden-to-visible resize must not raise JS errors');
+  return {compact:true,workspace:true,sameCanvas:true,hiddenToVisible:true,nativeIos:false};
+ }finally{await page.close()}
+}
 async function verifyWebglContextRecovery(){
  const page=await browser.newPage({viewport:{width:390,height:850},colorScheme:'dark'});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -155,9 +193,10 @@ async function verifyUnacknowledgedNavigation(){
 try{
  for(const width of [320,390,430,834,1024,1440])
   for(const theme of ['light','dark'])await verify(width,theme,width===390&&theme==='dark'?16:2);
+ const resize=await verifyLiveContainerResize();
  const recovery=await verifyWebglContextRecovery();
  const navigation=await verifyUnacknowledgedNavigation();
  console.log('MID_MAP_GPU_OWNER_BIDIRECTIONAL_CHROMIUM '+JSON.stringify({
-  chromium:true,cases:contexts,recovery,navigation,nativeIos:false,weatherNetwork:false,fullAppNavigation:false,gpuMemory:false
+  chromium:true,cases:contexts,resize,recovery,navigation,nativeIos:false,weatherNetwork:false,fullAppNavigation:false,gpuMemory:false
  }));
 }finally{await browser.close();await server.close()}
