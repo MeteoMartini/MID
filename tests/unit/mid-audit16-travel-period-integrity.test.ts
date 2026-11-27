@@ -1,5 +1,7 @@
 import {describe,expect,it} from 'vitest';
 import {travelFieldStats,travelStrictBlend} from '../../src/travelPeriodIntegrity';
+import {mediumDay} from '../../src/travelForecastFusion';
+import type {Day,EnsembleDay} from '../../src/weather';
 import {summarizeTravelPeriod,travelNarrative,bestTravelWindows,type TravelClimateDay,type TravelDatePoint,type TravelClimateDataset} from '../../src/travelPlanner';
 const base:TravelClimateDay={key:'01-01',maxMean:20,minMean:10,meanMean:15,maxP25:15,maxP75:25,minP25:8,minP75:12,precipitationMean:2,wetProbability:80,sunshineMeanHours:6,daylightMeanHours:10,windMaxMean:8,snowfallMean:0,cloudMean:40,weatherCode:3,years:30};
 const point=(day:number,overrides:Partial<TravelClimateDay>={}):TravelDatePoint=>({...base,...overrides,date:'2027-01-'+String(day).padStart(2,'0')});
@@ -58,6 +60,30 @@ describe('Audit 1.6 travel interval integrity',()=>{
   dataset.days['01-03'].snowCoverProbability=NaN;
   expect(bestTravelWindows(dataset,'2027-01-03','2027-01-04',2,'snow')).toEqual([]);
   expect(travelNarrative(summarizeTravelPeriod([point(1,{snowfallMean:NaN}),point(2)]),'snow',true)).not.toMatch(/NaN|zusätzlich rund 0 cm Schnee/);
+ });
+ it('retains the >=1 mm climate event when operational probability thresholds differ',()=>{
+  const climate={...base,wetProbability:50,precipitationMean:2};
+  for(const pop of [0,12.5,75,100]){
+   const ensemble={precipitationMean:8,precipitationProbability:pop,precipitationProbabilitySignificant:12.5} as EnsembleDay;
+   const best={precipitation:7,probability:100,code:61} as Day;
+   const result=mediumDay(climate,ensemble,best,0).day;
+   expect(result.wetProbability).toBe(50);
+   expect(result.precipitationMean).toBeCloseTo(7.64);
+   expect(mediumDay(climate,undefined,best,0).day.wetProbability).toBe(50);
+  }
+  expect(climate.wetProbability).toBe(50);
+  expect(mediumDay({...climate,wetProbability:0},undefined,{probability:100,code:61} as Day,0).day.wetProbability).toBe(0);
+  expect(mediumDay({...climate,wetProbability:NaN},undefined,{probability:100,code:61} as Day,0).day.wetProbability).toBeNaN();
+ });
+ it('keeps climate expected counts distinct from probability of any event and marks stored evidence',()=>{
+  const summary=summarizeTravelPeriod([point(1,{wetProbability:50}),point(2,{wetProbability:50})]);
+  expect(summary.wetDaysExpected).toBe(1);
+  expect(summary.wetDayBasis).toBe('climatology-ge1mm');
+  const narrative=travelNarrative(summary,'dry',false,'Modellprognose + Klima');
+  expect(narrative).toContain('Klimatologisch werden im Mittel rund 1 Niederschlagstage');
+  expect(narrative).not.toContain('überwiegend trocken');
+  const restored=JSON.parse(JSON.stringify(summary));
+  expect(restored.wetDayBasis).toBe('climatology-ge1mm');
  });
  it('empty and overflowing aggregates are not physical zero',()=>{
   expect(summarizeTravelPeriod([]).precipitationTotal).toBeNaN();

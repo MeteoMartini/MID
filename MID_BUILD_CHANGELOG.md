@@ -1,3 +1,12 @@
+## MID v0.9.85.527 · 2026-11-26 · Zuverlässigere technische Qualitäts- und Übernahmenachweise
+
+- Selektiver Intake #1029: rein lesende, SHA-gebundene Datei- und Abstammungsprüfung mit begrenzter First-Parent-Kette. Keine automatische PR-Schließung oder Release-Autorisierung.
+- Selektiver Intake #1024: nur deterministischer, rein beobachtender Review-Planer mit strikt konsistenten Statuswerten und gültigen numerisch aufsteigenden Versionszielen. Keine Shadow-Workflow-Aktivierung, keine Bot-Halt-/Resume-Autorisierung, keine Modellinferenz.
+- Vier Node-Testsuiten an die bestehende Pflichtregression angebunden. Keine zusätzliche Workflowdatei, kein neuer Testpfad im Pflichtinventar, keine veränderte Shard-Zuordnung.
+- Keine Änderungen an der Wetterdatenversorgung, meteorologischen Darstellung, UI oder produktiven Veröffentlichungslogik. Unabhängiger GitHub-Evidenzcollector und aktive Shadow-Qualifikation bleiben gesondert offen.
+- Review-Härtung: Nur kanonische terminale Trailer zählen. Nicht unabhängig gebundene Review-Zählwerte werden nicht als sauber bestätigt; Notes-Vorschläge benötigen nichtleere externe, interne und Herkunftseinträge. Alle Autorisierungen bleiben false.
+- Review-QA: Exakte Modellzuordnung, HOLD, Null-Aufrufbudget und paidFallback=false für erlaubte Provider sowie Ablehnung unbekannter Provider ausdrücklich geprüft.
+
 ## MID v0.9.85.526 · 2026-11-26 · Stabilere Kartenübergänge und ressourcenschonende Umfeldkarte
 
 - Selektiver Intake #1030 und #1031 auf identischer Stable-Basis; kein vollständiger Intake #937 oder #904 ohne gesonderten Nachweis.

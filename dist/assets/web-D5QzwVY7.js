@@ -1,0 +1,1 @@
+import{ma as e}from"./index-CeF1_mrS.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};
