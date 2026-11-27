@@ -71,6 +71,7 @@ function isolatedFastArtifactContractValid(text){
   count("          pointer=json.loads(next(Path('ruc-fast-shadow').rglob('latest.json')).read_text())")===1 &&
   count("          assert strict_budget(0,count_files(Path('ruc-fast-shadow')))>0")===1 &&
   (text.match(/uses: actions\/upload-artifact@/g)||[]).length===1 &&
+  /^        uses: actions\/upload-artifact@[^\n]+$/m.test(step) &&
   (step.match(/^\s+path:/gm)||[]).length===1 &&
   /^          path: ruc-fast-shadow\/$/m.test(step) &&
   /^          if-no-files-found: error$/m.test(step) &&
@@ -80,6 +81,7 @@ const isolatedFastDiagnostic=await readFile(path.join(root,'ci/github/workflows/
 const activeFastDiagnostic=await readFile(path.join(root,'.github/workflows/mid-ruc-fast-lane-qualification.yml'),'utf8');
 if(activeFastDiagnostic!==isolatedFastDiagnostic||!isolatedFastArtifactContractValid(isolatedFastDiagnostic))failures.push('Isolierter RUC-Fast-Diagnoseupload muss exakt denselben sichtbaren SHA-/Budget-geprüften Stagingbaum verwenden.');
 const invalidFastArtifacts=[
+ isolatedFastDiagnostic.replace(/(      - name: Store ONLY immutable inactive short-lived diagnostic artifact\n        if:[^\n]+\n)(        uses: actions\/upload-artifact@[^\n]+\n)/,'      - name: Unrelated upload\n$2        with:\n          path: unrelated/\n$1        uses: actions/download-artifact@mutation-only\n'),
  isolatedFastDiagnostic.replace("--output ruc-fast-shadow","--output .ruc-fast-shadow"),
  isolatedFastDiagnostic.replace("Path('ruc-fast-shadow').rglob","Path('other').rglob"),
  isolatedFastDiagnostic.replace("count_files(Path('ruc-fast-shadow'))","count_files(Path('other'))"),
