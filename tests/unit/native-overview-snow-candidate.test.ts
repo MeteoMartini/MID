@@ -8,6 +8,7 @@ vi.mock('../../src/nativeModelFields',async(importOriginal)=>{
 import {nativeFrameIdentity} from '../../src/nativeModelFields';
 import {nativeOverviewPlan,prepareNativeOverview,nativeOverviewCell,nativeOverviewRaster} from '../../src/nativeOverviewFrame';
 import {dwdSnowIntervalSwe,geometricSnowDepthCm,type SnowSourceField} from '../../src/nativeSnowMapValues';
+import {overviewEndpointWeather,nativeOverviewAt,overviewPressureFeatures,overviewPlaceFeatures} from '../../src/nativeOverviewPresentation';
 const run='2026-11-27T00:00:00Z',time='2026-11-27T01:00:00Z';
 const specs=[['cloud','%',20],['precipitation','mm/1 h',0],['pressure','hPa',1010],['temperature','°C',-2],['sigwx','WMO',71]] as const;
 function fixture(){
@@ -98,5 +99,41 @@ describe('isolated original DWD snow arithmetic',()=>{
   expect(values[0]).toBe(0);expect(values[1]).toBeCloseTo(.4,12);
   expect(values[2]).toBeCloseTo(12.345,12);expect(Number.isNaN(values[3])).toBe(true);
   expect(()=>geometricSnowDepthCm(f)).toThrow();
+ });
+});
+
+describe('Overview presentation preparation',()=>{
+ it('keeps canonical WMO phase evidence distinct from the hourly amount',()=>{
+  for(let code=0;code<=99;code++)expect(overviewEndpointWeather(code)?.code).toBe(code);
+  for(const code of [20,29,93,94,95,97,98])expect(overviewEndpointWeather(code)?.phase).toBe('unbestimmt');
+  expect(overviewEndpointWeather(56)?.label).toBe('Gefr. Sprühregen');
+  expect(overviewEndpointWeather(76)?.label).toBe('Eisnadeln');
+  expect(overviewEndpointWeather(77)?.label).toBe('Schneegriesel');
+  expect(overviewEndpointWeather(78)?.label).toBe('Schneesterne');
+  expect(overviewEndpointWeather(79)?.label).toBe('Eiskörner');
+  expect(overviewEndpointWeather(96)?.phase).toBe('Graupel/Hagel');
+  expect(overviewEndpointWeather(91)?.label).toBe('Regenschauer nach Gewitter');
+  for(const code of [NaN,-1,100,71.5])expect(overviewEndpointWeather(code)).toBeNull();
+ });
+ it('samples the shared nearest cell, preserves zero and rejects missing and outside points',()=>{
+  const {index,fields}=fixture(),frame=prepareNativeOverview(index,time,fields)!;
+  expect(nativeOverviewAt(frame,50,7)).toMatchObject({precipitation:0,temperature:-2,endpointWeather:{label:'Schnee'}});
+  expect(nativeOverviewAt(frame,51,7)).toBeNull();expect(nativeOverviewAt(frame,49.999,7)).toBeNull();
+ });
+ it('keeps exact original pressure segments with a complete common mask',()=>{
+  const {index,fields}=fixture();
+  fields[2].isobars=[{level:1010,paths:[[[50,7],[50,8]],[[50,7],[51,8]],[[51,7],[51,8]]]}];
+  const result=overviewPressureFeatures(prepareNativeOverview(index,time,fields)!);
+  expect(result.omittedSegments).toBe(2);expect(result.data.features).toHaveLength(1);
+  expect(result.data.features[0].geometry.coordinates).toEqual([[7,50],[8,50]]);
+  expect(fields[2].isobars[0].paths).toHaveLength(3);
+ });
+ it('deduplicates named locations on the same cell and keeps winter labels independent of quantity',()=>{
+  const {index,fields}=fixture(),frame=prepareNativeOverview(index,time,fields)!;
+  const places=[{name:'A',latitude:50,longitude:7},{name:'Duplicate',latitude:50.1,longitude:7.1},{name:'Missing',latitude:51,longitude:7},{name:'B',latitude:51,longitude:8}];
+  const winter=overviewPlaceFeatures(frame,places,'winter-overview');
+  expect(winter.features.map(f=>f.properties.name)).toEqual(['A','B']);
+  expect(winter.features[0].properties.label).toContain('Schnee');
+  expect(overviewPlaceFeatures(frame,places,'overview').features[0].properties.label).not.toContain('Schnee');
  });
 });

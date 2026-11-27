@@ -65,7 +65,7 @@ export function prepareNativeOverview(index:NativeIndex|null,time:string,fields:
 }
 export type NativeOverviewFrame=NonNullable<ReturnType<typeof prepareNativeOverview>>;
 
-function nativeOverviewCellValid(frame:NativeOverviewFrame,i:number){
+export function nativeOverviewCellValid(frame:NativeOverviewFrame,i:number){
  return Number.isFinite(frame.cloud.values[i])&&Number.isFinite(frame.precipitation.values[i])&&
   Number.isFinite(frame.pressure.values[i])&&Number.isFinite(frame.temperature.values[i])&&Number.isFinite(frame.weather.values[i]);
 }
