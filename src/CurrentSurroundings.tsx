@@ -98,7 +98,9 @@ export default function CurrentSurroundings(props:Props){
  },[openingMap,mapPaused]);
  const mapFigureRef=useRef<HTMLElement|null>(null);
  const darkMap=useDarkMapTheme();
+ // The inactive preview has no renderer and needs no viewport observer.
  useEffect(()=>{
+  if(mapPaused)return;
   const element=mapFigureRef.current;
   if(!element)return;
   const update=()=>{
@@ -111,7 +113,7 @@ export default function CurrentSurroundings(props:Props){
   observer?.observe(element);
   window.addEventListener('resize',update);
   return()=>{observer?.disconnect();window.removeEventListener('resize',update)};
- },[]);
+ },[mapPaused]);
  useEffect(()=>{
   if(mode!=='radar'||mapPaused)return;
   const controller=new AbortController();
@@ -360,6 +362,7 @@ export default function CurrentSurroundings(props:Props){
   <details className="current-surroundings-sources">
    <summary>Quellen und Datenstand</summary>
    <p>Kartengrundlage · MID-Kartenbereich, OpenFreeMap / OpenStreetMap; Orte Natural Earth und Kartenkacheln</p>
+   {mapPaused?<p>Wetterbild und Umfeldtemperaturen pausiert · Datenstand wird nach Wiederaufnahme erneut geprüft.</p>:<>
    {mode==='cloud'&&cloudForecast.image&&<p>Wolken + SigWx · dieselbe schematische PseudoSat-Rasterdarstellung wie im MID-Kartenbereich; Modell {cloudForecast.image.model}, INIT {datedClock(Date.parse(cloudForecast.image.run))} Uhr, Bild gültig {datedClock(Date.parse(cloudForecast.image.validTime))} Uhr.
     Original-Modelltermin ohne zeitliche Interpolation; fehlt der 15-Minuten-Originaltermin, bleibt der Zieltermin NoData.
     {Math.abs(Date.parse(cloudForecast.image.validTime)-cloudTarget)>90*1000&&<> Gewählter Zieltermin {datedClock(cloudTarget)} Uhr wird von diesem Bild nicht exakt repräsentiert.</>}
@@ -371,8 +374,9 @@ export default function CurrentSurroundings(props:Props){
      ?<>aus Stundenoriginalen {clock(temperatureGrid.sourceTimes[0])}/{clock(temperatureGrid.sourceTimes[1])} Uhr interpoliert · Ziel {datedClock(temperatureGrid.validTime)}</>
      :<>Originaltermin {datedClock(temperatureGrid.validTime)}</>} · {temperatureGrid.available}/{temperatureGrid.requested} Orte · einzelner Modelllauf nicht ausgewiesen</p>
    :<p>Umfeldtemperaturen · Kein zeitlich und räumlich belegtes Temperaturfeld verfügbar</p>)}
+   </>}
   </details>
-  {mode==='radar'&&radarAtNow&&showPhase&&(displayedPhase?.url
+  {!mapPaused&&mode==='radar'&&radarAtNow&&showPhase&&(displayedPhase?.url
    ?<p>Radar + Modellphase · {([
     ['rain','Regen'],['mixed','Schneeregen'],['snow','Schnee'],['freezing','Gefrierend'],
     ['graupel','Graupel'],['hail','Hagel / Graupel'],['uncertain','Phase offen']

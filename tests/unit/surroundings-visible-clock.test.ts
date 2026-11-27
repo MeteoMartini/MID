@@ -97,10 +97,43 @@ describe('MID-Karten 1.18: foreground-only surroundings display clock',()=>{
   }
  });
 
- it('is wired into the compact view with no unconditional 30-second timer',()=>{
+ it('cleans up the owner pause and immediately reconciles actual time on visible reacquisition',()=>{
+  const page=fakeVisibility(),seen:number[]=[];
+  const start=()=>observeSurroundingsVisibleClock(page.source,now=>seen.push(now));
+  let stop=start();
+  expect(seen).toEqual([Date.now()]);
+  for(let i=0;i<5;i++){
+   stop();
+   const count=seen.length;
+   expect(page.listeners()).toBe(0);expect(vi.getTimerCount()).toBe(0);
+   page.change('hidden');vi.advanceTimersByTime(95_000);page.change('visible');
+   expect(seen).toHaveLength(count);
+   stop=start();
+   expect(seen).toHaveLength(count+1);expect(seen.at(-1)).toBe(Date.now());
+   expect(page.listeners()).toBe(1);expect(vi.getTimerCount()).toBe(1);
+  }
+  stop();expect(page.listeners()).toBe(0);expect(vi.getTimerCount()).toBe(0);
+ });
+
+ it('reacquisition while hidden never ticks before actual visibility, then resumes once',()=>{
+  const page=fakeVisibility(),seen:number[]=[];
+  let stop=observeSurroundingsVisibleClock(page.source,now=>seen.push(now));
+  stop();page.change('hidden');vi.advanceTimersByTime(120_000);
+  stop=observeSurroundingsVisibleClock(page.source,now=>seen.push(now));
+  expect(seen).toHaveLength(1);expect(vi.getTimerCount()).toBe(0);
+  vi.advanceTimersByTime(60_000);page.change('visible');page.change('visible');
+  expect(seen).toHaveLength(2);expect(seen.at(-1)).toBe(Date.now());
+  expect(vi.getTimerCount()).toBe(1);expect(page.listeners()).toBe(1);
+  stop();expect(vi.getTimerCount()).toBe(0);expect(page.listeners()).toBe(0);
+ });
+
+ it('is wired into the compact view with ownership-aware cleanup and no unconditional 30-second timer',()=>{
   const source=readFileSync('src/CurrentSurroundings.tsx','utf8');
   expect(source).toContain("import {observeSurroundingsVisibleClock} from './surroundingsVisibleClock';");
-  expect(source).toContain('useEffect(()=>observeSurroundingsVisibleClock(document,setNow),[]);');
+  expect(source).toContain('useEffect(()=>{if(mapPaused)return;return observeSurroundingsVisibleClock(document,setNow)},[mapPaused]);');
+  expect(source).not.toContain('useEffect(()=>observeSurroundingsVisibleClock(document,setNow),[]);');
+  expect(source).toContain('if(mapPaused)return;\n  const element=mapFigureRef.current;');
+  expect(source).toContain('return()=>{observer?.disconnect();window.removeEventListener(\'resize\',update)};\n },[mapPaused]);');
   expect(source).not.toContain('window.setInterval(()=>setNow(Date.now()),30000)');
  });
 });

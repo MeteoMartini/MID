@@ -68,6 +68,12 @@ async function verify(width,theme,iterations){
   for(let i=0;i<iterations;i++){
    await page.getByRole('button',{name:'Karte öffnen',exact:true}).click();
    await check(page,'workspace',width,theme);
+   // Both panels are mounted: a deliberate pause is not a meteorological NoData result.
+   const sources=page.locator('[data-testid="qa-compact"] .current-surroundings-sources');
+   await sources.locator('summary').click();
+   assert.match(await sources.innerText(),/Wetterbild und Umfeldtemperaturen pausiert/);
+   assert.doesNotMatch(await sources.innerText(),/Kein zeitlich und räumlich belegtes Temperaturfeld verfügbar|Originalbeobachtung|Bild gültig/);
+   await sources.locator('summary').click();
    await page.getByTestId('qa-current').click();
    await check(page,'compact',width,theme);
    await page.getByTestId('qa-warnings').click();
