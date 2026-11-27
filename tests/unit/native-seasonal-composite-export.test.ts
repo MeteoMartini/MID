@@ -11,10 +11,19 @@ const raster='data:image/png;base64,AAAA';
 const place=[{name:'Testort & Tal',latitude:50,longitude:7}];
 describe('native paired DWD seasonal export',()=>{
  it('keeps the original RUC model identity in the shared SVG and rejects mixed-model export',()=>{
-  const ruc=(f:NativeField):NativeField=>({...f,schema:'mid.ruc.map-field.v1',modelId:'icon-d2-ruc',sampling:'nearest-native-cell'});
+  const ruc=(f:NativeField):NativeField=>({...f,schema:'mid.ruc.map-field.v1',modelId:'icon-d2-ruc',sampling:'nearest-native-cell',scale:.01,values:f.values.map(v=>v*100)});
   const src=nativeSeasonalSvg('winter-berge',ruc(precip),ruc(temperature),raster,place);
   expect(src).toContain('ICON-D2-RUC');
+  expect(src).toContain('image-rendering:pixelated');
+  expect(src).not.toContain('image-rendering:auto');
+  expect(src).toMatch(/>0 mm\/1 h<\/text>/);
+  expect(src).toContain('2 m: -2');
+  expect(src).toContain('keine Aussage zur Niederschlagsphase');
   expect(()=>nativeSeasonalSvg('winter-berge',ruc(precip),temperature,raster,place)).toThrow('kein gemeinsamer');
+  expect(()=>nativeSeasonalSvg('winter-berge',ruc(precip),{...ruc(temperature),values:[NaN,200,-100,300]},raster,place)).toThrow('kein gemeinsamer');
+  const gust=nativeSeasonalSvg('sommer-gewitter',ruc(precip),ruc(mk('gust',[20,40,60,80])),raster,place,'kn',undefined,[],1);
+  expect(gust).toContain('image-rendering:pixelated');
+  expect(gust).toContain('1-h-Intervall');
  });
  it('exports both variables with the run/term, zero-preserving favorite and explicit provenance',()=>{
   const src=nativeSeasonalSvg('winter-berge',precip,temperature,raster,place,'kn',nativeMapScale(precip,'absolute'));

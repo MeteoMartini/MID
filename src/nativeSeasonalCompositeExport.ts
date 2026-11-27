@@ -30,12 +30,14 @@ export function nativeSeasonalSvg(
  const label=id==='winter-berge'?'Winter & Berge · Niederschlag / 2-m-Isothermen':'Sommer · Niederschlag / Böen-Isolinien';
  const sourceSvg=nativeFieldSvg(precip,label,raster,places,1,unit,scale,states,
   {fill:true,lines:false,extremes:false});
- // The common native SVG export defaults to browser smoothing. Seasonal maps
- // must preserve the transparent NoData cell edges in SVG and SVG-derived PNG.
- const nativeImageStyle='style="image-rendering:auto"';
+ // Match the exact rendering contract of the shared exporter. RUC already
+ // uses pixelated native-cell sampling; preserve it. For D2, explicitly
+ // disable the shared exporter's smoothing to keep transparent mask edges.
+ const ruc=nativeFieldModel(precip)==='icon-d2-ruc';
+ const nativeImageStyle=ruc?'style="image-rendering:pixelated"':'style="image-rendering:auto"';
  if(sourceSvg.split(nativeImageStyle).length!==2)
   throw new Error('Saisonkartenexport: unverifizierte Rasterbild-Darstellung.');
- const base=sourceSvg.replace(nativeImageStyle,'style="image-rendering:crisp-edges"');
+ const base=ruc?sourceSvg:sourceSvg.replace(nativeImageStyle,'style="image-rendering:crisp-edges"');
  const west=precip.lons[0],east=precip.lons.at(-1)!;
  const south=mercatorY(precip.lats[0]),north=mercatorY(precip.lats.at(-1)!);
  const x=(lon:number)=>50+(lon-west)/(east-west)*630;
