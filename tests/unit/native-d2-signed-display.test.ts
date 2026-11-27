@@ -1,7 +1,7 @@
 import {describe,expect,it} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
-import {nativeFrameEvidence,nativePressureFrameRef,nativePresentationPressure} from '../../src/nativeMapFrameEvidence';
+import {nativeFrameEvidence,nativeDisplayedFrameEvidence,nativePressureFrameRef,nativePresentationPressure} from '../../src/nativeMapFrameEvidence';
 import {nativeFieldSvg} from '../../src/nativeModelMapExport';
 import type {NativeField,NativeIndex,NativeFrameRef} from '../../src/nativeModelFields';
 
@@ -22,7 +22,9 @@ describe('signed original ICON-D2 full-area display with existing native clients
   expect(nativeFrameEvidence(approved,field,ref)?.bounds).toEqual([[44,-1],[58,21]]);
   expect(nativeFrameEvidence(approved,field,{...ref,time:'2026-11-26T06:00:00Z'})).toBeNull();
   expect(nativeFrameEvidence(approved,{...field,lats:[58,44]},ref)).toBeNull();
-  expect(unified).toContain('field?[[field.lats[0],field.lons[0]],[field.lats.at(-1)!,field.lons.at(-1)!]]');
+  expect(unified).toContain('nativeDisplayedFrameEvidence(catalog.index,field)');
+  expect(unified).toContain('displayedNativeEvidence?.bounds??null');
+  expect(unified).toContain('isTotals?Boolean(frame):Boolean(displayedNativeEvidence)');
   expect(index).toContain('D2_FULL_DOMAIN_SOURCE_CELLS=542040');
  });
  it('never mislabels unapproved regular remap as 542040-cell native release',()=>{
@@ -47,6 +49,22 @@ describe('signed original ICON-D2 full-area display with existing native clients
   expect(nativeFieldSvg(field,'Böe','data:image/png;base64,AA==',[],3)).toContain('3-h-Modellintervall');
   expect(legacy).toContain('Bezugsintervall ist aus dem veröffentlichten Originalfeld nicht ausgewiesen');
   expect(legacy).toContain('fehlende Zellen bleiben transparent');
+ });
+ it('binds the active common map and export to the displayed catalogue term, not the selected successor',()=>{
+  const later={...ref,hour:6,time:'2026-11-26T06:00:00Z',intervalHours:3,sha256:'c'.repeat(64)};
+  const listed:NativeIndex={...approved,products:{...approved.products,gust:{unit:'km/h',frames:[ref,later]}}};
+  expect(nativeDisplayedFrameEvidence(listed,field)?.bounds).toEqual([[44,-1],[58,21]]);
+  expect(nativeDisplayedFrameEvidence(listed,field)?.intervalHours).toBeNull();
+  expect(nativeDisplayedFrameEvidence(listed,{...field,time:later.time})?.intervalHours).toBe(3);
+  expect(nativeDisplayedFrameEvidence({...listed,run:'2026-11-25T18:00:00Z'},field)).toBeNull();
+  expect(nativeDisplayedFrameEvidence({...listed,modelId:'icon-d2-ruc'},field)).toBeNull();
+  expect(nativeDisplayedFrameEvidence({...listed,products:{gust:{unit:'km/h',frames:[later]}}},field)).toBeNull();
+  expect(nativeDisplayedFrameEvidence(listed,{...field,kind:'temperature'})).toBeNull();
+  expect(nativeDisplayedFrameEvidence(listed,{...field,lons:[21,-1]})).toBeNull();
+  const ruc:NativeField={...field,schema:'mid.ruc.map-field.v1',modelId:'icon-d2-ruc',sampling:'nearest-native-cell'};
+  expect(nativeDisplayedFrameEvidence({...listed,schema:'mid.ruc.map-fields.v1',modelId:'icon-d2-ruc'},ruc)?.nativeD2Full).toBe(false);
+  expect(unified).toContain('else if(field&&displayedNativeEvidence)');
+  expect(unified).toContain('displayedNativeEvidence.intervalHours??NaN');
  });
  it('admits only same-model, same-run, same-term hPa pressure fallback and preserves embedded contours',()=>{
   const pressure:NativeField={...field,kind:'pressure',unit:'hPa',isobars:[{level:1015,paths:[[[48,7],[49,8]]]}]};

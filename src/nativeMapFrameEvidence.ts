@@ -8,6 +8,12 @@ export function nativeFrameEvidence(index:NativeIndex,field:NativeField,ref:Nati
  if(!bounds.flat().every(Number.isFinite)||bounds[0][0]>=bounds[1][0]||bounds[0][1]>=bounds[1][1])return null;
  return {bounds,nativeD2Full:nativeFieldModel(field)==='icon-d2'&&index.schema==='mid.icon-d2.native-fields.v2'&&index.productionApproved===true&&field.schema==='mid.icon-d2.native-field.v2',intervalHours:Number.isFinite(ref.intervalHours)&&ref.intervalHours>0&&ref.intervalHours<=ref.hour?ref.intervalHours:null};
 }
+/** Resolve the currently displayed field, not the next slider selection.
+ * The validated field must still belong to an admitted catalogue frame. */
+export function nativeDisplayedFrameEvidence(index:NativeIndex,field:NativeField){
+ const ref=index.products[field.kind]?.frames.find(frame=>frame.time===field.time);
+ return ref?nativeFrameEvidence(index,field,ref):null;
+}
 /** Theta-E and precipitation retain the established same-term pressure fallback.
  * SigWx requires a separately verified hPa pressure field only when requested. */
 export function nativePressureFrameRef(index:NativeIndex,field:NativeField,cloudIsobars:boolean){
