@@ -162,7 +162,28 @@ describe('MID map model identity: flag, family and fine-to-coarse ordering',()=>
   expect(contour).not.toContain('hoverProperty="label"');
   // Only redundant seasonal tooltip changes: cloud/synoptic contour
   // hover info is not silently disabled.
-  expect(map).toContain('id="unified-cloud-weather-isobars" data={contours} hoverProperty="label"');
+  expect(map).toContain("groups.push({id:'isobars',data:contours,hoverProperty:'label'");
+  expect(map).toContain("groups.push({id:'isoheights',data:isoheightContours,hoverProperty:'label'");
+  expect(map).toContain('frame={cloudPresentation}');
+ });
+ it('keeps data-loading errors distinct from render errors and only acknowledges the current cloud field',()=>{
+  const cloud=readFileSync(fileURLToPath(new URL('../../src/CloudSignificantWeather.tsx',import.meta.url)),'utf8');
+  expect(cloud).toContain('const error=sourceError||nativeFrameError');
+  const ack=cloud.slice(cloud.indexOf('const markDisplayed='),cloud.indexOf('const failTile='));
+  expect(ack).toContain('currentContext.current!==context');
+  expect(ack).toContain('currentData.current!==value');
+  expect(ack).toContain('dataContexts.current.get(value)!==context');
+  expect(cloud).toContain('dataContexts.current.set(value,key)');
+  expect(cloud).toContain('nativeDataKey===context');
+  const map=readFileSync(fileURLToPath(new URL('../../src/UnifiedWeatherMap.tsx',import.meta.url)),'utf8');
+  expect(map).toContain('isCloudWeather&&cloudWeather.nativeDataCurrent');
+  expect(map).toContain('cloudData.time,cloudWeather.nativeDataKey,revision');
+  expect(ack).toContain('value.run!==run||value.time!==time');
+  expect(ack).toContain("setNativeFrameError('')");
+  expect(ack).not.toContain('setError(');
+  const fail=cloud.slice(cloud.indexOf('const failNativeFrame='),cloud.indexOf('const sample='));
+  expect(fail).toContain('setNativeFrameError(message)');
+  expect(fail).not.toContain('setError(');
  });
  it('keeps unknown model identities transparent, sorted after verified sources',()=>{
   const list=[{id:'unlisted-a',label:'Zeta'},{id:'ifs',label:'ECMWF IFS'},

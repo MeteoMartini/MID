@@ -60,7 +60,11 @@ try{
  const composite=readFileSync('src/RadarPanel.tsx','utf8'),modelReferences=readFileSync('src/ModelMapContextOverlay.tsx','utf8'),modelMap=readFileSync('src/WeatherMapsPanel.tsx','utf8'),nativeMap=readFileSync('src/NativeModelMap.tsx','utf8'),layers=readFileSync('src/CloudSignificantWeather.tsx','utf8'),ordering=readFileSync('src/MapLibreCore.tsx','utf8');
  assert.match(composite,/compositeReferenceLayers\(mapOverlayOpacity\/100,referenceSettings\)\} zIndex=\{790\}/,'Country/place reference must be above filled model maps');
  assert.match(layers,/pairedNativeCloudWeatherTimes\(native\?\.index\?\?null\)/,'Absent independent D2 cloud/WW hour must consider a valid native pair');
- assert.match(layers,/selectedIndependentFrame\?\[selectedIndependentFrame\]:useNativePair\?/,'Independent field remains preferred; a missing hour may use an actually paired native field');
+ // The old ref-array literal was replaced by the full transport identity; preserve source precedence and paired-field admission.
+ assert.match(layers,/useNativePair=modelId==='icon-d2'&&!selectedIndependentFrame&&pairedNativeTimes\.includes\(time\?\?''\)/,'Independent field remains preferred; a missing hour may use an actually paired native field');
+ assert.match(layers,/if\(selectedIndependentFrame&&separateModel&&synoptic\)return loadCloudWeatherField\(/,'The independent field is loaded first');
+ assert.match(layers,/native&&cloudRef&&weatherRef\?JSON\.stringify\(\[nativeFrameIdentity\(native\.index,cloudRef,'cloud'\),nativeFrameIdentity\(native\.index,weatherRef,'sigwx'\)\]\)/,'Both native field identities must be present in the selected key');
+ assert.match(layers,/if\(!cloudRef\|\|!weatherRef\)return null;const \[cloud,weather\]=await Promise\.all\(/,'No single-field fallback is admitted');
  assert.match(layers,/if\(useNativePair&&native\)/,'No fallback to an unpaired or incompatible native term');
  assert.match(layers,/zIndex=\{role==='cloud'\?300:305\}/,'Cloud/weather WMS fills stay beneath reference layers');
  assert.ok(layers.includes('state.data&&state.data.model===state.modelId&&state.raster?<ImageQuadLayer'),'Only the validated frame for the selected model is rendered');
@@ -70,7 +74,10 @@ try{
  assert.doesNotMatch(layers,/state\.data\.run===state\.run/,'A fully validated prior run remains rendered during a same-model transition');
  const unified=readFileSync('src/UnifiedWeatherMap.tsx','utf8');assert.match(unified,/const forecastRun=isCloudWeather\?cloudWeather\.displayedRun/,'Displayed lead time must remain bound to the actually rendered image, not the pending data');
  assert.ok(layers.includes('onReady={()=>state.markDisplayed(state.data!)}'),'Only a fully rendered crossfade may advance the visible model time');
- assert.ok(layers.includes('frameKey={`${state.data.model}:${state.data.run}:${state.data.time}:${state.mode}:${state.revision}`}'),'Actual image identity, not the pending selection, must control frame promotion');
+ assert.ok(layers.includes('frameKey={`${state.data.model}:${state.data.run}:${state.data.time}:${state.mode}:${state.nativeDataKey}`}'),'Actual verified image identity, not the pending selection, controls frame promotion');
+ assert.ok(layers.includes('dataContexts.current.set(value,key);cache.current.set(key,value)'),'Only loaded, validated data gets the transport identity');
+ assert.ok(layers.includes('nativeDataKey===context')&&layers.includes('dataContexts.current.get(value)!==context'),'A same-term stale digest cannot become ready or acknowledge a new frame');
+ assert.ok(unified.includes('isCloudWeather&&cloudWeather.nativeDataCurrent')&&unified.includes('cloudData.time,cloudWeather.nativeDataKey,revision'),'Unified presentation, probe and export require the exact verified field generation');
  assert.ok(layers.includes('data===displayedNative'),'Data-ready is not the same as fully rendered image-ready');
  assert.ok(layers.includes('gdpsFrames.flatMap'),'Both GDPS components retain their previous complete plan while loading');
  assert.doesNotMatch(layers,/id=\{`cloud-weather-\$\{state.context\}-\$\{state.mode\}`\}/,'Time-specific image identity must not erase the crossfade buffer');

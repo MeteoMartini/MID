@@ -2,7 +2,7 @@ import {modelWeatherLegendGlyph,modelPrecipGlyphSvg} from './synopModelPlot';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {ImageQuadLayer,WmsTileLayer} from './MapLibreCore';
 import ModelMapProbe from './ModelMapProbe';
-import {loadNativeField,type NativeIndex} from './nativeModelFields';
+import {loadNativeField,nativeFrameIdentity,type NativeIndex} from './nativeModelFields';
 import {loadSynopticField,type SynopticIndex} from './nativeSynopticFields';
 import {loadWeatherMapMetadata,weatherMapWmsProxy,type WeatherMapMetadata} from './WeatherMapsData';
 import {nearestUnifiedTime} from './unifiedMapCatalog';
@@ -10,56 +10,64 @@ import {CLOUD_WEATHER_LABEL,GDPS_CLOUD_LAYER,GDPS_WEATHER_LAYER,SIGNIFICANT_WEAT
 import './CloudSignificantWeather.css';
 
 export function useCloudWeatherMap(enabled:boolean,target:number,modelId:string,revision:number,native:{index:NativeIndex;base:string}|null,synoptic:{index:SynopticIndex;base:string}|null,forecastSelected:boolean,mode:CloudWeatherRenderMode='pseudo'){
- const [gdpsDisplayed,setGdpsDisplayed]=useState<{run:string;time:string}|null>(null),[data,setData]=useState<CloudWeatherData|null>(null),[metadata,setMetadata]=useState<WeatherMapMetadata[]>([]),[loading,setLoading]=useState(false),[error,setError]=useState(''),[tiles,setTiles]=useState<Set<string>>(()=>new Set());
- const [displayedNative,setDisplayedNative]=useState<CloudWeatherData|null>(null);
+ const [gdpsDisplayed,setGdpsDisplayed]=useState<{run:string;time:string}|null>(null),[data,setData]=useState<CloudWeatherData|null>(null),[metadata,setMetadata]=useState<WeatherMapMetadata[]>([]),[loading,setLoading]=useState(false),[sourceError,setError]=useState(''),[tiles,setTiles]=useState<Set<string>>(()=>new Set());
+ const [displayedNative,setDisplayedNative]=useState<CloudWeatherData|null>(null),[nativeFrameError,setNativeFrameError]=useState('');
+ const error=sourceError||nativeFrameError;
  // The rendered frame is independent of the next fully verified model dataset.
  useEffect(()=>{setDisplayedNative(null)},[enabled,modelId]);
- const cache=useRef(new Map<string,CloudWeatherData>());
+ const cache=useRef(new Map<string,CloudWeatherData>()),dataContexts=useRef(new WeakMap<CloudWeatherData,string>());
  const separateModel=synoptic?.index.models[modelId],separateFrames=separateModel?.cloudWeatherFrames??[];
  const pairedNativeTimes=modelId==='icon-d2'?pairedNativeCloudWeatherTimes(native?.index??null):[];
  const embeddedTimes=synoptic?.index.models[modelId]?.frames.filter(f=>f.cloudWeather===true).map(f=>f.time)??[];
  const nativeTimes=[...new Set([...separateFrames.map(f=>f.time),...pairedNativeTimes,...embeddedTimes])].sort((a,b)=>Date.parse(a)-Date.parse(b));
  const nativeTime=nearestUnifiedTime(nativeTimes,target),gdpsPlan=useMemo(()=>gdpsCloudWeatherPlan(metadata,target),[metadata,target]);
  const time=modelId==='gdps'?gdpsPlan?.time:nativeTime,selectedIndependentFrame=separateFrames.find(f=>f.time===time),useNativePair=modelId==='icon-d2'&&!selectedIndependentFrame&&pairedNativeTimes.includes(time??'');
- const run=modelId==='gdps'?gdpsPlan?.run:selectedIndependentFrame?separateModel?.run:useNativePair?native?.index.run:synoptic?.index.models[modelId]?.run,context=`${modelId}:${run}:${time}:${revision}`;
+ const run=modelId==='gdps'?gdpsPlan?.run:selectedIndependentFrame?separateModel?.run:useNativePair?native?.index.run:synoptic?.index.models[modelId]?.run;
+ const cloudRef=useNativePair?native?.index.products.cloud?.frames.find(f=>f.time===time):undefined,weatherRef=useNativePair?native?.index.products.sigwx?.frames.find(f=>f.time===time):undefined;
+ const synopticRef=selectedIndependentFrame??separateModel?.frames.find(f=>f.time===time&&f.cloudWeather===true);
+ const selectionIdentity=useNativePair?(native&&cloudRef&&weatherRef?JSON.stringify([nativeFrameIdentity(native.index,cloudRef,'cloud'),nativeFrameIdentity(native.index,weatherRef,'sigwx')]):''):(synoptic&&separateModel&&synopticRef?JSON.stringify([synoptic.index.schema,separateModel.run,separateModel.resolutionKm,Boolean(selectedIndependentFrame),synopticRef.hour,synopticRef.time,synopticRef.file,synopticRef.sha256,synopticRef.bytes,synopticRef.decodedBytes,synopticRef.encoding,synopticRef.resolutionKm??null]):'');
+ const context=`${modelId}:${run}:${time}:${revision}${modelId==='gdps'?'':':'+selectionIdentity}`;
+ const nativeDataKey=data?dataContexts.current.get(data)??'':'',nativeDataCurrent=Boolean(selectionIdentity&&nativeDataKey===context);
  const currentContext=useRef(context);currentContext.current=context;
+ const currentData=useRef(data);currentData.current=data;
  useEffect(()=>{const c=new AbortController();setMetadata([]);setError('');if(!enabled||modelId!=='gdps')return()=>c.abort();setLoading(true);
   void Promise.all([loadWeatherMapMetadata(GDPS_CLOUD_LAYER,c.signal),loadWeatherMapMetadata(GDPS_WEATHER_LAYER,c.signal)]).then(rows=>{if(!c.signal.aborted)setMetadata(rows)}).catch(e=>{if(!c.signal.aborted)setError(String(e.message||e))}).finally(()=>{if(!c.signal.aborted)setLoading(false)});return()=>c.abort();
  },[enabled,modelId,revision]);
  useEffect(()=>{ const c=new AbortController();setData(previous=>retainSameModelCloudWeatherFrame(previous,modelId));if(!enabled||modelId==='gdps')return()=>c.abort();setError('');setLoading(false);if(!time||!run)return()=>c.abort();
-  const refs=selectedIndependentFrame?[selectedIndependentFrame]:useNativePair?[native?.index.products.cloud?.frames.find(f=>f.time===time),native?.index.products.sigwx?.frames.find(f=>f.time===time)]:[synoptic?.index.models[modelId]?.frames.find(f=>f.time===time&&f.cloudWeather===true)];
-  if(refs.some(r=>!r))return()=>c.abort();const key=`${context}:${refs.map(r=>r!.sha256).join(':')}`,cached=cache.current.get(key);if(cached){setData(cached);return()=>c.abort();}
+  if(!selectionIdentity)return()=>c.abort();const key=context,cached=cache.current.get(key);if(cached){setData(cached);return()=>c.abort();}
   setLoading(true);const timer=window.setTimeout(()=>{setError('Wolken-/Wetterfeld: Zeitüberschreitung.');setLoading(false);c.abort()},30000);
   const load=async()=>{
    if(selectedIndependentFrame&&separateModel&&synoptic)return loadCloudWeatherField(synoptic.base,modelId,separateModel,selectedIndependentFrame,c.signal);
-   if(useNativePair&&native){const cloudRef=native.index.products.cloud?.frames.find(f=>f.time===time),weatherRef=native.index.products.sigwx?.frames.find(f=>f.time===time);if(!cloudRef||!weatherRef)return null;const [cloud,weather]=await Promise.all([loadNativeField(native.index,native.base,cloudRef,'cloud',c.signal),loadNativeField(native.index,native.base,weatherRef,'sigwx',c.signal)]);return nativeCloudWeatherPair(cloud,weather);}
+   if(useNativePair&&native){if(!cloudRef||!weatherRef)return null;const [cloud,weather]=await Promise.all([loadNativeField(native.index,native.base,cloudRef,'cloud',c.signal),loadNativeField(native.index,native.base,weatherRef,'sigwx',c.signal)]);return nativeCloudWeatherPair(cloud,weather);}
    const model=synoptic?.index.models[modelId],frame=model?.frames.find(f=>f.time===time&&f.cloudWeather===true);return synoptic&&model&&frame?synopticCloudWeather(await loadSynopticField(synoptic.base,modelId,model,frame,c.signal)):null;
   };
-  void load().then(value=>{if(!c.signal.aborted&&value){cache.current.set(key,value);while(cache.current.size>4)cache.current.delete(cache.current.keys().next().value!);setData(value)}}).catch(e=>{if(!c.signal.aborted)setError(String(e.message||e))}).finally(()=>{window.clearTimeout(timer);if(!c.signal.aborted)setLoading(false)});
+  void load().then(value=>{if(!c.signal.aborted&&value){dataContexts.current.set(value,key);cache.current.set(key,value);while(cache.current.size>4)cache.current.delete(cache.current.keys().next().value!);setData(value)}}).catch(e=>{if(!c.signal.aborted)setError(String(e.message||e))}).finally(()=>{window.clearTimeout(timer);if(!c.signal.aborted)setLoading(false)});
   return()=>{window.clearTimeout(timer);c.abort()};
  },[enabled,modelId,context,native,synoptic,revision]);
  useEffect(()=>{setError('')},[context]);
+ useEffect(()=>{setNativeFrameError('')},[context,enabled]);
  const raster=useMemo(()=>enabled&&data?cloudWeatherRaster(data,mode):'',[enabled,data,mode]);
- const ready=enabled&&!error&&(modelId==='gdps'?Boolean(gdpsPlan&&tiles.has(`${context}:cloud`)&&tiles.has(`${context}:weather`)):Boolean(data&&data===displayedNative&&data.model===modelId&&data.time===time&&data.run===run));
+ const ready=enabled&&!error&&(modelId==='gdps'?Boolean(gdpsPlan&&tiles.has(`${context}:cloud`)&&tiles.has(`${context}:weather`)):Boolean(nativeDataCurrent&&data&&data===displayedNative&&data.model===modelId&&data.time===time&&data.run===run));
  useEffect(()=>{if(!enabled||modelId!=='gdps'){setGdpsDisplayed(null);return}if(ready&&gdpsPlan)setGdpsDisplayed({run:gdpsPlan.run,time:gdpsPlan.time})},[enabled,modelId,ready,context]);
  const displayedTime=modelId==='gdps'?(ready?gdpsPlan?.time:gdpsDisplayed&&gdpsDisplayed.run===run?gdpsDisplayed.time:undefined):displayedNative?.model===modelId?displayedNative.time:undefined;
  const displayedRun=modelId==='gdps'?(ready?gdpsPlan?.run:gdpsDisplayed&&gdpsDisplayed.run===run?gdpsDisplayed.run:undefined):displayedNative?.model===modelId?displayedNative.run:undefined;
  useEffect(()=>{if(!enabled||!forecastSelected||modelId!=='gdps'||!gdpsPlan||ready||error)return;const timer=window.setTimeout(()=>setError('GDPS-Kombination nicht vollständig geladen. Erneut laden oder einen gültigen Termin wählen.'),30000);return()=>window.clearTimeout(timer)},[enabled,forecastSelected,modelId,context,Boolean(gdpsPlan),ready,error]);
  const markTile=(role:string)=>{const key=`${context}:${role}`;if(currentContext.current!==context)return;setTiles(current=>{if(current.has(key))return current;const next=new Set(current);next.add(key);while(next.size>12)next.delete(next.values().next().value!);return next})};
- const markDisplayed=(value:CloudWeatherData)=>{if(value.model===modelId)setDisplayedNative(current=>current===value?current:value)};
+ const markDisplayed=(value:CloudWeatherData)=>{if(!enabled||modelId==='gdps'||currentContext.current!==context||currentData.current!==value||dataContexts.current.get(value)!==context||value.model!==modelId||value.run!==run||value.time!==time)return;setDisplayedNative(current=>current===value?current:value);setNativeFrameError('')};
  const failTile=()=>{if(currentContext.current===context)setError('Wolken oder Niederschlagsart sind nicht vollständig erreichbar. Der bisherige vollständige Stand bleibt sichtbar.')};
+ const failNativeFrame=(message:string,retained:boolean)=>{if(currentContext.current!==context||currentData.current!==data)return;if(!retained)setDisplayedNative(null);setNativeFrameError(message)};
  const sample=(lat:number,lon:number)=>{if(!ready||!data)return null;const p=cloudWeatherAt(data,lat,lon);return p&&(p.cloud!==null||p.weather!==null)?`${p.cloud===null?'Wolken nicht verfügbar':`${Math.round(p.cloud)} % Wolken`} · ${cloudWeatherDescription(p.weather)}`:null};
- return {enabled,modelId,mode,data,raster,time,run,revision,context,ready,displayedTime,displayedRun,loading,error,times:modelId==='gdps'?gdpsCloudWeatherCatalog(metadata)?.times??[]:nativeTimes,gdpsPlan,markTile,markDisplayed,failTile,sample};
+ return {enabled,modelId,mode,data,raster,time,run,revision,context,nativeDataKey,nativeDataCurrent,ready,displayedTime,displayedRun,loading,error,times:modelId==='gdps'?gdpsCloudWeatherCatalog(metadata)?.times??[]:nativeTimes,gdpsPlan,markTile,markDisplayed,failTile,failNativeFrame,sample};
 }
 export type CloudWeatherState=ReturnType<typeof useCloudWeatherMap>;
-export function CloudWeatherLayers({state,opacity,modelLabel}:{state:CloudWeatherState;opacity:number;modelLabel:string}){
+export function CloudWeatherLayers({state,opacity,modelLabel,renderNative=true,nativeProbeReady=state.ready}:{state:CloudWeatherState;opacity:number;modelLabel:string;renderNative?:boolean;nativeProbeReady?:boolean}){
  const [gdpsBuffer,setGdpsBuffer]=useState<{current:CloudWeatherState['gdpsPlan'];previous:CloudWeatherState['gdpsPlan']}>({current:null,previous:null});
  useEffect(()=>{if(!state.enabled||state.modelId!=='gdps'){setGdpsBuffer({current:null,previous:null});return}if(!state.ready||!state.gdpsPlan)return;setGdpsBuffer(old=>old.current?.run===state.gdpsPlan!.run&&old.current?.time===state.gdpsPlan!.time?old:{current:state.gdpsPlan,previous:old.current?.run===state.gdpsPlan!.run?old.current:null})},[state.enabled,state.modelId,state.ready,state.context]);
  useEffect(()=>{if(!gdpsBuffer.previous)return;const timer=window.setTimeout(()=>setGdpsBuffer(old=>({...old,previous:null})),380);return()=>window.clearTimeout(timer)},[gdpsBuffer.current,gdpsBuffer.previous]);
  const gdpsFrames=[state.gdpsPlan,gdpsBuffer.current,gdpsBuffer.previous].filter((plan,index,all)=>plan&&plan.run===state.gdpsPlan?.run&&all.findIndex(p=>p?.time===plan.time&&p?.run===plan.run)===index);
  if(!state.enabled)return null;
- return <>{state.modelId==='gdps'&&state.gdpsPlan?gdpsFrames.flatMap(plan=>(['cloud','weather'] as const).map(role=><WmsTileLayer key={`${plan!.run}:${plan!.time}:${role}`} id={`cloud-weather-${plan!.run}-${plan!.time}-${role}`} resampling={role==='weather'?'nearest':'linear'} baseUrl={weatherMapWmsProxy('geomet')} zIndex={role==='cloud'?300:305} opacity={plan===state.gdpsPlan?(state.ready?opacity/100:.001):(!state.ready&&plan===gdpsBuffer.current?opacity/100:0)} params={{layers:role==='cloud'?GDPS_CLOUD_LAYER:GDPS_WEATHER_LAYER,styles:role==='cloud'?'CLOUD':'INSTPRECIPITATIONTYPE',format:'image/png',transparent:true,version:'1.1.1',width:512,height:512,time:plan!.time,dim_reference_time:plan!.run}} attribution="Wolken / Niederschlagsart © ECCC · Open Government Licence – Canada" onReady={()=>{if(plan===state.gdpsPlan)state.markTile(role)}} onError={()=>{if(plan===state.gdpsPlan)state.failTile()}}/>)):state.data&&state.data.model===state.modelId&&state.raster?<ImageQuadLayer id={`cloud-weather-${state.modelId}-${state.mode}`} resampling="nearest" url={state.raster} bounds={[[state.data.lats[0],state.data.lons[0]],[state.data.lats.at(-1)!,state.data.lons.at(-1)!]]} opacity={opacity/100} zIndex={300} frameKey={`${state.data.model}:${state.data.run}:${state.data.time}:${state.mode}:${state.revision}`} onReady={()=>state.markDisplayed(state.data!)} onError={state.failTile}/>:null}
- {state.data&&<ModelMapProbe<string> label={CLOUD_WEATHER_LABEL} unit="" source={`${modelLabel} · gleicher Rasterpunkt, Lauf und Termin`} enabled={state.ready} contextKey={state.context} sample={state.sample} format={value=>value??'–'}/>}</>;
+ return <>{state.modelId==='gdps'&&state.gdpsPlan?gdpsFrames.flatMap(plan=>(['cloud','weather'] as const).map(role=><WmsTileLayer key={`${plan!.run}:${plan!.time}:${role}`} id={`cloud-weather-${plan!.run}-${plan!.time}-${role}`} resampling={role==='weather'?'nearest':'linear'} baseUrl={weatherMapWmsProxy('geomet')} zIndex={role==='cloud'?300:305} opacity={plan===state.gdpsPlan?(state.ready?opacity/100:.001):(!state.ready&&plan===gdpsBuffer.current?opacity/100:0)} params={{layers:role==='cloud'?GDPS_CLOUD_LAYER:GDPS_WEATHER_LAYER,styles:role==='cloud'?'CLOUD':'INSTPRECIPITATIONTYPE',format:'image/png',transparent:true,version:'1.1.1',width:512,height:512,time:plan!.time,dim_reference_time:plan!.run}} attribution="Wolken / Niederschlagsart © ECCC · Open Government Licence – Canada" onReady={()=>{if(plan===state.gdpsPlan)state.markTile(role)}} onError={()=>{if(plan===state.gdpsPlan)state.failTile()}}/>)):renderNative&&state.data&&state.data.model===state.modelId&&state.raster?<ImageQuadLayer id={`cloud-weather-${state.modelId}-${state.mode}`} resampling="nearest" url={state.raster} bounds={[[state.data.lats[0],state.data.lons[0]],[state.data.lats.at(-1)!,state.data.lons.at(-1)!]]} opacity={opacity/100} zIndex={300} frameKey={`${state.data.model}:${state.data.run}:${state.data.time}:${state.mode}:${state.nativeDataKey}`} onReady={()=>state.markDisplayed(state.data!)} onError={state.failTile}/>:null}
+ {state.data&&<ModelMapProbe<string> label={CLOUD_WEATHER_LABEL} unit="" source={`${modelLabel} · gleicher Rasterpunkt, Lauf und Termin`} enabled={state.modelId==='gdps'?state.ready:nativeProbeReady} contextKey={state.context} sample={state.sample} format={value=>value??'–'}/>}</>;
 }
 export function CloudWeatherLegend({state}:{state:Pick<CloudWeatherState,'modelId'>&{mode?:CloudWeatherRenderMode}}){
  return <details className="cloud-weather-legend"><summary>Legende · Wolken und Wetterfarben</summary>
