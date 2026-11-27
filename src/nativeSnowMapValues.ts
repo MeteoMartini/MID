@@ -8,11 +8,18 @@ export type SnowSourceField={
  parameter:'h_snow'|'snow_gsp'|'snow_con';unit:'m'|'kg/m²';
  gridSha256:string;sourceSha256:string;values:Float64Array;
 };
+/** Require explicit UTC and exact calendar round-trip (no normalized Feb 30,
+ * implicit local zone, leap-second coercion or fractional-time ambiguity). */
+function validSnowUtc(value:string){
+ if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.000)?Z$/.test(value))return false;
+ const ms=Date.parse(value);
+ return Number.isFinite(ms)&&new Date(ms).toISOString()===value.replace(/(?:\.000)?Z$/,'.000Z');
+}
 function sourceValid(field:SnowSourceField){
  return ['icon-d2','icon-eu','icon'].includes(field.model)&&
   /^[a-f0-9]{64}$/.test(field.gridSha256)&&/^[a-f0-9]{64}$/.test(field.sourceSha256)&&
   field.values instanceof Float64Array&&field.values.length>0&&field.values.length<=12000000&&
-  Number.isFinite(Date.parse(field.run))&&Number.isFinite(Date.parse(field.time))&&
+  validSnowUtc(field.run)&&validSnowUtc(field.time)&&validSnowUtc(field.startTime)&&
   Date.parse(field.time)>=Date.parse(field.run);
 }
 function checkedSnowValue(value:number){

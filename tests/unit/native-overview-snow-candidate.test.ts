@@ -6,7 +6,7 @@ vi.mock('../../src/nativeModelFields',async(importOriginal)=>{
  return {...actual,nativeVerifiedFrameIdentity:(field:object)=>evidence.get(field)};
 });
 import {nativeFrameIdentity} from '../../src/nativeModelFields';
-import {nativeOverviewPlan,prepareNativeOverview,nativeOverviewCell} from '../../src/nativeOverviewFrame';
+import {nativeOverviewPlan,prepareNativeOverview,nativeOverviewCell,nativeOverviewRaster} from '../../src/nativeOverviewFrame';
 import {dwdSnowIntervalSwe,geometricSnowDepthCm,type SnowSourceField} from '../../src/nativeSnowMapValues';
 const run='2026-11-27T00:00:00Z',time='2026-11-27T01:00:00Z';
 const specs=[['cloud','%',20],['precipitation','mm/1 h',0],['pressure','hPa',1010],['temperature','°C',-2],['sigwx','WMO',71]] as const;
@@ -27,6 +27,20 @@ describe('original overview core – candidate, no UI admission',()=>{
   expect(nativeOverviewCell(frame,0)).toMatchObject({cloud:20,precipitation:0,pressure:1010,temperature:-2,weatherCode:71,time,model:'icon-d2'});
   expect(nativeOverviewCell(frame,2)).toBeNull();expect(nativeOverviewCell(frame,-1)).toBeNull();
   expect(nativeOverviewCell(frame,4)).toBeNull();
+ });
+ it('renders exact mask, dry cloud and original rain intensity in one raster',()=>{
+  const {index,fields}=fixture();
+  fields[1].values[3]=100;
+  const frame=prepareNativeOverview(index,time,fields)!;
+  const pixels=new Uint8ClampedArray(16),put=vi.fn();
+  const canvas={width:0,height:0,getContext:()=>({createImageData:()=>({data:pixels}),putImageData:put}),toDataURL:()=> 'data:image/png;base64,fixture'};
+  vi.stubGlobal('document',{createElement:()=>canvas});
+  try{
+   expect(nativeOverviewRaster(frame)).toBe('data:image/png;base64,fixture');
+   expect([canvas.width,canvas.height]).toEqual([2,2]);expect(put).toHaveBeenCalledTimes(1);
+   expect(Array.from(pixels)).toEqual([0,0,0,0,20,90,145,215,142,142,142,34,142,142,142,34]);
+   expect(nativeOverviewCell(frame,0)?.precipitation).toBe(0);
+  }finally{vi.unstubAllGlobals()}
  });
  it('rejects stale/duplicate/missing refs, unsupported RUC and wrong interval',()=>{
   const {index,fields}=fixture();
@@ -72,9 +86,17 @@ describe('isolated original DWD snow arithmetic',()=>{
   expect(()=>dwdSnowIntervalSwe(f[0],{...f[1],sourceSha256:f[0].sourceSha256},f[2],f[3])).toThrow();
   f[1].values[0]=Infinity;expect(()=>dwdSnowIntervalSwe(...f)).toThrow();
  });
+ it('rejects invalid UTC and normalized calendar dates',()=>{
+  const f=snow();
+  for(const time of ['2026-02-30T01:00:00Z','2026-11-27T01:00:00','2026-11-27T01:00:00+01:00','2026-11-27T01:00:00.500Z']){
+   expect(()=>dwdSnowIntervalSwe({...f[0],time},f[1],{...f[2],time},f[3])).toThrow();
+  }
+ });
  it('converts only geometric depth, preserving small values and missing',()=>{
   const f=snow()[0],depth:SnowSourceField={...f,parameter:'h_snow',unit:'m',startTime:f.time,values:Float64Array.from([0,.004,.12345,NaN])};
-  expect(Array.from(geometricSnowDepthCm(depth))).toEqual([0,.4,12.345,NaN]);
+  const values=geometricSnowDepthCm(depth);
+  expect(values[0]).toBe(0);expect(values[1]).toBeCloseTo(.4,12);
+  expect(values[2]).toBeCloseTo(12.345,12);expect(Number.isNaN(values[3])).toBe(true);
   expect(()=>geometricSnowDepthCm(f)).toThrow();
  });
 });
