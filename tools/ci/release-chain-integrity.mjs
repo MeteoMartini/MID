@@ -19,7 +19,13 @@ const isObj=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
 const positive=x=>Number.isSafeInteger(x)&&x>0;
 const fail=s=>{throw Error('MID read-only release chain rejected: '+s)};
 const sha=(x,s)=>{if(typeof x!=='string'||!SHA.test(x))fail('Invalid '+s+' SHA');return x};
-const stamp=(s,name)=>{if(typeof s!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z$/.test(s)||!Number.isFinite(Date.parse(s)))fail('Unknown '+name+' UTC time');return Date.parse(s)};
+const stamp=(s,name)=>{
+ if(typeof s!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z$/.test(s))fail('Unknown '+name+' UTC time');
+ const epoch=Date.parse(s);
+ // Date.parse may normalize impossible calendar dates and 24:00. Preserve legitimate fractional UTC timestamps.
+ if(!Number.isFinite(epoch)||new Date(epoch).toISOString().slice(0,19)!==s.slice(0,19))fail('Unknown '+name+' UTC time');
+ return epoch;
+};
 function checkRun(r,name,path,event,head){
  if(!isObj(r)||!positive(r.id)||r.name!==name||r.path!==path||r.event!==event||r.head_sha!==head||r.status!=='completed'||r.conclusion!=='success'||!positive(r.run_attempt))fail('Untrusted '+name+' workflow status/identity');
  const first=stamp(r.created_at,name),last=stamp(r.updated_at,name);

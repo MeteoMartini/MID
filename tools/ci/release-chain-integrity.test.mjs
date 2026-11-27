@@ -117,3 +117,14 @@ neg527('legacy relabel downgrade with legacy topology',f=>{
  setJob(f,'installerJobs','GitHub-Pages-Artefakt parallel vorbereiten','success');
 });
 neg527('bot starts before terminal Source',f=>{f.botRun.created_at='2026-11-27T09:18:00Z'});
+
+negative('invalid Gregorian September day',f=>{f.sourceRun.created_at='2026-09-31T07:26:02Z'});
+negative('invalid non-leap February day',f=>{f.sourceRun.created_at='2026-02-29T07:26:02Z'});
+negative('normalized 24 hour clock',f=>{f.sourceRun.created_at='2026-10-30T24:00:00Z'});
+neg527('invalid Gregorian installer end',f=>{f.installerRun.updated_at='2026-11-31T09:43:18Z'});
+test('valid leap day and sub-millisecond UTC precision are accepted',()=>{
+ const f=fixture();f.sourceRun.created_at='2024-02-29T07:26:02.123456Z';
+ assert.equal(inspectPublishedChain(f).releaseAuthorized,false);
+ const g=original527();g.sourceRun.created_at='2026-11-27T09:17:31.123456Z';
+ assert.equal(inspectPublishedChain(g).sourceSeconds,589);
+});
