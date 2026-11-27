@@ -8,7 +8,8 @@ vi.mock('../../src/nativeModelFields',async(importOriginal)=>{
 import {nativeFrameIdentity} from '../../src/nativeModelFields';
 import {nativeOverviewPlan,prepareNativeOverview,nativeOverviewCell,nativeOverviewRaster} from '../../src/nativeOverviewFrame';
 import {dwdSnowIntervalSwe,geometricSnowDepthCm,type SnowSourceField} from '../../src/nativeSnowMapValues';
-import {overviewEndpointWeather,nativeOverviewAt,overviewPressureFeatures,overviewPlaceFeatures} from '../../src/nativeOverviewPresentation';
+import {overviewEndpointWeather,nativeOverviewAt,overviewPressureFeatures,overviewPlaceFeatures,createNativeOverviewPresentation} from '../../src/nativeOverviewPresentation';
+import {nativeOverviewSvg} from '../../src/nativeOverviewExport';
 const run='2026-11-27T00:00:00Z',time='2026-11-27T01:00:00Z';
 const specs=[['cloud','%',20],['precipitation','mm/1 h',0],['pressure','hPa',1010],['temperature','°C',-2],['sigwx','WMO',71]] as const;
 function fixture(){
@@ -135,5 +136,29 @@ describe('Overview presentation preparation',()=>{
   expect(winter.features.map(f=>f.properties.name)).toEqual(['A','B']);
   expect(winter.features[0].properties.label).toContain('Schnee');
   expect(overviewPlaceFeatures(frame,places,'overview').features[0].properties.label).not.toContain('Schnee');
+ });
+});
+
+describe('Overview shared temporal scene and export',()=>{
+ it('reuses one raster across variants and preserves original pressure/labels in one frame',()=>{
+  const {index,fields}=fixture();
+  fields[2].isobars=[{level:1010,paths:[[[50,7],[50,8]]]}];
+  const frame=prepareNativeOverview(index,time,fields)!;
+  const pixels=new Uint8ClampedArray(16),put=vi.fn(),canvas={width:0,height:0,getContext:()=>({createImageData:()=>({data:pixels}),putImageData:put}),toDataURL:()=> 'data:image/png;base64,fixture'};
+  vi.stubGlobal('document',{createElement:()=>canvas});
+  try{
+   const places=[{name:'A & Tal',latitude:50,longitude:7},{name:'Keine Daten',latitude:51,longitude:7}];
+   const a=createNativeOverviewPresentation(frame,places,'overview'),b=createNativeOverviewPresentation(frame,places,'winter-overview');
+   expect(put).toHaveBeenCalledTimes(1);expect(a.pressure).toBe(b.pressure);
+   expect(a.mapFrame.raster?.resampling).toBe('nearest');expect(a.mapFrame.groups.map(g=>g.id)).toEqual(['isobars','temperature-and-weather']);
+   expect(b.mapFrame.key).not.toBe(a.mapFrame.key);
+   const svg=nativeOverviewSvg(b,places);
+   expect(svg).toContain('Winter Overview');expect(svg).toContain('image-rendering:pixelated');
+   expect(svg).toContain('A &amp; Tal');expect(svg).toContain('0 mm/1 h');expect(svg).toContain('WW 71 · Schnee');
+   expect(svg).toContain('Keine gemeinsame Rasterabdeckung');expect(svg).toContain('keine Aussage über die Phase der gesamten Stunde');
+   expect(svg).toContain('2026-11-27 00:00 UTC');expect(svg).toContain('2026-11-27 01:00 UTC');
+   expect(svg).not.toContain('A & Tal');
+   expect(()=>nativeOverviewSvg({...b,mapFrame:{...b.mapFrame,raster:undefined}},places)).toThrow('Raster fehlt');
+  }finally{vi.unstubAllGlobals()}
  });
 });

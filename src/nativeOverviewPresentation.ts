@@ -3,10 +3,12 @@
  * Contour segments are preserved or explicitly omitted on incomplete shared masks;
  * no synthetic smoothing. Named locations only; bounded symbol inventory.
  */
-import {nativeOverviewCell,nativeOverviewCellValid,type NativeOverviewFrame} from './nativeOverviewFrame';
+import {nativeOverviewCell,nativeOverviewCellValid,nativeOverviewRaster,type NativeOverviewFrame} from './nativeOverviewFrame';
 import {WMO_PRECIP_TYPE,compactPrecipitationTypeLabel} from './precipitation';
 import {modelMapValue} from './modelMapUnits';
 import {nativeIsobarFeatures} from './unifiedMapPresentation';
+import {adaptiveContourLayers} from './adaptiveModelContours';
+import type {TemporalMapFrameData,TemporalMapGroup} from './TemporalMapFrame';
 export type OverviewVariant='overview'|'winter-overview';
 export type OverviewPlace={name:string;latitude:number;longitude:number};
 export function overviewEndpointWeather(code:number){
@@ -69,3 +71,29 @@ export function overviewPlaceFeatures(frame:NativeOverviewFrame,places:readonly 
  }
  return {type:'FeatureCollection' as const,features};
 }
+
+/** A frame is immutable after admission. Cache its raster and original contours
+ * weakly: changing variants or labels must not re-rasterize millions of cells.
+ * The caller memoizes the admitted frame and never mutates its source arrays. */
+const staticOverviewScene=new WeakMap<NativeOverviewFrame,{raster:string;pressure:ReturnType<typeof overviewPressureFeatures>}>();
+export function createNativeOverviewPresentation(frame:NativeOverviewFrame,places:readonly OverviewPlace[],variant:OverviewVariant){
+ let scene=staticOverviewScene.get(frame);
+ if(!scene){
+  scene={raster:nativeOverviewRaster(frame),pressure:overviewPressureFeatures(frame)};
+  staticOverviewScene.set(frame,scene);
+ }
+ const {raster,pressure}=scene,locations=overviewPlaceFeatures(frame,places,variant),groups:TemporalMapGroup[]=[];
+ if(pressure.data.features.length)groups.push({id:'isobars',data:pressure.data,zIndex:680,hoverProperty:'label',
+  layers:adaptiveContourLayers('pressure','#20384d',1,{halo:'#fff'})});
+ if(locations.features.length)groups.push({id:'temperature-and-weather',data:locations,zIndex:720,hoverProperty:'weather',
+  layers:[{id:'labels',type:'symbol',layout:{'text-field':['get','label'],'text-font':['Noto Sans Regular'],'text-size':12,
+   'text-allow-overlap':false,'text-ignore-placement':false,'text-padding':4,'text-max-width':12},
+   paint:{'text-color':'#182d43','text-halo-color':'#fff','text-halo-width':1.4}}]});
+ const mapFrame:TemporalMapFrameData={key:JSON.stringify([frame.key,variant,locations.features.map(f=>[f.geometry.coordinates,f.properties.name,f.properties.label])]),
+  raster:{url:raster,bounds:[[frame.cloud.lats[0],frame.cloud.lons[0]],[frame.cloud.lats[frame.height-1],frame.cloud.lons[frame.width-1]]],resampling:'nearest',zIndex:300},groups};
+ return {mapFrame,frame,variant,pressure,locations,
+  amountLabel:'Niederschlag der vorangegangenen Stunde · mm/1 h',
+  weatherLabel:'WW zum Modelltermin · keine Aussage über die Phase der gesamten Stunde',
+  sourceLabel:'DWD ICON-D2 · Originalfelder · DWD Open Data · CC BY 4.0'};
+}
+export type NativeOverviewPresentation=ReturnType<typeof createNativeOverviewPresentation>;
