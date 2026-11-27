@@ -29,10 +29,10 @@ export function classifyApiTransportError(error){
 function retryAfterMs(response){
  const raw=response?.headers?.get?.('retry-after');
  if(!raw)return 0;
- const seconds=Number(raw);
- if(Number.isFinite(seconds)&&seconds>=0)return Math.min(10000,seconds*1000);
- const epoch=Date.parse(raw);
- return Number.isFinite(epoch)?Math.min(10000,Math.max(0,epoch-Date.now())):0;
+ const value=raw.trim();
+ if(/^\d+$/.test(value))return Number(value)*1000;
+ const epoch=/^[A-Za-z]/.test(value)?Date.parse(value):NaN;
+ return Number.isFinite(epoch)?Math.max(0,epoch-Date.now()):0;
 }
 
 export async function fetchJsonWithRetry(url,{attempts=3,timeoutMs=12000,baseDelayMs=750,fetchImpl=globalThis.fetch,sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms))}={}){
@@ -43,9 +43,16 @@ export async function fetchJsonWithRetry(url,{attempts=3,timeoutMs=12000,baseDel
   try{
    const signal=typeof AbortSignal!=='undefined'&&typeof AbortSignal.timeout==='function'?AbortSignal.timeout(timeoutMs):undefined;
    const response=await fetchImpl(url,{headers:{Accept:'application/json'},signal});
-   const payload=await response.json().catch(()=>null);
+   const payload=await response.json().catch(error=>{
+    // HTTP success is not a complete body read. Only completed malformed JSON is a schema failure.
+    if(response.ok&&!(error instanceof SyntaxError))throw error;
+    return null;
+   });
+   const retryAfter=isTransientApiStatus(response.status)?retryAfterMs(response):0;
+   // Never shorten a provider's wait to fit the probe's ten-second sleep budget.
+   if(retryAfter>10000)return{response,payload,attemptsUsed:attempt,retryDeferred:true};
    if(response.ok||!isTransientApiStatus(response.status)||attempt===total)return{response,payload,attemptsUsed:attempt};
-   const delay=Math.max(retryAfterMs(response),baseDelayMs*2**(attempt-1));
+   const delay=Math.max(retryAfter,baseDelayMs*2**(attempt-1));
    await sleep(delay);
   }catch(error){
    lastError=error;

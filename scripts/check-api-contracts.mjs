@@ -3,6 +3,7 @@ import {finiteSeries,rangeSeries,distinctExtrema} from './api-contract-series.mj
 
 const failures=[],warnings=[],checks=[];
 const quotaBlockedOrigins=new Set();
+const retryDeferredOrigins=new Set();
 
 // A confirmed provider 429 is not a schema failure. Avoid retrying seven
 // optional model variants on an origin whose quota has just been exhausted.
@@ -14,12 +15,18 @@ async function jsonCheck(name,url,validate,{required=true}={}){
   (required?failures:warnings).push(`${name}: nicht geprüft wegen bestätigtem HTTP 429 derselben API-Origin (kein Schemaurteil; 0 Abrufversuche)`);
   return false;
  }
+ if(retryDeferredOrigins.has(origin)){
+  checks.push({name,status:null,ok:false,required,attemptsUsed:0,verification:'RETRY_DEFERRED'});
+  (required?failures:warnings).push(`${name}: nicht geprüft wegen Retry-After derselben API-Origin (kein Schemaurteil; 0 Abrufversuche)`);
+  return false;
+ }
  try{
-  const {response,payload,attemptsUsed}=await fetchJsonWithRetry(url),valid=response.ok&&validate(payload);
+  const {response,payload,attemptsUsed,retryDeferred}=await fetchJsonWithRetry(url),valid=response.ok&&validate(payload);
   if(response.status===429)quotaBlockedOrigins.add(origin);
+  if(retryDeferred)retryDeferredOrigins.add(origin);
   checks.push({name,status:response.status,ok:valid,required,attemptsUsed});
   if(!valid){
-   const suffix=attemptsUsed>1?` nach ${attemptsUsed} Abrufversuchen`:'';
+   const suffix=(attemptsUsed>1?` nach ${attemptsUsed} Abrufversuchen`:'')+(retryDeferred?' · Retry-After überschreitet Wartebudget':'');
    const message=response.ok?`${name}: Vertrag ungültig (HTTP ${response.status})${suffix}`:`${name}: Provider HTTP ${response.status} (kein Schemaurteil)${suffix}`;
    (required?failures:warnings).push(message);
   }
