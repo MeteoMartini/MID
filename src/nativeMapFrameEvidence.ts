@@ -1,4 +1,4 @@
-import {nativeFieldModel,type NativeField,type NativeIndex,type NativeFrameRef} from './nativeModelFields';
+import {nativeFieldModel,nativeFrameIdentity,nativeVerifiedFrameIdentity,type NativeField,type NativeIndex,type NativeFrameRef} from './nativeModelFields';
 
 /** Display evidence is attached to the candidate's admitted run and term.
  * A zero/unknown gust interval is not a measured zero-hour duration. */
@@ -12,7 +12,7 @@ export function nativeFrameEvidence(index:NativeIndex,field:NativeField,ref:Nati
  * The validated field must still belong to an admitted catalogue frame. */
 export function nativeDisplayedFrameEvidence(index:NativeIndex,field:NativeField){
  const ref=index.products[field.kind]?.frames.find(frame=>frame.time===field.time);
- return ref?nativeFrameEvidence(index,field,ref):null;
+ return ref&&nativeVerifiedFrameIdentity(field)===nativeFrameIdentity(index,ref,field.kind)?nativeFrameEvidence(index,field,ref):null;
 }
 /** Theta-E and precipitation retain the established same-term pressure fallback.
  * SigWx requires a separately verified hPa pressure field only when requested. */

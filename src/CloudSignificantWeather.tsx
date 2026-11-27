@@ -10,8 +10,9 @@ import {CLOUD_WEATHER_LABEL,GDPS_CLOUD_LAYER,GDPS_WEATHER_LAYER,SIGNIFICANT_WEAT
 import './CloudSignificantWeather.css';
 
 export function useCloudWeatherMap(enabled:boolean,target:number,modelId:string,revision:number,native:{index:NativeIndex;base:string}|null,synoptic:{index:SynopticIndex;base:string}|null,forecastSelected:boolean,mode:CloudWeatherRenderMode='pseudo'){
- const [gdpsDisplayed,setGdpsDisplayed]=useState<{run:string;time:string}|null>(null),[data,setData]=useState<CloudWeatherData|null>(null),[metadata,setMetadata]=useState<WeatherMapMetadata[]>([]),[loading,setLoading]=useState(false),[error,setError]=useState(''),[tiles,setTiles]=useState<Set<string>>(()=>new Set());
- const [displayedNative,setDisplayedNative]=useState<CloudWeatherData|null>(null);
+ const [gdpsDisplayed,setGdpsDisplayed]=useState<{run:string;time:string}|null>(null),[data,setData]=useState<CloudWeatherData|null>(null),[metadata,setMetadata]=useState<WeatherMapMetadata[]>([]),[loading,setLoading]=useState(false),[sourceError,setError]=useState(''),[tiles,setTiles]=useState<Set<string>>(()=>new Set());
+ const [displayedNative,setDisplayedNative]=useState<CloudWeatherData|null>(null),[nativeFrameError,setNativeFrameError]=useState('');
+ const error=sourceError||nativeFrameError;
  // The rendered frame is independent of the next fully verified model dataset.
  useEffect(()=>{setDisplayedNative(null)},[enabled,modelId]);
  const cache=useRef(new Map<string,CloudWeatherData>());
@@ -23,6 +24,7 @@ export function useCloudWeatherMap(enabled:boolean,target:number,modelId:string,
  const time=modelId==='gdps'?gdpsPlan?.time:nativeTime,selectedIndependentFrame=separateFrames.find(f=>f.time===time),useNativePair=modelId==='icon-d2'&&!selectedIndependentFrame&&pairedNativeTimes.includes(time??'');
  const run=modelId==='gdps'?gdpsPlan?.run:selectedIndependentFrame?separateModel?.run:useNativePair?native?.index.run:synoptic?.index.models[modelId]?.run,context=`${modelId}:${run}:${time}:${revision}`;
  const currentContext=useRef(context);currentContext.current=context;
+ const currentData=useRef(data);currentData.current=data;
  useEffect(()=>{const c=new AbortController();setMetadata([]);setError('');if(!enabled||modelId!=='gdps')return()=>c.abort();setLoading(true);
   void Promise.all([loadWeatherMapMetadata(GDPS_CLOUD_LAYER,c.signal),loadWeatherMapMetadata(GDPS_WEATHER_LAYER,c.signal)]).then(rows=>{if(!c.signal.aborted)setMetadata(rows)}).catch(e=>{if(!c.signal.aborted)setError(String(e.message||e))}).finally(()=>{if(!c.signal.aborted)setLoading(false)});return()=>c.abort();
  },[enabled,modelId,revision]);
@@ -39,6 +41,7 @@ export function useCloudWeatherMap(enabled:boolean,target:number,modelId:string,
   return()=>{window.clearTimeout(timer);c.abort()};
  },[enabled,modelId,context,native,synoptic,revision]);
  useEffect(()=>{setError('')},[context]);
+ useEffect(()=>{setNativeFrameError('')},[context,enabled]);
  const raster=useMemo(()=>enabled&&data?cloudWeatherRaster(data,mode):'',[enabled,data,mode]);
  const ready=enabled&&!error&&(modelId==='gdps'?Boolean(gdpsPlan&&tiles.has(`${context}:cloud`)&&tiles.has(`${context}:weather`)):Boolean(data&&data===displayedNative&&data.model===modelId&&data.time===time&&data.run===run));
  useEffect(()=>{if(!enabled||modelId!=='gdps'){setGdpsDisplayed(null);return}if(ready&&gdpsPlan)setGdpsDisplayed({run:gdpsPlan.run,time:gdpsPlan.time})},[enabled,modelId,ready,context]);
@@ -46,9 +49,9 @@ export function useCloudWeatherMap(enabled:boolean,target:number,modelId:string,
  const displayedRun=modelId==='gdps'?(ready?gdpsPlan?.run:gdpsDisplayed&&gdpsDisplayed.run===run?gdpsDisplayed.run:undefined):displayedNative?.model===modelId?displayedNative.run:undefined;
  useEffect(()=>{if(!enabled||!forecastSelected||modelId!=='gdps'||!gdpsPlan||ready||error)return;const timer=window.setTimeout(()=>setError('GDPS-Kombination nicht vollständig geladen. Erneut laden oder einen gültigen Termin wählen.'),30000);return()=>window.clearTimeout(timer)},[enabled,forecastSelected,modelId,context,Boolean(gdpsPlan),ready,error]);
  const markTile=(role:string)=>{const key=`${context}:${role}`;if(currentContext.current!==context)return;setTiles(current=>{if(current.has(key))return current;const next=new Set(current);next.add(key);while(next.size>12)next.delete(next.values().next().value!);return next})};
- const markDisplayed=(value:CloudWeatherData)=>{if(value.model===modelId)setDisplayedNative(current=>current===value?current:value)};
+ const markDisplayed=(value:CloudWeatherData)=>{if(!enabled||modelId==='gdps'||currentContext.current!==context||currentData.current!==value||value.model!==modelId||value.run!==run||value.time!==time)return;setDisplayedNative(current=>current===value?current:value);setNativeFrameError('')};
  const failTile=()=>{if(currentContext.current===context)setError('Wolken oder Niederschlagsart sind nicht vollständig erreichbar. Der bisherige vollständige Stand bleibt sichtbar.')};
- const failNativeFrame=(message:string,retained:boolean)=>{if(currentContext.current!==context)return;if(!retained)setDisplayedNative(null);setError(message)};
+ const failNativeFrame=(message:string,retained:boolean)=>{if(currentContext.current!==context||currentData.current!==data)return;if(!retained)setDisplayedNative(null);setNativeFrameError(message)};
  const sample=(lat:number,lon:number)=>{if(!ready||!data)return null;const p=cloudWeatherAt(data,lat,lon);return p&&(p.cloud!==null||p.weather!==null)?`${p.cloud===null?'Wolken nicht verfügbar':`${Math.round(p.cloud)} % Wolken`} · ${cloudWeatherDescription(p.weather)}`:null};
  return {enabled,modelId,mode,data,raster,time,run,revision,context,ready,displayedTime,displayedRun,loading,error,times:modelId==='gdps'?gdpsCloudWeatherCatalog(metadata)?.times??[]:nativeTimes,gdpsPlan,markTile,markDisplayed,failTile,failNativeFrame,sample};
 }
