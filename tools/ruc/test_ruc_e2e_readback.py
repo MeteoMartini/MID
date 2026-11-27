@@ -2,6 +2,8 @@
 import copy
 from datetime import datetime,timedelta,timezone
 import unittest
+from unittest.mock import patch
+import ruc_e2e_readback
 from ruc_e2e_readback import capture,inspect_readback,safe_https
 
 RUN='2026-10-31T10:00'
@@ -45,7 +47,19 @@ class Tests(unittest.TestCase):
         self.assertFalse(inspect_readback(p,worker(),'2026-10-31T11:00:00Z')['pagesValid'])
     def test_worker_stale(self):
         w=worker();w['fresh']=False
-        self.assertFalse(inspect_readback(pages(),w,'2026-10-31T11:00:00Z')['workerValid'])
+        result=inspect_readback(pages(),w,'2026-10-31T11:00:00Z')
+        self.assertFalse(result['workerValid'])
+        self.assertEqual(result['workerReadbackIssue'],'worker status not verified: fresh')
+    def test_worker_issue_is_precise_not_remote_content(self):
+        w=worker();w['configured']=False;w['run']='untrusted-message'
+        result=inspect_readback(pages(),w,'2026-10-31T11:00:00Z')
+        self.assertFalse(result['sameRun'])
+        self.assertEqual(result['workerReadbackIssue'],'worker status not verified: configured')
+        self.assertNotIn('untrusted-message',result['workerReadbackIssue'])
+    def test_missing_worker_reason_is_unknown_not_zero(self):
+        result=inspect_readback(pages(),None,'2026-10-31T11:00:00Z')
+        self.assertEqual(result['workerReadbackIssue'],'worker response missing or invalid')
+        self.assertFalse(result['sameRun'])
     def test_run_mismatch(self):
         w=worker();w['run']='2026-10-31T09:00'
         self.assertFalse(inspect_readback(pages(),w,'2026-10-31T11:00:00Z')['sameRun'])
@@ -78,5 +92,50 @@ class Tests(unittest.TestCase):
             with self.subTest(url=url),self.assertRaises(ValueError):safe_https(url)
     def test_invalid_clock(self):
         with self.assertRaises(ValueError):capture('https://midwx.app/ruc/',clock=datetime.now())
+
+    def test_stale_worker_flag_cannot_override_independent_age(self):
+        result=inspect_readback(pages(),worker(),'2026-10-31T14:00:00.001Z')
+        self.assertTrue(result['pagesValid'])  # preserve historical structural visibility
+        self.assertFalse(result['workerValid'])
+        self.assertFalse(result['sameRun'])
+        self.assertEqual(result['workerReadbackIssue'],'model run older than four hours at readback completion')
+        self.assertIsNotNone(result['runAgeMinutes'])
+    def test_exact_four_hour_boundary_remains_valid(self):
+        result=inspect_readback(pages(),worker(),'2026-10-31T14:00:00Z')
+        self.assertTrue(result['sameRun']);self.assertEqual(result['runAgeMinutes'],240)
+    def test_completion_timestamp_records_real_upper_bound(self):
+        times=iter([T+timedelta(minutes=50),T+timedelta(minutes=50,seconds=12)])
+        class Clock(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return cls.fromisoformat(next(times).isoformat())
+        urls=[]
+        def fetch(url):
+            urls.append(url)
+            return worker() if 'ruc-health' in url else pages()
+        with patch.object(ruc_e2e_readback,'datetime',Clock):
+            result=capture('https://midwx.app/ruc/','https://api.midwx.app/',fetcher=fetch)
+        self.assertEqual(result['captureStartedAtUtc'],'2026-10-31T10:50:00Z')
+        self.assertEqual(result['observedAtUtc'],'2026-10-31T10:50:12Z')
+        self.assertEqual(result['runAgeMinutes'],50.2)
+        self.assertTrue(result['sameRun']);self.assertEqual(len(urls),2)
+    def test_expiry_during_readback_is_not_fresh(self):
+        times=iter([T+timedelta(hours=4,seconds=-1),T+timedelta(hours=4,seconds=1)])
+        class Clock(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return cls.fromisoformat(next(times).isoformat())
+        with patch.object(ruc_e2e_readback,'datetime',Clock):
+            result=capture('https://midwx.app/ruc/','https://api.midwx.app/',
+                           fetcher=lambda url:worker() if 'ruc-health' in url else pages())
+        self.assertFalse(result['sameRun']);self.assertTrue(result['pagesValid'])
+    def test_backwards_clock_fails_closed(self):
+        times=iter([T+timedelta(minutes=1),T])
+        with self.assertRaisesRegex(ValueError,'clock moved backwards'):
+            capture('https://midwx.app/ruc/',fetcher=lambda url:pages(),clock=lambda:next(times))
+    def test_non_utc_completion_fails_closed(self):
+        times=iter([T,T.astimezone(timezone(timedelta(hours=1)))])
+        with self.assertRaisesRegex(ValueError,'non UTC clock'):
+            capture('https://midwx.app/ruc/',fetcher=lambda url:pages(),clock=lambda:next(times))
 
 if __name__=='__main__':unittest.main()

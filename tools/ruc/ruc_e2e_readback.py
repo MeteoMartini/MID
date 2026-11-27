@@ -14,6 +14,7 @@ import urllib.request
 from ruc_freshness_shadow_gate import model_time
 
 MAX_BYTES = 3000000
+MAX_RUN_AGE_MINUTES = 240  # MID_DWD_RUC_PIPELINE_CONTRACT.md
 
 
 def safe_https(url):
@@ -72,8 +73,9 @@ def _released_contract_readonly(pages):
 
 def _worker_readonly(worker, expected):
     if not isinstance(worker,dict):raise ValueError('worker unavailable')
-    if any(worker.get(k) is not True for k in ('configured','ready','fresh','schemaValid')):
-        raise ValueError('worker not validated')
+    for key in ('configured','ready','fresh','schemaValid'):
+        if worker.get(key) is not True:
+            raise ValueError('worker status not verified: '+key)
     if worker.get('run') != expected['run']:
         raise ValueError('worker run drift')
     for name in ('timeCount', 'pointCount', 'epsMemberCount'):
@@ -104,7 +106,7 @@ def inspect_readback(pages, worker, observed_at):
         raise ValueError('observation timestamp not UTC')
     result={'schema':'mid.ruc.e2e-readback-shadow.v1','observedAtUtc':observed_at,
             'pagesRun':None,'workerRun':None,'pagesValid':False,'workerValid':False,
-            'sameRun':False,'runAgeMinutes':None,'appAdopted':None,
+            'workerReadbackIssue':None,'sameRun':False,'runAgeMinutes':None,'appAdopted':None,
             'productionSloAuthorized':False}
     # Reuse the released MID production structural checks. This is still ONLY an
     # observational readback: no uploaded byte-SHA or App adoption is proven.
@@ -121,19 +123,29 @@ def inspect_readback(pages, worker, observed_at):
     if contract is not None and isinstance(worker,dict):
         try:
             _worker_readonly(worker,contract)
+            if elapsed > MAX_RUN_AGE_MINUTES:
+                raise ValueError('model run older than four hours at readback completion')
             result['workerRun']=worker['run']
             result['workerValid']=True
-        except (RuntimeError, ValueError, TypeError, KeyError, AttributeError):
+        except (RuntimeError, ValueError, TypeError, KeyError, AttributeError) as error:
             result['workerRun']=worker.get('run')
+            # Only messages from local validators, never raw remote payloads.
+            result['workerReadbackIssue']=str(error) if isinstance(error, ValueError) else 'worker validation error'
+    if not isinstance(worker,dict) and result['workerReadbackIssue'] is None:
+        result['workerReadbackIssue']='worker response missing or invalid'
     result['sameRun']=bool(result['pagesValid'] and result['workerValid'] and
                            result['pagesRun']==result['workerRun'])
     return result
 
 
 def capture(pages_base,worker_url=None,fetcher=get_json,clock=None):
-    utcnow=clock or datetime.now(timezone.utc)
-    if utcnow.tzinfo is None or utcnow.utcoffset().total_seconds()!=0:
-        raise ValueError('non UTC clock')
+    # Accept a fixed datetime for legacy fixtures or a callable for two-clock tests.
+    def read_clock():
+        value=datetime.now(timezone.utc) if clock is None else clock() if callable(clock) else clock
+        if not isinstance(value,datetime) or value.tzinfo is None or value.utcoffset().total_seconds()!=0:
+            raise ValueError('non UTC clock')
+        return value
+    started=read_clock()
     base=safe_https(pages_base).rstrip('/')+'/'
     pages_url=urllib.parse.urljoin(base,'latest.json')
     # Pages and Worker failures are individual unknowns, not proof that the
@@ -145,7 +157,13 @@ def capture(pages_base,worker_url=None,fetcher=get_json,clock=None):
         try:worker=fetcher(_health_url(worker_url))
         except Exception as exc:errors.append('worker:'+type(exc).__name__)
     else:errors.append('worker:not-configured')
-    result=inspect_readback(pages,worker,utcnow.isoformat().replace('+00:00','Z'))
+    # Combined visibility is known only after both sequential requests finish.
+    # The completion timestamp is an upper observation bound, not an atomic read.
+    completed=read_clock()
+    if completed < started:
+        raise ValueError('observation clock moved backwards')
+    result=inspect_readback(pages,worker,completed.isoformat().replace('+00:00','Z'))
+    result['captureStartedAtUtc']=started.isoformat().replace('+00:00','Z')
     result['errors']=errors
     result['workerWasQueried']=bool(worker_url)
     return result
