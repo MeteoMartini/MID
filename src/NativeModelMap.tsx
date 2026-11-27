@@ -1,6 +1,7 @@
 import {useDisplayPreference,useRawDisplayPreference,displayBoolean,displayChoice} from './useDisplayPreference';
 import {NativeScalarOverlay,NativeScalarControls,scalarMapLayers} from './NativeScalarMapOverlay';
 import {nativeScalarLines,scalarLineFeatures} from './nativeScalarAnnotations';
+import {nativeFrameEvidence,nativePressureFrameRef,nativePresentationPressure} from './nativeMapFrameEvidence';
 import {TemporalMapFrame,type TemporalMapFrameData,type TemporalMapGroup} from './TemporalMapFrame';
 import {adaptiveContourLayers} from './adaptiveModelContours';
 import {nativeIsobarFeatures} from './unifiedMapPresentation';
@@ -24,7 +25,7 @@ import './weatherMapsTotals.css';
 type NativePresentation={
  key:string;field:NativeField;cloud:NativeField|null;pressure:NativeField|null;
  raster:string;range:NonNullable<ReturnType<typeof nativeMapScale>>;fixed:NonNullable<ReturnType<typeof nativeMapScale>>;scale:NonNullable<ReturnType<typeof nativeMapScale>>;
- unit:WindUnit;lines:boolean;cloudIsobars:boolean;frame:TemporalMapFrameData;nativeD2Full:boolean;intervalHours:number;
+ unit:WindUnit;lines:boolean;cloudIsobars:boolean;frame:TemporalMapFrameData;nativeD2Full:boolean;intervalHours:number|null;
 };
 const stamp=(value:string)=>new Intl.DateTimeFormat('de-DE',{timeZone:'UTC',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(value))+' UTC';
 export default function NativeModelMap({kind,label,favorites,basemap,unit='kn'}:{kind:NativeFieldKind;label:string;favorites:WeatherMapFavoriteLocation[];basemap:WeatherMapBasemapId;unit?:WindUnit}){
@@ -52,8 +53,8 @@ export default function NativeModelMap({kind,label,favorites,basemap,unit='kn'}:
  const nextCloud=kind==='sigwx'&&cloudField?.run===next?.run&&cloudField?.time===next?.time?cloudField:null;
  const nextCombined=useMemo(()=>next&&nextCloud?nativeCloudWeatherPair(nextCloud,next):null,[next,nextCloud]);
  const [pressureField,setPressureField]=useState<NativeField|null>(null),[pressureDone,setPressureDone]=useState(''),[pressureMessage,setPressureMessage]=useState('');
- const pressureRef=kind==='sigwx'&&cloudIsobars&&next&&!next.isobars.length?catalog?.index.products.pressure?.frames.find(f=>f.time===next.time):undefined;
- const pressureKey=pressureRef&&next?JSON.stringify([next.run,next.time,pressureRef.sha256,revision]):'';
+ const pressureRef=next&&catalog?nativePressureFrameRef(catalog.index,next,cloudIsobars):undefined;
+ const pressureKey=pressureRef&&next?JSON.stringify([requestKey,nativeFieldModel(next),pressureRef.sha256]):'';
  useEffect(()=>{
   setPressureField(null);setPressureDone('');setPressureMessage('');
   if(!pressureRef||!catalog||!next)return;
@@ -61,19 +62,21 @@ export default function NativeModelMap({kind,label,favorites,basemap,unit='kn'}:
   void loadNativeField(catalog.index,catalog.base,pressureRef,'pressure',c.signal).then(value=>{if(!c.signal.aborted&&value.run===next.run&&value.time===next.time&&nativeFieldModel(value)===nativeFieldModel(next))setPressureField(value)}).catch(()=>{if(!c.signal.aborted)setPressureMessage('Isobaren nicht verfügbar.')}).finally(()=>{window.clearTimeout(timer);if(!c.signal.aborted)setPressureDone(pressureKey)});
   return()=>{window.clearTimeout(timer);c.abort()};
  },[catalog,pressureKey]);
- const nextPressure=next?.isobars.length?next:pressureField?.run===next?.run&&pressureField?.time===next?.time?pressureField:null;
+ const nextPressure=next?nativePresentationPressure(next,pressureKey&&pressureDone===pressureKey?pressureField:null):null;
  const nextRange=useMemo(()=>next?nativeMapScale(next,'field',unit):null,[next,unit]),nextFixed=useMemo(()=>next?nativeMapScale(next,'absolute',unit):null,[next,unit]),nextScale=activeMode==='field'?nextRange:nextFixed;
  const nextRaster=useMemo(()=>kind==='sigwx'?nextCombined?cloudWeatherRaster(nextCombined):'':next&&nextScale?nativeRaster(next,nextScale):'',[kind,nextCombined,next,nextScale]);
  const nextPresentation=useMemo<NativePresentation|null>(()=>{
-  if(!next||!ref||!nextRaster||!nextRange||!nextFixed||!nextScale||(kind==='sigwx'&&!nextCombined)||(pressureKey&&pressureDone!==pressureKey))return null;
+  if(!catalog||!next||!ref||!nextRaster||!nextRange||!nextFixed||!nextScale||(kind==='sigwx'&&!nextCombined)||(pressureKey&&pressureDone!==pressureKey))return null;
+  const evidence=nativeFrameEvidence(catalog.index,next,ref);if(!evidence)return null;
   const selected=kind==='sigwx'&&cloudIsobars?nativeCloudIsobars(nextCombined,nextPressure):null;
-  const pressure=nativeIsobarFeatures(kind==='sigwx'?selected?.contours??[]:next.isobars);
+  const pressure=nativeIsobarFeatures(kind==='sigwx'?selected?.contours??[]:nextPressure?.isobars??[]);
   const groups:TemporalMapGroup[]=[];
   if(pressure.features.length)groups.push({id:'isobars',data:pressure,zIndex:1,layers:adaptiveContourLayers('pressure','#192c3f',.8,{width:1.1})});
   if(showScalarLines){const lines=scalarLineFeatures(nativeScalarLines(next,unit));if(lines.features.length)groups.push({id:'scalar-isolines',data:lines,zIndex:620,hoverProperty:'label',layers:scalarMapLayers()})}
   if(kind==='pressure')groups.push(pressureCenterGroup(next.centers));
-  const key=JSON.stringify([nativeFieldModel(next),next.run,next.time,ref.sha256,kind==='sigwx'?catalog?.index.products.cloud?.frames.find(f=>f.time===next.time)?.sha256:null,selected?pressureRef?.sha256??ref.sha256:null,unit,activeMode,showScalarLines,cloudIsobars,revision]);
-  return {key,field:next,cloud:nextCloud,pressure:nextPressure,raster:nextRaster,range:nextRange,fixed:nextFixed,scale:nextScale,unit,lines:showScalarLines,cloudIsobars,intervalHours:ref.intervalHours??0,nativeD2Full:Boolean(catalog?.index.schema==='mid.icon-d2.native-fields.v2'&&catalog.index.productionApproved===true&&next.schema==='mid.icon-d2.native-field.v2'),frame:{key,raster:{url:nextRaster,bounds:[[next.lats[0],next.lons[0]],[next.lats.at(-1)!,next.lons.at(-1)!]],resampling:kind==='sigwx'?'nearest':'linear',zIndex:0,opacity:.85},groups}};
+  const pressureIdentity=(kind==='sigwx'?selected:nextPressure)?(nextPressure===next?ref.sha256:pressureRef?.sha256??null):null;
+  const key=JSON.stringify([nativeFieldModel(next),next.run,next.time,ref.sha256,kind==='sigwx'?catalog?.index.products.cloud?.frames.find(f=>f.time===next.time)?.sha256:null,pressureIdentity,unit,activeMode,showScalarLines,cloudIsobars,revision]);
+  return {key,field:next,cloud:nextCloud,pressure:nextPressure,raster:nextRaster,range:nextRange,fixed:nextFixed,scale:nextScale,unit,lines:showScalarLines,cloudIsobars,intervalHours:evidence.intervalHours,nativeD2Full:evidence.nativeD2Full,frame:{key,raster:{url:nextRaster,bounds:evidence.bounds,resampling:kind==='sigwx'?'nearest':'linear',zIndex:0,opacity:.85},groups}};
  },[next,ref,nextCloud,nextCombined,nextPressure,nextRaster,nextRange,nextFixed,nextScale,pressureKey,pressureDone,pressureRef?.sha256,kind,unit,activeMode,showScalarLines,cloudIsobars,revision,catalog]);
  const ready=Boolean(shown&&nextPresentation&&shown.key===nextPresentation.key);
  useEffect(()=>{if(!playing||!ready||frames.length<2)return;const timer=window.setTimeout(()=>setHour(frames[(frames.findIndex(f=>f.hour===hour)+1)%frames.length].hour),2400);return()=>window.clearTimeout(timer)},[playing,ready,frames,hour]);
@@ -84,13 +87,13 @@ export default function NativeModelMap({kind,label,favorites,basemap,unit='kn'}:
  const nativeRuc=field?.modelId==='icon-d2-ruc'||(!field&&catalog?.index.modelId==='icon-d2-ruc');
  const nativeD2Full=Boolean(!nativeRuc&&shown?.nativeD2Full);
  const sourceLabel=nativeRuc?'DWD ICON-D2-RUC · nächster verifizierter nativer Gitterpunkt (bis 5 km)':nativeD2Full?'DWD ICON-D2 · signiertes Vollgebiets-Original · 542.040 native Zellen · nächster gültiger Gitterpunkt':'DWD ICON-D2 · bereitgestelltes reguläres GRIB2-Raster';
- const download=async(format:'png'|'svg')=>{if(!ready||!field||!raster||!colorScale||field.time!==ref?.time)return;setExporting(true);try{if(combined)await (await import('./cloudWeatherExport')).exportCloudWeather(combined,raster,places,format,'pseudo',cloudContourSelection);else await (await import('./nativeModelMapExport')).exportNativeField(field,label,raster,places,format,shown?.intervalHours??0,displayedUnit,colorScale,{lines:shown?.lines??false,extremes:showExtremes})}catch(e){if(!(e instanceof DOMException&&e.name==='AbortError'))setError(String(e))}finally{setExporting(false)}};
+ const download=async(format:'png'|'svg')=>{if(!ready||!field||!raster||!colorScale||field.time!==ref?.time)return;setExporting(true);try{if(combined)await (await import('./cloudWeatherExport')).exportCloudWeather(combined,raster,places,format,'pseudo',cloudContourSelection);else await (await import('./nativeModelMapExport')).exportNativeField({...field,isobars:pressureContours?.isobars??[]},label,raster,places,format,shown?.intervalHours??NaN,displayedUnit,colorScale,{lines:shown?.lines??false,extremes:showExtremes})}catch(e){if(!(e instanceof DOMException&&e.name==='AbortError'))setError(String(e))}finally{setExporting(false)}};
  return <section className="weather-precipitation-totals" aria-label={label}><div className="weather-precipitation-layout">
   <section className="weather-precipitation-map-column"><div className="weather-precipitation-map-shell"><MidMapLibre center={[51.05,10.45]} zoom={4} minZoom={2.5} maxZoom={9} className="weather-precipitation-map" scrollZoom={false}>
    {place?<MapCenter latitude={place.latitude} longitude={place.longitude} zoom={6.8}/>:field?<MapFitBounds south={field.lats[0]} west={field.lons[0]} north={field.lats.at(-1)!} east={field.lons.at(-1)!} padding={20} maxZoom={6}/>:null}
    {combined?<UnifiedVectorBasemap cloudContrast zIndex={-10} dark={document.documentElement.dataset.theme==='dark'||document.documentElement.classList.contains('dark')}/>:<RasterTileLayer id={`native-basemap-${basemap}`} url={activeBasemap.url} tone={activeBasemap.tone} attribution={activeBasemap.attribution}/>}
    <TemporalMapFrame key={kind} id={`native-${kind}`} frame={nextPresentation?.frame??null} opacity={1} onReady={()=>{if(nextPresentation)setPresented(previous=>previous?.key===nextPresentation.key?previous:nextPresentation)}} onError={message=>{setPlaying(false);setError(message)}}/>
-   {field&&field.kind===kind&&<NativeScalarOverlay field={field} unit={displayedUnit} lines={false} extremes={showExtremes}/>}
+   {field&&field.kind===kind&&<NativeScalarOverlay field={field} unit={displayedUnit} lines={false} extremes={showExtremes&&ready}/>}
    <ModelMapContextOverlay/>
    {combined?<ModelMapProbe<string> showDisabledButton label={label} unit="" source={sourceLabel} enabled={ready&&!playing} contextKey={`${combined.run}-${combined.time}-${shown?.key}`} sample={combinedValue} format={value=>value??'–'}/>:<ModelMapProbe showDisabledButton label={label} unit={displayUnit} source={sourceLabel} enabled={ready&&!playing} contextKey={`${shown?.key}-${playing}`} sample={(lat,lon)=>field?nativeAt(field,lat,lon):null} format={format}/>}
    {places.filter(p=>field&&p.latitude>=field.lats[0]&&p.latitude<=field.lats.at(-1)!&&p.longitude>=field.lons[0]&&p.longitude<=field.lons.at(-1)!).map(p=><HtmlMarker key={p.id} latitude={p.latitude} longitude={p.longitude} anchor="center" zIndex={2} className="precipitation-favorite-marker" html={`<span class="${p.id===selected?'selected':''}"></span>`} onClick={()=>setSelected(p.id)}/>)}
