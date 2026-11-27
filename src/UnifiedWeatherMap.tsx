@@ -148,8 +148,8 @@ export default function UnifiedWeatherMap(props:Props){
  useEffect(()=>{setPointValues({});setPointStatus('');if(!favoritesOpen||!wmsActive||!wmsProduct||!metadata?.pointUnit||!wmsDisplayTime)return;const c=new AbortController();setPointStatus('Ortswerte laden …');void Promise.allSettled(places.map(async p=>{try{const value=await loadWeatherMapPoint(wmsProduct.layer,p.latitude,p.longitude,wmsDisplayTime!,wmsRun!,level,metadata.pointUnit!,c.signal);if(!c.signal.aborted)setPointValues(v=>({...v,[p.id]:value}));}catch(error){if(!c.signal.aborted)setPointValues(v=>({...v,[p.id]:null}));throw error;}})).then(results=>{if(!c.signal.aborted)setPointStatus(results.some(r=>r.status==='rejected')?'Einzelne Ortswerte derzeit nicht abrufbar.':'')});return()=>c.abort()},[favoritesOpen,wmsActive,wmsProduct?.layer,wmsDisplayTime,wmsRun,level,metadata?.pointUnit,props.favorites]);
  useEffect(()=>setWmsError(''),[wmsProduct?.id,wmsStyle,wmsTime,wmsRun,level]);
  // Prepare the exact candidate BEFORE its GPU presentation; the old complete bundle remains visible.
- const cloudData=isCloudWeather&&cloudWeather.data?.model===modelId&&cloudWeather.data?.run===cloudWeather.run&&cloudWeather.data?.time===cloudWeather.time?cloudWeather.data:null;
- const cloudFrameKey=cloudData?JSON.stringify([cloudData.model,cloudData.run,cloudData.time,revision,cloudIsobars,cloudIsoheights]):'';
+ const cloudData=isCloudWeather&&cloudWeather.nativeDataCurrent&&cloudWeather.data?.model===modelId&&cloudWeather.data?.run===cloudWeather.run&&cloudWeather.data?.time===cloudWeather.time?cloudWeather.data:null;
+ const cloudFrameKey=cloudData?JSON.stringify([cloudData.model,cloudData.run,cloudData.time,cloudWeather.nativeDataKey,revision,cloudIsobars,cloudIsoheights]):'';
  const [nativeContourDone,setNativeContourDone]=useState(''),[synopticContourDone,setSynopticContourDone]=useState(''),[cloudPresentedKey,setCloudPresentedKey]=useState('');
  useEffect(()=>{setCloudPresentedKey('')},[modelId,isCloudWeather,settings.enabled,forecastSelected]);
  const cloudPressureTime=cloudData?.model==='icon-d2'&&cloudData.run===catalog?.index.run?cloudData.time:'';
@@ -167,7 +167,8 @@ export default function UnifiedWeatherMap(props:Props){
  },[isCloudWeather,cloudPressureTime,cloudIsobars,catalog,settings.enabled,revision,cloudFrameKey]);
  const synopticCloudModel=synopticCatalog.catalog?.index.models[modelId];
  const nativePressureFrameListed=Boolean(cloudPressureTime&&catalog?.index.products.pressure?.frames.some(f=>f.time===cloudPressureTime));
- const nativePressureMissing=Boolean(!nativePressureFrameListed||(nativeContourDone===cloudFrameKey&&!nativeCloudIsobars(cloudData,pressureField)));
+ const verifiedCloudPressure=catalog&&pressureField&&nativeDisplayedFrameEvidence(catalog.index,pressureField)?pressureField:null;
+ const nativePressureMissing=Boolean(!nativePressureFrameListed||(nativeContourDone===cloudFrameKey&&!nativeCloudIsobars(cloudData,verifiedCloudPressure)));
  const needsSynopticCloud=cloudIsoheights||(showIsobars&&nativePressureMissing);
  const synopticCloudTime=cloudData&&needsSynopticCloud&&synopticCloudModel?.run===cloudData.run&&synopticCloudModel.frames.some(f=>f.time===cloudData.time)?cloudData.time:'';
  useEffect(()=>{setCloudSynopticPressure(null);setSynopticContourDone('');if(!synopticCloudTime||!synopticCloudModel||!synopticCatalog.catalog||!cloudData)return;
@@ -177,11 +178,11 @@ export default function UnifiedWeatherMap(props:Props){
   void loadSynopticField(synopticCatalog.catalog.base,modelId,synopticCloudModel,frame,c.signal).then(v=>{if(!c.signal.aborted&&v.model===cloudData.model&&v.run===cloudData.run&&v.time===cloudData.time)setCloudSynopticPressure(v)}).catch(err=>{if(!c.signal.aborted)setPressureError('Synoptische Konturen nicht verfügbar: '+String(err instanceof Error?err.message:err))}).finally(()=>{window.clearTimeout(timer);if(!c.signal.aborted)setSynopticContourDone(cloudFrameKey)});
   return()=>{window.clearTimeout(timer);c.abort()};
  },[synopticCloudTime,synopticCloudModel,synopticCatalog.catalog,modelId,revision,cloudFrameKey]);
- const selectedCloudIsobars=useMemo(()=>cloudData&&showIsobars?(nativeCloudIsobars(cloudData,pressureField)??synopticCloudIsobars(cloudData,cloudSynopticPressure)):null,[cloudData,showIsobars,pressureField,cloudSynopticPressure]);
+ const selectedCloudIsobars=useMemo(()=>cloudData&&showIsobars?(nativeCloudIsobars(cloudData,verifiedCloudPressure)??synopticCloudIsobars(cloudData,cloudSynopticPressure)):null,[cloudData,showIsobars,verifiedCloudPressure,cloudSynopticPressure]);
  const contours=useMemo(()=>nativeIsobarFeatures(isCloudWeather?matchingCloudIsobars(cloudData,selectedCloudIsobars):pressureContours?.isobars??[]),[isCloudWeather,cloudData,selectedCloudIsobars,pressureContours]);
  const selectedCloudIsoheights=useMemo(()=>cloudData&&cloudIsoheights?synopticCloudIsoheights(cloudData,cloudSynopticPressure):null,[cloudData,cloudIsoheights,cloudSynopticPressure]);
  const isoheightContours=useMemo(()=>matchingCloudIsoheights(cloudData,selectedCloudIsoheights),[cloudData,selectedCloudIsoheights]);
- const cloudBundleKey=JSON.stringify([cloudFrameKey,showIsobars,cloudIsoheights,selectedCloudIsobars?nativeCloudIsobars(cloudData,pressureField)?catalog?.index.products.pressure?.frames.find(f=>f.time===cloudPressureTime)?.sha256:synopticCloudModel?.frames.find(f=>f.time===synopticCloudTime)?.sha256:null,isoheightContours.features.length?synopticCloudModel?.frames.find(f=>f.time===synopticCloudTime)?.sha256:null]);
+ const cloudBundleKey=JSON.stringify([cloudFrameKey,showIsobars,cloudIsoheights,selectedCloudIsobars?nativeCloudIsobars(cloudData,verifiedCloudPressure)?catalog?.index.products.pressure?.frames.find(f=>f.time===cloudPressureTime)?.sha256:synopticCloudModel?.frames.find(f=>f.time===synopticCloudTime)?.sha256:null,isoheightContours.features.length?synopticCloudModel?.frames.find(f=>f.time===synopticCloudTime)?.sha256:null]);
  const cloudContoursResolved=Boolean(cloudData&&(!showIsobars||!nativePressureFrameListed||nativeContourDone===cloudFrameKey)&&(!needsSynopticCloud||(!synopticCloudTime&&!synopticCatalog.refreshing)||synopticContourDone===cloudFrameKey));
  const cloudPresentation=useMemo<TemporalMapFrameData|null>(()=>{
   if(!cloudData||!cloudWeather.raster||!cloudContoursResolved)return null;

@@ -11,13 +11,16 @@
     "Selektiver vollständiger 15-Pfad-Intake #1021: gemeinsame visuelle Präsentation exakter Modell-/Lauf-/Gültigkeitszeitframes; maximal zwei Generationen; Rollback bei Fehlern; Reduced Motion; konsistente Druckfeld- und Export-Evidenz. Keine Interpolation meteorologischer Werte.",
     "Selektiver #945-Intake: ausschließlich drei bereits vorbereitete Originalblobs. Kanonischer und aktiver isolierter manueller Diagnoseworkflow verwenden exakt denselben sichtbaren SHA-/Budget-geprüften Stagingbaum; keine hidden-files-Freigabe, keine Produktionspublikation, keine Veränderung von Datenwerten, EPS, Warnungen oder Berechtigungen.",
     "Additive Pflichtregression in bestehendem Workflow-Bootstrap-Test; unveränderte Testregistrierung und Shard-Zuordnungen. Keine neue Workflowdatei, kein neuer Produktionsdispatch.",
-    "Design Evolution #1038, Reisezeitraum #1036, AQI #1027 und weitere Spezialkandidaten bleiben separat qualifiziert; keine vorzeitige Schließung."
+    "Design Evolution #1038, Reisezeitraum #1036, AQI #1027 und weitere Spezialkandidaten bleiben separat qualifiziert; keine vorzeitige Schließung.",
+    "Cubic-Reviewkorrekturen: Datenlade- und Darstellungsfehler getrennt, ACK nur für aktuelle verifizierte Wolken-/Wetterbytes; Wolken-/Wetter-/Kontur-Frame-Key an Feldidentität gebunden. Native Feldcache-/Anzeige-/Export-Evidenz an SHA256, Byte-/Zeit-/Einheiten-/Katalogmetadaten gebunden; WeakMap ohne zusätzliche Rasterkopien. Vollständiges strukturell validiertes 8×9-ICON-D2-Testfixture (synthetisch), echter SHA-Prüfpfad im Unit-Test. Artefakt-Upload-Schritt mit negativer Relocation-Mutation abgesichert."
   ],
   "sourceOfTruth": [
     "Stable .527 @ 7e5e2385b0092e40c268ed1f0c7203325c8d18e4; Installer 45973926187 mit erfolgreichem Pflichtpfad, Worker, Pages Versuch 2, Stable und Release-Katalog.",
     "#1021 @ 0d4337ddb923fada43a3a4a0f0b4f84c3c1433ca: Original-Draft 45955889905 und SHA 45955913061 erfolgreich. Reale Karten-/Export-/Label-Collision- und physische iOS-Abnahme nicht daraus ableiten.",
     "#945 @ 680d83e7491b8fa1d2e85d961366ea327a3b6add; ref-freier selektiver Kandidat d5eb956097c1a7ce437081782ec5b3d61182f206 auf .526. 1 Positiv-/8 Negativfälle historisch im JS-Isolat geprüft; kein vollständiger Diagnoseworkflow-Run behauptet.",
     "18 exakte Originalblobs mit Modus 100644, disjunkt zum 109-Pfad-Diff .526→.527; keine alten Builds oder Produktversionsspiegel kopiert.",
-    "Kombinierte Draft-QA, Review, vollständige Source-/Installer-/Worker-/Pages-/Stable- und Kataloggates sowie erforderliche Browser-/Originaldatenprüfungen stehen aus."
+    "Kombinierte Draft-QA, Review, vollständige Source-/Installer-/Worker-/Pages-/Stable- und Kataloggates sowie erforderliche Browser-/Originaldatenprüfungen stehen aus.",
+    "Ursprünglicher Leit-HEAD 6e402cd73b23d7750ead62586035a8517fd89a68: Draft 45976772164, SHA 45989398778, Source-Gate 45989399227 erfolgreich; Bot 45990759946 blockierte vier offene Reviewthreads. Diese grünen Läufe gelten ausschließlich für diesen früheren HEAD.",
+    "Ref-freie Korrekturen 20078730203deb4cee076c303f5724b67096180f (isoliert 1 Positiv-/8 Negativfälle) und b75fb74780da0321db0e0e4ae3679d59ed9e2a9b (29 isolierte JS-Prüfungen an extrahierten Funktionskörpern, WeakMap-Evidenz im Isolat injiziert; keine integrierte SHA-/React-/Browser-Prüfung). Anschließende Wolken-Frame-Identitätshärtung und gesamter finaler HEAD benötigen eigene vollständige Draft-/Review-/Source-/Installer-Gates."
   ]
 }

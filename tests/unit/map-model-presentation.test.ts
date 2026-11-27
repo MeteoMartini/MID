@@ -172,6 +172,12 @@ describe('MID map model identity: flag, family and fine-to-coarse ordering',()=>
   const ack=cloud.slice(cloud.indexOf('const markDisplayed='),cloud.indexOf('const failTile='));
   expect(ack).toContain('currentContext.current!==context');
   expect(ack).toContain('currentData.current!==value');
+  expect(ack).toContain('dataContexts.current.get(value)!==context');
+  expect(cloud).toContain('dataContexts.current.set(value,key)');
+  expect(cloud).toContain('nativeDataKey===context');
+  const map=readFileSync(fileURLToPath(new URL('../../src/UnifiedWeatherMap.tsx',import.meta.url)),'utf8');
+  expect(map).toContain('isCloudWeather&&cloudWeather.nativeDataCurrent');
+  expect(map).toContain('cloudData.time,cloudWeather.nativeDataKey,revision');
   expect(ack).toContain('value.run!==run||value.time!==time');
   expect(ack).toContain("setNativeFrameError('')");
   expect(ack).not.toContain('setError(');

@@ -18,7 +18,7 @@ const units:Record<NativeFieldKind,string>={temperature:'°C',pressure:'hPa',win
 const products=Object.fromEntries(D2_FULL_DOMAIN_KINDS.map((kind,k)=>[kind,{unit:units[kind],frames:D2_FULL_DOMAIN_LEADS.map((hour,i)=>({hour,time:new Date(Date.parse(run)+hour*3600000).toISOString(),file:kind+'-'+String(hour).padStart(3,'0')+'.bin',sha256:(k*9+i+1).toString(16).padStart(64,'0'),bytes:100,decodedBytes:1000,encoding:'gzip-json',intervalHours:kind==='precipitation'?1:0}))}]));
 const approved=validateD2FullDomainIndex({schema:'mid.icon-d2.native-fields.v2',modelId:'icon-d2',productionApproved:true,sourceInventorySha256:'d'.repeat(64),nativePoints:542040,sampling:'nearest-native-cell',run,products},Date.parse(run)+6*3600000);
 const ref=approved.products.gust!.frames.find(f=>f.hour===3)!;
-const field:NativeField={schema:'mid.icon-d2.native-field.v2',modelId:'icon-d2',kind:'gust',run,time:ref.time,unit:'km/h',scale:.1,lats:[44,52,58],lons:[-1,9,21],values:[0,1,2,3,4,5,6,7,8],isobars:[]};
+const field:NativeField={schema:'mid.icon-d2.native-field.v2',modelId:'icon-d2',kind:'gust',run,time,unit:'km/h',scale:.1,lats:[44,52,58],lons:[-1,9,21],values:[0,1,2,3,4,5,6,7,8],isobars:[]};
 async function verifiedFixture(raw:NativeField,kind:NativeFieldKind,hour:number,intervalHours:number){
  const bytes=new TextEncoder().encode(JSON.stringify(raw)).buffer as ArrayBuffer;
  const sha256=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
