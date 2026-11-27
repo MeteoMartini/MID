@@ -1,3 +1,7 @@
+# MID v0.9.85.527
+
+- Die technischen Qualitätsprüfungen für kommende MID-Updates wurden erweitert.
+
 # MID v0.9.85.526
 
 - Karten und Umfeldkarte: Nach einer unterbrochenen Bildüberblendung können weitere Kartenbilder wieder geladen werden.
