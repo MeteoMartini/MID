@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "version": "0.9.85.529",
+  "title": "Verlässlichere Reisezeitraum-Bewertungen und technische Veröffentlichungsnachweise",
+  "date": "2026-11-27",
+  "external": [
+    "Reiseplanung: Nur vollständig belegte Wetterparameter fließen in Zeitraumkennzahlen und passende Bewertungen ein. Datenlücken bleiben sichtbar; gespeicherte Reisen ohne Abdeckungsnachweis können neu ausgewertet werden.",
+    "Die technische Beobachtung der Veröffentlichungskette unterscheidet vollständig nachgewiesene Prüfungen von unvollständigen oder fehlerhaften Jobinventaren."
+  ],
+  "internal": [
+    "Selektiver vollständiger Intake von #1036: 11 Originalblobs einschließlich Tests; echte Null und Extreme erhalten, feldbezogene n/N-Abdeckung, keine scheinbare Bewertung unvollständiger Präferenzen, klimatologische Regentage ≥ 1 mm/Tag getrennt von operativer Modellwahrscheinlichkeit; keine zusätzlichen Wetterrequests.",
+    "Selektiver Intake von #1040 einschließlich ref-freier Reviewkorrektur: zwei Originalblobs aus 90157f0b44a9abbf84f1d75352ca94ca778817b4; vollständige Source/Bot/Installer-Inventare, SHA-/Attempt-/Versionsbindung und konservative Zeitordnung. Rein lesend, keine Änderung der Releaseautorisierung oder Publisherlogik.",
+    "Keine Änderungen an Abhängigkeiten, CSS, Worker, RUC-Produktion, amtlichen Warnungen, Workflows oder Berechtigungen. Keine manuelle Versionsspiegelung; etablierter Release-Target-Vertrag.",
+    "#541, #999 Phase 2, #1038, #889 und #1027 bleiben eigenständig offen; keine vorzeitige produktive oder physische iOS-Abnahme."
+  ],
+  "sourceOfTruth": [
+    "Live Stable .528 @ 011bdbfe1ccf35a1ddf4aa85b949213ec4dbce91; Source 46019356432, Bot 46020704027, Installer 46020789013 einschließlich Worker, Pages Versuch 2, Stable und Katalog success.",
+    "#1036 @ c268c6fb88df4c8ff5faf90bb28f8fe2012cdc86; Draft 45993454079 und SHA 45993518171 erfolgreich, physische iOS-/responsive End-to-End-Abnahme weiterhin ausstehend.",
+    "#1040 @ 15697b691130583ae0d97886a4ea301de38aaadd; Draft 45991628957 und SHA 45991664562 erfolgreich ausschließlich für Original-HEAD. Korrekturcommit 90157f0b44a9abbf84f1d75352ca94ca778817b4 mit 59/59 historischen isolierten V8-Prüfungen, keine Übertragung dieses Befundes auf Node-Runner.",
+    "Exakte korrigierte Helperfunktion im V8-Isolat mit unabhängig abgefragten Original-.528-PR/Run/Job-/Commitdaten ausgeführt: vollständige 16/1/22 Inventare, Pages Versuch 2, Source 548 s, Bot 41 s, Installer 1103 s; vier negative Varianten (fehlender Job, falsche Version, roter Katalog, gemischter Attempt) abgelehnt; keine Signatur-/Reuse-/Release-Autorisierung.",
+    "13 Original-Git-Blobs Modus 100644; alle betroffenen Ausgangspfade auf .528 gegenüber .527 byteidentisch bzw. neu. Vollständige kombinierte Draft-, Review-, Source-, Installer-, Worker-/Pages-, Stable- und Katalogabnahme noch erforderlich."
+  ]
+}

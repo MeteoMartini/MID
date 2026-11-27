@@ -1,6 +1,7 @@
 import {pruneStorageEntries,touchMapEntry,writeBoundedMapEntry,writeBoundedStorage} from './cachePolicy';
 import {guardedOpenMeteoFetch} from './openMeteoGuard';
 import {fetchWorkerJson} from './workerClient';
+import {travelFieldStats,type TravelFieldRule,type TravelFieldCoverage} from './travelPeriodIntegrity';
 export type TravelPreference='balanced'|'dry'|'warm'|'cold'|'sunny'|'snow'|'calm';
 
 export type TravelClimateDay={
@@ -15,6 +16,7 @@ export type TravelClimateDay={
  minP25:number;
  minP75:number;
  precipitationMean:number;
+ /** Historical frequency of local calendar days with >=1 mm total precipitation, not generic forecast PoP. */
  wetProbability:number;
  sunshineMeanHours:number;
  daylightMeanHours:number;
@@ -51,6 +53,10 @@ export type TravelClimateDataset={
 export type TravelDatePoint=TravelClimateDay&{date:string};
 
 export type TravelSummary={
+ /** Coverage of the selected travel days, not the underlying climate reference years. Absent in legacy snapshots. */
+ coverage?:Record<string,TravelFieldCoverage>;
+ /** Persisted evidence marker; legacy summaries without it require reanalysis. */
+ wetDayBasis?:'climatology-ge1mm';
  start:string;
  end:string;
  days:number;
@@ -291,27 +297,44 @@ export function travelClimateForDate(dataset:TravelClimateDataset,date:string):T
 export function travelPeriod(dataset:TravelClimateDataset,start:string,end:string){return dateRange(start,end).map(date=>travelClimateForDate(dataset,date)).filter((value):value is TravelDatePoint=>Boolean(value))}
 
 export function summarizeTravelPeriod(points:TravelDatePoint[]):TravelSummary{
- const first=points[0]?.date??'',last=points[points.length-1]?.date??'',count=Math.max(1,points.length),sum=(key:keyof TravelClimateDay)=>points.reduce((total,point)=>{const value=Number(point[key]);return total+(Number.isFinite(value)?value:0)},0),meanOptional=(key:keyof TravelClimateDay)=>{const values=points.map(point=>Number(point[key])).filter(Number.isFinite);return values.length?values.reduce((total,value)=>total+value,0)/values.length:undefined};
- return{start:first,end:last,days:points.length,avgMax:sum('maxMean')/count,avgMin:sum('minMean')/count,avgMean:sum('meanMean')/count,avgMaxP25:sum('maxP25')/count,avgMaxP75:sum('maxP75')/count,precipitationTotal:sum('precipitationMean'),wetDaysExpected:sum('wetProbability')/100,sunshineTotal:sum('sunshineMeanHours'),sunshinePerDay:sum('sunshineMeanHours')/count,daylightPerDay:sum('daylightMeanHours')/count,windMaxMean:sum('windMaxMean')/count,snowfallTotal:sum('snowfallMean'),snowDepthMean:meanOptional('snowDepthMean'),snowCoverDaysExpected:points.some(point=>Number.isFinite(point.snowCoverProbability))?sum('snowCoverProbability')/100:undefined,cloudMean:sum('cloudMean')/count};
+ const first=points[0]?.date??'',last=points[points.length-1]?.date??'',coverage:Record<string,TravelFieldCoverage>={};
+ const stats=(field:string,key:keyof TravelClimateDay,rule:TravelFieldRule='finite')=>{
+  const result=travelFieldStats(points,key,rule);
+  coverage[field]={valid:result.valid,total:result.total};
+  return result;
+ };
+ const sun=stats('sunshinePerDay','sunshineMeanHours','nonnegative');
+ coverage.sunshineTotal=coverage.sunshinePerDay;
+ const snowDepth=stats('snowDepthMean','snowDepthMean','nonnegative').mean,snowCover=stats('snowCoverDaysExpected','snowCoverProbability','percentage').sum;
+ return{start:first,end:last,days:points.length,coverage,wetDayBasis:'climatology-ge1mm',
+  avgMax:stats('avgMax','maxMean').mean,avgMin:stats('avgMin','minMean').mean,avgMean:stats('avgMean','meanMean').mean,
+  avgMaxP25:stats('avgMaxP25','maxP25').mean,avgMaxP75:stats('avgMaxP75','maxP75').mean,
+  precipitationTotal:stats('precipitationTotal','precipitationMean','nonnegative').sum,wetDaysExpected:stats('wetDaysExpected','wetProbability','percentage').sum/100,
+  sunshineTotal:sun.sum,sunshinePerDay:sun.mean,daylightPerDay:stats('daylightPerDay','daylightMeanHours','nonnegative').mean,
+  windMaxMean:stats('windMaxMean','windMaxMean','nonnegative').mean,snowfallTotal:stats('snowfallTotal','snowfallMean','nonnegative').sum,
+  snowDepthMean:Number.isFinite(snowDepth)?snowDepth:undefined,snowCoverDaysExpected:Number.isFinite(snowCover)?snowCover/100:undefined,
+  cloudMean:stats('cloudMean','cloudMean','percentage').mean};
 }
 
-function scoreSummary(summary:TravelSummary,preference:TravelPreference){
+function scoreSummary(summary:TravelSummary,preference:TravelPreference,snowDepthIncluded:boolean){
  switch(preference){
   case'dry':return-summary.precipitationTotal-summary.wetDaysExpected*4+summary.sunshinePerDay*.6;
   case'warm':return summary.avgMax*4+summary.sunshinePerDay-summary.wetDaysExpected;
-  case'cold':return-summary.avgMax*4+(summary.snowDepthMean??0)*1.5+summary.snowfallTotal;
+  case'cold':return-summary.avgMax*4+(snowDepthIncluded?(summary.snowDepthMean??NaN)*1.5:0)+summary.snowfallTotal;
   case'sunny':return summary.sunshinePerDay*10-summary.cloudMean*.12-summary.wetDaysExpected*1.5;
-  case'snow':{const snowDepth=Number(summary.snowDepthMean);return Number.isFinite(snowDepth)?snowDepth*5+(summary.snowCoverDaysExpected??0)*2:-1e9;}
+  case'snow':return (summary.snowDepthMean??NaN)*5+(summary.snowCoverDaysExpected??NaN)*2;
   case'calm':return-summary.windMaxMean*1.852*3-summary.wetDaysExpected+summary.sunshinePerDay*.25;
   default:return-Math.abs(summary.avgMax-24)*2-summary.wetDaysExpected*3+summary.sunshinePerDay*5-summary.windMaxMean*1.852*.3;
  }
 }
 
 function constraintResult(summary:TravelSummary,constraints:TravelConstraints){
+ // An unassessable active constraint is neither satisfied nor a known violation.
+ if((Number.isFinite(constraints.minAvgMax)||Number.isFinite(constraints.maxAvgMax))&&!Number.isFinite(summary.avgMax)||Number.isFinite(constraints.maxWetDays)&&!Number.isFinite(summary.wetDaysExpected)||Number.isFinite(constraints.minSunHoursPerDay)&&!Number.isFinite(summary.sunshinePerDay)||(Number.isFinite(constraints.maxWindKt)||Number.isFinite(constraints.maxWindKmh))&&!Number.isFinite(summary.windMaxMean)||Number.isFinite(constraints.minSnowDepthCm)&&!Number.isFinite(summary.snowDepthMean))return null;
  const unmet:string[]=[];
  if(Number.isFinite(constraints.minAvgMax)&&summary.avgMax<Number(constraints.minAvgMax))unmet.push(`Ø Höchsttemperatur unter ${constraints.minAvgMax} °C`);
  if(Number.isFinite(constraints.maxAvgMax)&&summary.avgMax>Number(constraints.maxAvgMax))unmet.push(`Ø Höchsttemperatur über ${constraints.maxAvgMax} °C`);
- if(Number.isFinite(constraints.maxWetDays)&&summary.wetDaysExpected>Number(constraints.maxWetDays))unmet.push(`mehr als ${constraints.maxWetDays} erwartete Regentage`);
+ if(Number.isFinite(constraints.maxWetDays)&&summary.wetDaysExpected>Number(constraints.maxWetDays))unmet.push(`mehr als ${constraints.maxWetDays} erwartete Regentage (Klima)`);
  if(Number.isFinite(constraints.minSunHoursPerDay)&&summary.sunshinePerDay<Number(constraints.minSunHoursPerDay))unmet.push(`weniger als ${constraints.minSunHoursPerDay} Sonnenstunden pro Tag`);
  const maxWindKt=Number.isFinite(constraints.maxWindKt)?Number(constraints.maxWindKt):Number.isFinite(constraints.maxWindKmh)?Number(constraints.maxWindKmh)/1.852:Number.NaN;
  if(Number.isFinite(maxWindKt)&&summary.windMaxMean>maxWindKt)unmet.push(`Ø Windmaximum über ${constraints.maxWindLabel||`${Math.round(maxWindKt)} kt`}`);
@@ -323,7 +346,7 @@ export function bestTravelWindows(dataset:TravelClimateDataset,searchStart:strin
  const allDates=dateRange(searchStart,searchEnd),length=Math.max(2,Math.min(42,Math.round(tripDays)));if(allDates.length<length)return[];
  const candidates:TravelWindowResult[]=[];
  for(let startIndex=0;startIndex<=allDates.length-length;startIndex++){
-  const start=allDates[startIndex],end=allDates[startIndex+length-1],points=travelPeriod(dataset,start,end);if(points.length!==length)continue;const summary=summarizeTravelPeriod(points),unmet=constraintResult(summary,constraints);candidates.push({start,end,points,summary,score:scoreSummary(summary,preference)-unmet.length*1000,meetsAll:unmet.length===0,unmet});
+  const start=allDates[startIndex],end=allDates[startIndex+length-1],points=travelPeriod(dataset,start,end);if(points.length!==length)continue;const summary=summarizeTravelPeriod(points),unmet=constraintResult(summary,constraints),score=scoreSummary(summary,preference,dataset.snowDepthIncluded);if(!unmet||!Number.isFinite(score))continue;candidates.push({start,end,points,summary,score:score-unmet.length*1000,meetsAll:unmet.length===0,unmet});
  }
  candidates.sort((a,b)=>Number(b.meetsAll)-Number(a.meetsAll)||b.score-a.score||a.start.localeCompare(b.start));
  const selected:TravelWindowResult[]=[],minimumGap=Math.max(2,Math.floor(length/3));
@@ -332,8 +355,21 @@ export function bestTravelWindows(dataset:TravelClimateDataset,searchStart:strin
 }
 
 export function travelNarrative(summary:TravelSummary,preference:TravelPreference,snowDepthIncluded:boolean,sourceMode='Nur Klimatologie'){
- const thermal=summary.avgMax>=30?'sehr warm bis heiß':summary.avgMax>=25?'warm':summary.avgMax>=20?'mild bis warm':summary.avgMax>=15?'mild':summary.avgMax>=10?'kühl':'kalt',wetShare=summary.days?summary.wetDaysExpected/summary.days:0,moisture=wetShare<=.03&&summary.precipitationTotal<.2?'trocken':wetShare<=.2?'überwiegend trocken':wetShare<=.4?'eher trocken':wetShare<=.6?'wechselhaft':'häufig niederschlagsanfällig',sun=summary.sunshinePerDay>=8?'sehr sonnig':summary.sunshinePerDay>=5?'sonnig':summary.sunshinePerDay>=3?'mit mäßigem Sonnenschein':'eher sonnenarm',wind=summary.windMaxMean>=40/1.852?'oft windig':summary.windMaxMean>=25/1.852?'zeitweise windig':'meist mäßig windig';
- const roundedWetDays=Math.round(summary.wetDaysExpected),modelled=sourceMode!=='Nur Klimatologie',parts=[modelled?`Aus aktueller Modelllage und Klimareferenz ergibt sich für den Zeitraum: ${thermal}, ${moisture} und ${sun}.`:`Klimatologisch ist der Zeitraum ${thermal}, ${moisture} und ${sun}.`,`${wind[0].toUpperCase()}${wind.slice(1)}; erwartet werden im Mittel rund ${roundedWetDays} Niederschlagstage.`];
- if(preference==='snow')parts.push(snowDepthIncluded&&Number.isFinite(summary.snowDepthMean)?`Die mittlere modellierte Schneehöhe liegt bei rund ${Math.round(Number(summary.snowDepthMean))} cm; im Reisezeitraum ergibt sich zusätzlich rund ${Math.round(summary.snowfallTotal)} cm Schnee.`:`Für die Schneehöhenoptimierung fehlen belastbare historische Schneehöhendaten.`);
+ const thermal=Number.isFinite(summary.avgMax)?summary.avgMax>=30?'sehr warm bis heiß':summary.avgMax>=25?'warm':summary.avgMax>=20?'mild bis warm':summary.avgMax>=15?'mild':summary.avgMax>=10?'kühl':'kalt':null;
+ const wetShare=summary.days>0&&Number.isFinite(summary.wetDaysExpected)&&Number.isFinite(summary.precipitationTotal)?summary.wetDaysExpected/summary.days:NaN;
+ const moisture=Number.isFinite(wetShare)?wetShare<=.03&&summary.precipitationTotal<.2?'trocken':wetShare<=.2?'überwiegend trocken':wetShare<=.4?'eher trocken':wetShare<=.6?'wechselhaft':'häufig niederschlagsanfällig':null;
+ const sun=Number.isFinite(summary.sunshinePerDay)?summary.sunshinePerDay>=8?'sehr sonnig':summary.sunshinePerDay>=5?'sonnig':summary.sunshinePerDay>=3?'mit mäßigem Sonnenschein':'eher sonnenarm':null;
+ const wind=Number.isFinite(summary.windMaxMean)?summary.windMaxMean>=40/1.852?'oft windig':summary.windMaxMean>=25/1.852?'zeitweise windig':'meist mäßig windig':null;
+ const modelled=sourceMode!=='Nur Klimatologie',descriptions=[thermal,modelled?null:moisture,sun].filter((value):value is string=>value!==null),parts:string[]=[];
+ if(descriptions.length)parts.push(modelled?'Aus aktueller Modelllage und Klimareferenz ergibt sich für den Zeitraum: '+descriptions.join(', ')+'.':'Klimatologisch ist der Zeitraum '+descriptions.join(', ')+'.');
+ const missing=[!thermal?'Temperatur':null,!moisture?'Niederschlag':null,!sun?'Sonnenschein':null,!wind?'Wind':null].filter(Boolean);
+ if(missing.length)parts.push('Nicht vollständig belegt: '+missing.join(', ')+'.');
+ if(wind)parts.push(wind[0].toUpperCase()+wind.slice(1)+'.');
+ if(Number.isFinite(summary.wetDaysExpected)){const roundedWetDays=Math.round(summary.wetDaysExpected);parts.push('Klimatologisch werden im Mittel rund '+roundedWetDays+' Niederschlagstage (≥ 1 mm/Tag) erwartet.');}
+ if(preference==='snow'){
+  if(snowDepthIncluded&&Number.isFinite(summary.snowDepthMean))parts.push(`Die mittlere modellierte Schneehöhe liegt bei rund ${Math.round(Number(summary.snowDepthMean))} cm.`);
+  else parts.push('Für die Schneehöhenoptimierung fehlen belastbare historische Schneehöhendaten.');
+  if(Number.isFinite(summary.snowfallTotal))parts.push('Im Reisezeitraum ergibt sich zusätzlich rund '+Math.round(summary.snowfallTotal)+' cm Schnee.');
+ }
  return parts.join(' ');
 }
