@@ -1,0 +1,170 @@
+name: MID RUC P3 full genuine DWD same-stage native builder RAM A/B (NO RELEASE)
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'scripts/qa/mid_ruc_p3_fullbuilder_ab.py'
+      - 'scripts/qa/test_mid_ruc_p3_fullbuilder_ab.py'
+      - 'ci/github/workflows/mid-ruc-p3-native-builder-ab.yml'
+      - '.github/workflows/mid-ruc-p3-native-builder-ab.yml'
+permissions:
+  contents: read
+concurrency:
+  group: mid-ruc-p3-native-builder-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  original-native-builder-same-stage-ab:
+    name: Strict real full 0-27h DWD native source + EPS20 original/optimized dual build
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (startsWith(github.head_ref, 'chatgpt/v') || startsWith(github.head_ref, 'codex/v'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    permissions:
+      contents: read
+    steps:
+      - name: Exact SHA source without persisted credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Fail closed on source drift, mirrored workflow or production flag
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          cmp ci/github/workflows/mid-ruc-p3-native-builder-ab.yml .github/workflows/mid-ruc-p3-native-builder-ab.yml
+          cmp ci/github/workflows/mid-ruc-preprocess.yml .github/workflows/mid-ruc-preprocess.yml
+          test "$(grep -Fxc '_P3_ACCELERATED_QUANTILE_ENABLED = False' tools/ruc/build_ruc_bundle.py)" = 1
+          ! grep -q '_P3_ACCELERATED_QUANTILE_ENABLED' ci/github/workflows/mid-ruc-preprocess.yml
+          ! grep -q '_P3_ACCELERATED_QUANTILE_ENABLED' .github/workflows/mid-ruc-preprocess.yml
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          test "$stable" = "$main"
+          gh api "repos/$GITHUB_REPOSITORY/compare/$stable...$EXPECTED_HEAD" |
+            jq -e --arg stable "$stable" '.status=="ahead" and .merge_base_commit.sha==$stable' >/dev/null
+      - name: Same pinned Python used by real production DWD publisher
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: tools/ruc/requirements*.txt
+      - name: Install existing official native RUC decode/science dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y libeccodes-tools
+          python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+      - name: Negative offline source/UTC/NoData/geometry/anti-tamper controls
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile scripts/qa/mid_ruc_p3_fullbuilder_ab.py scripts/qa/test_mid_ruc_p3_fullbuilder_ab.py
+          python scripts/qa/test_mid_ruc_p3_fullbuilder_ab.py -v
+          python tools/ruc/test_ruc_p3_default_off_integration.py -v
+          python tools/ruc/test_ruc_p3_eps_quantile_candidate.py -v
+      - name: Reserve adequate disposable workspace, never touch production stores
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .p3-native-ab
+          free_kb="$(df -Pk . | awk 'END {print $4}')"
+          echo "Disposable runner free disk before original DWD staging: $free_kb KB"
+          test "$free_kb" -gt 9500000
+          test -x /usr/bin/time
+      - name: Download one complete original DWD cycle and build unchanged native reference
+        timeout-minutes: 42
+        shell: bash
+        env:
+          MID_RUC_EPS_DECODE_WORKERS: '2'
+          MID_RUC_FORECAST_HOURS: '27'
+          MID_RUC_DOWNLOAD_WORKERS: '8'
+          PYTHONFAULTHANDLER: '1'
+        run: |
+          set -euo pipefail
+          timeout 2450 /usr/bin/time -f 'P3_AB_PROFILE %e %M' -o .p3-native-ab/reference-profile.txt \
+            python tools/ruc/fetch_and_build_ruc.py \
+            --stage .p3-native-ab/original \
+            --output .p3-native-ab/reference --candidate-count 4 --hours 27 \
+            2>&1 | tee .p3-native-ab/reference.log
+          test -f .p3-native-ab/reference/latest.json
+      - name: Fix native model run and untouched original file folder for both builders
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,re
+          from pathlib import Path
+          x=json.loads(Path('.p3-native-ab/reference/latest.json').read_text())
+          run=x['run']
+          assert re.fullmatch(r'20\d\d-\d\d-\d\dT\d\d:00',run)
+          assert x['pointCount']==542040
+          assert x['eps']['memberCount']==20
+          key=re.sub('[^0-9A-Za-z_-]','',run)
+          stage=Path('.p3-native-ab/original')/key
+          assert (stage/'eps'/'TOT_PREC').is_dir()
+          with Path(os.environ['GITHUB_ENV']).open('a') as out:
+              out.write('MID_P3_ORIGINAL_RUN='+run+'\n')
+              out.write('MID_P3_ORIGINAL_STAGE='+stage.as_posix()+'\n')
+          print('Exact DWD run and immutable stage identified:',run)
+          PY
+      - name: Rebuild SAME original DWD stage with candidate in test-interpreter memory only
+        timeout-minutes: 20
+        shell: bash
+        env:
+          MID_RUC_EPS_DECODE_WORKERS: '2'
+          PYTHONFAULTHANDLER: '1'
+        run: |
+          set -euo pipefail
+          timeout 1100 /usr/bin/time -f 'P3_AB_PROFILE %e %M' -o .p3-native-ab/candidate-profile.txt \
+            python scripts/qa/mid_ruc_p3_fullbuilder_ab.py candidate \
+            --stage "$MID_P3_ORIGINAL_STAGE" --run "$MID_P3_ORIGINAL_RUN" \
+            --output .p3-native-ab/candidate
+          test -f .p3-native-ab/candidate/latest.json
+      - name: SHA-verify every original/candidate native output and full-process RAM/time
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" = \
+               "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          python scripts/qa/mid_ruc_p3_fullbuilder_ab.py verify \
+            --stage "$MID_P3_ORIGINAL_STAGE" --run "$MID_P3_ORIGINAL_RUN" \
+            --reference .p3-native-ab/reference --output .p3-native-ab/candidate \
+            --reference-log .p3-native-ab/reference.log \
+            --reference-profile .p3-native-ab/reference-profile.txt \
+            --candidate-profile .p3-native-ab/candidate-profile.txt \
+            --head "$EXPECTED_HEAD" --report .p3-native-ab/qa-evidence.json
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          e=json.loads(Path('.p3-native-ab/qa-evidence.json').read_text())
+          assert e['realOriginalGribFullBuilderE2eCompared']
+          assert e['sameOriginalStagedInputsBothBuilders']
+          assert e['nativeOutputs']['byteIdenticalObjects'] >= 7
+          assert not e['releaseAuthorized']
+          assert not e['production60MinuteP95Verified']
+          assert not e['workerAndWidgetsAndIosReadbackVerified']
+          with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a') as out:
+              out.write('### P3 read-only REAL ORIGINAL DWD FULL BUILDER A/B\n')
+              out.write(f"Run {e['modelRunUtc']} · source: {e['candidateSourceSha']}\n")
+              out.write(f"Original-stage files: {e['originalStage']['fileCount']}; EPS20: {e['originalStage']['epsFileCount']}; exact outputs: {e['nativeOutputs']['byteIdenticalObjects']}\n")
+              out.write(f"Reference builder {e['baselineBuilderOnlySeconds']}s; candidate {e['candidateBuilderOnlySeconds']}s; peak RSS original/candidate {e['baselinePeakResidentKiB']}/{e['candidatePeakResidentKiB']} KiB\n")
+              out.write('No LIVE-first-pub, 60-minute-P95, Pages/Worker/iOS or release authorization. Nothing published.\n')
+          PY
+      - name: Retain tiny scientific evidence, never upload original GRIB or secrets
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-ruc-p3-native-full-ab-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .p3-native-ab/qa-evidence.json
+          retention-days: 5
+          if-no-files-found: ignore
