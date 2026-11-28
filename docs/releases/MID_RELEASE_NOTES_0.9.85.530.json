@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "version": "0.9.85.530",
+  "title": "Laufgleiche saisonale Karten und vorbereitete OPERA-Rasterprojektion",
+  "date": "2026-11-28",
+  "external": [
+    "Saisonale Begleitfelder für ICON-D2-RUC werden nur bei passendem Modelllauf, Gültigkeitszeitpunkt und identischem Raster kombiniert. Fehlende Daten bleiben erkennbar.",
+    "Radar- und Niederschlagsphasenraster verwenden vorbereitete Projektionskonstanten bei unveränderter Zuordnung der Originalzellen."
+  ],
+  "internal": [
+    "Selektiver Intake: #1042 @ 8a771eee693211f9201b919386aa27da5b59bb90 (12 Pfade) und OPERA-A d7057c1cad6a5c6e311ae451f82680b8e686a8a3 aus #937 (4 disjunkte Pfade). Keine Vollübernahme von #937.",
+    "Statische Phasenflächenregression auf vorbereiteten Sampler aktualisiert; Quellen-, NoData- und Zukunftsgates erhalten. Unabhängiger eingefrorener Projektionsreferenztest bleibt erhalten.",
+    "Schnee-Pilot ausschließlich Header-/Quellen-QA; keine produktive Freigabe geometrischer Schneehöhe oder neuer Datenversorgung.",
+    "Keine gemessene Leistungsverbesserung oder physische iOS-Abnahme behauptet. #937 Restumfang, #889, #1043, #1038 und #541 bleiben separat."
+  ],
+  "sourceOfTruth": [
+    "Vorbereitungsbasis Stable .528 011bdbfe1ccf35a1ddf4aa85b949213ec4dbce91. Vorgängerrelease .529 #1041 muss zuerst vollständig promotet sein.",
+    "Vorbereiteter Code-HEAD eda515fb68e4d9cdd4c87d84d12ba80b8f94879c: kombinierte Draft-QA 46122806392 und SHA 46122828053 success; nur dieser historische HEAD ist dadurch belegt.",
+    "Vor Produktivstart frische .529 Stable-/Main-/Version-/Vertrags-/Review-/Overlap-Prüfung; aktuellen Stable vollständig bewahren. Source-, Bot-, Installer-, Worker-/Pages-, Stable- und Kataloggates obligatorisch."
+  ]
+}
