@@ -32,7 +32,8 @@ for(const token of [
  "type Props={initialLocation:Location;advancedMode:boolean;unit:WindUnit}",
  "import {label,searchLocations,wind,type Location,type WindUnit} from './weather'",
  'maxWindKt:windInputToKnots(windLimit,unit)',
- 'wind(active.summary.windMaxMean,unit)',
+ 'travelWind(active.summary.windMaxMean,unit)',
+ "return Number.isFinite(value)?wind(value,unit):'–'",
  'ERA5-Seamless-Klimatologie 1991–2020',
  'Mit wachsendem Vorlauf gewinnt die ERA5-Seamless-Klimatologie 1991–2020 bewusst an Gewicht'
 ])need('Einheiten/Anzeige',panel,token);
@@ -53,7 +54,7 @@ try{
  if(compile.status!==0)failures.push(`TypeScript: ${compile.stdout||compile.stderr}`);
  else{
   const compiledPath=path.join(compileDir,'travelPlanner.js');
-  const compiledSource=(await readFile(compiledPath,'utf8')).replace("from './cachePolicy'","from './cachePolicy.js'").replace("from './openMeteoGuard'","from './openMeteoGuard.js'").replace("from './workerClient'","from './workerClientMock.js'");
+  const compiledSource=(await readFile(compiledPath,'utf8')).replace("from './travelPeriodIntegrity'","from './travelPeriodIntegrity.js'").replace("from './cachePolicy'","from './cachePolicy.js'").replace("from './openMeteoGuard'","from './openMeteoGuard.js'").replace("from './workerClient'","from './workerClientMock.js'");
   await writeFile(compiledPath,compiledSource);
   await writeFile(path.join(compileDir,'workerClientMock.js'),"export async function fetchWorkerJson(){throw new Error('SST ist in diesem Atmosphären-/Einheitentest nicht aktiv.')}\n");
   const module=await import(`${pathToFileURL(compiledPath).href}?v=${Date.now()}`);
