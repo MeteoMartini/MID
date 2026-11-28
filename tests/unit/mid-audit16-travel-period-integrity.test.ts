@@ -2,7 +2,7 @@ import {describe,expect,it} from 'vitest';
 import {travelFieldStats,travelStrictBlend} from '../../src/travelPeriodIntegrity';
 import {mediumDay} from '../../src/travelForecastFusion';
 import type {Day,EnsembleDay} from '../../src/weather';
-import {summarizeTravelPeriod,travelNarrative,bestTravelWindows,type TravelClimateDay,type TravelDatePoint,type TravelClimateDataset} from '../../src/travelPlanner';
+import {summarizeTravelPeriod,travelSummaryComplete,travelClimateForDate,travelNarrative,bestTravelWindows,type TravelClimateDay,type TravelDatePoint,type TravelClimateDataset} from '../../src/travelPlanner';
 const base:TravelClimateDay={key:'01-01',maxMean:20,minMean:10,meanMean:15,maxP25:15,maxP75:25,minP25:8,minP75:12,precipitationMean:2,wetProbability:80,sunshineMeanHours:6,daylightMeanHours:10,windMaxMean:8,snowfallMean:0,cloudMean:40,weatherCode:3,years:30};
 const point=(day:number,overrides:Partial<TravelClimateDay>={}):TravelDatePoint=>({...base,...overrides,date:'2027-01-'+String(day).padStart(2,'0')});
 describe('Audit 1.6 travel interval integrity',()=>{
@@ -89,4 +89,25 @@ describe('Audit 1.6 travel interval integrity',()=>{
   expect(summarizeTravelPeriod([]).precipitationTotal).toBeNaN();
   expect(travelFieldStats([{t:Number.MAX_VALUE},{t:Number.MAX_VALUE}],'t').sum).toBeNaN();
  });
+ it('requires complete overview evidence including optional snow when selected',()=>{
+  const full=summarizeTravelPeriod([point(1),point(2)]);
+  expect(travelSummaryComplete(full)).toBe(true);
+  expect(travelSummaryComplete(full,true)).toBe(false);
+  expect(travelSummaryComplete({...full,coverage:undefined})).toBe(false);
+  const partial=summarizeTravelPeriod([point(1),point(2,{precipitationMean:NaN})]);
+  expect(travelSummaryComplete(partial)).toBe(false);
+  expect(travelSummaryComplete({...full,coverage:{}})).toBe(false);
+ });
+ it('keeps a leap-day field missing when either interpolation endpoint is missing',()=>{
+  for(const missing of ['02-28','03-01']){
+   const days={'02-28':{...base,key:'02-28'},'03-01':{...base,key:'03-01'}};
+   days[missing as keyof typeof days].precipitationMean=NaN;
+   const dataset:TravelClimateDataset={createdAt:0,latitude:0,longitude:0,timezone:'UTC',source:'fixture',referencePeriod:'1991–2020',snowDepthIncluded:false,days};
+   const leap=travelClimateForDate(dataset,'2028-02-29')!;
+   expect(leap.precipitationMean).toBeNaN();
+   expect(leap.maxMean).toBe(20);
+   expect(summarizeTravelPeriod([leap]).coverage?.precipitationTotal.valid).toBe(0);
+  }
+ });
+
 });

@@ -2,7 +2,7 @@ import {useEffect,useMemo,useRef,useState,type FormEvent,type ReactNode} from 'r
 import {AlertTriangle,CalendarRange,CheckCircle2,ChevronRight,CloudRain,Droplets,MapPin,Pencil,Pin,RefreshCw,Search,Snowflake,Sparkles,Sun,Thermometer,Wind} from 'lucide-react';
 import {label,searchLocations,wind,type Location,type WindUnit} from './weather';
 import {WeatherPictogram} from './WeatherPictogram';
-import {addDays,bestTravelWindows,dateRange,daysBetween,fetchTravelClimatology,fetchTravelWaterClimatology,summarizeTravelPeriod,travelNarrative,travelPeriod,type TravelConstraints,type TravelPreference,type TravelWaterClimatology,type TravelWindowResult} from './travelPlanner';
+import {addDays,bestTravelWindows,dateRange,daysBetween,fetchTravelClimatology,fetchTravelWaterClimatology,summarizeTravelPeriod,travelSummaryComplete,travelNarrative,travelPeriod,type TravelConstraints,type TravelPreference,type TravelWaterClimatology,type TravelWindowResult} from './travelPlanner';
 import {loadTravelForecastFusion} from './travelForecastFusion';
 import {isNativeDailyForecastSource} from './travelForecastPeriodEvidence';
 import {TRAVEL_CENTER_UPDATED_EVENT,buildTravelCenterId,deleteTravelCenterRecord,markTravelCenterOpened,readTravelCenterRecords,upsertTravelCenterRecord,type TravelAnalysisSnapshot,type TravelCenterRecord} from './travelCenter';
@@ -111,14 +111,14 @@ export default function TravelPlannerPanel({initialLocation,advancedMode,unit}:P
    {savedTrips.length?<div className="travel-center-grid">{savedTrips.map(record=>{const window=record.analysis.windows[record.activeIndex]??record.analysis.windows[0],summary=window?.summary;if(!summary)return null;return <article key={record.id} className={record.id===selectedTripId?'active':''}>
     <button type="button" className="travel-center-unpin" onClick={()=>unpinTrip(record)} aria-label="Reise lösen" title="Reise lösen"><Pin size={15} fill="currentColor"/></button>
     <div className="travel-center-card-head"><span><strong>{record.title||record.location.name}</strong><small>{formatPeriod(window.start,window.end)} · {record.mode==='flexible'?preferenceLabel(record.preference):'Fester Zeitraum'}</small></span><MapPin size={16}/></div>
-    <div className="travel-center-quick-metrics">{summary.coverage&&summary.wetDayBasis==='climatology-ge1mm'?<>
+    <div className="travel-center-quick-metrics">{travelSummaryComplete(summary,record.analysis.snowDepthIncluded)?<>
      <span><Thermometer size={13}/><b>{number(summary.avgMax,0)}° / {number(summary.avgMin,0)}°</b><small>Tmax / Tmin</small></span>
      <span><CloudRain size={13}/><b>{number(summary.precipitationTotal,0)} mm</b><small>≈ {number(summary.wetDaysExpected,0)} Regentage · Klima</small></span>
      <span><Sun size={13}/><b>{number(summary.sunshinePerDay)} h</b><small>Sonne/Tag</small></span>
      <span><Wind size={13}/><b>{travelWind(summary.windMaxMean,unit)}</b><small>Windmaximum</small></span>
      <span><Snowflake size={13}/><b>{record.analysis.snowDepthIncluded&&Number.isFinite(summary.snowDepthMean)?`${number(Number(summary.snowDepthMean),0)} cm`:`Σ ${number(summary.snowfallTotal)} cm`}</b><small>{record.analysis.snowDepthIncluded?'Schneehöhe':'Schneefall'}</small></span>
      {record.waterInfo?<span><Droplets size={13}/><b>{number(record.waterInfo.temperature)} °C</b><small>Wasser</small></span>:null}
-    </>:<span><b>Analyse aktualisieren</b><small>Altwerte nicht geprüft</small></span>}</div>
+    </>:<span><b>Analyse aktualisieren</b><small>Abdeckung unvollständig oder nicht geprüft</small></span>}</div>
     <div className="travel-center-source"><small>{record.analysis.sourceMode||'Klimatologie'}</small><span>{record.analysis.source}</span></div>
     <footer><button type="button" className="primary" onClick={()=>applyRecord(record,'detail')}>Details <ChevronRight size={14}/></button><button type="button" className="secondary" onClick={()=>applyRecord(record,'editor')}><Pencil size={14}/> Bearbeiten</button></footer>
    </article>})}</div>:<div className="travel-center-empty"><CalendarRange size={18}/><span>Noch keine Reise festgepinnt.</span><button type="button" className="primary" onClick={startNewTrip}>Erste Reise planen</button></div>}
