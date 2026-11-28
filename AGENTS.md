@@ -168,3 +168,7 @@ Vor Stable-Promotion reproduzierbare Installation, Lockfile-/Dependency-/Securit
 Fortschritt mit nachweisbaren Zuständen wie verifiziert, getestet, in Arbeit, offen oder blockiert berichten; zu jeder Aussage die relevante Version, Ref/SHA und Prüf-Evidenz nennen. Vor Chatüberlauf, Creditverlust oder Handoff den Fortsetzungsstand sichern: aktuelle Stable-/Main-SHA, Version, Arbeitsbranch/PR, Replit-Refs, Gate-Ergebnisse, erledigte/offene Pakete, Blocker und nächste sichere Aktion. Keine nicht nachgewiesene Veröffentlichung oder physische Geräteprüfung behaupten.
 
 **Leitsatz:** Erst verifizieren, dann ändern; erst sichern, dann synchronisieren; erst fachlich und technisch prüfen, dann integrieren; erst sämtliche vorgeschriebenen Gates grün, dann ausschließlich durch die etablierte Releaseautomatik veröffentlichen.
+
+
+## Parallel preparation of authorized release trains
+Follow `docs/releases/MID_RELEASE_TRAIN_PREPARATION.md` for user-authorized release work. While one protected release chain is running, prepare and qualify coherent successor Drafts with exact provenance, combined QA, release notes and issue-closure disposition. Keep only one productive Ready candidate; requalify each successor against freshly promoted Stable before activation. This creates no independent tasks, schedule, wider permissions or gate bypass.
