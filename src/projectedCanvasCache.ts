@@ -1,15 +1,14 @@
 type BoundsLike={south:number;west:number;north:number;east:number};
-type CanvasEntry={canvas:HTMLCanvasElement;pixels:number;lastUsed:number};
+type CanvasEntry={canvas:HTMLCanvasElement;pixels:number};
 const MAX_PROJECTED_CANVAS_ENTRIES=8;
 const MAX_PROJECTED_CANVAS_PIXELS=4_500_000;
 const projectedCanvasCache=new Map<string,CanvasEntry>();
 let projectedCanvasPixels=0;
 
-function trimProjectedCanvasCache(){
- while(projectedCanvasCache.size>MAX_PROJECTED_CANVAS_ENTRIES||projectedCanvasPixels>MAX_PROJECTED_CANVAS_PIXELS){
-  const oldest=[...projectedCanvasCache.entries()].sort((a,b)=>a[1].lastUsed-b[1].lastUsed)[0];if(!oldest)break;
-  projectedCanvasPixels-=oldest[1].pixels;projectedCanvasCache.delete(oldest[0]);
- }
+function removeProjectedCanvas(key:string){
+ const entry=projectedCanvasCache.get(key);
+ if(!entry)return;
+ projectedCanvasPixels-=entry.pixels;projectedCanvasCache.delete(key);
 }
 
 export function projectedViewportCacheKey({frame,zoom,bounds,width,height,renderWidth,renderHeight}:{frame:string;zoom:number;bounds:BoundsLike;width:number;height:number;renderWidth:number;renderHeight:number}){
@@ -17,13 +16,29 @@ export function projectedViewportCacheKey({frame,zoom,bounds,width,height,render
 }
 
 export function getProjectedCanvas(key:string):HTMLCanvasElement|null{
- const entry=projectedCanvasCache.get(key);if(!entry)return null;entry.lastUsed=Date.now();projectedCanvasCache.delete(key);projectedCanvasCache.set(key,entry);return entry.canvas;
+ const entry=projectedCanvasCache.get(key);if(!entry)return null;
+ projectedCanvasCache.delete(key);projectedCanvasCache.set(key,entry);return entry.canvas;
 }
 
 export function setProjectedCanvas(key:string,source:HTMLCanvasElement){
- const existing=projectedCanvasCache.get(key);if(existing){projectedCanvasPixels-=existing.pixels;projectedCanvasCache.delete(key)}
- const canvas=document.createElement('canvas');canvas.width=source.width;canvas.height=source.height;const context=canvas.getContext('2d',{alpha:true});if(!context)return;context.drawImage(source,0,0);
- const pixels=canvas.width*canvas.height;projectedCanvasCache.set(key,{canvas,pixels,lastUsed:Date.now()});projectedCanvasPixels+=pixels;trimProjectedCanvasCache();
+ // The old entry must not survive a failed replacement under the same key.
+ removeProjectedCanvas(key);
+ const {width,height}=source,pixels=width*height;
+ if(!Number.isSafeInteger(width)||!Number.isSafeInteger(height)||width<1||height<1||
+    !Number.isSafeInteger(pixels)||pixels>MAX_PROJECTED_CANVAS_PIXELS)return;
+ // Reserve capacity before allocating the optional copy, not afterwards.
+ // Insertion order is LRU because every successful read moves the key to the end.
+ while(projectedCanvasCache.size>=MAX_PROJECTED_CANVAS_ENTRIES||projectedCanvasPixels+pixels>MAX_PROJECTED_CANVAS_PIXELS){
+  const oldest=projectedCanvasCache.keys().next();
+  if(oldest.done)return;
+  removeProjectedCanvas(oldest.value);
+ }
+ try{
+  const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+  const context=canvas.getContext('2d',{alpha:true});if(!context)return;
+  context.drawImage(source,0,0);
+  projectedCanvasCache.set(key,{canvas,pixels});projectedCanvasPixels+=pixels;
+ }catch{/* Optional cache allocation/copy failure must not invalidate the displayed raster. */}
 }
 
 export function projectedCanvasCacheStats(){return{entries:projectedCanvasCache.size,pixels:projectedCanvasPixels,maxEntries:MAX_PROJECTED_CANVAS_ENTRIES,maxPixels:MAX_PROJECTED_CANVAS_PIXELS}}

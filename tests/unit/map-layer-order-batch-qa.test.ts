@@ -1,6 +1,6 @@
 import {readFileSync} from 'node:fs';
 import {describe,expect,it,vi} from 'vitest';
-import {createMapLayerOrderScheduler} from '../../src/mapLayerOrderScheduler';
+import {createMapLayerOrderScheduler,hasManagedLayerSuffix} from '../../src/mapLayerOrderScheduler';
 
 describe('MID Karten: MapLibre Layerreihenfolge ohne redundante Reorder-Pässe',()=>{
  it('coalesces 50 synchronously registered layers for one map into one pass',async()=>{
@@ -65,5 +65,37 @@ describe('MID Karten: MapLibre Layerreihenfolge ohne redundante Reorder-Pässe',
   expect(core).toContain('.sort((a,b)=>a[1]-b[1])');
   expect(core).not.toContain('queueMicrotask(()=>applyLayerOrder(map))');
   expect(core).toContain('map.moveLayer(id)');
+ });
+});
+
+describe('MID Karten: exact live style suffix fast path',()=>{
+ it('preserves the legacy append order across permutations, subsets and tied z-indices',()=>{
+  const ids=['background','radar','cloud','isobars','labels'];
+  const perms=(values:string[]):string[][]=>values.length?values.flatMap((id,index)=>perms(values.filter((_,i)=>i!==index)).map(tail=>[id,...tail])):[[]];
+  let checked=0;
+  for(const actual of perms(ids))for(let mask=0;mask<32;mask++)for(const ties of [false,true]){
+   const managed=ids.filter((_,i)=>mask&(1<<i)).map((id,i)=>[id,ties?0:(i*3)%5] as [string,number]).sort((a,b)=>a[1]-b[1]);
+   const legacy=[...actual];for(const [id] of managed){legacy.splice(legacy.indexOf(id),1);legacy.push(id)}
+   const skip=hasManagedLayerSuffix(actual,managed);
+   expect(skip).toBe(actual.join('|')===legacy.join('|'));
+   expect(skip?actual:legacy).toEqual(legacy);checked++;
+  }
+  expect(checked).toBe(7680);
+ });
+ it('does not skip when unmanaged/custom layers interrupt the managed suffix or IDs are missing',()=>{
+  const order:[string,number][]=[['radar',1],['labels',2]];
+  expect(hasManagedLayerSuffix(['base','radar','labels'],order)).toBe(true);
+  expect(hasManagedLayerSuffix(['base','radar','custom','labels'],order)).toBe(false);
+  expect(hasManagedLayerSuffix(['base','radar','labels','custom'],order)).toBe(false);
+  expect(hasManagedLayerSuffix(['labels'],order)).toBe(false);
+ });
+ it('uses the live order and retains the old fallback; MapLibre owns container resizing',()=>{
+  const core=readFileSync('src/MapLibreCore.tsx','utf8');
+  expect(core).toContain('hasManagedLayerSuffix(map.getLayersOrder(),ordered)');
+  expect(core).toContain('for(const [id] of ordered){try{map.moveLayer(id)}catch{}}');
+  const renderer=core.slice(core.indexOf('export function MidMapLibre('),core.indexOf('export function MapInteraction('));
+  expect(renderer).not.toContain('new ResizeObserver(');
+  expect(renderer).not.toContain('trackResize:false');
+  expect(renderer).toContain('map.remove()');
  });
 });
