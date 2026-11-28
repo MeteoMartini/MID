@@ -28,7 +28,10 @@ export const REGRESSION_CORE_STABLE_ADDITIONS=Object.freeze([
  Object.freeze({test:'test-deferred-mountain-css-0985483.mjs',destination:'core-3/4'}),
  Object.freeze({test:'test-startup-asset-evidence-0985482.mjs',destination:'core-3/4'}),
  Object.freeze({test:'test-startup-js-gate-0985482.mjs',destination:'core-4/4'}),
- Object.freeze({test:'test-css-ownership-0985484.mjs',destination:'core-3/4'})
+ Object.freeze({test:'test-css-ownership-0985484.mjs',destination:'core-3/4'}),
+ Object.freeze({test:'test-design-css-artifacts-0985515.mjs',destination:'core-3/4'}),
+ Object.freeze({test:'test-design-css-netzero-0985515.mjs',destination:'core-1/4'}),
+ Object.freeze({test:'test-design-css-ownership-0985515.mjs',destination:'core-3/4'})
 ]);
 
 // Budget-neutral test scheduling, measured on actual SHA-bound Source gate #42568701822:
