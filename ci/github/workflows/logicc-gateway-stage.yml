@@ -1,0 +1,38 @@
+name: Logicc | Stage or rollback existing gateway
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Stage existing v0.1.1 at 0% or restore v0.1.0 at 100%
+        type: choice
+        options: [stage, rollback]
+        required: true
+
+permissions:
+  contents: read
+concurrency:
+  group: logicc-gateway-cloudflare
+  cancel-in-progress: false
+
+jobs:
+  allocation:
+    if: github.repository == 'MeteoMartini/MID' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    environment: logicc-gateway-staging
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+      - name: Offline allocation contract tests
+        run: node --test docs/implementation/logicc-gateway/stage-existing.test.mjs
+      - name: Verify and assign existing immutable versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LOGICC_CF_ACCOUNT_ID: ${{ vars.LOGICC_CF_ACCOUNT_ID }}
+          LOGICC_CF_VERSION_TOKEN: ${{ secrets.LOGICC_CF_VERSION_TOKEN }}
+          LOGICC_TRAFFIC_ACTION: ${{ inputs.action }}
+        run: node docs/implementation/logicc-gateway/stage-existing.mjs

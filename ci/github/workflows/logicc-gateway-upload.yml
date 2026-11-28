@@ -1,0 +1,40 @@
+name: Logicc | Upload gateway 0.1.1
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: logicc-gateway-cloudflare
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    if: github.repository == 'MeteoMartini/MID' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    environment: logicc-gateway-staging
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+      - name: Verify released SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for branch in main mid-stable; do
+            tip=$(gh api "repos/MeteoMartini/MID/git/ref/heads/$branch" --jq .object.sha)
+            test "$tip" = "$GITHUB_SHA"
+          done
+      - name: Offline upload contract tests
+        run: node --test docs/implementation/logicc-gateway/upload-version.test.mjs
+      - name: Upload immutable version and verify readback
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LOGICC_CF_ACCOUNT_ID: ${{ vars.LOGICC_CF_ACCOUNT_ID }}
+          LOGICC_CF_VERSION_TOKEN: ${{ secrets.LOGICC_CF_VERSION_TOKEN }}
+        run: node docs/implementation/logicc-gateway/upload-version.mjs

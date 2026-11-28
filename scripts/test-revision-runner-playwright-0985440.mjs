@@ -55,3 +55,11 @@ const logiccWorker=fileURLToPath(new URL('../docs/implementation/logicc-gateway/
 const logiccDiagnostics=fileURLToPath(new URL('../docs/implementation/logicc-gateway/diagnostics.test.mjs',import.meta.url));
 execFileSync(process.execPath,['--check',logiccWorker],{stdio:'inherit',timeout:15000});
 execFileSync(process.execPath,['--test',logiccDiagnostics],{stdio:'inherit',timeout:30000});
+
+// Owner-only Logicc delivery: mandatory offline protocol checks, not live acceptance.
+for(const name of ['upload-version','stage-existing']){
+ const module=fileURLToPath(new URL('../docs/implementation/logicc-gateway/'+name+'.mjs',import.meta.url));
+ const tests=fileURLToPath(new URL('../docs/implementation/logicc-gateway/'+name+'.test.mjs',import.meta.url));
+ execFileSync(process.execPath,['--check',module],{stdio:'inherit',timeout:15000});
+ execFileSync(process.execPath,['--test',tests],{stdio:'inherit',timeout:30000});
+}
