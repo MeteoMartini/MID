@@ -210,14 +210,32 @@ assert.ok(!read('src/midPresentation.css').includes(mountainStyle),'Deferred mou
 originalEntries.splice(historicMountainIndex,0,{file:'src/midC18MountainResponsiveFix.css',original:mountainStyle,tree:postcss.parse(mountainStyle)});
 
 const entries=loadCssCascade(root),removed=consolidateCssCascade(entries);
-// Atmospheric Precision: exact reviewed neutral colors and scalable typography.
+// Atmospheric Precision: exact reviewed neutral colors, light accent and scalable typography.
 // Reconstruct only these two SHA-bound source blobs for the historical AST;
 // keep the .169 golden and the independent actual-production equality intact.
 const atmosphericBlobSha=source=>createHash('sha1').update('blob '+Buffer.byteLength(source)+String.fromCharCode(0)).update(source).digest('hex');
+// Normal-text contrast for the canonical opaque light-theme root roles.
+// This is a source-token regression, not computed-style or WCAG conformance evidence.
+const atmosphericLightRules=postcss.parse(read('src/styles-src/00-foundation.css')).nodes.filter(node=>node.type==='rule'&&node.selector===':root[data-theme=light]');
+const atmosphericLightRoles=['--text','--muted','--accent','--bg','--surface','--s2','--s3'];
+const atmosphericLightDeclarations=atmosphericLightRules.flatMap(rule=>rule.nodes.filter(node=>node.type==='decl'&&atmosphericLightRoles.includes(node.prop)));
+for(const role of atmosphericLightRoles)assert.equal(atmosphericLightDeclarations.filter(node=>node.prop===role).length,1,`Exactly one canonical light ${role}`);
+const atmosphericLightTokens=new Map(atmosphericLightDeclarations.map(node=>[node.prop,node.value]));
+const atmosphericLuminance=color=>{
+ assert.match(color,/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i,'Contrast fixture requires an opaque sRGB hex token');
+ const hex=color.length===4?color.slice(1).split('').map(v=>v+v).join(''):color.slice(1);
+ const rgb=[0,2,4].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);
+ return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;
+};
+for(const fg of ['--text','--muted','--accent'])for(const bg of ['--bg','--surface','--s2','--s3']){
+ const a=atmosphericLuminance(atmosphericLightTokens.get(fg)??''),b=atmosphericLuminance(atmosphericLightTokens.get(bg)??'');
+ const ratio=(Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+ assert.ok(ratio>=4.5,`Canonical light ${fg}/${bg} normal text contrast: ${ratio}`);
+}
 const atmosphericReviewed=[
  [
   "src/styles-src/00-foundation.css",
-  "b41ebb50e9f98470e8fe74710dff84eff02776f4",
+  "e51545823ad6a98a6fabe5d83f69c2744e61bf83",
   "6e95b95b55b03edf80fa947919e9afda4e824ee4",
   [
    [
@@ -231,6 +249,10 @@ const atmosphericReviewed=[
    [
     "--text:#eef6ff;--muted:#bcd0de;",
     "--text:#eef6ff;--muted:#94a8bc;"
+   ],
+   [
+    "--primary:#087cef;--accent:#00739f;",
+    "--primary:#087cef;--accent:#007aa8;"
    ]
   ]
  ],
