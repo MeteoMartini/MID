@@ -29,7 +29,7 @@ for(const token of [
  "REVERSE_LOCATION_CACHE_PREFIX='mid:reverse-location:v1:'",
  'REVERSE_LOCATION_CACHE_FRESH_MS=14*86400000',
  'REVERSE_LOCATION_CACHE_NEARBY_M=650',
- "AIR_QUALITY_CACHE_PREFIX='mid:air-quality:v1:'",
+ "AIR_QUALITY_CACHE_PREFIX='mid:air-quality:v2:'",
  'AIR_QUALITY_FRESH_MS=15*60000',
  'AIR_QUALITY_STALE_MS=2*3600000',
  'const fresh=cachedEeaStation(lat,lon,7*86400000,5000)',

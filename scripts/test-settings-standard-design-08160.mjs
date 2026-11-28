@@ -50,9 +50,11 @@ for(const token of [
  "summary={layoutMode==='advanced'?'Radar, Satellit, Blitz, Modellkarten und Niederschlagssummen':'Wetterkarten und aktuelle Beobachtungen'}",
  "summary={layoutMode==='advanced'?'Unsicherheit, Konsistenz, Quartile und Klimavergleich':'Mögliche Entwicklung der nächsten 14 Tage'}",
  "available?'mit Messwert geprüft':'Vorhersage'",
- "airCard&&<AirQualityExplanation result={airClassification} station={airStation} advanced={advancedMode}/>"
+ "airCard&&<AirQualityExplanation model={airModel} station={airStation} advanced={advancedMode} source={airObservation} modelTime={airModelTime}/>"
 ])need('Standardmodus und App-Texte',app,token);
-need('Luftqualitätsquelle bleibt im Info-Popover',app,'Die angezeigten Konzentrationen sind die aktuellen Standortwerte aus Open-Meteo/CAMS');
+// Preserve standard-mode access to provenance; model and observation must be distinguished.
+for(const token of ['Open-Meteo/CAMS · {model.coverage}/5 Konzentrationen','Gültigkeitszeit nicht belegt','Modellwerte sind keine Stationsmessungen.','UBA-Station · separater Messnachweis','Kein gemeinsamer Index mit CAMS.'])need('Luftqualitätsquelle bleibt im Info-Popover',app,token);
+reject('Keine irreführende gemeinsame Mess-/Modellquelle',app,'Die aktuellen Schadstoffkonzentrationen stammen aus amtlichen UBA-Messdaten');
 
 for(const token of [
  '.settings-dialog{--settings-card-radius:15px;--settings-card-gap:10px}',

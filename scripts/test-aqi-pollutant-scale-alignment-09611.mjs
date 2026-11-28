@@ -4,14 +4,14 @@ const root=new URL('../',import.meta.url);
 const [app,air,pkgText,baselineText]=await Promise.all(['src/App.tsx','src/airQuality.ts','package.json','MID_BASELINE.json'].map(path=>readFile(new URL(path,root),'utf8')));
 for(const token of [
   'describeEuropeanAqiPollutantScale(pollutant.key,pollutant.value,pollutant.aqi)',
-  'const aqi=Number(aqiValue)',
-  'aqiBand=Number.isFinite(aqi)&&aqi>=0?europeanAqiBandFromIndex(aqi):null',
+  'const aqi=nonnegativeAqiNumber(aqiValue)',
+  'aqiBand=aqi===null?null:europeanAqiBandFromIndex(aqi)',
   '((bandIndex+relative)/EUROPEAN_AQI_BANDS.length)*100',
-  "thresholds:[10,20,25,50,75]",
-  "thresholds:[20,40,50,100,150]",
-  "thresholds:[40,90,120,230,340]",
-  "thresholds:[50,100,130,240,380]",
-  "thresholds:[100,200,350,500,750]"
+  "thresholds:[5,15,50,90,140]",
+  "thresholds:[15,45,120,195,270]",
+  "thresholds:[10,25,60,100,150]",
+  "thresholds:[60,100,120,160,180]",
+  "thresholds:[20,40,125,190,275]"
 ]) assert.ok((app+'\n'+air).includes(token),`AQI-Skalenvertrag fehlt: ${token}`);
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/test-aqi-pollutant-scale-alignment-09611.mjs';
 assert.equal(pkg.scripts?.['test:aqi-pollutant-scale-alignment'],`node ${test}`);
