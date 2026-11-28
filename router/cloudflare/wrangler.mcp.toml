@@ -1,0 +1,19 @@
+# MID AI Router MCP – isolated QA template; NO PRODUCTION DEPLOY
+name = "mid-ai-router-mcp"
+main = "./mcp-worker.mjs"
+compatibility_date = "2026-11-11"
+workers_dev = true
+
+[durable_objects]
+bindings = [{ name = "MID_AI_LEDGER", class_name = "MidAiLedger" }]
+
+[[migrations]]
+tag = "v1-sqlite-quota"
+new_sqlite_classes = ["MidAiLedger"]
+
+[[services]]
+binding = "AUTH_SERVER"
+service = "mid-ai-router-auth"
+
+# Required protected variables and secrets must be configured after
+# actual Cloudflare Free entitlement, SHA/review, OAuth and issuer proof.
