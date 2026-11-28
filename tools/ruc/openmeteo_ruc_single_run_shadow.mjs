@@ -1,0 +1,100 @@
+// MID Data 1.2: isolated read-only Open-Meteo DWD ICON-D2-RUC single-run SHADOW.
+// No producer/Worker use, no EPS synthesis, no DWD GRIB signature equivalence.
+// Provider snapshot time axis is run-pinned; all original field nulls are preserved.
+export const FIELDS=["temperature_2m","dew_point_2m","relative_humidity_2m","pressure_msl","wind_speed_10m","wind_direction_10m","wind_gusts_10m","precipitation","cloud_cover","cloud_cover_low","cape","convective_inhibition"];
+export const UNITS={"time":"iso8601","temperature_2m":"°C","dew_point_2m":"°C","relative_humidity_2m":"%","pressure_msl":"hPa","wind_speed_10m":"kn","wind_direction_10m":"°","wind_gusts_10m":"kn","precipitation":"mm","cloud_cover":"%","cloud_cover_low":"%","cape":"J/kg","convective_inhibition":"J/kg"};
+const RANGES={"temperature_2m":[-115,65],"dew_point_2m":[-120,65],"relative_humidity_2m":[0,100],"pressure_msl":[750,1120],"wind_speed_10m":[0,200],"wind_direction_10m":[0,360],"wind_gusts_10m":[0,250],"precipitation":[0,600],"cloud_cover":[0,100],"cloud_cover_low":[0,100],"cape":[0,16000],"convective_inhibition":[0,16000]};
+const CORE=["temperature_2m","dew_point_2m","relative_humidity_2m","pressure_msl","wind_speed_10m","cloud_cover"];
+export function canonicalRun(run){
+ if(typeof run!=="string"||!/^20\d\d-\d\d-\d\dT\d\d:00$/.test(run))throw Error("noncanonical UTC run");
+ const at=Date.parse(run+":00Z");
+ if(!Number.isFinite(at)||new Date(at).toISOString().slice(0,16)!==run)throw Error("nonexistent UTC model run");
+ return at;
+}
+// Necessary bounding-box check from MID_DWD_RUC_PIPELINE_CONTRACT.md; not a native grid proof.
+function validateRucDomain(lat,lon){
+ if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat<43.18||lat>58.05||lon< -3.85||lon>20.22)throw Error("outside RUC domain");
+}
+export function buildSingleRunUrl({run,lat,lon}){
+ canonicalRun(run);
+ validateRucDomain(lat,lon);
+ return "https://single-runs-api.open-meteo.com/v1/forecast?latitude="+lat.toFixed(5)+"&longitude="+lon.toFixed(5)+"&models=dwd_icon_d2_ruc_native&run="+encodeURIComponent(run)+"&hourly="+FIELDS.join(",")+"&forecast_hours=28&timezone=GMT&wind_speed_unit=kn&temperature_unit=celsius&precipitation_unit=mm";
+}
+export function validateRunMetadata({requestedRun,metadata,nowMs=Date.now()}){
+ const runMs=canonicalRun(requestedRun);
+ if(!Number.isFinite(nowMs)||nowMs<runMs-5*60000||nowMs-runMs>4*3600000)throw Error("run outside original RUC four-hour freshness contract");
+ const init=metadata?.last_run_initialisation_time,ready=metadata?.last_run_availability_time;
+ if(!Number.isSafeInteger(init)||!Number.isSafeInteger(ready))throw Error("provider run metadata unavailable");
+ if(init*1000!==runMs||ready*1000<runMs||ready*1000>nowMs+5*60000)throw Error("provider cycle not currently admitted");
+ return {runMs,ready};
+}
+
+// Explicit interval coverage for [run, run + lead]. An instantaneous sample at
+// lead 0 is applicable; the preceding-hour sum/max at lead 0 is NOT.
+function hourlyWindowEvidence(hourly,lead){
+ const fields={};
+ for(const name of FIELDS){
+  const first=(name==="precipitation"||name==="wind_gusts_10m")?1:0;
+  let valid=0;
+  for(let i=first;i<=lead;i++)if(Number.isFinite(hourly[name][i]))valid++;
+  const expected=lead-first+1;
+  fields[name]={expected,valid,missing:expected-valid};
+ }
+ const complete=name=>fields[name].missing===0;
+ let windVectorComplete=true;
+ for(let i=0;i<=lead;i++){
+  const wind=hourly.wind_speed_10m[i],direction=hourly.wind_direction_10m[i];
+  if(!Number.isFinite(wind)||(wind!==0&&!Number.isFinite(direction)))windVectorComplete=false;
+ }
+ return {startLead:0,endLead:lead,fields,coreComplete:CORE.every(complete),
+  precipitationComplete:complete("precipitation"),gustComplete:complete("wind_gusts_10m"),
+  windVectorComplete};
+}
+export function qualifyRunPinnedRuc({requestedRun,lat,lon,metadata,payload,nowMs=Date.now()}){
+ const {runMs,ready}=validateRunMetadata({requestedRun,metadata,nowMs});
+ validateRucDomain(lat,lon);
+ if(!payload||Array.isArray(payload)||payload.error||payload.timezone!=="GMT"||payload.utc_offset_seconds!==0)throw Error("non-UTC or invalid provider response");
+ if(!Number.isFinite(payload.latitude)||!Number.isFinite(payload.longitude)||Math.abs(payload.latitude-lat)>.09||Math.abs(payload.longitude-lon)>.13)throw Error("provider model grid point too remote");
+ validateRucDomain(payload.latitude,payload.longitude);
+ const times=payload.hourly?.time,units=payload.hourly_units;
+ if(!Array.isArray(times)||times.length!==28||!units||units.time!=="iso8601")throw Error("provider 0..27 UTC axis incomplete");
+ for(let i=0;i<times.length;i++)if(times[i]!==new Date(runMs+i*3600000).toISOString().slice(0,16))throw Error("provider UTC lead axis misaligned");
+ const missing={},valid={};
+ for(const name of FIELDS){
+  if(units[name]!==UNITS[name])throw Error("unsupported unit "+name);
+  const row=payload.hourly[name];
+  if(!Array.isArray(row)||row.length!==28)throw Error("invalid "+name+" field axis");
+  // These provider fields end at the timestamp, so lead 0 covers the hour before initialization.
+  if((name==="precipitation"||name==="wind_gusts_10m")&&row[0]!==null)throw Error("unverified initial interval "+name);
+  let holes=0,finite=0;
+  for(const value of row){
+   if(value===null){holes++;continue}
+   if(typeof value!=="number"||!Number.isFinite(value)||value<RANGES[name][0]||value>RANGES[name][1])throw Error("unphysical/invalid "+name+" value");
+   finite++;
+  }
+  missing[name]=holes;valid[name]=finite;
+ }
+ let lastCoreLead=-1;
+ for(let i=0;i<28;i++){
+  if(CORE.some(name=>payload.hourly[name][i]===null))break;
+  lastCoreLead=i;
+ }
+ if(lastCoreLead<5)throw Error("insufficient contiguous deterministic core");
+ const hours=times.map((time,i)=>{
+  const h=payload.hourly,wind=h.wind_speed_10m[i],rawDirection=h.wind_direction_10m[i];
+  const direction=wind===null||wind===0||rawDirection===null?null:((rawDirection%360)+360)%360;
+  return{time,epoch:runMs+i*3600000,leadHours:i,temperature:h.temperature_2m[i],
+   dewPoint:h.dew_point_2m[i],humidity:h.relative_humidity_2m[i],pressure:h.pressure_msl[i],
+   wind,direction,gust:h.wind_gusts_10m[i],precipitation:h.precipitation[i],
+   cloud:h.cloud_cover[i],lowCloud:h.cloud_cover_low[i],cape:h.cape[i],
+   convectiveInhibition:h.convective_inhibition[i],probability:null};
+ });
+ return{schema:"mid.ruc.openmeteo.runpin-shadow.v1",modelId:"dwd_icon_d2_ruc_native",
+  provider:"Open-Meteo Single Runs",originModel:"DWD ICON-D2-RUC",independenceGroup:"dwd-icon",
+  requestedRun,initialisationTime:new Date(runMs).toISOString(),availabilityTime:new Date(ready*1000).toISOString(),
+  sampledLocation:{lat:payload.latitude,lon:payload.longitude},expectedHours:28,maxCoreLeadHours:lastCoreLead,
+  fieldValidCounts:valid,fieldMissingCounts:missing,
+  hourlyWindowEvidence:{lead6:hourlyWindowEvidence(payload.hourly,6),lead27:hourlyWindowEvidence(payload.hourly,27)},hours,sourceVerification:"provider-run-pinned",
+  nativeDwdGribVerified:false,epsAvailable:false,nativeRapidVerified:false,
+  commercialUseAuthorized:false,publicationAuthorized:false};
+}
