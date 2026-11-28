@@ -26,7 +26,9 @@ for(const token of [
  "hyperlocalAnalysis?'Hyperlokale Analyse'"
 ])need(app,token,'Current/Hyperlokal-Restartvertrag');
 for(const token of [
- "const LOCAL_BACKGROUND_STORAGE_PREFIX='mid:hyperlocal-background:v1:'",
+ "const LOCAL_BACKGROUND_STORAGE_PREFIX='mid:hyperlocal-background:v2:'",
+ "const LOCAL_BACKGROUND_LEGACY_PREFIX='mid:hyperlocal-background:v1:'",
+ 'decodeHyperlocalBackgroundCache(',
  'readStoredLocalBackground(',
  'writeStoredLocalBackground(',
  "const TERRAIN_MORPHOLOGY_STORAGE_PREFIX='mid:terrain-morphology:v1:'",
