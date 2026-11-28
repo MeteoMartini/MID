@@ -317,7 +317,9 @@ export function summarizeTravelPeriod(points:TravelDatePoint[]):TravelSummary{
  const first=points[0]?.date??'',last=points[points.length-1]?.date??'',coverage:Record<string,TravelFieldCoverage>={};
  const stats=(field:string,key:keyof TravelClimateDay,rule:TravelFieldRule='finite')=>{
   const result=travelFieldStats(points,key,rule);
-  coverage[field]={valid:result.valid,total:result.total};
+  // Preserve observed n/N for partial data, but never certify an overflowing complete aggregate.
+  const aggregateValid=Number.isFinite(result.sum)&&Number.isFinite(result.mean);
+  coverage[field]={valid:result.valid===result.total&&!aggregateValid?0:result.valid,total:result.total};
   return result;
  };
  const sun=stats('sunshinePerDay','sunshineMeanHours','nonnegative');

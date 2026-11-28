@@ -133,4 +133,24 @@ describe('Audit 1.6 travel interval integrity',()=>{
   }
  });
 
+ it('marks overflowing complete aggregates incomplete while preserving ordinary partial n/N',()=>{
+  for(const [input,outputs] of [
+   ['precipitationMean',['precipitationTotal']],
+   ['sunshineMeanHours',['sunshinePerDay','sunshineTotal']],
+   ['maxMean',['avgMax']],
+   ['snowfallMean',['snowfallTotal']],
+   ['snowDepthMean',['snowDepthMean']]
+  ] as const){
+   const summary=summarizeTravelPeriod([point(1,{[input]:Number.MAX_VALUE}),point(2,{[input]:Number.MAX_VALUE})]);
+   for(const field of outputs){
+    expect(summary.coverage?.[field]).toEqual({valid:0,total:2});
+    expect(Number.isFinite(summary[field as keyof typeof summary])).toBe(false);
+   }
+   expect(travelSummaryComplete(summary,true)).toBe(false);
+   expect(Object.values(summary.coverage??{}).some(row=>row.valid<row.total)).toBe(true);
+  }
+  const partial=summarizeTravelPeriod([point(1,{precipitationMean:NaN}),point(2,{precipitationMean:2})]);
+  expect(partial.coverage?.precipitationTotal).toEqual({valid:1,total:2});
+ });
+
 });
