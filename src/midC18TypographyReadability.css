@@ -3,11 +3,11 @@
    meteorological hierarchy and all established mobile layout contracts. */
 
 html[data-mid-design='next']{
- --mid18-text-label:clamp(9px,.68rem,10px);
- --mid18-text-meta:clamp(9px,.66rem,10px);
- --mid18-text-body:clamp(10.5px,.74rem,11.5px);
- --mid18-text-control:clamp(10px,.72rem,11px);
- --mid18-text-subhead:clamp(13px,.9rem,15px);
+ --mid18-text-label:.75rem;
+ --mid18-text-meta:.75rem;
+ --mid18-text-body:.875rem;
+ --mid18-text-control:.75rem;
+ --mid18-text-subhead:1rem;
  --mid18-track-label:.045em;
 }
 
@@ -75,7 +75,7 @@ html[data-mid-design='next'] :is(
 }
 
 html[data-mid-design='next'] .mid-insight strong{
- font-size:13.5px!important;
+ font-size:.875rem!important;
  line-height:1.25!important;
  letter-spacing:-.008em!important;
 }
@@ -102,7 +102,7 @@ html[data-mid-design='next'] :is(
  .water-inline-options select,
  .composite-advanced select
 ){
- font-size:12px!important;
+ font-size:.75rem!important;
  line-height:1.25!important;
 }
 
@@ -124,17 +124,17 @@ html[data-mid-design='next'] :is(
 }
 
 html[data-mid-design='next'] .mid-metric>strong{
- font-size:14.5px!important;
+ font-size:1rem!important;
  line-height:1.15!important;
 }
 
 html[data-mid-design='next'] .forecast-meta b{
- font-size:12.5px!important;
+ font-size:.875rem!important;
  line-height:1.2!important;
 }
 
 html[data-mid-design='next'] .warning-event-main strong{
- font-size:11.5px!important;
+ font-size:.75rem!important;
  line-height:1.25!important;
  white-space:normal!important;
  overflow:visible!important;
@@ -165,15 +165,8 @@ html[data-mid-design='next'] :is(
 
 /* Mobile readability: preserve density without micro typography. */
 @media(max-width:620px){
- html[data-mid-design='next']{
-  --mid18-text-label:9.5px;
-  --mid18-text-meta:9.5px;
-  --mid18-text-body:11px;
-  --mid18-text-control:10.5px;
-  --mid18-text-subhead:14px;
- }
  html[data-mid-design='next'] .dashboard-bottom-tabs button span{
-  font-size:10px!important;
+  font-size:.75rem!important;
  }
  html[data-mid-design='next'] .mid-data-status{
   align-items:flex-start!important;
@@ -194,11 +187,11 @@ html[data-mid-design='next'] :is(
   gap:4px!important;
  }
  html[data-mid-design='next'] .water-source{
-  font-size:9px!important;
+  font-size:.75rem!important;
   line-height:1.38!important;
  }
  html[data-mid-design='next'] .current-compact-source{
-  font-size:9.5px!important;
+  font-size:.75rem!important;
   line-height:1.35!important;
  }
 }
@@ -210,7 +203,7 @@ html[data-mid-design='next'] :is(
   .water-inline-options select,
   .composite-advanced select
  ){
-  font-size:16px!important;
+  font-size:max(16px,1rem)!important;
  }
 }
 

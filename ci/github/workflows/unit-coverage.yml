@@ -163,6 +163,8 @@ jobs:
             artifacts/startup-assets-0985482.json
             artifacts/css-move-risk-0985482.json
             dist/mid-build-identity.json
+            dist/index.html
+            dist/**/*.css
           if-no-files-found: warn
           retention-days: 7
 
