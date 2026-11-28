@@ -1,0 +1,46 @@
+{
+  "schema": "mid.ruc.do-free.local-sqlite-volume-evidence.v1",
+  "source": {
+    "run": "2026-11-09T14:00",
+    "producerStableSha": "d8852f672a40d26348d214dc85e9a3a1b9d79c1f",
+    "originalGitHubQaRun": 42780229524,
+    "proofArchiveSha256": "28ed26fe81a29dc74d0360db1a822446dd29479eed1d07ef21ba9f74e68433c1"
+  },
+  "host": {
+    "engine": "SQLite",
+    "version": "3.46.1",
+    "journal": "wal",
+    "syntheticPayload": true,
+    "exactOriginalObjectSizes": true,
+    "sourcePackedBytes": 672790506,
+    "sqlBlobSegmentBytes": 4000000,
+    "rowsPerRun": 177,
+    "sqliteIntegrityCheck": "ok",
+    "singleDatabaseBytesAfterCheckpoint": 673902592,
+    "peakDbWalShmBytes": 682039432,
+    "peakComponentsBytes": {
+      "db": 673902592,
+      "wal": 8104072,
+      "shm": 32768
+    },
+    "fiveRunsProjectedCheckpointBytes": 3369512960,
+    "fiveRunsProjectedPeakBytes": 3410197160
+  },
+  "surrogatePoint": {
+    "pointCells": 7,
+    "nativeProductsPerCell": 10,
+    "totalNativeProducts": 70,
+    "sqlRowsRead": 70,
+    "groupedDurableObjectRpcsHypothetical": 7,
+    "syntheticSqlRangeParity": true
+  },
+  "limitations": [
+    "Physical storage measured on local SQLite with original-size synthetic bytes, NOT original DWD compressed payloads",
+    "Not Cloudflare runtime or actual SQLite quota accounting",
+    "Five run peak extrapolated from single measured DB; not simultaneous real deployment",
+    "One RPC per point is a proposed batching design, not measured Cloudflare DO calls",
+    "No new costs or Cloudflare activations"
+  ],
+  "productionApproved": false,
+  "activationAuthorized": false
+}

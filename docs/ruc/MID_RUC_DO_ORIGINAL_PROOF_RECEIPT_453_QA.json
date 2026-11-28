@@ -1,0 +1,39 @@
+{
+  "schema": "mid.ruc.do.persisted-historical-proof-qa.v1",
+  "evidenceSource": {
+    "archiveGitHubActionsRunId": 42780229524,
+    "archiveArtifactId": 13746075942,
+    "archiveZipSha256": "28ed26fe81a29dc74d0360db1a822446dd29479eed1d07ef21ba9f74e68433c1",
+    "verifiedByGitHubActionsRunId": 42798390928,
+    "verifiedOnQaHeadSha": "b74884e1f2bf6da421dbe25bf0ee544d1334ffe6",
+    "originalFullDwdQaRunIds": [
+      42778833523,
+      42780229524
+    ],
+    "extractedJsonSha256": {
+      "report.json": "540bf9ebb9c335a06d8df782f7b48f6774d8c2ca32d48d2823e68f5adff38d61",
+      "inventory.json": "e74422fccba6378be519a7e4ee6b57bd0f0812a6bc8853f4a40b16196d323f42",
+      "range-index.json": "0b5b06b846affab6d08ece9b1aeaa05f5a24a5064c26054248066a0880f998a4",
+      "consumer-parity.json": "3fc37b9f98d43ae97f1bafa93acb805abaf34f5a92394deafeb8aefee0632351"
+    }
+  },
+  "originalModelRun": "2026-11-09T14:00",
+  "originalProducerSha": "d8852f672a40d26348d214dc85e9a3a1b9d79c1f",
+  "originalSourceArtifactSha256": "5a2275e4d75497c08e400b6e6b899254def2330a1b22472fe676d2cf112efe43",
+  "originalSourceManifestSha256": "0615621952c3c07ebd5d60cfc2e0a44596198a244a75824b58d6b0a7419830ca",
+  "nativeLeadHours": 27,
+  "nativeEPSMembers": 20,
+  "sourcePointCount": 542040,
+  "originalObjectCount": 12,
+  "originalBytesPreviouslyVerified": 1999624596,
+  "losslesslyPackedBytesPreviouslyVerified": 672790506,
+  "independentOriginalPointRecordsPreviouslyCompared": 70,
+  "historicalProofMetadataPreviouslyChecked": true,
+  "historicalProofMetadataPinnedAndCheckedNow": false,
+  "sourceChecksRecomputedFromOriginalBytesNow": false,
+  "dwdOfficialSignatureVerified": false,
+  "midCiTrustedIssuerKeyConfigured": false,
+  "actualOriginalDwdBytesSignedHere": false,
+  "productionApproved": false,
+  "activationAuthorized": false
+}
