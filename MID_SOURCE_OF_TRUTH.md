@@ -1,3 +1,12 @@
+# MID v0.9.85.529 · Verlässlichere Reisezeitraum-Bewertungen und technische Veröffentlichungsnachweise
+
+- Live Stable .528 @ 011bdbfe1ccf35a1ddf4aa85b949213ec4dbce91; Source 46019356432, Bot 46020704027, Installer 46020789013 einschließlich Worker, Pages Versuch 2, Stable und Katalog success.
+- #1036 @ c268c6fb88df4c8ff5faf90bb28f8fe2012cdc86; Draft 45993454079 und SHA 45993518171 erfolgreich, physische iOS-/responsive End-to-End-Abnahme weiterhin ausstehend.
+- #1040 @ 15697b691130583ae0d97886a4ea301de38aaadd; Draft 45991628957 und SHA 45991664562 erfolgreich ausschließlich für Original-HEAD. Korrekturcommit 90157f0b44a9abbf84f1d75352ca94ca778817b4 mit 59/59 historischen isolierten V8-Prüfungen, keine Übertragung dieses Befundes auf Node-Runner.
+- Exakte korrigierte Helperfunktion im V8-Isolat mit unabhängig abgefragten Original-.528-PR/Run/Job-/Commitdaten ausgeführt: vollständige 16/1/22 Inventare, Pages Versuch 2, Source 548 s, Bot 41 s, Installer 1103 s; vier negative Varianten (fehlender Job, falsche Version, roter Katalog, gemischter Attempt) abgelehnt; keine Signatur-/Reuse-/Release-Autorisierung.
+- 13 Original-Git-Blobs Modus 100644; alle betroffenen Ausgangspfade auf .528 gegenüber .527 byteidentisch bzw. neu. Vollständige kombinierte Draft-, Review-, Source-, Installer-, Worker-/Pages-, Stable- und Katalogabnahme noch erforderlich.
+- Exakte Helper-/Test-Blobs aus dem gemeinsamen .529-Intake, 59 bestehende + 5 neue isolierte Prüfungen: alte Implementierung 60/64, korrigierte 64/64; kein vollständiger Node-Runner-/CI-Nachweis.
+
 # MID v0.9.85.528 · Flüssigere Modellkarten und zuverlässige RUC-Diagnoseartefakte
 
 - Stable .527 @ 7e5e2385b0092e40c268ed1f0c7203325c8d18e4; Installer 45973926187 mit erfolgreichem Pflichtpfad, Worker, Pages Versuch 2, Stable und Release-Katalog.

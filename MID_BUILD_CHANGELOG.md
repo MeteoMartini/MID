@@ -1,3 +1,11 @@
+## MID v0.9.85.529 · 2026-11-27 · Verlässlichere Reisezeitraum-Bewertungen und technische Veröffentlichungsnachweise
+
+- Selektiver vollständiger Intake von #1036: 11 Originalblobs einschließlich Tests; echte Null und Extreme erhalten, feldbezogene n/N-Abdeckung, keine scheinbare Bewertung unvollständiger Präferenzen, klimatologische Regentage ≥ 1 mm/Tag getrennt von operativer Modellwahrscheinlichkeit; keine zusätzlichen Wetterrequests.
+- Selektiver Intake von #1040 einschließlich ref-freier Reviewkorrektur: zwei Originalblobs aus 90157f0b44a9abbf84f1d75352ca94ca778817b4; vollständige Source/Bot/Installer-Inventare, SHA-/Attempt-/Versionsbindung und konservative Zeitordnung. Rein lesend, keine Änderung der Releaseautorisierung oder Publisherlogik.
+- Keine Änderungen an Abhängigkeiten, CSS, Worker, RUC-Produktion, amtlichen Warnungen, Workflows oder Berechtigungen. Keine manuelle Versionsspiegelung; etablierter Release-Target-Vertrag.
+- #541, #999 Phase 2, #1038, #889 und #1027 bleiben eigenständig offen; keine vorzeitige produktive oder physische iOS-Abnahme.
+- Zusätzliche lesende UTC-Validierung: Date.parse-Normalisierung unmöglicher Kalenderdaten und 24:00 wird verworfen; gültige Schalt- und Sekundenbruchteile bleiben zulässig. Keine Änderung der Releaseautorisierung.
+
 ## MID v0.9.85.528 · 2026-11-27 · Flüssigere Modellkarten und zuverlässige RUC-Diagnoseartefakte
 
 - Selektiver vollständiger 15-Pfad-Intake #1021: gemeinsame visuelle Präsentation exakter Modell-/Lauf-/Gültigkeitszeitframes; maximal zwei Generationen; Rollback bei Fehlern; Reduced Motion; konsistente Druckfeld- und Export-Evidenz. Keine Interpolation meteorologischer Werte.

@@ -1,3 +1,8 @@
+# MID v0.9.85.529
+
+- Reiseplanung: Nur vollständig belegte Wetterparameter fließen in Zeitraumkennzahlen und passende Bewertungen ein. Datenlücken bleiben sichtbar; gespeicherte Reisen ohne Abdeckungsnachweis können neu ausgewertet werden.
+- Die technische Beobachtung der Veröffentlichungskette unterscheidet vollständig nachgewiesene Prüfungen von unvollständigen oder fehlerhaften Jobinventaren.
+
 # MID v0.9.85.528
 
 - Modellkarten: Wolken, signifikantes Wetter und zugehörige Druckkonturen sollen beim Terminwechsel gemeinsam und ohne irreführende Zwischenzustände dargestellt werden.
