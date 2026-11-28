@@ -3,7 +3,9 @@ import {readFile} from 'node:fs/promises';
 const overlay=await readFile(new URL('../src/RadarModelPrecipTypeOverlay.tsx',import.meta.url),'utf8');
 const panel=await readFile(new URL('../src/RadarPanel.tsx',import.meta.url),'utf8');
 for(const [name,pattern] of [
- ['Original-OPERA-Echopixel',/operaRasterPoint\(raster,lat,lng\)/],
+ // Prepared sampler preserves original-cell decoding; independent legacy/NoData oracle is in opera-prepared-projection-qa.test.ts.
+ ['Original-OPERA-Rastersampler',/sample=createOperaRasterPointSampler\(raster\)/],
+ ['Original-OPERA-Echopixel',/const \{dbz\}=sample\(lat,lng\)/],
  ['Keine Farbe in Radar-NoData',/if\(dbz===undefined\)continue/],
  ['Deckkraft aus Radarintensität',/radarDbzColor\(dbz\)\[3\]/],
  ['Missing-Phase sichtbar',/PRECIPITATION_TYPE_COLORS\.uncertain/],
