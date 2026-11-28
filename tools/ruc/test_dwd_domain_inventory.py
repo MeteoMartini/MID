@@ -208,4 +208,16 @@ class NativeCoordinateTests(unittest.TestCase):
   with patch.dict(sys.modules,{'eccodes':fake}),tempfile.TemporaryDirectory() as td:
    with self.assertRaisesRegex(ValueError,'SHA-pinned CLAT/CLON'):native_coordinates({},Path(td),0)
 
+
+# Separate source-header tests; no GRIB availability or production claims.
+class NativeSnowHeaderTests(__import__('unittest').TestCase):
+    def test_snow_header_semantics(self):
+        from pilot_dwd_domain_inventory import assert_dwd_native_snow
+        depth={'model':'icon-d2','parameter':'h_snow','wmoParameter':[0,1,11],'stepType':'instant','leadHours':6}
+        snow={'model':'icon-d2','parameter':'snow_gsp','wmoParameter':[0,1,56],'stepType':'accum','leadHours':6}
+        assert_dwd_native_snow(depth,78,'m','surface',0,6,6,None)
+        assert_dwd_native_snow(snow,78,'kg m**-2','surface',0,0,6,1)
+        for args in [(depth,78,'kg m**-2','surface',0,6,6,None),(snow,78,'m','surface',0,0,6,1),(snow,78,'kg m**-2','surface',0,3,6,1),(snow,78,'kg m**-2','surface',0,0,6,0),(depth,78,'m','heightAboveGround',2,6,6,None)]:
+            with self.subTest(args=args),self.assertRaises(ValueError):assert_dwd_native_snow(*args)
+
 if __name__=='__main__': unittest.main()

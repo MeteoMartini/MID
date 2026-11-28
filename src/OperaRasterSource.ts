@@ -54,11 +54,34 @@ function projectionFrom(where:H5Node|undefined):Projection{
  return{lat0:param(definition,'lat_0',55),lon0:param(definition,'lon_0',10),x0:param(definition,'x_0',1950000),y0:param(definition,'y_0',-2100000),a,e2,authalicRadius:Number.isFinite(authalicRadius)?authalicRadius:undefined};
 }
 function q(phi:number,e2:number){if(e2<=0)return 2*Math.sin(phi);const e=Math.sqrt(e2),sin=Math.sin(phi),denominator=1-e2*sin*sin;return(1-e2)*(sin/denominator-(1/(2*e))*Math.log((1-e*sin)/(1+e*sin)))}
+/** Prepare only projection constants once for a synchronous raster pass.
+ * Identical LAEA arithmetic and nearest-cell flooring; no approximation,
+ * cross-frame cache or change to projection/coverage semantics.
+ */
+export function createOperaLaeaProjector(projection:Projection):(latDegrees:number,lonDegrees:number)=>[number,number]|null{
+ const radians=Math.PI/180,phi0=projection.lat0*radians,lambda0=projection.lon0*radians,{x0,y0,e2,a}=projection;
+ const sinPhi0=Math.sin(phi0),cosPhi0=Math.cos(phi0);
+ if(Number.isFinite(projection.authalicRadius)){
+  const radius=projection.authalicRadius!;
+  return (latDegrees,lonDegrees)=>{
+   const phi=latDegrees*radians,delta=lonDegrees*radians-lambda0,sinPhi=Math.sin(phi),cosPhi=Math.cos(phi),cosDelta=Math.cos(delta);
+   const denominator=1+sinPhi0*sinPhi+cosPhi0*cosPhi*cosDelta;
+   if(denominator<=1e-12)return null;
+   const k=Math.sqrt(2/denominator);
+   return[x0+radius*k*cosPhi*Math.sin(delta),y0+radius*k*(cosPhi0*sinPhi-sinPhi0*cosPhi*cosDelta)];
+  };
+ }
+ const qp=q(Math.PI/2,e2),beta0=Math.asin(Math.max(-1,Math.min(1,q(phi0,e2)/qp))),rq=a*Math.sqrt(qp/2),m0=cosPhi0/Math.sqrt(1-e2*sinPhi0**2),sinBeta0=Math.sin(beta0),cosBeta0=Math.cos(beta0),d=a*m0/(rq*cosBeta0);
+ return (latDegrees,lonDegrees)=>{
+  const phi=latDegrees*radians,delta=lonDegrees*radians-lambda0,beta=Math.asin(Math.max(-1,Math.min(1,q(phi,e2)/qp))),sinBeta=Math.sin(beta),cosBeta=Math.cos(beta),cosDelta=Math.cos(delta);
+  const denominator=1+sinBeta0*sinBeta+cosBeta0*cosBeta*cosDelta;
+  if(denominator<=1e-12)return null;
+  const b=rq*Math.sqrt(2/denominator);
+  return[x0+b*d*cosBeta*Math.sin(delta),y0+(b/d)*(cosBeta0*sinBeta-sinBeta0*cosBeta*cosDelta)];
+ };
+}
 export function forwardOperaLaea(latDegrees:number,lonDegrees:number,projection:Projection):[number,number]|null{
- const radians=Math.PI/180,phi=latDegrees*radians,lambda=lonDegrees*radians,phi0=projection.lat0*radians,lambda0=projection.lon0*radians,delta=lambda-lambda0;
- if(Number.isFinite(projection.authalicRadius)){const radius=projection.authalicRadius!,denominator=1+Math.sin(phi0)*Math.sin(phi)+Math.cos(phi0)*Math.cos(phi)*Math.cos(delta);if(denominator<=1e-12)return null;const k=Math.sqrt(2/denominator);return[projection.x0+radius*k*Math.cos(phi)*Math.sin(delta),projection.y0+radius*k*(Math.cos(phi0)*Math.sin(phi)-Math.sin(phi0)*Math.cos(phi)*Math.cos(delta))]}
- const qp=q(Math.PI/2,projection.e2),beta=Math.asin(Math.max(-1,Math.min(1,q(phi,projection.e2)/qp))),beta0=Math.asin(Math.max(-1,Math.min(1,q(phi0,projection.e2)/qp))),rq=projection.a*Math.sqrt(qp/2),m0=Math.cos(phi0)/Math.sqrt(1-projection.e2*Math.sin(phi0)**2),d=projection.a*m0/(rq*Math.cos(beta0)),denominator=1+Math.sin(beta0)*Math.sin(beta)+Math.cos(beta0)*Math.cos(beta)*Math.cos(delta);
- if(denominator<=1e-12)return null;const b=rq*Math.sqrt(2/denominator);return[projection.x0+b*d*Math.cos(beta)*Math.sin(delta),projection.y0+(b/d)*(Math.cos(beta0)*Math.sin(beta)-Math.sin(beta0)*Math.cos(beta)*Math.cos(delta))];
+ return createOperaLaeaProjector(projection)(latDegrees,lonDegrees);
 }
 export function operaRateFromDbz(dbz:number){if(!Number.isFinite(dbz)||dbz<5)return 0;const z=10**(dbz/10);return Math.max(0,Math.min(400,(z/200)**(1/1.6)))}
 function decodedValue(raster:OperaRaster,column:number,row:number):{covered:boolean;dbz?:number;rate:number}{
@@ -69,10 +92,18 @@ function decodedValue(raster:OperaRaster,column:number,row:number):{covered:bool
  const value=raw*raster.gain+raster.offset,dbz=raster.quantity.includes('RATE')?10*Math.log10(200*Math.max(.0001,value)**1.6):value;
  return{covered:true,dbz,rate:raster.quantity.includes('RATE')?Math.max(0,Math.min(400,value)):operaRateFromDbz(dbz)};
 }
-export function operaRasterPoint(raster:OperaRaster,lat:number,lon:number):OperaRasterPoint{
- const projected=forwardOperaLaea(lat,lon,raster.projection);if(!projected)return{covered:false,rate:0};
+function pointAtProjectedOperaCell(raster:OperaRaster,projected:[number,number]|null):OperaRasterPoint{
+ if(!projected)return{covered:false,rate:0};
  const column=Math.floor((projected[0]-raster.minX)/raster.xScale),row=Math.floor((raster.maxY-projected[1])/raster.yScale),value=decodedValue(raster,column,row);
  return{...value,column,row};
+}
+export function operaRasterPoint(raster:OperaRaster,lat:number,lon:number):OperaRasterPoint{
+ return pointAtProjectedOperaCell(raster,forwardOperaLaea(lat,lon,raster.projection));
+}
+/** Caller owns a single synchronous raster pass over unchanged source geometry. */
+export function createOperaRasterPointSampler(raster:OperaRaster){
+ const project=createOperaLaeaProjector(raster.projection);
+ return (lat:number,lon:number)=>pointAtProjectedOperaCell(raster,project(lat,lon));
 }
 async function decode(url:string):Promise<OperaRaster>{
  const response=await fetchWithDeadline(url,{cache:'force-cache'},14000,'OPERA-Rasterabruf hat das Zeitlimit überschritten.');if(!response.ok)throw new Error(`OPERA-HDF5 HTTP ${response.status}`);const buffer=await response.arrayBuffer();if(buffer.byteLength<1000)throw new Error('OPERA-HDF5-Datei ist unvollständig.');

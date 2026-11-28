@@ -1,6 +1,6 @@
 import unittest
 from pilot_icon_d2_native_catalog import (
- FIELDS,LEADS,TOT_PREC_PREVIOUS,Hrefs,catalogue,cycles,select_name,select_coordinate,parse_last_run,pin_original_inventory
+ FIELDS,LEADS,TOT_PREC_PREVIOUS,SNOW_FIELDS,field_leads,Hrefs,catalogue,cycles,select_name,select_coordinate,parse_last_run,pin_original_inventory
 )
 
 def html_for(url):
@@ -12,7 +12,7 @@ def html_for(url):
  if field in ("clat","clon"):
   names=[prefix+"time-invariant_"+stamp+"_000_0_"+field+".grib2.bz2"]
  else:
-  requested=(0,*LEADS,*TOT_PREC_PREVIOUS) if field=="tot_prec" else LEADS
+  requested=field_leads(field)
   kind="pressure-level" if field in ("t","relhum") else "single-level"
   level="850" if field in ("t","relhum") else "2d"
   names=[prefix+kind+"_"+stamp+"_"+str(h).zfill(3)+"_"+level+"_"+field+".grib2.bz2" for h in requested]
@@ -46,6 +46,23 @@ class NativeD2CatalogTests(unittest.TestCase):
   pressure=[r for r in report["files"] if r["parameter"] in ("t","relhum")]
   self.assertTrue(all("_pressure-level_" in r["file"] and "_850_" in r["file"] for r in pressure))
   self.assertEqual(len([r for r in report["files"] if r["parameter"]=="tot_prec"]),3*(len(LEADS)+1+len(TOT_PREC_PREVIOUS)))
+
+ def test_isolated_snow_scope_pins_depth_and_both_swe_components(self):
+  catalog=catalogue("2026110106",html_for,scope="snow")
+  self.assertEqual(catalog["requiredFields"],list(SNOW_FIELDS))
+  self.assertFalse(catalog["productionApproved"])
+  self.assertEqual(len(catalog["files"]),114)
+  for item in catalog["files"]:item.update(sha256="b"*64,bytes=1000,status="downloaded-unqualified")
+  report=pin_original_inventory(catalog)
+  self.assertEqual(len(report["records"]),108)
+  self.assertEqual(report["expectedParameters"],{"icon-d2":list(SNOW_FIELDS)})
+  self.assertEqual(report["expectedLeads"]["icon-d2/h_snow"],[0,*LEADS])
+  self.assertEqual(report["expectedLeads"]["icon-d2/snow_con"],[0,*LEADS,*TOT_PREC_PREVIOUS])
+  self.assertEqual({tuple(r["wmoParameter"]) for r in report["records"]},{(0,1,11),(0,1,55),(0,1,56)})
+  self.assertFalse(report["productionApproved"])
+  catalog["files"].pop()
+  with self.assertRaises(ValueError):pin_original_inventory(catalog)
+  with self.assertRaises(ValueError):catalogue("2026110106",html_for,scope="unknown")
 
  def test_original_dwd_cumulative_total_precipitation_code_is_pinned(self):
   from pilot_icon_d2_native_catalog import WMO

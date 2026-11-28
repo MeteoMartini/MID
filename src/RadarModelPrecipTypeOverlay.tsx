@@ -2,7 +2,7 @@ import './RadarPhaseSymbols.css';
 import {useEffect,useMemo,useState} from 'react';
 import {CanvasOverlay,HtmlMarker,type MidMap} from './MapLibreCore';
 import type {OperaRasterFrame} from './CompositeData';
-import {loadOperaRasterData,operaRasterPoint,type OperaRaster} from './OperaRasterSource';
+import {loadOperaRasterData,operaRasterPoint,createOperaRasterPointSampler,type OperaRaster} from './OperaRasterSource';
 import {loadWeatherPhaseGrid,type WeatherPhaseGridData,type WeatherPhaseGridFrame} from './WeatherMapsData';
 import {PRECIPITATION_TYPE_COLORS,radarDbzColor,type RadarPhase} from './radarColorTables';
 import {precipitationTypeSymbolSvg,type PrecipitationSymbolPhase} from './precipitationTypeSymbols';
@@ -144,7 +144,7 @@ function drawPhaseRaster(map:MidMap,canvas:HTMLCanvasElement,raster:OperaRaster,
 }
 
 export function paintPhaseRaster(context:CanvasRenderingContext2D,raster:OperaRaster,grid:WeatherPhaseGridData,display:ReturnType<typeof buildPhaseDisplay>,position:(x:number,y:number)=>{lat:number;lng:number}){
- const canvas=context.canvas;
+ const canvas=context.canvas,sample=createOperaRasterPointSampler(raster);
  const image=context.createImageData(canvas.width,canvas.height);
  const latDirection=Math.sign((grid.lats[1]??grid.lats[0]+1)-grid.lats[0]);
  const lonDirection=Math.sign((grid.lons[1]??grid.lons[0]+1)-grid.lons[0]);
@@ -154,7 +154,7 @@ export function paintPhaseRaster(context:CanvasRenderingContext2D,raster:OperaRa
  }));
  for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){
   const {lat,lng}=position(x+.5,y+.5);
-  const {dbz}=operaRasterPoint(raster,lat,lng);
+  const {dbz}=sample(lat,lng);
   if(dbz===undefined)continue;
   const alpha=radarDbzColor(dbz)[3];
   if(!alpha)continue;

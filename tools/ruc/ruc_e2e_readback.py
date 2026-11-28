@@ -14,6 +14,7 @@ import urllib.request
 from ruc_freshness_shadow_gate import model_time
 
 MAX_BYTES = 3000000
+MAX_RUN_AGE_MINUTES = 240  # MID_DWD_RUC_PIPELINE_CONTRACT.md
 
 
 def safe_https(url):
@@ -72,8 +73,9 @@ def _released_contract_readonly(pages):
 
 def _worker_readonly(worker, expected):
     if not isinstance(worker,dict):raise ValueError('worker unavailable')
-    if any(worker.get(k) is not True for k in ('configured','ready','fresh','schemaValid')):
-        raise ValueError('worker not validated')
+    for key in ('configured','ready','fresh','schemaValid'):
+        if worker.get(key) is not True:
+            raise ValueError('worker status not verified: '+key)
     if worker.get('run') != expected['run']:
         raise ValueError('worker run drift')
     for name in ('timeCount', 'pointCount', 'epsMemberCount'):
@@ -92,8 +94,7 @@ def _worker_readonly(worker, expected):
     return True
 
 
-def inspect_readback(pages, worker, observed_at):
-    """Structural public comparison only; exact SHA/bitmap checks are producer gates."""
+def _utc_observation(observed_at):
     if not isinstance(observed_at,str) or not observed_at.endswith('Z'):
         raise ValueError('observation timestamp must be explicit UTC Z')
     try:
@@ -102,38 +103,61 @@ def inspect_readback(pages, worker, observed_at):
         raise ValueError('invalid UTC observation timestamp') from error
     if when.tzinfo is None or when.utcoffset().total_seconds()!=0:
         raise ValueError('observation timestamp not UTC')
+    return when
+
+
+def inspect_readback(pages, worker, observed_at, *, pages_observed_at=None):
+    """Sequential structural comparison, not atomic visibility or byte identity."""
+    when=_utc_observation(observed_at)
+    pages_when=when if pages_observed_at is None else _utc_observation(pages_observed_at)
+    if pages_when > when:
+        raise ValueError('Pages observation after capture completion')
     result={'schema':'mid.ruc.e2e-readback-shadow.v1','observedAtUtc':observed_at,
             'pagesRun':None,'workerRun':None,'pagesValid':False,'workerValid':False,
-            'sameRun':False,'runAgeMinutes':None,'appAdopted':None,
+            'pagesReadbackIssue':None,'workerReadbackIssue':None,'sameRun':False,'runAgeMinutes':None,'appAdopted':None,
             'productionSloAuthorized':False}
     # Reuse the released MID production structural checks. This is still ONLY an
     # observational readback: no uploaded byte-SHA or App adoption is proven.
     try:
         contract=_released_contract_readonly(pages)
         result['pagesRun']=contract['run']
-        elapsed=(when-model_time(contract['run'])).total_seconds()/60
-        if elapsed < 0:
+        init=model_time(contract['run'])
+        elapsed=(when-init).total_seconds()/60
+        if pages_when < init:
             raise ValueError('future-dated model run cannot be observed')
         result['pagesValid']=True
         result['runAgeMinutes']=round(elapsed,3)
-    except (RuntimeError, ValueError, TypeError, KeyError, AttributeError):
+    except (RuntimeError, ValueError, TypeError, KeyError, AttributeError) as error:
+        result['pagesReadbackIssue']=str(error) if isinstance(error, ValueError) else 'Pages validation error'
         contract=None
     if contract is not None and isinstance(worker,dict):
         try:
             _worker_readonly(worker,contract)
+            if elapsed > MAX_RUN_AGE_MINUTES:
+                raise ValueError('model run older than four hours at readback completion')
             result['workerRun']=worker['run']
             result['workerValid']=True
-        except (RuntimeError, ValueError, TypeError, KeyError, AttributeError):
+        except (RuntimeError, ValueError, TypeError, KeyError, AttributeError) as error:
             result['workerRun']=worker.get('run')
+            # Only messages from local validators, never raw remote payloads.
+            result['workerReadbackIssue']=str(error) if isinstance(error, ValueError) else 'worker validation error'
+    if not isinstance(worker,dict) and result['workerReadbackIssue'] is None:
+        result['workerReadbackIssue']='worker response missing or invalid'
+    if contract is None and isinstance(worker,dict):
+        result['workerReadbackIssue']='Pages metadata not validated; Worker match unknown'
     result['sameRun']=bool(result['pagesValid'] and result['workerValid'] and
                            result['pagesRun']==result['workerRun'])
     return result
 
 
 def capture(pages_base,worker_url=None,fetcher=get_json,clock=None):
-    utcnow=clock or datetime.now(timezone.utc)
-    if utcnow.tzinfo is None or utcnow.utcoffset().total_seconds()!=0:
-        raise ValueError('non UTC clock')
+    # Fixed datetimes preserve legacy fixtures; a callable supplies actual read bounds.
+    def read_clock():
+        value=datetime.now(timezone.utc) if clock is None else clock() if callable(clock) else clock
+        if not isinstance(value,datetime) or value.tzinfo is None or value.utcoffset().total_seconds()!=0:
+            raise ValueError('non UTC clock')
+        return value
+    started=read_clock()
     base=safe_https(pages_base).rstrip('/')+'/'
     pages_url=urllib.parse.urljoin(base,'latest.json')
     # Pages and Worker failures are individual unknowns, not proof that the
@@ -141,11 +165,25 @@ def capture(pages_base,worker_url=None,fetcher=get_json,clock=None):
     errors=[];pages=None;worker=None
     try:pages=fetcher(pages_url)
     except Exception as exc:errors.append('pages:'+type(exc).__name__)
+    pages_completed=read_clock()
+    if pages_completed < started:
+        raise ValueError('observation clock moved backwards')
+    worker_completed=None
     if worker_url:
         try:worker=fetcher(_health_url(worker_url))
         except Exception as exc:errors.append('worker:'+type(exc).__name__)
+        worker_completed=read_clock()
+        if worker_completed < pages_completed:
+            raise ValueError('observation clock moved backwards')
     else:errors.append('worker:not-configured')
-    result=inspect_readback(pages,worker,utcnow.isoformat().replace('+00:00','Z'))
+    # These are upper bounds for completed read attempts, even on failure.
+    # They do not prove an atomic snapshot, actual publication or client adoption.
+    completed=worker_completed if worker_completed is not None else pages_completed
+    def stamp(value):return value.isoformat().replace('+00:00','Z')
+    result=inspect_readback(pages,worker,stamp(completed),pages_observed_at=stamp(pages_completed))
+    result['captureStartedAtUtc']=stamp(started)
+    result['pagesReadCompletedAtUtc']=stamp(pages_completed)
+    result['workerReadCompletedAtUtc']=stamp(worker_completed) if worker_completed is not None else None
     result['errors']=errors
     result['workerWasQueried']=bool(worker_url)
     return result
