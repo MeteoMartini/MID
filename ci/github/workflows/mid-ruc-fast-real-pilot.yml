@@ -84,6 +84,7 @@ jobs:
           python tools/ruc/test_ruc_fast_pointer_staging.py -v
           python tools/ruc/test_ruc_fast_consumer_shadow.py -v
           python tools/ruc/test_ruc_fast_pages_overlay.py -v
+          python tools/ruc/test_ruc_fast_pages_chunker.py -v
       - name: Select DWD native source independent of EPS completeness
         shell: bash
         id: choose
@@ -209,6 +210,63 @@ jobs:
           print('Genuine original DWD Fast BIN artifact re-downloaded and independently SHA/NoData/UTC verified.')
           PY
           echo 'Fast source original DWD BINs: locally built, uploaded, re-downloaded and independently SHA/NoData decoded; **NOT** published to Pages or consumed by the MID App.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Losslessly partition original Fast artifact into inactive Pages chunks (not a deployment)
+        if: steps.choose.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Reuse exact artifact bytes already downloaded and independently rechecked above.
+          # No second GRIB fetch, no Pages/R2/DO writes, no consumer activation.
+          python tools/ruc/ruc_fast_pages_chunker.py \
+            --shadow fast-artifact-readback/ruc-fast-native-shadow \
+            --output fast-native-paged-shadow
+          python - <<'PY'
+          import json, os, sys
+          from pathlib import Path
+          sys.path.insert(0, str(Path('tools/ruc').resolve()))
+          from ruc_fast_pointer_staging import count_files, strict_budget
+          directory=Path('fast-native-paged-shadow')
+          m=json.loads((directory/'ruc/fast/paged-shadow.json').read_text(encoding='utf-8'))
+          assert m['schema']=='mid.ruc.fast-paged-shadow.v1'
+          assert m['nativePoints']==542040 and m['epsAvailable'] is False
+          for flag in ('productionEnabled','publicationAuthorized','realtimeConsumerEnabled'):
+              assert m[flag] is False, 'inactive Fast shadow must never authorize production'
+          sizes={'deterministic.bin':91_062_720,'rapid-5m.bin':79_137_840,
+                 'rapid-15m.bin':81_306_000,'lookup.bin':2_298_176}
+          assert set(m['objects'])==set(sizes)
+          for name, expected in sizes.items():
+              row=m['objects'][name]
+              assert row['bytesPerCell']*row['cellCount']==expected, name
+          assert m['sourceNativeBytes']==sum(sizes.values())==253_804_736
+          chunks=sum(len(row['parts']) for row in m['objects'].values())
+          assert chunks>0
+          physical=count_files(directory)
+          assert physical>=m['sourceNativeBytes'], 'lost Fast bytes'
+          # HISTORICAL measurement only: previous 11Z full Pages site (GitHub
+          # producer #42817702732) was 613,474,197 bytes. This is NOT a fresh
+          # complete-site download, not a live combined-site admission, and not
+          # a release gate. Real full-site size must be measured for each run.
+          historic_full_site=613_474_197
+          remaining=strict_budget(historic_full_site,physical)
+          evidence={'originalNativeBytes':m['sourceNativeBytes'],
+                    'partitionedShadowPhysicalBytes':physical,
+                    'partitionedFiles':chunks,
+                    'historicFullSiteBytes':historic_full_site,
+                    'projectedCombinedBytes':historic_full_site+physical,
+                    'projectedRemainingMID900MBBytes':remaining,
+                    'sameRunFullSiteVerified':False,
+                    'actualPagesUploadVerified':False,
+                    'productionEnabled':False}
+          print('REAL_DWD_FAST_CHUNK_PROJECTION '+json.dumps(evidence,sort_keys=True))
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as report:
+              report.write('### Real DWD native Fast -> lossless Pages chunk qualification (read-only)\n\n')
+              report.write('Original Fast DWD BINs reused from independently checked archive; '
+                           f'{chunks} chunks, {physical} physical bytes, immutable SHA recomposition checked.\n\n')
+              report.write(f'Historical 11Z full-site what-if only: '
+                           f'{historic_full_site}+{physical}={historic_full_site+physical} bytes, '
+                           f'{remaining} bytes below MID 900MB budget. '
+                           '**NOT a measured combined site, not a Pages publish, not a live/client admission.**\n')
+          PY
       - name: Honest missing provider observation
         if: steps.choose.outputs.ready != 'true'
         run: |
