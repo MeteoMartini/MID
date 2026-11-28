@@ -300,6 +300,7 @@ export function travelPeriod(dataset:TravelClimateDataset,start:string,end:strin
 const TRAVEL_SUMMARY_REQUIRED_FIELDS=['avgMax','avgMin','avgMean','avgMaxP25','avgMaxP75','precipitationTotal','wetDaysExpected','sunshineTotal','sunshinePerDay','daylightPerDay','windMaxMean','snowfallTotal','cloudMean'];
 function travelSummaryFields(snowDepthIncluded:boolean){return snowDepthIncluded?[...TRAVEL_SUMMARY_REQUIRED_FIELDS,'snowDepthMean','snowCoverDaysExpected']:TRAVEL_SUMMARY_REQUIRED_FIELDS}
 export function travelSummaryCoverageValid(summary:TravelSummary,snowDepthIncluded=false):boolean{
+ if(!summary||typeof summary!=='object'||Array.isArray(summary))return false;
  const coverage=summary.coverage;
  if(summary.wetDayBasis!=='climatology-ge1mm'||!Number.isInteger(summary.days)||summary.days<=0||!coverage||typeof coverage!=='object'||Array.isArray(coverage))return false;
  const validRow=(row:TravelFieldCoverage|undefined)=>!!row&&Number.isInteger(row.total)&&row.total===summary.days&&Number.isInteger(row.valid)&&row.valid>=0&&row.valid<=row.total;

@@ -124,4 +124,13 @@ describe('Audit 1.6 travel interval integrity',()=>{
   expect(travelSummaryCoverageValid(full,true)).toBe(true);
  });
 
+ it('rejects absent and non-object cached summaries without throwing',()=>{
+  for(const value of [null,undefined,false,true,0,1,NaN,'', 'cached',[],[{}]]){
+   const summary=value as unknown as ReturnType<typeof summarizeTravelPeriod>;
+   expect(travelSummaryCoverageValid(summary)).toBe(false);
+   expect(travelSummaryComplete(summary)).toBe(false);
+   expect(travelSummaryCoverageValid(summary,true)).toBe(false);
+  }
+ });
+
 });
