@@ -295,7 +295,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  await page.waitForFunction(()=>{const t=document.querySelector('.unified-layer-status')?.textContent||'';return t.includes('ICON-D2-RUC')&&t.includes('Rastertermin')&&!t.includes('lädt')}).catch(async error=>{try{console.error('RUC ready failure',{width,theme,design,viewport:page.viewportSize(),errors,status:await page.locator('.unified-layer-status').allTextContents(),sources:await page.locator('.unified-source-info').allTextContents(),model:await page.getByLabel('Modell für Parameter').inputValue(),parameter:await page.getByLabel('Parameter-Layer').inputValue(),rucPaths:requests.filter(u=>u.includes('/ruc/')).slice(-30).map(u=>{try{return new URL(u).pathname}catch{return '[invalid URL]'}}),map:await page.evaluate(()=>({loaded:window.__qaMap?.loaded(),layers:window.__qaMap?.getStyle()?.layers?.map(l=>l.id)}))})}catch(diagnosticError){console.error('RUC diagnostics unavailable',String(diagnosticError))}throw error});
  await page.waitForFunction(()=>window.__qaMap?.getStyle().layers.some(l=>l.id.startsWith('unified-model-field')&&l.type==='raster'&&window.__qaMap.getPaintProperty(l.id,'raster-resampling')==='nearest'));
  await page.getByRole('button',{name:'Modell zuerst',exact:true}).click();
- const rucParameters=await page.getByLabel('Parameter-Layer').locator('option').evaluateAll(rows=>rows.map(o=>o.value));assert.deepEqual([...rucParameters].sort(),['temperature','pressure','wind','gust','cloud','precipitation','synoptic','thetae','geopotential','sigwx'].sort(),'RUC advertises its verified native and composite products');
+ const rucParameters=await page.getByLabel('Parameter-Layer').locator('option').evaluateAll(rows=>rows.map(o=>o.value));assert.deepEqual([...rucParameters].sort(),['temperature','pressure','wind','gust','cloud','precipitation','synoptic','thetae','geopotential','sigwx','winter-berge','sommer-gewitter'].sort(),'RUC advertises its verified native and composite products, including both seasonal pairs');
  const rucEnd=Math.floor((runMs+27*hour)/1000);await page.waitForFunction(t=>Boolean(document.querySelector('[aria-label="Kartentermin auswählen"] option[data-valid-time="'+t+'"]')),rucEnd);
  const rucLast=direct.locator(`option[data-valid-time="${rucEnd}"]`);await chooseTerm(await rucLast.getAttribute('value'));await page.waitForFunction(ms=>{const expected=new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}).format(new Date(ms));return document.querySelector('.unified-layer-status')?.textContent.includes('Rastertermin '+expected)},runMs+27*hour);
  if(width===390&&theme==='light'&&design==='next'){
@@ -305,6 +305,36 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
    if(type==='SVG'){assert.ok(bytes.toString().includes('ICON-D2-RUC · Lauf'));assert.ok(bytes.toString().includes('23,5'))}else{assert.equal(bytes.subarray(1,4).toString(),'PNG');assert.equal(bytes.readUInt32BE(16),1200);assert.ok(bytes.readUInt32BE(20)>=1130)}
   }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'RUC has no horizontal overflow');await page.screenshot({path:'/tmp/mid-c38-ruc-390.png',fullPage:true});
+ }
+ // One bounded real-browser pilot exercises both new RUC seasonal export paths.
+ if(width===390&&theme==='light'&&design==='next'){
+  await page.evaluate(()=>Object.defineProperty(navigator,'canShare',{configurable:true,value:()=>false}));
+  for(const [id,secondary,caption] of [['winter-berge','Temperatur · 2 m','keine Aussage zur Niederschlagsphase'],['sommer-gewitter','Böen · 10 m','1-h-Intervall']]){
+   await page.getByLabel('Parameter-Layer').selectOption(id);
+   const term=direct.locator(`option[data-valid-time="${rucEnd}"]`);await term.waitFor({state:'attached'});
+   await chooseTerm(await term.getAttribute('value'));
+   await page.waitForFunction(()=>{const t=document.querySelector('.unified-layer-status')?.textContent||'';return t.includes('ICON-D2-RUC')&&t.includes('Rastertermin')&&!t.includes('lädt')&&document.querySelector('.unified-forecast-time strong')?.textContent==='Angezeigt +27 h'});
+   assert.equal(await page.getByLabel('Modell für Parameter').inputValue(),'icon-d2-ruc');
+   await page.waitForFunction(()=>window.__qaMap?.getStyle().layers.some(l=>l.id.startsWith('unified-model-field')&&l.type==='raster'&&window.__qaMap.getPaintProperty(l.id,'raster-resampling')==='nearest'));
+   const fav=page.locator('.unified-favorites');
+   if(await fav.getAttribute('open')===null)await fav.locator(':scope > summary').click();
+   assert.equal(await fav.locator('thead th').count(),3);
+   assert.ok((await fav.locator('thead').textContent()||'').includes(secondary));
+   for(const format of ['SVG','PNG']){
+    const pending=page.waitForEvent('download',{timeout:25000});
+    await page.getByRole('button',{name:'Komposit + Ortswerte · '+format,exact:true}).click();
+    const download=await pending,bytes=readFileSync(await download.path());
+    assert.match(download.suggestedFilename(),new RegExp('^MID-ICON-D2-RUC-'+id+'-.*\\.'+format.toLowerCase()+'$'));
+    if(format==='SVG'){
+     const svg=bytes.toString('utf8');
+     assert.ok(svg.includes('ICON-D2-RUC · Lauf')&&svg.includes(caption)&&svg.includes('image-rendering:pixelated'));
+     assert.ok(!svg.includes('image-rendering:auto'),'RUC original cell edges stay unsmoothed');
+     assert.match(svg,/>0 mm\/1 h<\/text>/,'True zero must survive the paired export');
+    }else{assert.equal(bytes.subarray(1,4).toString(),'PNG');assert.equal(bytes.readUInt32BE(16),1200);assert.ok(bytes.readUInt32BE(20)>=1130)}
+   }
+  }
+  await page.getByLabel('Parameter-Layer').selectOption('temperature');
+  await page.waitForFunction(()=>{const t=document.querySelector('.unified-layer-status')?.textContent||'';return t.includes('ICON-D2-RUC')&&t.includes('Rastertermin')&&!t.includes('lädt')});
  }
  if(width===390&&design==='next'){
   await page.setViewportSize({width:430,height:932});await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'RUC430px iPhone contract has no overflow');assert.equal(await page.getByLabel('Modell für Parameter').inputValue(),'icon-d2-ruc');await page.screenshot({path:`/tmp/mid-c38-ruc-430-${theme}.png`,fullPage:true});await page.setViewportSize({width:390,height:920});

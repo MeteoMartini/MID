@@ -13,7 +13,7 @@ const makeRef=(intervalHours=1):NativeFrameRef=>({
 });
 const index=():NativeIndex=>({schema:'mid.icon-d2.fields.v1',run,products:{
  precipitation:{unit:'mm/1 h',frames:[makeRef()]},
- temperature:{unit:'°C',frames:[makeRef()]},
+ temperature:{unit:'°C',frames:[makeRef(0)]},
  gust:{unit:'km/h',frames:[makeRef()]},
 }});
 
@@ -146,10 +146,18 @@ describe('seasonal WXCharts-inspired cards stay inside the original MID map sele
   expect(availableUnifiedParameters(invalid,false,false).some(x=>x.id==='sommer-gewitter')).toBe(false);
   expect(availableUnifiedParameters(invalid,false,false).some(x=>x.id==='winter-berge')).toBe(false);
  });
- it('never offers a seasonal pair solely from the RUC model when D2 is unavailable',()=>{
+ it('offers an independently admitted RUC pair, never a cross-model or unqualified pair',()=>{
   const ruc=index();ruc.schema='mid.ruc.map-fields.v1';ruc.modelId='icon-d2-ruc';
-  const result=availableUnifiedParameters(null,false,false,ruc);
-  expect(result.some(x=>x.id==='winter-berge'||x.id==='sommer-gewitter')).toBe(false);
   expect(unifiedSources('sommer-gewitter',null,false,false,ruc)).toEqual([]);
+  ruc.sampling='nearest-native-cell';
+  expect(availableUnifiedParameters(null,false,false,ruc).filter(x=>['winter-berge','sommer-gewitter'].includes(x.id)).map(x=>x.id)).toEqual(['winter-berge','sommer-gewitter']);
+  expect(unifiedSources('winter-berge',index(),false,false,ruc).map(x=>x.id)).toEqual(['icon-d2','icon-d2-ruc']);
+  expect(unifiedSources('sommer-gewitter',null,false,false,ruc).map(x=>x.id)).toEqual(['icon-d2-ruc']);
+  expect(unifiedSources('winter-berge',ruc,false,false,index())).toEqual([]);
+  expect(availableUnifiedParameters(ruc,false,false,index()).some(x=>x.id==='winter-berge')).toBe(false);
+  delete ruc.products.temperature;
+  expect(unifiedSources('winter-berge',null,false,false,ruc)).toEqual([]);
+  const onlyTemp=index();delete onlyTemp.products.precipitation;
+  expect(unifiedSources('winter-berge',onlyTemp,false,false,ruc)).toEqual([]);
  });
 });

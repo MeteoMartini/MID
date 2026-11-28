@@ -123,6 +123,33 @@ describe('DWD ICON-D2 seasonal composites: fail-closed common native fields',()=
   expect(seasonalPairValid('winter-berge',precip,{...temp,values:[-2,-2,NaN,3]})).toBe(true);
   expect(seasonalMaskedPrimary('winter-berge',precip,{...temp,values:[-2,-2,NaN,3]})?.values[0]).toBe(0);
  });
+ it('admits only original RUC same-run pairs, with instantaneous temperature and true one-hour gust intervals',()=>{
+  const ruc=makeIndex();ruc.schema='mid.ruc.map-fields.v1';ruc.modelId='icon-d2-ruc';ruc.sampling='nearest-native-cell';
+  ruc.products.gust!.frames=[frame(time,1)];
+  expect(seasonalMapFrames(ruc,'winter-berge')).toHaveLength(1);
+  expect(seasonalMapFrames(ruc,'sommer-gewitter')).toHaveLength(1);
+  ruc.products.temperature!.frames=[frame(time,1)];
+  expect(seasonalMapFrames(ruc,'winter-berge')).toHaveLength(0);
+  ruc.products.gust!.frames=[frame(time,0)];
+  expect(seasonalMapFrames(ruc,'sommer-gewitter')).toHaveLength(0);
+  const a=field('precipitation'),b=field('temperature');
+  const native=(f:NativeField):NativeField=>({...f,schema:'mid.ruc.map-field.v1',modelId:'icon-d2-ruc',sampling:'nearest-native-cell',scale:.01});
+  expect(seasonalPairValid('winter-berge',native(a),native(b),time)).toBe(true);
+  expect(seasonalPairValid('winter-berge',native(a),b,time)).toBe(false);
+  expect(seasonalPairValid('winter-berge',native(a),{...native(b),sampling:undefined},time)).toBe(false);
+  expect(seasonalPairValid('winter-berge',native(a),{...native(b),run:'2026-11-09T05:00:00Z'},time)).toBe(false);
+ });
+ it('reuses unchanged immutable rasters, copies only newly masked arrays, and canonicalizes nonfinite values',()=>{
+  const a=field('precipitation',[0,NaN,4,10]),b=field('temperature',[-1,NaN,0,5]);
+  const same=seasonalMaskedPair('winter-berge',a,b)!;
+  expect(same.primary.values).toBe(a.values);expect(same.secondary.values).toBe(b.values);
+  const missing=field('temperature',[-1,NaN,NaN,5]);
+  const one=seasonalMaskedPair('winter-berge',a,missing)!;
+  expect(one.primary.values).not.toBe(a.values);expect(one.secondary.values).toBe(missing.values);
+  expect(one.primary.values).toEqual([0,NaN,NaN,10]);expect(a.values).toEqual([0,NaN,4,10]);
+  const inf=seasonalMaskedPair('winter-berge',field('precipitation',[0,Infinity,4,10]),b)!;
+  expect(inf.primary.values).toEqual([0,NaN,4,10]);expect(inf.secondary.values).toBe(b.values);
+ });
  it('does not manufacture snow, lightning or a synthetic hazard value',()=>{
   const p=field('precipitation',[0,1,4,NaN]),g=field('gust',[10,40,80,90]);
   expect(seasonalMaskedPrimary('sommer-gewitter',p,g)?.kind).toBe('precipitation');
