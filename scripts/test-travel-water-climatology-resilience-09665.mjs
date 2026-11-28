@@ -28,7 +28,7 @@ try{
  const tsc=path.resolve('node_modules','.bin',process.platform==='win32'?'tsc.cmd':'tsc'),compile=spawnSync(tsc,['--ignoreConfig','--pretty','false','--target','ES2022','--module','ESNext','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir',compileDir,path.resolve('src/vite-env.d.ts'),path.resolve('src/travelPlanner.ts')],{cwd:root,encoding:'utf8'});
  assert.equal(compile.status,0,`TypeScript travelPlanner: ${compile.stdout||compile.stderr}`);
  const compiledPath=path.join(compileDir,'travelPlanner.js');
- const compiledSource=(await readFile(compiledPath,'utf8')).replace("from './cachePolicy'","from './cachePolicy.js'").replace("from './openMeteoGuard'","from './openMeteoGuard.js'").replace("from './workerClient'","from './workerClientMock.js'");
+ const compiledSource=(await readFile(compiledPath,'utf8')).replace("from './travelPeriodIntegrity'","from './travelPeriodIntegrity.js'").replace("from './cachePolicy'","from './cachePolicy.js'").replace("from './openMeteoGuard'","from './openMeteoGuard.js'").replace("from './workerClient'","from './workerClientMock.js'");
  await writeFile(compiledPath,compiledSource);
  await writeFile(path.join(compileDir,'workerClientMock.js'),"export async function fetchWorkerJson(){globalThis.__midWaterFetchCount=(globalThis.__midWaterFetchCount||0)+1;const value=globalThis.__midWaterPayload;if(value instanceof Error)throw value;return value;}\n");
  const module=await import(`${pathToFileURL(compiledPath).href}?v=${Date.now()}`);
