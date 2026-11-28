@@ -48,7 +48,7 @@ try{
  else{
   const compiledPath=path.join(compileDir,'travelPlanner.js');
   const compiledSource=(await readFile(compiledPath,'utf8'))
-   .replace("from './cachePolicy'","from './cachePolicy.js'")
+   .replace("from './travelPeriodIntegrity'","from './travelPeriodIntegrity.js'").replace("from './cachePolicy'","from './cachePolicy.js'")
    .replace("from './openMeteoGuard'","from './openMeteoGuard.js'")
    .replace("from './workerClient'","from './workerClientMock.js'");
   await writeFile(compiledPath,compiledSource);

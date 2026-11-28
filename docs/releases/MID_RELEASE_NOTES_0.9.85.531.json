@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "version": "0.9.85.531",
+  "title": "Hyperlokale Einzelparameter und fehlende Stundenwerte verlässlich erhalten",
+  "date": "2026-11-28",
+  "external": [
+    "Beobachtungskorrekturen einzelner Parameter wie Luftfeuchte, Taupunkt, Druck, Böen, Windrichtung und tiefer Bewölkung gehen im Stundenforecast nicht mehr durch einen unvollständigen Änderungsvergleich verloren.",
+    "Fehlende Beobachtungen, Modellreferenzen und Zielwerte werden nicht als echte Null behandelt. Die Windrichtungskorrektur berücksichtigt den Übergang über Nord."
+  ],
+  "internal": [
+    "Bestehender Meteorologie-Owner #1046, Original-HEAD a5fbf7868101473335c77918b77af72ad0658cf1, drei unveränderte Originalblobs. Keine zusätzlichen Requests, CSS, Abhängigkeiten oder Publisheränderungen.",
+    "Keine neue Kalibrierung oder gemessene Forecast-Skill-Verbesserung behauptet; Korrekturschwellen und Zeitfenster erhalten. #1045 wissenschaftlicher/Parser-/Cache-/Zeitrest bleibt offen.",
+    "Vorgesehene Reihenfolge .529→.530→.531, noch kein Release-Target. Finale Versionswahl und Ziel erst nach frischer Stable-Promotion und Scopeprüfung."
+  ],
+  "sourceOfTruth": [
+    "Vorbereitungsbasis veröffentlichte .529 ccc52892029f5e198ba950c4a34b377a223466f3. .530 #1044 bleibt einziger nächster produktiver Intake.",
+    "Original-Draft46135408225 und SHA46135429494 success nur für Original-HEAD; neue gemeinsame QA und vollständiger Source-/Installerpfad auf dem aktivierten Release-HEAD erforderlich."
+  ]
+}

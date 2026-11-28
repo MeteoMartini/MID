@@ -37,8 +37,9 @@ for(const token of [
  'Ø modellierte Schneehöhe',
  "mode==='fixed'?'—'"
 ])assert.ok(panel.includes(token),`Reisewetter-Schneelagevertrag fehlt: ${token}`);
-assert.ok(travel.includes("case'snow':{const snowDepth=Number(summary.snowDepthMean);return Number.isFinite(snowDepth)?snowDepth*5+(summary.snowCoverDaysExpected??0)*2:-1e9;}"),'Schneeoptimierung muss Schneehöhe/Schneedeckendauer statt kumuliertem Schneefall bewerten.');
-assert.ok(travel.includes('im Reisezeitraum ergibt sich zusätzlich rund ${Math.round(summary.snowfallTotal)} cm Schnee'),'Kumulierter Schneefall muss als Zusatzinformation erhalten bleiben.');
+assert.ok(travel.includes("case'snow':return (summary.snowDepthMean??NaN)*5+(summary.snowCoverDaysExpected??NaN)*2;"),'Schneeoptimierung muss belegte Schneehöhe/Schneedeckendauer statt kumuliertem Schneefall bewerten; fehlende Eingaben bleiben unbekannt.');
+assert.ok(travel.includes('if(!unmet||!Number.isFinite(score))continue;'),'Unbelegte Schneepräferenz darf nicht als bewertbares Fenster gerankt werden.');
+assert.ok(travel.includes("if(Number.isFinite(summary.snowfallTotal))parts.push('Im Reisezeitraum ergibt sich zusätzlich rund '+Math.round(summary.snowfallTotal)+' cm Schnee.');"),'Kumulierter Schneefall muss bei belegtem Wert als Zusatzinformation erhalten bleiben; NoData bleibt unbekannt.');
 
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/test-model-init-window-extrema-travel-snow-09765.mjs';
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline- und Paketversion müssen übereinstimmen.');
