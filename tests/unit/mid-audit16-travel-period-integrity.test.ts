@@ -2,7 +2,7 @@ import {describe,expect,it} from 'vitest';
 import {travelFieldStats,travelStrictBlend} from '../../src/travelPeriodIntegrity';
 import {mediumDay} from '../../src/travelForecastFusion';
 import type {Day,EnsembleDay} from '../../src/weather';
-import {summarizeTravelPeriod,travelSummaryComplete,travelClimateForDate,travelNarrative,bestTravelWindows,type TravelClimateDay,type TravelDatePoint,type TravelClimateDataset} from '../../src/travelPlanner';
+import {summarizeTravelPeriod,travelSummaryComplete,travelSummaryCoverageValid,travelClimateForDate,travelNarrative,bestTravelWindows,type TravelClimateDay,type TravelDatePoint,type TravelClimateDataset} from '../../src/travelPlanner';
 const base:TravelClimateDay={key:'01-01',maxMean:20,minMean:10,meanMean:15,maxP25:15,maxP75:25,minP25:8,minP75:12,precipitationMean:2,wetProbability:80,sunshineMeanHours:6,daylightMeanHours:10,windMaxMean:8,snowfallMean:0,cloudMean:40,weatherCode:3,years:30};
 const point=(day:number,overrides:Partial<TravelClimateDay>={}):TravelDatePoint=>({...base,...overrides,date:'2027-01-'+String(day).padStart(2,'0')});
 describe('Audit 1.6 travel interval integrity',()=>{
@@ -108,6 +108,20 @@ describe('Audit 1.6 travel interval integrity',()=>{
    expect(leap.maxMean).toBe(20);
    expect(summarizeTravelPeriod([leap]).coverage?.precipitationTotal.valid).toBe(0);
   }
+ });
+
+ it('rejects empty or malformed saved coverage but admits honestly partial evidence',()=>{
+  const full=summarizeTravelPeriod([point(1),point(2)]);
+  expect(travelSummaryCoverageValid(full)).toBe(true);
+  const partial=summarizeTravelPeriod([point(1),point(2,{precipitationMean:NaN})]);
+  expect(travelSummaryCoverageValid(partial)).toBe(true);
+  expect(travelSummaryComplete(partial)).toBe(false);
+  for(const coverage of [{},{...full.coverage,avgMax:{valid:3,total:2}},{...full.coverage,avgMax:{valid:-1,total:2}},{...full.coverage,avgMax:{valid:1.5,total:2}},{...full.coverage,avgMax:{valid:2,total:3}},{...full.coverage,avgMax:null}]){
+   expect(travelSummaryCoverageValid({...full,coverage} as typeof full)).toBe(false);
+  }
+  expect(travelSummaryCoverageValid({...full,days:1.5})).toBe(false);
+  expect(travelSummaryCoverageValid({...full,wetDayBasis:undefined})).toBe(false);
+  expect(travelSummaryCoverageValid(full,true)).toBe(true);
  });
 
 });

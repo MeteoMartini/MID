@@ -297,12 +297,18 @@ export function travelClimateForDate(dataset:TravelClimateDataset,date:string):T
 export function travelPeriod(dataset:TravelClimateDataset,start:string,end:string){return dateRange(start,end).map(date=>travelClimateForDate(dataset,date)).filter((value):value is TravelDatePoint=>Boolean(value))}
 
 /** Overview cards require complete interval evidence for their displayed metrics. */
+const TRAVEL_SUMMARY_REQUIRED_FIELDS=['avgMax','avgMin','avgMean','avgMaxP25','avgMaxP75','precipitationTotal','wetDaysExpected','sunshineTotal','sunshinePerDay','daylightPerDay','windMaxMean','snowfallTotal','cloudMean'];
+function travelSummaryFields(snowDepthIncluded:boolean){return snowDepthIncluded?[...TRAVEL_SUMMARY_REQUIRED_FIELDS,'snowDepthMean','snowCoverDaysExpected']:TRAVEL_SUMMARY_REQUIRED_FIELDS}
+export function travelSummaryCoverageValid(summary:TravelSummary,snowDepthIncluded=false):boolean{
+ const coverage=summary.coverage;
+ if(summary.wetDayBasis!=='climatology-ge1mm'||!Number.isInteger(summary.days)||summary.days<=0||!coverage||typeof coverage!=='object'||Array.isArray(coverage))return false;
+ const validRow=(row:TravelFieldCoverage|undefined)=>!!row&&Number.isInteger(row.total)&&row.total===summary.days&&Number.isInteger(row.valid)&&row.valid>=0&&row.valid<=row.total;
+ return travelSummaryFields(snowDepthIncluded).every(field=>validRow(coverage[field]))&&Object.values(coverage).every(validRow);
+}
 export function travelSummaryComplete(summary:TravelSummary,snowDepthIncluded=false):boolean{
- const required=['avgMax','avgMin','avgMean','avgMaxP25','avgMaxP75','precipitationTotal','wetDaysExpected','sunshineTotal','sunshinePerDay','daylightPerDay','windMaxMean','snowfallTotal','cloudMean'];
- if(snowDepthIncluded)required.push('snowDepthMean','snowCoverDaysExpected');
- return summary.wetDayBasis==='climatology-ge1mm'&&summary.days>0&&required.every(field=>{
-  const row=summary.coverage?.[field];
-  return row?.total===summary.days&&row.valid===row.total&&Number.isFinite(summary[field as keyof TravelSummary]);
+ return travelSummaryCoverageValid(summary,snowDepthIncluded)&&travelSummaryFields(snowDepthIncluded).every(field=>{
+  const row=summary.coverage![field];
+  return row.valid===row.total&&Number.isFinite(summary[field as keyof TravelSummary]);
  });
 }
 
