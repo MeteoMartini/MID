@@ -3,6 +3,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {managedFiles,syncGithubConfiguration} from './sync-github-workflows.mjs';
+import {classifyRucSourceChanges,RESTORE_ONLY,NATIVE_ADMISSION_SURFACES} from '../tools/ci/ruc-source-admission-classifier.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const pkg=JSON.parse(await readFile(path.join(root,'package.json'),'utf8'));
@@ -31,20 +32,46 @@ function rucNativeAdmissionContractValid(text){
  const start=text.indexOf('\n  ruc_native_source_detection:');
  const full=text.indexOf('\n  ruc_native_full_admission:');
  const final=text.indexOf('\n  validate_source:');
- if(start<0||full<=start||final<=full)return false;
- const detector=text.slice(start,full);
+ const source=text.indexOf('\n  source_core:');
+ const matrix=text.indexOf('\n  core_regressions:');
+ if(start<0||full<=start||final<=full||source<0||matrix<=source)return false;
+ const detector=text.slice(start,full),core=text.slice(source,matrix);
  const job=text.slice(full,text.indexOf('\n  ruc27_qualification:',full));
  const gate=text.slice(final);
- return detector.includes("outputs:")&&detector.includes("enabled: ${{ steps.changed.outputs.enabled }}")&&
-   detector.includes("HEAD^2")&&detector.includes("tools/ruc/")&&
-   detector.includes("ci/github/workflows/chatgpt-pr-gate.yml")&&
-   job.includes("needs: [ruc_native_source_detection]")&&
+ const classifierCall='node tools/ci/ruc-source-admission-classifier.mjs';
+ const requiredSurfaces=[
+   'scripts/verify-ruc-composites.mjs',
+   'scripts/test-github-workflow-bootstrap-08263.mjs',
+   'src/rucSynopticFields.ts','src/nativeSynopticFields.ts','src/cloudWeatherData.ts',
+   'ci/github/workflows/chatgpt-pr-gate.yml','.github/workflows/chatgpt-pr-gate.yml',
+   'tools/ci/ruc-source-admission-classifier.mjs',
+   'tools/ci/test-ruc-source-admission-classifier.mjs',
+   'tests/unit/mid-ruc-source-admission-classifier.test.ts',
+ ];
+ const restore=['tools/ruc/restore_ruc_pages_snapshot.py','tools/ruc/test_restore_ruc_pages_snapshot.py'];
+ const exactRestore=RESTORE_ONLY.size===2&&restore.every(p=>RESTORE_ONLY.has(p));
+ const exactSurfaces=NATIVE_ADMISSION_SURFACES.size===requiredSurfaces.length&&requiredSurfaces.every(p=>NATIVE_ADMISSION_SURFACES.has(p));
+ // Guard the actual function's semantics; text-searching old inline diff
+ // commands would wrongly reject a centralized, identical fail-closed guard.
+ const check=(paths,enabled)=>classifyRucSourceChanges(paths).enabled===enabled;
+ const behaviour=exactRestore&&exactSurfaces&&
+   check(restore,false)&&check(['docs/only.md'],false)&&
+   check(['tools/ruc/new_native_path.py'],true)&&
+   check([restore[0],'tools/ruc/check_ruc_schedule_guard.py'],true)&&
+   check([restore[0],requiredSurfaces[0]],true)&&
+   requiredSurfaces.every(p=>check([restore[0],p],true));
+ return behaviour&&
+   detector.includes('outputs:')&&detector.includes('enabled: ${{ steps.changed.outputs.enabled }}')&&
+   detector.includes('HEAD^2')&&detector.includes(classifierCall)&&
+   core.includes(classifierCall)&&core.includes('python tools/ruc/test_restore_ruc_pages_snapshot.py')&&
+   core.includes('node --test tools/ci/test-ruc-source-admission-classifier.mjs')&&
+   job.includes('needs: [ruc_native_source_detection]')&&
    job.includes("if: needs.ruc_native_source_detection.outputs.enabled == 'true'")&&
-   job.includes("timeout-minutes: 35")&&
-   job.includes("--runs 3 --candidate-count 6 --admission")&&
-   job.includes("node scripts/verify-ruc-composites.mjs ruc-original-admission-evidence")&&
-   gate.includes("- ruc_native_source_detection")&&gate.includes("- ruc_native_full_admission")&&
-   gate.includes("RUC_NATIVE_ADMISSION_REQUIRED")&&
+   job.includes('timeout-minutes: 35')&&
+   job.includes('--runs 3 --candidate-count 6 --admission')&&
+   job.includes('node scripts/verify-ruc-composites.mjs ruc-original-admission-evidence')&&
+   gate.includes('- ruc_native_source_detection')&&gate.includes('- ruc_native_full_admission')&&
+   gate.includes('RUC_NATIVE_ADMISSION_REQUIRED')&&
    gate.includes('if [ "$RUC_NATIVE_ADMISSION_RESULT" != success ]')&&
    gate.includes('if [ "$RUC_NATIVE_DETECTION_RESULT" != success ]');
 }
