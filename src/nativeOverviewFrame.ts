@@ -83,6 +83,26 @@ export function nativeOverviewCell(frame:NativeOverviewFrame,i:number){
   intervalStart:frame.intervalStart,time:frame.time,run:frame.run,model:frame.model};
 }
 
+/** Bounded per-render memo of canonical precipitation RGB values. Integer raw
+ * values below 1024 are cached without rounding; every other value follows
+ * the exact canonical palette. 0 = empty, 1 = transparent, RGB + 2 otherwise.
+ * At most 4 KiB scratch, no cross-frame retention and no meteorological mutation.
+ */
+export function createOverviewRainColorLookup(cellCount:number,colorAt:(raw:number)=>string){
+ const cache=new Uint32Array(Math.min(1024,cellCount));
+ return (raw:number)=>{
+  const cacheable=Number.isInteger(raw)&&raw>=0&&raw<cache.length;
+  if(cacheable){
+   const hit=cache[raw];
+   if(hit!==0)return hit-2;
+  }
+  const color=colorAt(raw);
+  const rgb=color==='transparent'?-1:parseInt(color.slice(1),16);
+  if(cacheable)cache[raw]=rgb+2;
+  return rgb;
+ };
+}
+
 /** A single canvas for neutral cloud and quantitative hourly precipitation.
  * Pressure/temperature/WW remain separate original vector/label consumers.
  * No per-cell object or additional grid allocation in the raster loop.
@@ -94,17 +114,17 @@ export function nativeOverviewRaster(frame:NativeOverviewFrame){
  const image=ctx.createImageData(frame.width,frame.height);
  const north=mercatorY(frame.cloud.lats[frame.height-1]),south=mercatorY(frame.cloud.lats[0]);
  const step=frame.cloud.lats[1]-frame.cloud.lats[0],scale=nativeMapScale(frame.precipitation,'absolute');
+ const rainColor=createOverviewRainColorLookup(frame.width*frame.height,raw=>mapColorAt(scale,raw*frame.precipitation.scale));
  for(let y=0;y<frame.height;y++){
   const lat=(2*Math.atan(Math.exp(north-(y+.5)/frame.height*(north-south)))-Math.PI/2)*180/Math.PI;
   const row=Math.min(frame.height-1,Math.max(0,Math.round((lat-frame.cloud.lats[0])/step)));
   for(let x=0;x<frame.width;x++){
    const i=row*frame.width+x,p=(y*frame.width+x)*4;
    if(!nativeOverviewCellValid(frame,i))continue;
-   const rain=frame.precipitation.values[i]*frame.precipitation.scale;
-   const color=mapColorAt(scale,rain);
-   if(color!=='transparent'){
-    image.data[p]=parseInt(color.slice(1,3),16);image.data[p+1]=parseInt(color.slice(3,5),16);
-    image.data[p+2]=parseInt(color.slice(5,7),16);image.data[p+3]=215;
+   const rgb=rainColor(frame.precipitation.values[i]);
+   if(rgb!==-1){
+    image.data[p]=(rgb>>>16)&255;image.data[p+1]=(rgb>>>8)&255;
+    image.data[p+2]=rgb&255;image.data[p+3]=215;
    }else{
     const cloud=frame.cloud.values[i]*frame.cloud.scale;
     image.data[p]=image.data[p+1]=image.data[p+2]=142;

@@ -5,8 +5,9 @@ vi.mock('../../src/nativeModelFields',async(importOriginal)=>{
  const actual=await importOriginal<typeof import('../../src/nativeModelFields')>();
  return {...actual,nativeVerifiedFrameIdentity:(field:object)=>evidence.get(field)};
 });
-import {nativeFrameIdentity} from '../../src/nativeModelFields';
-import {nativeOverviewPlan,prepareNativeOverview,nativeOverviewCell,nativeOverviewRaster} from '../../src/nativeOverviewFrame';
+import {nativeFrameIdentity,nativeMapScale} from '../../src/nativeModelFields';
+import {mapColorAt} from '../../src/modelMapColorScale';
+import {nativeOverviewPlan,prepareNativeOverview,nativeOverviewCell,nativeOverviewRaster,createOverviewRainColorLookup} from '../../src/nativeOverviewFrame';
 import {dwdSnowIntervalSwe,geometricSnowDepthCm,type SnowSourceField} from '../../src/nativeSnowMapValues';
 import {overviewEndpointWeather,nativeOverviewAt,overviewPressureFeatures,overviewPlaceFeatures,createNativeOverviewPresentation} from '../../src/nativeOverviewPresentation';
 import {nativeOverviewSvg} from '../../src/nativeOverviewExport';
@@ -160,5 +161,27 @@ describe('Overview shared temporal scene and export',()=>{
    expect(svg).not.toContain('A & Tal');
    expect(()=>nativeOverviewSvg({...b,mapFrame:{...b.mapFrame,raster:undefined}},places)).toThrow('Raster fehlt');
   }finally{vi.unstubAllGlobals()}
+ });
+});
+
+
+describe('Overview bounded exact RGB lookup',()=>{
+ it('matches the canonical absolute palette for all admitted integer tenths of mm and fallback values',()=>{
+  const {fields}=fixture(),scale=nativeMapScale(fields[1],'absolute');
+  const exact=(raw:number)=>mapColorAt(scale,raw*fields[1].scale);
+  const color=vi.fn(exact),lookup=createOverviewRainColorLookup(4000000,color);
+  const expected=(raw:number)=>{const hex=exact(raw);return hex==='transparent'?-1:parseInt(hex.slice(1),16)};
+  for(let raw=0;raw<=65000;raw++)if(lookup(raw)!==expected(raw))throw Error('RGB mismatch at raw '+raw);
+  for(const raw of [NaN,Infinity,-Infinity,-1,0,.5,1.000000001,1023,1024,65000])expect(lookup(raw)).toBe(expected(raw));
+  color.mockClear();for(let i=0;i<1000;i++)for(const raw of [0,1,17,100,999,1023])if(lookup(raw)!==expected(raw))throw Error('Cached RGB mismatch at raw '+raw);
+  expect(color).not.toHaveBeenCalled();
+  lookup(1024);lookup(1024);expect(color).toHaveBeenCalledTimes(2);
+ });
+ it('keeps transparent and black distinct and never reuses a previous render palette',()=>{
+  const black=vi.fn(()=> '#000000'),transparent=vi.fn(()=> 'transparent');
+  const a=createOverviewRainColorLookup(4,black),b=createOverviewRainColorLookup(4,transparent);
+  expect([a(0),a(0),b(0),b(0)]).toEqual([0,0,-1,-1]);
+  expect(black).toHaveBeenCalledTimes(1);expect(transparent).toHaveBeenCalledTimes(1);
+  a(4);a(4);expect(black).toHaveBeenCalledTimes(3);
  });
 });
